@@ -34,46 +34,70 @@ src/
   server/                      → ServerScriptService
     Main.server.luau           bootstrap: requires and starts services in order
     Packages/ProfileStore.luau
-    Data/PlayerData.luau       load/save profiles, template, migrations
-    Farm/FarmService.luau      plots, tiles, plant/harvest, growth timers
-    Farm/PlotAssigner.luau     gives each joining player a free plot
-    Economy/EconomyService.luau cash in/out, selling, shop
-    Law/SusService.luau        Sus value, decay, thresholds
+    Data/PlayerData.luau       load/save profiles, template, migrations, onLoaded/onBeforeRelease
+    World/Village.luau         greybox village, NPCs, prompt tags, positions, handler hooks
+    World/NpcFactory.luau      caricature NPC models (say / lookAt / walkTo / teleport)
+    World/Props.luau           part, prompt and billboard builders
+    World/WarungService.luau   Nongkrong flavor lines (VIP line with the Warung pass)
+    Farm/PlotService.luau      builds plots, assigns one per player, owns tile parts
+    Farm/FarmService.luau      tiles, minigame handshake, growth, tile buying, cheats on growth
+    Economy/EconomyService.luau cash in/out, shop, selling (Pasar / Tengkulak Gelap)
+    Progression/RankService.luau   ranks + Nama Baik (daily caps)
+    Progression/NeighborService.luau  gotong royong / watering neighbours
+    Law/SusService.luau        Sus value, decay, gossip, raid rolls
     Law/CheatService.luau      applies cheats, logs evidence events
-    Law/RaidService.luau       raid state machine, NPC police
+    Law/RaidService.luau       raid state machine, police NPCs, jail
     Law/EvidenceService.luau   bukti tokens, Lapor, VIRAL
-    Law/BribeService.luau      Pak RT + raid amplop
-    Progression/RankService.luau ranks, Nama Baik
-    Monetization/Passes.luau   pass ID → benefit registry
+    Law/BribeService.luau      Pak RT uang rokok
+    Monetization/Passes.luau   pass ID → attribute registry
     Monetization/Receipts.luau ProcessReceipt (the ONLY place dev products are granted)
+    Monetization/Items.luau    Item_Use (amplop premium, jaminan kilat)
+    Monetization/Cosmetics.luau cash cosmetics + server-side visual parts
+    Analytics/Analytics.luau   pcall-wrapped custom events
     Net/RateLimit.luau         per-player, per-remote limiter
+    Net/Notify.luau            localized toast helper used by every service
   client/                      → StarterPlayerScripts
     Main.client.luau
-    UI/Hud.luau
-    UI/Phone.luau              bukti, lapor, inventory
-    UI/RaidOverlay.luau
-    Minigames/Mencangkul.luau  timing bar
-    Minigames/Babat.luau       hold-release
+    UI/Theme.luau              shared UI kit + global toasts
+    UI/Hud.luau                cash/rank/sack/Sus/Nama Baik, seed bar, seed shop
+    UI/Tiles.luau              prompt localization, countdown/hot labels
+    UI/Phone.luau              inventory, bukti + Lapor, cheats, decor
+    UI/Evidence.luau           "📱 Rekam?" offers and the token list
+    UI/Minigame.luau           overlay that hosts the minigames
+    UI/RaidOverlay.luau        BREAKING NEWS raid + Pos Ronda countdown
+    Minigames/Mencangkul.luau  timing bar (planting)
+    Minigames/Babat.luau       hold-release (harvesting)
   shared/                      → ReplicatedStorage
     Config/Crops.luau
     Config/Cheats.luau
-    Config/Law.luau            Sus thresholds, fines, bribe prices
-    Config/Products.luau       pass and product IDs
+    Config/Game.luau           tiles, prices, ranks, minigame timings
+    Config/Law.luau            Sus thresholds, fines, bribe prices, evidence tuning
+    Config/Products.luau       pass and product IDs (0 = not configured)
+    Config/Cosmetics.luau      cosmetic prices/kinds
     Strings.luau               { key = { id = "...", en = "..." } }
     Remotes.luau               creates and returns all RemoteEvents by name
 ```
 
-> **Current state (week 1):** plot building and assignment live in `Farm/PlotService.luau` (it replaces the planned `PlotAssigner`). Ranks are handled inside `EconomyService` until RankService is needed. Tiles and the Pasar prompt are tagged `Tile` / `PasarPrompt` (CollectionService) so the client works with streaming.
+> **Current state:** weeks 1–5 of the plan are built: farming + minigames, tile buying, ranks,
+> the law loop (Sus → raid → denda/amplop/jail), Lapor + VIRAL, phone, passes/receipts/items
+> and the cash cosmetics shop. Everything is still greybox parts, and audio is not wired yet
+> (no asset IDs). Tile and NPC/stand prompts are tagged with CollectionService (`Tile`,
+> `PasarPrompt`, `GelapPrompt`, `PakRTPrompt`, `PolisiPrompt`, `WarungPrompt`) so the client
+> keeps working with streaming.
 
-`Main.server.luau` starts the services one by one, in this order: Data → Economy → Farm → Sus → Cheat → Evidence → Raid → Bribe → Rank → Receipts. Modules don't do heavy work or yield when they are required.
+`Main.server.luau` starts things in this order: `Village.build` → `PlotService.build` →
+`RaidService.bindSus`/`init` → Economy → Farm → Rank → Sus → Cheat → Evidence → Bribe →
+Neighbor → Warung → Passes → Receipts → Items → Cosmetics → `PlayerData.start()` (last, because
+it fires the `onLoaded` callbacks registered above). Modules don't do heavy work or yield when
+they are required.
 
 ## 4. Player data
 
-### 4.1 Template (schema v1)
+### 4.1 Template (schema v2)
 
 ```luau
 local TEMPLATE = {
-    version = 1,
+    version = 2,
     cash = 50,
     lifetimeEarned = 0,
     tilesOwned = 6,
@@ -81,7 +105,8 @@ local TEMPLATE = {
                          -- Never use number keys with gaps (tiles 1, 3, 7): sparse arrays don't save reliably.
                          -- Empty tile = key absent. Convert with `"t" .. index`.
     seeds = { padi = 5 },
-    harvest = {},        -- [cropId] = { count = 0, qualitySum = 0, hotCount = 0 }
+    harvest = {},        -- [cropId] = { count = 0, qualitySum = 0, hotCount = 0, hotQualitySum = 0 }
+                         -- v2 split hot (oplosan) quality out so Pasar can skip it.
     sus = 0,
     namaBaik = 50,
     rank = "gurem",      -- "gurem" | "petani" | "juragan" | later "kades"
@@ -105,11 +130,18 @@ Rules:
 
 ### 4.2 Offline growth
 
-A crop is ready when `os.time() >= plantedAt + growSeconds`. Cheats change `growSeconds` at the moment they are applied. Growth needs no loops on the server. The client shows a countdown, and the server rechecks readiness when the player harvests.
+A crop is ready when `os.time() >= plantedAt + growSeconds`. Oplosan shortens the wait by
+shifting `plantedAt` backwards (40% of the remaining time) and marks the crop `hot`; Curi Air
+shifts the attacker's crops forward and the victim's backwards by 30 s. Growth needs no loops
+on the server — one 1 s loop only flips `growing` tiles to `ready` so the visuals update. The
+client shows a countdown, and the server rechecks readiness when the player harvests.
 
 ## 5. Remotes (the whole API)
 
-> **Current state (week 1):** planting, harvesting, tile buying and selling go through server-side `ProximityPrompt.Triggered` (no remote). The only remotes are `Farm_SelectSeed(cropId)`, `Shop_BuySeed(cropId, amount)` and `Notify`. `Farm_Begin`/`Farm_Complete`/`Farm_Auto` arrive with the minigames in week 2. The source of truth is `src/shared/Remotes.luau`.
+> **Current state:** tile prompts and the stall/NPC prompts are the entry points, so they call the
+> owning service directly on the server (no remote). Remotes are only used where the client has
+> to *answer* something: the minigame score, a raid choice, a phone action. The source of truth
+> is always `src/shared/Remotes.luau`.
 
 All remotes are `RemoteEvent`s. Every handler must:
 
@@ -124,28 +156,41 @@ All remotes are `RemoteEvent`s. Every handler must:
 
 | Remote | Args | Server checks | Rate |
 |---|---|---|---|
-| `Farm_Begin` | `tile:int, action:"plant"\|"harvest", cropId:string?` | Own tile; tile empty (plant) or ready (harvest); has the seed; within 15 studs. Stores `pending = {tile, action, crop, t0 = os.clock()}` | 4/s |
-| `Farm_Complete` | `score:number` | A pending action exists; elapsed time is between 1.5 s and 30 s; `score` is clamped to 0–1, then `quality = 0.8 + 0.5*score` | 4/s |
-| `Farm_Auto` | `tile:int, action, cropId?` | Same checks as `Farm_Begin`; quality 0.9 | 4/s |
-| `Cheat_Apply` | `cheatId:string, tile:int?, targetPlayer:Player?` | Valid cheat; can afford; own tile; `curi_air` target is a neighbor without an active steal | 1/s |
-| `Market_Sell` | `cropId:string\|"all", channel:"pasar"\|"gelap"` | Near the correct NPC; has the harvest | 2/s |
-| `Shop_Buy` | `itemId:string` | Item exists; can afford; rank requirement met | 2/s |
+| `Farm_SelectSeed` | `cropId:string` | Crop exists. Sets `SelectedSeed` attribute | 8/s |
+| `Farm_Complete` | `score:number` | A pending attempt exists; elapsed time is between 0.8 s and 30 s; `score` is clamped to 0–1, then `quality = 0.8 + 0.5*score` | 4/s |
+| `Farm_Auto` | `tile:int, action:"plant"\|"harvest", cropId:string?` | Matches the pending attempt; same checks as the prompt path; quality 0.9 | 2/s |
+| `Shop_BuySeed` | `cropId:string, amount:int` | Crop exists, `1 <= amount <= 50`, rank unlocked, can afford `seedCost * amount` | 4/s |
+| `Market_Sell` | `"all", channel:"pasar"\|"gelap"` | Near the correct stall; sack not empty; Pasar refuses hot produce | 2/s |
+| `Cheat_Apply` | `cheatId:string, tile:int?, targetUserId:int?` | Valid cheat; own tile / neighbouring plot; within range; can afford; per-victim cooldown | 1/s |
 | `Bribe_RT` | — | Near Pak RT; cooldown elapsed; can afford the escalating price | 1/s |
-| `Raid_Choose` | `choice:"denda"\|"amplop"` | Player has an active raid; amplop is not allowed when VIRAL | 1/s |
-| `Evidence_Record` | `eventId:string` | The player was offered this event; it's not already recorded | 2/s |
-| `Evidence_Report` | `tokenId:string` | Token is the player's own and not expired; player is near the Pos Polisi | 1/s |
-| `Item_Use` | `item:"amplopPremium"\|"jaminanKilat"` | Has the item; guardrails from GDD §9.2 | 1/s |
+| `Raid_Choose` | `choice:"denda"\|"amplop"` | Player is in `choosing`; amplop is refused when VIRAL | 2/s |
+| `Evidence_Record` | `eventId:string` | The event was offered to this player and has not expired | 2/s |
+| `Evidence_Report` | `tokenId:string` | Token is the player's own, not expired, player is near the Pos Polisi, reporter cooldown | 1/s |
+| `Item_Use` | `item:"amplopPremium"\|"jaminanKilat"` | Has the item; cooldown / not mid-raid / actually in jail | 1/s |
+| `Cosmetic_Buy` | `itemId:string` | Item exists, not owned, can afford | 2/s |
+| `Cosmetic_Equip` | `itemId:string?` | Owns the item (`nil`/`""` unequips) | 4/s |
+| `Water_Neighbor` | `targetUserId:int` | Online, neighbouring plot, within 40 studs, daily Nama Baik cap | 1/s |
 
 ### Server → client
 
 | Remote | Payload |
 |---|---|
 | `Notify` | `key:string, params:{}?`, a string key the client looks up in the localized string table |
+| `Minigame_Start` | `action:"plant"\|"harvest", tile:int, cropId:string` |
+| `Minigame_Cancel` | `tile:int` |
 | `Evidence_Offer` | `eventId, cheaterName, cheatId, expiresAt` |
-| `Raid_Start` / `Raid_End` | `isViral:boolean` / `outcome` |
-| `Minigame_Start` | `action, tile`, sent after `Farm_Begin` succeeds |
+| `Evidence_Token` | `tokenId, cheatId, expiresAt` |
+| `Evidence_Remove` | `tokenId` |
+| `Raid_Start` | `{ phase = "incoming"\|"choosing", isViral, fine, amplop, timeout? }` |
+| `Raid_End` | `outcome: "denda"\|"amplop"\|"amplop_fail"\|"jail"` |
+| `Jail_State` | `secondsLeft` (0 = released) |
 
-**Replicated values** (simpler than a sync system): the server sets player attributes `Cash`, `Sus`, `NamaBaik`, `Rank` and `InRaid`, and the HUD listens with `GetAttributeChangedSignal`. Tile state lives in the tiles' attributes on the plot model in Workspace.
+**Replicated values** (simpler than a sync system): the server sets player attributes
+`Cash`, `LifetimeEarned`, `TilesOwned`, `HarvestCount`, `Seed_<crop>`, `SelectedSeed`, `Rank`,
+`Sus`, `NamaBaik`, `InRaid`, `InJail`, `BribePrice`, `BribeCooldown`, `Item_<item>`,
+`Cosmetic_<id>`, `EquippedCosmetic`, `PlotIndex`, `Pass_<pass>`. The HUD/phone listen with
+`GetAttributeChangedSignal`. Tile state lives in the tiles' attributes on the plot model in
+Workspace (`State`, `Crop`, `ReadyAt`, `Price`, `Hot`).
 
 ### Why minigame scores are safe enough
 
@@ -162,7 +207,9 @@ An exploiter can always send `score = 1`. The worst case is quality 1.3 instead 
 - Confiscates `hot` crops from tiles and harvest when a raid starts.
 - If the player leaves mid-raid, it auto-resolves as **denda** (the fine). That stops logging out to dodge a raid.
 - **Order matters:** the fine must be applied *before* PlayerData ends the profile session. PlayerData's `PlayerRemoving` handler calls `RaidService.resolveOnLeave(player)` first, then `profile:EndSession()`. Don't give RaidService its own `PlayerRemoving` connection, because the two handlers would race.
-- NPC police are server-owned models. Move them with `Humanoid:MoveTo`, or teleport them if pathfinding fails. Keep it simple.
+- NPC police are server-owned blocky models (`World/NpcFactory.luau`) with no Humanoid; they are
+  moved with `Model:PivotTo` in a short walk loop and teleported back to `npc.homeCFrame`
+  afterwards. Keep it simple — pathfinding is not worth it for two villagers.
 
 ### EvidenceService
 - `logCheat(cheater, cheatId, value, position)` creates `eventId` (GUID) and offers it to players within 40 studs (the victim always gets it).
@@ -242,6 +289,12 @@ end
 | 5 | Art pass (NPCs, village, raid overlay, sounds), Passes + Receipts + Item_Use, Babat minigame | Test purchases grant once; raid scene is funny |
 | 6 | Balance, EN strings, maturity questionnaire, friends playtest, bug fixes, publish (private → public) | 3+ friends play 20 min without help |
 
+> **Where we are:** weeks 1–5 are built in greybox (farming + minigames, all four crops, tile
+> buying, ranks, the Sus/raid/Lapor loop, phone, passes/receipts/items, cash cosmetics, Babat).
+> Skipped on purpose for now: audio (no asset IDs), the Harga Cabai event, the Kepala Desa
+> election, hush money and the buruh NPC. That leaves week 6: balance numbers, EN review, the
+> maturity questionnaire, real art/monetization IDs and a friends playtest.
+
 **Cut line, in order, if behind at the end of week 3:**
 1. Babat minigame (harvest = hold button)
 2. Curi Air cheat
@@ -268,7 +321,7 @@ end
 Good prompts to use as you go:
 - "Set up Rojo and the folder structure from docs/TECH.md §3"
 - "Implement PlayerData.luau with the template in §4.1 using ProfileStore"
-- "Add the Farm_Begin/Farm_Complete remotes with all checks from §5"
+- "Add the minigame handshake (Farm_Complete/Farm_Auto) with all checks from §5"
 - "Review my remotes against TECH.md §5 for exploits"
 
 Keep these docs up to date when design changes, so every future session starts from the same plan.

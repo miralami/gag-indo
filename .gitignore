@@ -4,3 +4,4 @@
 *.rbxlx.lock
 sourcemap.json
 globalTypes.d.luau
+.luau/

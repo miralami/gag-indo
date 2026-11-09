@@ -1,67 +1,28 @@
--- HUD: cash / rank / sack, seed bar, seed shop and toast notifications.
+-- HUD: cash / rank / sack / Sus / Nama Baik, the seed bar and the seed shop.
 -- Reads player attributes set by the server; sends only requests (select seed, buy seeds).
 
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Crops = require(Shared.Config.Crops)
 local GameConfig = require(Shared.Config.Game)
 local Strings = require(Shared.Strings)
 local Remotes = require(Shared.Remotes)
 
-local player = Players.LocalPlayer
+local Theme = require(script.Parent.Theme)
 
-local FONT = Enum.Font.FredokaOne
-local PANEL = Color3.fromRGB(35, 30, 25)
-local ACCENT = Color3.fromRGB(240, 180, 40)
-local TEXT = Color3.fromRGB(255, 248, 230)
-local MUTED = Color3.fromRGB(150, 140, 130)
+local player = Players.LocalPlayer
 
 local Hud = {}
 
-local function new(className: string, props: { [string]: any }, children: { Instance }?): any
-	local inst = Instance.new(className)
-	for k, v in props do
-		if k ~= "Parent" then
-			(inst :: any)[k] = v
-		end
+local function susColor(sus: number): Color3
+	if sus >= 80 then
+		return Theme.red
+	elseif sus >= 60 then
+		return Color3.fromRGB(230, 120, 40)
+	elseif sus >= 30 then
+		return Theme.accent
 	end
-	if children then
-		for _, child in children do
-			child.Parent = inst
-		end
-	end
-	if props.Parent then
-		inst.Parent = props.Parent
-	end
-	return inst
-end
-
-local function corner(radius: number): UICorner
-	return new("UICorner", { CornerRadius = UDim.new(0, radius) })
-end
-
-local function label(props: { [string]: any }): TextLabel
-	props.BackgroundTransparency = props.BackgroundTransparency or 1
-	props.Font = FONT
-	props.TextColor3 = props.TextColor3 or TEXT
-	props.TextScaled = true
-	return new("TextLabel", props)
-end
-
-local function button(props: { [string]: any }): TextButton
-	props.Font = FONT
-	props.TextColor3 = props.TextColor3 or TEXT
-	props.TextScaled = true
-	props.AutoButtonColor = true
-	props.BackgroundColor3 = props.BackgroundColor3 or Color3.fromRGB(70, 60, 50)
-	local b = new("TextButton", props, { corner(10), new("UIPadding", {
-		PaddingLeft = UDim.new(0, 6),
-		PaddingRight = UDim.new(0, 6),
-		PaddingTop = UDim.new(0, 4),
-		PaddingBottom = UDim.new(0, 4),
-	}) })
-	return b
+	return Theme.green
 end
 
 function Hud.mount(lang: string)
@@ -69,53 +30,101 @@ function Hud.mount(lang: string)
 		return Strings.get(lang, key, ...)
 	end
 
-	local gui = new("ScreenGui", {
-		Name = "Hud",
-		ResetOnSpawn = false,
-		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-		Parent = player:WaitForChild("PlayerGui"),
-	})
+	local gui = Theme.screenGui("Hud", 10)
 
 	---------------------------------------------------------------- stats (top-left)
-	local stats = new("Frame", {
+	local stats = Theme.card({
 		Name = "Stats",
-		Position = UDim2.new(0, 12, 0, 12),
-		Size = UDim2.new(0.28, 0, 0.16, 0),
-		BackgroundColor3 = PANEL,
-		BackgroundTransparency = 0.15,
+		Position = UDim2.new(0, 10, 0, 10),
+		Size = UDim2.new(0.34, 0, 0.2, 0),
+		BackgroundTransparency = 0.12,
 		Parent = gui,
 	}, {
-		corner(12),
-		new("UISizeConstraint", { MinSize = Vector2.new(170, 80), MaxSize = Vector2.new(300, 130) }),
-		new("UIPadding", {
-			PaddingLeft = UDim.new(0, 10),
-			PaddingRight = UDim.new(0, 10),
-			PaddingTop = UDim.new(0, 6),
-			PaddingBottom = UDim.new(0, 6),
-		}),
-		new("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 2) }),
+		Theme.new("UISizeConstraint", { MinSize = Vector2.new(190, 96), MaxSize = Vector2.new(330, 150) }),
 	})
-	local cashLabel = label({ LayoutOrder = 1, Size = UDim2.fromScale(1, 0.42), TextColor3 = ACCENT, TextXAlignment = Enum.TextXAlignment.Left, Parent = stats })
-	local rankLabel = label({ LayoutOrder = 2, Size = UDim2.fromScale(1, 0.28), TextXAlignment = Enum.TextXAlignment.Left, Parent = stats })
-	local sackLabel = label({ LayoutOrder = 3, Size = UDim2.fromScale(1, 0.24), TextColor3 = MUTED, TextXAlignment = Enum.TextXAlignment.Left, Parent = stats })
+
+	-- Theme.card already created the frame; add padding to it explicitly.
+	local padding = Instance.new("UIPadding")
+	padding.PaddingLeft = UDim.new(0, 10)
+	padding.PaddingRight = UDim.new(0, 10)
+	padding.PaddingTop = UDim.new(0, 6)
+	padding.PaddingBottom = UDim.new(0, 6)
+	padding.Parent = stats
+	Theme.new("UIListLayout", {
+		SortOrder = Enum.SortOrder.LayoutOrder,
+		Padding = UDim.new(0, 2),
+		Parent = stats,
+	})
+
+	local cashLabel = Theme.label({
+		LayoutOrder = 1,
+		Size = UDim2.fromScale(1, 0.36),
+		TextColor3 = Theme.accent,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Parent = stats,
+	})
+	local rankLabel = Theme.label({
+		LayoutOrder = 2,
+		Size = UDim2.fromScale(1, 0.2),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Parent = stats,
+	})
+	local sackLabel = Theme.label({
+		LayoutOrder = 3,
+		Size = UDim2.fromScale(1, 0.18),
+		TextColor3 = Theme.muted,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Parent = stats,
+	})
+
+	local chips = Theme.new("Frame", {
+		LayoutOrder = 4,
+		Size = UDim2.fromScale(1, 0.26),
+		BackgroundTransparency = 1,
+		Parent = stats,
+	}, {
+		Theme.new("UIListLayout", {
+			FillDirection = Enum.FillDirection.Horizontal,
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Padding = UDim.new(0, 8),
+		}),
+	})
+
+	local susLabel = Theme.label({
+		LayoutOrder = 1,
+		Size = UDim2.fromScale(0.45, 1),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Parent = chips,
+	})
+	local namaBaikLabel = Theme.label({
+		LayoutOrder = 2,
+		Size = UDim2.fromScale(0.45, 1),
+		TextColor3 = Color3.fromRGB(120, 210, 240),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Parent = chips,
+	})
 
 	local function refreshStats()
 		cashLabel.Text = "Rp " .. Strings.formatNumber(player:GetAttribute("Cash") or 0, lang)
 		rankLabel.Text = t("hud_rank", "@rank_" .. (player:GetAttribute("Rank") or "gurem"))
 		sackLabel.Text = t("hud_harvest_bag", player:GetAttribute("HarvestCount") or 0)
+		local sus = player:GetAttribute("Sus") or 0
+		susLabel.Text = t("hud_sus", sus)
+		susLabel.TextColor3 = susColor(sus)
+		namaBaikLabel.Text = t("hud_namabaik", player:GetAttribute("NamaBaik") or 50)
 	end
 
 	---------------------------------------------------------------- seed bar (bottom)
-	local seedBar = new("Frame", {
+	local seedBar = Theme.new("Frame", {
 		Name = "SeedBar",
 		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 1, -16),
-		Size = UDim2.new(0.7, 0, 0.11, 0),
+		Position = UDim2.new(0.5, 0, 1, -12),
+		Size = UDim2.new(0.72, 0, 0.1, 0),
 		BackgroundTransparency = 1,
 		Parent = gui,
 	}, {
-		new("UISizeConstraint", { MinSize = Vector2.new(320, 54), MaxSize = Vector2.new(640, 80) }),
-		new("UIListLayout", {
+		Theme.new("UISizeConstraint", { MinSize = Vector2.new(320, 52), MaxSize = Vector2.new(640, 76) }),
+		Theme.new("UIListLayout", {
 			FillDirection = Enum.FillDirection.Horizontal,
 			HorizontalAlignment = Enum.HorizontalAlignment.Center,
 			Padding = UDim.new(0.02, 0),
@@ -125,17 +134,24 @@ function Hud.mount(lang: string)
 
 	local seedButtons: { [string]: TextButton } = {}
 	for i, cropId in Crops.order do
-		local b = button({
+		local button = Theme.button({
 			Name = cropId,
 			LayoutOrder = i,
 			Size = UDim2.fromScale(0.23, 1),
 			Parent = seedBar,
 		})
-		new("UIStroke", { Name = "Selected", Color = ACCENT, Thickness = 3, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Enabled = false, Parent = b })
-		b.Activated:Connect(function()
+		Theme.new("UIStroke", {
+			Name = "Selected",
+			Color = Theme.accent,
+			Thickness = 3,
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Enabled = false,
+			Parent = button,
+		})
+		button.Activated:Connect(function()
 			Remotes.Farm_SelectSeed:FireServer(cropId)
 		end)
-		seedButtons[cropId] = b
+		seedButtons[cropId] = button
 	end
 
 	local function hasRank(rank: string): boolean
@@ -145,57 +161,95 @@ function Hud.mount(lang: string)
 
 	local function refreshSeeds()
 		local selected = player:GetAttribute("SelectedSeed")
-		for cropId, b in seedButtons do
+		for cropId, button in seedButtons do
 			local crop = Crops.list[cropId]
 			local unlocked = hasRank(crop.rank)
-			b.Text = if unlocked
+			button.Text = if unlocked
 				then t("hud_seed_count", "@crop_" .. cropId, player:GetAttribute("Seed_" .. cropId) or 0)
 				else t("hud_locked", "@crop_" .. cropId)
-			b.TextColor3 = if unlocked then TEXT else MUTED
-			b.BackgroundColor3 = if unlocked then crop.color:Lerp(Color3.new(0, 0, 0), 0.55) else Color3.fromRGB(50, 50, 50);
-			(b:FindFirstChild("Selected") :: UIStroke).Enabled = selected == cropId
+			button.TextColor3 = if unlocked then Theme.text else Theme.muted
+			button.BackgroundColor3 = if unlocked
+				then crop.color:Lerp(Color3.new(0, 0, 0), 0.55)
+				else Color3.fromRGB(50, 50, 50)
+			local stroke = button:FindFirstChild("Selected") :: UIStroke?
+			if stroke then
+				stroke.Enabled = selected == cropId
+			end
 		end
 	end
 
-	---------------------------------------------------------------- shop
-	local shopButton = button({
-		Name = "ShopButton",
+	---------------------------------------------------------------- buttons (top-right)
+	local buttonColumn = Theme.new("Frame", {
+		Name = "Buttons",
 		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -12, 0, 12),
-		Size = UDim2.new(0.16, 0, 0.08, 0),
-		BackgroundColor3 = Color3.fromRGB(40, 120, 60),
-		Text = "🌱 " .. t("hud_shop"),
+		Position = UDim2.new(1, -10, 0, 10),
+		Size = UDim2.new(0.2, 0, 0.16, 0),
+		BackgroundTransparency = 1,
 		Parent = gui,
+	}, {
+		Theme.new("UISizeConstraint", { MinSize = Vector2.new(120, 96), MaxSize = Vector2.new(190, 150) }),
+		Theme.new("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 6) }),
 	})
-	new("UISizeConstraint", { MinSize = Vector2.new(110, 44), MaxSize = Vector2.new(200, 60), Parent = shopButton })
 
-	local shop = new("Frame", {
+	local shopButton = Theme.button({
+		Name = "ShopButton",
+		LayoutOrder = 1,
+		Size = UDim2.fromScale(1, 0.5),
+		BackgroundColor3 = Theme.green,
+		Text = t("hud_shop_button"),
+		Parent = buttonColumn,
+	})
+
+	---------------------------------------------------------------- shop
+	local shop = Theme.card({
 		Name = "Shop",
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromScale(0.6, 0.65),
-		BackgroundColor3 = PANEL,
+		Size = UDim2.fromScale(0.6, 0.62),
 		Visible = false,
 		Parent = gui,
 	}, {
-		corner(16),
-		new("UISizeConstraint", { MinSize = Vector2.new(300, 260), MaxSize = Vector2.new(560, 460) }),
-		new("UIPadding", {
-			PaddingLeft = UDim.new(0, 12),
-			PaddingRight = UDim.new(0, 12),
-			PaddingTop = UDim.new(0, 10),
-			PaddingBottom = UDim.new(0, 10),
-		}),
-		new("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0.02, 0) }),
+		Theme.new("UISizeConstraint", { MinSize = Vector2.new(300, 300), MaxSize = Vector2.new(560, 460) }),
+		Theme.new("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0.015, 0) }),
 	})
-	label({ LayoutOrder = 0, Size = UDim2.fromScale(1, 0.12), Text = t("hud_shop"), TextColor3 = ACCENT, Parent = shop })
+	local shopPadding = Instance.new("UIPadding")
+	shopPadding.PaddingLeft = UDim.new(0, 12)
+	shopPadding.PaddingRight = UDim.new(0, 12)
+	shopPadding.PaddingTop = UDim.new(0, 10)
+	shopPadding.PaddingBottom = UDim.new(0, 10)
+	shopPadding.Parent = shop
+
+	Theme.label({
+		LayoutOrder = 0,
+		Size = UDim2.fromScale(1, 0.11),
+		Text = "🌱 " .. t("hud_shop"),
+		TextColor3 = Theme.accent,
+		Parent = shop,
+	})
 
 	local shopRows: { [string]: { name: TextLabel, buy1: TextButton, buy10: TextButton } } = {}
 	for i, cropId in Crops.order do
-		local row = new("Frame", { LayoutOrder = i, Size = UDim2.fromScale(1, 0.15), BackgroundTransparency = 1, Parent = shop })
-		local name = label({ Size = UDim2.fromScale(0.34, 1), TextXAlignment = Enum.TextXAlignment.Left, Parent = row })
-		local buy1 = button({ Position = UDim2.fromScale(0.36, 0), Size = UDim2.fromScale(0.3, 1), Parent = row })
-		local buy10 = button({ Position = UDim2.fromScale(0.69, 0), Size = UDim2.fromScale(0.31, 1), Parent = row })
+		local row = Theme.new("Frame", {
+			LayoutOrder = i,
+			Size = UDim2.fromScale(1, 0.16),
+			BackgroundTransparency = 1,
+			Parent = shop,
+		})
+		local name = Theme.label({
+			Size = UDim2.fromScale(0.3, 1),
+			TextXAlignment = Enum.TextXAlignment.Left,
+			Parent = row,
+		})
+		local buy1 = Theme.button({
+			Position = UDim2.fromScale(0.31, 0),
+			Size = UDim2.fromScale(0.33, 1),
+			Parent = row,
+		})
+		local buy10 = Theme.button({
+			Position = UDim2.fromScale(0.66, 0),
+			Size = UDim2.fromScale(0.34, 1),
+			Parent = row,
+		})
 		buy1.Activated:Connect(function()
 			Remotes.Shop_BuySeed:FireServer(cropId, 1)
 		end)
@@ -204,7 +258,14 @@ function Hud.mount(lang: string)
 		end)
 		shopRows[cropId] = { name = name, buy1 = buy1, buy10 = buy10 }
 	end
-	local close = button({ LayoutOrder = 99, Size = UDim2.fromScale(1, 0.12), Text = t("hud_close"), BackgroundColor3 = Color3.fromRGB(120, 50, 40), Parent = shop })
+
+	local close = Theme.button({
+		LayoutOrder = 99,
+		Size = UDim2.fromScale(1, 0.11),
+		Text = t("hud_close"),
+		BackgroundColor3 = Theme.red,
+		Parent = shop,
+	})
 	close.Activated:Connect(function()
 		shop.Visible = false
 	end)
@@ -226,65 +287,17 @@ function Hud.mount(lang: string)
 			end
 			row.buy1.Active = unlocked
 			row.buy10.Active = unlocked
+			row.buy1.BackgroundTransparency = if unlocked then 0 else 0.5
+			row.buy10.BackgroundTransparency = if unlocked then 0 else 0.5
 		end
 	end
 
-	---------------------------------------------------------------- toasts
-	local toasts = new("Frame", {
-		Name = "Toasts",
-		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0, 12),
-		Size = UDim2.fromScale(0.5, 0.3),
-		BackgroundTransparency = 1,
-		Parent = gui,
-	}, {
-		new("UIListLayout", {
-			SortOrder = Enum.SortOrder.LayoutOrder,
-			HorizontalAlignment = Enum.HorizontalAlignment.Center,
-			Padding = UDim.new(0, 6),
-		}),
-	})
-	local toastOrder = 0
-
-	local function toast(text: string)
-		toastOrder += 1
-		local item = label({
-			LayoutOrder = toastOrder,
-			Size = UDim2.new(1, 0, 0, 34),
-			BackgroundTransparency = 0.2,
-			BackgroundColor3 = PANEL,
-			Text = text,
-			Parent = toasts,
-		})
-		corner(8).Parent = item
-		new("UIPadding", { PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8), PaddingTop = UDim.new(0, 4), PaddingBottom = UDim.new(0, 4), Parent = item })
-		task.delay(3, function()
-			local tween = TweenService:Create(item, TweenInfo.new(0.4), { TextTransparency = 1, BackgroundTransparency = 1 })
-			tween:Play()
-			tween.Completed:Wait()
-			item:Destroy()
-		end)
-		local all = toasts:GetChildren()
-		local count = 0
-		for _, c in all do
-			if c:IsA("TextLabel") then
-				count += 1
-			end
-		end
-		if count > 4 then
-			for _, c in all do
-				if c:IsA("TextLabel") and c.LayoutOrder <= toastOrder - 4 then
-					c:Destroy()
-				end
-			end
-		end
-	end
-
+	---------------------------------------------------------------- notifications
 	Remotes.Notify.OnClientEvent:Connect(function(key: string, params: { any }?)
 		if type(key) ~= "string" then
 			return
 		end
-		toast(Strings.get(lang, key, table.unpack(params or {})))
+		Theme.toast(Strings.get(lang, key, table.unpack(params or {})))
 	end)
 
 	---------------------------------------------------------------- wiring
@@ -295,6 +308,8 @@ function Hud.mount(lang: string)
 	end
 	player.AttributeChanged:Connect(refreshAll)
 	refreshAll()
+
+	return gui
 end
 
 return Hud

@@ -1,11 +1,13 @@
--- PlotService: builds the greybox village and assigns plots to players.
--- Owns the World folder, plot models and tile parts. Knows nothing about save data.
--- Week 5 art pass: replace these generated parts with real models, keep the attribute names.
+-- PlotService: builds plot models and assigns one plot per player.
+-- Owns the plot models and tile parts. Knows nothing about save data.
+-- Week 5 art pass: replace these generated parts with real models, keep the attributes/tags.
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.Game)
+
+local Props = require(script.Parent.Parent.World.Props)
 
 local TILE_SIZE = 6
 local TILE_GAP = 1.5
@@ -25,91 +27,6 @@ local PlotService = {}
 local plots: { Plot } = {}
 local plotOf: { [Player]: Plot } = {}
 local tilePromptHandler: ((Player, number, number) -> ())? = nil
-local pasarHandler: ((Player) -> ())? = nil
-
-local function part(props: { [string]: any }): Part
-	local p = Instance.new("Part")
-	p.Anchored = true
-	p.TopSurface = Enum.SurfaceType.Smooth
-	p.BottomSurface = Enum.SurfaceType.Smooth
-	for k, v in props do
-		(p :: any)[k] = v
-	end
-	return p
-end
-
-local function makePrompt(parent: Instance, objectText: string, actionText: string): ProximityPrompt
-	local prompt = Instance.new("ProximityPrompt")
-	prompt.ObjectText = objectText
-	prompt.ActionText = actionText
-	prompt.HoldDuration = 0
-	prompt.MaxActivationDistance = 10
-	prompt.RequiresLineOfSight = false
-	prompt.KeyboardKeyCode = Enum.KeyCode.E
-	prompt.Parent = parent
-	return prompt
-end
-
-local function makeBillboard(parent: Instance, height: number, size: Vector2): TextLabel
-	local gui = Instance.new("BillboardGui")
-	gui.Name = "Status"
-	gui.Size = UDim2.fromOffset(size.X, size.Y)
-	gui.StudsOffset = Vector3.new(0, height, 0)
-	gui.MaxDistance = 70
-	gui.Parent = parent
-	local label = Instance.new("TextLabel")
-	label.Name = "Label"
-	label.Size = UDim2.fromScale(1, 1)
-	label.BackgroundTransparency = 1
-	label.TextScaled = true
-	label.Font = Enum.Font.FredokaOne
-	label.TextColor3 = Color3.new(1, 1, 1)
-	label.TextStrokeTransparency = 0.3
-	label.Text = ""
-	label.Parent = gui
-	return label
-end
-
-local function buildPasar(world: Folder)
-	local stall = Instance.new("Model")
-	stall.Name = "Pasar"
-	local counter = part({
-		Name = "Counter",
-		Size = Vector3.new(14, 3, 5),
-		Position = Vector3.new(0, 1.5, 0),
-		Color = Color3.fromRGB(150, 100, 60),
-		Material = Enum.Material.WoodPlanks,
-	})
-	counter.Parent = stall
-	local roof = part({
-		Name = "Roof",
-		Size = Vector3.new(16, 0.6, 8),
-		Position = Vector3.new(0, 8, 0),
-		Color = Color3.fromRGB(30, 110, 170),
-		Material = Enum.Material.Fabric,
-	})
-	roof.Parent = stall
-	for _, x in { -7, 7 } do
-		part({
-			Name = "Pole",
-			Size = Vector3.new(0.6, 8, 0.6),
-			Position = Vector3.new(x, 4, 0),
-			Color = Color3.fromRGB(110, 80, 50),
-		}).Parent = stall
-	end
-	local sign = makeBillboard(roof, 2.5, Vector2.new(220, 50))
-	sign.Text = "PASAR"
-	local prompt = makePrompt(counter, "Pasar", "Jual hasil panen")
-	prompt.Name = "SellPrompt"
-	CollectionService:AddTag(prompt, "PasarPrompt")
-	prompt.Triggered:Connect(function(player)
-		if pasarHandler then
-			pasarHandler(player)
-		end
-	end)
-	stall.PrimaryPart = counter
-	stall.Parent = world
-end
 
 local function buildPlot(world: Folder, index: number): Plot
 	local angle = (index - 1) / GameConfig.plotCount * math.pi * 2
@@ -118,14 +35,14 @@ local function buildPlot(world: Folder, index: number): Plot
 	local cf = CFrame.lookAt(center, Vector3.new(0, 0, 0))
 
 	local cols = GameConfig.tileColumns
-	local rows = math.ceil(GameConfig.maxTiles / cols)
+	local rows = math.ceil(GameConfig.tilesBuilt / cols)
 
 	local model = Instance.new("Model")
 	model.Name = "Plot_" .. index
 	model:SetAttribute("PlotIndex", index)
 	model:SetAttribute("OwnerUserId", 0)
 
-	local base = part({
+	local base = Props.part({
 		Name = "Base",
 		Size = Vector3.new(cols * STEP + 4, 0.4, rows * STEP + 4),
 		CFrame = cf * CFrame.new(0, 0.7, 0),
@@ -136,12 +53,12 @@ local function buildPlot(world: Folder, index: number): Plot
 	model.PrimaryPart = base
 
 	local tiles = {}
-	for i = 1, GameConfig.maxTiles do
+	for i = 1, GameConfig.tilesBuilt do
 		local row = math.floor((i - 1) / cols)
 		local col = (i - 1) % cols
 		local x = (col - (cols - 1) / 2) * STEP
 		local z = (row - (rows - 1) / 2) * STEP
-		local tile = part({
+		local tile = Props.part({
 			Name = "Tile_" .. i,
 			Size = Vector3.new(TILE_SIZE, 0.5, TILE_SIZE),
 			CFrame = cf * CFrame.new(x, 1.1, z),
@@ -152,7 +69,8 @@ local function buildPlot(world: Folder, index: number): Plot
 		tile:SetAttribute("PlotIndex", index)
 		tile:SetAttribute("TileIndex", i)
 		tile:SetAttribute("State", "noowner") -- noowner | locked | buy | empty | growing | ready
-		local prompt = makePrompt(tile, "Petak", "Tanam / Panen")
+		tile:SetAttribute("Hot", false)
+		local prompt = Props.prompt(tile, "Petak", "Tanam / Panen")
 		prompt.Name = "Prompt"
 		CollectionService:AddTag(tile, "Tile") -- client finds tiles by tag (works with streaming)
 		prompt.Enabled = false
@@ -161,13 +79,13 @@ local function buildPlot(world: Folder, index: number): Plot
 				tilePromptHandler(player, index, i)
 			end
 		end)
-		makeBillboard(tile, 4, Vector2.new(140, 40))
+		Props.billboard(tile, 4, Vector2.new(140, 40), { name = "Status", maxDistance = 70 })
 		tile.Parent = model
 		tiles[i] = tile
 	end
 
 	-- Sign on the side facing the village center
-	local signPost = part({
+	local signPost = Props.part({
 		Name = "SignPost",
 		Size = Vector3.new(6, 3, 0.4),
 		CFrame = cf * CFrame.new(0, 3, -(rows * STEP / 2 + 3)),
@@ -175,7 +93,7 @@ local function buildPlot(world: Folder, index: number): Plot
 		Material = Enum.Material.Wood,
 	})
 	signPost.Parent = model
-	local sign = makeBillboard(signPost, 3, Vector2.new(220, 50))
+	local sign = Props.billboard(signPost, 3, Vector2.new(220, 50), { alwaysOnTop = true })
 	sign.Text = "Lahan Kosong"
 
 	model.Parent = world
@@ -191,41 +109,19 @@ local function buildPlot(world: Folder, index: number): Plot
 end
 
 function PlotService.build()
-	local world = Instance.new("Folder")
-	world.Name = "World"
-
-	part({
-		Name = "Ground",
-		Size = Vector3.new(512, 1, 512),
-		Position = Vector3.new(0, 0, 0),
-		Color = Color3.fromRGB(110, 160, 70),
-		Material = Enum.Material.Grass,
-	}).Parent = world
-
-	local spawn = Instance.new("SpawnLocation")
-	spawn.Anchored = true
-	spawn.Size = Vector3.new(8, 1, 8)
-	spawn.Position = Vector3.new(0, 1, 14)
-	spawn.Transparency = 1
-	spawn.CanCollide = false
-	spawn.Neutral = true
-	spawn.Duration = 0
-	spawn.Parent = world
-
-	buildPasar(world)
+	local world = workspace:FindFirstChild("World")
+	if not world then
+		world = Instance.new("Folder")
+		world.Name = "World"
+		world.Parent = workspace
+	end
 	for i = 1, GameConfig.plotCount do
 		plots[i] = buildPlot(world, i)
 	end
-
-	world.Parent = workspace
 end
 
 function PlotService.onTilePrompt(handler: (Player, number, number) -> ())
 	tilePromptHandler = handler
-end
-
-function PlotService.onPasarPrompt(handler: (Player) -> ())
-	pasarHandler = handler
 end
 
 function PlotService.claim(player: Player): Plot?
@@ -262,10 +158,13 @@ function PlotService.release(player: Player)
 		tile:SetAttribute("Crop", nil)
 		tile:SetAttribute("ReadyAt", nil)
 		tile:SetAttribute("Price", nil)
+		tile:SetAttribute("Hot", false)
 		tile.Color = Color3.fromRGB(100, 100, 100)
 		tile.Transparency = 0.6
 		local prompt = tile:FindFirstChild("Prompt") :: ProximityPrompt
-		prompt.Enabled = false
+		if prompt then
+			prompt.Enabled = false
+		end
 	end
 end
 
@@ -277,8 +176,25 @@ function PlotService.getPlotOf(player: Player): Plot?
 	return plotOf[player]
 end
 
-function PlotService.getPasarPosition(): Vector3
-	return Vector3.new(0, 1.5, 0)
+function PlotService.isNeighbor(a: number, b: number): boolean
+	if a == b then
+		return false
+	end
+	local diff = math.abs(a - b)
+	return diff == 1 or diff == GameConfig.plotCount - 1
+end
+
+function PlotService.getPlotPosition(plot: Plot): Vector3
+	local base = plot.model.PrimaryPart
+	return if base then base.Position else plot.spawnCFrame.Position
+end
+
+function PlotService.getNeighbors(plotIndex: number): { number }
+	local count = GameConfig.plotCount
+	return {
+		((plotIndex - 2) % count) + 1,
+		(plotIndex % count) + 1,
+	}
 end
 
 function PlotService.teleportToPlot(player: Player)

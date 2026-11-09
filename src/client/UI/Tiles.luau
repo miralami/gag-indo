@@ -1,6 +1,7 @@
 -- Tiles: local-only presentation of plots.
 --  * Hides prompts on other players' plots (the server still checks ownership).
---  * Localizes prompt text and shows countdown labels above tiles.
+--  * Localizes prompt text for tiles, Pasar, Tengkulak Gelap, Pak RT, Pos Polisi, Warung.
+--  * Shows countdown / hot labels above tiles.
 -- Uses CollectionService tags so it keeps working when tiles stream in/out.
 
 local CollectionService = game:GetService("CollectionService")
@@ -9,7 +10,7 @@ local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Strings = require(Shared.Strings)
 
 local player = Players.LocalPlayer
-local PROMPT_DISTANCE = 10 -- matches PlotService.makePrompt
+local PROMPT_DISTANCE = 10 -- matches PlotService/Props prompt defaults
 
 local Tiles = {}
 
@@ -24,6 +25,10 @@ local function formatTime(seconds: number): string
 end
 
 function Tiles.mount(lang: string)
+	local function t(key: string, ...: any): string
+		return Strings.get(lang, key, ...)
+	end
+
 	-- [tile] = connections to clean up when it streams out
 	local tracked: { [BasePart]: { RBXScriptConnection } } = {}
 
@@ -40,16 +45,16 @@ function Tiles.mount(lang: string)
 		end
 		prompt.MaxActivationDistance = PROMPT_DISTANCE
 		local state = tile:GetAttribute("State")
-		prompt.ObjectText = Strings.get(lang, "prompt_tile")
+		prompt.ObjectText = t("prompt_tile")
 		if state == "empty" then
 			local seed = player:GetAttribute("SelectedSeed") or "padi"
-			prompt.ActionText = Strings.get(lang, "prompt_plant", "@crop_" .. seed)
+			prompt.ActionText = t("prompt_plant", "@crop_" .. seed)
 		elseif state == "ready" then
-			prompt.ActionText = Strings.get(lang, "prompt_harvest")
+			prompt.ActionText = t("prompt_harvest")
 		elseif state == "growing" then
-			prompt.ActionText = Strings.get(lang, "prompt_growing")
+			prompt.ActionText = t("prompt_growing")
 		elseif state == "buy" then
-			prompt.ActionText = Strings.get(lang, "prompt_buy_tile", tile:GetAttribute("Price") or 0)
+			prompt.ActionText = t("prompt_buy_tile", tile:GetAttribute("Price") or 0)
 		end
 	end
 
@@ -80,8 +85,8 @@ function Tiles.mount(lang: string)
 	local function untrack(instance: Instance)
 		local connections = tracked[instance :: BasePart]
 		if connections then
-			for _, c in connections do
-				c:Disconnect()
+			for _, connection in connections do
+				connection:Disconnect()
 			end
 			tracked[instance :: BasePart] = nil
 		end
@@ -100,19 +105,45 @@ function Tiles.mount(lang: string)
 		end
 	end)
 
-	-- Pasar prompt text
-	local function localizePasar(instance: Instance)
-		if instance:IsA("ProximityPrompt") then
-			instance.ObjectText = Strings.get(lang, "prompt_pasar")
-			instance.ActionText = Strings.get(lang, "prompt_sell")
+	---------------------------------------------------------------- NPC/stall prompts
+	local staticPrompts: { [string]: { objectKey: string, actionKey: string } } = {
+		PasarPrompt = { objectKey = "prompt_pasar", actionKey = "prompt_sell" },
+		GelapPrompt = { objectKey = "prompt_gelap", actionKey = "prompt_sell_gelap" },
+		PakRTPrompt = { objectKey = "prompt_pakrt", actionKey = "prompt_bribe" },
+		PolisiPrompt = { objectKey = "prompt_polisi", actionKey = "prompt_lapor" },
+		WarungPrompt = { objectKey = "prompt_warung", actionKey = "prompt_warung_chat" },
+	}
+
+	local function localizePrompt(prompt: Instance)
+		if not prompt:IsA("ProximityPrompt") then
+			return
+		end
+		for tag, keys in staticPrompts do
+			if CollectionService:HasTag(prompt, tag) then
+				prompt.ObjectText = t(keys.objectKey)
+				if tag == "PakRTPrompt" then
+					prompt.ActionText = t(keys.actionKey, player:GetAttribute("BribePrice") or 100)
+				else
+					prompt.ActionText = t(keys.actionKey)
+				end
+				return
+			end
 		end
 	end
-	for _, prompt in CollectionService:GetTagged("PasarPrompt") do
-		localizePasar(prompt)
-	end
-	CollectionService:GetInstanceAddedSignal("PasarPrompt"):Connect(localizePasar)
 
-	-- Countdown labels
+	for tag in staticPrompts do
+		for _, prompt in CollectionService:GetTagged(tag) do
+			localizePrompt(prompt)
+		end
+		CollectionService:GetInstanceAddedSignal(tag):Connect(localizePrompt)
+	end
+	player:GetAttributeChangedSignal("BribePrice"):Connect(function()
+		for _, prompt in CollectionService:GetTagged("PakRTPrompt") do
+			localizePrompt(prompt)
+		end
+	end)
+
+	-- Countdown / ready labels
 	task.spawn(function()
 		while true do
 			local now = workspace:GetServerTimeNow()
@@ -122,14 +153,19 @@ function Tiles.mount(lang: string)
 				if textLabel then
 					local state = tile:GetAttribute("State")
 					local crop = tile:GetAttribute("Crop")
+					local hot = tile:GetAttribute("Hot") == true
 					if state == "growing" and type(crop) == "string" then
 						local readyAt = tile:GetAttribute("ReadyAt")
 						local remaining = if type(readyAt) == "number" then readyAt - now else 0
-						textLabel.Text = Strings.get(lang, "crop_" .. crop) .. " " .. formatTime(remaining)
+						local text = t("crop_" .. crop) .. " " .. formatTime(remaining)
+						textLabel.Text = if hot then t("tile_hot", text) else text
+						textLabel.TextColor3 = if hot then Color3.fromRGB(190, 255, 140) else Color3.new(1, 1, 1)
 					elseif state == "ready" then
-						textLabel.Text = Strings.get(lang, "tile_ready")
+						textLabel.Text = if hot then t("tile_hot", t("tile_ready")) else t("tile_ready")
+						textLabel.TextColor3 = if hot then Color3.fromRGB(190, 255, 140) else Color3.fromRGB(170, 255, 150)
 					elseif state == "buy" and isMine(tile) then
 						textLabel.Text = "Rp " .. Strings.formatNumber(tile:GetAttribute("Price") or 0, lang)
+						textLabel.TextColor3 = Color3.new(1, 1, 1)
 					else
 						textLabel.Text = ""
 					end

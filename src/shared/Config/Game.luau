@@ -5,21 +5,29 @@ local Game = {}
 Game.startCash = 50
 Game.startSeeds = { padi = 5 }
 Game.startTiles = 6
-Game.maxTiles = 12 -- Extra Plot pass (week 5) raises this to 16
+Game.maxTiles = 12 -- without the Extra Plot pass
+Game.maxTilesWithPass = 16 -- Extra Plot pass (4 more)
 Game.tileColumns = 4
+Game.tilesBuilt = 16 -- every plot model is built for the max, pass or not
 
 Game.plotCount = 10
 Game.plotRadius = 90 -- studs from village center
 
 Game.interactDistance = 16 -- server-side distance check for tiles/NPCs
-Game.autoQuality = 0.9 -- week 1: everything uses Auto quality (minigames come in week 2)
+Game.npcDistance = 18 -- Pak RT / Pos Polisi
+Game.autoQuality = 0.9
+
+-- Minigames (GDD §3.3, TECH.md §5)
+Game.minigameMinSeconds = 0.8 -- a Farm_Complete faster than this is ignored (3 quick taps are OK)
+Game.minigameMaxSeconds = 30
+Game.autoRatePerSecond = 2
 
 -- Price of the NEXT tile when you already own `owned` tiles.
 function Game.tilePrice(owned: number): number
-	return 100 * 2 ^ (owned - Game.startTiles)
+	return 100 * 2 ^ math.max(0, owned - Game.startTiles)
 end
 
--- Ranks, in order. Requirements are checked by the server (EconomyService).
+-- Ranks, in order. Requirements are checked by RankService.
 Game.rankOrder = { "gurem", "petani", "juragan" }
 Game.rankIndex = { gurem = 1, petani = 2, juragan = 3 }
 Game.rankRequirements = {

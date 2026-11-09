@@ -150,7 +150,7 @@ function Phone.mount(lang: string)
 
 	local content = Theme.new("Frame", {
 		LayoutOrder = 3,
-		Size = UDim2.new(1, 0, 1, -96),
+		Size = UDim2.new(1, 0, 1, -90),
 		BackgroundTransparency = 1,
 		Parent = card,
 	})

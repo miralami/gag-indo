@@ -261,7 +261,7 @@ function RaidOverlay.mount(lang: string)
 			pulse()
 		elseif phaseName == "choosing" then
 			phase = "choosing"
-			waitLabel.Visible = false
+			waitLabel.Visible = true
 			waitLabel.Text = t("raid_choose")
 			amplopButton.Visible = true
 			if isViral then

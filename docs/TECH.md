@@ -67,6 +67,7 @@ src/
     UI/RaidOverlay.luau        BREAKING NEWS raid + Pos Ronda countdown
     Minigames/Mencangkul.luau  timing bar (planting)
     Minigames/Babat.luau       hold-release (harvesting)
+    Chat/Tags.luau             Juragan / Ordal chat prefixes (TextChatService, cosmetic)
   shared/                      → ReplicatedStorage
     Config/Crops.luau
     Config/Cheats.luau

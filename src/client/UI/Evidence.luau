@@ -75,13 +75,13 @@ function Evidence.mount(lang: string, gui: ScreenGui)
 		for id, frame in offerFrames do
 			table.insert(list, { id = id, order = frame.LayoutOrder })
 		end
-		if #list < 3 then
+		if #list <= 3 then
 			return
 		end
 		table.sort(list, function(a, b)
 			return a.order < b.order
 		end)
-		for i = 1, #list - 2 do
+		for i = 1, #list - 3 do
 			removeOffer(list[i].id)
 		end
 	end

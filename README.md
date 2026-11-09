@@ -41,7 +41,8 @@ In Studio: Plugins → Rojo → **Connect**, then press **Play**. Edits to `src/
    sell. Cash goes up and the sack empties.
 4. Buy seeds in **🌱 Bibit** (top right). Buy the next grey tile (its price is on the tile).
 5. Earn Rp 1.000 lifetime → rank **Petani** unlocks Jagung/Cabai. Buy 12 tiles + Rp 10.000 →
-   **Juragan** unlocks Durian.
+   **Juragan** unlocks Durian, and your chat lines start with **[Juragan]** (Ordal pass adds
+   **[Ordal]**).
 6. Stop, Play again: cash, seeds, rank, tiles and planted crops are still there, and crops kept
    growing while you were away.
 

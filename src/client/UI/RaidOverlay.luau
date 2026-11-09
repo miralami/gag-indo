@@ -61,11 +61,11 @@ function RaidOverlay.mount(lang: string)
 	local card = Theme.card({
 		Name = "Card",
 		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.52),
+		Position = UDim2.fromScale(0.5, 0.55),
 		Size = UDim2.fromScale(0.84, 0.5),
 		Parent = scrim,
 	}, {
-		Theme.new("UISizeConstraint", { MinSize = Vector2.new(300, 260), MaxSize = Vector2.new(520, 420) }),
+		Theme.new("UISizeConstraint", { MinSize = Vector2.new(300, 240), MaxSize = Vector2.new(520, 420) }),
 	})
 	local padding = Instance.new("UIPadding")
 	padding.PaddingLeft = UDim.new(0, 14)

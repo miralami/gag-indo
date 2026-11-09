@@ -10,6 +10,7 @@ local Evidence = require(script.Parent.UI.Evidence)
 local Phone = require(script.Parent.UI.Phone)
 local Minigame = require(script.Parent.UI.Minigame)
 local RaidOverlay = require(script.Parent.UI.RaidOverlay)
+local Tags = require(script.Parent.Chat.Tags)
 
 local lang = Strings.langFor(LocalizationService.RobloxLocaleId)
 
@@ -18,4 +19,5 @@ Evidence.mount(lang, hudGui)
 Phone.mount(lang)
 Minigame.mount(lang)
 RaidOverlay.mount(lang)
+Tags.mount()
 Tiles.mount(lang)

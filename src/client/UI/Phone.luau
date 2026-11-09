@@ -103,7 +103,7 @@ function Phone.mount(lang: string)
 		Size = UDim2.fromScale(0.9, 0.84),
 		Parent = root,
 	}, {
-		Theme.new("UISizeConstraint", { MinSize = Vector2.new(300, 380), MaxSize = Vector2.new(520, 680) }),
+		Theme.new("UISizeConstraint", { MinSize = Vector2.new(290, 320), MaxSize = Vector2.new(520, 680) }),
 		Theme.new("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 6) }),
 	})
 	local cardPadding = Instance.new("UIPadding")
@@ -148,9 +148,10 @@ function Phone.mount(lang: string)
 		}),
 	})
 
+	-- Card inner height minus header (34), tab row (40) and the two 6 px list gaps.
 	local content = Theme.new("Frame", {
 		LayoutOrder = 3,
-		Size = UDim2.new(1, 0, 1, -90),
+		Size = UDim2.new(1, 0, 1, -106),
 		BackgroundTransparency = 1,
 		Parent = card,
 	})

@@ -72,6 +72,9 @@ local function migrate(data)
 	end
 end
 
+-- Exposed so tests/specs/playerdata_spec.luau can check old saves upgrade correctly.
+PlayerData.migrate = migrate
+
 -- Called after a profile is loaded and ready. Must not yield for long.
 function PlayerData.onLoaded(callback: (Player, any) -> ())
 	table.insert(loadedCallbacks, callback)

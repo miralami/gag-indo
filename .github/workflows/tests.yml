@@ -1,0 +1,17 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Installs the tools pinned in rokit.toml (rojo, luau-lsp, lune).
+      - uses: CompeyDev/setup-rokit@v0.1.2
+
+      - name: Run tests
+        run: lune run tests/run

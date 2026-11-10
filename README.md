@@ -30,7 +30,13 @@ rojo serve
 
 In Studio: Plugins → Rojo → **Connect**, then press **Play**. Edits to `src/` sync live.
 
-## Test checklist (weeks 1–5)
+## Testing
+
+Automated tests: `lune run tests/run`. Formal manual test cases and the per-version sign-off sheet
+are in [docs/testing](docs/testing/README.md). The short walkthrough below is a quick first-run
+check only.
+
+## Quick walkthrough (first run)
 
 **Farming & economy**
 1. You spawn at your plot with Rp 50 and 5 Padi seeds.

@@ -218,8 +218,9 @@ function EconomyService.sellAll(player: Player, channel: string)
 	local total = legalValue * multiplier
 
 	for cropId, sack in data.harvest do
+		-- Clean produce was sold; only the hot (oplosan) items stay in the sack.
 		local hot = sack.hotCount or 0
-		sack.count -= hot
+		sack.count = hot
 		sack.qualitySum = 0
 		if sack.count <= 0 then
 			data.harvest[cropId] = nil

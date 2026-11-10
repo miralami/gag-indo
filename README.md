@@ -1,6 +1,6 @@
 # Juragan Desa
 
-A satirical Indonesian village farming game for Roblox. Design: [docs/GDD.md](docs/GDD.md) · Dev guide: [docs/TECH.md](docs/TECH.md)
+A satirical Indonesian village farming game for Roblox. v2 plan: [docs/v2/PLAN.md](docs/v2/PLAN.md) · v1 design: [docs/v1/GDD.md](docs/v1/GDD.md) · v1 dev guide: [docs/v1/TECH.md](docs/v1/TECH.md)
 
 ## First-time setup (once)
 

@@ -1,5 +1,7 @@
 # Juragan Desa — Game Design Document
 
+> **v1 baseline (frozen).** This describes the game as built before v2. Current direction: [v2/PLAN.md](../v2/PLAN.md).
+
 > Working title. Satirical Indonesian village farming game on Roblox.
 > Version 0.1 · 2026-11-09 · Status: pre-production
 

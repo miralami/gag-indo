@@ -1,5 +1,7 @@
 # Juragan Desa: Technical Development Guide
 
+> **v1 baseline (frozen).** This describes the game as built before v2. Current direction: [v2/PLAN.md](../v2/PLAN.md).
+
 > Companion to [GDD.md](GDD.md). Written for a solo developer who is new to Luau.
 > Version 0.1 · 2026-11-09
 

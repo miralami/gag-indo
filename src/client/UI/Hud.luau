@@ -2,6 +2,7 @@
 -- Reads player attributes set by the server; sends only requests (select seed, buy seeds).
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Crops = require(Shared.Config.Crops)
 local GameConfig = require(Shared.Config.Game)
@@ -103,6 +104,35 @@ function Hud.mount(lang: string)
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = chips,
 	})
+
+	---------------------------------------------------------------- Harga Cabai Meroket banner
+	local eventChip = Theme.card({
+		Name = "CabaiEvent",
+		Position = UDim2.new(0, 10, 0, 116),
+		Size = UDim2.new(0.34, 0, 0, 32),
+		BackgroundColor3 = Color3.fromRGB(190, 50, 30),
+		Visible = false,
+		Parent = gui,
+	}, {
+		Theme.new("UISizeConstraint", { MinSize = Vector2.new(190, 30), MaxSize = Vector2.new(330, 34) }),
+	})
+	local eventLabel = Theme.label({
+		Size = UDim2.fromScale(1, 1),
+		Text = t("hud_event_cabai", GameConfig.cabaiEventMultiplier),
+		TextColor3 = Color3.new(1, 1, 1),
+		Parent = eventChip,
+	})
+	eventLabel.TextSize = 14
+
+	local function refreshEvent()
+		eventChip.Visible = ReplicatedStorage:GetAttribute("CabaiEvent") == true
+		if eventChip.Visible then
+			eventChip.Position = UDim2.new(0, 10, 0, 10 + stats.AbsoluteSize.Y + 6)
+		end
+	end
+	ReplicatedStorage:GetAttributeChangedSignal("CabaiEvent"):Connect(refreshEvent)
+	stats:GetPropertyChangedSignal("AbsoluteSize"):Connect(refreshEvent)
+	refreshEvent()
 
 	local function refreshStats()
 		cashLabel.Text = "Rp " .. Strings.formatNumber(player:GetAttribute("Cash") or 0, lang)

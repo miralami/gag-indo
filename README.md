@@ -45,6 +45,9 @@ In Studio: Plugins → Rojo → **Connect**, then press **Play**. Edits to `src/
    **[Ordal]**).
 6. Stop, Play again: cash, seeds, rank, tiles and planted crops are still there, and crops kept
    growing while you were away.
+   - 4 minutes into the server a toast announces **🔥 Harga Cabai Meroket** and a red chip appears
+     under the stats card: cabai sells ×3 for 5 minutes, then the chip disappears. Timings live in
+     `Config/Game.luau` (`cabaiEvent*`).
 
 **Cheats & the law**
 7. Open **📱 HP → Curang**, oplos a growing tile (Rp 20). It ripens faster, glows green, and the

@@ -57,6 +57,11 @@ local S: { [string]: { id: string, en: string } } = {
 	prompt_warung = { id = "Warung", en = "Warung" },
 	prompt_warung_chat = { id = "Nongkrong", en = "Hang out" },
 
+	-- Harga Cabai Meroket (Events/CabaiEvent)
+	hud_event_cabai = { id = "🔥 Harga cabai meroket! x%s", en = "🔥 Chili prices are soaring! x%s" },
+	event_cabai_start = { id = "📈 HARGA CABAI MEROKET! Cabai laku x%s selama 5 menit.", en = "📈 CHILI PRICES SOAR! Chili sells at x%s for 5 minutes." },
+	event_cabai_end = { id = "📉 Harga cabai kembali normal.", en = "📉 Chili prices are back to normal." },
+
 	-- warung flavor (World/WarungService)
 	warung_rumor_1 = { id = "Kata orang, tengkulak gelap itu bayar pakai uang kotak sabun.", en = "They say the black market pays in soap-box money." },
 	warung_rumor_2 = { id = "Kabar sore: panen Pak RT katanya nggak pernah kena hama. Kok bisa, ya?", en = "Evening news: Pak RT's harvest never gets pests. How, though?" },

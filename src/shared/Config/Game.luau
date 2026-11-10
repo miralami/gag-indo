@@ -37,4 +37,11 @@ Game.rankRequirements = {
 
 Game.maxSeedBuy = 50 -- max seeds per purchase click
 
+-- Harga Cabai Meroket (GDD §3.2): cabai sells x3 for a few minutes, on a loop.
+-- Short values keep it testable in Studio; raise them before publishing.
+Game.cabaiEventFirstDelay = 240 -- seconds after the servers starts
+Game.cabaiEventInterval = 600 -- between the start of one event and the next
+Game.cabaiEventDuration = 300 -- how long the multiplier lasts
+Game.cabaiEventMultiplier = 3
+
 return Game

@@ -14,6 +14,7 @@ local RateLimit = require(script.Parent.Parent.Net.RateLimit)
 local Notify = require(script.Parent.Parent.Net.Notify)
 local RankService = require(script.Parent.Parent.Progression.RankService)
 local Village = require(script.Parent.Parent.World.Village)
+local CabaiEvent = require(script.Parent.Parent.Events.CabaiEvent)
 
 local EconomyService = {}
 
@@ -184,8 +185,10 @@ function EconomyService.sellAll(player: Player, channel: string)
 	for cropId, sack in data.harvest do
 		local crop = Crops.list[cropId]
 		if crop and sack.count > 0 then
-			legalValue += crop.sellPrice * (sack.qualitySum or 0)
-			hotValue += crop.sellPrice * (sack.hotQualitySum or 0)
+			-- Harga Cabai Meroket multiplies the base price before quality is applied.
+			local unit = crop.sellPrice * CabaiEvent.multiplier(cropId)
+			legalValue += unit * (sack.qualitySum or 0)
+			hotValue += unit * (sack.hotQualitySum or 0)
 		end
 	end
 

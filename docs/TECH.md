@@ -54,6 +54,7 @@ src/
     Monetization/Items.luau    Item_Use (amplop premium, jaminan kilat)
     Monetization/Cosmetics.luau cash cosmetics + server-side visual parts
     Analytics/Analytics.luau   pcall-wrapped custom events
+    Events/CabaiEvent.luau     Harga Cabai Meroket: cabai x3 for 5 min on a loop
     Net/RateLimit.luau         per-player, per-remote limiter
     Net/Notify.luau            localized toast helper used by every service
   client/                      → StarterPlayerScripts
@@ -80,17 +81,17 @@ src/
 ```
 
 > **Current state:** weeks 1–5 of the plan are built: farming + minigames, tile buying, ranks,
-> the law loop (Sus → raid → denda/amplop/jail), Lapor + VIRAL, phone, passes/receipts/items
-> and the cash cosmetics shop. Everything is still greybox parts, and audio is not wired yet
-> (no asset IDs). Tile and NPC/stand prompts are tagged with CollectionService (`Tile`,
-> `PasarPrompt`, `GelapPrompt`, `PakRTPrompt`, `PolisiPrompt`, `WarungPrompt`) so the client
-> keeps working with streaming.
+> the law loop (Sus → raid → denda/amplop/jail), Lapor + VIRAL, phone, passes/receipts/items,
+> the cash cosmetics shop, Juragan/Ordal chat tags and the Harga Cabai Meroket event.
+> Everything is still greybox parts, and audio is not wired yet (no asset IDs). Tile and
+> NPC/stand prompts are tagged with CollectionService (`Tile`, `PasarPrompt`, `GelapPrompt`,
+> `PakRTPrompt`, `PolisiPrompt`, `WarungPrompt`) so the client keeps working with streaming.
 
 `Main.server.luau` starts things in this order: `Village.build` → `PlotService.build` →
 `RaidService.bindSus`/`init` → Economy → Farm → Rank → Sus → Cheat → Evidence → Bribe →
-Neighbor → Warung → Passes → Receipts → Items → Cosmetics → `PlayerData.start()` (last, because
-it fires the `onLoaded` callbacks registered above). Modules don't do heavy work or yield when
-they are required.
+Neighbor → Warung → `CabaiEvent.start` → Passes → Receipts → Items → Cosmetics →
+`PlayerData.start()` (last, because it fires the `onLoaded` callbacks registered above).
+Modules don't do heavy work or yield when they are required.
 
 ## 4. Player data
 
@@ -291,10 +292,10 @@ end
 | 6 | Balance, EN strings, maturity questionnaire, friends playtest, bug fixes, publish (private → public) | 3+ friends play 20 min without help |
 
 > **Where we are:** weeks 1–5 are built in greybox (farming + minigames, all four crops, tile
-> buying, ranks, the Sus/raid/Lapor loop, phone, passes/receipts/items, cash cosmetics, Babat).
-> Skipped on purpose for now: audio (no asset IDs), the Harga Cabai event, the Kepala Desa
-> election, hush money and the buruh NPC. That leaves week 6: balance numbers, EN review, the
-> maturity questionnaire, real art/monetization IDs and a friends playtest.
+> buying, ranks, the Sus/raid/Lapor loop, phone, passes/receipts/items, cash cosmetics, Babat,
+> the Harga Cabai Meroket event). Skipped on purpose for now: audio (no asset IDs), the Kepala
+> Desa election, hush money and the buruh NPC. That leaves week 6: balance numbers, EN review,
+> the maturity questionnaire, real art/monetization IDs and a friends playtest.
 
 **Cut line, in order, if behind at the end of week 3:**
 1. Babat minigame (harvest = hold button)

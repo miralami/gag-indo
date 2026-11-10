@@ -20,6 +20,8 @@ local NAMES = {
 	"Cosmetic_Buy", -- (itemId: string)
 	"Cosmetic_Equip", -- (itemId: string?)
 	"Water_Neighbor", -- (targetUserId: number) -- gotong royong, +Nama Baik
+	"State_Request", -- () -- ask for a fresh snapshot (join, respawn, hot reload)
+	"Admin_Command", -- ({ action: string, value: any }) -- allowlisted users only
 
 	-- server -> client
 	"Notify", -- (key: string, params: {any}?)
@@ -31,6 +33,9 @@ local NAMES = {
 	"Raid_Start", -- (payload: table)
 	"Raid_End", -- (outcome: string)
 	"Jail_State", -- (secondsLeft: number)
+	"State_Snapshot", -- ({ version, sections }) -- full structured state on join
+	"State_Patch", -- ({ [section]: value }) -- changed sections only
+	"Admin_Result", -- ({ ok, message?, data? })
 }
 
 local Remotes: { [string]: RemoteEvent } = {}

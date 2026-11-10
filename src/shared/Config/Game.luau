@@ -37,6 +37,13 @@ Game.rankRequirements = {
 
 Game.maxSeedBuy = 50 -- max seeds per purchase click
 
+-- Storage (v2 PLAN §3.4). The sack is carried; the gudang is the big store.
+Game.gudangBaseCapacity = 40
+Game.gudangPassCapacity = 120
+
+-- Replicated structured state (v2 PLAN §7.1): section patches are coalesced this often.
+Game.statePatchInterval = 0.25
+
 -- Harga Cabai Meroket (GDD §3.2): cabai sells x3 for a few minutes, on a loop.
 -- Short values keep it testable in Studio; raise them before publishing.
 Game.cabaiEventFirstDelay = 240 -- seconds after the servers starts

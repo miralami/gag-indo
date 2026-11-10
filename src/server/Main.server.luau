@@ -5,6 +5,9 @@ local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 require(Shared.Remotes) -- creates the RemoteEvents before any client asks for them
 
 local PlayerData = require(script.Parent.Data.PlayerData)
+local LiveConfig = require(script.Parent.Live.LiveConfig)
+local AdminService = require(script.Parent.Live.AdminService)
+local State = require(script.Parent.Net.State)
 local Village = require(script.Parent.World.Village)
 local PlotService = require(script.Parent.Farm.PlotService)
 local RankService = require(script.Parent.Progression.RankService)
@@ -24,6 +27,7 @@ local Items = require(script.Parent.Monetization.Items)
 local Cosmetics = require(script.Parent.Monetization.Cosmetics)
 
 -- World first: plots are added to the folder Village creates.
+LiveConfig.start() -- attributes + admin state exist before any service reads them
 Village.build()
 PlotService.build()
 
@@ -47,6 +51,8 @@ BribeService.start()
 NeighborService.start()
 WarungService.start()
 CabaiEvent.start()
+State.start()
+AdminService.start()
 Passes.start()
 Receipts.start()
 Items.start()

@@ -11,6 +11,7 @@ local Crops = require(Shared.Config.Crops)
 local Cheats = require(Shared.Config.Cheats)
 local GameConfig = require(Shared.Config.Game)
 local Remotes = require(Shared.Remotes)
+local Inventory = require(Shared.Inventory)
 
 local PlayerData = require(script.Parent.Parent.Data.PlayerData)
 local RateLimit = require(script.Parent.Parent.Net.RateLimit)
@@ -172,7 +173,7 @@ local function canPlant(player: Player, data, cropId: string): boolean
 		Notify.send(player, "n_rank_locked", "@rank_" .. crop.rank)
 		return false
 	end
-	if (data.seeds[cropId] or 0) < 1 then
+	if Inventory.getSeed(data, cropId) < 1 then
 		Notify.send(player, "n_no_seed", "@crop_" .. cropId)
 		return false
 	end
@@ -181,7 +182,7 @@ end
 
 local function doPlant(player: Player, data, plot, index: number, cropId: string, quality: number)
 	local crop = Crops.list[cropId]
-	data.seeds[cropId] -= 1
+	Inventory.takeSeed(data, cropId, 1)
 	data.tiles[tileKey(index)] = {
 		crop = cropId,
 		plantedAt = os.time(),

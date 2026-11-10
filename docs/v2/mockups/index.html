@@ -1,0 +1,902 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Juragan Desa — v2 UI mockups (D1)</title>
+<style>
+  :root {
+    --paper: #f3e9d2;
+    --paper-2: #e8dbc0;
+    --ink: #2b2118;
+    --ink-soft: #5b4a38;
+    --red: #a83226;
+    --red-deep: #7c2118;
+    --green: #4f6b3a;
+    --gold: #c99a2e;
+    --blue: #1f4e6b;
+    --shadow: 0 18px 40px rgba(43, 33, 24, .28);
+    --radius: 10px;
+    --gap: 8px;
+    --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 40px 24px 96px;
+    background:
+      radial-gradient(circle at 15% 0%, #4a3b2c 0, #241c15 55%, #17110c 100%);
+    color: var(--ink);
+    font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  }
+
+  header.doc {
+    max-width: 1180px;
+    margin: 0 auto 32px;
+    color: #f3e9d2;
+  }
+  header.doc h1 {
+    margin: 0 0 6px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 34px;
+    letter-spacing: .3px;
+  }
+  header.doc p { margin: 4px 0; color: #cbbca4; max-width: 820px; line-height: 1.5; }
+  header.doc .tag {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 4px 10px;
+    border: 1px solid #8d7a5f;
+    border-radius: 999px;
+    font-size: 12px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #e6d6b8;
+  }
+
+  .wrap { max-width: 1180px; margin: 0 auto; }
+
+  /* ---------- design tokens ---------- */
+  .tokens {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+  .token {
+    background: #f7efdd;
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+  }
+  .token h3 {
+    margin: 0 0 10px;
+    font-size: 12px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+  .swatch {
+    width: 52px; height: 52px; border-radius: 6px;
+    border: 1px solid rgba(0,0,0,.15);
+    display: flex; align-items: flex-end; justify-content: center;
+    font-size: 9px; padding-bottom: 3px; color: rgba(255,255,255,.9);
+  }
+  .type-row { display: flex; align-items: baseline; gap: 10px; }
+  .type-row span:first-child { width: 54px; color: var(--ink-soft); font-size: 11px; }
+  .scale-bars { display: flex; align-items: flex-end; gap: 6px; height: 46px; }
+  .scale-bars i { display: block; width: 18px; background: var(--green); border-radius: 3px 3px 0 0; }
+
+  /* ---------- screens ---------- */
+  .screens {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 34px 28px;
+    align-items: start;
+  }
+  .screen-block { display: flex; flex-direction: column; gap: 12px; }
+
+  .phone {
+    position: relative;
+    width: 320px;
+    height: 660px;
+    margin: 0 auto;
+    border-radius: 26px;
+    padding: 10px;
+    background: #17120d;
+    box-shadow: var(--shadow), inset 0 0 0 1px #3a2f24;
+  }
+  .screen {
+    position: relative;
+    width: 100%; height: 100%;
+    overflow: hidden;
+    border-radius: 18px;
+    background: var(--paper);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(120, 95, 60, .045) 0 1px, transparent 1px 3px);
+    color: var(--ink);
+  }
+
+  .caption { color: #cbbca4; font-size: 13px; line-height: 1.5; }
+  .caption strong { color: #f3e9d2; display: block; margin-bottom: 2px; font-size: 15px; }
+  .caption ul { margin: 6px 0 0 16px; padding: 0; }
+  .caption li { margin-bottom: 3px; }
+
+  /* ---------- shared bits ---------- */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px 10px;
+    border-bottom: 2px solid rgba(43,33,24,.18);
+  }
+  .topbar .brand {
+    font-family: Georgia, serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: .04em;
+  }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    border: 1px solid rgba(43,33,24,.28);
+    background: rgba(255,255,255,.5);
+  }
+  .pill.hot { background: #f6d7c9; border-color: #b4553c; color: var(--red-deep); }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--green); color: #f7efdd;
+    border-radius: 999px; padding: 4px 10px;
+    font-size: 11px; letter-spacing: .02em;
+  }
+  .icon { width: 16px; height: 16px; display: block; }
+  .icon svg { width: 100%; height: 100%; display: block; }
+
+  /* ---------- HUD ---------- */
+  .hud-scene {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(180deg, #8fb7c9 0 38%, #7aa45e 38% 62%, #6b8f4d 62% 100%);
+  }
+  .hud-scene::after {
+    content: "";
+    position: absolute; left: -10%; right: -10%; bottom: 0; height: 34%;
+    background: repeating-linear-gradient(90deg, #c9a75c 0 26px, #b8964c 26px 52px);
+    opacity: .55;
+    transform: perspective(300px) rotateX(52deg);
+    transform-origin: bottom;
+  }
+  .hud-scene .roof {
+    position: absolute; left: 50%; top: 24%;
+    width: 150px; height: 70px;
+    transform: translateX(-50%);
+    background: #355c74;
+    clip-path: polygon(50% 0, 100% 55%, 92% 100%, 8% 100%, 0 55%);
+    box-shadow: 0 12px 20px rgba(0,0,0,.25);
+  }
+  .hud-layer { position: absolute; inset: 0; padding: 12px; }
+
+  .stats-card {
+    background: rgba(247, 239, 221, .94);
+    border: 2px solid rgba(43,33,24,.75);
+    border-radius: 8px;
+    box-shadow: 3px 4px 0 rgba(43,33,24,.35);
+    padding: 8px 10px;
+    width: 178px;
+  }
+  .stats-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .stats-row + .stats-row { margin-top: 6px; }
+  .stats-label { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+  .stats-value { font-family: Georgia, serif; font-weight: 700; font-size: 17px; }
+  .sus-bar { height: 7px; border-radius: 4px; background: rgba(43,33,24,.18); overflow: hidden; margin-top: 6px; }
+  .sus-bar i { display: block; height: 100%; width: 62%; background: linear-gradient(90deg, var(--gold), var(--red)); }
+
+  .hud-right { position: absolute; top: 12px; right: 12px; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+  .hud-chips { position: absolute; left: 12px; top: 118px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+  .chip.weather { background: var(--blue); }
+  .chip.event { background: var(--red); }
+
+  .tile-prompt {
+    position: absolute; left: 50%; bottom: 92px; transform: translateX(-50%);
+    width: 230px;
+    text-align: center;
+    background: rgba(247,239,221,.96);
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    padding: 8px 10px 9px;
+    box-shadow: 3px 4px 0 rgba(43,33,24,.35);
+  }
+  .tile-prompt .name { font-family: Georgia, serif; font-weight: 700; font-size: 14px; }
+  .tile-prompt .meta { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+  .key {
+    display: inline-block; margin-top: 6px;
+    min-width: 26px; padding: 2px 7px;
+    border-radius: 5px; border: 1px solid var(--ink);
+    background: #fff8e6; font-size: 11px; font-weight: 700;
+  }
+
+  .action-bar {
+    position: absolute; left: 12px; right: 12px; bottom: 12px;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  }
+  .action {
+    background: rgba(247,239,221,.96);
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    padding: 7px 4px 6px;
+    text-align: center;
+    box-shadow: 2px 3px 0 rgba(43,33,24,.35);
+  }
+  .action .icon { margin: 0 auto 3px; width: 18px; height: 18px; }
+  .action span { font-size: 10px; letter-spacing: .04em; text-transform: uppercase; }
+
+  /* ---------- shop ---------- */
+  .shop-head {
+    position: relative;
+    margin: 12px 14px 10px;
+    padding: 14px 16px 12px;
+    background: var(--red);
+    color: #f8eccd;
+    border: 2px solid var(--red-deep);
+    border-radius: 6px;
+    transform: rotate(-.6deg);
+    box-shadow: 4px 5px 0 rgba(43,33,24,.25);
+    text-align: center;
+  }
+  .shop-head h2 {
+    margin: 0;
+    font-family: Georgia, serif;
+    font-size: 24px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+  .shop-head p { margin: 3px 0 0; font-size: 11px; color: #f2cfa8; letter-spacing: .08em; }
+  .shop-head::before, .shop-head::after {
+    content: "";
+    position: absolute; top: 8px; bottom: 8px; width: 6px;
+    border: 1px dashed rgba(248,236,205,.55);
+  }
+  .shop-head::before { left: 8px; }
+  .shop-head::after { right: 8px; }
+
+  .shop-body { padding: 0 14px; }
+  .shop-note {
+    display: flex; gap: 8px; align-items: center;
+    font-size: 11px; color: var(--ink-soft);
+    margin-bottom: 10px;
+  }
+  .stock {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px;
+    margin-bottom: 8px;
+    background: rgba(255,255,255,.55);
+    border: 1px solid rgba(43,33,24,.25);
+    border-radius: 8px;
+    box-shadow: 2px 3px 0 rgba(43,33,24,.12);
+  }
+  .seed {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--gold);
+    display: grid; place-items: center;
+    border: 2px solid rgba(43,33,24,.4);
+    flex: 0 0 auto;
+  }
+  .seed svg { width: 18px; height: 18px; }
+  .stock-main { flex: 1; min-width: 0; }
+  .stock-main .name { font-family: Georgia, serif; font-weight: 700; font-size: 14px; }
+  .stock-main .sub { font-size: 10.5px; color: var(--ink-soft); }
+  .price { text-align: right; flex: 0 0 auto; }
+  .price .num { font-family: Georgia, serif; font-weight: 700; font-size: 14px; }
+  .price .left { font-size: 10px; color: var(--red-deep); }
+  .buy {
+    border: 2px solid var(--ink);
+    background: var(--green); color: #f7efdd;
+    border-radius: 7px; padding: 5px 9px;
+    font-size: 11px; font-weight: 700; letter-spacing: .04em;
+    box-shadow: 2px 2px 0 rgba(43,33,24,.4);
+  }
+  .buy:disabled { background: #b5a894; border-color: #8a7a68; box-shadow: none; }
+  .sold-out { font-size: 10px; color: var(--ink-soft); }
+
+  .struk {
+    margin: 12px 14px 0;
+    padding: 10px 12px;
+    background: #fffdf4;
+    border: 1px solid #d8cbb0;
+    font-family: "Courier New", monospace;
+    font-size: 10.5px;
+    line-height: 1.45;
+    box-shadow: 0 6px 12px rgba(43,33,24,.12);
+  }
+  .struk .center { text-align: center; }
+  .struk hr { border: 0; border-top: 1px dashed #b8a98c; margin: 5px 0; }
+  .struk .line { display: flex; justify-content: space-between; }
+
+  /* ---------- phone ---------- */
+  .appbar {
+    background: #142b26; color: #e9f2e4;
+    padding: 12px 14px 10px;
+  }
+  .appbar .who { display: flex; align-items: center; gap: 9px; }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: #d9a441; color: #2b2118;
+    display: grid; place-items: center;
+    font-family: Georgia, serif; font-weight: 700; font-size: 13px;
+  }
+  .appbar .name { font-size: 13px; font-weight: 700; }
+  .appbar .status { font-size: 10px; color: #9fc0a8; }
+  .tabs { display: flex; gap: 6px; margin-top: 10px; }
+  .tab {
+    flex: 1; text-align: center;
+    font-size: 11px; padding: 5px 0;
+    border-radius: 6px; background: rgba(233,242,228,.1);
+    color: #bcd3c2;
+  }
+  .tab.active { background: #e9f2e4; color: #142b26; font-weight: 700; }
+
+  .chat { padding: 12px 14px; display: flex; flex-direction: column; gap: 9px; }
+  .bubble {
+    max-width: 84%;
+    padding: 8px 10px;
+    border-radius: 10px;
+    font-size: 11.5px;
+    line-height: 1.4;
+    background: #fffdf4;
+    border: 1px solid rgba(43,33,24,.18);
+    box-shadow: 1px 2px 0 rgba(43,33,24,.1);
+  }
+  .bubble.them { align-self: flex-start; border-bottom-left-radius: 2px; }
+  .bubble.me { align-self: flex-end; background: #dbeccd; border-bottom-right-radius: 2px; }
+  .bubble .from { display: block; font-size: 10px; font-weight: 700; color: var(--green); margin-bottom: 2px; }
+  .bubble.forward { border-left: 3px solid var(--gold); }
+  .bubble .forwarded { font-size: 9.5px; color: var(--ink-soft); font-style: italic; }
+  .chat-day { text-align: center; font-size: 10px; color: var(--ink-soft); margin: 2px 0; }
+
+  .wallet { padding: 12px 14px; }
+  .wallet-card {
+    background: #1f4e6b; color: #eaf3f7;
+    border-radius: 10px; padding: 12px 14px;
+    box-shadow: 3px 5px 0 rgba(43,33,24,.25);
+  }
+  .wallet-card .label { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #a9c8d8; }
+  .wallet-card .amount { font-family: Georgia, serif; font-size: 26px; font-weight: 700; margin: 2px 0 6px; }
+  .wallet-row { display: flex; justify-content: space-between; font-size: 11px; color: #cfe2ec; }
+  .pinjol {
+    margin-top: 12px;
+    background: #fff3df;
+    border: 2px solid var(--red);
+    border-radius: 10px;
+    padding: 11px 12px;
+    position: relative;
+  }
+  .pinjol .stamp {
+    position: absolute; right: 10px; top: 10px;
+    border: 2px solid var(--red);
+    color: var(--red);
+    font-size: 9px; font-weight: 700; letter-spacing: .1em;
+    padding: 2px 5px; border-radius: 3px;
+    transform: rotate(-8deg);
+    opacity: .8;
+  }
+  .pinjol h3 { margin: 0 0 2px; font-family: Georgia, serif; font-size: 15px; color: var(--red-deep); }
+  .pinjol p { margin: 0 0 8px; font-size: 10.5px; color: var(--ink-soft); }
+  .pinjol .amount-row { display: flex; align-items: baseline; gap: 6px; margin-bottom: 8px; }
+  .pinjol .amount-row b { font-family: Georgia, serif; font-size: 20px; }
+  .pinjol .cta {
+    display: block; text-align: center;
+    background: var(--red); color: #fff3df;
+    border-radius: 7px; padding: 8px;
+    font-size: 12px; font-weight: 700; letter-spacing: .04em;
+    box-shadow: 2px 3px 0 rgba(43,33,24,.35);
+  }
+  .pinjol .fine { margin-top: 6px; font-size: 9.5px; color: var(--ink-soft); text-align: center; }
+
+  /* ---------- raid letter ---------- */
+  .raid {
+    position: absolute; inset: 0;
+    background: rgba(20,15,10,.55);
+    display: grid; place-items: center;
+    padding: 16px;
+  }
+  .letter {
+    width: 100%;
+    background: #fffdf3;
+    border: 1px solid #d9cbaa;
+    box-shadow: 0 18px 40px rgba(0,0,0,.45);
+    padding: 14px 14px 12px;
+    transform: rotate(-.4deg);
+    position: relative;
+  }
+  .letter .kop {
+    display: flex; align-items: center; gap: 9px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 7px;
+  }
+  .crest {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 2px solid var(--ink);
+    display: grid; place-items: center;
+    font-family: Georgia, serif; font-size: 9px; font-weight: 700;
+    text-align: center; line-height: 1;
+    flex: 0 0 auto;
+  }
+  .kop-text { flex: 1; }
+  .kop-text .l1 { font-family: Georgia, serif; font-weight: 700; font-size: 12px; letter-spacing: .04em; }
+  .kop-text .l2 { font-size: 8.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+  .letter .meta { display: flex; justify-content: space-between; font-size: 9px; color: var(--ink-soft); margin: 6px 0 8px; }
+  .letter h3 {
+    margin: 0 0 6px;
+    font-family: Georgia, serif;
+    font-size: 13px;
+    text-align: center;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  .letter p { margin: 0 0 6px; font-size: 10px; line-height: 1.5; }
+  .letter .facts {
+    margin: 7px 0;
+    border-top: 1px solid #d9cbaa;
+    border-bottom: 1px solid #d9cbaa;
+    padding: 5px 0;
+    font-size: 9.5px;
+  }
+  .letter .facts div { display: flex; justify-content: space-between; padding: 1px 0; }
+  .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 9px; }
+  .choice {
+    border: 2px solid var(--ink);
+    border-radius: 6px;
+    padding: 7px 8px;
+    background: #f8f0dc;
+    box-shadow: 2px 3px 0 rgba(43,33,24,.3);
+    text-align: center;
+  }
+  .choice b { display: block; font-family: Georgia, serif; font-size: 12px; }
+  .choice span { font-size: 9px; color: var(--ink-soft); }
+  .choice.danger { background: #f8ded4; border-color: var(--red-deep); }
+  .sign {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    margin-top: 9px; font-size: 9px; color: var(--ink-soft);
+  }
+  .sign .sig {
+    font-family: "Brush Script MT", "Segoe Script", cursive;
+    font-size: 16px; color: var(--blue);
+    transform: rotate(-6deg);
+  }
+  .letter .stamp-red {
+    position: absolute; right: 12px; bottom: 46px;
+    width: 56px; height: 56px; border-radius: 50%;
+    border: 3px solid rgba(168,50,38,.55);
+    color: rgba(168,50,38,.7);
+    display: grid; place-items: center; text-align: center;
+    font-size: 8px; font-weight: 700; letter-spacing: .06em;
+    transform: rotate(-14deg);
+  }
+
+  footer.doc {
+    max-width: 1180px; margin: 44px auto 0;
+    color: #9c8d76; font-size: 12px; line-height: 1.6;
+    border-top: 1px solid #3a2f24; padding-top: 16px;
+  }
+  footer.doc strong { color: #cbbca4; }
+</style>
+</head>
+<body>
+
+<header class="doc">
+  <h1>Juragan Desa — v2 UI direction</h1>
+  <p>Static proposal for decision <strong>D1</strong> in <code>docs/v2/DECISIONS.md</code>. Nothing here
+     is wired into the game: the v1 <code>Theme.luau</code> stays in place until the direction is approved
+     or redirected. Feedback is per screen, not per pixel.</p>
+  <p>Direction: <strong>Indonesian vernacular print</strong> — hand-painted warung signage, government
+     letters with <em>kop surat</em> and stamps, thermal <em>struk</em>, and a chat-app parody for the
+     phone. Warm paper palette, one type scale, one spacing scale.</p>
+  <span class="tag">Proposal · phone-first · 320 × 660 frames</span>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ tokens ============ -->
+  <section class="tokens" aria-label="Design tokens">
+    <div class="token">
+      <h3>Palette</h3>
+      <div class="swatches">
+        <div class="swatch" style="background:#f3e9d2;color:#5b4a38">paper</div>
+        <div class="swatch" style="background:#2b2118">ink</div>
+        <div class="swatch" style="background:#a83226">merah</div>
+        <div class="swatch" style="background:#4f6b3a">daun</div>
+        <div class="swatch" style="background:#c99a2e">kunyit</div>
+        <div class="swatch" style="background:#1f4e6b">malam</div>
+      </div>
+    </div>
+    <div class="token">
+      <h3>Type scale</h3>
+      <div class="type-row"><span>28</span><span style="font-family:Georgia,serif;font-size:24px;font-weight:700">Pasar</span></div>
+      <div class="type-row"><span>18</span><span style="font-family:Georgia,serif;font-size:17px;font-weight:700">Jual panen</span></div>
+      <div class="type-row"><span>13</span><span style="font-size:13px">Cabai · 14 tersisa</span></div>
+      <div class="type-row"><span>10</span><span style="font-size:10px;letter-spacing:.12em;text-transform:uppercase">label</span></div>
+    </div>
+    <div class="token">
+      <h3>Spacing</h3>
+      <div class="scale-bars">
+        <i style="height:4px"></i><i style="height:8px"></i><i style="height:12px"></i>
+        <i style="height:16px"></i><i style="height:24px"></i><i style="height:32px"></i>
+      </div>
+      <p style="margin:8px 0 0;font-size:11px;color:#5b4a38">4 · 8 · 12 · 16 · 24 · 32 — no other gaps.</p>
+    </div>
+    <div class="token">
+      <h3>Rules</h3>
+      <p style="margin:0;font-size:11.5px;line-height:1.55;color:#5b4a38">
+        Inline SVG icons, never emoji. 2 px ink outlines with a hard offset shadow (printed sticker),
+        not soft neumorphism. Every screen readable at 320 px wide.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ screens ============ -->
+  <section class="screens">
+
+    <!-- HUD -->
+    <div class="screen-block">
+      <div class="phone">
+        <div class="screen">
+          <div class="hud-scene">
+            <div class="roof"></div>
+          </div>
+          <div class="hud-layer">
+            <div class="stats-card">
+              <div class="stats-row">
+                <span class="stats-label">Uang</span>
+                <span class="stats-value">Rp 1.240</span>
+              </div>
+              <div class="stats-row">
+                <span class="stats-label">Karung</span>
+                <span class="stats-value" style="font-size:15px">7 / 12</span>
+              </div>
+              <div class="stats-row">
+                <span class="stats-label">Pangkat</span>
+                <span class="chip" style="background:#c99a2e;color:#2b2118;font-weight:700">Petani</span>
+              </div>
+              <div class="sus-bar" title="Sus 62"><i></i></div>
+              <div class="stats-row" style="margin-top:4px">
+                <span class="stats-label">Sus</span>
+                <span style="font-size:11px;font-weight:700;color:#7c2118">62 · diawasi</span>
+              </div>
+            </div>
+
+            <div class="hud-right">
+              <span class="pill"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2b2118" stroke-width="2"><circle cx="12" cy="8" r="3.2"/><path d="M4.5 20c1.2-4 4-6 7.5-6s6.3 2 7.5 6"/></svg></span>Pak RT</span>
+              <span class="pill hot"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#7c2118" stroke-width="2"><path d="M6 9c0 5 2.7 9 6 9s6-4 6-9"/><path d="M9 5c1 2 5 2 6 0"/></svg></span>Oplosan</span>
+            </div>
+
+            <div class="hud-chips">
+              <span class="chip weather"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#f3e9d2" stroke-width="2"><path d="M7 15a4 4 0 0 1 .6-8 5.5 5.5 0 0 1 10.3 1.6A3.6 3.6 0 0 1 17 15"/><path d="M8 18l-1 2M12 18l-1 2M16 18l-1 2"/></svg></span>Hujan · musim hujan</span>
+              <span class="chip event"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#f3e9d2" stroke-width="2"><path d="M12 3c1.5 3 4 5.5 4 9a4 4 0 0 1-8 0c0-2 1-3.5 2-5"/><path d="M12 21v-4"/></svg></span>Cabai ×3 · 03:12</span>
+            </div>
+
+            <div class="tile-prompt">
+              <div class="name">Sawah · Padi</div>
+              <div class="meta">Siap panen · kualitas 0.9</div>
+              <span class="key">E</span>
+              <span style="font-size:10.5px;color:#5b4a38">Panen</span>
+            </div>
+
+            <div class="action-bar">
+              <div class="action">
+                <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2b2118" stroke-width="2"><rect x="6" y="2.5" width="12" height="19" rx="2.4"/><path d="M10 19h4"/></svg></span>
+                <span>HP</span>
+              </div>
+              <div class="action">
+                <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2b2118" stroke-width="2"><path d="M6 20V9l6-4 6 4v11"/><path d="M9 20v-6h6v6"/></svg></span>
+                <span>Bibit</span>
+              </div>
+              <div class="action">
+                <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2b2118" stroke-width="2"><path d="M4 9h16l-1.5 11h-13z"/><path d="M8 9V7a4 4 0 0 1 8 0v2"/></svg></span>
+                <span>Jual</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="caption">
+        <strong>1. HUD</strong>
+        One paper card for money / sack / rank, a Sus meter that reads as a form field, not a game bar.
+        Season and event chips under it. Action bar stays reachable by thumb.
+        <ul>
+          <li>Approve: is the paper-card HUD too heavy over the world?</li>
+          <li>Open: keep tile quality numbers, or hide them behind the minigame result?</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- SHOP -->
+    <div class="screen-block">
+      <div class="phone">
+        <div class="screen">
+          <div class="topbar">
+            <span class="brand">TOKO BIBIT</span>
+            <span class="pill">Rp 1.240</span>
+          </div>
+
+          <div class="shop-head">
+            <h2>Bibit &amp; Pupuk</h2>
+            <p>Stok bergilir · harga hari ini</p>
+          </div>
+
+          <div class="shop-body">
+            <div class="shop-note">
+              <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#4f6b3a" stroke-width="2"><path d="M12 21V9"/><path d="M12 13c-4 0-6-2-6-6 4 0 6 2 6 6z"/><path d="M12 16c4 0 6-2 6-6-4 0-6 2-6 6z"/></svg></span>
+              Musim hujan: padi &amp; cabai lebih sering muncul.
+            </div>
+
+            <div class="stock">
+              <div class="seed"><svg viewBox="0 0 24 24" fill="none" stroke="#2b2118" stroke-width="2"><path d="M12 20V8"/><path d="M12 12c-3.5 0-5-1.6-5-5 3.5 0 5 1.6 5 5z"/><path d="M12 15c3.5 0 5-1.6 5-5-3.5 0-5 1.6-5 5z"/></svg></div>
+              <div class="stock-main">
+                <div class="name">Padi</div>
+                <div class="sub">60 detik · panen 18</div>
+              </div>
+              <div class="price">
+                <div class="num">Rp 10</div>
+                <div class="left">14 tersisa</div>
+              </div>
+              <button class="buy">Beli</button>
+            </div>
+
+            <div class="stock">
+              <div class="seed" style="background:#e0b93f"><svg viewBox="0 0 24 24" fill="none" stroke="#2b2118" stroke-width="2"><path d="M8 20c0-6 2-11 8-14 1 7-1 12-8 14z"/><path d="M8 20l2-6"/></svg></div>
+              <div class="stock-main">
+                <div class="name">Jagung</div>
+                <div class="sub">120 detik · panen 50</div>
+              </div>
+              <div class="price">
+                <div class="num">Rp 25</div>
+                <div class="left">6 tersisa</div>
+              </div>
+              <button class="buy">Beli</button>
+            </div>
+
+            <div class="stock" style="opacity:.72">
+              <div class="seed" style="background:#b8402f"><svg viewBox="0 0 24 24" fill="none" stroke="#f8eccd" stroke-width="2"><path d="M12 4c1 3 3.5 5 3.5 8a3.5 3.5 0 0 1-7 0c0-2 .8-3.4 1.8-4.6"/><path d="M12 20v-3"/></svg></div>
+              <div class="stock-main">
+                <div class="name">Cabai</div>
+                <div class="sub">240 detik · panen 140</div>
+              </div>
+              <div class="price">
+                <div class="num">Rp 60</div>
+                <div class="sold-out">habis</div>
+              </div>
+              <button class="buy" disabled>Beli</button>
+            </div>
+
+            <div class="stock">
+              <div class="seed" style="background:#7b8a3a"><svg viewBox="0 0 24 24" fill="none" stroke="#f8eccd" stroke-width="2"><circle cx="12" cy="13" r="6"/><path d="M12 7V4"/><path d="M9 4h6"/></svg></div>
+              <div class="stock-main">
+                <div class="name">Durian</div>
+                <div class="sub">butuh pangkat Juragan</div>
+              </div>
+              <div class="price">
+                <div class="num">Rp 300</div>
+                <div class="left">2 tersisa</div>
+              </div>
+              <button class="buy" disabled>Beli</button>
+            </div>
+
+            <div class="struk">
+              <div class="center"><strong>STRUK PEMBELIAN</strong></div>
+              <div class="center">Toko Bibit · RT 01</div>
+              <hr>
+              <div class="line"><span>Padi × 5</span><span>Rp 50</span></div>
+              <div class="line"><span>Jagung × 2</span><span>Rp 50</span></div>
+              <hr>
+              <div class="line"><strong>TOTAL</strong><strong>Rp 100</strong></div>
+              <div class="center" style="margin-top:4px">Terima kasih, Juragan.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="caption">
+        <strong>2. Toko Bibit</strong>
+        Rotating stock as a warung price board: per-crop seed, grow time and limited quantity.
+        The thermal receipt is the confirmation surface, not a toast.
+        <ul>
+          <li>Approve: is a hard cap per player visible up front (as here) or shown after tapping?</li>
+          <li>Open: buy multiple at once (5 / 10 / semua) or one tap = one seed?</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- PHONE -->
+    <div class="screen-block">
+      <div class="phone">
+        <div class="screen">
+          <div class="appbar">
+            <div class="who">
+              <div class="avatar">JD</div>
+              <div>
+                <div class="name">HP Juragan</div>
+                <div class="status">online · 3 tetangga</div>
+              </div>
+            </div>
+            <div class="tabs">
+              <div class="tab active">Chat</div>
+              <div class="tab">Dompet</div>
+              <div class="tab">Curang</div>
+            </div>
+          </div>
+
+          <div class="chat">
+            <div class="chat-day">Hari ini</div>
+
+            <div class="bubble them">
+              <span class="from">Pak RT</span>
+              Kok cepet banget panennya ya. Hati-hati ada yang lapor.
+            </div>
+
+            <div class="bubble them forward">
+              <span class="forwarded">Diteruskan berkali-kali</span>
+              <strong>⚠ INFO PENTING</strong><br>
+              Mulai besok pupuk oplosan diperiksa. Jangan sampai ketahuan.
+              Teruskan ke 10 grup keluarga.
+            </div>
+
+            <div class="bubble me">
+              Siap Pak. Panen saya biasa aja kok.
+            </div>
+
+            <div class="bubble them">
+              <span class="from">Warung Bu Sri</span>
+              Kopi tubruk gratis buat yang mau cerita.
+            </div>
+
+            <div class="bubble them" style="border-style:dashed;background:#f6efdc">
+              <span class="from">Pinjol Jaya</span>
+              Dana cair 10 detik. Tanpa jaminan. <em>Buruan!</em>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="caption">
+        <strong>3. HP — Chat</strong>
+        The phone is a chat app first: Pak RT, warung, family-group forwards, and loan offers that
+        arrive unprompted. No clean "quest log" look.
+        <ul>
+          <li>Approve: does the forwarded-chain joke belong in the launch build, or is it too close to real misinformation?</li>
+          <li>Open: are messages real players only, or NPC flavour with a report button?</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- PHONE: pinjol -->
+    <div class="screen-block">
+      <div class="phone">
+        <div class="screen">
+          <div class="appbar">
+            <div class="who">
+              <div class="avatar">JD</div>
+              <div>
+                <div class="name">Dompet</div>
+                <div class="status">saldo &amp; tagihan</div>
+              </div>
+            </div>
+            <div class="tabs">
+              <div class="tab">Chat</div>
+              <div class="tab active">Dompet</div>
+              <div class="tab">Curang</div>
+            </div>
+          </div>
+
+          <div class="wallet">
+            <div class="wallet-card">
+              <div class="label">Saldo desa</div>
+              <div class="amount">Rp 1.240</div>
+              <div class="wallet-row"><span>Masuk hari ini</span><span>Rp 360</span></div>
+              <div class="wallet-row"><span>Panen terjual</span><span>12</span></div>
+            </div>
+
+            <div class="pinjol">
+              <div class="stamp">CAIR</div>
+              <h3>Pinjol Jaya</h3>
+              <p>Butuh modal? Sepuluh detik, tanpa pertanyaan.</p>
+              <div class="amount-row"><b>Rp 500</b><span style="font-size:10px;color:#5b4a38">s.d. Rp 5.000</span></div>
+              <div class="cta">TARIK SEKARANG</div>
+              <div class="fine">Bunga 2% / hari. Jatuh tempo 3 hari. Denda telat 10%.</div>
+            </div>
+
+            <div class="struk" style="margin:12px 0 0">
+              <div class="line"><span>Pinjaman aktif</span><span>Rp 0</span></div>
+              <div class="line"><span>Jatuh tempo</span><span>—</span></div>
+              <hr>
+              <div class="center">Tidak ada tagihan. Aman.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="caption">
+        <strong>4. HP — Dompet / Pinjol</strong>
+        E-wallet parody: the loan is the loudest thing on the screen, with the real interest in tiny
+        print. This is the M4 surface, mocked now so D1 covers it.
+        <ul>
+          <li>Approve: is a real-looking lender name acceptable, or must it be obviously fictional?</li>
+          <li>Open: what do we call the app (D5)?</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- RAID -->
+    <div class="screen-block">
+      <div class="phone">
+        <div class="screen" style="background:#5b6f4a">
+          <div class="raid">
+            <div class="letter">
+              <div class="kop">
+                <div class="crest">DESA<br>MAJU</div>
+                <div class="kop-text">
+                  <div class="l1">PEMERINTAH DESA MAJU</div>
+                  <div class="l2">Kecamatan Sukamaju · RT 01 / RW 02</div>
+                </div>
+              </div>
+              <div class="meta"><span>No. 041/RT-01/XI/2026</span><span>Rahasia</span></div>
+
+              <h3>Surat Panggilan</h3>
+              <p>Dengan hormat, berdasarkan laporan warga dan hasil pemeriksaan, Saudara
+                 <strong>Juragan Muda</strong> diduga melakukan pemupukan tidak sesuai anjuran.</p>
+
+              <div class="facts">
+                <div><span>Barang bukti</span><span>3 karung oplosan</span></div>
+                <div><span>Keterangan</span><span>Kadar 42%</span></div>
+                <div><span>Pasal</span><span>Perdes 07/2024 § 12</span></div>
+              </div>
+
+              <p>Saudara diberi kesempatan menyelesaikan perkara ini secara kekeluargaan.
+                 Pilih salah satu:</p>
+
+              <div class="choices">
+                <div class="choice danger">
+                  <b>Bayar denda</b>
+                  <span>Rp 480 · tercatat</span>
+                </div>
+                <div class="choice">
+                  <b>Amplop</b>
+                  <span>Rp 250 · tidak tercatat</span>
+                </div>
+              </div>
+
+              <div class="sign">
+                <div>Kepala Desa,<br><span class="sig">H. Suryana</span></div>
+                <div style="text-align:right">20 detik<br><span style="font-size:8px">pilihan otomatis denda</span></div>
+              </div>
+
+              <div class="stamp-red">DITERIMA<br>RT 01</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="caption">
+        <strong>5. Raid — surat panggilan</strong>
+        The raid choice is a government letter with a real <em>kop surat</em>, form number, evidence
+        table and a stamp. Two stamped buttons, timer in the signature block.
+        <ul>
+          <li>Approve: two choices only (fine / envelope), or add a third "lapor balik"?</li>
+          <li>Open: does the letter slide in after the camera cutscene, or is it the first thing the player sees?</li>
+        </ul>
+      </div>
+    </div>
+
+  </section>
+
+  <footer class="doc">
+    <p><strong>How to review:</strong> open this file in a browser (no build step, no assets). Reply per
+       numbered screen: approve, or redirect with one sentence. D1 in
+       <code>docs/v2/DECISIONS.md</code> stays <strong>open</strong> until then; the v1 Theme keeps the
+       game running.</p>
+    <p>Constraints this proposal respects: 320 px width first, image icons instead of emoji, one type
+       scale, one spacing scale, and a palette taken from the map (paper, ink, red signage, leaf green,
+       turmeric, night blue).</p>
+  </footer>
+
+</main>
+</body>
+</html>

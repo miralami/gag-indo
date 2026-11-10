@@ -46,19 +46,30 @@ end
 function Fakes.newData(env)
 	local Game = env:require("shared/Config/Game")
 	local Law = env:require("shared/Config/Law")
+	local items = { amplopPremium = 0, jaminanKilat = 0 }
+	for cropId, count in Game.startSeeds do
+		items["seed_" .. cropId] = count
+	end
 	return {
-		version = 2,
+		version = 3,
 		cash = Game.startCash,
 		lifetimeEarned = 0,
 		tilesOwned = Game.startTiles,
 		tiles = {},
-		seeds = table.clone(Game.startSeeds),
-		harvest = {},
+		produce = {},
+		items = items,
+		tools = {},
+		gudang = { capacity = Game.gudangBaseCapacity, stacks = {} },
+		debt = { active = false, principal = 0, owed = 0, takenAt = 0, dueAt = 0 },
+		quests = { daily = {}, loginStreak = 0, lastLoginDay = 0 },
+		almanak = {},
+		story = { chapter = 0, flags = {} },
+		housing = {},
+		prestige = { level = 0 },
 		sus = 0,
 		namaBaik = Law.namaBaikStart,
 		rank = "gurem",
 		timesElected = 0,
-		inventory = { amplopPremium = 0, jaminanKilat = 0 },
 		cooldowns = {},
 		cosmetics = {},
 		equipped = {},

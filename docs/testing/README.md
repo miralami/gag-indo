@@ -35,13 +35,17 @@ UI layout, sound, Roblox's DataStore, or what multiplayer feels like. That is wh
 
 | Spec | Covers |
 |---|---|
-| `config_spec` | Balance sanity: prices, thresholds, probabilities, rank requirements, product grants |
+| `config_spec` | Balance sanity: prices, thresholds, probabilities, rank requirements, product grants; tier chances sum to 1 and pay more when rarer; exactly one hot trait; every tier/trait has a label |
 | `ratelimit_spec` | Token-bucket limiter used by every remote |
 | `sus_spec` | Sus clamping, the letter warning, raid at 100 |
 | `rank_spec` | Rank promotion, Nama Baik, daily caps |
-| `economy_spec` | Cash, spending, transfers, sack, Pasar, Tengkulak Gelap, Ordal, cabai event |
-| `receipts_spec` | Robux purchases: exactly-once grants, retry safety |
-| `playerdata_spec` | Old-save migration |
+| `produce_spec` | Produce stack keys (`crop\|tier\|traits`): trait sorting/filtering, add/count, hot vs clean removal, snapshot isolation |
+| `state_spec` | Replicated state: section list, snapshot/patch shape, copies never returning the save table |
+| `seasons_spec` | Season calendar boundaries, anomaly/weather validation, weighted weather rolls |
+| `liveconfig_spec` | LiveConfig: `sanitize` validation, deep `merge`, `resolve` override → calendar priority, stable daily weather |
+| `economy_spec` | Cash, spending, transfers, sack, Pasar, Tengkulak Gelap, Ordal, cabai event; v3 stacks and tier multipliers |
+| `receipts_spec` | Robux purchases: exactly-once grants, retry safety, grants landing in `items` (`seed_<crop>`) |
+| `playerdata_spec` | Old-save migration v1 → v2 → v3: produce/items, Reconcile hazard, idempotence, section defaults |
 
 ### Write a new test
 
@@ -77,7 +81,7 @@ Helpers you will use most:
 | `env:advance(seconds)` | Moves the fake clock (`os.clock`, `os.time`) and runs due `task.defer` / `task.delay` calls |
 | `env:flush()` | Runs `task.defer` calls without moving time |
 | `Fakes.player(env, {position = ...})` | A fake player with attributes and a character |
-| `Fakes.newData(env)` | Fresh save data (same defaults as a new player) |
+| `Fakes.newData(env)` | Fresh **v3** save data (same defaults as a new player) |
 | `Fakes.playerData()`, `Fakes.notify()`, `Fakes.analytics()`, `Fakes.remotes(env)`, `Fakes.rateLimit()` | Ready-made stand-ins for the common neighbours |
 | `expect(x):toBe / toEqual / toBeNear / toBeGreaterThan / toBeLessThan / toBeAtLeast / toBeAtMost / toBeNil / toBeTruthy / toBeFalsy / toContain / toThrow` | Assertions. Use `expect(x).never:toBe(y)` to negate. |
 

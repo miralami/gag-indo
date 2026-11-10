@@ -27,8 +27,10 @@ return function(t, Env, Fakes)
 
 			env:mock("server/Data/PlayerData", playerData)
 			env:mock("server/Net/Notify", notify)
+			env:mock("server/Net/RateLimit", Fakes.rateLimit(true))
 			env:mock("server/Analytics/Analytics", analytics)
 			env:mock("server/Economy/EconomyService", { sync = function() end })
+			env:mock("shared/Remotes", Fakes.remotes(env))
 
 			-- Configure two products (the real config ships with id 0 = not configured).
 			local Products = env:require("shared/Config/Products")
@@ -46,16 +48,17 @@ return function(t, Env, Fakes)
 
 		t:it("grants an inventory item and acknowledges the purchase", function()
 			expect(process(receipt("p1"))):toBe("ProductPurchaseDecision.PurchaseGranted")
-			expect(data.inventory.amplopPremium):toBe(1)
+			expect(data.items.amplopPremium):toBe(1)
 			expect(notify.keys(player)):toContain("n_purchase")
 		end)
 
 		t:it("grants seed bundles", function()
 			local Products = env:require("shared/Config/Products")
-			local before = data.seeds.padi or 0
+			local Inventory = env:require("shared/Inventory")
+			local before = Inventory.getSeed(data, "padi")
 			process(receipt("p1", BIBIT_ID))
-			expect(data.seeds.padi):toBe(before + Products.products.karungBibit.seeds.padi)
-			expect(data.seeds.cabai):toBe(Products.products.karungBibit.seeds.cabai)
+			expect(Inventory.getSeed(data, "padi")):toBe(before + Products.products.karungBibit.seeds.padi)
+			expect(Inventory.getSeed(data, "cabai")):toBe(Products.products.karungBibit.seeds.cabai)
 		end)
 
 		t:it("records the PurchaseId before acknowledging", function()
@@ -67,13 +70,13 @@ return function(t, Env, Fakes)
 		t:it("does not grant twice when Roblox retries the same purchase", function()
 			process(receipt("p1"))
 			expect(process(receipt("p1"))):toBe("ProductPurchaseDecision.PurchaseGranted")
-			expect(data.inventory.amplopPremium):toBe(1)
+			expect(data.items.amplopPremium):toBe(1)
 		end)
 
 		t:it("grants each distinct purchase", function()
 			process(receipt("p1"))
 			process(receipt("p2"))
-			expect(data.inventory.amplopPremium):toBe(2)
+			expect(data.items.amplopPremium):toBe(2)
 		end)
 
 		t:it("does not acknowledge when the save is not confirmed, so Roblox retries", function()
@@ -87,7 +90,7 @@ return function(t, Env, Fakes)
 			process(receipt("p1"))
 			playerData.confirmSaves = true
 			expect(process(receipt("p1"))):toBe("ProductPurchaseDecision.PurchaseGranted")
-			expect(data.inventory.amplopPremium):toBe(1)
+			expect(data.items.amplopPremium):toBe(1)
 		end)
 
 		t:it("waits (NotProcessedYet) when the buyer is not in the server", function()
@@ -103,7 +106,7 @@ return function(t, Env, Fakes)
 
 		t:it("does not grant an unknown product", function()
 			expect(process(receipt("p1", 999999))):toBe("ProductPurchaseDecision.NotProcessedYet")
-			expect(data.inventory.amplopPremium):toBe(0)
+			expect(data.items.amplopPremium):toBe(0)
 			expect(#data.receipts):toBe(0)
 		end)
 

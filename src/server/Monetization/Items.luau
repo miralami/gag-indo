@@ -4,10 +4,12 @@
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Law = require(Shared.Config.Law)
 local Remotes = require(Shared.Remotes)
+local Inventory = require(Shared.Inventory)
 
 local PlayerData = require(script.Parent.Parent.Data.PlayerData)
 local RateLimit = require(script.Parent.Parent.Net.RateLimit)
 local Notify = require(script.Parent.Parent.Net.Notify)
+local State = require(script.Parent.Parent.Net.State)
 local EconomyService = require(script.Parent.Parent.Economy.EconomyService)
 local SusService = require(script.Parent.Parent.Law.SusService)
 local RaidService = require(script.Parent.Parent.Law.RaidService)
@@ -15,7 +17,7 @@ local RaidService = require(script.Parent.Parent.Law.RaidService)
 local Items = {}
 
 local function useAmplopPremium(player: Player, data)
-	if (data.inventory.amplopPremium or 0) < 1 then
+	if Inventory.get(data, "amplopPremium") < 1 then
 		Notify.send(player, "n_item_none", "@item_amplopPremium")
 		return
 	end
@@ -27,15 +29,16 @@ local function useAmplopPremium(player: Player, data)
 		Notify.send(player, "n_item_blocked", "@item_amplopPremium")
 		return
 	end
-	data.inventory.amplopPremium -= 1
+	Inventory.take(data, "amplopPremium", 1)
 	data.cooldowns.amplopPremiumReadyAt = os.time() + Law.amplopPremiumCooldown
 	SusService.add(player, Law.amplopPremiumSus, "amplopPremium")
 	EconomyService.sync(player)
+	State.touch(player, "items")
 	Notify.send(player, "n_item_used", "@item_amplopPremium")
 end
 
 local function useJaminanKilat(player: Player, data)
-	if (data.inventory.jaminanKilat or 0) < 1 then
+	if Inventory.get(data, "jaminanKilat") < 1 then
 		Notify.send(player, "n_item_none", "@item_jaminanKilat")
 		return
 	end
@@ -43,8 +46,9 @@ local function useJaminanKilat(player: Player, data)
 		Notify.send(player, "n_item_blocked", "@item_jaminanKilat")
 		return
 	end
-	data.inventory.jaminanKilat -= 1
+	Inventory.take(data, "jaminanKilat", 1)
 	EconomyService.sync(player)
+	State.touch(player, "items")
 	Notify.send(player, "n_item_used", "@item_jaminanKilat")
 end
 

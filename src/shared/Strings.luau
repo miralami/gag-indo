@@ -14,6 +14,41 @@ local S: { [string]: { id: string, en: string } } = {
 	rank_petani = { id = "Petani", en = "Farmer" },
 	rank_juragan = { id = "Juragan", en = "Juragan" },
 
+	-- rarity tiers (Config/Tiers)
+	tier_biasa = { id = "Biasa", en = "Common" },
+	tier_bagus = { id = "Bagus", en = "Good" },
+	tier_super = { id = "Super", en = "Super" },
+	tier_langka = { id = "Langka", en = "Rare" },
+	tier_sultan = { id = "Sultan", en = "Sultan" },
+
+	-- produce traits (Config/Traits)
+	trait_oplosan = { id = "Oplosan", en = "Cut" },
+	trait_basah = { id = "Basah", en = "Rain-soaked" },
+	trait_kering = { id = "Kering", en = "Drought-dry" },
+	trait_organik = { id = "Organik", en = "Organic" },
+	trait_bersertifikat = { id = "Bersertifikat", en = "Certified" },
+
+	-- seasons (Config/Seasons)
+	season_hujan = { id = "Musim Hujan", en = "Rainy season" },
+	season_kemarau = { id = "Musim Kemarau", en = "Dry season" },
+	season_pancaroba = { id = "Pancaroba", en = "Changing season" },
+
+	-- admin panel (internal tool)
+	admin_title = { id = "Admin — Juragan Desa", en = "Admin — Juragan Desa" },
+	admin_season = { id = "Musim", en = "Season" },
+	admin_anomaly = { id = "Anomali", en = "Anomaly" },
+	admin_event = { id = "Event", en = "Event" },
+	admin_inspect = { id = "Periksa", en = "Inspect" },
+	admin_grant = { id = "Beri", en = "Grant" },
+	admin_close = { id = "Tutup", en = "Close" },
+	admin_idle = { id = "Belum ada aksi.", en = "No actions yet." },
+	admin_offline = { id = "Pemain tidak online.", en = "Player is not online." },
+	admin_no_access = { id = "Akses ditolak.", en = "Access denied." },
+	admin_failed = { id = "Gagal: %s", en = "Failed: %s" },
+	admin_ready = { id = "Siap.", en = "Ready." },
+	admin_auto = { id = "Auto", en = "Auto" },
+	admin_cabai = { id = "Harga Cabai", en = "Chili prices" },
+
 	-- cheats
 	cheat_oplosan = { id = "Pupuk Oplosan", en = "Dodgy Fertilizer" },
 	cheat_gelap = { id = "Tengkulak Gelap", en = "Black Market" },

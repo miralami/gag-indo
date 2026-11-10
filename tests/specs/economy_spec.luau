@@ -1,18 +1,24 @@
 --!nocheck
 return function(t, Env, Fakes)
 	local expect = t.expect
-	local env, Crops, GameConfig, Cheats, Economy, notify, rateLimit, cabai, player, data
+	local env, Crops, GameConfig, Cheats, Economy, Produce, Inventory, notify, rateLimit, remotes, cabai, player, data
 
 	local PASAR = nil
 	local GELAP = nil
 
-	local function sack(count, quality, hotCount, hotQuality)
-		return {
+	local function setStack(cropId, count, qualitySum, hot)
+		local traits = if hot then { "oplosan" } else {}
+		data.produce[Produce.key(cropId, "biasa", traits)] = {
+			crop = cropId,
+			tier = "biasa",
+			traits = traits,
 			count = count,
-			qualitySum = quality,
-			hotCount = hotCount or 0,
-			hotQualitySum = hotQuality or 0,
+			qualitySum = qualitySum,
 		}
+	end
+
+	local function getStack(cropId, hot)
+		return data.produce[Produce.key(cropId, "biasa", if hot then { "oplosan" } else {})]
 	end
 
 	t:describe("EconomyService", function()
@@ -21,6 +27,8 @@ return function(t, Env, Fakes)
 			Crops = env:require("shared/Config/Crops")
 			GameConfig = env:require("shared/Config/Game")
 			Cheats = env:require("shared/Config/Cheats")
+			Produce = env:require("shared/Produce")
+			Inventory = env:require("shared/Inventory")
 
 			PASAR = env.Vector3.new(10, 0, 0)
 			GELAP = env.Vector3.new(-50, 0, 0)
@@ -28,12 +36,17 @@ return function(t, Env, Fakes)
 			local playerData = Fakes.playerData()
 			notify = Fakes.notify()
 			rateLimit = Fakes.rateLimit(true)
+			remotes = Fakes.remotes(env)
 			cabai = { value = 1 }
 			function cabai.multiplier(cropId)
 				return if cropId == "cabai" then cabai.value else 1
 			end
+			function cabai.isActive()
+				return cabai.value > 1
+			end
+			function cabai.start() end
 
-			env:mock("shared/Remotes", Fakes.remotes(env))
+			env:mock("shared/Remotes", remotes)
 			env:mock("server/Data/PlayerData", playerData)
 			env:mock("server/Net/Notify", notify)
 			env:mock("server/Net/RateLimit", rateLimit)
@@ -141,19 +154,20 @@ return function(t, Env, Fakes)
 		end)
 
 		t:describe("harvest sack", function()
-			t:it("keeps clean and hot quality in separate sums", function()
+			t:it("keeps clean and hot quality in separate stacks", function()
 				Economy.addHarvest(player, "padi", 1, false)
 				Economy.addHarvest(player, "padi", 0.5, true)
-				local padi = data.harvest.padi
-				expect(padi.count):toBe(2)
-				expect(padi.hotCount):toBe(1)
-				expect(padi.qualitySum):toBeNear(1)
-				expect(padi.hotQualitySum):toBeNear(0.5)
+				local clean = getStack("padi", false)
+				local hot = getStack("padi", true)
+				expect(clean.count):toBe(1)
+				expect(clean.qualitySum):toBeNear(1)
+				expect(hot.count):toBe(1)
+				expect(hot.qualitySum):toBeNear(0.5)
 			end)
 
 			t:it("ignores crops that do not exist", function()
 				Economy.addHarvest(player, "tembakau", 1, false)
-				expect(data.harvest.tembakau):toBeNil()
+				expect(next(data.produce)):toBeNil()
 			end)
 
 			t:it("reports the total number of items on the HUD", function()
@@ -163,64 +177,66 @@ return function(t, Env, Fakes)
 			end)
 
 			t:it("removes only hot produce when confiscating", function()
-				data.harvest.padi = sack(3, 2.0, 1, 0.9)
-				data.harvest.jagung = sack(2, 0, 2, 1.8)
+				setStack("padi", 2, 2.0, false)
+				setStack("padi", 1, 0.9, true)
+				setStack("jagung", 2, 1.8, true)
 				expect(Economy.removeHotHarvest(player)):toBe(3)
-				expect(data.harvest.padi.count):toBe(2)
-				expect(data.harvest.padi.hotCount):toBe(0)
-				expect(data.harvest.jagung):toBeNil() -- all hot, sack is gone
+				expect(getStack("padi", false).count):toBe(2)
+				expect(getStack("padi", true)):toBeNil()
+				expect(getStack("jagung", true)):toBeNil()
 			end)
 
 			t:it("confiscates nothing from a clean sack", function()
-				data.harvest.padi = sack(3, 2.7)
+				setStack("padi", 3, 2.7, false)
 				expect(Economy.removeHotHarvest(player)):toBe(0)
-				expect(data.harvest.padi.count):toBe(3)
+				expect(getStack("padi", false).count):toBe(3)
 			end)
 		end)
 
 		t:describe("sellAll at the Pasar", function()
 			t:it("pays base price times total quality", function()
-				data.harvest.padi = sack(2, 1.8)
+				setStack("padi", 2, 1.8, false)
 				Economy.sellAll(player, "pasar")
 				expect(data.cash):toBe(GameConfig.startCash + math.floor(Crops.list.padi.sellPrice * 1.8))
 			end)
 
 			t:it("counts the sale as earned income", function()
-				data.harvest.padi = sack(2, 2)
+				setStack("padi", 2, 2, false)
 				Economy.sellAll(player, "pasar")
 				expect(data.lifetimeEarned):toBe(Crops.list.padi.sellPrice * 2)
 			end)
 
 			t:it("empties the sack when everything was clean", function()
-				data.harvest.padi = sack(2, 2)
+				setStack("padi", 2, 2, false)
 				Economy.sellAll(player, "pasar")
-				expect(data.harvest.padi):toBeNil()
+				expect(next(data.produce)):toBeNil()
 				expect(player:GetAttribute("HarvestCount")):toBe(0)
 			end)
 
 			-- Regression: commit f0443f8 "Fix Pasar sale leaving clean produce count in the sack".
 			t:it("leaves only the hot items in the sack after selling the clean ones", function()
-				data.harvest.padi = sack(5, 3.0, 2, 1.2)
+				setStack("padi", 3, 3.0, false)
+				setStack("padi", 2, 1.2, true)
 				Economy.sellAll(player, "pasar")
-				expect(data.harvest.padi.count):toBe(2)
-				expect(data.harvest.padi.hotCount):toBe(2)
-				expect(data.harvest.padi.qualitySum):toBe(0)
-				expect(data.harvest.padi.hotQualitySum):toBeNear(1.2)
+				expect(getStack("padi", false)):toBeNil()
+				expect(getStack("padi", true).count):toBe(2)
+				expect(getStack("padi", true).qualitySum):toBeNear(1.2)
 				expect(player:GetAttribute("HarvestCount")):toBe(2)
 			end)
 
 			t:it("pays only for the clean produce when hot produce is also in the sack", function()
-				data.harvest.padi = sack(5, 3.0, 2, 1.2)
+				setStack("padi", 3, 3.0, false)
+				setStack("padi", 2, 1.2, true)
 				Economy.sellAll(player, "pasar")
 				expect(data.cash):toBe(GameConfig.startCash + math.floor(Crops.list.padi.sellPrice * 3.0))
 			end)
 
 			t:it("refuses a sack that is only hot produce", function()
-				data.harvest.padi = sack(2, 0, 2, 1.8)
+				setStack("padi", 2, 1.8, true)
 				Economy.sellAll(player, "pasar")
 				expect(data.cash):toBe(GameConfig.startCash)
 				expect(notify.keys(player)):toContain("n_hot_pasar")
-				expect(data.harvest.padi.count):toBe(2)
+				expect(getStack("padi", true).count):toBe(2)
 			end)
 
 			t:it("says there is nothing to sell for an empty sack", function()
@@ -229,16 +245,16 @@ return function(t, Env, Fakes)
 			end)
 
 			t:it("refuses when the player stands too far from the market", function()
-				data.harvest.padi = sack(2, 2)
+				setStack("padi", 2, 2, false)
 				player.Character.HumanoidRootPart.Position = env.Vector3.new(500, 0, 0)
 				Economy.sellAll(player, "pasar")
 				expect(data.cash):toBe(GameConfig.startCash)
 				expect(notify.keys(player)):toContain("n_too_far")
-				expect(data.harvest.padi.count):toBe(2)
+				expect(getStack("padi", false).count):toBe(2)
 			end)
 
 			t:it("refuses when rate limited", function()
-				data.harvest.padi = sack(2, 2)
+				setStack("padi", 2, 2, false)
 				rateLimit.allow = function()
 					return false
 				end
@@ -248,24 +264,36 @@ return function(t, Env, Fakes)
 
 			t:it("gives the Ordal pass holder 10% more", function()
 				player:SetAttribute("Pass_Ordal", true)
-				data.harvest.jagung = sack(2, 2)
+				setStack("jagung", 2, 2, false)
 				Economy.sellAll(player, "pasar")
 				expect(data.cash):toBe(GameConfig.startCash + math.floor(Crops.list.jagung.sellPrice * 2 * 1.1))
 			end)
 
 			t:it("applies the Harga Cabai Meroket multiplier to cabai only", function()
 				cabai.value = GameConfig.cabaiEventMultiplier
-				data.harvest.cabai = sack(1, 1)
-				data.harvest.padi = sack(1, 1)
+				setStack("cabai", 1, 1, false)
+				setStack("padi", 1, 1, false)
 				Economy.sellAll(player, "pasar")
 				local expected = Crops.list.cabai.sellPrice * GameConfig.cabaiEventMultiplier + Crops.list.padi.sellPrice
 				expect(data.cash):toBe(GameConfig.startCash + expected)
 			end)
 
 			t:it("pays normal cabai price when the event is off", function()
-				data.harvest.cabai = sack(1, 1)
+				setStack("cabai", 1, 1, false)
 				Economy.sellAll(player, "pasar")
 				expect(data.cash):toBe(GameConfig.startCash + Crops.list.cabai.sellPrice)
+			end)
+
+			t:it("applies the rarity tier multiplier (M1 seam, sultan = x25)", function()
+				data.produce[Produce.key("padi", "sultan", {})] = {
+					crop = "padi",
+					tier = "sultan",
+					traits = {},
+					count = 1,
+					qualitySum = 1,
+				}
+				Economy.sellAll(player, "pasar")
+				expect(data.cash):toBe(GameConfig.startCash + Crops.list.padi.sellPrice * 25)
 			end)
 		end)
 
@@ -281,20 +309,22 @@ return function(t, Env, Fakes)
 			end)
 
 			t:it("pays the black market premium on clean and hot produce", function()
-				data.harvest.padi = sack(3, 1.0, 2, 1.8)
+				setStack("padi", 1, 1.0, false)
+				setStack("padi", 2, 1.8, true)
 				Economy.sellAll(player, "gelap")
 				local base = Crops.list.padi.sellPrice * (1.0 + 1.8)
 				expect(data.cash):toBe(GameConfig.startCash + math.floor(base * Cheats.list.gelap.priceMultiplier))
 			end)
 
 			t:it("empties the whole sack", function()
-				data.harvest.padi = sack(3, 1.0, 2, 1.8)
+				setStack("padi", 1, 1.0, false)
+				setStack("padi", 2, 1.8, true)
 				Economy.sellAll(player, "gelap")
-				expect(next(data.harvest)):toBeNil()
+				expect(next(data.produce)):toBeNil()
 			end)
 
 			t:it("reports only the extra profit to the cheat handler", function()
-				data.harvest.padi = sack(2, 2)
+				setStack("padi", 2, 2, false)
 				Economy.sellAll(player, "gelap")
 				local base = Crops.list.padi.sellPrice * 2
 				local extra = math.floor(base * Cheats.list.gelap.priceMultiplier - base)
@@ -310,11 +340,22 @@ return function(t, Env, Fakes)
 			end)
 
 			t:it("does not accept a sale from the Pasar spot", function()
-				data.harvest.padi = sack(2, 2)
+				setStack("padi", 2, 2, false)
 				player.Character.HumanoidRootPart.Position = PASAR
 				Economy.sellAll(player, "gelap")
 				expect(notify.keys(player)):toContain("n_too_far")
-				expect(data.harvest.padi.count):toBe(2)
+				expect(getStack("padi", false).count):toBe(2)
+			end)
+		end)
+
+		t:describe("seed purchases (v3 items)", function()
+			t:it("adds seeds to items and mirrors the Seed attribute", function()
+				Economy.start()
+				local before = Inventory.getSeed(data, "padi")
+				remotes.Shop_BuySeed.OnServerEvent:Fire(player, "padi", 2)
+				expect(Inventory.getSeed(data, "padi")):toBe(before + 2)
+				expect(player:GetAttribute("Seed_padi")):toBe(before + 2)
+				expect(data.cash):toBe(GameConfig.startCash - Crops.list.padi.seedCost * 2)
 			end)
 		end)
 	end)

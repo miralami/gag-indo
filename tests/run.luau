@@ -15,6 +15,10 @@ local Fakes = require("./lib/Fakes")
 -- Add new spec files here.
 local specs = {
 	require("./specs/config_spec"),
+	require("./specs/produce_spec"),
+	require("./specs/state_spec"),
+	require("./specs/seasons_spec"),
+	require("./specs/liveconfig_spec"),
 	require("./specs/ratelimit_spec"),
 	require("./specs/sus_spec"),
 	require("./specs/rank_spec"),

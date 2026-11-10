@@ -6,9 +6,11 @@ local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Products = require(Shared.Config.Products)
+local Inventory = require(Shared.Inventory)
 
 local PlayerData = require(script.Parent.Parent.Data.PlayerData)
 local Notify = require(script.Parent.Parent.Net.Notify)
+local State = require(script.Parent.Parent.Net.State)
 local EconomyService = require(script.Parent.Parent.Economy.EconomyService)
 local Analytics = require(script.Parent.Parent.Analytics.Analytics)
 
@@ -16,10 +18,10 @@ local Receipts = {}
 
 local function applyGrant(data, product)
 	if product.grant == "inventory" then
-		data.inventory[product.item] = (data.inventory[product.item] or 0) + (product.amount or 1)
+		Inventory.add(data, product.item, product.amount or 1)
 	elseif product.grant == "seeds" then
 		for cropId, amount in product.seeds or {} do
-			data.seeds[cropId] = (data.seeds[cropId] or 0) + amount
+			Inventory.addSeed(data, cropId, amount)
 		end
 	end
 end
@@ -55,6 +57,7 @@ function Receipts.start()
 			table.remove(data.receipts, 1)
 		end
 		EconomyService.sync(player)
+		State.touch(player, "items")
 
 		-- Acknowledge ONLY after a save containing this PurchaseId succeeded.
 		if not PlayerData.saveAndConfirm(profile, receiptInfo.PurchaseId, 15) then

@@ -1,5 +1,6 @@
--- EconomyService: the ONLY code that changes cash, seeds and harvest sacks.
--- Also mirrors those values onto player attributes so the client HUD can read them.
+-- EconomyService: the ONLY code that changes cash, seeds and the harvest sack.
+-- Also mirrors the scalar values onto player attributes so the client HUD can read them,
+-- and touches the structured state sections that changed (v2 PLAN §7.1).
 -- Sus / evidence stay out of this module: a cheat sale is reported through a hook that
 -- CheatService registers at startup (keeps the dependency graph acyclic).
 
@@ -7,11 +8,15 @@ local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Crops = require(Shared.Config.Crops)
 local Cheats = require(Shared.Config.Cheats)
 local GameConfig = require(Shared.Config.Game)
+local Tiers = require(Shared.Config.Tiers)
 local Remotes = require(Shared.Remotes)
+local Inventory = require(Shared.Inventory)
+local Produce = require(Shared.Produce)
 
 local PlayerData = require(script.Parent.Parent.Data.PlayerData)
 local RateLimit = require(script.Parent.Parent.Net.RateLimit)
 local Notify = require(script.Parent.Parent.Net.Notify)
+local State = require(script.Parent.Parent.Net.State)
 local RankService = require(script.Parent.Parent.Progression.RankService)
 local Village = require(script.Parent.Parent.World.Village)
 local CabaiEvent = require(script.Parent.Parent.Events.CabaiEvent)
@@ -51,15 +56,12 @@ function EconomyService.sync(player: Player)
 	player:SetAttribute("Cash", data.cash)
 	player:SetAttribute("LifetimeEarned", data.lifetimeEarned)
 	player:SetAttribute("TilesOwned", data.tilesOwned)
-	player:SetAttribute("Item_amplopPremium", data.inventory.amplopPremium or 0)
-	player:SetAttribute("Item_jaminanKilat", data.inventory.jaminanKilat or 0)
-	local bag = 0
+	player:SetAttribute("Item_amplopPremium", Inventory.get(data, "amplopPremium"))
+	player:SetAttribute("Item_jaminanKilat", Inventory.get(data, "jaminanKilat"))
 	for _, cropId in Crops.order do
-		player:SetAttribute("Seed_" .. cropId, data.seeds[cropId] or 0)
-		local sack = data.harvest[cropId]
-		bag += if sack then sack.count else 0
+		player:SetAttribute("Seed_" .. cropId, Inventory.getSeed(data, cropId))
 	end
-	player:SetAttribute("HarvestCount", bag)
+	player:SetAttribute("HarvestCount", Produce.count(data.produce or {}))
 end
 
 -- earned = true when this is income (counts toward lifetimeEarned / ranks)
@@ -118,25 +120,20 @@ function EconomyService.refreshRank(player: Player)
 	EconomyService.sync(player)
 end
 
-function EconomyService.addHarvest(player: Player, cropId: string, quality: number, hot: boolean)
+-- `hot` is the v1 flag; in v3 it becomes the "oplosan" trait on the stack.
+-- `tier` stays "biasa" until RarityService lands in M1.
+function EconomyService.addHarvest(player: Player, cropId: string, quality: number, hot: boolean, tier: string?)
 	local data = PlayerData.get(player)
 	if not data or not Crops.list[cropId] then
 		return
 	end
-	local sack = data.harvest[cropId]
-	if not sack then
-		sack = { count = 0, qualitySum = 0, hotCount = 0, hotQualitySum = 0 }
-		data.harvest[cropId] = sack
-	end
-	sack.hotQualitySum = sack.hotQualitySum or 0
-	sack.count += 1
-	if hot then
-		sack.hotCount = (sack.hotCount or 0) + 1
-		sack.hotQualitySum += quality
-	else
-		sack.qualitySum += quality
-	end
+	data.produce = data.produce or {}
+	Produce.add(data.produce, cropId, quality, {
+		tier = tier,
+		traits = if hot then { "oplosan" } else {},
+	})
 	EconomyService.sync(player)
+	State.touch(player, "produce")
 end
 
 -- Confiscated during a raid. Returns how many items were removed.
@@ -145,21 +142,10 @@ function EconomyService.removeHotHarvest(player: Player): number
 	if not data then
 		return 0
 	end
-	local removed = 0
-	for cropId, sack in data.harvest do
-		local hot = sack.hotCount or 0
-		if hot > 0 then
-			removed += hot
-			sack.count -= hot
-			sack.hotCount = 0
-			sack.hotQualitySum = 0
-			if sack.count <= 0 then
-				data.harvest[cropId] = nil
-			end
-		end
-	end
+	local removed = Produce.removeHot(data.produce or {})
 	if removed > 0 then
 		EconomyService.sync(player)
+		State.touch(player, "produce")
 	end
 	return removed
 end
@@ -182,13 +168,16 @@ function EconomyService.sellAll(player: Player, channel: string)
 
 	local legalValue = 0
 	local hotValue = 0
-	for cropId, sack in data.harvest do
-		local crop = Crops.list[cropId]
-		if crop and sack.count > 0 then
-			-- Harga Cabai Meroket multiplies the base price before quality is applied.
-			local unit = crop.sellPrice * CabaiEvent.multiplier(cropId)
-			legalValue += unit * (sack.qualitySum or 0)
-			hotValue += unit * (sack.hotQualitySum or 0)
+	for _, stack in data.produce or {} do
+		local crop = Crops.list[stack.crop]
+		if crop and stack.count > 0 then
+			-- Harga Cabai Meroket multiplies the base price before quality and rarity.
+			local unit = crop.sellPrice * CabaiEvent.multiplier(stack.crop) * Tiers.multiplier(stack.tier)
+			if Produce.isHot(stack) then
+				hotValue += unit * (stack.qualitySum or 0)
+			else
+				legalValue += unit * (stack.qualitySum or 0)
+			end
 		end
 	end
 
@@ -200,8 +189,9 @@ function EconomyService.sellAll(player: Player, channel: string)
 		local multiplier = Cheats.list.gelap.priceMultiplier or 1.3
 		local total = (legalValue + hotValue) * multiplier
 		local extra = total - (legalValue + hotValue)
-		data.harvest = {}
+		data.produce = {}
 		EconomyService.addCash(player, total, true)
+		State.touch(player, "produce")
 		Notify.send(player, "n_sold_gelap", math.floor(total))
 		if cheatSaleHandler then
 			cheatSaleHandler(player, "gelap", math.floor(extra), position)
@@ -217,19 +207,11 @@ function EconomyService.sellAll(player: Player, channel: string)
 	local multiplier = if player:GetAttribute("Pass_Ordal") then ORDAL_SALE_BONUS else 1
 	local total = legalValue * multiplier
 
-	for cropId, sack in data.harvest do
-		-- Clean produce was sold; only the hot (oplosan) items stay in the sack.
-		local hot = sack.hotCount or 0
-		sack.count = hot
-		sack.qualitySum = 0
-		if sack.count <= 0 then
-			data.harvest[cropId] = nil
-		else
-			sack.hotQualitySum = sack.hotQualitySum or 0
-		end
-	end
+	-- Clean produce sold; only the hot (oplosan) stacks stay in the sack.
+	Produce.removeClean(data.produce or {})
 
 	EconomyService.addCash(player, total, true)
+	State.touch(player, "produce")
 	Notify.send(player, "n_sold", math.floor(total))
 end
 
@@ -255,8 +237,9 @@ local function onBuySeed(player: Player, cropId: any, amount: any)
 	if not EconomyService.trySpend(player, crop.seedCost * amount) then
 		return
 	end
-	data.seeds[cropId] = (data.seeds[cropId] or 0) + amount
+	Inventory.addSeed(data, cropId, amount)
 	EconomyService.sync(player)
+	State.touch(player, "items")
 	Notify.send(player, "n_bought_seeds", amount, "@crop_" .. cropId)
 end
 

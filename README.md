@@ -1,6 +1,11 @@
 # Juragan Desa
 
-A satirical Indonesian village farming game for Roblox. v2 plan: [docs/v2/PLAN.md](docs/v2/PLAN.md) · v1 design: [docs/v1/GDD.md](docs/v1/GDD.md) · v1 dev guide: [docs/v1/TECH.md](docs/v1/TECH.md)
+A satirical Indonesian village farming game for Roblox. v2 plan: [docs/v2/PLAN.md](docs/v2/PLAN.md) · v2 technical foundation: [docs/v2/TECH.md](docs/v2/TECH.md) · designer decisions: [docs/v2/DECISIONS.md](docs/v2/DECISIONS.md) · v1 design: [docs/v1/GDD.md](docs/v1/GDD.md) · v1 dev guide: [docs/v1/TECH.md](docs/v1/TECH.md)
+
+> **v2 status:** the foundation (M0) is in place: save schema v3 with in-place migration, a replicated
+> state module, a tag-driven world, admin LiveConfig and an F2 admin panel. Gameplay is still the v1
+> loop until M1+. See [docs/v2/TECH.md](docs/v2/TECH.md) for the contract and
+> [docs/v2/mockups/index.html](docs/v2/mockups/index.html) for the proposed UI (D1, not wired in).
 
 ## First-time setup (once)
 
@@ -29,6 +34,17 @@ rojo serve
 ```
 
 In Studio: Plugins → Rojo → **Connect**, then press **Play**. Edits to `src/` sync live.
+
+## Admin panel (v2)
+
+The in-game admin panel opens with **F2** and only for allowlisted UserIds. Put your Roblox UserId in
+`src/server/Live/Admins.luau` (`Admins.userIds`) — it is empty by default and enforced on the server.
+The panel can override season/weather, force the cabai event on or off, grant items and inspect a
+player. Changes go through `LiveConfig`, so they survive a server restart and reach every server.
+See [docs/v2/TECH.md](docs/v2/TECH.md) §4–5.
+
+Admin LiveConfig stores: `LiveConfig_v1_Studio` in Studio, `LiveConfig_v1` live. Player saves keep the
+old store names (`PlayerData_v1_Studio` / `PlayerData_v1`) and migrate in place to schema v3.
 
 ## Testing
 

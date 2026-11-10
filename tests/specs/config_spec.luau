@@ -3,7 +3,7 @@
 
 return function(t, Env)
 	local expect = t.expect
-	local env, Game, Law, Crops, Cheats, Products
+	local env, Game, Law, Crops, Cheats, Products, Tiers, Traits, Strings
 
 	t:describe("Config", function()
 		t:beforeEach(function()
@@ -13,6 +13,9 @@ return function(t, Env)
 			Crops = env:require("shared/Config/Crops")
 			Cheats = env:require("shared/Config/Cheats")
 			Products = env:require("shared/Config/Products")
+			Tiers = env:require("shared/Config/Tiers")
+			Traits = env:require("shared/Config/Traits")
+			Strings = env:require("shared/Strings")
 		end)
 
 		t:describe("Game.tilePrice", function()
@@ -161,6 +164,94 @@ return function(t, Env)
 
 			t:it("sells to the black market at a premium", function()
 				expect(Cheats.list.gelap.priceMultiplier):toBeGreaterThan(1)
+			end)
+		end)
+
+		t:describe("rarity tiers", function()
+			t:it("lists every tier in the display order exactly once", function()
+				local seen = {}
+				for _, tierId in Tiers.order do
+					expect(Tiers.list[tierId]):toBeTruthy()
+					expect(seen[tierId]):toBeNil()
+					seen[tierId] = true
+				end
+				local count = 0
+				for _ in Tiers.list do
+					count += 1
+				end
+				expect(count):toBe(#Tiers.order)
+			end)
+
+			t:it("has roll chances that sum to one", function()
+				local total = 0
+				for _, tier in Tiers.list do
+					expect(tier.chance):toBeGreaterThan(0)
+					total += tier.chance
+				end
+				expect(total):toBeNear(1, 1e-9)
+			end)
+
+			t:it("pays more for rarer tiers", function()
+				local previous = 0
+				for _, tierId in Tiers.order do
+					local multiplier = Tiers.list[tierId].valueMultiplier
+					expect(multiplier):toBeGreaterThan(previous)
+					previous = multiplier
+				end
+			end)
+
+			t:it("defaults to a tier that exists and pays exactly the base price", function()
+				expect(Tiers.list[Tiers.default]):toBeTruthy()
+				expect(Tiers.multiplier(Tiers.default)):toBe(1)
+			end)
+
+			t:it("treats an unknown tier as the base multiplier", function()
+				expect(Tiers.multiplier("dewa")):toBe(1)
+				expect(Tiers.multiplier(nil)):toBe(1)
+				expect(Tiers.exists("dewa")):toBe(false)
+			end)
+
+			t:it("has a string for every tier", function()
+				for _, tier in Tiers.list do
+					expect(Strings.get("id", tier.labelKey)).never:toBe(tier.labelKey)
+					expect(Strings.get("en", tier.labelKey)).never:toBe(tier.labelKey)
+				end
+			end)
+		end)
+
+		t:describe("traits", function()
+			t:it("lists every trait exactly once", function()
+				local count = 0
+				for _ in Traits.list do
+					count += 1
+				end
+				expect(count):toBe(#Traits.order)
+				for _, traitId in Traits.order do
+					expect(Traits.list[traitId]):toBeTruthy()
+				end
+			end)
+
+			t:it("has exactly one hot trait, and it is oplosan", function()
+				local hotCount = 0
+				for traitId, trait in Traits.list do
+					if trait.hot then
+						hotCount += 1
+						expect(traitId):toBe(Traits.hotTrait)
+					end
+				end
+				expect(hotCount):toBe(1)
+			end)
+
+			t:it("has a string for every trait", function()
+				for _, trait in Traits.list do
+					expect(Strings.get("id", trait.labelKey)).never:toBe(trait.labelKey)
+					expect(Strings.get("en", trait.labelKey)).never:toBe(trait.labelKey)
+				end
+			end)
+
+			t:it("rejects unknown trait ids", function()
+				expect(Traits.exists("radioaktif")):toBe(false)
+				expect(Traits.exists(nil)):toBe(false)
 			end)
 		end)
 

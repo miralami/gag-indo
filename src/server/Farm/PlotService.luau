@@ -8,6 +8,7 @@ local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.Game)
 
 local Props = require(script.Parent.Parent.World.Props)
+local Map = require(script.Parent.Parent.World.Map)
 
 local TILE_SIZE = 6
 local TILE_GAP = 1.5
@@ -28,11 +29,16 @@ local plots: { Plot } = {}
 local plotOf: { [Player]: Plot } = {}
 local tilePromptHandler: ((Player, number, number) -> ())? = nil
 
-local function buildPlot(world: Folder, index: number): Plot
-	local angle = (index - 1) / GameConfig.plotCount * math.pi * 2
-	local center = Vector3.new(math.cos(angle) * GameConfig.plotRadius, 0, math.sin(angle) * GameConfig.plotRadius)
-	-- -Z of this CFrame faces the village center
-	local cf = CFrame.lookAt(center, Vector3.new(0, 0, 0))
+local function buildPlot(world: Instance, index: number, anchorCFrame: CFrame?): Plot
+	local cf
+	if anchorCFrame then
+		cf = anchorCFrame
+	else
+		local angle = (index - 1) / GameConfig.plotCount * math.pi * 2
+		local center = Vector3.new(math.cos(angle) * GameConfig.plotRadius, 0, math.sin(angle) * GameConfig.plotRadius)
+		-- -Z of this CFrame faces the village center
+		cf = CFrame.lookAt(center, Vector3.new(0, 0, 0))
+	end
 
 	local cols = GameConfig.tileColumns
 	local rows = math.ceil(GameConfig.tilesBuilt / cols)
@@ -109,12 +115,39 @@ local function buildPlot(world: Folder, index: number): Plot
 end
 
 function PlotService.build()
-	local world = workspace:FindFirstChild("World")
-	if not world then
-		world = Instance.new("Folder")
-		world.Name = "World"
-		world.Parent = workspace
+	-- Designer map: build the plots inside the tagged world if there is one.
+	local tagged = Map.first(Map.TAGS.World)
+	local world: Instance
+	if tagged then
+		world = tagged
+	else
+		local folder = workspace:FindFirstChild("World")
+		if not folder then
+			folder = Instance.new("Folder")
+			folder.Name = "World"
+			folder.Parent = workspace
+		end
+		world = folder
 	end
+
+	-- Designer map: one PlotAnchor per plot, attribute PlotIndex = 1..plotCount.
+	local anchors = Map.all(Map.TAGS.PlotAnchor)
+	if #anchors > 0 then
+		for _, anchor in anchors do
+			if anchor:IsA("BasePart") then
+				local index = tonumber(anchor:GetAttribute("PlotIndex"))
+					or tonumber(anchor:GetAttribute("Index"))
+					or tonumber(string.match(anchor.Name, "%d+"))
+				if index and index >= 1 and index <= GameConfig.plotCount and plots[index] == nil then
+					-- The anchor's CFrame is the plot origin; -Z faces the entrance.
+					plots[index] = buildPlot(world, index, anchor.CFrame)
+				end
+			end
+		end
+		return
+	end
+
+	-- Greybox / placeholder map: ring of generated plots around the village.
 	for i = 1, GameConfig.plotCount do
 		plots[i] = buildPlot(world, i)
 	end

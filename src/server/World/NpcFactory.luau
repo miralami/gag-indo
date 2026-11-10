@@ -5,7 +5,11 @@
 --   local pakrt = NpcFactory.build({ name = "Pak RT", position = Vector3.new(...) })
 --   pakrt:say("Kok cepet banget panennya ya…", 5)
 --   pakrt:walkTo(somewhere, 16) -- yields until it arrives
+--
+-- Designer maps: model a character, tag it NpcSpawn with attribute Npc = "pakrt", and
+-- Village.bind() wraps it with NpcFactory.wrap(model) so services get the same API.
 
+local Map = require(script.Parent.Map)
 local Props = require(script.Parent.Props)
 
 local NpcFactory = {}
@@ -28,7 +32,48 @@ local function addPart(model: Model, name: string, size: Vector3, cf: CFrame, co
 	return p
 end
 
--- config: name, subtitle?, position (feet), shirt, skin, cap?, parent?
+-- Attach the Npc API (name tag, speech, walk) to an existing model and tag it for the map.
+function NpcFactory.wrap(model: Model, info: { name: string?, subtitle: string?, npc: string? }?): any
+	local opts = info or {}
+	if not model.PrimaryPart then
+		local primary = model:FindFirstChild("HumanoidRootPart") or model:FindFirstChildWhichIsA("BasePart")
+		model.PrimaryPart = primary :: BasePart?
+	end
+	local anchor = model.PrimaryPart
+
+	Map.add(model, Map.TAGS.Npc)
+	if opts.npc then
+		model:SetAttribute("Npc", opts.npc)
+	end
+
+	local displayName = opts.name or model.Name
+	local nameLabel: TextLabel? = nil
+	local speechLabel: TextLabel? = nil
+	if anchor then
+		local nameTag = Props.billboard(anchor, 4.4, Vector2.new(260, 60), { name = "NameTag", maxDistance = 95 })
+		nameTag.Text = displayName .. (if opts.subtitle then " · " .. opts.subtitle else "")
+		nameTag.TextColor3 = Color3.fromRGB(255, 236, 180)
+		nameLabel = nameTag
+
+		local speech = Props.billboard(anchor, 6.4, Vector2.new(320, 90), { name = "Speech" })
+		speech.TextColor3 = Color3.new(1, 1, 1)
+		speech.TextWrapped = true
+		speechLabel = speech
+	end
+
+	return setmetatable({
+		model = model,
+		head = model:FindFirstChild("Head") :: BasePart?,
+		torso = anchor,
+		nameLabel = nameLabel,
+		speechLabel = speechLabel,
+		walkToken = 0,
+		speechToken = 0,
+		homeCFrame = model:GetPivot(),
+	}, Npc)
+end
+
+-- config: name, subtitle?, npc?, position (feet), shirt, skin, cap?, peci?, parent?
 function NpcFactory.build(config)
 	local model = Instance.new("Model")
 	model.Name = config.name
@@ -63,31 +108,16 @@ function NpcFactory.build(config)
 	end
 
 	model.PrimaryPart = torso
-
-	local nameLabel = Props.billboard(torso, 4.4, Vector2.new(260, 60))
-	nameLabel.Text = config.name .. (if config.subtitle then " · " .. config.subtitle else "")
-	nameLabel.TextColor3 = Color3.fromRGB(255, 236, 180)
-	nameLabel.MaxDistance = 95
-
-	local speechLabel = Props.billboard(torso, 6.4, Vector2.new(320, 90))
-	speechLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-	speechLabel.TextWrapped = true
-
 	model.Parent = config.parent or workspace
 
-	local self = setmetatable({
-		model = model,
-		head = head,
-		torso = torso,
-		arms = { leftArm, rightArm },
-		nameLabel = nameLabel,
-		speechLabel = speechLabel,
-		walkToken = 0,
-		speechToken = 0,
-		homeCFrame = model:GetPivot(),
-	}, Npc)
-
-	return self
+	local npc = NpcFactory.wrap(model, {
+		name = config.name,
+		subtitle = config.subtitle,
+		npc = config.npc,
+	})
+	npc.head = head
+	npc.arms = { leftArm, rightArm }
+	return npc
 end
 
 function Npc:getPosition(): Vector3
@@ -96,6 +126,9 @@ function Npc:getPosition(): Vector3
 end
 
 function Npc:say(text: string, seconds: number?)
+	if not self.speechLabel then
+		return
+	end
 	self.speechToken += 1
 	local token = self.speechToken
 	self.speechLabel.Text = text

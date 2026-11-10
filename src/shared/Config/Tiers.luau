@@ -16,6 +16,10 @@ local Tiers = {}
 Tiers.default = "biasa"
 Tiers.order = { "biasa", "bagus", "super", "langka", "sultan" }
 
+-- Everything from this tier up counts as a "rare" roll: RarityService boosts these with
+-- minigame quality, and the client gives them a reveal toast.
+Tiers.rareFrom = "super"
+
 Tiers.list = {
 	biasa = {
 		chance = 0.70,
@@ -56,6 +60,26 @@ end
 function Tiers.multiplier(tierId: string?): number
 	local tier = if tierId then Tiers.list[tierId] else nil
 	return if tier then tier.valueMultiplier else 1
+end
+
+-- True for super / langka / sultan. Unknown tiers are not rare.
+function Tiers.isRare(tierId: string?): boolean
+	if not Tiers.exists(tierId) then
+		return false
+	end
+	local rareIndex = 1
+	for index, id in Tiers.order do
+		if id == Tiers.rareFrom then
+			rareIndex = index
+			break
+		end
+	end
+	for index, id in Tiers.order do
+		if id == tierId then
+			return index >= rareIndex
+		end
+	end
+	return false
 end
 
 return Tiers

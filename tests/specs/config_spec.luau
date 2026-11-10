@@ -3,7 +3,7 @@
 
 return function(t, Env)
 	local expect = t.expect
-	local env, Game, Law, Crops, Cheats, Products, Tiers, Traits, Strings
+	local env, Game, Law, Crops, Cheats, Products, Tiers, Traits, Almanak, Strings
 
 	t:describe("Config", function()
 		t:beforeEach(function()
@@ -15,6 +15,7 @@ return function(t, Env)
 			Products = env:require("shared/Config/Products")
 			Tiers = env:require("shared/Config/Tiers")
 			Traits = env:require("shared/Config/Traits")
+			Almanak = env:require("shared/Config/Almanak")
 			Strings = env:require("shared/Strings")
 		end)
 
@@ -108,6 +109,70 @@ return function(t, Env)
 			t:it("lets a brand new player plant the starting seeds", function()
 				for cropId in Game.startSeeds do
 					expect(Crops.list[cropId].rank):toBe(Game.rankOrder[1])
+				end
+			end)
+		end)
+
+		t:describe("crop families", function()
+			t:it("puts every crop in exactly one family", function()
+				local seen = {}
+				for _, familyId in Crops.familyOrder do
+					expect(Crops.families[familyId]):toBeTruthy()
+					for _, cropId in Crops.families[familyId] do
+						expect(Crops.list[cropId].family):toBe(familyId)
+						expect(seen[cropId]):toBeNil()
+						seen[cropId] = true
+					end
+				end
+				local count = 0
+				for _ in Crops.list do
+					count += 1
+				end
+				local seenCount = 0
+				for _ in seen do
+					seenCount += 1
+				end
+				expect(seenCount):toBe(count)
+			end)
+
+			t:it("only gives re-harvests to kebun and perkebunan", function()
+				for _, crop in Crops.list do
+					if crop.regrowSeconds ~= nil then
+						expect(crop.family == "kebun" or crop.family == "perkebunan"):toBe(true)
+						expect(crop.maxHarvests):toBeGreaterThan(1)
+					end
+				end
+			end)
+
+			t:it("marks only perkebunan crops as needing a permit", function()
+				for _, crop in Crops.list do
+					if crop.permit then
+						expect(crop.family):toBe("perkebunan")
+					end
+				end
+			end)
+		end)
+
+		t:describe("almanak pages", function()
+			t:it("has one page per family, with a real cosmetic reward", function()
+				local Cosmetics = env:require("shared/Config/Cosmetics")
+				for _, familyId in Crops.familyOrder do
+					local page = Almanak.pages[familyId]
+					expect(page):toBeTruthy()
+					expect(page.family):toBe(familyId)
+					expect(Cosmetics.list[page.reward]):toBeTruthy()
+					expect(Strings.get("id", page.labelKey)).never:toBe(page.labelKey)
+				end
+			end)
+
+			t:it("lists every page exactly once in the display order", function()
+				local count = 0
+				for _ in Almanak.pages do
+					count += 1
+				end
+				expect(count):toBe(#Almanak.order)
+				for _, pageId in Almanak.order do
+					expect(Almanak.pages[pageId]):toBeTruthy()
 				end
 			end)
 		end)

@@ -6,6 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Crops = require(Shared.Config.Crops)
 local GameConfig = require(Shared.Config.Game)
+local Tiers = require(Shared.Config.Tiers)
 local Strings = require(Shared.Strings)
 local Remotes = require(Shared.Remotes)
 
@@ -145,19 +146,25 @@ function Hud.mount(lang: string)
 	end
 
 	---------------------------------------------------------------- seed bar (bottom)
-	local seedBar = Theme.new("Frame", {
+	local seedBar = Theme.new("ScrollingFrame", {
 		Name = "SeedBar",
 		AnchorPoint = Vector2.new(0.5, 1),
 		Position = UDim2.new(0.5, 0, 1, -12),
-		Size = UDim2.new(0.72, 0, 0.1, 0),
+		Size = UDim2.new(0.82, 0, 0, 54),
 		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ScrollBarThickness = 4,
+		ScrollingDirection = Enum.ScrollingDirection.X,
+		AutomaticCanvasSize = Enum.AutomaticSize.X,
+		CanvasSize = UDim2.new(),
 		Parent = gui,
 	}, {
-		Theme.new("UISizeConstraint", { MinSize = Vector2.new(320, 52), MaxSize = Vector2.new(640, 76) }),
+		Theme.new("UISizeConstraint", { MinSize = Vector2.new(320, 52), MaxSize = Vector2.new(760, 76) }),
 		Theme.new("UIListLayout", {
 			FillDirection = Enum.FillDirection.Horizontal,
-			HorizontalAlignment = Enum.HorizontalAlignment.Center,
-			Padding = UDim.new(0.02, 0),
+			HorizontalAlignment = Enum.HorizontalAlignment.Left,
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			Padding = UDim.new(0, 6),
 			SortOrder = Enum.SortOrder.LayoutOrder,
 		}),
 	})
@@ -167,7 +174,7 @@ function Hud.mount(lang: string)
 		local button = Theme.button({
 			Name = cropId,
 			LayoutOrder = i,
-			Size = UDim2.fromScale(0.23, 1),
+			Size = UDim2.fromOffset(104, 42),
 			Parent = seedBar,
 		})
 		Theme.new("UIStroke", {
@@ -240,7 +247,6 @@ function Hud.mount(lang: string)
 		Parent = gui,
 	}, {
 		Theme.new("UISizeConstraint", { MinSize = Vector2.new(300, 300), MaxSize = Vector2.new(560, 460) }),
-		Theme.new("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0.015, 0) }),
 	})
 	local shopPadding = Instance.new("UIPadding")
 	shopPadding.PaddingLeft = UDim.new(0, 12)
@@ -250,20 +256,36 @@ function Hud.mount(lang: string)
 	shopPadding.Parent = shop
 
 	Theme.label({
-		LayoutOrder = 0,
-		Size = UDim2.fromScale(1, 0.11),
+		Name = "Title",
+		Position = UDim2.new(0, 0, 0, 0),
+		Size = UDim2.new(1, 0, 0, 28),
 		Text = "🌱 " .. t("hud_shop"),
 		TextColor3 = Theme.accent,
 		Parent = shop,
+	})
+
+	-- Twelve crops do not fit on one screen, so the list scrolls between the title and Close.
+	local shopScroll = Theme.new("ScrollingFrame", {
+		Name = "Scroll",
+		Position = UDim2.new(0, 0, 0, 30),
+		Size = UDim2.new(1, 0, 1, -74),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ScrollBarThickness = 6,
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		CanvasSize = UDim2.new(),
+		Parent = shop,
+	}, {
+		Theme.new("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 4) }),
 	})
 
 	local shopRows: { [string]: { name: TextLabel, buy1: TextButton, buy10: TextButton } } = {}
 	for i, cropId in Crops.order do
 		local row = Theme.new("Frame", {
 			LayoutOrder = i,
-			Size = UDim2.fromScale(1, 0.16),
+			Size = UDim2.new(1, 0, 0, 34),
 			BackgroundTransparency = 1,
-			Parent = shop,
+			Parent = shopScroll,
 		})
 		local name = Theme.label({
 			Size = UDim2.fromScale(0.3, 1),
@@ -290,8 +312,9 @@ function Hud.mount(lang: string)
 	end
 
 	local close = Theme.button({
-		LayoutOrder = 99,
-		Size = UDim2.fromScale(1, 0.11),
+		Name = "Close",
+		Position = UDim2.new(0, 0, 1, -36),
+		Size = UDim2.new(1, 0, 0, 34),
 		Text = t("hud_close"),
 		BackgroundColor3 = Theme.red,
 		Parent = shop,
@@ -327,7 +350,15 @@ function Hud.mount(lang: string)
 		if type(key) ~= "string" then
 			return
 		end
-		Theme.toast(Strings.get(lang, key, table.unpack(params or {})))
+		local color: Color3? = nil
+		-- The rarity reveal carries the tier id as the third param; tint the toast with it.
+		if key == "n_rarity_reveal" and params and type(params[3]) == "string" then
+			local tier = Tiers.list[params[3]]
+			if tier then
+				color = tier.color
+			end
+		end
+		Theme.toast(Strings.get(lang, key, table.unpack(params or {})), color)
 	end)
 
 	---------------------------------------------------------------- wiring

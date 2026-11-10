@@ -100,6 +100,21 @@ function Cosmetics.sync(player: Player)
 	applyVisual(player)
 end
 
+-- Free grant for non-shop unlocks (the Almanak pages). Server-only; returns true if it is new.
+function Cosmetics.grant(player: Player, itemId: string): boolean
+	local data = PlayerData.get(player)
+	if not data or not CosmeticsConfig.list[itemId] then
+		return false
+	end
+	data.cosmetics = data.cosmetics or {}
+	if data.cosmetics[itemId] then
+		return false
+	end
+	data.cosmetics[itemId] = true
+	Cosmetics.sync(player)
+	return true
+end
+
 local function onBuy(player: Player, itemId: any)
 	if not RateLimit.allow(player, "Cosmetic_Buy", 2) then
 		return

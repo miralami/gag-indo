@@ -5,9 +5,25 @@
 local S: { [string]: { id: string, en: string } } = {
 	-- crops
 	crop_padi = { id = "Padi", en = "Rice" },
+	crop_singkong = { id = "Singkong", en = "Cassava" },
 	crop_jagung = { id = "Jagung", en = "Corn" },
+	crop_bawang = { id = "Bawang Merah", en = "Shallot" },
 	crop_cabai = { id = "Cabai", en = "Chili" },
+	crop_tembakau = { id = "Tembakau", en = "Tobacco" },
+	crop_kopi = { id = "Kopi", en = "Coffee" },
+	crop_tebu = { id = "Tebu", en = "Sugarcane" },
+	crop_kakao = { id = "Kakao", en = "Cocoa" },
+	crop_cengkeh = { id = "Cengkeh", en = "Clove" },
 	crop_durian = { id = "Durian", en = "Durian" },
+	crop_sawit = { id = "Sawit", en = "Oil Palm" },
+
+	-- crop families (Config/Crops, Config/Almanak)
+	family_palawija = { id = "Palawija", en = "Palawija" },
+	family_kebun = { id = "Kebun", en = "Orchard" },
+	family_perkebunan = { id = "Perkebunan", en = "Plantation" },
+	almanak_page_palawija = { id = "Palawija", en = "Palawija" },
+	almanak_page_kebun = { id = "Kebun", en = "Orchard" },
+	almanak_page_perkebunan = { id = "Perkebunan", en = "Plantation" },
 
 	-- ranks
 	rank_gurem = { id = "Petani Gurem", en = "Smallholder" },
@@ -111,6 +127,9 @@ local S: { [string]: { id: string, en: string } } = {
 	-- notifications
 	n_planted = { id = "%s ditanam!", en = "%s planted!" },
 	n_harvested = { id = "Panen %s! Bawa ke Pasar.", en = "Harvested %s! Take it to the market." },
+	n_rarity_reveal = { id = "✨ %s %s! Langka banget, Juragan!", en = "✨ %s %s! What a find, boss!" },
+	n_almanak_new = { id = "Almanak: %s %s baru!", en = "Almanak: new %s %s!" },
+	n_almanak_page = { id = "Halaman Almanak %s selesai! Hadiah: %s.", en = "Almanak page %s complete! Reward: %s." },
 	n_sold = { id = "Laku! +Rp %s", en = "Sold! +Rp %s" },
 	n_sold_gelap = { id = "Laku gelap! +Rp %s (+Sus)", en = "Sold black market! +Rp %s (+Sus)" },
 	n_nothing_to_sell = { id = "Karungmu kosong.", en = "Your sack is empty." },

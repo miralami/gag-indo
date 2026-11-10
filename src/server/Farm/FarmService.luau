@@ -10,6 +10,7 @@ local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Crops = require(Shared.Config.Crops)
 local Cheats = require(Shared.Config.Cheats)
 local GameConfig = require(Shared.Config.Game)
+local Tiers = require(Shared.Config.Tiers)
 local Remotes = require(Shared.Remotes)
 local Inventory = require(Shared.Inventory)
 
@@ -17,6 +18,10 @@ local PlayerData = require(script.Parent.Parent.Data.PlayerData)
 local RateLimit = require(script.Parent.Parent.Net.RateLimit)
 local Notify = require(script.Parent.Parent.Net.Notify)
 local EconomyService = require(script.Parent.Parent.Economy.EconomyService)
+local LiveConfig = require(script.Parent.Parent.Live.LiveConfig)
+local RarityService = require(script.Parent.RarityService)
+local TraitService = require(script.Parent.TraitService)
+local AlmanakService = require(script.Parent.Parent.Progression.AlmanakService)
 local PlotService = require(script.Parent.PlotService)
 
 local OWNED_COLOR = Color3.fromRGB(105, 72, 45)
@@ -189,10 +194,26 @@ local function doPlant(player: Player, data, plot, index: number, cropId: string
 		growSeconds = crop.growSeconds,
 		quality = roundQuality(quality),
 		hot = false,
+		harvests = 0,
+		fertilised = false,
 	}
 	EconomyService.sync(player)
 	refreshTile(player, data, plot, index)
 	Notify.send(player, "n_planted", "@crop_" .. cropId)
+end
+
+local function revealHarvest(player: Player, cropId: string, tier: string, discovery: any?)
+	if Tiers.isRare(tier) then
+		-- The "wow" harvest: the client tints this toast with the tier colour.
+		Notify.send(player, "n_rarity_reveal", "@crop_" .. cropId, "@tier_" .. tier, tier)
+	elseif discovery and (discovery.newTier or #discovery.newTraits > 0) then
+		Notify.send(player, "n_almanak_new", "@crop_" .. cropId, "@tier_" .. tier)
+	else
+		Notify.send(player, "n_harvested", "@crop_" .. cropId)
+	end
+	if discovery and discovery.pageCompleted and discovery.reward and discovery.family then
+		Notify.send(player, "n_almanak_page", "@almanak_page_" .. discovery.family, "@cosmetic_" .. discovery.reward)
+	end
 end
 
 local function doHarvest(player: Player, data, plot, index: number, harvestQuality: number)
@@ -200,12 +221,44 @@ local function doHarvest(player: Player, data, plot, index: number, harvestQuali
 	if not entry then
 		return
 	end
-	data.tiles[tileKey(index)] = nil
+	local crop = Crops.list[entry.crop]
+	if not crop then
+		data.tiles[tileKey(index)] = nil
+		refreshTile(player, data, plot, index)
+		return
+	end
+
 	-- Planting and harvesting each set a quality; the crop's final quality is their average.
 	local quality = (entry.quality + harvestQuality) / 2
-	EconomyService.addHarvest(player, entry.crop, quality, entry.hot == true)
+	local runtime = LiveConfig.getRuntime()
+	local traits = TraitService.roll({
+		hot = entry.hot == true,
+		fertilised = entry.fertilised == true,
+		certified = entry.certified == true,
+		weather = runtime.cuaca,
+		anomaly = runtime.anomali,
+	})
+	local tier = RarityService.roll(quality)
+
+	EconomyService.addHarvest(player, entry.crop, quality, { tier = tier, traits = traits })
+	local discovery = AlmanakService.record(player, entry.crop, tier, traits)
+
+	-- Kebun and perkebunan re-harvest from the same plant until it is spent.
+	local harvests = (entry.harvests or 0) + 1
+	if crop.regrowSeconds and harvests < (crop.maxHarvests or 1) then
+		entry.harvests = harvests
+		entry.plantedAt = os.time()
+		entry.growSeconds = crop.regrowSeconds
+		entry.quality = roundQuality(harvestQuality)
+		entry.hot = false
+		entry.fertilised = false
+		entry.certified = nil
+	else
+		data.tiles[tileKey(index)] = nil
+	end
+
 	refreshTile(player, data, plot, index)
-	Notify.send(player, "n_harvested", "@crop_" .. entry.crop)
+	revealHarvest(player, entry.crop, tier, discovery)
 end
 
 local function buyTile(player: Player, data, plot, index: number)
@@ -379,6 +432,8 @@ function FarmService.applyOplosan(player: Player, index: number): boolean
 	local shift = remaining * (Cheats.list.oplosan.growBonus or 0.4)
 	entry.plantedAt -= shift
 	entry.hot = true
+	-- It was force-fed, so it is no longer "organic" (unfertilised).
+	entry.fertilised = true
 	refreshTile(player, data, plot, index)
 	return true
 end

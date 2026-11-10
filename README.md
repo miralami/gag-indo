@@ -2,10 +2,13 @@
 
 A satirical Indonesian village farming game for Roblox. v2 plan: [docs/v2/PLAN.md](docs/v2/PLAN.md) · v2 technical foundation: [docs/v2/TECH.md](docs/v2/TECH.md) · designer decisions: [docs/v2/DECISIONS.md](docs/v2/DECISIONS.md) · v1 design: [docs/v1/GDD.md](docs/v1/GDD.md) · v1 dev guide: [docs/v1/TECH.md](docs/v1/TECH.md)
 
-> **v2 status:** the foundation (M0) is in place: save schema v3 with in-place migration, a replicated
-> state module, a tag-driven world, admin LiveConfig and an F2 admin panel. Gameplay is still the v1
-> loop until M1+. See [docs/v2/TECH.md](docs/v2/TECH.md) for the contract and
-> [docs/v2/mockups/index.html](docs/v2/mockups/index.html) for the proposed UI (D1, not wired in).
+> **v2 status:** the foundation (M0) and farming depth (M1) are in place. Saves are schema v3 and
+> migrate in place; the game now has 12 crops in three families, server-rolled rarity tiers
+> (biasa → sultan), condition-driven traits, the Almanak discovery book with page rewards, a rarity
+> reveal toast, a replicated state module, a tag-driven world, admin LiveConfig and an F2 admin
+> panel. Next up is M2 (seasons, shop, tools, gudang). See [docs/v2/TECH.md](docs/v2/TECH.md) for the
+> contract and [docs/v2/mockups/index.html](docs/v2/mockups/index.html) for the proposed UI (D1, not
+> wired in).
 
 ## First-time setup (once)
 

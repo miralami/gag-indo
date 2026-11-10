@@ -44,6 +44,10 @@ Game.gudangPassCapacity = 120
 -- Replicated structured state (v2 PLAN §7.1): section patches are coalesced this often.
 Game.statePatchInterval = 0.25
 
+-- Rarity (v2 PLAN §3.2): minigame quality nudges the roll. Each point of quality above
+-- zero adds this much weight to the rare tiers (super and up); 1.0 roughly doubles them.
+Game.rarityQualityBoost = 1
+
 -- Harga Cabai Meroket (GDD §3.2): cabai sells x3 for a few minutes, on a loop.
 -- Short values keep it testable in Studio; raise them before publishing.
 Game.cabaiEventFirstDelay = 240 -- seconds after the servers starts

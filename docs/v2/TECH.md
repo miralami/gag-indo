@@ -1,13 +1,13 @@
-# Juragan Desa — v2 Technical Foundation (M0)
+# Juragan Desa — v2 Technical Foundation (M0–M1)
 
-> What M0 changed, and the rules the rest of v2 builds on. Read this together with
+> What M0 and M1 changed, and the rules the rest of v2 builds on. Read this together with
 > [v1/TECH.md](../v1/TECH.md): the ground rules there still hold — the server decides
 > everything, one owner per piece of state, config lives in tables, every remote is validated
 > and rate-limited. This file only documents what v2 added.
 
-Status: **M0 complete except the designer decision on UI (D1 in [DECISIONS.md](DECISIONS.md)) and
-the in-Studio checks in §8.** The v1 game runs unchanged on the new foundation: same gameplay,
-same balance, same save files (migrated in place).
+Status: **M0 complete** (except the designer decision on UI — D1 in [DECISIONS.md](DECISIONS.md) —
+and the in-Studio checks in §9). **M1 (farming depth) is implemented**: 12 crops in three
+families, server-rolled rarity tiers, condition-driven traits, the Almanak and the rarity reveal.
 
 ---
 
@@ -22,14 +22,15 @@ existing saves migrate in place instead of being abandoned.
 ```
 version       3
 cash, lifetimeEarned, tilesOwned, sus, namaBaik, rank, timesElected
-tiles         ["t1"] = { crop, plantedAt, growSeconds, quality, hot }   -- tile `hot` flag stays in v2
+tiles         ["t1"] = { crop, plantedAt, growSeconds, quality, hot,
+                          harvests, fertilised, certified? }     -- regrow fields are M1
 produce       ["padi|sultan|oplosan"] = { crop, tier, traits, count, qualitySum }
 items         [itemId] = count        -- consumables (amplopPremium) and seeds (seed_padi)
 tools         [toolId] = level or true
 gudang        { capacity, stacks = { [stackKey] = stack } }
 debt          { active, principal, owed, takenAt, dueAt }
 quests        { daily = {}, loginStreak, lastLoginDay }
-almanak       [cropId] = { ... }      -- filled by AlmanacService in M1
+almanak       { crops = { [cropId] = { tiers, traits, count } }, pages = { [familyId] = true } }
 story         { chapter, flags = {} } -- v2.1
 housing       {}                      -- reserved for v2.2, never migrated
 prestige      { level = 0 }           -- reserved for v3
@@ -51,7 +52,8 @@ produce["durian|langka|basah+organik"]
 - `tier` is one of `Config/Tiers`. Unknown or missing tiers fall back to `Tiers.default`.
 - The old `hot` boolean is now the `oplosan` trait. `Produce.isHot(stack)` is the single check used
   by the Pasar, the Tengkulak Gelap and raids.
-- `qualitySum` is the sum of per-item minigame quality, exactly like v2's `qualitySum`.
+- `qualitySum` is the sum of per-item minigame quality, exactly like v2's `qualitySum`. Since M1 it
+  no longer affects the payout — the price is `count × base × tier` — it only feeds the rarity roll.
 
 ### Items
 
@@ -234,10 +236,12 @@ New tables:
 
 | File | Holds |
 |---|---|
-| `shared/Config/Tiers.luau` | tier order, chance, `valueMultiplier`, colour, label key |
-| `shared/Config/Traits.luau` | trait order, `hot` flag, label key; `Traits.hotTrait` |
+| `shared/Config/Crops.luau` | 12 crops: cost, grow time, price, rank, colour, `family`, `regrowSeconds`/`maxHarvests`, `permit`; derived `families` and `familyOrder` |
+| `shared/Config/Almanak.luau` | one page per family, cosmetic reward, label key |
+| `shared/Config/Tiers.luau` | tier order, chance, `valueMultiplier`, colour, label key; `Tiers.rareFrom`, `Tiers.isRare` |
+| `shared/Config/Traits.luau` | trait order, `hot` flag, `condition`/`chance`, label key; `Traits.hotTrait`, `Traits.isHot` |
 | `shared/Config/Seasons.luau` | seasons, anomalies, weather weights, growth multipliers, calendar helpers |
-| `shared/Config/Game.luau` | `gudangBaseCapacity`, `gudangPassCapacity`, `statePatchInterval` |
+| `shared/Config/Game.luau` | `gudangBaseCapacity`, `gudangPassCapacity`, `statePatchInterval`, `rarityQualityBoost` |
 
 Conventions: display names live in `shared/Strings.luau` and tables store a `labelKey`; adding a crop,
 tier or trait is a data edit plus strings, not a code change. Every new table gets a `config_spec`
@@ -254,7 +258,7 @@ lune run tests/run
 lune run tests/run -- produce     # filter by name
 ```
 
-M0 added:
+M0 and M1 added:
 
 | Spec | Covers |
 |---|---|
@@ -263,9 +267,12 @@ M0 added:
 | `seasons_spec` | calendar boundaries, validation, weighted weather rolls |
 | `liveconfig_spec` | sanitize, deep merge, resolve priority, stable daily weather |
 | `playerdata_spec` | v1 → v2 → v3, produce/items migration, Reconcile hazard, idempotence, section defaults |
-| `config_spec` | new: tiers sum to 1 and pay more when rarer; exactly one hot trait; labels exist |
-| `economy_spec` | v3 stacks: tier multiplier, Pasar refuses hot, black market sells both, seed purchases |
+| `config_spec` | new: tiers sum to 1 and pay more when rarer; exactly one hot trait; labels exist; 12 crops, family membership, regrow/permit rules, one almanak page per family with a real cosmetic |
+| `economy_spec` | v3 stacks: tier multiplier, Pasar refuses hot, black market sells both, seed purchases, `addHarvest` options |
 | `receipts_spec` | grants land in `items` (`seed_<crop>`) |
+| `rarity_spec` | weight table, quality boost doubles rare tiers, roll boundaries, clamped/invalid quality |
+| `traits_spec` | which condition opens which trait, per-trait chance, stacking, sorted output, nil context |
+| `almanak_spec` | discovery records, new tier/trait reporting, family progress, page reward granted once |
 
 The harness remains `tests/lib/Env.luau` (real modules, fake Instances, fake time). `Fakes.newData(env)`
 now returns a v3 save, so new services can be tested without hand-building one.
@@ -275,15 +282,94 @@ Not covered automatically (needs Studio): `CollectionService` tags, `DataStore` 
 
 ---
 
-## 8. M0 acceptance
+## 8. M1 — farming depth
+
+Owner modules: `server/Farm/FarmService.luau` (tile state), `server/Farm/RarityService.luau`
+(the roll), `server/Farm/TraitService.luau` (the traits), `server/Progression/AlmanakService.luau`
+(discoveries and page rewards).
+
+### Crops and families
+
+`Config/Crops.luau` holds all 12 crops. `Crops.order` is sorted by `growSeconds`; `config_spec`
+enforces that, so the seed bar reads fastest-first.
+
+| Family | Crops | Behaviour |
+|---|---|---|
+| `palawija` | padi, singkong, jagung, bawang, cabai | plant once, harvest once (1–4 min) |
+| `kebun` | tembakau, kopi, kakao, cengkeh, durian | first harvest after 8–15 min, then `maxHarvests` re-harvests every `regrowSeconds` |
+| `perkebunan` | tebu, sawit | `permit = true` (the Balai Desa check lands in M2), re-harvests, biggest payouts |
+
+A tile entry records `harvests`, `fertilised` and (later) `certified`. On harvest, `FarmService`
+increments `harvests`; while `harvests < maxHarvests` it keeps the same crop, resets `plantedAt`
+and swaps `growSeconds` for the crop's `regrowSeconds`, so clients see the regrow timer with no
+new code. Otherwise the tile is cleared.
+
+### Rarity roll
+
+`RarityService.weight(tierId, quality)` is the only place tier odds are computed:
+
+```
+weight = tier.chance * (1 + clamp(quality, 0, 3) * Game.rarityQualityBoost)   -- rare tiers only
+```
+
+`Game.rarityQualityBoost = 1` means quality 1 (a perfect plant + harvest) doubles the weight of
+`super` and above; quality is clamped, and `nil`/`NaN` count as 0. `RarityService.roll(quality, rng)`
+walks `Tiers.order` with a cumulative sum, so the table stays ordered and adding a tier is a data
+edit. The rng is injected: game code passes `math.random`, tests pass a fixed value.
+
+Minigame quality no longer multiplies the price; `EconomyService.sellAll` applies
+`Tiers.multiplier(stack.tier)` to the crop's base price instead.
+
+### Traits from conditions
+
+`TraitService.roll(context, rng)` returns a sorted list. Each config trait has an optional
+`condition` and `chance`:
+
+| Trait | Condition | Chance | Context field |
+|---|---|---|---|
+| `oplosan` | the tile was force-fed (hot) | always | `hot` |
+| `basah` | weather is `hujan` or `badai` | 0.35 | `weather` |
+| `kering` | anomaly is `elNino` | 0.35 | `anomaly` |
+| `organik` | the plot was never fertilised this cycle | 0.30 | `fertilised` |
+| `bersertifikat` | a Balai Desa stamp was applied | always | `certified` |
+
+`FarmService` builds the context from the tile entry plus `LiveConfig.getRuntime()`
+(`cuaca`, `anomali`). `TraitService.eligible` lists the conditions that are met before the roll,
+which the UI can use to explain a result.
+
+### Almanak
+
+`data.almanak` is a structured state section (see §1) owned by `AlmanakService`:
+
+```lua
+data.almanak.crops.padi = { tiers = { biasa = true, sultan = true }, traits = { basah = true }, count = 7 }
+data.almanak.pages.palawija = true
+```
+
+`record(player, cropId, tier, traits)` counts every harvest and reports what was new
+(`first`, `newTier`, `newTraits`). A page completes when every crop in its family has been seen
+at least once; `Config/Almanak.luau` maps each page to one existing cosmetic, granted for free
+through `Cosmetics.grant` (never charged, never granted twice). `record` touches the `almanak`
+section, so the client sees it through the normal state patch.
+
+### Reveal
+
+`FarmService` picks the toast by outcome: a rare tier (`Tiers.isRare`) sends `n_rarity_reveal`
+with the crop, tier label and tier id; a new tier/trait sends `n_almanak_new`; otherwise the
+plain `n_harvested`. The HUD tints the reveal toast with `Tiers.list[tier].color`.
+
+---
+
+## 9. Acceptance
 
 | Check | Command | Result |
 |---|---|---|
-| Unit tests | `lune run tests/run` | 219 passed |
+| Unit tests | `lune run tests/run` | 259 passed |
 | Static analysis | `luau-lsp analyze --platform roblox --defs .luau/globalTypes.d.luau --sourcemap sourcemap.json --ignore "**/Packages/**" src` | 0 diagnostics |
 | Build | `rojo build default.project.json -o JuraganDesa.rbxl` | builds |
 | v1 plays unchanged | Studio playtest: plant → harvest → sell both markets → raid → purchase | manual, see below |
 | Schema migration | `playerdata_spec` v1/v2 fixtures | green |
+| M1 rarity spread | Studio playtest: harvest 20+ crops, confirm biasa/bagus/super mix and one reveal toast | manual, see below |
 
 Manual checks still required in Studio (see [docs/testing](../testing/README.md)):
 
@@ -294,15 +380,18 @@ Manual checks still required in Studio (see [docs/testing](../testing/README.md)
    the cabai event on/off; confirm the attributes and HUD follow on a second client.
 4. Confirm a malformed LiveConfig document (temporarily wrong field types) cannot break a running
    server: it logs one warning and keeps the defaults.
+5. M1 loop: plant a palawija, a kebun and a perkebunan crop; confirm the seed bar scrolls, the shop
+   lists all 12, a kebun tile regrows after harvest, a rare tier tints the toast, and completing a
+   family shows the Almanak page toast with the cosmetic reward.
 
 ---
 
-## 9. Gaps and next steps
+## 10. Gaps and next steps
 
 - **D1 (UI direction)** is the only M0 item not code: mockups live in
   [mockups/index.html](mockups/index.html). The v1 Theme stays until they are approved.
-- Rarity rolls, traits from weather and the almanak are M1. M0 ships the vocabulary and the sale
-  multiplier seam only.
+- M1 leaves three seams for later milestones: `permit` is read but not enforced (M2), `certified`
+  is rolled but nothing sets it (M2 tools/stamp), and the Almanak has no screen yet (blocked on D1).
 - Seasons/weather are read but not yet applied to growth, shop or lighting (M2). The admin override
   and attributes are already live.
 - `Config/Audio.luau`, real pass/product ids and the `Mbah Dukun` / pinjol names stay open (D4–D9).

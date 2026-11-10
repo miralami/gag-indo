@@ -35,7 +35,7 @@ UI layout, sound, Roblox's DataStore, or what multiplayer feels like. That is wh
 
 | Spec | Covers |
 |---|---|
-| `config_spec` | Balance sanity: prices, thresholds, probabilities, rank requirements, product grants; tier chances sum to 1 and pay more when rarer; exactly one hot trait; every tier/trait has a label |
+| `config_spec` | Balance sanity: prices, thresholds, probabilities, rank requirements, product grants; tier chances sum to 1 and pay more when rarer; exactly one hot trait; every tier/trait has a label; 12 crops, family membership, regrow/permit rules, one almanak page per family |
 | `ratelimit_spec` | Token-bucket limiter used by every remote |
 | `sus_spec` | Sus clamping, the letter warning, raid at 100 |
 | `rank_spec` | Rank promotion, Nama Baik, daily caps |
@@ -43,7 +43,10 @@ UI layout, sound, Roblox's DataStore, or what multiplayer feels like. That is wh
 | `state_spec` | Replicated state: section list, snapshot/patch shape, copies never returning the save table |
 | `seasons_spec` | Season calendar boundaries, anomaly/weather validation, weighted weather rolls |
 | `liveconfig_spec` | LiveConfig: `sanitize` validation, deep `merge`, `resolve` override → calendar priority, stable daily weather |
-| `economy_spec` | Cash, spending, transfers, sack, Pasar, Tengkulak Gelap, Ordal, cabai event; v3 stacks and tier multipliers |
+| `economy_spec` | Cash, spending, transfers, sack, Pasar, Tengkulak Gelap, Ordal, cabai event; v3 stacks, tier multipliers and count-based payouts |
+| `rarity_spec` | Rarity roll: tier weights, the quality boost doubling rare tiers, roll boundaries, clamped/invalid quality |
+| `traits_spec` | Condition-driven traits: weather/anomaly/fertiliser/certified conditions, per-trait chance, stacking, sorted output |
+| `almanak_spec` | Discovery book: per-crop tier/trait record, new-discovery reporting, family progress, page reward granted once |
 | `receipts_spec` | Robux purchases: exactly-once grants, retry safety, grants landing in `items` (`seed_<crop>`) |
 | `playerdata_spec` | Old-save migration v1 → v2 → v3: produce/items, Reconcile hazard, idempotence, section defaults |
 

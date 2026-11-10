@@ -120,17 +120,23 @@ function EconomyService.refreshRank(player: Player)
 	EconomyService.sync(player)
 end
 
--- `hot` is the v1 flag; in v3 it becomes the "oplosan" trait on the stack.
--- `tier` stays "biasa" until RarityService lands in M1.
-function EconomyService.addHarvest(player: Player, cropId: string, quality: number, hot: boolean, tier: string?)
+-- `options` = { tier = string?, traits = { string }? }. Defaults to a clean, common stack so
+-- callers that only know the crop (old tests, admin grants) still work.
+function EconomyService.addHarvest(
+	player: Player,
+	cropId: string,
+	quality: number,
+	options: { tier: string?, traits: { string }? }?
+)
 	local data = PlayerData.get(player)
 	if not data or not Crops.list[cropId] then
 		return
 	end
+	local opts = options or {}
 	data.produce = data.produce or {}
 	Produce.add(data.produce, cropId, quality, {
-		tier = tier,
-		traits = if hot then { "oplosan" } else {},
+		tier = opts.tier,
+		traits = opts.traits,
 	})
 	EconomyService.sync(player)
 	State.touch(player, "produce")
@@ -171,12 +177,13 @@ function EconomyService.sellAll(player: Player, channel: string)
 	for _, stack in data.produce or {} do
 		local crop = Crops.list[stack.crop]
 		if crop and stack.count > 0 then
-			-- Harga Cabai Meroket multiplies the base price before quality and rarity.
+			-- Harga Cabai Meroket and the rarity tier multiply the base price. Minigame quality
+			-- does not (M1): it nudges the rarity roll instead of the payout.
 			local unit = crop.sellPrice * CabaiEvent.multiplier(stack.crop) * Tiers.multiplier(stack.tier)
 			if Produce.isHot(stack) then
-				hotValue += unit * (stack.qualitySum or 0)
+				hotValue += unit * stack.count
 			else
-				legalValue += unit * (stack.qualitySum or 0)
+				legalValue += unit * stack.count
 			end
 		end
 	end

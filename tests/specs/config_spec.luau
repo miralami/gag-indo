@@ -349,5 +349,39 @@ return function(t, Env)
 				expect(Products.passConfigured("ordal")):toBe(false)
 			end)
 		end)
+
+		t:describe("audio", function()
+			t:it("has valid groups for every registered sound", function()
+				local Audio = env:require("shared/Config/Audio")
+				for _, def in Audio.sounds do
+					expect(Audio.groups[def.group]):toBeTruthy()
+					expect(def.id):toBeAtLeast(0)
+				end
+			end)
+
+			t:it("points areas to sound keys that exist", function()
+				local Audio = env:require("shared/Config/Audio")
+				for _, key in Audio.areas do
+					expect(Audio.sounds[key]):toBeTruthy()
+				end
+			end)
+
+			t:it("points weather to sound keys that exist", function()
+				local Audio = env:require("shared/Config/Audio")
+				for _, key in Audio.weather do
+					expect(Audio.sounds[key]):toBeTruthy()
+				end
+			end)
+		end)
+
+		t:describe("onboarding", function()
+			t:it("has strings for every step", function()
+				local Onboarding = env:require("shared/Config/Onboarding")
+				for _, step in Onboarding.steps do
+					expect(Strings.get("id", step.labelKey)).never:toBe(step.labelKey)
+					expect(Strings.get("en", step.labelKey)).never:toBe(step.labelKey)
+				end
+			end)
+		end)
 	end)
 end

@@ -26,6 +26,7 @@ local StorageService = require(script.Parent.StorageService)
 local RarityService = require(script.Parent.RarityService)
 local TraitService = require(script.Parent.TraitService)
 local AlmanakService = require(script.Parent.Parent.Progression.AlmanakService)
+local OnboardingService = require(script.Parent.Parent.Progression.OnboardingService)
 local PlotService = require(script.Parent.PlotService)
 
 local OWNED_COLOR = Color3.fromRGB(105, 72, 45)
@@ -213,6 +214,7 @@ local function doPlant(player: Player, data, plot, index: number, cropId: string
 	EconomyService.sync(player)
 	refreshTile(player, data, plot, index)
 	Notify.send(player, "n_planted", "@crop_" .. cropId)
+	OnboardingService.advance(player, "plant")
 end
 
 local function revealHarvest(player: Player, cropId: string, tier: string, discovery: any?)
@@ -287,6 +289,7 @@ local function doHarvest(
 
 	refreshTile(player, data, plot, index)
 	revealHarvest(player, entry.crop, tier, discovery)
+	OnboardingService.advance(player, "harvest")
 end
 
 local function buyTile(player: Player, data, plot, index: number)

@@ -20,6 +20,7 @@ local RateLimit = require(script.Parent.Parent.Net.RateLimit)
 local Notify = require(script.Parent.Parent.Net.Notify)
 local State = require(script.Parent.Parent.Net.State)
 local SeasonService = require(script.Parent.Parent.Season.SeasonService)
+local OnboardingService = require(script.Parent.Parent.Progression.OnboardingService)
 local EconomyService = require(script.Parent.Parent.Economy.EconomyService)
 
 local ShopService = {}
@@ -140,6 +141,7 @@ function ShopService.buy(player: Player, cropId: any, amount: any): boolean
 	publish(player, shop)
 	State.touch(player, "shop")
 	Notify.send(player, "n_bought_seeds", amount, "@crop_" .. cropId)
+	OnboardingService.advance(player, "buy")
 	return true
 end
 

@@ -18,6 +18,7 @@ local RateLimit = require(script.Parent.Parent.Net.RateLimit)
 local Notify = require(script.Parent.Parent.Net.Notify)
 local State = require(script.Parent.Parent.Net.State)
 local RankService = require(script.Parent.Parent.Progression.RankService)
+local OnboardingService = require(script.Parent.Parent.Progression.OnboardingService)
 local Village = require(script.Parent.Parent.World.Village)
 local CabaiEvent = require(script.Parent.Parent.Events.CabaiEvent)
 local MarketService = require(script.Parent.MarketService)
@@ -228,6 +229,7 @@ function EconomyService.sellAll(player: Player, channel: string)
 	EconomyService.addCash(player, total, true)
 	State.touch(player, "produce")
 	Notify.send(player, "n_sold", math.floor(total))
+	OnboardingService.advance(player, "sell")
 end
 
 -- Pays for seeds and puts them in the bag. Stock and toasts live in ShopService, which calls

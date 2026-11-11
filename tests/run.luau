@@ -23,6 +23,7 @@ local specs = {
 	require("./specs/tool_spec"),
 	require("./specs/storage_spec"),
 	require("./specs/worker_spec"),
+	require("./specs/onboarding_spec"),
 	require("./specs/liveconfig_spec"),
 	require("./specs/rarity_spec"),
 	require("./specs/traits_spec"),

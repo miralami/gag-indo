@@ -78,6 +78,16 @@ return function(t, Env)
 				expect(next(section.stock)):toBeNil()
 			end)
 
+			t:it("builds a tutorial snapshot with a copied done table", function()
+				local data = baseData()
+				data.tutorial = { step = 2, done = { plant = true } }
+				local section = State.section(data, "tutorial")
+				expect(section.step):toBe(2)
+				expect(section.done.plant):toBe(true)
+				section.done.plant = false
+				expect(data.tutorial.done.plant):toBe(true)
+			end)
+
 			t:it("defaults missing sections to an empty table instead of nil", function()
 				local section = State.section({}, "debt")
 				expect(type(section)):toBe("table")

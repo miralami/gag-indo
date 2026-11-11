@@ -54,6 +54,7 @@ UI layout, sound, Roblox's DataStore, or what multiplayer feels like. That is wh
 | `tool_spec` | Tools: tier lookup, next-tier chain and maxed line, effects, grow-time clamp, purchase rules, attribute publish |
 | `storage_spec` | Gudang: capacity and Gudang Besar pass, clean-only deposits, quality-preserving round trip, full/empty toasts |
 | `worker_spec` | Buruh tani: hire fee and shift, busy refusal, pass cap, per-item wage, unpaid/expired/full-gudang stops |
+| `onboarding_spec` | Guided first harvest: step order, real-action triggers, out-of-order rejection, completion |
 
 ### Write a new test
 

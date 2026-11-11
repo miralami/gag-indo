@@ -66,6 +66,7 @@ function Fakes.newData(env)
 		quests = { daily = {}, loginStreak = 0, lastLoginDay = 0 },
 		almanak = {},
 		story = { chapter = 0, flags = {} },
+		tutorial = { step = 1, done = {} },
 		housing = {},
 		prestige = { level = 0 },
 		sus = 0,

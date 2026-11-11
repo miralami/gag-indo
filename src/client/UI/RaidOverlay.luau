@@ -6,6 +6,7 @@ local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Strings = require(Shared.Strings)
 local Remotes = require(Shared.Remotes)
 
+local Audio = require(script.Parent.Parent.Audio)
 local Theme = require(script.Parent.Theme)
 
 local RaidOverlay = {}
@@ -257,6 +258,7 @@ function RaidOverlay.mount(lang: string)
 			countdown.Text = ""
 			fineButton.Visible = false
 			amplopButton.Visible = false
+			Audio.play("sting_raid")
 			sinetronZoom()
 			pulse()
 		elseif phaseName == "choosing" then
@@ -320,6 +322,9 @@ function RaidOverlay.mount(lang: string)
 		if type(secondsLeft) ~= "number" or secondsLeft <= 0 then
 			jailBar.Visible = false
 			return
+		end
+		if not jailBar.Visible then
+			Audio.play("sting_jail")
 		end
 		jailBar.Visible = true
 		jailTime.Text = t("jail_time", math.ceil(secondsLeft))

@@ -108,6 +108,13 @@ local S: { [string]: { id: string, en: string } } = {
 	tool_tier_gerobak = { id = "Gerobak", en = "Cart" },
 	tool_tier_traktor = { id = "Traktor Tangan", en = "Hand tractor" },
 
+	-- tutorial (Config/Onboarding)
+	tutorial_plant = { id = "Tanam bibit padi di petakmu", en = "Plant a rice seed in your plot" },
+	tutorial_harvest = { id = "Tunggu tumbuh, lalu panen", en = "Wait for it to grow, then harvest" },
+	tutorial_sell = { id = "Bawa hasil panen ke Pasar", en = "Bring your harvest to the Market" },
+	tutorial_buy = { id = "Beli bibit baru di Toko Bibit", en = "Buy fresh seeds in the Seed Shop" },
+	tutorial_card_title = { id = "Panduan Juragan", en = "Village Guide" },
+
 	-- prompts
 	prompt_tile = { id = "Petak", en = "Plot tile" },
 	prompt_plant = { id = "Tanam %s", en = "Plant %s" },
@@ -171,6 +178,8 @@ local S: { [string]: { id: string, en: string } } = {
 	n_worker_busy = { id = "Buruhmu masih bekerja.", en = "Your farm hand is still working." },
 	n_worker_harvested = { id = "Buruh memanen %s hasil. Upah Rp %s.", en = "Farm hand harvested %s items. Wage Rp %s." },
 	n_worker_unpaid = { id = "Uangmu habis. Buruh pulang.", en = "Out of cash. The farm hand went home." },
+	n_tutorial_step = { id = "Langkah selesai: %s!", en = "Step complete: %s!" },
+	n_tutorial_finished = { id = "🎉 Panen perdana selesai! Selamat jadi Juragan Desa.", en = "🎉 First harvest complete! Welcome to the village, boss." },
 	n_rank_up = { id = "Naik pangkat: %s!", en = "Rank up: %s!" },
 	n_still_growing = { id = "Belum siap, sabar ya.", en = "Not ready yet." },
 	n_welcome = { id = "Selamat datang di Desa Sukasogok!", en = "Welcome to Desa Sukasogok!" },

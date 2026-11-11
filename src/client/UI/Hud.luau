@@ -10,6 +10,7 @@ local Tiers = require(Shared.Config.Tiers)
 local Strings = require(Shared.Strings)
 local Remotes = require(Shared.Remotes)
 
+local Audio = require(script.Parent.Parent.Audio)
 local Theme = require(script.Parent.Theme)
 
 local player = Players.LocalPlayer
@@ -148,6 +149,57 @@ function Hud.mount(lang: string)
 		susLabel.TextColor3 = susColor(sus)
 		namaBaikLabel.Text = t("hud_namabaik", player:GetAttribute("NamaBaik") or 50)
 	end
+
+	---------------------------------------------------------------- tutorial guide card
+	local tutorialCard = Theme.card({
+		Name = "TutorialGuide",
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.new(0.5, 0, 0, 10),
+		Size = UDim2.new(0.42, 0, 0, 48),
+		BackgroundColor3 = Color3.fromRGB(36, 44, 28),
+		Visible = false,
+		Parent = gui,
+	}, {
+		Theme.new("UISizeConstraint", { MinSize = Vector2.new(240, 42), MaxSize = Vector2.new(460, 56) }),
+	})
+	local tutorialPadding = Instance.new("UIPadding")
+	tutorialPadding.PaddingLeft = UDim.new(0, 10)
+	tutorialPadding.PaddingRight = UDim.new(0, 10)
+	tutorialPadding.PaddingTop = UDim.new(0, 4)
+	tutorialPadding.PaddingBottom = UDim.new(0, 4)
+	tutorialPadding.Parent = tutorialCard
+
+	local tutorialTitle = Theme.label({
+		Size = UDim2.new(1, 0, 0, 16),
+		Text = "🌱 " .. t("tutorial_card_title"),
+		TextColor3 = Theme.accent,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Parent = tutorialCard,
+	})
+	tutorialTitle.TextSize = 12
+
+	local tutorialText = Theme.label({
+		Position = UDim2.new(0, 0, 0, 18),
+		Size = UDim2.new(1, 0, 1, -18),
+		Text = "",
+		TextColor3 = Theme.text,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextWrapped = true,
+		Parent = tutorialCard,
+	})
+	tutorialText.TextSize = 13
+
+	local function refreshTutorial()
+		local stepId = player:GetAttribute("TutorialStep")
+		if type(stepId) == "string" and stepId ~= "" then
+			tutorialText.Text = t("tutorial_" .. stepId)
+			tutorialCard.Visible = true
+		else
+			tutorialCard.Visible = false
+		end
+	end
+	player:GetAttributeChangedSignal("TutorialStep"):Connect(refreshTutorial)
+	refreshTutorial()
 
 	---------------------------------------------------------------- seed bar (bottom)
 	local seedBar = Theme.new("ScrollingFrame", {
@@ -399,6 +451,15 @@ function Hud.mount(lang: string)
 			if tier then
 				color = tier.color
 			end
+			Audio.play(if params[3] == "sultan" then "sting_sultan" else "sting_rare")
+		elseif key == "n_almanak_page" or key == "n_almanak_new" then
+			Audio.play("sting_almanak")
+		elseif key == "n_rank_up" then
+			Audio.play("sting_rankup")
+		elseif key == "n_bought_seeds" then
+			Audio.play("ui_buy")
+		elseif key == "n_sold" or key == "n_sold_gelap" then
+			Audio.play("ui_sell")
 		end
 		Theme.toast(Strings.get(lang, key, table.unpack(params or {})), color)
 	end)

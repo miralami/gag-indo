@@ -55,6 +55,8 @@ local TEMPLATE = {
 	quests = { daily = {}, loginStreak = 0, lastLoginDay = 0 },
 	almanak = {},
 	story = { chapter = 0, flags = {} },
+	-- Guided first session (v2 PLAN §3.1): next step index and the steps already done.
+	tutorial = { step = 1, done = {} },
 	-- Reserved for later releases (v2.2 housing, v3 prestige): never migrate for these.
 	housing = {},
 	prestige = { level = 0 },
@@ -201,6 +203,12 @@ local function migrate(data)
 		end
 		if type(data.story) ~= "table" then
 			data.story = { chapter = 0, flags = {} }
+		end
+		if type(data.tutorial) ~= "table" then
+			data.tutorial = { step = 1, done = {} }
+		end
+		if type(data.tutorial.done) ~= "table" then
+			data.tutorial.done = {}
 		end
 		if type(data.housing) ~= "table" then
 			data.housing = {}

@@ -1,8 +1,8 @@
 -- State: pure builders for the replicated structured state (v2 PLAN §7.1).
 --
 -- Scalars stay on player attributes (Cash, Sus, Rank, ...). Everything that does not fit
--- in one attribute — produce stacks, items, tools, gudang, debt, quests, almanak, story —
--- travels through one snapshot on join and small section patches afterwards.
+-- in one attribute — produce stacks, items, tools, gudang, debt, quests, almanak, story,
+-- tutorial — travels through one snapshot on join and small section patches afterwards.
 --
 -- This module only shapes data. Transport lives in server/Net/State.luau and the client
 -- store in client/State.luau.
@@ -25,6 +25,7 @@ State.SECTIONS = {
 	"quests",
 	"almanak",
 	"story",
+	"tutorial",
 }
 
 local function copyFlat(source): { [any]: any }
@@ -81,6 +82,16 @@ function State.section(data, name: string): any
 		return copyDeep(data.almanak or {})
 	elseif name == "story" then
 		return copyDeep(data.story or {})
+	elseif name == "tutorial" then
+		local tutorial = data.tutorial or {}
+		local done = {}
+		for stepId in tutorial.done or {} do
+			done[stepId] = true
+		end
+		return {
+			step = tutorial.step or 1,
+			done = done,
+		}
 	end
 	return nil
 end

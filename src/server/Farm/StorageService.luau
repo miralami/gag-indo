@@ -21,6 +21,11 @@ local EconomyService = require(script.Parent.Parent.Economy.EconomyService)
 local StorageService = {}
 
 local MOVE_RATE = 3
+local depositHook: ((Player, number) -> ())? = nil
+
+function StorageService.onDeposit(hook: (Player, number) -> ())
+	depositHook = hook
+end
 
 local function stacks(data): { [string]: any }
 	data.gudang = data.gudang or { capacity = GameConfig.gudangBaseCapacity, stacks = {} }
@@ -120,6 +125,9 @@ function StorageService.depositAll(player: Player): number
 	end
 	afterMove(player, data)
 	Notify.send(player, "n_gudang_deposit", moved)
+	if depositHook then
+		depositHook(player, moved)
+	end
 	return moved
 end
 

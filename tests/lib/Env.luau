@@ -213,6 +213,11 @@ function Env.new()
 		LogCustomEvent = function() end,
 	}
 	self.services.MarketplaceService = { ProcessReceipt = nil }
+	self.services.BadgeService = {
+		AwardBadge = function()
+			return true
+		end,
+	}
 
 	local env = self
 	local game = {

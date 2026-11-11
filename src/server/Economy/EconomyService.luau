@@ -27,8 +27,11 @@ local EconomyService = {}
 
 local ORDAL_SALE_BONUS = 1.1
 
--- Set by CheatService.start(): (player, cheatId, value, position) -> ()
-local cheatSaleHandler: ((Player, string, number, Vector3) -> ())? = nil
+local saleHook: ((Player, number) -> ())? = nil
+
+function EconomyService.onSale(hook: (Player, number) -> ())
+	saleHook = hook
+end
 
 function EconomyService.onCheatSale(handler: (Player, string, number, Vector3) -> ())
 	cheatSaleHandler = handler
@@ -177,6 +180,7 @@ function EconomyService.sellAll(player: Player, channel: string)
 	local legalValue = 0 -- base value, used by the Tengkulak Gelap
 	local marketValue = 0 -- Pasar value after supply and demand
 	local hotValue = 0
+	local soldCleanCount = 0
 	local soldCounts = {}
 	for _, stack in data.produce or {} do
 		local crop = Crops.list[stack.crop]
@@ -190,6 +194,7 @@ function EconomyService.sellAll(player: Player, channel: string)
 				legalValue += unit * stack.count
 				marketValue += unit * stack.count * MarketService.multiplier(stack.crop)
 				soldCounts[stack.crop] = (soldCounts[stack.crop] or 0) + stack.count
+				soldCleanCount += stack.count
 			end
 		end
 	end
@@ -230,6 +235,9 @@ function EconomyService.sellAll(player: Player, channel: string)
 	State.touch(player, "produce")
 	Notify.send(player, "n_sold", math.floor(total))
 	OnboardingService.advance(player, "sell")
+	if saleHook then
+		saleHook(player, soldCleanCount)
+	end
 end
 
 -- Pays for seeds and puts them in the bag. Stock and toasts live in ShopService, which calls

@@ -11,8 +11,11 @@ local Crops = require(Shared.Config.Crops)
 local GameConfig = require(Shared.Config.Game)
 local ToolsConfig = require(Shared.Config.Tools)
 local WorkerConfig = require(Shared.Config.Worker)
+local PinjolConfig = require(Shared.Config.Pinjol)
+local QuestsConfig = require(Shared.Config.Quests)
 local Strings = require(Shared.Strings)
 local Remotes = require(Shared.Remotes)
+local ClientState = require(script.Parent.Parent.State)
 
 local Theme = require(script.Parent.Theme)
 local Evidence = require(script.Parent.Evidence)
@@ -163,6 +166,8 @@ function Phone.mount(lang: string)
 	local pages: { [string]: ScrollingFrame } = {
 		phone = scrollPage(content, "PagePhone"),
 		kebun = scrollPage(content, "PageKebun"),
+		pinjol = scrollPage(content, "PagePinjol"),
+		tugas = scrollPage(content, "PageTugas"),
 		cheat = scrollPage(content, "PageCheat"),
 		dekor = scrollPage(content, "PageDekor"),
 	}
@@ -171,7 +176,7 @@ function Phone.mount(lang: string)
 	end
 
 	local tabButtons: { [string]: TextButton } = {}
-	local tabOrder = { "phone", "kebun", "cheat", "dekor" }
+	local tabOrder = { "phone", "kebun", "pinjol", "tugas", "cheat", "dekor" }
 	local activeTab = "phone"
 	local refreshCurrent: () -> () = function() end
 
@@ -190,10 +195,11 @@ function Phone.mount(lang: string)
 	for order, tab in tabOrder do
 		local button = Theme.button({
 			LayoutOrder = order,
-			Size = UDim2.fromScale(0.235, 1),
+			Size = UDim2.fromScale(0.155, 1),
 			Text = t("phone_tab_" .. tab),
 			Parent = tabsRow,
 		})
+		button.TextSize = 13
 		button.Activated:Connect(function()
 			showTab(tab)
 		end)
@@ -723,6 +729,186 @@ function Phone.mount(lang: string)
 		end
 	end
 
+	---------------------------------------------------------------- pinjol tab
+	local function refreshPinjolTab()
+		local page = pages.pinjol
+		clearChildren(page)
+		local order = 1
+
+		sectionLabel(page, "⚡ " .. t("phone_pinjol_title"), order)
+		order += 1
+
+		local rank = player:GetAttribute("Rank") or "gurem"
+		local namaBaik = player:GetAttribute("NamaBaik") or 50
+		local maxLimit = PinjolConfig.calcLimit(rank, namaBaik)
+		local isOwed = player:GetAttribute("DebtActive") == true
+		local owed = player:GetAttribute("DebtOwed") or 0
+		local dueAt = player:GetAttribute("DebtDueAt") or 0
+
+		local _limitLabel = Theme.label({
+			LayoutOrder = order,
+			Size = UDim2.new(1, 0, 0, 26),
+			Text = t("phone_pinjol_limit", Strings.formatNumber(maxLimit, lang)),
+			TextColor3 = Theme.accent,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			Parent = page,
+		})
+		order += 1
+
+		if isOwed and owed > 0 then
+			local _owedLabel = Theme.label({
+				LayoutOrder = order,
+				Size = UDim2.new(1, 0, 0, 26),
+				Text = t("phone_pinjol_owed", Strings.formatNumber(owed, lang)),
+				TextColor3 = Theme.red,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				Parent = page,
+			})
+			order += 1
+
+			local remaining = math.max(0, math.ceil(dueAt - os.time()))
+			local dueText = string.format("%d:%02d", math.floor(remaining / 60), remaining % 60)
+			local _dueLabel = Theme.label({
+				LayoutOrder = order,
+				Size = UDim2.new(1, 0, 0, 26),
+				Text = t("phone_pinjol_due", dueText),
+				TextColor3 = if remaining <= 0 then Theme.red else Theme.muted,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				Parent = page,
+			})
+			order += 1
+
+			local repayBtn = Theme.button({
+				LayoutOrder = order,
+				Size = UDim2.new(1, 0, 0, 44),
+				Text = t("phone_pinjol_repay", Strings.formatNumber(owed, lang)),
+				BackgroundColor3 = Theme.green,
+				Parent = page,
+			})
+			order += 1
+			repayBtn.Activated:Connect(function()
+				Remotes.Debt_Repay:FireServer()
+			end)
+		else
+			local _clearLabel = Theme.label({
+				LayoutOrder = order,
+				Size = UDim2.new(1, 0, 0, 26),
+				Text = t("phone_pinjol_clear"),
+				TextColor3 = Theme.green,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				Parent = page,
+			})
+			order += 1
+
+			local borrowAmounts = { math.floor(maxLimit * 0.5), maxLimit }
+			for _, amt in borrowAmounts do
+				if amt > 0 then
+					local bBtn = Theme.button({
+						LayoutOrder = order,
+						Size = UDim2.new(1, 0, 0, 40),
+						Text = t("phone_pinjol_borrow", Strings.formatNumber(amt, lang)),
+						BackgroundColor3 = Theme.blue,
+						Parent = page,
+					})
+					order += 1
+					bBtn.Activated:Connect(function()
+						Remotes.Debt_Borrow:FireServer(amt)
+					end)
+				end
+			end
+		end
+	end
+
+	---------------------------------------------------------------- tugas tab
+	local function refreshTugasTab()
+		local page = pages.tugas
+		clearChildren(page)
+		local order = 1
+
+		local streak = player:GetAttribute("LoginStreak") or 1
+		local claimed = player:GetAttribute("LoginClaimed") == true
+
+		sectionLabel(page, t("phone_tugas_login", streak), order)
+		order += 1
+
+		local loginBtn = Theme.button({
+			LayoutOrder = order,
+			Size = UDim2.new(1, 0, 0, 40),
+			Text = if claimed then t("phone_tugas_claimed") else t("phone_tugas_claim_login"),
+			BackgroundColor3 = if claimed then Theme.panelLight else Theme.accent,
+			Parent = page,
+		})
+		order += 1
+		loginBtn.Active = not claimed
+		loginBtn.Activated:Connect(function()
+			Remotes.Quest_ClaimDaily:FireServer()
+		end)
+
+		sectionLabel(page, t("phone_tugas_daily"), order)
+		order += 1
+
+		local qData = ClientState.get("quests") or {}
+		local tasks = qData.tasks or {}
+		for taskId, task in tasks do
+			local def = nil
+			for _, p in QuestsConfig.taskPool do
+				if p.id == taskId then
+					def = p
+					break
+				end
+			end
+			if def then
+				local row = Theme.card({
+					Name = "Task_" .. taskId,
+					LayoutOrder = order,
+					Size = UDim2.new(1, 0, 0, 52),
+					BackgroundColor3 = Theme.panelLight,
+					Parent = page,
+				})
+				order += 1
+
+				local pLeft = Instance.new("UIPadding")
+				pLeft.PaddingLeft = UDim.new(0, 8)
+				pLeft.PaddingRight = UDim.new(0, 8)
+				pLeft.Parent = row
+
+				Theme.label({
+					Position = UDim2.fromScale(0, 0.1),
+					Size = UDim2.new(0.65, 0, 0.45, 0),
+					Text = t(def.labelKey),
+					TextXAlignment = Enum.TextXAlignment.Left,
+					Parent = row,
+				})
+
+				local prog = task.progress or 0
+				local tgt = task.target or 1
+				local isReady = prog >= tgt and not task.done
+
+				Theme.label({
+					Position = UDim2.fromScale(0, 0.55),
+					Size = UDim2.new(0.65, 0, 0.4, 0),
+					Text = t("phone_tugas_progress", prog, tgt) .. " (+Rp " .. def.rewardCash .. ")",
+					TextColor3 = Theme.muted,
+					TextXAlignment = Enum.TextXAlignment.Left,
+					Parent = row,
+				})
+
+				local claimBtn = Theme.button({
+					AnchorPoint = Vector2.new(1, 0.5),
+					Position = UDim2.fromScale(1, 0.5),
+					Size = UDim2.new(0.3, 0, 0.75, 0),
+					Text = if task.done then t("phone_tugas_claimed") else t("phone_tugas_claim"),
+					BackgroundColor3 = if task.done then Theme.panelLight elseif isReady then Theme.green else Theme.panel,
+					Parent = row,
+				})
+				claimBtn.Active = isReady
+				claimBtn.Activated:Connect(function()
+					Remotes.Quest_ClaimTask:FireServer(taskId)
+				end)
+			end
+		end
+	end
+
 	---------------------------------------------------------------- wiring
 	local lastPhoneSignature = ""
 	refreshCurrent = function()
@@ -741,6 +927,10 @@ function Phone.mount(lang: string)
 			end
 		elseif activeTab == "kebun" then
 			refreshKebunTab()
+		elseif activeTab == "pinjol" then
+			refreshPinjolTab()
+		elseif activeTab == "tugas" then
+			refreshTugasTab()
 		elseif activeTab == "cheat" then
 			refreshCheatTab()
 		else

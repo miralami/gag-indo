@@ -27,6 +27,8 @@ local RarityService = require(script.Parent.RarityService)
 local TraitService = require(script.Parent.TraitService)
 local AlmanakService = require(script.Parent.Parent.Progression.AlmanakService)
 local OnboardingService = require(script.Parent.Parent.Progression.OnboardingService)
+local QuestService = require(script.Parent.Parent.Progression.QuestService)
+local BadgeService = require(script.Parent.Parent.Progression.BadgeService)
 local PlotService = require(script.Parent.PlotService)
 
 local OWNED_COLOR = Color3.fromRGB(105, 72, 45)
@@ -215,6 +217,7 @@ local function doPlant(player: Player, data, plot, index: number, cropId: string
 	refreshTile(player, data, plot, index)
 	Notify.send(player, "n_planted", "@crop_" .. cropId)
 	OnboardingService.advance(player, "plant")
+	QuestService.progress(player, "plant", 1, cropId)
 end
 
 local function revealHarvest(player: Player, cropId: string, tier: string, discovery: any?)
@@ -290,6 +293,10 @@ local function doHarvest(
 	refreshTile(player, data, plot, index)
 	revealHarvest(player, entry.crop, tier, discovery)
 	OnboardingService.advance(player, "harvest")
+	QuestService.progress(player, "harvest", 1, entry.crop)
+	if tier == "sultan" then
+		BadgeService.award(player, "first_sultan")
+	end
 end
 
 local function buyTile(player: Player, data, plot, index: number)

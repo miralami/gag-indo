@@ -34,6 +34,10 @@ local NAMES = {
 	"Evidence_Offer", -- (eventId, cheaterName, cheatId, expiresAt)
 	"Evidence_Token", -- (tokenId, cheatId, expiresAt)
 	"Evidence_Remove", -- (tokenId)
+	"Debt_Borrow", -- (amount: number)
+	"Debt_Repay", -- (amount: number?)
+	"Quest_ClaimDaily", -- () -- claim login streak reward
+	"Quest_ClaimTask", -- (taskId: string) -- claim finished daily task
 	"Raid_Start", -- (payload: table)
 	"Raid_End", -- (outcome: string)
 	"Jail_State", -- (secondsLeft: number)

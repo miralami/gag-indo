@@ -12,6 +12,7 @@ local Notify = require(script.Parent.Parent.Net.Notify)
 local RankService = require(script.Parent.RankService)
 local PlotService = require(script.Parent.Parent.Farm.PlotService)
 local EconomyService = require(script.Parent.Parent.Economy.EconomyService)
+local QuestService = require(script.Parent.QuestService)
 
 local NeighborService = {}
 
@@ -45,6 +46,7 @@ local function onWater(player: Player, targetUserId: any)
 		return
 	end
 	Notify.send(player, "n_water_ok", target.DisplayName, gained)
+	QuestService.progress(player, "water", 1)
 end
 
 function NeighborService.start()

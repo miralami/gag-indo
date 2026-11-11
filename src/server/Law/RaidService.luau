@@ -19,6 +19,7 @@ local FarmService = require(script.Parent.Parent.Farm.FarmService)
 local PlotService = require(script.Parent.Parent.Farm.PlotService)
 local Village = require(script.Parent.Parent.World.Village)
 local Analytics = require(script.Parent.Parent.Analytics.Analytics)
+local BadgeService = require(script.Parent.Parent.Progression.BadgeService)
 
 local RaidService = {}
 
@@ -298,6 +299,7 @@ function RaidService.start(player: Player, isViral: boolean)
 		amplop = amplop,
 	})
 	Notify.send(player, if isViral then "n_viral" else "n_raid_came")
+	BadgeService.award(player, "first_raid")
 
 	local plot = PlotService.getPlotOf(player)
 	local character = player.Character

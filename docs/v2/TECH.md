@@ -295,6 +295,8 @@ M0, M1 and M2 added:
 | `storage_spec` | capacity and pass, clean-only deposits, quality-preserving round trip, full/empty toasts |
 | `worker_spec` | hire fee and shift, busy refusal, pass cap, per-item wage, unpaid/expired/full-gudang stops |
 | `onboarding_spec` | step order, server-action verification, out-of-order rejection, completion |
+| `debt_spec` | limits, borrowing fee, offline/online interest, repayments, overdue escalation & gudang seizure |
+| `quest_spec` | deterministic daily task pool, login streak calendar, progress hooks, reward claiming |
 
 The harness remains `tests/lib/Env.luau` (real modules, fake Instances, fake time). `Fakes.newData(env)`
 now returns a v3 save, so new services can be tested without hand-building one.
@@ -493,7 +495,7 @@ full, or the cash cannot cover the next item. One shift at a time.
 
 | Check | Command | Result |
 |---|---|---|
-| Unit tests | `lune run tests/run` | 370 passed |
+| Unit tests | `lune run tests/run` | 379 passed |
 | Static analysis | `luau-lsp analyze --platform roblox --defs .luau/globalTypes.d.luau --sourcemap sourcemap.json --ignore "**/Packages/**" src` | 0 diagnostics |
 | Build | `rojo build default.project.json -o JuraganDesa.rbxlx` | builds |
 | v1 plays unchanged | Studio playtest: plant → harvest → sell both markets → raid → purchase | manual, see below |

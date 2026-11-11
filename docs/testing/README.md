@@ -55,6 +55,8 @@ UI layout, sound, Roblox's DataStore, or what multiplayer feels like. That is wh
 | `storage_spec` | Gudang: capacity and Gudang Besar pass, clean-only deposits, quality-preserving round trip, full/empty toasts |
 | `worker_spec` | Buruh tani: hire fee and shift, busy refusal, pass cap, per-item wage, unpaid/expired/full-gudang stops |
 | `onboarding_spec` | Guided first harvest: step order, real-action triggers, out-of-order rejection, completion |
+| `debt_spec` | Pinjol: limits, borrowing fee, offline/online interest, repayments, overdue escalation & gudang seizure |
+| `quest_spec` | Quests: deterministic daily task pool, login streak calendar, progress hooks, reward claiming |
 
 ### Write a new test
 

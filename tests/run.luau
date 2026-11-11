@@ -24,6 +24,8 @@ local specs = {
 	require("./specs/storage_spec"),
 	require("./specs/worker_spec"),
 	require("./specs/onboarding_spec"),
+	require("./specs/debt_spec"),
+	require("./specs/quest_spec"),
 	require("./specs/liveconfig_spec"),
 	require("./specs/rarity_spec"),
 	require("./specs/traits_spec"),

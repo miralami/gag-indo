@@ -20,6 +20,7 @@ local State = require(script.Parent.Parent.Net.State)
 local RankService = require(script.Parent.Parent.Progression.RankService)
 local Village = require(script.Parent.Parent.World.Village)
 local CabaiEvent = require(script.Parent.Parent.Events.CabaiEvent)
+local MarketService = require(script.Parent.MarketService)
 
 local EconomyService = {}
 
@@ -172,8 +173,10 @@ function EconomyService.sellAll(player: Player, channel: string)
 		return
 	end
 
-	local legalValue = 0
+	local legalValue = 0 -- base value, used by the Tengkulak Gelap
+	local marketValue = 0 -- Pasar value after supply and demand
 	local hotValue = 0
+	local soldCounts = {}
 	for _, stack in data.produce or {} do
 		local crop = Crops.list[stack.crop]
 		if crop and stack.count > 0 then
@@ -184,6 +187,8 @@ function EconomyService.sellAll(player: Player, channel: string)
 				hotValue += unit * stack.count
 			else
 				legalValue += unit * stack.count
+				marketValue += unit * stack.count * MarketService.multiplier(stack.crop)
+				soldCounts[stack.crop] = (soldCounts[stack.crop] or 0) + stack.count
 			end
 		end
 	end
@@ -212,42 +217,40 @@ function EconomyService.sellAll(player: Player, channel: string)
 		return
 	end
 	local multiplier = if player:GetAttribute("Pass_Ordal") then ORDAL_SALE_BONUS else 1
-	local total = legalValue * multiplier
+	local total = marketValue * multiplier
 
 	-- Clean produce sold; only the hot (oplosan) stacks stay in the sack.
 	Produce.removeClean(data.produce or {})
+	for cropId, count in soldCounts do
+		MarketService.recordSale(cropId, count)
+	end
 
 	EconomyService.addCash(player, total, true)
 	State.touch(player, "produce")
 	Notify.send(player, "n_sold", math.floor(total))
 end
 
-local function onBuySeed(player: Player, cropId: any, amount: any)
-	if not RateLimit.allow(player, "Shop_BuySeed", 4) then
-		return
-	end
-	if type(cropId) ~= "string" or type(amount) ~= "number" then
-		return
-	end
-	local crop = Crops.list[cropId]
-	if not crop or amount ~= math.floor(amount) or amount < 1 or amount > GameConfig.maxSeedBuy then
-		return
-	end
+-- Pays for seeds and puts them in the bag. Stock and toasts live in ShopService, which calls
+-- this after it has checked today's shelves.
+function EconomyService.buySeed(player: Player, cropId: string, amount: number): boolean
 	local data = PlayerData.get(player)
-	if not data then
-		return
+	local crop = Crops.list[cropId]
+	if not data or not crop then
+		return false
+	end
+	if not isFiniteNumber(amount) or amount ~= math.floor(amount) or amount < 1 or amount > GameConfig.maxSeedBuy then
+		return false
 	end
 	if not EconomyService.hasRank(data, crop.rank) then
-		Notify.send(player, "n_rank_locked", "@rank_" .. crop.rank)
-		return
+		return false
 	end
 	if not EconomyService.trySpend(player, crop.seedCost * amount) then
-		return
+		return false
 	end
 	Inventory.addSeed(data, cropId, amount)
 	EconomyService.sync(player)
 	State.touch(player, "items")
-	Notify.send(player, "n_bought_seeds", amount, "@crop_" .. cropId)
+	return true
 end
 
 local function onMarketSell(player: Player, _cropId: any, channel: any)
@@ -256,7 +259,6 @@ local function onMarketSell(player: Player, _cropId: any, channel: any)
 end
 
 function EconomyService.start()
-	Remotes.Shop_BuySeed.OnServerEvent:Connect(onBuySeed)
 	Remotes.Market_Sell.OnServerEvent:Connect(onMarketSell)
 	Village.onPasar(function(player, channel)
 		EconomyService.sellAll(player, channel)

@@ -203,6 +203,8 @@ return function(t, Env)
 				PlayerData.migrate(data)
 				expect(type(data.produce)):toBe("table")
 				expect(type(data.items)):toBe("table")
+				expect(type(data.shop)):toBe("table")
+				expect(type(data.worker)):toBe("table")
 				expect(type(data.tools)):toBe("table")
 				expect(type(data.gudang)):toBe("table")
 				expect(type(data.gudang.stacks)):toBe("table")
@@ -218,6 +220,24 @@ return function(t, Env)
 				local data = { version = 2 }
 				PlayerData.migrate(data)
 				expect(data.gudang.capacity):toBe(Game.gudangBaseCapacity)
+			end)
+
+			t:it("starts an old save with an empty, due shop", function()
+				local data = { version = 2 }
+				PlayerData.migrate(data)
+				expect(data.shop.cycle):toBe(0)
+				expect(data.shop.musim):toBe("")
+				expect(type(data.shop.stock)):toBe("table")
+			end)
+
+			t:it("keeps a valid saved shop untouched", function()
+				local data = {
+					version = 2,
+					shop = { cycle = 99, restockAt = 18000, musim = "kemarau", stock = { padi = 3 } },
+				}
+				PlayerData.migrate(data)
+				expect(data.shop.cycle):toBe(99)
+				expect(data.shop.stock.padi):toBe(3)
 			end)
 
 			t:it("repairs a malformed gudang without dropping its stacks", function()

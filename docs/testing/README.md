@@ -49,6 +49,11 @@ UI layout, sound, Roblox's DataStore, or what multiplayer feels like. That is wh
 | `almanak_spec` | Discovery book: per-crop tier/trait record, new-discovery reporting, family progress, page reward granted once |
 | `receipts_spec` | Robux purchases: exactly-once grants, retry safety, grants landing in `items` (`seed_<crop>`) |
 | `playerdata_spec` | Old-save migration v1 → v2 → v3: produce/items, Reconcile hazard, idempotence, section defaults |
+| `shop_spec` | Rotating shop: restock windows, deterministic roll (rejoin cannot refresh), shelf bounds, always-on padi, purchase/refusal paths, HUD attributes |
+| `market_spec` | Pasar supply and demand: pressure per sale, crop isolation, floor/ceiling clamp, exponential decay, price board |
+| `tool_spec` | Tools: tier lookup, next-tier chain and maxed line, effects, grow-time clamp, purchase rules, attribute publish |
+| `storage_spec` | Gudang: capacity and Gudang Besar pass, clean-only deposits, quality-preserving round trip, full/empty toasts |
+| `worker_spec` | Buruh tani: hire fee and shift, busy refusal, pass cap, per-item wage, unpaid/expired/full-gudang stops |
 
 ### Write a new test
 

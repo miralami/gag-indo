@@ -13,12 +13,16 @@ local GameConfig = require(Shared.Config.Game)
 local Tiers = require(Shared.Config.Tiers)
 local Remotes = require(Shared.Remotes)
 local Inventory = require(Shared.Inventory)
+local Produce = require(Shared.Produce)
 
 local PlayerData = require(script.Parent.Parent.Data.PlayerData)
 local RateLimit = require(script.Parent.Parent.Net.RateLimit)
 local Notify = require(script.Parent.Parent.Net.Notify)
+local State = require(script.Parent.Parent.Net.State)
 local EconomyService = require(script.Parent.Parent.Economy.EconomyService)
 local LiveConfig = require(script.Parent.Parent.Live.LiveConfig)
+local ToolService = require(script.Parent.ToolService)
+local StorageService = require(script.Parent.StorageService)
 local RarityService = require(script.Parent.RarityService)
 local TraitService = require(script.Parent.TraitService)
 local AlmanakService = require(script.Parent.Parent.Progression.AlmanakService)
@@ -185,14 +189,23 @@ local function canPlant(player: Player, data, cropId: string): boolean
 	return true
 end
 
+-- The sack is carried; a full sack must be sold or stored before the next harvest.
+local function sackFull(player: Player, data): boolean
+	if Produce.count(data.produce or {}) < ToolService.sackCapacity(data) then
+		return false
+	end
+	Notify.send(player, "n_sack_full")
+	return true
+end
+
 local function doPlant(player: Player, data, plot, index: number, cropId: string, quality: number)
 	local crop = Crops.list[cropId]
 	Inventory.takeSeed(data, cropId, 1)
 	data.tiles[tileKey(index)] = {
 		crop = cropId,
 		plantedAt = os.time(),
-		growSeconds = crop.growSeconds,
-		quality = roundQuality(quality),
+		growSeconds = ToolService.growSeconds(crop.growSeconds, crop.family, data),
+		quality = roundQuality(math.clamp(quality + ToolService.plantBonus(data), 0, 1)),
 		hot = false,
 		harvests = 0,
 		fertilised = false,
@@ -216,7 +229,14 @@ local function revealHarvest(player: Player, cropId: string, tier: string, disco
 	end
 end
 
-local function doHarvest(player: Player, data, plot, index: number, harvestQuality: number)
+local function doHarvest(
+	player: Player,
+	data,
+	plot,
+	index: number,
+	harvestQuality: number,
+	destination: string?
+)
 	local entry = data.tiles[tileKey(index)]
 	if not entry then
 		return
@@ -240,7 +260,15 @@ local function doHarvest(player: Player, data, plot, index: number, harvestQuali
 	})
 	local tier = RarityService.roll(quality)
 
-	EconomyService.addHarvest(player, entry.crop, quality, { tier = tier, traits = traits })
+	if destination == "gudang" then
+		data.gudang = data.gudang or { capacity = GameConfig.gudangBaseCapacity, stacks = {} }
+		data.gudang.stacks = data.gudang.stacks or {}
+		Produce.add(data.gudang.stacks, entry.crop, quality, { tier = tier, traits = traits })
+		StorageService.publish(player, data)
+		State.touch(player, "gudang")
+	else
+		EconomyService.addHarvest(player, entry.crop, quality, { tier = tier, traits = traits })
+	end
 	local discovery = AlmanakService.record(player, entry.crop, tier, traits)
 
 	-- Kebun and perkebunan re-harvest from the same plant until it is spent.
@@ -248,7 +276,7 @@ local function doHarvest(player: Player, data, plot, index: number, harvestQuali
 	if crop.regrowSeconds and harvests < (crop.maxHarvests or 1) then
 		entry.harvests = harvests
 		entry.plantedAt = os.time()
-		entry.growSeconds = crop.regrowSeconds
+		entry.growSeconds = ToolService.growSeconds(crop.regrowSeconds, crop.family, data)
 		entry.quality = roundQuality(harvestQuality)
 		entry.hot = false
 		entry.fertilised = false
@@ -314,6 +342,9 @@ local function onTilePrompt(player: Player, plotIndex: number, index: number)
 		pending[player] = { tile = index, action = "plant", cropId = cropId, startedAt = os.clock() }
 		Remotes.Minigame_Start:FireClient(player, "plant", index, cropId)
 	elseif os.time() >= entry.plantedAt + entry.growSeconds then
+		if sackFull(player, data) then
+			return
+		end
 		pending[player] = { tile = index, action = "harvest", startedAt = os.clock() }
 		Remotes.Minigame_Start:FireClient(player, "harvest", index, entry.crop)
 	else
@@ -358,6 +389,9 @@ local function finish(player: Player, quality: number): boolean
 			return false
 		end
 		pending[player] = nil
+		if sackFull(player, data) then
+			return false
+		end
 		doHarvest(player, data, plot, index, quality)
 		return true
 	end
@@ -508,6 +542,48 @@ function FarmService.getTileEntry(player: Player, index: number): any?
 		return nil
 	end
 	return data.tiles[tileKey(index)]
+end
+
+-- Worker support: which tiles are ready, in stable order.
+function FarmService.readyTiles(player: Player): { number }
+	local data = PlayerData.get(player)
+	if not data then
+		return {}
+	end
+	local now = os.time()
+	local ready = {}
+	for key, entry in data.tiles do
+		if Crops.list[entry.crop] and now >= entry.plantedAt + entry.growSeconds then
+			table.insert(ready, tonumber(string.sub(key, 2)) or 0)
+		end
+	end
+	table.sort(ready)
+	return ready
+end
+
+-- Harvest one ready tile straight into the gudang (buruh tani). No minigame, but the same
+-- rarity/trait/almanak rules; the caller already checked the gudang has room.
+function FarmService.harvestToStorage(player: Player, index: number): boolean
+	if type(index) ~= "number" then
+		return false
+	end
+	local data = PlayerData.get(player)
+	local plot = PlotService.getPlotOf(player)
+	if not data or not plot or not plot.tiles[index] then
+		return false
+	end
+	local entry = data.tiles[tileKey(index)]
+	if not entry or not Crops.list[entry.crop] then
+		return false
+	end
+	if os.time() < entry.plantedAt + entry.growSeconds then
+		return false
+	end
+	if StorageService.used(data) >= StorageService.capacity(player, data) then
+		return false
+	end
+	doHarvest(player, data, plot, index, GameConfig.autoQuality, "gudang")
+	return true
 end
 
 function FarmService.refresh(player: Player)

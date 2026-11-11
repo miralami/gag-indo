@@ -46,6 +46,10 @@ local TEMPLATE = {
 	items = startingItems(),
 	-- Permanent tools bought with cash.
 	tools = {},
+	-- Toko Bibit shelves (v2 PLAN §3.4): deterministic per restock cycle, per player.
+	shop = { cycle = 0, restockAt = 0, musim = "", stock = {} },
+	-- Hired buruh tani (v2 PLAN §3.4): unix time the shift ends.
+	worker = { hiredUntil = 0 },
 	gudang = { capacity = GameConfig.gudangBaseCapacity, stacks = {} },
 	debt = { active = false, principal = 0, owed = 0, takenAt = 0, dueAt = 0 },
 	quests = { daily = {}, loginStreak = 0, lastLoginDay = 0 },
@@ -172,6 +176,12 @@ local function migrate(data)
 
 		if type(data.tools) ~= "table" then
 			data.tools = {}
+		end
+		if type(data.shop) ~= "table" then
+			data.shop = { cycle = 0, restockAt = 0, musim = "", stock = {} }
+		end
+		if type(data.worker) ~= "table" then
+			data.worker = { hiredUntil = 0 }
 		end
 		if type(data.gudang) ~= "table" then
 			data.gudang = { capacity = GameConfig.gudangBaseCapacity, stacks = {} }

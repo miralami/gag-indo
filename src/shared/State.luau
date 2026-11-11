@@ -18,6 +18,7 @@ State.VERSION = 1
 State.SECTIONS = {
 	"produce",
 	"items",
+	"shop",
 	"tools",
 	"gudang",
 	"debt",
@@ -56,6 +57,14 @@ function State.section(data, name: string): any
 		return Produce.snapshot(data.produce or {})
 	elseif name == "items" then
 		return Inventory.snapshot(data)
+	elseif name == "shop" then
+		local shop = data.shop or {}
+		return {
+			cycle = shop.cycle or 0,
+			restockAt = shop.restockAt or 0,
+			musim = shop.musim or "",
+			stock = copyFlat(shop.stock),
+		}
 	elseif name == "tools" then
 		return copyFlat(data.tools)
 	elseif name == "gudang" then

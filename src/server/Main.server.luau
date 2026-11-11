@@ -6,12 +6,18 @@ require(Shared.Remotes) -- creates the RemoteEvents before any client asks for t
 
 local PlayerData = require(script.Parent.Data.PlayerData)
 local LiveConfig = require(script.Parent.Live.LiveConfig)
+local SeasonService = require(script.Parent.Season.SeasonService)
 local AdminService = require(script.Parent.Live.AdminService)
 local State = require(script.Parent.Net.State)
 local Village = require(script.Parent.World.Village)
 local PlotService = require(script.Parent.Farm.PlotService)
 local RankService = require(script.Parent.Progression.RankService)
 local EconomyService = require(script.Parent.Economy.EconomyService)
+local MarketService = require(script.Parent.Economy.MarketService)
+local ShopService = require(script.Parent.Economy.ShopService)
+local ToolService = require(script.Parent.Farm.ToolService)
+local StorageService = require(script.Parent.Farm.StorageService)
+local WorkerService = require(script.Parent.Farm.WorkerService)
 local FarmService = require(script.Parent.Farm.FarmService)
 local SusService = require(script.Parent.Law.SusService)
 local CheatService = require(script.Parent.Law.CheatService)
@@ -28,6 +34,7 @@ local Cosmetics = require(script.Parent.Monetization.Cosmetics)
 
 -- World first: plots are added to the folder Village creates.
 LiveConfig.start() -- attributes + admin state exist before any service reads them
+SeasonService.start() -- growth multipliers for the current season/anomaly
 Village.build()
 PlotService.build()
 
@@ -41,8 +48,13 @@ RaidService.bindSus({
 -- Raids resolve as a fine when a player leaves, before the profile is released.
 RaidService.init()
 
+MarketService.start() -- price board before anyone can sell
 EconomyService.start()
+ShopService.start() -- shelves must exist before State's first snapshot
+ToolService.start()
+StorageService.start()
 FarmService.start()
+WorkerService.start()
 RankService.start()
 SusService.start()
 CheatService.start()

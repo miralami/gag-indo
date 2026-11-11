@@ -59,6 +59,8 @@ function Fakes.newData(env)
 		produce = {},
 		items = items,
 		tools = {},
+		shop = { cycle = 0, restockAt = 0, musim = "", stock = {} },
+		worker = { hiredUntil = 0 },
 		gudang = { capacity = Game.gudangBaseCapacity, stacks = {} },
 		debt = { active = false, principal = 0, owed = 0, takenAt = 0, dueAt = 0 },
 		quests = { daily = {}, loginStreak = 0, lastLoginDay = 0 },

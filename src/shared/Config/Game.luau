@@ -37,6 +37,9 @@ Game.rankRequirements = {
 
 Game.maxSeedBuy = 50 -- max seeds per purchase click
 
+-- What the carried sack holds before harvesting stops (v2 tools raise it).
+Game.sackBaseCapacity = 40
+
 -- Storage (v2 PLAN §3.4). The sack is carried; the gudang is the big store.
 Game.gudangBaseCapacity = 40
 Game.gudangPassCapacity = 120

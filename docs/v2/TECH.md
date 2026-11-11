@@ -1,13 +1,15 @@
-# Juragan Desa — v2 Technical Foundation (M0–M1)
+# Juragan Desa — v2 Technical Foundation (M0–M2)
 
-> What M0 and M1 changed, and the rules the rest of v2 builds on. Read this together with
+> What M0, M1 and M2 changed, and the rules the rest of v2 builds on. Read this together with
 > [v1/TECH.md](../v1/TECH.md): the ground rules there still hold — the server decides
 > everything, one owner per piece of state, config lives in tables, every remote is validated
 > and rate-limited. This file only documents what v2 added.
 
 Status: **M0 complete** (except the designer decision on UI — D1 in [DECISIONS.md](DECISIONS.md) —
-and the in-Studio checks in §9). **M1 (farming depth) is implemented**: 12 crops in three
+and the in-Studio checks in §10). **M1 (farming depth) is implemented**: 12 crops in three
 families, server-rolled rarity tiers, condition-driven traits, the Almanak and the rarity reveal.
+**M2 (living world) is implemented**: seasons drive growth and sky, a rotating seed shop, Pasar
+supply and demand, permanent tools, the gudang and the hired buruh tani.
 
 ---
 
@@ -26,7 +28,9 @@ tiles         ["t1"] = { crop, plantedAt, growSeconds, quality, hot,
                           harvests, fertilised, certified? }     -- regrow fields are M1
 produce       ["padi|sultan|oplosan"] = { crop, tier, traits, count, qualitySum }
 items         [itemId] = count        -- consumables (amplopPremium) and seeds (seed_padi)
-tools         [toolId] = level or true
+tools         [lineId] = tierId       -- cangkul/gembor/karung/traktor, one tier per line (M2)
+shop          { cycle, restockAt, musim, stock = { [cropId] = amount } }  -- M2
+worker        { hiredUntil }          -- buruh tani shift end, unix time (M2)
 gudang        { capacity, stacks = { [stackKey] = stack } }
 debt          { active, principal, owed, takenAt, dueAt }
 quests        { daily = {}, loginStreak, lastLoginDay }
@@ -92,6 +96,10 @@ Adding a field:
 
 Reserved fields (`housing`, `prestige`) exist so v2.2/v3 do not need a migration just to add them.
 
+M2 added `shop` and `worker` as **v3 section defaults** (`PlayerData.migrate` repairs a missing or
+malformed one on load), deliberately without a version bump: nothing had to be moved from an old
+field, so an existing v3 save keeps its shelves and shift.
+
 ---
 
 ## 2. Replicated state
@@ -99,6 +107,10 @@ Reserved fields (`housing`, `prestige`) exist so v2.2/v3 do not need a migration
 Scalars stay on **player attributes** — cheap, replicated for free, no ordering problems:
 `Cash`, `LifetimeEarned`, `TilesOwned`, `HarvestCount`, `Sus`, `NamaBaik`, `Rank`, `Tier`,
 `Seed_<crop>`, `Item_<id>`, `Pass_*`, `IsAdmin`, and per-tile `Hot` / `Crop` / `ReadyAt`.
+M2 added `ShopStock_<crop>` + `ShopRestockAt`, `Tool_<line>` + `SackCapacity`,
+`GudangUsed` + `GudangCapacity`, and `WorkerUntil` + `WorkerActive`. World and market values
+that are not per player (`Musim`, `Cuaca`, `Anomali`, `Market_<crop>`) are attributes on
+`ReplicatedStorage`.
 
 Everything structured goes through one snapshot + section patches:
 
@@ -108,7 +120,7 @@ Everything structured goes through one snapshot + section patches:
 | Server | `server/Net/State.luau` | sends `State_Snapshot` on join, coalesces `State.touch` into `State_Patch` every `Game.statePatchInterval` |
 | Client | `client/State.luau` | `State.get(section)`, `State.onChanged(cb)`, `State.ready`, re-requests on demand |
 
-Sections: `produce`, `items`, `tools`, `gudang`, `debt`, `quests`, `almanak`, `story`.
+Sections: `produce`, `items`, `shop`, `tools`, `gudang`, `debt`, `quests`, `almanak`, `story`.
 
 Rules:
 
@@ -240,8 +252,12 @@ New tables:
 | `shared/Config/Almanak.luau` | one page per family, cosmetic reward, label key |
 | `shared/Config/Tiers.luau` | tier order, chance, `valueMultiplier`, colour, label key; `Tiers.rareFrom`, `Tiers.isRare` |
 | `shared/Config/Traits.luau` | trait order, `hot` flag, `condition`/`chance`, label key; `Traits.hotTrait`, `Traits.isHot` |
-| `shared/Config/Seasons.luau` | seasons, anomalies, weather weights, growth multipliers, calendar helpers |
-| `shared/Config/Game.luau` | `gudangBaseCapacity`, `gudangPassCapacity`, `statePatchInterval`, `rarityQualityBoost` |
+| `shared/Config/Seasons.luau` | seasons, anomalies, weather weights, growth per family, sky palettes, calendar helpers |
+| `shared/Config/Shop.luau` | restock window, shelf size, per-season family odds, `always`, amount range |
+| `shared/Config/Market.luau` | pressure per item, decay window, price floor/ceiling, tick rate |
+| `shared/Config/Tools.luau` | tool lines and tiers: cost, rank, `plantBonus`, `grow`, `sack`, `row` |
+| `shared/Config/Worker.luau` | buruh hire fee/duration, wage per item, pass interval and cap |
+| `shared/Config/Game.luau` | `gudangBaseCapacity`, `gudangPassCapacity`, `sackBaseCapacity`, `statePatchInterval`, `rarityQualityBoost` |
 
 Conventions: display names live in `shared/Strings.luau` and tables store a `labelKey`; adding a crop,
 tier or trait is a data edit plus strings, not a code change. Every new table gets a `config_spec`
@@ -258,7 +274,7 @@ lune run tests/run
 lune run tests/run -- produce     # filter by name
 ```
 
-M0 and M1 added:
+M0, M1 and M2 added:
 
 | Spec | Covers |
 |---|---|
@@ -273,6 +289,11 @@ M0 and M1 added:
 | `rarity_spec` | weight table, quality boost doubles rare tiers, roll boundaries, clamped/invalid quality |
 | `traits_spec` | which condition opens which trait, per-trait chance, stacking, sorted output, nil context |
 | `almanak_spec` | discovery records, new tier/trait reporting, family progress, page reward granted once |
+| `shop_spec` | restock windows, deterministic roll (rejoin cannot refresh), shelf bounds, always-on padi, purchase/refusal paths, HUD attributes |
+| `market_spec` | pressure per sale, crop isolation, floor/ceiling clamp, exponential decay, price board |
+| `tool_spec` | tier lookup, next-tier chain and maxed, effects, grow-time clamping, purchase rules, publish |
+| `storage_spec` | capacity and pass, clean-only deposits, quality-preserving round trip, full/empty toasts |
+| `worker_spec` | hire fee and shift, busy refusal, pass cap, per-item wage, unpaid/expired/full-gudang stops |
 
 The harness remains `tests/lib/Env.luau` (real modules, fake Instances, fake time). `Fakes.newData(env)`
 now returns a v3 save, so new services can be tested without hand-building one.
@@ -360,16 +381,129 @@ plain `n_harvested`. The HUD tints the reveal toast with `Tiers.list[tier].color
 
 ---
 
-## 9. Acceptance
+## 9. M2 — the living world
+
+Owners: `server/Season/SeasonService.luau`, `server/Economy/ShopService.luau` (+
+`shared/ShopStock.luau`), `server/Economy/MarketService.luau`, `server/Farm/ToolService.luau`,
+`server/Farm/StorageService.luau`, `server/Farm/WorkerService.luau`, and the client-only
+`client/World/Sky.luau`.
+
+Start order in `Main.server.luau`: LiveConfig → SeasonService → MarketService → EconomyService →
+ShopService → ToolService → StorageService → FarmService → WorkerService. Each line only depends
+on the ones above it, so a service can always read the owner of the thing it needs.
+
+### Seasons drive growth and sky
+
+`Config/Seasons.luau` holds the numbers; `SeasonService` is a thin mapper from the LiveConfig
+runtime to those numbers. Nothing else reads `LiveConfig.getRuntime()` for growth.
+
+```lua
+SeasonService.musim()                      -- "hujan" | "kemarau" | "pancaroba"
+SeasonService.growSeconds(base, family)    -- season + anomaly, floored at 5 s
+SeasonService.growth(family)               -- multiplier only
+```
+
+| Musim | palawija | kebun | perkebunan |
+|---|---|---|---|
+| hujan | 1.25 | 1.10 | 1.05 |
+| kemarau | 0.75 | 0.95 | 1.00 |
+| pancaroba | 1.00 | 1.00 | 1.00 |
+
+`Anomali` bends that again (`elNino` 0.85, `laNina` 1.10). `FarmService` resolves the real
+seconds **at plant time** and stores them on the tile, so a season change never rewrites a crop
+already in the ground; the next regrow picks up the new season. `SeasonService` mirrors
+`Growth_<family>` onto `ReplicatedStorage` for the UI; `client/World/Sky.luau` tweens Lighting
+and Atmosphere towards the `Seasons.sky` preset merged with the weather overlay from `Cuaca`.
+
+### Toko Bibit: rotating, deterministic shelves
+
+`shared/ShopStock.luau` is pure and shared by server and tests:
+
+```lua
+ShopStock.cycle(now)                        -- restock window index
+ShopStock.restockAt(cycle)                  -- unix time the next window opens
+ShopStock.roll(cycle, userId, musim)        -- { [cropId] = amount }
+ShopStock.chance(cropId, musim)             -- 0..1; Shop.always makes padi 1
+```
+
+The roll is a Lehmer LCG seeded by cycle + UserId + season, so the same player always sees the
+same shelves inside a window: **rejoining cannot refresh the shop**. `ShopService` owns
+`data.shop` and is the only writer. On load and every 2 s it calls `ensure`, which re-rolls only
+when the cycle or the season changed; `publish` mirrors `ShopRestockAt` and `ShopStock_<crop>`
+(nil for crops not sold this cycle, which removes the attribute). Buying goes
+`ShopService.buy` → rank check → shelf check → `EconomyService.buySeed` (cash + seeds) → shelf
+decrement, so the wallet and the shelf can never drift apart. Seasonal odds from
+`Shop.chanceBySeason`, per-crop rarity from `Shop.rareChance`, stack size from
+`Shop.familyAmount`; `padi` is always stocked.
+
+### Pasar supply and demand
+
+`MarketService` owns one in-memory pressure table per server (a restart is a fresh market, which
+suits a ten-minute wave; nothing is saved).
+
+```
+multiplier(crop) = clamp(1 - pressure, Market.minMultiplier, Market.maxMultiplier)  -- 0.6 .. 1.25
+pressure += count * Market.pressurePerItem                                          -- 0.003/item
+pressure *= e^(-dt / Market.decaySeconds)                                           -- 600 s
+```
+
+`EconomyService.sellAll` asks for the multiplier on the Pasar channel and calls
+`MarketService.recordSale` for each clean stack. The Tengkulak Gelap neither reads nor records
+pressure — that is his whole business. `MarketService.tick` decays and mirrors `Market_<crop>`
+onto `ReplicatedStorage` every 5 s; the phone's price board reads those attributes.
+
+### Tools
+
+`Config/Tools.luau` is a table of lines and tiers; `data.tools[lineId] = tierId`.
+
+| Line | Tiers | Effect |
+|---|---|---|
+| `cangkul` | bambu → baja | `plantBonus` +0.05 / +0.12 added to the planting quality before the rarity roll |
+| `gembor` | gembor → sprinkler | `grow` 1.10 / 1.25 divides the resolved grow time |
+| `karung` | besar → gerobak | `sack` +20 / +60 on top of `Game.sackBaseCapacity` |
+| `traktor` | traktor | `row` reserved for row planting; no effect yet |
+
+`ToolService` is the only reader of the table. `FarmService` asks it for `growSeconds`,
+`plantBonus` and `sackCapacity` at the moment it needs them, so a purchase applies to the next
+plant. A tier id from a future config resolves to no bonus instead of crashing. `ToolService.publish`
+mirrors `Tool_<line>` and `SackCapacity`.
+
+### Gudang
+
+`StorageService` owns `data.gudang`. Capacity is stored in the save
+(`max(base, saved)`), so the Gudang Besar pass can raise it without a migration while removing
+the pass never deletes stored items. `depositAll` moves **clean** produce only — hot stacks stay
+in the sack, a raid must never be dodged by parking evidence in a shed — and preserves the
+average quality of each stack. `withdrawAll` moves everything back. Both touch `produce` and
+`gudang` and mirror `GudangUsed` / `GudangCapacity`.
+
+### Buruh tani
+
+`Config/Worker.luau` (fee, shift length, per-item wage, pass interval/cap) plus
+`WorkerService`, which owns `data.worker.hiredUntil`. Each pass asks `FarmService.readyTiles`
+and harvests up to `maxItemsPerPass` ready tiles straight into the gudang through
+`FarmService.harvestToStorage` — no minigame, but the exact same rarity/trait/Almanak path.
+The wage is paid per item after the pass; the buruh goes home when the shift ends, the gudang is
+full, or the cash cannot cover the next item. One shift at a time.
+
+---
+
+## 10. Acceptance
 
 | Check | Command | Result |
 |---|---|---|
-| Unit tests | `lune run tests/run` | 259 passed |
+| Unit tests | `lune run tests/run` | 355 passed |
 | Static analysis | `luau-lsp analyze --platform roblox --defs .luau/globalTypes.d.luau --sourcemap sourcemap.json --ignore "**/Packages/**" src` | 0 diagnostics |
-| Build | `rojo build default.project.json -o JuraganDesa.rbxl` | builds |
+| Build | `rojo build default.project.json -o JuraganDesa.rbxlx` | builds |
 | v1 plays unchanged | Studio playtest: plant → harvest → sell both markets → raid → purchase | manual, see below |
 | Schema migration | `playerdata_spec` v1/v2 fixtures | green |
 | M1 rarity spread | Studio playtest: harvest 20+ crops, confirm biasa/bagus/super mix and one reveal toast | manual, see below |
+| M2 seasons | `seasons_spec` + `MarketService` growth mirror | green |
+| M2 shop | `shop_spec`: deterministic roll, rejoin cannot refresh, rank/stock/cash refusals | green |
+| M2 market | `market_spec`: pressure, isolation, clamp, decay | green |
+| M2 tools | `tool_spec`: chain, effects, publish | green |
+| M2 gudang | `storage_spec`: clean-only, quality-preserving, capacity | green |
+| M2 buruh | `worker_spec`: hire, wage, pass cap, stop conditions | green |
 
 Manual checks still required in Studio (see [docs/testing](../testing/README.md)):
 
@@ -383,16 +517,25 @@ Manual checks still required in Studio (see [docs/testing](../testing/README.md)
 5. M1 loop: plant a palawija, a kebun and a perkebunan crop; confirm the seed bar scrolls, the shop
    lists all 12, a kebun tile regrows after harvest, a rare tier tints the toast, and completing a
    family shows the Almanak page toast with the cosmetic reward.
+6. M2 loop: confirm the sky matches the season, the shop shows a restock countdown and the same
+   shelves after a rejoin, selling a large stack drops the Pasar price and the phone board shows
+   it, a tool purchase changes grow time / sack size, the gudang refuses oplosan produce and
+   returns it unchanged, and a hired buruh harvests into the gudang while the wage is paid.
 
 ---
 
-## 10. Gaps and next steps
+## 11. Gaps and next steps
 
 - **D1 (UI direction)** is the only M0 item not code: mockups live in
-  [mockups/index.html](mockups/index.html). The v1 Theme stays until they are approved.
-- M1 leaves three seams for later milestones: `permit` is read but not enforced (M2), `certified`
-  is rolled but nothing sets it (M2 tools/stamp), and the Almanak has no screen yet (blocked on D1).
-- Seasons/weather are read but not yet applied to growth, shop or lighting (M2). The admin override
-  and attributes are already live.
+  [mockups/index.html](mockups/index.html). The v1 Theme stays until they are approved; the M2
+  phone tab was built on it deliberately.
+- M1 leaves two seams for later milestones: `permit` is still read but not enforced (the Balai
+  Desa check moved to v2.1 with the story), and `certified` is rolled but nothing sets it yet
+  (planned Balai Desa stamp). The Almanak still has no screen (blocked on D1).
+- M2 tuning is a starting point, not a balance pass: shop odds, market pressure/floor, tool
+  prices and the buruh wage all sit in `Config/*` for the balance sheet. `traktor` is a
+  placeholder row until row planting exists.
+- Season risk events from PLAN §3.3 (*banjir*, *hama*, *gagal panen*) are **not** implemented;
+  seasons currently change growth, shop odds and sky only.
 - `Config/Audio.luau`, real pass/product ids and the `Mbah Dukun` / pinjol names stay open (D4–D9).
 - The `VillageWorld` tag contract needs a real map before M3; the greybox remains the fallback.

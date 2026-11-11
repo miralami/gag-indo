@@ -138,7 +138,11 @@ function Hud.mount(lang: string)
 	local function refreshStats()
 		cashLabel.Text = "Rp " .. Strings.formatNumber(player:GetAttribute("Cash") or 0, lang)
 		rankLabel.Text = t("hud_rank", "@rank_" .. (player:GetAttribute("Rank") or "gurem"))
-		sackLabel.Text = t("hud_harvest_bag", player:GetAttribute("HarvestCount") or 0)
+		sackLabel.Text = t(
+			"hud_harvest_bag",
+			player:GetAttribute("HarvestCount") or 0,
+			player:GetAttribute("SackCapacity") or GameConfig.sackBaseCapacity
+		)
 		local sus = player:GetAttribute("Sus") or 0
 		susLabel.Text = t("hud_sus", sus)
 		susLabel.TextColor3 = susColor(sus)
@@ -194,6 +198,12 @@ function Hud.mount(lang: string)
 	local function hasRank(rank: string): boolean
 		local mine = GameConfig.rankIndex[player:GetAttribute("Rank") or "gurem"] or 1
 		return mine >= (GameConfig.rankIndex[rank] or 1)
+	end
+
+	-- Today's shelf count for one crop. nil = not sold this restock cycle.
+	local function stockOf(cropId: string): number?
+		local value = player:GetAttribute("ShopStock_" .. cropId)
+		return if type(value) == "number" then value else nil
 	end
 
 	local function refreshSeeds()
@@ -263,6 +273,15 @@ function Hud.mount(lang: string)
 		TextColor3 = Theme.accent,
 		Parent = shop,
 	})
+	-- Restock countdown, top-right of the title row; refreshed by the timer below.
+	local restockLabel = Theme.label({
+		Name = "Restock",
+		Position = UDim2.new(0, 0, 0, 0),
+		Size = UDim2.new(1, 0, 0, 28),
+		TextXAlignment = Enum.TextXAlignment.Right,
+		TextColor3 = Theme.muted,
+		Parent = shop,
+	})
 
 	-- Twelve crops do not fit on one screen, so the list scrolls between the title and Close.
 	local shopScroll = Theme.new("ScrollingFrame", {
@@ -279,7 +298,7 @@ function Hud.mount(lang: string)
 		Theme.new("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 4) }),
 	})
 
-	local shopRows: { [string]: { name: TextLabel, buy1: TextButton, buy10: TextButton } } = {}
+	local shopRows: { [string]: { name: TextLabel, buy1: TextButton, buyAll: TextButton } } = {}
 	for i, cropId in Crops.order do
 		local row = Theme.new("Frame", {
 			LayoutOrder = i,
@@ -297,7 +316,7 @@ function Hud.mount(lang: string)
 			Size = UDim2.fromScale(0.33, 1),
 			Parent = row,
 		})
-		local buy10 = Theme.button({
+		local buyAll = Theme.button({
 			Position = UDim2.fromScale(0.66, 0),
 			Size = UDim2.fromScale(0.34, 1),
 			Parent = row,
@@ -305,10 +324,14 @@ function Hud.mount(lang: string)
 		buy1.Activated:Connect(function()
 			Remotes.Shop_BuySeed:FireServer(cropId, 1)
 		end)
-		buy10.Activated:Connect(function()
-			Remotes.Shop_BuySeed:FireServer(cropId, 10)
+		buyAll.Activated:Connect(function()
+			-- The server clamps against the real shelf; this is just the whole stack.
+			local available = stockOf(cropId)
+			if available and available > 0 then
+				Remotes.Shop_BuySeed:FireServer(cropId, available)
+			end
 		end)
-		shopRows[cropId] = { name = name, buy1 = buy1, buy10 = buy10 }
+		shopRows[cropId] = { name = name, buy1 = buy1, buyAll = buyAll }
 	end
 
 	local close = Theme.button({
@@ -326,23 +349,42 @@ function Hud.mount(lang: string)
 		shop.Visible = not shop.Visible
 	end)
 
+	local function updateRestock()
+		local at = player:GetAttribute("ShopRestockAt")
+		if type(at) ~= "number" or at <= 0 then
+			restockLabel.Text = ""
+			return
+		end
+		local left = math.max(0, math.ceil(at - os.time()))
+		restockLabel.Text = t("shop_restock_in", string.format("%d:%02d", math.floor(left / 60), left % 60))
+	end
+
 	local function refreshShop()
 		for cropId, row in shopRows do
 			local crop = Crops.list[cropId]
 			local unlocked = hasRank(crop.rank)
+			local available = stockOf(cropId)
+			local canBuy = unlocked and available ~= nil and available > 0
 			row.name.Text = t("crop_" .. cropId)
-			if unlocked then
-				row.buy1.Text = t("shop_buy", 1, crop.seedCost)
-				row.buy10.Text = t("shop_buy", 10, crop.seedCost * 10)
-			else
+			if not unlocked then
 				row.buy1.Text = t("shop_needs_rank", "@rank_" .. crop.rank)
-				row.buy10.Text = "🔒"
+				row.buyAll.Text = "🔒"
+			elseif available == nil then
+				row.buy1.Text = t("shop_not_stocked")
+				row.buyAll.Text = "—"
+			elseif available <= 0 then
+				row.buy1.Text = t("shop_sold_out")
+				row.buyAll.Text = "—"
+			else
+				row.buy1.Text = t("shop_buy", 1, crop.seedCost)
+				row.buyAll.Text = t("shop_buy_all", crop.seedCost * available)
 			end
-			row.buy1.Active = unlocked
-			row.buy10.Active = unlocked
-			row.buy1.BackgroundTransparency = if unlocked then 0 else 0.5
-			row.buy10.BackgroundTransparency = if unlocked then 0 else 0.5
+			row.buy1.Active = canBuy
+			row.buyAll.Active = canBuy
+			row.buy1.BackgroundTransparency = if canBuy then 0 else 0.5
+			row.buyAll.BackgroundTransparency = if canBuy then 0 else 0.5
 		end
+		updateRestock()
 	end
 
 	---------------------------------------------------------------- notifications
@@ -369,6 +411,16 @@ function Hud.mount(lang: string)
 	end
 	player.AttributeChanged:Connect(refreshAll)
 	refreshAll()
+
+	-- Only the countdown ticks; the rows refresh when an attribute changes.
+	task.spawn(function()
+		while true do
+			task.wait(1)
+			if shop.Visible then
+				updateRestock()
+			end
+		end
+	end)
 
 	return gui
 end

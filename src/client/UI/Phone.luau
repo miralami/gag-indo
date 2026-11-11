@@ -3,10 +3,14 @@
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Cheats = require(Shared.Config.Cheats)
 local CosmeticsConfig = require(Shared.Config.Cosmetics)
+local Crops = require(Shared.Config.Crops)
 local GameConfig = require(Shared.Config.Game)
+local ToolsConfig = require(Shared.Config.Tools)
+local WorkerConfig = require(Shared.Config.Worker)
 local Strings = require(Shared.Strings)
 local Remotes = require(Shared.Remotes)
 
@@ -158,6 +162,7 @@ function Phone.mount(lang: string)
 
 	local pages: { [string]: ScrollingFrame } = {
 		phone = scrollPage(content, "PagePhone"),
+		kebun = scrollPage(content, "PageKebun"),
 		cheat = scrollPage(content, "PageCheat"),
 		dekor = scrollPage(content, "PageDekor"),
 	}
@@ -166,7 +171,7 @@ function Phone.mount(lang: string)
 	end
 
 	local tabButtons: { [string]: TextButton } = {}
-	local tabOrder = { "phone", "cheat", "dekor" }
+	local tabOrder = { "phone", "kebun", "cheat", "dekor" }
 	local activeTab = "phone"
 	local refreshCurrent: () -> () = function() end
 
@@ -185,7 +190,7 @@ function Phone.mount(lang: string)
 	for order, tab in tabOrder do
 		local button = Theme.button({
 			LayoutOrder = order,
-			Size = UDim2.fromScale(0.32, 1),
+			Size = UDim2.fromScale(0.235, 1),
 			Text = t("phone_tab_" .. tab),
 			Parent = tabsRow,
 		})
@@ -560,6 +565,164 @@ function Phone.mount(lang: string)
 		end
 	end
 
+	---------------------------------------------------------------- kebun tab (gudang, tools, prices)
+	local kebunSignature = ""
+
+	local function refreshKebunTab(force: boolean?)
+		local signature = tostring(player:GetAttribute("GudangUsed"))
+			.. "|" .. tostring(player:GetAttribute("GudangCapacity"))
+			.. "|" .. tostring(player:GetAttribute("Cash"))
+			.. "|w" .. tostring(player:GetAttribute("WorkerUntil"))
+		for _, lineId in ToolsConfig.order do
+			signature ..= "|" .. lineId .. tostring(player:GetAttribute("Tool_" .. lineId))
+		end
+		for _, cropId in Crops.order do
+			signature ..= "|" .. tostring(ReplicatedStorage:GetAttribute("Market_" .. cropId))
+		end
+		if not force and signature == kebunSignature then
+			return
+		end
+		kebunSignature = signature
+
+		local page = pages.kebun
+		clearChildren(page)
+		local order = 1
+		local used = player:GetAttribute("GudangUsed") or 0
+		local capacity = player:GetAttribute("GudangCapacity") or GameConfig.gudangBaseCapacity
+
+		sectionLabel(page, t("phone_gudang", used, capacity), order)
+		order += 1
+		local store = Theme.button({
+			LayoutOrder = order,
+			Size = UDim2.new(1, 0, 0, 44),
+			Text = t("phone_gudang_deposit"),
+			BackgroundColor3 = Theme.green,
+			Parent = page,
+		})
+		order += 1
+		store.Activated:Connect(function()
+			Remotes.Storage_Deposit:FireServer()
+		end)
+		local take = Theme.button({
+			LayoutOrder = order,
+			Size = UDim2.new(1, 0, 0, 44),
+			Text = t("phone_gudang_withdraw"),
+			BackgroundColor3 = Theme.blue,
+			Parent = page,
+		})
+		order += 1
+		take.Activated:Connect(function()
+			Remotes.Storage_Withdraw:FireServer()
+		end)
+
+		sectionLabel(page, t("phone_buruh"), order)
+		order += 1
+		local workerUntil = player:GetAttribute("WorkerUntil") or 0
+		local workerActive = player:GetAttribute("WorkerActive") == true
+		local workerRow = Theme.new("Frame", {
+			LayoutOrder = order,
+			Size = UDim2.new(1, 0, 0, 44),
+			BackgroundTransparency = 1,
+			Parent = page,
+		})
+		order += 1
+		if workerActive then
+			local label = Theme.label({
+				Size = UDim2.fromScale(1, 1),
+				Text = t("phone_buruh_active", os.date("%H:%M", workerUntil)),
+				TextColor3 = Theme.muted,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				Parent = workerRow,
+			})
+			label.TextSize = 14
+		else
+			local hire = Theme.button({
+				Size = UDim2.fromScale(1, 1),
+				Text = t("phone_buruh_hire", math.floor(WorkerConfig.hireSeconds / 60), WorkerConfig.hireCost),
+				BackgroundColor3 = Color3.fromRGB(120, 100, 50),
+				Parent = workerRow,
+			})
+			hire.Activated:Connect(function()
+				Remotes.Worker_Hire:FireServer()
+			end)
+		end
+
+		sectionLabel(page, t("phone_alat"), order)
+		order += 1
+		for _, lineId in ToolsConfig.order do
+			local line = ToolsConfig.list[lineId]
+			local owned = player:GetAttribute("Tool_" .. lineId)
+			local nextTier = ToolsConfig.next(lineId, owned)
+			local row = Theme.new("Frame", {
+				LayoutOrder = order,
+				Size = UDim2.new(1, 0, 0, 48),
+				BackgroundColor3 = Theme.panelLight,
+				Parent = page,
+			}, {
+				Theme.corner(nil, 8),
+				Theme.new("UIPadding", {
+					PaddingLeft = UDim.new(0, 8),
+					PaddingRight = UDim.new(0, 8),
+				}),
+			})
+			order += 1
+
+			local label = Theme.label({
+				Size = UDim2.new(0.5, 0, 1, 0),
+				Text = t(line.label) .. (if owned then " · " .. t("tool_tier_" .. owned) else ""),
+				TextXAlignment = Enum.TextXAlignment.Left,
+				Parent = row,
+			})
+			label.TextSize = 14
+
+			if nextTier then
+				local buy = Theme.button({
+					AnchorPoint = Vector2.new(1, 0.5),
+					Position = UDim2.fromScale(1, 0.5),
+					Size = UDim2.new(0.47, 0, 0.8, 0),
+					Text = t("phone_tool_next", t("tool_tier_" .. nextTier.id), nextTier.cost),
+					BackgroundColor3 = Theme.green,
+					Parent = row,
+				})
+				buy.Activated:Connect(function()
+					Remotes.Tool_Buy:FireServer(lineId)
+				end)
+			else
+				local maxed = Theme.label({
+					AnchorPoint = Vector2.new(1, 0.5),
+					Position = UDim2.fromScale(1, 0.5),
+					Size = UDim2.new(0.47, 0, 0.8, 0),
+					Text = t("phone_tool_max"),
+					TextColor3 = Theme.muted,
+					TextXAlignment = Enum.TextXAlignment.Right,
+					Parent = row,
+				})
+				maxed.TextSize = 13
+			end
+		end
+
+		sectionLabel(page, t("phone_harga"), order)
+		order += 1
+		for _, cropId in Crops.order do
+			local multiplier = ReplicatedStorage:GetAttribute("Market_" .. cropId) or 1
+			local arrow = if multiplier > 1.02 then "⬆️" elseif multiplier < 0.98 then "⬇️" else "➡️"
+			local row = Theme.new("Frame", {
+				LayoutOrder = order,
+				Size = UDim2.new(1, 0, 0, 28),
+				BackgroundTransparency = 1,
+				Parent = page,
+			})
+			order += 1
+			local label = Theme.label({
+				Size = UDim2.fromScale(1, 1),
+				Text = t("phone_price_line", arrow, t("crop_" .. cropId), string.format("%.2f", multiplier)),
+				TextXAlignment = Enum.TextXAlignment.Left,
+				Parent = row,
+			})
+			label.TextSize = 14
+		end
+	end
+
 	---------------------------------------------------------------- wiring
 	local lastPhoneSignature = ""
 	refreshCurrent = function()
@@ -576,6 +739,8 @@ function Phone.mount(lang: string)
 				lastPhoneSignature = signature
 				refreshPhoneTab()
 			end
+		elseif activeTab == "kebun" then
+			refreshKebunTab()
 		elseif activeTab == "cheat" then
 			refreshCheatTab()
 		else
@@ -586,6 +751,7 @@ function Phone.mount(lang: string)
 	local function open()
 		root.Visible = true
 		lastPhoneSignature = ""
+		kebunSignature = ""
 		cheatSignature = ""
 		decorSignature = ""
 		refreshCurrent()

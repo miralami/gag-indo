@@ -10,6 +10,10 @@ local NAMES = {
 	"Farm_Complete", -- (score: number) -- minigame result 0..1
 	"Farm_Auto", -- (tile: number, action: "plant"|"harvest", cropId: string?)
 	"Shop_BuySeed", -- (cropId: string, amount: number)
+	"Storage_Deposit", -- () -- move clean produce from the sack to the gudang
+	"Storage_Withdraw", -- () -- move everything back to the sack
+	"Tool_Buy", -- (lineId: string) -- buy the next tier of one tool
+	"Worker_Hire", -- () -- hire the buruh tani for one shift
 	"Market_Sell", -- (cropId: "all", channel: "pasar"|"gelap")
 	"Cheat_Apply", -- (cheatId: string, tile: number?, targetUserId: number?)
 	"Bribe_RT", -- ()

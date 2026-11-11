@@ -10,6 +10,7 @@ return function(t, Env)
 		return {
 			produce = {},
 			items = { seed_padi = 3, amplopPremium = 1 },
+			shop = { cycle = 12, restockAt = 2160, musim = "hujan", stock = { padi = 4 } },
 			tools = { cangkul = true },
 			gudang = { capacity = 40, stacks = {} },
 			debt = { active = false, owed = 0 },
@@ -57,6 +58,24 @@ return function(t, Env)
 				local section = State.section(baseData(), "items")
 				expect(section.seed_padi):toBe(3)
 				expect(section.amplopPremium):toBe(1)
+			end)
+
+			t:it("builds a shop snapshot with a copied stock table", function()
+				local data = baseData()
+				local section = State.section(data, "shop")
+				expect(section.cycle):toBe(12)
+				expect(section.restockAt):toBe(2160)
+				expect(section.musim):toBe("hujan")
+				expect(section.stock.padi):toBe(4)
+				section.stock.padi = 0
+				expect(data.shop.stock.padi):toBe(4)
+			end)
+
+			t:it("defaults a missing shop to an empty shelf", function()
+				local section = State.section({}, "shop")
+				expect(section.cycle):toBe(0)
+				expect(section.musim):toBe("")
+				expect(next(section.stock)):toBeNil()
 			end)
 
 			t:it("defaults missing sections to an empty table instead of nil", function()

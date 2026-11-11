@@ -109,5 +109,105 @@ return function(t, Env)
 				end
 			end)
 		end)
+
+		t:describe("growth", function()
+			t:it("uses the family override when there is one", function()
+				local hujan = Seasons.list.hujan
+				for familyId, multiplier in hujan.growthByFamily do
+					expect(Seasons.growth("hujan", familyId, "none")):toBeNear(multiplier)
+				end
+			end)
+
+			t:it("makes palawija faster in the rain and slower in the dry season", function()
+				expect(Seasons.growth("hujan", "palawija")):toBeGreaterThan(Seasons.growth("pancaroba", "palawija"))
+				expect(Seasons.growth("kemarau", "palawija")):toBeLessThan(Seasons.growth("pancaroba", "palawija"))
+			end)
+
+			t:it("falls back to the season base and the changing season", function()
+				expect(Seasons.growth("hujan", "tidakAda")):toBeNear(Seasons.list.hujan.growth)
+				expect(Seasons.growth("salju", "palawija")):toBe(Seasons.growth("pancaroba", "palawija"))
+				expect(Seasons.growth(nil, nil)):toBe(1)
+			end)
+
+			t:it("applies the anomaly on top of the season", function()
+				local normal = Seasons.growth("pancaroba", "kebun", "none")
+				expect(Seasons.growth("pancaroba", "kebun", "elNino")):toBeNear(normal * Seasons.anomaliGrowth.elNino)
+				expect(Seasons.growth("pancaroba", "kebun", "laNina")):toBeNear(normal * Seasons.anomaliGrowth.laNina)
+			end)
+
+			t:it("clamps the result to a sane range", function()
+				for _, musim in Seasons.musimOrder do
+					for _, anomali in Seasons.anomaliOrder do
+						for _, familyId in { "palawija", "kebun", "perkebunan" } do
+							local multiplier = Seasons.growth(musim, familyId, anomali)
+							expect(multiplier):toBeAtLeast(0.5)
+							expect(multiplier):toBeAtMost(2)
+						end
+					end
+				end
+			end)
+		end)
+
+		t:describe("skyFor", function()
+			t:it("starts from the season preset", function()
+				local sky = Seasons.skyFor("kemarau", "cerah")
+				expect(sky.clockTime):toBe(Seasons.sky.kemarau.clockTime)
+				expect(sky.fogColor):toBe(Seasons.sky.kemarau.fogColor)
+			end)
+
+			t:it("darkens and shortens fog in a storm", function()
+				local clear = Seasons.skyFor("pancaroba", "cerah")
+				local storm = Seasons.skyFor("pancaroba", "badai")
+				expect(storm.brightness):toBeLessThan(clear.brightness)
+				expect(storm.fogEnd):toBeLessThan(clear.fogEnd)
+				expect(storm.cloudCover):toBeGreaterThan(clear.cloudCover)
+			end)
+
+			t:it("keeps clouds and atmosphere inside their real ranges", function()
+				for _, musim in Seasons.musimOrder do
+					for _, cuaca in Seasons.cuacaOrder do
+						local sky = Seasons.skyFor(musim, cuaca)
+						expect(sky.cloudCover):toBeAtLeast(0)
+						expect(sky.cloudCover):toBeAtMost(1)
+						expect(sky.atmosphereDensity):toBeAtLeast(0)
+						expect(sky.atmosphereDensity):toBeAtMost(1)
+						expect(sky.fogEnd):toBeGreaterThan(0)
+					end
+				end
+			end)
+
+			t:it("falls back for unknown inputs", function()
+				local sky = Seasons.skyFor("salju", "salju")
+				expect(sky.clockTime):toBe(Seasons.sky.pancaroba.clockTime)
+			end)
+		end)
+
+		t:describe("SeasonService", function()
+			local SeasonService
+
+			t:beforeEach(function()
+				env:mock("server/Live/LiveConfig", {
+					getRuntime = function()
+						return { musim = "kemarau", anomali = "none", cuaca = "cerah" }
+					end,
+				})
+				SeasonService = env:require("server/Season/SeasonService")
+			end)
+
+			t:it("reports the resolved season, weather and anomaly", function()
+				expect(SeasonService.musim()):toBe("kemarau")
+				expect(SeasonService.cuaca()):toBe("cerah")
+				expect(SeasonService.anomali()):toBe("none")
+			end)
+
+			t:it("divides a crop's grow time by today's family multiplier", function()
+				local multiplier = Seasons.growth("kemarau", "palawija", "none")
+				expect(SeasonService.growSeconds(60, "palawija")):toBe(math.floor(60 / multiplier + 0.5))
+			end)
+
+			t:it("never drops below five seconds", function()
+				expect(SeasonService.growSeconds(1, "palawija")):toBe(5)
+			end)
+		end)
 	end)
 end

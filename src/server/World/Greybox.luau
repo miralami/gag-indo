@@ -405,6 +405,35 @@ local function buildRoads(world: Folder)
 	end
 end
 
+-- The exact terrain volumes Greybox owns: the river and the four sawah terrace rows.
+-- Clearing these before filling makes a rebuild idempotent without touching designer terrain.
+local function terrainBlocks(): { { cframe: CFrame, size: Vector3, material: Enum.Material } }
+	local blocks = {
+		{ cframe = CFrame.new(0, -4, 110), size = Vector3.new(220, 8, 100), material = Enum.Material.Water },
+	}
+	for row = 0, 3 do
+		table.insert(blocks, {
+			cframe = CFrame.new(0, -1.5 + row * 1.5, -100 + row * 14),
+			size = Vector3.new(120 - row * 22, 3, 18),
+			material = Enum.Material.Ground,
+		})
+	end
+	return blocks
+end
+
+Greybox.terrainBlocks = terrainBlocks
+
+-- Clears every owned volume with Air, then fills them. Safe to call on every rebuild.
+function Greybox.applyTerrain(terrain: Terrain)
+	local blocks = terrainBlocks()
+	for _, block in blocks do
+		terrain:FillBlock(block.cframe, block.size, Enum.Material.Air)
+	end
+	for _, block in blocks do
+		terrain:FillBlock(block.cframe, block.size, block.material)
+	end
+end
+
 function Greybox.build(): Folder
 	-- Replace a previous generated world; never touch a designer map.
 	for _, old in Map.all(Map.TAGS.Greybox) do
@@ -433,10 +462,7 @@ function Greybox.build(): Folder
 	workspace.Terrain.WaterColor = waterColor
 	workspace.Terrain:SetMaterialColor(Enum.Material.Ground, Props.palette("bambu"))
 	workspace.Terrain:SetMaterialColor(Enum.Material.Grass, grassColor)
-	workspace.Terrain:FillBlock(CFrame.new(0, -4, 110), Vector3.new(220, 8, 100), Enum.Material.Water)
-	for row = 0, 3 do
-		workspace.Terrain:FillBlock(CFrame.new(0, -1.5 + row * 1.5, -100 + row * 14), Vector3.new(120 - row * 22, 3, 18), Enum.Material.Ground)
-	end
+	Greybox.applyTerrain(workspace.Terrain)
 
 	buildRoads(world)
 

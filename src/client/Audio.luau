@@ -43,10 +43,16 @@ local function makeGroups()
 	end
 end
 
+-- A real Roblox asset id: positive whole number. Guards 0, fractions, NaN and infinity so
+-- a bad config entry never reaches Sound.SoundId.
+local function validId(id: any): boolean
+	return type(id) == "number" and id % 1 == 0 and id > 0
+end
+
 local function makeSounds()
 	for key, def in AudioConfig.sounds do
 		baseVolume[key] = if type(def.volume) == "number" then def.volume else 0.5
-		if type(def.id) == "number" and def.id > 0 then
+		if validId(def.id) then
 			local sound = Instance.new("Sound")
 			sound.Name = key
 			sound.SoundId = "rbxassetid://" .. def.id

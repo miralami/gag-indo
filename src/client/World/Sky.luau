@@ -5,6 +5,7 @@
 local Lighting = game:GetService("Lighting")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Seasons = require(Shared.Config.Seasons)
@@ -22,11 +23,25 @@ local function atmosphere(): Atmosphere
 	return found :: Atmosphere
 end
 
-local function clouds(): Clouds
-	local found = Lighting:FindFirstChildOfClass("Clouds")
+-- Roblox only renders Clouds parented under workspace.Terrain. Migrate any legacy Clouds
+-- left under Lighting and wait briefly for Terrain to replicate; return nil if it never does.
+local function clouds(): Clouds?
+	local terrain = Workspace:FindFirstChildOfClass("Terrain") or Workspace:WaitForChild("Terrain", 10)
+	if not terrain then
+		return nil
+	end
+
+	local found = terrain:FindFirstChildOfClass("Clouds")
+	if not found then
+		local legacy = Lighting:FindFirstChildOfClass("Clouds")
+		if legacy then
+			legacy.Parent = terrain
+			found = legacy
+		end
+	end
 	if not found then
 		found = Instance.new("Clouds")
-		found.Parent = Lighting
+		found.Parent = terrain
 	end
 	return found :: Clouds
 end
@@ -90,9 +105,12 @@ local function apply()
 	TweenService:Create(effect("BloomEffect"), TWEEN, { Intensity = preset.bloom }):Play()
 	TweenService:Create(effect("SunRaysEffect"), TWEEN, { Intensity = preset.sunRays }):Play()
 
-	TweenService:Create(clouds(), TWEEN, {
-		Cover = preset.cloudCover,
-	}):Play()
+	local cloud = clouds()
+	if cloud then
+		TweenService:Create(cloud, TWEEN, {
+			Cover = preset.cloudCover,
+		}):Play()
+	end
 end
 
 function Sky.mount()

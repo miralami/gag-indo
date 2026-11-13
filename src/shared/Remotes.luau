@@ -26,6 +26,7 @@ local NAMES = {
 	"Water_Neighbor", -- (targetUserId: number) -- gotong royong, +Nama Baik
 	"State_Request", -- () -- ask for a fresh snapshot (join, respawn, hot reload)
 	"Admin_Command", -- ({ action: string, value: any }) -- allowlisted users only
+	"Harness_Command", -- ({ action: string, value: any }) -- Studio playtest driver only (MASTER_PLAN 0.3)
 
 	-- server -> client
 	"Notify", -- (key: string, params: {any}?)
@@ -45,6 +46,7 @@ local NAMES = {
 	"State_Snapshot", -- ({ version, sections }) -- full structured state on join
 	"State_Patch", -- ({ [section]: value }) -- changed sections only
 	"Admin_Result", -- ({ ok, message?, data? })
+	"Harness_Result", -- ({ ok, message?, data? }) -- server -> client: playtest harness reply
 }
 
 local Remotes: { [string]: RemoteEvent } = {}

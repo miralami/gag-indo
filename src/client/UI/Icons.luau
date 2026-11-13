@@ -11,7 +11,7 @@ Icons.entries = Visuals.icons
 
 function Icons.id(name: string): number
 	local entry = Visuals.icons[name]
-	return if entry then entry.id else 0
+	return Visuals.assetId(if entry then entry.id else nil) or 0
 end
 
 function Icons.has(name: string): boolean
@@ -27,7 +27,7 @@ end
 -- Props are the usual GuiObject fields; `Color` overrides the palette token.
 function Icons.make(name: string, props: { [string]: any }): GuiObject
 	local entry = Visuals.icons[name]
-	local id = if entry then entry.id else 0
+	local id = Visuals.assetId(if entry then entry.id else nil)
 	local parent = props.Parent
 	if name:sub(1, 5) == "tier_" then
 		return Theme.rarityChip(name:sub(6), props)
@@ -44,8 +44,8 @@ function Icons.make(name: string, props: { [string]: any }): GuiObject
 		Parent = parent,
 	}
 
-	if id > 0 then
-		common.Image = "rbxassetid://" .. id
+	if id then
+		common.Image = Visuals.assetUrl(id)
 		common.BackgroundTransparency = 1
 		common.ScaleType = Enum.ScaleType.Fit
 		common.ImageTransparency = props.ImageTransparency

@@ -547,6 +547,29 @@ local function finish(player: Player, quality: number): boolean
 	return false
 end
 
+-- Harness/tests only: run the real plant/harvest resolution without a minigame
+-- (docs/testing/HARNESS.md). The prompt path checks ownership and distance before it sets
+-- `pending`; callers of this seam do the same. Everything after that is unchanged: canPlant,
+-- the empty-tile check, doPlant's grow time and quality, doHarvest's sack and hooks.
+function FarmService.commitAttempt(player: Player, attempt: any, quality: any): boolean
+	if type(attempt) ~= "table" or type(attempt.tile) ~= "number" then
+		return false
+	end
+	if attempt.action ~= "plant" and attempt.action ~= "harvest" then
+		return false
+	end
+	if type(quality) ~= "number" or quality ~= quality then
+		return false
+	end
+	pending[player] = {
+		tile = attempt.tile,
+		action = attempt.action,
+		cropId = attempt.cropId,
+		startedAt = os.clock(),
+	}
+	return finish(player, math.clamp(quality, 0, 1))
+end
+
 local function onComplete(player: Player, score: any)
 	if not RateLimit.allow(player, "Farm_Complete", 4) then
 		return

@@ -20,6 +20,8 @@ Status values: **open** · **decided** · **changed**
 | D11 | Art direction (world, characters, crops, UI) | **Cat tangan berkontur:** moodboard A (painted, warm) + B (ink contour, sticker UI). High-quality graphics are a selling point for the Indonesian market, but it stays Roblox-themed (R15, chunky, phone-first). See `ART.md`. | **decided** |
 | D12 | Priority order for all work | **Fun first, then looks and sound, then depth, then social drama.** All four get built. See `MASTER_PLAN.md` §2. | **decided** 2026-11-14 |
 | D13 | Who produces art and audio | Agents via Blender MCP, Roblox Toolbox / licensed catalogue, and outside tools connected through MCP after the designer approves each one. Agents run in parallel with Studio MCP. | **decided** 2026-11-14 |
+| D-G1 | Asset upload route (MASTER_PLAN §9.1). See `docs/v2/TOOLS.md` §3. | An Open Cloud API key scoped to the designer's account, `asset:read` + `asset:write`, kept outside the repo. Meshes still go through Studio Importer; icons, textures and audio can be automated. Hand upload alone cannot cover the `ART.md` volume. | open |
+| D-G2 | Studio sessions (MASTER_PLAN §9.2). | One shared session run by track H; tracks queue for it. Importer presets are per-machine and must match between imports. | open |
 
 ## How to change one
 

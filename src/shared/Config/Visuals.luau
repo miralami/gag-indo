@@ -68,20 +68,34 @@ Visuals.motion = { duration = 0.22, overshoot = 1.06 }
 Visuals.particles = { langka = 3, sultan = 8 }
 Visuals.effects = { screenShake = false, toastPop = true, duration = 0.22 }
 
+-- A usable Roblox asset id or nil. Guards 0, negatives, fractions, NaN and infinity so
+-- config can ship placeholder ids without ever writing a bad rbxassetid:// into a property.
+function Visuals.assetId(id: any): number?
+	if type(id) ~= "number" or id % 1 ~= 0 or id <= 0 then
+		return nil
+	end
+	return id
+end
+
+function Visuals.assetUrl(id: any): string?
+	local valid = Visuals.assetId(id)
+	return if valid then "rbxassetid://" .. valid else nil
+end
+
 function Visuals.applySurface(part: BasePart, slot: string, fallbackMaterial: Enum.Material)
-	local textureId = Visuals.textures[slot]
+	local textureUrl = Visuals.assetUrl(Visuals.textures[slot])
 	local material = Visuals.materials[slot]
 	if material then
 		part.Color = Color3.fromHex(Visuals.palette[material.color])
 	end
 	part.Material = fallbackMaterial
-	if type(textureId) ~= "number" or textureId <= 0 then
+	if not textureUrl then
 		local existing = part:FindFirstChildOfClass("SurfaceAppearance")
 		if existing then existing:Destroy() end
 		return
 	end
 	local surface = part:FindFirstChildOfClass("SurfaceAppearance") or Instance.new("SurfaceAppearance")
-	surface.ColorMap = "rbxassetid://" .. textureId
+	surface.ColorMap = textureUrl
 	surface.Parent = part
 end
 

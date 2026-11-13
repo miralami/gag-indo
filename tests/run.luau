@@ -43,6 +43,8 @@ local specs = {
 	require("./specs/visual_art_spec"),
 	require("./specs/security_spec"),
 	require("./specs/balance_spec"),
+	require("./specs/harness_spec"),
+	require("./specs/greybox_spec"),
 }
 
 local t = Test.new()

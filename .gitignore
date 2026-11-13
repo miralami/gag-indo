@@ -5,3 +5,6 @@
 sourcemap.json
 globalTypes.d.luau
 .luau/
+
+# local agent tooling
+.claude/

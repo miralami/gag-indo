@@ -28,8 +28,8 @@ function Minigame.mount(lang: string)
 	local scrim = Theme.new("Frame", {
 		Name = "Scrim",
 		Size = UDim2.fromScale(1, 1),
-		BackgroundColor3 = Color3.new(0, 0, 0),
-		BackgroundTransparency = 0.35,
+		BackgroundColor3 = Theme.ink,
+		BackgroundTransparency = 0.5,
 		Visible = false,
 		Parent = gui,
 	})
@@ -52,9 +52,11 @@ function Minigame.mount(lang: string)
 
 	local title = Theme.label({
 		Position = UDim2.new(0, 0, 0, 0),
-		Size = UDim2.new(1, 0, 0, 30),
+		Size = UDim2.new(1, -50, 0, 30),
 		Text = "",
-		TextColor3 = Theme.accent,
+		Font = Theme.displayFont,
+		TextColor3 = Theme.merah,
+		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = card,
 	})
 
@@ -83,8 +85,8 @@ function Minigame.mount(lang: string)
 		Name = "Cancel",
 		AnchorPoint = Vector2.new(1, 0),
 		Position = UDim2.fromScale(1, 0),
-		Size = UDim2.new(0.14, 0, 0, 30),
-		Text = "✕",
+		Size = UDim2.new(0, 44, 0, 44),
+		Text = "X",
 		BackgroundColor3 = Theme.red,
 		Parent = card,
 	})
@@ -110,16 +112,16 @@ function Minigame.mount(lang: string)
 		local isPlant = action == "plant"
 		local cropLabel = if cropId then t("crop_" .. cropId) else ""
 		title.Text = if isPlant
-			then t("mg_mencangkul_title") .. " · " .. t("mg_plant", cropLabel)
-			else t("mg_babat_title") .. " · " .. t("mg_harvest", cropLabel)
+			then t("mg_mencangkul_title") .. " - " .. t("mg_plant", cropLabel)
+			else t("mg_babat_title") .. " - " .. t("mg_harvest", cropLabel)
 		hint.Text = if isPlant then t("mg_mencangkul_hint") else t("mg_babat_hint")
 
 		local area = Theme.new("Frame", {
 			Name = "PlayArea",
 			Position = UDim2.new(0, 0, 0, 54),
 			Size = UDim2.new(1, 0, 1, -110),
-			BackgroundColor3 = Theme.panelLight,
-			BackgroundTransparency = 0.55,
+			BackgroundColor3 = Theme.paper,
+			BackgroundTransparency = 0,
 			BorderSizePixel = 0,
 			Parent = card,
 		}, { Theme.corner(nil, 10) })

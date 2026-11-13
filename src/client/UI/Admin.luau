@@ -89,7 +89,7 @@ local function updateStatus(config, runtime)
 	end
 	local events = if type(config.events) == "table" then config.events else {}
 	statusLabel.Text = string.format(
-		"%s: %s (%s) · %s: %s · %s · %s: %s",
+		"%s: %s (%s) - %s: %s - %s - %s: %s",
 		t("admin_season"),
 		tostring(runtime.musim),
 		tostring(runtime.seasonSource),
@@ -111,7 +111,7 @@ local function build()
 		Name = "Panel",
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromOffset(340, 470),
+		Size = UDim2.fromOffset(340, 530),
 		Visible = false,
 		Parent = gui,
 	}, {
@@ -132,6 +132,8 @@ local function build()
 		LayoutOrder = nextOrder(),
 		Size = UDim2.new(1, 0, 0, 26),
 		Text = t("admin_title"),
+		Font = Theme.displayFont,
+		TextColor3 = Theme.merah,
 		Parent = frame,
 	})
 
@@ -190,10 +192,41 @@ local function build()
 		},
 	})
 
+	row(frame, "Uang (self)", {
+		{
+			text = "Rp 1rb",
+			width = 64,
+			onClick = function()
+				send("grantCash", { userId = player.UserId, amount = 1_000 })
+			end,
+		},
+		{
+			text = "Rp 10rb",
+			width = 70,
+			onClick = function()
+				send("grantCash", { userId = player.UserId, amount = 10_000 })
+			end,
+		},
+		{
+			text = "Rp 100rb",
+			width = 78,
+			onClick = function()
+				send("grantCash", { userId = player.UserId, amount = 100_000 })
+			end,
+		},
+		{
+			text = "Rp 1jt",
+			width = 64,
+			onClick = function()
+				send("grantCash", { userId = player.UserId, amount = 1_000_000 })
+			end,
+		},
+	})
+
 	local inspectButtons = {}
 	for _, target in Players:GetPlayers() do
 		table.insert(inspectButtons, {
-			text = "👤 " .. target.Name,
+			text = target.Name,
 			width = 96,
 			onClick = function()
 				send("inspect", target.UserId)
@@ -259,6 +292,27 @@ end
 function Admin.mount(langCode: string)
 	lang = langCode
 
+	local function tryAddHudButton()
+		if not player:GetAttribute("IsAdmin") then return end
+		local hudGui = player.PlayerGui:FindFirstChild("Hud")
+		if not hudGui then return end
+		if hudGui:FindFirstChild("AdminToggle") then return end
+		local btn = Instance.new("TextButton")
+		btn.Name = "AdminToggle"
+		btn.Text = "Admin"
+		btn.Size = UDim2.new(0, 80, 0, 44)
+		btn.Position = UDim2.new(1, -88, 0, 10)
+		btn.AnchorPoint = Vector2.new(0, 0)
+		btn.BackgroundColor3 = Theme.indigo
+		btn.TextColor3 = Theme.paper
+		btn.BorderSizePixel = 0
+		btn.TextSize = 13
+		btn.Font = Theme.font
+		btn.ZIndex = 20
+		btn.Parent = hudGui
+		btn.Activated:Connect(toggle)
+	end
+
 	Remotes.Admin_Result.OnClientEvent:Connect(function(result)
 		if type(result) ~= "table" then
 			return
@@ -269,7 +323,7 @@ function Admin.mount(langCode: string)
 				updateStatus(data.config, data.runtime)
 			elseif data.name then
 				setLog(string.format(
-					"%s — Rp %s · %s · Sus %s · NB %s · %s %s",
+					"%s - Rp %s - %s - Sus %s - NB %s - %s %s",
 					tostring(data.name),
 					Strings.formatNumber(data.cash or 0, lang),
 					tostring(data.rank),
@@ -298,10 +352,7 @@ function Admin.mount(langCode: string)
 		build()
 	end
 
-	UserInputService.InputBegan:Connect(function(input, processed)
-		if processed then
-			return
-		end
+	UserInputService.InputBegan:Connect(function(input, _processed)
 		if input.KeyCode == Enum.KeyCode.F2 then
 			toggle()
 		end

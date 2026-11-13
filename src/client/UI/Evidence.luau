@@ -1,10 +1,11 @@
--- Evidence client: "📱 Rekam?" offers and the bukti tokens shown in the phone.
+-- Evidence client: Rekam offers and the bukti tokens shown in the phone.
 -- The server decides everything; this module only stores what the server sent.
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Strings = require(Shared.Strings)
 local Remotes = require(Shared.Remotes)
 
+local Icons = require(script.Parent.Icons)
 local Theme = require(script.Parent.Theme)
 
 local Evidence = {}
@@ -117,9 +118,10 @@ function Evidence.mount(lang: string, gui: ScreenGui)
 
 		local title = Theme.label({
 			LayoutOrder = 1,
-			Size = UDim2.new(1, 0, 0, 20),
-			Text = "📱 " .. t("phone_record") .. "?",
-			TextColor3 = Theme.accent,
+			Size = UDim2.new(1, 0, 0, 22),
+			Text = t("phone_record") .. "?",
+			Font = Theme.displayFont,
+			TextColor3 = Theme.merah,
 			Parent = card,
 		})
 		title.TextSize = 18
@@ -127,7 +129,7 @@ function Evidence.mount(lang: string, gui: ScreenGui)
 		local subtitle = Theme.label({
 			LayoutOrder = 2,
 			Size = UDim2.new(1, 0, 0, 18),
-			Text = cheaterName .. " · " .. t("cheat_" .. cheatId),
+			Text = cheaterName .. " - " .. t("cheat_" .. cheatId),
 			TextColor3 = Theme.muted,
 			Parent = card,
 		})
@@ -135,9 +137,9 @@ function Evidence.mount(lang: string, gui: ScreenGui)
 
 		local record = Theme.button({
 			LayoutOrder = 3,
-			Size = UDim2.new(1, 0, 0, 40),
-			Text = "📱 " .. t("phone_record"),
-			BackgroundColor3 = Theme.blue,
+			Size = UDim2.new(1, 0, 0, 44),
+			Text = t("phone_record"),
+			BackgroundColor3 = Theme.malam,
 			Parent = card,
 		})
 		record.Activated:Connect(function()

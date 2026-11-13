@@ -16,7 +16,7 @@ function Babat.play(parent: Frame, t: (string, ...any) -> string, onFinish: (num
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.42),
 		Size = UDim2.fromScale(0.9, 0.26),
-		BackgroundColor3 = Color3.fromRGB(25, 25, 30),
+		BackgroundColor3 = Theme.ink,
 		BorderSizePixel = 0,
 		Parent = parent,
 	}, { Theme.corner(nil, 8) })
@@ -25,8 +25,8 @@ function Babat.play(parent: Frame, t: (string, ...any) -> string, onFinish: (num
 		Name = "Zone",
 		Position = UDim2.fromScale(SWEET_START, 0),
 		Size = UDim2.fromScale(SWEET_WIDTH, 1),
-		BackgroundColor3 = Theme.green,
-		BackgroundTransparency = 0.25,
+		BackgroundColor3 = Theme.padi,
+		BackgroundTransparency = 0.2,
 		BorderSizePixel = 0,
 		Parent = bar,
 	})
@@ -35,8 +35,8 @@ function Babat.play(parent: Frame, t: (string, ...any) -> string, onFinish: (num
 		Name = "Fill",
 		Position = UDim2.fromScale(0, 0),
 		Size = UDim2.fromScale(0, 1),
-		BackgroundColor3 = Color3.fromRGB(90, 170, 230),
-		BackgroundTransparency = 0.15,
+		BackgroundColor3 = Theme.senja,
+		BackgroundTransparency = 0.1,
 		BorderSizePixel = 0,
 		Parent = bar,
 	})

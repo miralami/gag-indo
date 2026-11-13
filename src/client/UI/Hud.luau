@@ -11,6 +11,7 @@ local Strings = require(Shared.Strings)
 local Remotes = require(Shared.Remotes)
 
 local Audio = require(script.Parent.Parent.Audio)
+local Icons = require(script.Parent.Icons)
 local Theme = require(script.Parent.Theme)
 
 local player = Players.LocalPlayer
@@ -19,13 +20,13 @@ local Hud = {}
 
 local function susColor(sus: number): Color3
 	if sus >= 80 then
-		return Theme.red
+		return Theme.merah
 	elseif sus >= 60 then
-		return Color3.fromRGB(230, 120, 40)
+		return Theme.genteng
 	elseif sus >= 30 then
-		return Theme.accent
+		return Theme.inkSoft
 	end
-	return Theme.green
+	return Theme.ink
 end
 
 function Hud.mount(lang: string)
@@ -34,6 +35,7 @@ function Hud.mount(lang: string)
 	end
 
 	local gui = Theme.screenGui("Hud", 10)
+	local revealToken = 0
 
 	---------------------------------------------------------------- stats (top-left)
 	local stats = Theme.card({
@@ -62,7 +64,8 @@ function Hud.mount(lang: string)
 	local cashLabel = Theme.label({
 		LayoutOrder = 1,
 		Size = UDim2.fromScale(1, 0.36),
-		TextColor3 = Theme.accent,
+		Font = Theme.displayFont,
+		TextColor3 = Theme.ink,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = stats,
 	})
@@ -102,7 +105,7 @@ function Hud.mount(lang: string)
 	local namaBaikLabel = Theme.label({
 		LayoutOrder = 2,
 		Size = UDim2.fromScale(0.45, 1),
-		TextColor3 = Color3.fromRGB(120, 210, 240),
+		TextColor3 = Theme.malam,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = chips,
 	})
@@ -112,7 +115,7 @@ function Hud.mount(lang: string)
 		Name = "CabaiEvent",
 		Position = UDim2.new(0, 10, 0, 116),
 		Size = UDim2.new(0.34, 0, 0, 32),
-		BackgroundColor3 = Color3.fromRGB(190, 50, 30),
+		BackgroundColor3 = Theme.merah,
 		Visible = false,
 		Parent = gui,
 	}, {
@@ -121,7 +124,7 @@ function Hud.mount(lang: string)
 	local eventLabel = Theme.label({
 		Size = UDim2.fromScale(1, 1),
 		Text = t("hud_event_cabai", GameConfig.cabaiEventMultiplier),
-		TextColor3 = Color3.new(1, 1, 1),
+		TextColor3 = Theme.paper,
 		Parent = eventChip,
 	})
 	eventLabel.TextSize = 14
@@ -156,7 +159,7 @@ function Hud.mount(lang: string)
 		AnchorPoint = Vector2.new(0.5, 0),
 		Position = UDim2.new(0.5, 0, 0, 10),
 		Size = UDim2.new(0.42, 0, 0, 48),
-		BackgroundColor3 = Color3.fromRGB(36, 44, 28),
+		BackgroundColor3 = Theme.padi,
 		Visible = false,
 		Parent = gui,
 	}, {
@@ -169,10 +172,18 @@ function Hud.mount(lang: string)
 	tutorialPadding.PaddingBottom = UDim.new(0, 4)
 	tutorialPadding.Parent = tutorialCard
 
+	Icons.make("seed", {
+		Position = UDim2.new(0, 0, 0, 1),
+		Size = UDim2.fromOffset(16, 16),
+		Parent = tutorialCard,
+	})
+
 	local tutorialTitle = Theme.label({
-		Size = UDim2.new(1, 0, 0, 16),
-		Text = "🌱 " .. t("tutorial_card_title"),
-		TextColor3 = Theme.accent,
+		Position = UDim2.new(0, 20, 0, 0),
+		Size = UDim2.new(1, -20, 0, 16),
+		Text = t("tutorial_card_title"),
+		Font = Theme.displayFont,
+		TextColor3 = Theme.merah,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = tutorialCard,
 	})
@@ -230,7 +241,7 @@ function Hud.mount(lang: string)
 		local button = Theme.button({
 			Name = cropId,
 			LayoutOrder = i,
-			Size = UDim2.fromOffset(104, 42),
+			Size = UDim2.fromOffset(104, 44),
 			Parent = seedBar,
 		})
 		Theme.new("UIStroke", {
@@ -269,7 +280,7 @@ function Hud.mount(lang: string)
 			button.TextColor3 = if unlocked then Theme.text else Theme.muted
 			button.BackgroundColor3 = if unlocked
 				then crop.color:Lerp(Color3.new(0, 0, 0), 0.55)
-				else Color3.fromRGB(50, 50, 50)
+				else Theme.inkSoft
 			local stroke = button:FindFirstChild("Selected") :: UIStroke?
 			if stroke then
 				stroke.Enabled = selected == cropId
@@ -317,12 +328,19 @@ function Hud.mount(lang: string)
 	shopPadding.PaddingBottom = UDim.new(0, 10)
 	shopPadding.Parent = shop
 
+	Icons.make("seed", {
+		Position = UDim2.new(0, 0, 0, 3),
+		Size = UDim2.fromOffset(22, 22),
+		Parent = shop,
+	})
 	Theme.label({
 		Name = "Title",
-		Position = UDim2.new(0, 0, 0, 0),
-		Size = UDim2.new(1, 0, 0, 28),
-		Text = "🌱 " .. t("hud_shop"),
-		TextColor3 = Theme.accent,
+		Position = UDim2.new(0, 28, 0, 0),
+		Size = UDim2.new(1, -28, 0, 28),
+		Text = t("hud_shop"),
+		Font = Theme.displayFont,
+		TextColor3 = Theme.merah,
+		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = shop,
 	})
 	-- Restock countdown, top-right of the title row; refreshed by the timer below.
@@ -339,7 +357,7 @@ function Hud.mount(lang: string)
 	local shopScroll = Theme.new("ScrollingFrame", {
 		Name = "Scroll",
 		Position = UDim2.new(0, 0, 0, 30),
-		Size = UDim2.new(1, 0, 1, -74),
+		Size = UDim2.new(1, 0, 1, -80),
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		ScrollBarThickness = 6,
@@ -354,7 +372,7 @@ function Hud.mount(lang: string)
 	for i, cropId in Crops.order do
 		local row = Theme.new("Frame", {
 			LayoutOrder = i,
-			Size = UDim2.new(1, 0, 0, 34),
+			Size = UDim2.new(1, 0, 0, 44),
 			BackgroundTransparency = 1,
 			Parent = shopScroll,
 		})
@@ -388,8 +406,8 @@ function Hud.mount(lang: string)
 
 	local close = Theme.button({
 		Name = "Close",
-		Position = UDim2.new(0, 0, 1, -36),
-		Size = UDim2.new(1, 0, 0, 34),
+		Position = UDim2.new(0, 0, 1, -44),
+		Size = UDim2.new(1, 0, 0, 44),
 		Text = t("hud_close"),
 		BackgroundColor3 = Theme.red,
 		Parent = shop,
@@ -420,13 +438,13 @@ function Hud.mount(lang: string)
 			row.name.Text = t("crop_" .. cropId)
 			if not unlocked then
 				row.buy1.Text = t("shop_needs_rank", "@rank_" .. crop.rank)
-				row.buyAll.Text = "🔒"
+				row.buyAll.Text = "[L]"
 			elseif available == nil then
 				row.buy1.Text = t("shop_not_stocked")
-				row.buyAll.Text = "—"
+				row.buyAll.Text = "-"
 			elseif available <= 0 then
 				row.buy1.Text = t("shop_sold_out")
-				row.buyAll.Text = "—"
+				row.buyAll.Text = "-"
 			else
 				row.buy1.Text = t("shop_buy", 1, crop.seedCost)
 				row.buyAll.Text = t("shop_buy_all", crop.seedCost * available)
@@ -452,6 +470,21 @@ function Hud.mount(lang: string)
 				color = tier.color
 			end
 			Audio.play(if params[3] == "sultan" then "sting_sultan" else "sting_rare")
+			if params[3] == "sultan" then
+				revealToken += 1
+				local token = revealToken
+				local camera = workspace.CurrentCamera
+				if camera then
+					local original = camera.CFrame
+					task.spawn(function()
+						for _, offset in { 0.18, -0.18, 0.1, -0.1, 0 } do
+							if token ~= revealToken or workspace.CurrentCamera ~= camera then return end
+							camera.CFrame = original * CFrame.new(offset, 0, 0)
+							task.wait(0.025)
+						end
+					end)
+				end
+			end
 		elseif key == "n_almanak_page" or key == "n_almanak_new" then
 			Audio.play("sting_almanak")
 		elseif key == "n_rank_up" then

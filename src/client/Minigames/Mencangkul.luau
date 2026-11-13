@@ -17,7 +17,7 @@ function Mencangkul.play(parent: Frame, t: (string, ...any) -> string, onFinish:
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.42),
 		Size = UDim2.fromScale(0.9, 0.26),
-		BackgroundColor3 = Color3.fromRGB(25, 25, 30),
+		BackgroundColor3 = Theme.ink,
 		BorderSizePixel = 0,
 		Parent = parent,
 	}, { Theme.corner(nil, 8) })
@@ -27,8 +27,8 @@ function Mencangkul.play(parent: Frame, t: (string, ...any) -> string, onFinish:
 		Name = "Zone",
 		Position = UDim2.fromScale(zoneStart, 0),
 		Size = UDim2.fromScale(GREEN_WIDTH, 1),
-		BackgroundColor3 = Theme.green,
-		BackgroundTransparency = 0.25,
+		BackgroundColor3 = Theme.padi,
+		BackgroundTransparency = 0.2,
 		BorderSizePixel = 0,
 		Parent = bar,
 	})
@@ -38,7 +38,7 @@ function Mencangkul.play(parent: Frame, t: (string, ...any) -> string, onFinish:
 		AnchorPoint = Vector2.new(0.5, 0),
 		Position = UDim2.fromScale(0.5, 0),
 		Size = UDim2.new(0, 4, 1.1, 0),
-		BackgroundColor3 = Theme.accent,
+		BackgroundColor3 = Theme.kunyit,
 		BorderSizePixel = 0,
 		Parent = bar,
 	})

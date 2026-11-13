@@ -1,5 +1,6 @@
--- RaidOverlay: sinetron-style full-screen raid (GDD §5.3, §10) + the Pos Ronda countdown.
+-- RaidOverlay: sinetron-style full-screen raid (GDD 5.3, 10) + the Pos Ronda countdown.
 -- The server owns the state machine; this module only presents it and sends Raid_Choose.
+-- Refactored for W2: palette tokens from Theme, display font, Icons, no hardcoded RGB.
 
 local TweenService = game:GetService("TweenService")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -7,6 +8,7 @@ local Strings = require(Shared.Strings)
 local Remotes = require(Shared.Remotes)
 
 local Audio = require(script.Parent.Parent.Audio)
+local Icons = require(script.Parent.Icons)
 local Theme = require(script.Parent.Theme)
 
 local RaidOverlay = {}
@@ -21,7 +23,7 @@ function RaidOverlay.mount(lang: string)
 	local scrim = Theme.new("Frame", {
 		Name = "Scrim",
 		Size = UDim2.fromScale(1, 1),
-		BackgroundColor3 = Color3.fromRGB(80, 0, 0),
+		BackgroundColor3 = Theme.merah,
 		BackgroundTransparency = 0.45,
 		Visible = false,
 		Parent = gui,
@@ -32,31 +34,34 @@ function RaidOverlay.mount(lang: string)
 		Name = "Banner",
 		Position = UDim2.fromScale(0, 0.06),
 		Size = UDim2.new(1, 0, 0, 54),
-		BackgroundColor3 = Color3.fromRGB(170, 30, 30),
+		BackgroundColor3 = Theme.merah,
 		BorderSizePixel = 0,
 		Parent = scrim,
 	})
-	Theme.label({
+	local breakingLabel = Theme.label({
 		Size = UDim2.fromScale(1, 0.55),
 		Text = t("raid_breaking"),
-		TextColor3 = Color3.new(1, 1, 1),
+		Font = Theme.displayFont,
+		TextColor3 = Theme.paper,
 		Parent = banner,
 	})
-	Theme.label({
+	breakingLabel.TextSize = 16
+	local bannerTitle = Theme.label({
 		Position = UDim2.fromScale(0, 0.55),
 		Size = UDim2.fromScale(1, 0.45),
 		Text = t("raid_title"),
-		TextColor3 = Color3.fromRGB(255, 230, 180),
+		TextColor3 = Theme.senja,
 		Parent = banner,
 	})
+	bannerTitle.TextSize = 13
 	local bannerStripe = Theme.new("Frame", {
+		Name = "Stripe",
 		Position = UDim2.fromScale(0, 0.94),
 		Size = UDim2.new(1, 0, 0, 4),
-		BackgroundColor3 = Color3.fromRGB(255, 220, 60),
+		BackgroundColor3 = Theme.kunyit,
 		BorderSizePixel = 0,
 		Parent = banner,
 	})
-	bannerStripe.Name = "Stripe"
 
 	-- Center card
 	local card = Theme.card({
@@ -75,17 +80,27 @@ function RaidOverlay.mount(lang: string)
 	padding.PaddingBottom = UDim.new(0, 12)
 	padding.Parent = card
 
+	Icons.make("raid", {
+		Position = UDim2.new(0, 0, 0, 8),
+		Size = UDim2.fromOffset(28, 28),
+		Color = Theme.merah,
+		Parent = card,
+	})
+
 	local headline = Theme.label({
-		Size = UDim2.new(1, 0, 0, 44),
+		Position = UDim2.new(0, 36, 0, 0),
+		Size = UDim2.new(1, -36, 0, 44),
 		Text = t("raid_title"),
-		TextColor3 = Color3.fromRGB(255, 190, 60),
+		Font = Theme.displayFont,
+		TextColor3 = Theme.merah,
+		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = card,
 	})
 	local subtitle = Theme.label({
 		Position = UDim2.new(0, 0, 0, 46),
 		Size = UDim2.new(1, 0, 0, 40),
 		Text = t("raid_subtitle"),
-		TextColor3 = Theme.text,
+		TextColor3 = Theme.ink,
 		TextWrapped = true,
 		Parent = card,
 	})
@@ -95,7 +110,7 @@ function RaidOverlay.mount(lang: string)
 		Position = UDim2.new(0, 0, 0, 96),
 		Size = UDim2.new(1, 0, 0, 60),
 		Text = t("raid_wait"),
-		TextColor3 = Theme.muted,
+		TextColor3 = Theme.inkSoft,
 		TextWrapped = true,
 		Parent = card,
 	})
@@ -106,7 +121,8 @@ function RaidOverlay.mount(lang: string)
 		Position = UDim2.fromScale(1, 0),
 		Size = UDim2.new(0.2, 0, 0, 34),
 		Text = "",
-		TextColor3 = Theme.accent,
+		Font = Theme.displayFont,
+		TextColor3 = Theme.merah,
 		TextXAlignment = Enum.TextXAlignment.Right,
 		Parent = card,
 	})
@@ -116,7 +132,7 @@ function RaidOverlay.mount(lang: string)
 		Position = UDim2.new(0, 0, 1, -122),
 		Size = UDim2.new(0.48, 0, 0, 110),
 		Text = "",
-		BackgroundColor3 = Theme.green,
+		BackgroundColor3 = Theme.padi,
 		Visible = false,
 		Parent = card,
 	})
@@ -125,9 +141,20 @@ function RaidOverlay.mount(lang: string)
 		Position = UDim2.new(0.52, 0, 1, -122),
 		Size = UDim2.new(0.48, 0, 0, 110),
 		Text = "",
-		BackgroundColor3 = Color3.fromRGB(150, 120, 40),
+		BackgroundColor3 = Theme.bambu,
 		Visible = false,
 		Parent = card,
+	})
+
+	local skipButton = Theme.button({
+		Name = "Skip",
+		AnchorPoint = Vector2.new(1, 1),
+		Position = UDim2.new(1, -16, 1, -16),
+		Size = UDim2.new(0, 140, 0, 44),
+		Text = t("raid_skip"),
+		BackgroundColor3 = Theme.inkSoft,
+		Visible = false,
+		Parent = scrim,
 	})
 
 	-- Pos Ronda countdown
@@ -136,7 +163,7 @@ function RaidOverlay.mount(lang: string)
 		AnchorPoint = Vector2.new(0.5, 0),
 		Position = UDim2.new(0.5, 0, 0, 74),
 		Size = UDim2.new(0.5, 0, 0, 56),
-		BackgroundColor3 = Color3.fromRGB(120, 80, 20),
+		BackgroundColor3 = Theme.bambu,
 		Visible = false,
 		Parent = gui,
 	}, {
@@ -145,7 +172,8 @@ function RaidOverlay.mount(lang: string)
 	local jailTitle = Theme.label({
 		Size = UDim2.new(0.4, 0, 1, 0),
 		Text = t("jail_title"),
-		TextColor3 = Color3.fromRGB(255, 220, 130),
+		Font = Theme.displayFont,
+		TextColor3 = Theme.ink,
 		Parent = jailBar,
 	})
 	jailTitle.TextSize = 14
@@ -153,6 +181,7 @@ function RaidOverlay.mount(lang: string)
 		Position = UDim2.new(0.4, 0, 0, 0),
 		Size = UDim2.new(0.58, 0, 1, 0),
 		Text = "",
+		TextColor3 = Theme.ink,
 		Parent = jailBar,
 	})
 	jailTime.TextSize = 14
@@ -235,10 +264,18 @@ function RaidOverlay.mount(lang: string)
 	local function hide()
 		phase = "idle"
 		scrim.Visible = false
+		skipButton.Visible = false
 		pulseToken += 1
 		countdownToken += 1
 		stopZoom()
 	end
+
+	skipButton.Activated:Connect(function()
+		if phase == "incoming" then
+			stopZoom()
+			skipButton.Visible = false
+		end
+	end)
 
 	Remotes.Raid_Start.OnClientEvent:Connect(function(payload: any)
 		if type(payload) ~= "table" then
@@ -258,11 +295,13 @@ function RaidOverlay.mount(lang: string)
 			countdown.Text = ""
 			fineButton.Visible = false
 			amplopButton.Visible = false
+			skipButton.Visible = true
 			Audio.play("sting_raid")
 			sinetronZoom()
 			pulse()
 		elseif phaseName == "choosing" then
 			phase = "choosing"
+			skipButton.Visible = false
 			waitLabel.Visible = true
 			waitLabel.Text = t("raid_choose")
 			amplopButton.Visible = true

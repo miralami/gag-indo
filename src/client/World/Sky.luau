@@ -31,6 +31,32 @@ local function clouds(): Clouds
 	return found :: Clouds
 end
 
+-- Post-processing the golden-hour look needs (ART.md §5). Created once, tweened per preset.
+local function effect(className: string): any
+	local found = Lighting:FindFirstChildOfClass(className)
+	if not found then
+		found = Instance.new(className)
+		found.Parent = Lighting
+	end
+	return found
+end
+
+-- Fixed look values. Lighting.Technology (Future) cannot be set from a script: it is saved in the
+-- place file (Studio > Lighting > Technology), see docs/v2/TECH.md.
+local function configureStatic()
+	Lighting.GlobalShadows = true
+	Lighting.ShadowSoftness = 0.3
+	Lighting.EnvironmentDiffuseScale = 1
+	Lighting.EnvironmentSpecularScale = 0.5
+	Lighting.ExposureCompensation = 0
+
+	local bloom = effect("BloomEffect")
+	bloom.Size = 28
+	bloom.Threshold = 1.6
+
+	effect("SunRaysEffect").Spread = 0.6
+end
+
 local function apply()
 	local musim = ReplicatedStorage:GetAttribute("Musim")
 	local cuaca = ReplicatedStorage:GetAttribute("Cuaca")
@@ -44,12 +70,25 @@ local function apply()
 		FogColor = preset.fogColor,
 		Ambient = preset.ambient,
 		OutdoorAmbient = preset.outdoorAmbient,
+		ColorShift_Top = preset.colorShiftTop,
+		ColorShift_Bottom = preset.colorShiftBottom,
 	}):Play()
 
 	TweenService:Create(atmosphere(), TWEEN, {
 		Density = preset.atmosphereDensity,
 		Haze = preset.atmosphereHaze,
+		Color = preset.atmosphereColor,
+		Decay = preset.atmosphereDecay,
 	}):Play()
+
+	TweenService:Create(effect("ColorCorrectionEffect"), TWEEN, {
+		TintColor = preset.tint,
+		Saturation = preset.saturation,
+		Contrast = preset.contrast,
+	}):Play()
+
+	TweenService:Create(effect("BloomEffect"), TWEEN, { Intensity = preset.bloom }):Play()
+	TweenService:Create(effect("SunRaysEffect"), TWEEN, { Intensity = preset.sunRays }):Play()
 
 	TweenService:Create(clouds(), TWEEN, {
 		Cover = preset.cloudCover,
@@ -57,6 +96,7 @@ local function apply()
 end
 
 function Sky.mount()
+	configureStatic()
 	ReplicatedStorage:GetAttributeChangedSignal("Musim"):Connect(apply)
 	ReplicatedStorage:GetAttributeChangedSignal("Cuaca"):Connect(apply)
 	apply()

@@ -1,5 +1,6 @@
 -- Phone: bukti tokens + Lapor, inventory (amplop/bail), the cheat menu and decor shop.
 -- All actions are requests; the server re-checks distance, ownership and money.
+-- Redesigned for W2 with App Grid Home + Back button, palette tokens, and Icons.
 
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
@@ -17,6 +18,7 @@ local Strings = require(Shared.Strings)
 local Remotes = require(Shared.Remotes)
 local ClientState = require(script.Parent.Parent.State)
 
+local Icons = require(script.Parent.Icons)
 local Theme = require(script.Parent.Theme)
 local Evidence = require(script.Parent.Evidence)
 
@@ -32,17 +34,33 @@ local function clearChildren(frame: Instance)
 	end
 end
 
-local function sectionLabel(parent: Instance, text: string, order: number): TextLabel
-	local label = Theme.label({
+local function sectionLabel(parent: Instance, text: string, order: number, iconName: string?): Frame
+	local row = Theme.new("Frame", {
 		LayoutOrder = order,
-		Size = UDim2.new(1, 0, 0, 24),
-		Text = text,
-		TextColor3 = Theme.accent,
-		TextXAlignment = Enum.TextXAlignment.Left,
+		Size = UDim2.new(1, 0, 0, 26),
+		BackgroundTransparency = 1,
 		Parent = parent,
 	})
+	local offset = 0
+	if iconName then
+		Icons.make(iconName, {
+			Position = UDim2.new(0, 0, 0, 2),
+			Size = UDim2.fromOffset(22, 22),
+			Parent = row,
+		})
+		offset = 26
+	end
+	local label = Theme.label({
+		Position = UDim2.new(0, offset, 0, 0),
+		Size = UDim2.new(1, -offset, 1, 0),
+		Text = text,
+		TextColor3 = Theme.merah,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Parent = row,
+	})
 	label.TextSize = 18
-	return label
+	label.Font = Theme.displayFont
+	return row
 end
 
 local function scrollPage(parent: Instance, name: string): ScrollingFrame
@@ -83,7 +101,7 @@ function Phone.mount(lang: string)
 		Name = "PhoneButton",
 		LayoutOrder = 2,
 		Size = UDim2.fromScale(1, 0.5),
-		BackgroundColor3 = Theme.blue,
+		BackgroundColor3 = Theme.malam,
 		Text = t("hud_phone"),
 		Parent = column or gui,
 	})
@@ -97,8 +115,8 @@ function Phone.mount(lang: string)
 	local root = Theme.new("Frame", {
 		Name = "Root",
 		Size = UDim2.fromScale(1, 1),
-		BackgroundColor3 = Color3.new(0, 0, 0),
-		BackgroundTransparency = 0.45,
+		BackgroundColor3 = Theme.ink,
+		BackgroundTransparency = 0.5,
 		Visible = false,
 		Parent = gui,
 	})
@@ -111,7 +129,6 @@ function Phone.mount(lang: string)
 		Parent = root,
 	}, {
 		Theme.new("UISizeConstraint", { MinSize = Vector2.new(290, 320), MaxSize = Vector2.new(520, 680) }),
-		Theme.new("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 6) }),
 	})
 	local cardPadding = Instance.new("UIPadding")
 	cardPadding.PaddingLeft = UDim.new(0, 12)
@@ -121,46 +138,76 @@ function Phone.mount(lang: string)
 	cardPadding.Parent = card
 
 	local header = Theme.new("Frame", {
-		LayoutOrder = 1,
-		Size = UDim2.new(1, 0, 0, 34),
+		Name = "Header",
+		Position = UDim2.new(0, 0, 0, 0),
+		Size = UDim2.new(1, 0, 0, 44),
 		BackgroundTransparency = 1,
 		Parent = card,
 	})
-	Theme.label({
-		Size = UDim2.new(0.75, 0, 1, 0),
+
+	local backButton = Theme.button({
+		Name = "Back",
+		Position = UDim2.new(0, 0, 0, 0),
+		Size = UDim2.new(0, 44, 0, 44),
+		Text = "<",
+		BackgroundColor3 = Theme.bambu,
+		Visible = false,
+		Parent = header,
+	})
+
+	local titleLabel = Theme.label({
+		Name = "Title",
+		Position = UDim2.new(0, 0, 0, 0),
+		Size = UDim2.new(1, -50, 1, 0),
 		Text = t("phone_title"),
-		TextColor3 = Theme.accent,
+		Font = Theme.displayFont,
+		TextColor3 = Theme.merah,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = header,
 	})
+
 	local close = Theme.button({
+		Name = "Close",
 		AnchorPoint = Vector2.new(1, 0),
 		Position = UDim2.fromScale(1, 0),
-		Size = UDim2.new(0.22, 0, 1, 0),
-		Text = "✕",
+		Size = UDim2.new(0, 44, 0, 44),
+		Text = "X",
 		BackgroundColor3 = Theme.red,
 		Parent = header,
 	})
 
-	local tabsRow = Theme.new("Frame", {
-		LayoutOrder = 2,
-		Size = UDim2.new(1, 0, 0, 40),
+	-- Content frame fills rest of the card
+	local content = Theme.new("Frame", {
+		Name = "Content",
+		Position = UDim2.new(0, 0, 0, 50),
+		Size = UDim2.new(1, 0, 1, -50),
 		BackgroundTransparency = 1,
 		Parent = card,
-	}, {
-		Theme.new("UIListLayout", {
-			FillDirection = Enum.FillDirection.Horizontal,
-			SortOrder = Enum.SortOrder.LayoutOrder,
-			Padding = UDim.new(0.02, 0),
-		}),
 	})
 
-	-- Card inner height minus header (34), tab row (40) and the two 6 px list gaps.
-	local content = Theme.new("Frame", {
-		LayoutOrder = 3,
-		Size = UDim2.new(1, 0, 1, -106),
+	-- Home grid
+	local homePage = Theme.new("ScrollingFrame", {
+		Name = "PageHome",
+		Size = UDim2.fromScale(1, 1),
 		BackgroundTransparency = 1,
-		Parent = card,
+		BorderSizePixel = 0,
+		ScrollBarThickness = 4,
+		ScrollingDirection = Enum.ScrollingDirection.Y,
+		CanvasSize = UDim2.new(),
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		Visible = true,
+		Parent = content,
+	}, {
+		Theme.new("UIGridLayout", {
+			CellSize = UDim2.fromOffset(84, 88),
+			CellPadding = UDim2.fromOffset(12, 12),
+			HorizontalAlignment = Enum.HorizontalAlignment.Center,
+			SortOrder = Enum.SortOrder.LayoutOrder,
+		}),
+		Theme.new("UIPadding", {
+			PaddingTop = UDim.new(0, 8),
+			PaddingBottom = UDim.new(0, 8),
+		}),
 	})
 
 	local pages: { [string]: ScrollingFrame } = {
@@ -172,38 +219,75 @@ function Phone.mount(lang: string)
 		dekor = scrollPage(content, "PageDekor"),
 	}
 	for _, page in pages do
-		page.Size = UDim2.fromScale(1, 1)
+		page.Visible = false
 	end
 
-	local tabButtons: { [string]: TextButton } = {}
-	local tabOrder = { "phone", "kebun", "pinjol", "tugas", "cheat", "dekor" }
-	local activeTab = "phone"
+	local appDefs = {
+		{ id = "phone", icon = "phone", label = "phone_tab_phone", color = Theme.malam },
+		{ id = "kebun", icon = "garden", label = "phone_tab_kebun", color = Theme.daun },
+		{ id = "pinjol", icon = "debt", label = "phone_tab_pinjol", color = Theme.genteng },
+		{ id = "tugas", icon = "quest", label = "phone_tab_tugas", color = Theme.kunyit },
+		{ id = "cheat", icon = "cheat", label = "phone_tab_cheat", color = Theme.merah },
+		{ id = "dekor", icon = "hat", label = "phone_tab_dekor", color = Theme.indigo },
+	}
+
+	local currentScreen = "home"
 	local refreshCurrent: () -> () = function() end
 
-	local function showTab(tab: string)
-		activeTab = tab
+	local function showScreen(screen: string)
+		currentScreen = screen
+		homePage.Visible = screen == "home"
+		backButton.Visible = screen ~= "home"
+		if screen == "home" then
+			titleLabel.Position = UDim2.new(0, 0, 0, 0)
+			titleLabel.Size = UDim2.new(1, -50, 1, 0)
+			titleLabel.Text = t("phone_title")
+		else
+			titleLabel.Position = UDim2.new(0, 50, 0, 0)
+			titleLabel.Size = UDim2.new(1, -100, 1, 0)
+			titleLabel.Text = t("phone_tab_" .. screen)
+		end
 		for name, page in pages do
-			page.Visible = name == tab
+			page.Visible = name == screen
 		end
-		for name, button in tabButtons do
-			button.BackgroundColor3 = if name == tab then Theme.accent else Theme.panelLight
-			button.TextColor3 = if name == tab then Color3.fromRGB(30, 30, 30) else Theme.text
+		if screen ~= "home" then
+			refreshCurrent()
 		end
-		refreshCurrent()
 	end
 
-	for order, tab in tabOrder do
-		local button = Theme.button({
+	backButton.Activated:Connect(function()
+		showScreen("home")
+	end)
+
+	for order, app in appDefs do
+		local appCard = Theme.button({
+			Name = "App_" .. app.id,
 			LayoutOrder = order,
-			Size = UDim2.fromScale(0.155, 1),
-			Text = t("phone_tab_" .. tab),
-			Parent = tabsRow,
+			Size = UDim2.fromOffset(84, 88),
+			BackgroundColor3 = Theme.paper,
+			Text = "",
+			Parent = homePage,
 		})
-		button.TextSize = 13
-		button.Activated:Connect(function()
-			showTab(tab)
+		Icons.make(app.icon, {
+			AnchorPoint = Vector2.new(0.5, 0),
+			Position = UDim2.new(0.5, 0, 0, 8),
+			Size = UDim2.fromOffset(40, 40),
+			Color = app.color,
+			Parent = appCard,
+		})
+		local label = Theme.label({
+			AnchorPoint = Vector2.new(0.5, 1),
+			Position = UDim2.new(0.5, 0, 1, -6),
+			Size = UDim2.new(1, -4, 0, 26),
+			Text = t(app.label),
+			TextColor3 = Theme.ink,
+			TextWrapped = true,
+			Parent = appCard,
+		})
+		label.TextSize = 12
+		appCard.Activated:Connect(function()
+			showScreen(app.id)
 		end)
-		tabButtons[tab] = button
 	end
 
 	---------------------------------------------------------------- phone tab
@@ -217,7 +301,7 @@ function Phone.mount(lang: string)
 		clearChildren(page)
 		local order = 1
 
-		sectionLabel(page, t("phone_inventory"), order)
+		sectionLabel(page, t("phone_inventory"), order, "warehouse")
 		order += 1
 		for _, entry in itemRows do
 			local count = player:GetAttribute("Item_" .. entry.item) or 0
@@ -232,6 +316,7 @@ function Phone.mount(lang: string)
 				Size = UDim2.new(0.62, 0, 1, 0),
 				Text = t(entry.key) .. " x" .. count,
 				TextXAlignment = Enum.TextXAlignment.Left,
+				TextColor3 = Theme.ink,
 				Parent = row,
 			})
 			local use = Theme.button({
@@ -239,7 +324,7 @@ function Phone.mount(lang: string)
 				Position = UDim2.fromScale(1, 0.5),
 				Size = UDim2.new(0.34, 0, 0.86, 0),
 				Text = t("phone_use"),
-				BackgroundColor3 = if count > 0 then Theme.green else Theme.panelLight,
+				BackgroundColor3 = if count > 0 then Theme.padi else Theme.bambu,
 				Parent = row,
 			})
 			use.Active = count > 0
@@ -248,7 +333,7 @@ function Phone.mount(lang: string)
 			end)
 		end
 
-		sectionLabel(page, "📱 " .. t("phone_bukti"), order)
+		sectionLabel(page, t("phone_bukti"), order, "evidence")
 		order += 1
 		local tokens = Evidence.getTokens()
 		if #tokens == 0 then
@@ -256,7 +341,7 @@ function Phone.mount(lang: string)
 				LayoutOrder = order,
 				Size = UDim2.new(1, 0, 0, 30),
 				Text = t("phone_empty"),
-				TextColor3 = Theme.muted,
+				TextColor3 = Theme.inkSoft,
 				TextXAlignment = Enum.TextXAlignment.Left,
 				Parent = page,
 			})
@@ -267,7 +352,7 @@ function Phone.mount(lang: string)
 				local row = Theme.new("Frame", {
 					LayoutOrder = order,
 					Size = UDim2.new(1, 0, 0, 46),
-					BackgroundColor3 = Theme.panelLight,
+					BackgroundColor3 = Theme.paper,
 					Parent = page,
 				}, {
 					Theme.corner(nil, 8),
@@ -282,6 +367,7 @@ function Phone.mount(lang: string)
 					Size = UDim2.new(0.64, 0, 1, 0),
 					Text = t("cheat_" .. token.cheatId) .. " (" .. minutes .. "m)",
 					TextXAlignment = Enum.TextXAlignment.Left,
+					TextColor3 = Theme.ink,
 					Parent = row,
 				})
 				label.TextSize = 15
@@ -290,7 +376,7 @@ function Phone.mount(lang: string)
 					Position = UDim2.fromScale(1, 0.5),
 					Size = UDim2.new(0.32, 0, 0.8, 0),
 					Text = t("phone_lapor"),
-					BackgroundColor3 = Theme.blue,
+					BackgroundColor3 = Theme.malam,
 					Parent = row,
 				})
 				report.Activated:Connect(function()
@@ -303,7 +389,7 @@ function Phone.mount(lang: string)
 			LayoutOrder = order,
 			Size = UDim2.new(1, 0, 0, 44),
 			Text = t("phone_help"),
-			TextColor3 = Theme.muted,
+			TextColor3 = Theme.inkSoft,
 			TextWrapped = true,
 			Parent = page,
 		})
@@ -385,17 +471,17 @@ function Phone.mount(lang: string)
 		clearChildren(page)
 		local order = 1
 
-		sectionLabel(page, "😈 " .. t("phone_cheat_title"), order)
+		sectionLabel(page, t("phone_cheat_title"), order, "cheat")
 		order += 1
 
-		sectionLabel(page, t("cheat_oplosan") .. " · Rp " .. Cheats.list.oplosan.cost, order)
+		sectionLabel(page, t("cheat_oplosan") .. " - Rp " .. Cheats.list.oplosan.cost, order, "warning")
 		order += 1
 		if #tiles == 0 then
 			local empty = Theme.label({
 				LayoutOrder = order,
 				Size = UDim2.new(1, 0, 0, 28),
 				Text = t("phone_no_growing"),
-				TextColor3 = Theme.muted,
+				TextColor3 = Theme.inkSoft,
 				TextXAlignment = Enum.TextXAlignment.Left,
 				Parent = page,
 			})
@@ -407,7 +493,7 @@ function Phone.mount(lang: string)
 					LayoutOrder = order,
 					Size = UDim2.new(1, 0, 0, 42),
 					Text = t("phone_oplosan", "@crop_" .. tile.crop, Cheats.list.oplosan.cost),
-					BackgroundColor3 = Color3.fromRGB(80, 110, 60),
+					BackgroundColor3 = Theme.daun,
 					Parent = page,
 				})
 				order += 1
@@ -417,14 +503,14 @@ function Phone.mount(lang: string)
 			end
 		end
 
-		sectionLabel(page, t("cheat_curi_air"), order)
+		sectionLabel(page, t("cheat_curi_air"), order, "steal")
 		order += 1
 		if #neighbors == 0 then
 			local empty = Theme.label({
 				LayoutOrder = order,
 				Size = UDim2.new(1, 0, 0, 28),
 				Text = t("phone_no_neighbors"),
-				TextColor3 = Theme.muted,
+				TextColor3 = Theme.inkSoft,
 				TextXAlignment = Enum.TextXAlignment.Left,
 				Parent = page,
 			})
@@ -443,6 +529,7 @@ function Phone.mount(lang: string)
 					Size = UDim2.new(0.34, 0, 1, 0),
 					Text = neighbor.player.DisplayName,
 					TextXAlignment = Enum.TextXAlignment.Left,
+					TextColor3 = Theme.ink,
 					Parent = row,
 				})
 				label.TextSize = 15
@@ -450,7 +537,7 @@ function Phone.mount(lang: string)
 					Position = UDim2.fromScale(0.35, 0),
 					Size = UDim2.fromScale(0.32, 1),
 					Text = t("phone_steal_short"),
-					BackgroundColor3 = Color3.fromRGB(110, 60, 50),
+					BackgroundColor3 = Theme.genteng,
 					Parent = row,
 				})
 				steal.Activated:Connect(function()
@@ -460,7 +547,7 @@ function Phone.mount(lang: string)
 					Position = UDim2.fromScale(0.68, 0),
 					Size = UDim2.fromScale(0.32, 1),
 					Text = t("phone_water_short"),
-					BackgroundColor3 = Color3.fromRGB(50, 100, 70),
+					BackgroundColor3 = Theme.malam,
 					Parent = row,
 				})
 				water.Activated:Connect(function()
@@ -480,7 +567,7 @@ function Phone.mount(lang: string)
 		local bribe = Theme.button({
 			Size = UDim2.fromScale(1, 1),
 			Text = t("prompt_bribe", price),
-			BackgroundColor3 = Color3.fromRGB(120, 100, 50),
+			BackgroundColor3 = Theme.kunyit,
 			Parent = bribeRow,
 		})
 		bribe.Activated:Connect(function()
@@ -504,7 +591,7 @@ function Phone.mount(lang: string)
 		local page = pages.dekor
 		clearChildren(page)
 		local order = 1
-		sectionLabel(page, "🎩 " .. t("phone_tab_dekor"), order)
+		sectionLabel(page, t("phone_tab_dekor"), order, "hat")
 		order += 1
 		local equipped = player:GetAttribute("EquippedCosmetic")
 
@@ -514,7 +601,7 @@ function Phone.mount(lang: string)
 			local row = Theme.new("Frame", {
 				LayoutOrder = order,
 				Size = UDim2.new(1, 0, 0, 48),
-				BackgroundColor3 = Theme.panelLight,
+				BackgroundColor3 = Theme.paper,
 				Parent = page,
 			}, {
 				Theme.corner(nil, 8),
@@ -528,6 +615,7 @@ function Phone.mount(lang: string)
 				Size = UDim2.new(0.5, 0, 1, 0),
 				Text = t("cosmetic_" .. itemId),
 				TextXAlignment = Enum.TextXAlignment.Left,
+				TextColor3 = Theme.ink,
 				Parent = row,
 			})
 			local action
@@ -537,7 +625,7 @@ function Phone.mount(lang: string)
 					Position = UDim2.fromScale(1, 0.5),
 					Size = UDim2.new(0.44, 0, 0.8, 0),
 					Text = t("phone_cosmetic_buy", item.price),
-					BackgroundColor3 = Theme.green,
+					BackgroundColor3 = Theme.padi,
 					Parent = row,
 				})
 				action.Activated:Connect(function()
@@ -561,7 +649,7 @@ function Phone.mount(lang: string)
 					Position = UDim2.fromScale(1, 0.5),
 					Size = UDim2.new(0.44, 0, 0.8, 0),
 					Text = t("phone_cosmetic_equip"),
-					BackgroundColor3 = Theme.blue,
+					BackgroundColor3 = Theme.malam,
 					Parent = row,
 				})
 				action.Activated:Connect(function()
@@ -596,13 +684,13 @@ function Phone.mount(lang: string)
 		local used = player:GetAttribute("GudangUsed") or 0
 		local capacity = player:GetAttribute("GudangCapacity") or GameConfig.gudangBaseCapacity
 
-		sectionLabel(page, t("phone_gudang", used, capacity), order)
+		sectionLabel(page, t("phone_gudang", used, capacity), order, "warehouse")
 		order += 1
 		local store = Theme.button({
 			LayoutOrder = order,
 			Size = UDim2.new(1, 0, 0, 44),
 			Text = t("phone_gudang_deposit"),
-			BackgroundColor3 = Theme.green,
+			BackgroundColor3 = Theme.padi,
 			Parent = page,
 		})
 		order += 1
@@ -613,7 +701,7 @@ function Phone.mount(lang: string)
 			LayoutOrder = order,
 			Size = UDim2.new(1, 0, 0, 44),
 			Text = t("phone_gudang_withdraw"),
-			BackgroundColor3 = Theme.blue,
+			BackgroundColor3 = Theme.malam,
 			Parent = page,
 		})
 		order += 1
@@ -621,7 +709,7 @@ function Phone.mount(lang: string)
 			Remotes.Storage_Withdraw:FireServer()
 		end)
 
-		sectionLabel(page, t("phone_buruh"), order)
+		sectionLabel(page, t("phone_buruh"), order, "worker")
 		order += 1
 		local workerUntil = player:GetAttribute("WorkerUntil") or 0
 		local workerActive = player:GetAttribute("WorkerActive") == true
@@ -636,7 +724,7 @@ function Phone.mount(lang: string)
 			local label = Theme.label({
 				Size = UDim2.fromScale(1, 1),
 				Text = t("phone_buruh_active", os.date("%H:%M", workerUntil)),
-				TextColor3 = Theme.muted,
+				TextColor3 = Theme.inkSoft,
 				TextXAlignment = Enum.TextXAlignment.Left,
 				Parent = workerRow,
 			})
@@ -645,7 +733,7 @@ function Phone.mount(lang: string)
 			local hire = Theme.button({
 				Size = UDim2.fromScale(1, 1),
 				Text = t("phone_buruh_hire", math.floor(WorkerConfig.hireSeconds / 60), WorkerConfig.hireCost),
-				BackgroundColor3 = Color3.fromRGB(120, 100, 50),
+				BackgroundColor3 = Theme.kunyit,
 				Parent = workerRow,
 			})
 			hire.Activated:Connect(function()
@@ -653,7 +741,7 @@ function Phone.mount(lang: string)
 			end)
 		end
 
-		sectionLabel(page, t("phone_alat"), order)
+		sectionLabel(page, t("phone_alat"), order, "tools")
 		order += 1
 		for _, lineId in ToolsConfig.order do
 			local line = ToolsConfig.list[lineId]
@@ -662,7 +750,7 @@ function Phone.mount(lang: string)
 			local row = Theme.new("Frame", {
 				LayoutOrder = order,
 				Size = UDim2.new(1, 0, 0, 48),
-				BackgroundColor3 = Theme.panelLight,
+				BackgroundColor3 = Theme.paper,
 				Parent = page,
 			}, {
 				Theme.corner(nil, 8),
@@ -675,8 +763,9 @@ function Phone.mount(lang: string)
 
 			local label = Theme.label({
 				Size = UDim2.new(0.5, 0, 1, 0),
-				Text = t(line.label) .. (if owned then " · " .. t("tool_tier_" .. owned) else ""),
+				Text = t(line.label) .. (if owned then " - " .. t("tool_tier_" .. owned) else ""),
 				TextXAlignment = Enum.TextXAlignment.Left,
+				TextColor3 = Theme.ink,
 				Parent = row,
 			})
 			label.TextSize = 14
@@ -687,7 +776,7 @@ function Phone.mount(lang: string)
 					Position = UDim2.fromScale(1, 0.5),
 					Size = UDim2.new(0.47, 0, 0.8, 0),
 					Text = t("phone_tool_next", t("tool_tier_" .. nextTier.id), nextTier.cost),
-					BackgroundColor3 = Theme.green,
+					BackgroundColor3 = Theme.padi,
 					Parent = row,
 				})
 				buy.Activated:Connect(function()
@@ -699,7 +788,7 @@ function Phone.mount(lang: string)
 					Position = UDim2.fromScale(1, 0.5),
 					Size = UDim2.new(0.47, 0, 0.8, 0),
 					Text = t("phone_tool_max"),
-					TextColor3 = Theme.muted,
+					TextColor3 = Theme.inkSoft,
 					TextXAlignment = Enum.TextXAlignment.Right,
 					Parent = row,
 				})
@@ -707,11 +796,12 @@ function Phone.mount(lang: string)
 			end
 		end
 
-		sectionLabel(page, t("phone_harga"), order)
+		sectionLabel(page, t("phone_harga"), order, "price")
 		order += 1
 		for _, cropId in Crops.order do
 			local multiplier = ReplicatedStorage:GetAttribute("Market_" .. cropId) or 1
-			local arrow = if multiplier > 1.02 then "⬆️" elseif multiplier < 0.98 then "⬇️" else "➡️"
+			local arrow = if multiplier > 1.02 then "^" elseif multiplier < 0.98 then "v" else "-"
+			local arrowColor = if multiplier > 1.02 then Theme.daun elseif multiplier < 0.98 then Theme.merah else Theme.inkSoft
 			local row = Theme.new("Frame", {
 				LayoutOrder = order,
 				Size = UDim2.new(1, 0, 0, 28),
@@ -719,9 +809,19 @@ function Phone.mount(lang: string)
 				Parent = page,
 			})
 			order += 1
+			local arrowLabel = Theme.label({
+				Size = UDim2.new(0, 20, 1, 0),
+				Text = arrow,
+				TextColor3 = arrowColor,
+				Font = Theme.displayFont,
+				Parent = row,
+			})
+			arrowLabel.TextSize = 14
 			local label = Theme.label({
-				Size = UDim2.fromScale(1, 1),
-				Text = t("phone_price_line", arrow, t("crop_" .. cropId), string.format("%.2f", multiplier)),
+				Position = UDim2.new(0, 24, 0, 0),
+				Size = UDim2.new(1, -24, 1, 0),
+				Text = t("phone_price_line", "", t("crop_" .. cropId), string.format("%.2f", multiplier)),
+				TextColor3 = Theme.ink,
 				TextXAlignment = Enum.TextXAlignment.Left,
 				Parent = row,
 			})
@@ -735,7 +835,7 @@ function Phone.mount(lang: string)
 		clearChildren(page)
 		local order = 1
 
-		sectionLabel(page, "⚡ " .. t("phone_pinjol_title"), order)
+		sectionLabel(page, t("phone_pinjol_title"), order, "debt")
 		order += 1
 
 		local rank = player:GetAttribute("Rank") or "gurem"
@@ -749,7 +849,7 @@ function Phone.mount(lang: string)
 			LayoutOrder = order,
 			Size = UDim2.new(1, 0, 0, 26),
 			Text = t("phone_pinjol_limit", Strings.formatNumber(maxLimit, lang)),
-			TextColor3 = Theme.accent,
+			TextColor3 = Theme.merah,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			Parent = page,
 		})
@@ -772,7 +872,7 @@ function Phone.mount(lang: string)
 				LayoutOrder = order,
 				Size = UDim2.new(1, 0, 0, 26),
 				Text = t("phone_pinjol_due", dueText),
-				TextColor3 = if remaining <= 0 then Theme.red else Theme.muted,
+				TextColor3 = if remaining <= 0 then Theme.red else Theme.inkSoft,
 				TextXAlignment = Enum.TextXAlignment.Left,
 				Parent = page,
 			})
@@ -782,7 +882,7 @@ function Phone.mount(lang: string)
 				LayoutOrder = order,
 				Size = UDim2.new(1, 0, 0, 44),
 				Text = t("phone_pinjol_repay", Strings.formatNumber(owed, lang)),
-				BackgroundColor3 = Theme.green,
+				BackgroundColor3 = Theme.padi,
 				Parent = page,
 			})
 			order += 1
@@ -794,7 +894,7 @@ function Phone.mount(lang: string)
 				LayoutOrder = order,
 				Size = UDim2.new(1, 0, 0, 26),
 				Text = t("phone_pinjol_clear"),
-				TextColor3 = Theme.green,
+				TextColor3 = Theme.daun,
 				TextXAlignment = Enum.TextXAlignment.Left,
 				Parent = page,
 			})
@@ -805,9 +905,9 @@ function Phone.mount(lang: string)
 				if amt > 0 then
 					local bBtn = Theme.button({
 						LayoutOrder = order,
-						Size = UDim2.new(1, 0, 0, 40),
+						Size = UDim2.new(1, 0, 0, 44),
 						Text = t("phone_pinjol_borrow", Strings.formatNumber(amt, lang)),
-						BackgroundColor3 = Theme.blue,
+						BackgroundColor3 = Theme.malam,
 						Parent = page,
 					})
 					order += 1
@@ -828,14 +928,14 @@ function Phone.mount(lang: string)
 		local streak = player:GetAttribute("LoginStreak") or 1
 		local claimed = player:GetAttribute("LoginClaimed") == true
 
-		sectionLabel(page, t("phone_tugas_login", streak), order)
+		sectionLabel(page, t("phone_tugas_login", streak), order, "calendar")
 		order += 1
 
 		local loginBtn = Theme.button({
 			LayoutOrder = order,
-			Size = UDim2.new(1, 0, 0, 40),
+			Size = UDim2.new(1, 0, 0, 44),
 			Text = if claimed then t("phone_tugas_claimed") else t("phone_tugas_claim_login"),
-			BackgroundColor3 = if claimed then Theme.panelLight else Theme.accent,
+			BackgroundColor3 = if claimed then Theme.bambu else Theme.kunyit,
 			Parent = page,
 		})
 		order += 1
@@ -844,7 +944,7 @@ function Phone.mount(lang: string)
 			Remotes.Quest_ClaimDaily:FireServer()
 		end)
 
-		sectionLabel(page, t("phone_tugas_daily"), order)
+		sectionLabel(page, t("phone_tugas_daily"), order, "quest")
 		order += 1
 
 		local qData = ClientState.get("quests") or {}
@@ -862,7 +962,7 @@ function Phone.mount(lang: string)
 					Name = "Task_" .. taskId,
 					LayoutOrder = order,
 					Size = UDim2.new(1, 0, 0, 52),
-					BackgroundColor3 = Theme.panelLight,
+					BackgroundColor3 = Theme.paper,
 					Parent = page,
 				})
 				order += 1
@@ -876,6 +976,7 @@ function Phone.mount(lang: string)
 					Position = UDim2.fromScale(0, 0.1),
 					Size = UDim2.new(0.65, 0, 0.45, 0),
 					Text = t(def.labelKey),
+					TextColor3 = Theme.ink,
 					TextXAlignment = Enum.TextXAlignment.Left,
 					Parent = row,
 				})
@@ -888,7 +989,7 @@ function Phone.mount(lang: string)
 					Position = UDim2.fromScale(0, 0.55),
 					Size = UDim2.new(0.65, 0, 0.4, 0),
 					Text = t("phone_tugas_progress", prog, tgt) .. " (+Rp " .. def.rewardCash .. ")",
-					TextColor3 = Theme.muted,
+					TextColor3 = Theme.inkSoft,
 					TextXAlignment = Enum.TextXAlignment.Left,
 					Parent = row,
 				})
@@ -898,7 +999,7 @@ function Phone.mount(lang: string)
 					Position = UDim2.fromScale(1, 0.5),
 					Size = UDim2.new(0.3, 0, 0.75, 0),
 					Text = if task.done then t("phone_tugas_claimed") else t("phone_tugas_claim"),
-					BackgroundColor3 = if task.done then Theme.panelLight elseif isReady then Theme.green else Theme.panel,
+					BackgroundColor3 = if task.done then Theme.bambu elseif isReady then Theme.padi else Theme.paper,
 					Parent = row,
 				})
 				claimBtn.Active = isReady
@@ -912,7 +1013,7 @@ function Phone.mount(lang: string)
 	---------------------------------------------------------------- wiring
 	local lastPhoneSignature = ""
 	refreshCurrent = function()
-		if activeTab == "phone" then
+		if currentScreen == "phone" then
 			local signature = ""
 			for _, entry in itemRows do
 				signature ..= tostring(player:GetAttribute("Item_" .. entry.item)) .. ","
@@ -925,15 +1026,15 @@ function Phone.mount(lang: string)
 				lastPhoneSignature = signature
 				refreshPhoneTab()
 			end
-		elseif activeTab == "kebun" then
+		elseif currentScreen == "kebun" then
 			refreshKebunTab()
-		elseif activeTab == "pinjol" then
+		elseif currentScreen == "pinjol" then
 			refreshPinjolTab()
-		elseif activeTab == "tugas" then
+		elseif currentScreen == "tugas" then
 			refreshTugasTab()
-		elseif activeTab == "cheat" then
+		elseif currentScreen == "cheat" then
 			refreshCheatTab()
-		else
+		elseif currentScreen == "dekor" then
 			refreshDecorTab()
 		end
 	end
@@ -944,7 +1045,7 @@ function Phone.mount(lang: string)
 		kebunSignature = ""
 		cheatSignature = ""
 		decorSignature = ""
-		refreshCurrent()
+		showScreen("home")
 	end
 
 	local function closePhone()
@@ -974,7 +1075,7 @@ function Phone.mount(lang: string)
 	end)
 
 	Evidence.onChanged(function()
-		if root.Visible and activeTab == "phone" then
+		if root.Visible and currentScreen == "phone" then
 			lastPhoneSignature = ""
 			refreshCurrent()
 		end
@@ -989,13 +1090,13 @@ function Phone.mount(lang: string)
 	task.spawn(function()
 		while true do
 			task.wait(1)
-			if root.Visible then
+			if root.Visible and currentScreen ~= "home" then
 				refreshCurrent()
 			end
 		end
 	end)
 
-	showTab("phone")
+	showScreen("home")
 end
 
 return Phone

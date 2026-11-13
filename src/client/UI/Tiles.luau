@@ -8,6 +8,7 @@ local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Strings = require(Shared.Strings)
+local Theme = require(script.Parent.Theme)
 
 local player = Players.LocalPlayer
 local PROMPT_DISTANCE = 10 -- matches PlotService/Props prompt defaults
@@ -159,13 +160,13 @@ function Tiles.mount(lang: string)
 						local remaining = if type(readyAt) == "number" then readyAt - now else 0
 						local text = t("crop_" .. crop) .. " " .. formatTime(remaining)
 						textLabel.Text = if hot then t("tile_hot", text) else text
-						textLabel.TextColor3 = if hot then Color3.fromRGB(190, 255, 140) else Color3.new(1, 1, 1)
+						textLabel.TextColor3 = if hot then Theme.padi else Theme.paper
 					elseif state == "ready" then
 						textLabel.Text = if hot then t("tile_hot", t("tile_ready")) else t("tile_ready")
-						textLabel.TextColor3 = if hot then Color3.fromRGB(190, 255, 140) else Color3.fromRGB(170, 255, 150)
+						textLabel.TextColor3 = if hot then Theme.senja else Theme.padi
 					elseif state == "buy" and isMine(tile) then
 						textLabel.Text = "Rp " .. Strings.formatNumber(tile:GetAttribute("Price") or 0, lang)
-						textLabel.TextColor3 = Color3.new(1, 1, 1)
+						textLabel.TextColor3 = Theme.paper
 					else
 						textLabel.Text = ""
 					end

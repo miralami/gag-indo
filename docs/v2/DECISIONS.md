@@ -22,6 +22,7 @@ Status values: **open** · **decided** · **changed**
 | D13 | Who produces art and audio | Agents via Blender MCP, Roblox Toolbox / licensed catalogue, and outside tools connected through MCP after the designer approves each one. Agents run in parallel with Studio MCP. | **decided** 2026-11-14 |
 | D-G1 | Asset upload route (MASTER_PLAN §9.1). See `docs/v2/TOOLS.md` §3. | An Open Cloud API key scoped to the designer's account, `asset:read` + `asset:write`, kept outside the repo. Meshes still go through Studio Importer; icons, textures and audio can be automated. Hand upload alone cannot cover the `ART.md` volume. | open |
 | D-G2 | Studio sessions (MASTER_PLAN §9.2). | One shared session run by track H; tracks queue for it. Importer presets are per-machine and must match between imports. | open |
+| D-G3 | How a broke player recovers when an active pinjol loan blocks borrowing and today's login reward is already claimed (BUG-004). | Free 1 `padi` seed floor, once per session, when the player has no cash, no seeds and no planted crop. No cash is granted, so the loan still hurts. Alternative in `docs/testing/BUGS.md`. | open |
 
 ## How to change one
 

@@ -8,7 +8,7 @@ local Badges = {}
 Badges.list = {
 	first_raid = { id = 0, name = "Pertama Kali Digerebek", description = "Rasakan grebekan polisi desa." },
 	first_sultan = { id = 0, name = "Panen Sultan", description = "Dapatkan hasil panen tingkat Sultan." },
-	debt_free = { id = 0, name = "Bebas Pinjol", description = "Lunasi seluruh pinjaman pinjol tepat waktu." },
+	debt_free = { id = 0, name = "Bebas BayarLater", description = "Lunasi seluruh pinjaman BayarLater tepat waktu." },
 	kades = { id = 0, name = "Juragan Nomor Satu", description = "Terpilih menjadi Kepala Desa." },
 }
 

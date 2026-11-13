@@ -131,7 +131,7 @@ local function onBuy(player: Player, itemId: any)
 		Notify.send(player, "phone_owned")
 		return
 	end
-	if not EconomyService.trySpend(player, item.price) then
+	if not EconomyService.trySpend(player, item.price, { sku = "kosmetik_" .. itemId }) then
 		return
 	end
 	data.cosmetics[itemId] = true

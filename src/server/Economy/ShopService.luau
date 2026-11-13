@@ -28,8 +28,8 @@ local ShopService = {}
 local RESTOCK_POLL = 2 -- seconds between shelf checks
 local BUY_RATE = 4 -- purchases per second per player
 
-local function blank(): { cycle: number, restockAt: number, musim: string, stock: { [string]: number } }
-	return { cycle = 0, restockAt = 0, musim = "", stock = {} }
+local function blank(): { cycle: number, restockAt: number, musim: string, nonce: number, stock: { [string]: number } }
+	return { cycle = 0, restockAt = 0, musim = "", nonce = 0, stock = {} }
 end
 
 -- Mirror the shelves onto player attributes so the HUD updates without waiting for a patch.
@@ -67,6 +67,7 @@ function ShopService.ensure(player: Player, data)
 		shop.stock = ShopStock.roll(cycle, player.UserId, musim)
 		shop.cycle = cycle
 		shop.musim = musim
+		shop.nonce = 0
 		changed = true
 	end
 	if shop.restockAt ~= restockAt then
@@ -90,6 +91,25 @@ function ShopService.tick(player: Player): boolean
 	end
 	publish(player, shop)
 	State.touch(player, "shop")
+	return true
+end
+
+-- A paid Restock: reroll today's shelves immediately instead of waiting for the next cycle.
+-- The nonce is saved, so a rejoin cannot reroll again for free. Returns true when it rolled.
+function ShopService.restockNow(player: Player, data): boolean
+	data = data or PlayerData.get(player)
+	if not data then
+		return false
+	end
+	local shop = ShopService.ensure(player, data)
+	if not shop then
+		return false
+	end
+	shop.nonce = (tonumber(shop.nonce) or 0) + 1
+	shop.stock = ShopStock.roll(shop.cycle, player.UserId, shop.musim, shop.nonce)
+	publish(player, shop)
+	State.touch(player, "shop")
+	Notify.send(player, "n_shop_restocked")
 	return true
 end
 

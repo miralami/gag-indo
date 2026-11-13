@@ -38,6 +38,7 @@ local NAMES = {
 	"Debt_Repay", -- (amount: number?)
 	"Quest_ClaimDaily", -- () -- claim login streak reward
 	"Quest_ClaimTask", -- (taskId: string) -- claim finished daily task
+	"Leaderboard_Data", -- (boards: table) -- server -> client: top lists
 	"Raid_Start", -- (payload: table)
 	"Raid_End", -- (outcome: string)
 	"Jail_State", -- (secondsLeft: number)

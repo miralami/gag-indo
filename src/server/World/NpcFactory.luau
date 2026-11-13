@@ -17,6 +17,7 @@ local Npc = {}
 Npc.__index = Npc
 
 local STEP_SECONDS = 0.05
+local INK = Props.palette("tinta")
 
 local function addPart(model: Model, name: string, size: Vector3, cf: CFrame, color: Color3, material: Enum.Material?): Part
 	local p = Props.part({
@@ -24,7 +25,7 @@ local function addPart(model: Model, name: string, size: Vector3, cf: CFrame, co
 		Size = size,
 		CFrame = cf,
 		Color = color,
-		Material = material or Enum.Material.SmoothPlastic,
+		Material = material or Enum.Material.Fabric,
 		CanCollide = false,
 		CanQuery = false,
 	})
@@ -47,6 +48,16 @@ function NpcFactory.wrap(model: Model, info: { name: string?, subtitle: string?,
 	end
 
 	local displayName = opts.name or model.Name
+	local outline = model:FindFirstChild("InkContour") :: Highlight?
+	if not outline then
+		outline = Instance.new("Highlight")
+		outline.Name = "InkContour"
+		outline.Adornee = model
+		outline.FillTransparency = 1
+		outline.OutlineColor = INK
+		outline.DepthMode = Enum.HighlightDepthMode.Occluded
+		outline.Parent = model
+	end
 	local nameLabel: TextLabel? = nil
 	local speechLabel: TextLabel? = nil
 	if anchor then
@@ -64,6 +75,7 @@ function NpcFactory.wrap(model: Model, info: { name: string?, subtitle: string?,
 	return setmetatable({
 		model = model,
 		head = model:FindFirstChild("Head") :: BasePart?,
+		mouth = model:FindFirstChild("Mouth") :: BasePart?,
 		torso = anchor,
 		nameLabel = nameLabel,
 		speechLabel = speechLabel,
@@ -84,12 +96,12 @@ function NpcFactory.build(config)
 
 	local torsoCF = feet * CFrame.new(0, 3.0, 0)
 	local torso = addPart(model, "Torso", Vector3.new(2.4, 2.6, 1.2), torsoCF, shirt, Enum.Material.Fabric)
-	local headCF = feet * CFrame.new(0, 5.5, 0)
-	local head = addPart(model, "Head", Vector3.new(2.2, 2.2, 2.2), headCF, skin)
+	local headCF = feet * CFrame.new(0, 5.7, 0)
+	local head = addPart(model, "Head", Vector3.new(2.8, 2.8, 2.8), headCF, skin, Enum.Material.SmoothPlastic)
 	local leftArm = addPart(model, "LeftArm", Vector3.new(0.8, 2.4, 0.9), torsoCF * CFrame.new(-1.6, 0, 0), shirt)
 	local rightArm = addPart(model, "RightArm", Vector3.new(0.8, 2.4, 0.9), torsoCF * CFrame.new(1.6, 0, 0), shirt)
-	addPart(model, "LeftLeg", Vector3.new(0.95, 1.8, 0.95), feet * CFrame.new(-0.6, 0.9, 0), Color3.fromRGB(60, 60, 75))
-	addPart(model, "RightLeg", Vector3.new(0.95, 1.8, 0.95), feet * CFrame.new(0.6, 0.9, 0), Color3.fromRGB(60, 60, 75))
+	addPart(model, "LeftLeg", Vector3.new(0.95, 1.8, 0.95), feet * CFrame.new(-0.6, 0.9, 0), Color3.fromRGB(60, 60, 75), Enum.Material.Fabric)
+	addPart(model, "RightLeg", Vector3.new(0.95, 1.8, 0.95), feet * CFrame.new(0.6, 0.9, 0), Color3.fromRGB(60, 60, 75), Enum.Material.Fabric)
 
 	-- Face (front is -Z)
 	addPart(model, "EyeL", Vector3.new(0.28, 0.4, 0.1), headCF * CFrame.new(-0.5, 0.2, -1.08), Color3.fromRGB(20, 20, 20))
@@ -131,10 +143,14 @@ function Npc:say(text: string, seconds: number?)
 	end
 	self.speechToken += 1
 	local token = self.speechToken
+	if self.mouth then
+		self.mouth.Size = if string.find(text, "!", 1, true) then Vector3.new(0.45, 0.35, 0.1) elseif string.find(text, "?", 1, true) then Vector3.new(0.55, 0.2, 0.1) else Vector3.new(0.8, 0.14, 0.1)
+	end
 	self.speechLabel.Text = text
 	task.delay(seconds or 4, function()
 		if self.speechToken == token and self.speechLabel.Parent then
 			self.speechLabel.Text = ""
+			if self.mouth then self.mouth.Size = Vector3.new(0.8, 0.14, 0.1) end
 		end
 	end)
 end

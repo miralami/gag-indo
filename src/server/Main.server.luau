@@ -28,12 +28,14 @@ local NeighborService = require(script.Parent.Progression.NeighborService)
 local OnboardingService = require(script.Parent.Progression.OnboardingService)
 local QuestService = require(script.Parent.Progression.QuestService)
 local DebtService = require(script.Parent.Economy.DebtService)
+local DebtCollector = require(script.Parent.Economy.DebtCollector)
 local WarungService = require(script.Parent.World.WarungService)
 local CabaiEvent = require(script.Parent.Events.CabaiEvent)
 local Passes = require(script.Parent.Monetization.Passes)
 local Receipts = require(script.Parent.Monetization.Receipts)
 local Items = require(script.Parent.Monetization.Items)
 local Cosmetics = require(script.Parent.Monetization.Cosmetics)
+local LeaderboardService = require(script.Parent.Social.LeaderboardService)
 
 -- World first: plots are added to the folder Village creates.
 LiveConfig.start() -- attributes + admin state exist before any service reads them
@@ -50,6 +52,21 @@ RaidService.bindSus({
 
 -- Raids resolve as a fine when a player leaves, before the profile is released.
 RaidService.init()
+
+-- Pinjol guardrails: no borrowing during a raid, and a visible collector at the plot.
+DebtService.bindRaid({
+	isBusy = function(player)
+		return RaidService.isBusy(player)
+	end,
+})
+DebtService.bindCollector({
+	summon = function(player)
+		DebtCollector.summon(player)
+	end,
+	dismiss = function(player)
+		DebtCollector.dismiss(player)
+	end,
+})
 
 MarketService.start() -- price board before anyone can sell
 EconomyService.start()
@@ -75,6 +92,7 @@ Passes.start()
 Receipts.start()
 Items.start()
 Cosmetics.start()
+LeaderboardService.start()
 PlayerData.start() -- last: loads profiles, which fires onLoaded callbacks registered above
 
 print("[JuraganDesa] server started")

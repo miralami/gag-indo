@@ -11,6 +11,7 @@ local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Onboarding = require(Shared.Config.Onboarding)
 
 local PlayerData = require(script.Parent.Parent.Data.PlayerData)
+local Analytics = require(script.Parent.Parent.Analytics.Analytics)
 local Notify = require(script.Parent.Parent.Net.Notify)
 local State = require(script.Parent.Parent.Net.State)
 
@@ -75,13 +76,16 @@ function OnboardingService.advance(player: Player, stepId: any): boolean
 		return false
 	end
 
+	local completed = tutorial.step
 	tutorial.done[stepId] = true
 	tutorial.step += 1
 	OnboardingService.publish(player, data)
 	State.touch(player, "tutorial")
 
+	Analytics.onboarding(player, completed, step.id)
 	Notify.send(player, "n_tutorial_step", "@" .. step.labelKey)
 	if tutorial.step > Onboarding.total then
+		Analytics.onboarding(player, Onboarding.total + 1, "finished")
 		Notify.send(player, "n_tutorial_finished")
 	end
 	return true

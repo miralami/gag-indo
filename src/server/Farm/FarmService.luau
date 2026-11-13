@@ -11,6 +11,7 @@ local Crops = require(Shared.Config.Crops)
 local Cheats = require(Shared.Config.Cheats)
 local GameConfig = require(Shared.Config.Game)
 local Tiers = require(Shared.Config.Tiers)
+local Visuals = require(Shared.Config.Visuals)
 local Remotes = require(Shared.Remotes)
 local Inventory = require(Shared.Inventory)
 local Produce = require(Shared.Produce)
@@ -30,10 +31,20 @@ local OnboardingService = require(script.Parent.Parent.Progression.OnboardingSer
 local QuestService = require(script.Parent.Parent.Progression.QuestService)
 local BadgeService = require(script.Parent.Parent.Progression.BadgeService)
 local PlotService = require(script.Parent.PlotService)
+local SeasonsConfig = require(Shared.Config.Seasons)
+local Analytics = require(script.Parent.Parent.Analytics.Analytics)
 
 local OWNED_COLOR = Color3.fromRGB(105, 72, 45)
 local LOCKED_COLOR = Color3.fromRGB(100, 100, 100)
 local HOT_COLOR = Color3.fromRGB(120, 200, 80)
+
+local function cropToken(cropId: string): string
+	if cropId == "padi" or cropId == "tebu" then return "kunyit" end
+	if cropId == "cabai" or cropId == "bawang" then return "merah" end
+	if cropId == "kopi" or cropId == "cengkeh" or cropId == "tembakau" then return "bambu" end
+	if cropId == "durian" or cropId == "sawit" then return "daun" end
+	return "padi"
+end
 
 local FarmService = {}
 
@@ -64,7 +75,7 @@ local function maxTilesFor(player: Player): number
 	return GameConfig.maxTiles
 end
 
-local function setCropVisual(tile: BasePart, cropId: string?, ready: boolean, hot: boolean)
+local function setCropVisual(tile: BasePart, cropId: string?, ready: boolean, hot: boolean, tierId: string?)
 	local existing = tile:FindFirstChild("Crop") :: BasePart?
 	if not cropId then
 		if existing then
@@ -73,6 +84,9 @@ local function setCropVisual(tile: BasePart, cropId: string?, ready: boolean, ho
 		return
 	end
 	local crop = Crops.list[cropId]
+	if not crop then
+		return
+	end
 	local visual = existing
 	if not visual then
 		local p = Instance.new("Part")
@@ -84,25 +98,113 @@ local function setCropVisual(tile: BasePart, cropId: string?, ready: boolean, ho
 		p.Parent = tile
 		visual = p
 	end
-	local size = if ready then Vector3.new(4, 3, 4) else Vector3.new(1.5, 1, 1.5)
-	visual.Size = size
-	if hot then
-		visual.Color = if ready then HOT_COLOR else HOT_COLOR:Lerp(Color3.new(0, 0, 0), 0.25)
-	else
-		visual.Color = if ready then crop.color else Color3.fromRGB(80, 170, 70)
+	local elapsed = math.max(0, os.time() - tile:GetAttribute("PlantedAt"))
+	local stageName = if ready then "siap" elseif elapsed < math.max(1, math.floor(tile:GetAttribute("GrowSeconds") / 3)) then "bibit" else "tumbuh"
+	local stage = Visuals.cropStages[stageName]
+	local size = stage.stem
+	local stem = visual:FindFirstChild("Stem") :: Part?
+	local visualParent = visual.Parent
+	if not stem then
+		stem = Instance.new("Part")
+		stem.Name = "Stem"
+		stem.Shape = Enum.PartType.Ball
+		stem.Anchored = true
+		stem.CanCollide = false
+		stem.CanQuery = false
+		stem.Parent = visualParent
 	end
-	visual.CFrame = tile.CFrame * CFrame.new(0, tile.Size.Y / 2 + size.Y / 2, 0)
+	visual.Shape = Enum.PartType.Block
+	visual.Size = Vector3.new(0.35, size, 0.35)
+	visual.Material = Enum.Material.Wood
+	local crownScale = stage.crown
+	local crown = (if cropId == "padi" or cropId == "tebu" or cropId == "jagung" then Vector3.new(2.1, 0.45, 1.5) else Vector3.new(1.7, 1.5, 1.7)) * crownScale
+	stem.Size = crown
+	stem.Shape = Enum.PartType.Ball
+	if hot then
+		visual.Color = HOT_COLOR
+		stem.Color = if ready then HOT_COLOR else Color3.fromHex(Visuals.palette.daun)
+	else
+		visual.Color = Color3.fromHex(Visuals.palette[cropToken(cropId)])
+		stem.Color = if ready then crop.color else Color3.fromHex(Visuals.palette.daun)
+	end
+	local tier = Visuals.rarity[tierId or Tiers.default]
+	if tier and tier.effect ~= "none" then
+		local outline = visual:FindFirstChild("RarityOutline") :: Highlight?
+		if not outline then
+			outline = Instance.new("Highlight")
+			outline.Name = "RarityOutline"
+			outline.Adornee = visual
+			outline.DepthMode = Enum.HighlightDepthMode.Occluded
+			outline.Parent = visual
+		end
+		outline.FillTransparency = if tierId == "sultan" then 0.62 else 0.78
+		local hex = Visuals.palette[tier.token]
+		outline.FillColor = Color3.fromHex(hex)
+		outline.OutlineColor = Color3.fromHex(hex)
+		outline.OutlineTransparency = if tierId == "sultan" then 0 else 0.18
+		if tierId == "langka" or tierId == "sultan" then
+			local light = visual:FindFirstChild("RarityGlow") :: PointLight?
+			if not light then
+				light = Instance.new("PointLight")
+				light.Name = "RarityGlow"
+				light.Parent = visual
+			end
+			light.Color = Color3.fromHex(hex)
+			light.Brightness = if tierId == "sultan" then 1.2 else 0.45
+			light.Range = if tierId == "sultan" then 9 else 5
+		else
+			local light = visual:FindFirstChild("RarityGlow")
+			if light then light:Destroy() end
+		end
+	else
+		for _, name in { "RarityOutline", "RarityGlow" } do
+			local effect = visual:FindFirstChild(name)
+			if effect then effect:Destroy() end
+		end
+	end
+	visual.CFrame = tile.CFrame * CFrame.new(0, tile.Size.Y / 2 + size / 2, 0)
+	stem.CFrame = tile.CFrame * CFrame.new(0, tile.Size.Y / 2 + size + crown.Y / 2 - 0.2, 0)
 
 	local glow = visual:FindFirstChild("HotGlow") :: PointLight?
 	if hot and not glow then
 		local light = Instance.new("PointLight")
 		light.Name = "HotGlow"
-		light.Color = Color3.fromRGB(120, 255, 90)
+			light.Color = Color3.fromHex(Visuals.palette.daun)
 		light.Brightness = 1.4
 		light.Range = 9
 		light.Parent = visual
 	elseif not hot and glow then
 		glow:Destroy()
+	end
+	if ready and tierId == "langka" and not visual:FindFirstChild("LangkaSparkles") then
+		local emitter = Instance.new("ParticleEmitter")
+		emitter.Name = "LangkaSparkles"
+		emitter.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+		emitter.Rate = 0
+		emitter.Lifetime = NumberRange.new(0.25, 0.4)
+		emitter.Speed = NumberRange.new(0.6, 1.2)
+		emitter.SpreadAngle = Vector2.new(120, 120)
+		emitter.Color = ColorSequence.new(Color3.fromHex(Visuals.palette.ungu))
+		emitter.Parent = visual
+		emitter:Emit(Visuals.particles.langka)
+	elseif not ready or tierId ~= "langka" then
+		local emitter = visual:FindFirstChild("LangkaSparkles")
+		if emitter then emitter:Destroy() end
+	end
+	if ready and tierId == "sultan" and not visual:FindFirstChild("SultanSparkles") then
+		local emitter = Instance.new("ParticleEmitter")
+		emitter.Name = "SultanSparkles"
+		emitter.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+		emitter.Rate = 0
+		emitter.Lifetime = NumberRange.new(0.35, 0.55)
+		emitter.Speed = NumberRange.new(1, 2)
+		emitter.SpreadAngle = Vector2.new(180, 180)
+		emitter.Color = ColorSequence.new(Color3.fromHex(Visuals.palette.kunyit))
+		emitter.Parent = visual
+		emitter:Emit(Visuals.particles.sultan)
+	elseif not ready or tierId ~= "sultan" then
+		local emitter = visual:FindFirstChild("SultanSparkles")
+		if emitter then emitter:Destroy() end
 	end
 end
 
@@ -114,12 +216,13 @@ local function refreshTile(player: Player, data, plot, index: number)
 	end
 	local prompt = tile:FindFirstChild("Prompt") :: ProximityPrompt
 	local entry = data.tiles[tileKey(index)]
+	local visualTier = entry and entry.tier
 	tile:SetAttribute("Price", nil)
 
 	if index > data.tilesOwned then
 		tile.Color = LOCKED_COLOR
 		tile.Transparency = 0.6
-		setCropVisual(tile, nil, false, false)
+		setCropVisual(tile, nil, false, false, nil)
 		tile:SetAttribute("Crop", nil)
 		tile:SetAttribute("ReadyAt", nil)
 		tile:SetAttribute("Hot", false)
@@ -142,11 +245,13 @@ local function refreshTile(player: Player, data, plot, index: number)
 	prompt.Enabled = true
 
 	if entry == nil then
+		tile:SetAttribute("PlantedAt", nil)
+		tile:SetAttribute("GrowSeconds", nil)
 		tile:SetAttribute("State", "empty")
 		tile:SetAttribute("Crop", nil)
 		tile:SetAttribute("ReadyAt", nil)
 		tile:SetAttribute("Hot", false)
-		setCropVisual(tile, nil, false, false)
+		setCropVisual(tile, nil, false, false, nil)
 		if growing[player] then
 			growing[player][index] = nil
 		end
@@ -154,12 +259,14 @@ local function refreshTile(player: Player, data, plot, index: number)
 	end
 
 	local readyAt = entry.plantedAt + entry.growSeconds
+	tile:SetAttribute("PlantedAt", entry.plantedAt)
+	tile:SetAttribute("GrowSeconds", entry.growSeconds)
 	local ready = os.time() >= readyAt
 	tile:SetAttribute("State", if ready then "ready" else "growing")
 	tile:SetAttribute("Crop", entry.crop)
 	tile:SetAttribute("ReadyAt", readyAt)
 	tile:SetAttribute("Hot", entry.hot == true)
-	setCropVisual(tile, entry.crop, ready, entry.hot == true)
+	setCropVisual(tile, entry.crop, ready, entry.hot == true, visualTier)
 	if growing[player] then
 		growing[player][index] = if ready then nil else readyAt
 	end
@@ -256,6 +363,35 @@ local function doHarvest(
 	-- Planting and harvesting each set a quality; the crop's final quality is their average.
 	local quality = (entry.quality + harvestQuality) / 2
 	local runtime = LiveConfig.getRuntime()
+
+	-- Check seasonal risk events (PLAN §3.3)
+	local risks = SeasonsConfig.risks
+	if risks then
+		-- Banjir in hujan/badai drenching palawija
+		if (runtime.cuaca == "hujan" or runtime.cuaca == "badai") and crop.family == "palawija" and math.random() < risks.banjirChance then
+			data.tiles[tileKey(index)] = nil
+			refreshTile(player, data, plot, index)
+			Notify.send(player, "n_crop_banjir", "@crop_" .. entry.crop)
+			Analytics.log(player, "risk_banjir", 1)
+			return
+		end
+		-- Hama in pancaroba
+		if runtime.musim == "pancaroba" and math.random() < risks.hamaChance then
+			data.tiles[tileKey(index)] = nil
+			refreshTile(player, data, plot, index)
+			Notify.send(player, "n_crop_hama", "@crop_" .. entry.crop)
+			Analytics.log(player, "risk_hama", 1)
+			return
+		end
+		-- Gagal panen in El Nino drought
+		if runtime.anomali == "elNino" and math.random() < risks.elNinoFailChance then
+			data.tiles[tileKey(index)] = nil
+			refreshTile(player, data, plot, index)
+			Notify.send(player, "n_crop_gagal", "@crop_" .. entry.crop)
+			Analytics.log(player, "risk_gagal", 1)
+			return
+		end
+	end
 	local traits = TraitService.roll({
 		hot = entry.hot == true,
 		fertilised = entry.fertilised == true,
@@ -264,6 +400,8 @@ local function doHarvest(
 		anomaly = runtime.anomali,
 	})
 	local tier = RarityService.roll(quality)
+	entry.tier = tier
+	Analytics.track(player, "harvest", 1, { entry.crop, tier, destination or "sack" })
 
 	if destination == "gudang" then
 		data.gudang = data.gudang or { capacity = GameConfig.gudangBaseCapacity, stacks = {} }
@@ -303,7 +441,7 @@ local function buyTile(player: Player, data, plot, index: number)
 	if index ~= data.tilesOwned + 1 or index > maxTilesFor(player) then
 		return
 	end
-	if not EconomyService.trySpend(player, GameConfig.tilePrice(data.tilesOwned)) then
+	if not EconomyService.trySpend(player, GameConfig.tilePrice(data.tilesOwned), { sku = "petak" }) then
 		return
 	end
 	data.tilesOwned += 1

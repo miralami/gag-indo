@@ -8,8 +8,24 @@ local Products = require(Shared.Config.Products)
 local PlayerData = require(script.Parent.Parent.Data.PlayerData)
 local Notify = require(script.Parent.Parent.Net.Notify)
 local FarmService = require(script.Parent.Parent.Farm.FarmService)
+local StorageService = require(script.Parent.Parent.Farm.StorageService)
+local WorkerService = require(script.Parent.Parent.Farm.WorkerService)
 
 local Passes = {}
+
+-- Attributes the rest of the server reads are set above; re-publish the mirrored values so
+-- the HUD shows the new capacity/wage immediately instead of after the next action.
+local function publishEffects(player: Player, passKey: string)
+	local data = PlayerData.get(player)
+	if not data then
+		return
+	end
+	if passKey == "gudangBesar" then
+		StorageService.publish(player, data)
+	elseif passKey == "autoPanen" then
+		WorkerService.publish(player, data)
+	end
+end
 
 local function grant(player: Player, passKey: string)
 	local pass = Products.passes[passKey]
@@ -20,6 +36,7 @@ local function grant(player: Player, passKey: string)
 	if passKey == "extraPlot" then
 		FarmService.refresh(player)
 	end
+	publishEffects(player, passKey)
 	Notify.send(player, "n_purchase", "@pass_" .. passKey)
 end
 
@@ -41,6 +58,12 @@ local function checkPasses(player: Player)
 	end
 	if player:GetAttribute("Pass_ExtraPlot") then
 		FarmService.refresh(player)
+	end
+	if player:GetAttribute("Pass_GudangBesar") then
+		publishEffects(player, "gudangBesar")
+	end
+	if player:GetAttribute("Pass_AutoPanen") then
+		publishEffects(player, "autoPanen")
 	end
 end
 

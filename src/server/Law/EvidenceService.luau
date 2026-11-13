@@ -224,7 +224,7 @@ local function report(player: Player, tokenId: string): boolean
 	if event.firstReporter == nil then
 		event.firstReporter = player.UserId
 		local share = math.floor(event.value * Law.reporterRewardShare)
-		reward = EconomyService.transfer(cheater, player, share)
+		reward = EconomyService.transfer(cheater, player, share, "hadiah_laporan")
 		RankService.addNamaBaik(player, Law.namaBaikPerReport, "report")
 		SusService.add(cheater, Law.cheaterSusPerReport, "report")
 		data.stats.reportsMade = (data.stats.reportsMade or 0) + 1

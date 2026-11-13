@@ -212,26 +212,26 @@ local function resolveChoice(player: Player, choice: string, timedOut: boolean?)
 		local cost = raid.amplop
 		if data.cash < cost then
 			if data.cash > 0 then
-				EconomyService.trySpend(player, data.cash)
+				EconomyService.trySpend(player, data.cash, { sku = "raid_amplop" })
 			end
 			applyOutcomeMessages(player, "jail", 0)
 			sendToJail(player, raid)
 			resetRaid(player, raid, "jail")
 			return
 		end
-		EconomyService.trySpend(player, cost)
+		EconomyService.trySpend(player, cost, { sku = "raid_amplop" })
 		if math.random() < Law.amplopSuccess then
 			applyOutcomeMessages(player, "amplop", cost)
 			resetRaid(player, raid, "amplop")
 		else
 			local penalty = math.floor(raid.fine * Law.amplopFailMultiplier)
 			if data.cash >= penalty then
-				EconomyService.trySpend(player, penalty)
+				EconomyService.trySpend(player, penalty, { sku = "raid_denda" })
 				applyOutcomeMessages(player, "amplop_fail", penalty)
 				resetRaid(player, raid, "amplop_fail")
 			else
 				if data.cash > 0 then
-					EconomyService.trySpend(player, data.cash)
+					EconomyService.trySpend(player, data.cash, { sku = "raid_denda" })
 				end
 				applyOutcomeMessages(player, "jail", 0)
 				sendToJail(player, raid)
@@ -243,12 +243,12 @@ local function resolveChoice(player: Player, choice: string, timedOut: boolean?)
 
 	-- Pay the fine, or go to the guard post when there isn't enough cash.
 	if data.cash >= raid.fine then
-		EconomyService.trySpend(player, raid.fine)
+		EconomyService.trySpend(player, raid.fine, { sku = "raid_denda" })
 		applyOutcomeMessages(player, "denda", raid.fine)
 		resetRaid(player, raid, "denda")
 	else
 		if data.cash > 0 then
-			EconomyService.trySpend(player, data.cash)
+			EconomyService.trySpend(player, data.cash, { sku = "raid_denda" })
 		end
 		applyOutcomeMessages(player, "jail", 0)
 		sendToJail(player, raid)
@@ -284,7 +284,7 @@ function RaidService.start(player: Player, isViral: boolean)
 	}
 	raids[player] = raid
 	player:SetAttribute("InRaid", true)
-	Analytics.log(player, "raid_started", if isViral then 2 else 1)
+	Analytics.track(player, "raid_started", if isViral then 2 else 1, { if isViral then "viral" else "normal" })
 
 	-- Confiscate hot produce before the player can sell it.
 	local hot = FarmService.confiscateHotTiles(player) + EconomyService.removeHotHarvest(player)

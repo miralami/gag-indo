@@ -12,17 +12,28 @@ local PlayerData = require(script.Parent.Parent.Data.PlayerData)
 local Notify = require(script.Parent.Parent.Net.Notify)
 local State = require(script.Parent.Parent.Net.State)
 local EconomyService = require(script.Parent.Parent.Economy.EconomyService)
+local ShopService = require(script.Parent.Parent.Economy.ShopService)
 local Analytics = require(script.Parent.Parent.Analytics.Analytics)
 
 local Receipts = {}
 
-local function applyGrant(data, product)
+local function applyGrant(player: Player, data, product, productKey: string)
 	if product.grant == "inventory" then
 		Inventory.add(data, product.item, product.amount or 1)
 	elseif product.grant == "seeds" then
 		for cropId, amount in product.seeds or {} do
 			Inventory.addSeed(data, cropId, amount)
 		end
+	elseif product.grant == "restock" then
+		ShopService.restockNow(player, data)
+	elseif product.grant == "cash" then
+		-- Purchased cash is not income: it must not raise rank or the leaderboard.
+		local cash = tonumber(product.cash) or 0
+		if cash > 0 then
+			EconomyService.addCash(player, cash, false, { sku = productKey, transaction = "IAP" })
+		end
+	else
+		warn("[Receipts] Unknown grant type", tostring(product.grant))
 	end
 end
 
@@ -51,7 +62,7 @@ function Receipts.start()
 
 		-- Grant AND record the PurchaseId in the same step (no yield in between),
 		-- so a retry after a crash sees the ID and doesn't grant twice.
-		applyGrant(data, product)
+		applyGrant(player, data, product, productKey)
 		table.insert(data.receipts, receiptInfo.PurchaseId)
 		if #data.receipts > 50 then
 			table.remove(data.receipts, 1)
@@ -65,7 +76,7 @@ function Receipts.start()
 		end
 
 		Notify.send(player, "n_purchase", "@item_" .. productKey)
-		Analytics.log(player, "purchase", 1)
+		Analytics.track(player, "purchase", 1, { productKey })
 		return Enum.ProductPurchaseDecision.PurchaseGranted
 	end
 end

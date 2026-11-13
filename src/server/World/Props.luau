@@ -3,9 +3,24 @@
 
 local Props = {}
 
+local PALETTE = {
+	kertas = Color3.fromHex("f3e9d2"), tinta = Color3.fromHex("2b2118"),
+	tintaLembut = Color3.fromHex("5b4a38"), senja = Color3.fromHex("f6c97a"),
+	padi = Color3.fromHex("9bb25a"), daun = Color3.fromHex("6f8a3f"),
+	genteng = Color3.fromHex("a8452f"), merah = Color3.fromHex("a83226"),
+	bambu = Color3.fromHex("b98a5a"), kunyit = Color3.fromHex("c99a2e"),
+	indigo = Color3.fromHex("3b4f6b"), malam = Color3.fromHex("1f4e6b"),
+	ungu = Color3.fromHex("7652a8"),
+}
+
+function Props.palette(name: string): Color3
+	return PALETTE[name] or PALETTE.bambu
+end
+
 function Props.part(properties: { [string]: any }): Part
 	local p = Instance.new("Part")
 	p.Anchored = true
+	p.Material = Enum.Material.Wood
 	p.TopSurface = Enum.SurfaceType.Smooth
 	p.BottomSurface = Enum.SurfaceType.Smooth
 	for key, value in properties do
@@ -45,9 +60,10 @@ function Props.billboard(
 	label.Size = UDim2.fromScale(1, 1)
 	label.BackgroundTransparency = 1
 	label.TextScaled = true
-	label.Font = Enum.Font.FredokaOne
-	label.TextColor3 = Color3.new(1, 1, 1)
-	label.TextStrokeTransparency = 0.3
+	label.Font = Enum.Font.LuckiestGuy
+	label.TextColor3 = PALETTE.kertas
+	label.TextStrokeColor3 = PALETTE.tinta
+	label.TextStrokeTransparency = 0
 	label.TextWrapped = true
 	label.Text = ""
 	label.Parent = gui

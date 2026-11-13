@@ -77,16 +77,16 @@ local S: { [string]: { id: string, en: string } } = {
 
 	-- HUD
 	hud_rank = { id = "Pangkat: %s", en = "Rank: %s" },
-	hud_sus = { id = "👀 %s", en = "👀 %s" },
-	hud_namabaik = { id = "⭐ %s", en = "⭐ %s" },
+	hud_sus = { id = "Sus %s", en = "Sus %s" },
+	hud_namabaik = { id = "Nama Baik %s", en = "Reputation %s" },
 	hud_shop = { id = "Toko Bibit", en = "Seed Shop" },
 	hud_close = { id = "Tutup", en = "Close" },
 	hud_seed_count = { id = "%s x%s", en = "%s x%s" },
-	hud_locked = { id = "🔒 %s", en = "🔒 %s" },
+	hud_locked = { id = "Terkunci: %s", en = "Locked: %s" },
 	hud_harvest_bag = { id = "Karung: %s/%s", en = "Sack: %s/%s" },
-	hud_phone = { id = "📱 HP", en = "📱 Phone" },
-	hud_cheat = { id = "😈 Curang", en = "😈 Cheat" },
-	hud_shop_button = { id = "🌱 Bibit", en = "🌱 Seeds" },
+	hud_phone = { id = "HP", en = "Phone" },
+	hud_cheat = { id = "Curang", en = "Cheat" },
+	hud_shop_button = { id = "Bibit", en = "Seeds" },
 	shop_buy = { id = "Beli %s (Rp %s)", en = "Buy %s (Rp %s)" },
 	shop_buy_all = { id = "Semua (Rp %s)", en = "All (Rp %s)" },
 	shop_needs_rank = { id = "Butuh pangkat %s", en = "Needs rank %s" },
@@ -94,6 +94,19 @@ local S: { [string]: { id: string, en: string } } = {
 	shop_sold_out = { id = "Habis", en = "Sold out" },
 	shop_not_stocked = { id = "Tidak dijual", en = "Not stocked" },
 	shop_restock_in = { id = "Restock %s", en = "Restock %s" },
+	n_shop_restocked = { id = "Toko Bibit di-restock!", en = "The Seed Shop has been restocked!" },
+
+	-- leaderboard (client/UI/Leaderboard)
+	lb_title = { id = "Papan Desa", en = "Village Board" },
+	lb_button = { id = "Papan", en = "Board" },
+	lb_tab_richest = { id = "Terkaya", en = "Richest" },
+	lb_tab_sultan = { id = "Sultan", en = "Sultan" },
+	lb_tab_raids = { id = "Dirazia", en = "Raided" },
+	lb_empty = { id = "Belum ada data.", en = "No scores yet." },
+	lb_anonymous = { id = "Warga #%s", en = "Villager #%s" },
+	lb_value_richest = { id = "Rp %s", en = "Rp %s" },
+	lb_value_sultan = { id = "%s panen", en = "%s harvests" },
+	lb_value_raids = { id = "%s kali", en = "%s times" },
 
 	-- tools (Config/Tools)
 	tool_cangkul = { id = "Cangkul", en = "Hoe" },
@@ -133,9 +146,9 @@ local S: { [string]: { id: string, en: string } } = {
 	prompt_warung_chat = { id = "Nongkrong", en = "Hang out" },
 
 	-- Harga Cabai Meroket (Events/CabaiEvent)
-	hud_event_cabai = { id = "🔥 Harga cabai meroket! x%s", en = "🔥 Chili prices are soaring! x%s" },
-	event_cabai_start = { id = "📈 HARGA CABAI MEROKET! Cabai laku x%s selama 5 menit.", en = "📈 CHILI PRICES SOAR! Chili sells at x%s for 5 minutes." },
-	event_cabai_end = { id = "📉 Harga cabai kembali normal.", en = "📉 Chili prices are back to normal." },
+	hud_event_cabai = { id = "Harga cabai meroket! x%s", en = "Chili prices are soaring! x%s" },
+	event_cabai_start = { id = "HARGA CABAI MEROKET! Cabai laku x%s selama 5 menit.", en = "CHILI PRICES SOAR! Chili sells at x%s for 5 minutes." },
+	event_cabai_end = { id = "Harga cabai kembali normal.", en = "Chili prices are back to normal." },
 
 	-- warung flavor (World/WarungService)
 	warung_rumor_1 = { id = "Kata orang, tengkulak gelap itu bayar pakai uang kotak sabun.", en = "They say the black market pays in soap-box money." },
@@ -146,12 +159,12 @@ local S: { [string]: { id: string, en: string } } = {
 
 	-- tile labels
 	tile_ready = { id = "Siap panen!", en = "Ready!" },
-	tile_hot = { id = "⚠ %s", en = "⚠ %s" },
+	tile_hot = { id = "Laris %s", en = "Hot %s" },
 
 	-- notifications
 	n_planted = { id = "%s ditanam!", en = "%s planted!" },
 	n_harvested = { id = "Panen %s! Bawa ke Pasar.", en = "Harvested %s! Take it to the market." },
-	n_rarity_reveal = { id = "✨ %s %s! Langka banget, Juragan!", en = "✨ %s %s! What a find, boss!" },
+	n_rarity_reveal = { id = "%s %s! Langka banget, Juragan!", en = "%s %s! What a find, boss!" },
 	n_almanak_new = { id = "Almanak: %s %s baru!", en = "Almanak: new %s %s!" },
 	n_almanak_page = { id = "Halaman Almanak %s selesai! Hadiah: %s.", en = "Almanak page %s complete! Reward: %s." },
 	n_sold = { id = "Laku! +Rp %s", en = "Sold! +Rp %s" },
@@ -178,8 +191,12 @@ local S: { [string]: { id: string, en: string } } = {
 	n_worker_busy = { id = "Buruhmu masih bekerja.", en = "Your farm hand is still working." },
 	n_worker_harvested = { id = "Buruh memanen %s hasil. Upah Rp %s.", en = "Farm hand harvested %s items. Wage Rp %s." },
 	n_worker_unpaid = { id = "Uangmu habis. Buruh pulang.", en = "Out of cash. The farm hand went home." },
+	n_worker_hired_auto = { id = "Auto-Panen aktif: buruh bekerja tanpa upah.", en = "Auto-Harvest active: the farm hand works without a wage." },
+	n_crop_banjir = { id = "Banjir! Tanaman palawija %s terendam air.", en = "Flood! Palawija crop %s was drowned." },
+	n_crop_hama = { id = "Hama menyerang tanaman %s di musim pancaroba!", en = "Pests attacked crop %s during transition season!" },
+	n_crop_gagal = { id = "Gagal panen akibat kekeringan El Nino pada %s!", en = "Crop failure due to El Nino drought on %s!" },
 	n_tutorial_step = { id = "Langkah selesai: %s!", en = "Step complete: %s!" },
-	n_tutorial_finished = { id = "🎉 Panen perdana selesai! Selamat jadi Juragan Desa.", en = "🎉 First harvest complete! Welcome to the village, boss." },
+	n_tutorial_finished = { id = "Panen perdana selesai! Selamat jadi Juragan Desa.", en = "First harvest complete! Welcome to the village, boss." },
 	n_rank_up = { id = "Naik pangkat: %s!", en = "Rank up: %s!" },
 	n_still_growing = { id = "Belum siap, sabar ya.", en = "Not ready yet." },
 	n_welcome = { id = "Selamat datang di Desa Sukasogok!", en = "Welcome to Desa Sukasogok!" },
@@ -197,7 +214,7 @@ local S: { [string]: { id: string, en: string } } = {
 	-- law
 	n_sus_up = { id = "Sus +%s", en = "Sus +%s" },
 	n_gossip = { id = "Pak RT: “Kok cepet banget panennya ya…”", en = "Pak RT: “How is the harvest so fast…”" },
-	n_letter = { id = "📨 Surat Panggilan! Pak RT mau ngobrol. (Sus %s)", en = "📨 Summons letter! Pak RT wants a word. (Sus %s)" },
+	n_letter = { id = "Surat Panggilan! Pak RT mau ngobrol. (Sus %s)", en = "Summons letter! Pak RT wants a word. (Sus %s)" },
 	n_caught = { id = "Kena razia! Nama baik -%s.", en = "Raided! Reputation -%s." },
 	n_confiscated = { id = "%s hasil oplosan disita!", en = "%s hot crops confiscated!" },
 	n_raid_came = { id = "OPERASI SAPU BERSIH!", en = "OPERATION CLEAN SWEEP!" },
@@ -206,7 +223,7 @@ local S: { [string]: { id: string, en: string } } = {
 	n_raid_amplop_fail = { id = "“Amplop kurang tebal, Pak!” Denda x1,5: Rp %s", en = "“The envelope's too thin!” Fine x1.5: Rp %s" },
 	n_raid_jail = { id = "Tidak bisa bayar. Pos Ronda %s detik.", en = "Can't pay. Guard post for %s seconds." },
 	n_raid_over = { id = "Razia selesai. Sus turun ke %s.", en = "Raid over. Sus dropped to %s." },
-	n_viral = { id = "🔥 VIRAL! Kamu dirazia. Amplop nggak bakal membantu.", en = "🔥 VIRAL! You're being raided. Bribes won't help." },
+	n_viral = { id = "VIRAL! Kamu dirazia. Amplop nggak bakal membantu.", en = "VIRAL! You're being raided. Bribes won't help." },
 	n_viral_case = { id = "Kasusmu viral, amplop tidak bisa.", en = "Your case is viral, no envelope can help." },
 	n_raid_active = { id = "Razia sedang berlangsung!", en = "A raid is already happening!" },
 
@@ -215,7 +232,7 @@ local S: { [string]: { id: string, en: string } } = {
 	n_bribe_cooldown = { id = "Pak RT lagi di belakang. Coba lagi nanti.", en = "Pak RT is busy. Try again later." },
 
 	-- evidence / reports
-	n_record_hint = { id = "📱 Rekam bukti? Buka HP.", en = "📱 Record evidence? Open your phone." },
+	n_record_hint = { id = "Rekam bukti? Buka HP.", en = "Record evidence? Open your phone." },
 	n_recorded = { id = "Bukti direkam. Antar ke Pos Polisi.", en = "Evidence recorded. Take it to the Police Post." },
 	n_report_ok = { id = "Laporan diterima! +Rp %s, +%s Nama Baik.", en = "Report accepted! +Rp %s, +%s Reputation." },
 	n_report_no_cash = { id = "Laporan diterima. Pelakunya sudah tidak punya uang.", en = "Report accepted. The cheater has no cash left." },
@@ -223,7 +240,7 @@ local S: { [string]: { id: string, en: string } } = {
 	n_report_near = { id = "Lapor harus di Pos Polisi.", en = "Reports must be made at the Police Post." },
 	n_token_expired = { id = "Bukti kedaluwarsa.", en = "Evidence expired." },
 	n_token_gone = { id = "Bukti nggak valid.", en = "Invalid evidence." },
-	n_got_token = { id = "📱 Bukti tersimpan di HP!", en = "📱 Evidence saved in your phone!" },
+	n_got_token = { id = "Bukti tersimpan di HP!", en = "Evidence saved in your phone!" },
 
 	-- items
 	n_item_used = { id = "%s dipakai.", en = "%s used." },
@@ -233,6 +250,12 @@ local S: { [string]: { id: string, en: string } } = {
 	item_amplopPremium = { id = "Amplop Premium", en = "Premium Envelope" },
 	item_jaminanKilat = { id = "Jaminan Kilat", en = "Express Bail" },
 	item_karungBibit = { id = "Karung Bibit", en = "Seed Sack" },
+	item_restockToko = { id = "Restock Toko", en = "Shop Restock" },
+	item_rupiahKecil = { id = "Paket Rupiah Kecil", en = "Small Rupiah Pack" },
+	item_rupiahSedang = { id = "Paket Rupiah Sedang", en = "Medium Rupiah Pack" },
+	item_rupiahBesar = { id = "Paket Rupiah Besar", en = "Large Rupiah Pack" },
+	pass_gudangBesar = { id = "Gudang Besar", en = "Big Storehouse" },
+	pass_autoPanen = { id = "Auto-Panen", en = "Auto-Harvest" },
 	pass_ordal = { id = "Ordal", en = "Ordal" },
 	pass_extraPlot = { id = "Extra Plot", en = "Extra Plot" },
 	pass_vipWarung = { id = "VIP Warung", en = "VIP Warung" },
@@ -245,9 +268,10 @@ local S: { [string]: { id: string, en: string } } = {
 
 	-- phone
 	phone_title = { id = "HP Juragan", en = "Juragan Phone" },
+	phone_home = { id = "Beranda", en = "Home" },
 	phone_tab_phone = { id = "HP", en = "Phone" },
 	phone_tab_kebun = { id = "Kebun", en = "Farm" },
-	phone_tab_pinjol = { id = "Pinjol", en = "Loan" },
+	phone_tab_pinjol = { id = "BayarLater", en = "Loan" },
 	phone_tab_tugas = { id = "Tugas", en = "Quests" },
 	phone_tab_cheat = { id = "Curang", en = "Cheat" },
 	phone_tab_dekor = { id = "Dekorasi", en = "Decor" },
@@ -258,10 +282,10 @@ local S: { [string]: { id: string, en: string } } = {
 	phone_pinjol_borrow = { id = "Pinjam Rp %s", en = "Borrow Rp %s" },
 	phone_pinjol_repay = { id = "Lunasi (Rp %s)", en = "Repay (Rp %s)" },
 	phone_pinjol_clear = { id = "Lunas / Tidak ada pinjaman", en = "Debt-free / No active loan" },
-	phone_tugas_login = { id = "📅 Absen Harian (Hari %s/7)", en = "📅 Daily Login (Day %s/7)" },
+	phone_tugas_login = { id = "Absen Harian (Hari %s/7)", en = "Daily Login (Day %s/7)" },
 	phone_tugas_claim_login = { id = "Klaim Hadiah Harian", en = "Claim Daily Reward" },
 	phone_tugas_claimed = { id = "Sudah Diklaim", en = "Claimed" },
-	phone_tugas_daily = { id = "📋 Tugas Hari Ini", en = "📋 Today's Tasks" },
+	phone_tugas_daily = { id = "Tugas Hari Ini", en = "Today's Tasks" },
 	phone_tugas_claim = { id = "Klaim", en = "Claim" },
 	phone_tugas_progress = { id = "%s/%s", en = "%s/%s" },
 	task_harvest_any = { id = "Panen 10 tanaman apa saja", en = "Harvest 10 crops of any kind" },
@@ -273,10 +297,15 @@ local S: { [string]: { id: string, en: string } } = {
 	n_debt_limit_exceeded = { id = "Melebihi limit pinjaman (maks Rp %s)!", en = "Exceeds loan limit (max Rp %s)!" },
 	n_debt_borrowed = { id = "Pinjaman cair: Rp %s (Biaya Rp %s, Total Rp %s)", en = "Loan approved: Rp %s (Fee Rp %s, Total Rp %s)" },
 	n_debt_repaid = { id = "Bayar hutang Rp %s. Sisa hutang: Rp %s", en = "Repaid Rp %s. Remaining debt: Rp %s" },
-	n_debt_cleared = { id = "🎉 Pinjaman LUNAS! Bebas hutang pinjol.", en = "🎉 Loan CLEARED! You are debt-free." },
-	n_debt_seized = { id = "⚠️ Debt collector menyita hasil panen dari gudang senilai Rp %s! Sisa: Rp %s", en = "⚠️ Debt collector seized Rp %s of crops from storehouse! Remaining: Rp %s" },
-	n_debt_overdue_warning = { id = "⚠️ PERINGATAN: Pinjamanmu jatuh tempo! Segera lunasi.", en = "⚠️ WARNING: Your loan is overdue! Repay immediately." },
-	n_debt_shamed = { id = "📢 Debt collector menyebarkan datamu ke seluruh desa! Nama Baik -%s.", en = "📢 Debt collector shamed you across the village! Reputation -%s." },
+	n_debt_cleared = { id = "Pinjaman LUNAS! Bebas hutang BayarLater.", en = "Loan CLEARED! You are debt-free." },
+	n_debt_seized = { id = "Debt collector menyita hasil panen dari gudang senilai Rp %s! Sisa: Rp %s", en = "Debt collector seized Rp %s of crops from storehouse! Remaining: Rp %s" },
+	n_debt_overdue_warning = { id = "PERINGATAN: Pinjamanmu jatuh tempo! Segera lunasi.", en = "WARNING: Your loan is overdue! Repay immediately." },
+	n_debt_shamed = { id = "Debt collector menyebarkan datamu ke seluruh desa! Nama Baik -%s.", en = "Debt collector shamed you across the village! Reputation -%s." },
+	n_debt_raid = { id = "Tidak bisa pinjam saat razia!", en = "You can't borrow during a raid!" },
+	n_debt_spam = { id = "Pinjol: utangmu lewat jatuh tempo. Bayar sekarang!", en = "BayarLater: your loan is overdue. Pay now!" },
+	n_debt_shamed_public = { id = "%s menunggak pinjol! Jangan ditiru.", en = "%s is dodging a BayarLater loan! Don't copy." },
+	n_debt_collector = { id = "Kolektor menunggu di petakmu.", en = "A debt collector is waiting at your plot." },
+	debt_collector_tag = { id = "Kolektor", en = "Collector" },
 	n_login_already_claimed = { id = "Hadiah harian sudah diambil hari ini.", en = "Daily reward already claimed today." },
 	n_login_reward_cash = { id = "Hadiah absen: +Rp %s!", en = "Login reward: +Rp %s!" },
 	n_login_reward_seeds = { id = "Hadiah absen: +%s bibit %s!", en = "Login reward: +%s %s seeds!" },
@@ -284,16 +313,16 @@ local S: { [string]: { id: string, en: string } } = {
 	n_task_completed = { id = "Tugas selesai! Buka HP untuk klaim hadiah.", en = "Task finished! Open phone to claim." },
 	n_task_claimed = { id = "Hadiah tugas: +Rp %s, +%s Nama Baik!", en = "Task reward: +Rp %s, +%s Reputation!" },
 	phone_inventory = { id = "Isi Tas", en = "Inventory" },
-	phone_gudang = { id = "🏚️ Gudang %s/%s", en = "🏚️ Storehouse %s/%s" },
+	phone_gudang = { id = "Gudang %s/%s", en = "Storehouse %s/%s" },
 	phone_gudang_deposit = { id = "Simpan semua", en = "Store all" },
 	phone_gudang_withdraw = { id = "Ambil semua", en = "Take all" },
-	phone_alat = { id = "🧰 Alat", en = "🧰 Tools" },
-	phone_buruh = { id = "👷 Buruh Tani", en = "👷 Farm hand" },
+	phone_alat = { id = "Alat", en = "Tools" },
+	phone_buruh = { id = "Buruh Tani", en = "Farm hand" },
 	phone_buruh_active = { id = "Bekerja sampai %s", en = "Working until %s" },
 	phone_buruh_hire = { id = "Sewa %s menit (Rp %s)", en = "Hire for %s min (Rp %s)" },
 	phone_tool_max = { id = "Sudah maksimal", en = "Maxed" },
 	phone_tool_next = { id = "%s · Rp %s", en = "%s · Rp %s" },
-	phone_harga = { id = "🏷️ Harga Pasar", en = "🏷️ Market prices" },
+	phone_harga = { id = "Harga Pasar", en = "Market prices" },
 	phone_price_line = { id = "%s %s  x%s", en = "%s %s  x%s" },
 	phone_empty = { id = "Kosong.", en = "Empty." },
 	phone_bukti = { id = "Bukti", en = "Evidence" },
@@ -303,8 +332,8 @@ local S: { [string]: { id: string, en: string } } = {
 	phone_cheat_title = { id = "Akal-akalan", en = "Shortcuts" },
 	phone_oplosan = { id = "Oplos %s (Rp %s)", en = "Fertilize %s (Rp %s)" },
 	phone_steal = { id = "Curi air dari %s", en = "Steal water from %s" },
-	phone_steal_short = { id = "💧 Curi", en = "💧 Steal" },
-	phone_water_short = { id = "🚿 Siram", en = "🚿 Water" },
+	phone_steal_short = { id = "Curi", en = "Steal" },
+	phone_water_short = { id = "Siram", en = "Water" },
 	phone_water = { id = "Siram tanaman %s (+Nama Baik)", en = "Water %s's crops (+Reputation)" },
 	phone_no_neighbors = { id = "Belum ada tetangga online.", en = "No neighbors online yet." },
 	phone_no_growing = { id = "Tidak ada tanaman yang sedang tumbuh.", en = "No crops growing right now." },
@@ -336,7 +365,7 @@ local S: { [string]: { id: string, en: string } } = {
 	raid_breaking = { id = "BREAKING NEWS", en = "BREAKING NEWS" },
 	raid_title = { id = "OPERASI SAPU BERSIH", en = "OPERATION CLEAN SWEEP" },
 	raid_subtitle = { id = "Polisi Desa datang ke ladangmu!", en = "The Village Police are at your farm!" },
-	raid_viral_title = { id = "🔥 VIRAL 🔥", en = "🔥 VIRAL 🔥" },
+	raid_viral_title = { id = "VIRAL", en = "VIRAL" },
 	raid_viral_subtitle = { id = "Videonya sudah tersebar. Amplop tidak berlaku.", en = "The video is everywhere. No envelope will help." },
 	raid_choose = { id = "Apa yang kamu lakukan?", en = "What do you do?" },
 	raid_fine = { id = "Bayar Denda\nRp %s", en = "Pay the Fine\nRp %s" },
@@ -349,6 +378,7 @@ local S: { [string]: { id: string, en: string } } = {
 	raid_outcome_amplop = { id = "Amplop berhasil. Razia bubar.", en = "Envelope worked. The raid disperses." },
 	raid_outcome_amplop_fail = { id = "Amplop kurang tebal! Denda x1,5.", en = "Envelope too thin! Fine x1.5." },
 	raid_outcome_jail = { id = "Kamu digelandang ke Pos Ronda.", en = "You're dragged to the Guard Post." },
+	raid_skip = { id = "Lewati Cutscene", en = "Skip Cutscene" },
 }
 
 local Strings = {}
@@ -398,5 +428,7 @@ function Strings.get(lang: string, key: string, ...: any): string
 	local ok, result = pcall(string.format, template, table.unpack(args))
 	return if ok then result else template
 end
+
+Strings.raw = S
 
 return Strings

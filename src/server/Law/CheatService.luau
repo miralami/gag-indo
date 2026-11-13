@@ -39,11 +39,11 @@ local function applyOplosan(player: Player, data, tileIndex: number)
 	end
 
 	local cheat = Cheats.list.oplosan
-	if not EconomyService.trySpend(player, cheat.cost) then
+	if not EconomyService.trySpend(player, cheat.cost, { sku = "cheat_oplosan" }) then
 		return
 	end
 	if not FarmService.applyOplosan(player, tileIndex) then
-		EconomyService.addCash(player, cheat.cost, false) -- refund: nothing was applied
+		EconomyService.addCash(player, cheat.cost, false, { sku = "refund_oplosan" }) -- refund: nothing was applied
 		Notify.send(player, "n_oplosan_fail")
 		return
 	end
@@ -51,7 +51,7 @@ local function applyOplosan(player: Player, data, tileIndex: number)
 	SusService.add(player, cheat.sus, "oplosan")
 	EvidenceService.logCheat(player, "oplosan", cheat.evidenceValue, tile.Position)
 	Notify.send(player, "n_oplosan_ok")
-	Analytics.log(player, "cheat_used", 1)
+	Analytics.track(player, "cheat_used", 1, { "oplosan" })
 end
 
 local function applyCuriAir(player: Player, data, targetUserId: number)
@@ -88,7 +88,7 @@ local function applyCuriAir(player: Player, data, targetUserId: number)
 	SusService.add(player, cheat.sus, "curi_air")
 	EvidenceService.logCheat(player, "curi_air", cheat.evidenceValue, PlotService.getPlotPosition(theirPlot), target)
 	Notify.send(player, "n_steal_ok", cheat.sus)
-	Analytics.log(player, "cheat_used", 2)
+	Analytics.track(player, "cheat_used", 2, { "curi_air" })
 end
 
 -- Registered with EconomyService: a black-market sale is a cheat event too.
@@ -100,7 +100,7 @@ function CheatService.handleSale(player: Player, cheatId: string, value: number,
 	SusService.add(player, cheat.sus, "gelap")
 	EvidenceService.logCheat(player, "gelap", value, position)
 	Notify.send(player, "n_sus_up", cheat.sus)
-	Analytics.log(player, "cheat_used", 3)
+	Analytics.track(player, "cheat_used", 3, { "gelap" })
 end
 
 local function onApply(player: Player, cheatId: any, tile: any, targetUserId: any)

@@ -58,7 +58,7 @@ local function tryBribe(player: Player)
 	end
 
 	local price = currentPrice(data)
-	if not EconomyService.trySpend(player, price) then
+	if not EconomyService.trySpend(player, price, { sku = "sogok" }) then
 		return
 	end
 

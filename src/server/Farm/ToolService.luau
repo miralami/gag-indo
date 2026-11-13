@@ -110,7 +110,7 @@ function ToolService.buy(player: Player, lineId: any): boolean
 		Notify.send(player, "n_tool_maxed", "@" .. line.label)
 		return false
 	end
-	if not EconomyService.trySpend(player, tier.cost) then
+	if not EconomyService.trySpend(player, tier.cost, { sku = "alat_" .. lineId }) then
 		return false
 	end
 

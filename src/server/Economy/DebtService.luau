@@ -23,12 +23,26 @@ local EconomyService = require(script.Parent.Parent.Economy.EconomyService)
 local RankService = require(script.Parent.Parent.Progression.RankService)
 local StorageService = require(script.Parent.Parent.Farm.StorageService)
 local BadgeService = require(script.Parent.Parent.Progression.BadgeService)
+local Analytics = require(script.Parent.Parent.Analytics.Analytics)
 
 local DebtService = {}
 
 local BORROW_RATE = 2
 local REPAY_RATE = 2
 local TICK_INTERVAL = 30 -- check overdue & interest every 30s
+
+-- Injected from Main.server: DebtService must not require RaidService (RaidService already
+-- reaches the economy) or PlotService (the collector is a world object).
+local raidApi: { isBusy: (Player) -> boolean }? = nil
+local collectorApi: { summon: (Player) -> (), dismiss: (Player) -> () }? = nil
+
+function DebtService.bindRaid(api)
+	raidApi = api
+end
+
+function DebtService.bindCollector(api)
+	collectorApi = api
+end
 
 local function blank(): { active: boolean, principal: number, owed: number, takenAt: number, dueAt: number, lastInterestAt: number, stage: number }
 	return { active = false, principal = 0, owed = 0, takenAt = 0, dueAt = 0, lastInterestAt = 0, stage = 0 }
@@ -94,6 +108,12 @@ function DebtService.borrow(player: Player, amount: any): boolean
 		return false
 	end
 
+	-- No new debt while the police are at the plot: the raid already owns the outcome.
+	if raidApi and raidApi.isBusy(player) then
+		Notify.send(player, "n_debt_raid")
+		return false
+	end
+
 	-- Cannot borrow if active loan already exists
 	local debt = DebtService.ensure(data)
 	if debt.active and debt.owed > 0 then
@@ -119,9 +139,10 @@ function DebtService.borrow(player: Player, amount: any): boolean
 	debt.lastInterestAt = now
 	debt.stage = 0
 
-	EconomyService.addCash(player, amount, false)
+	EconomyService.addCash(player, amount, false, { sku = "pinjol_pinjam" })
 	DebtService.publish(player, data)
 	State.touch(player, "debt")
+	Analytics.track(player, "debt_borrowed", amount, { "pinjol" })
 
 	Notify.send(player, "n_debt_borrowed", amount, fee, math.floor(debt.owed))
 	return true
@@ -149,7 +170,7 @@ function DebtService.repay(player: Player, amount: any): boolean
 		payAmount = math.floor(amount)
 	end
 
-	if not EconomyService.trySpend(player, payAmount) then
+	if not EconomyService.trySpend(player, payAmount, { sku = "pinjol_bayar" }) then
 		return false
 	end
 
@@ -160,7 +181,11 @@ function DebtService.repay(player: Player, amount: any): boolean
 		debt.owed = 0
 		debt.principal = 0
 		debt.stage = 0
+		if collectorApi then
+			collectorApi.dismiss(player)
+		end
 		Notify.send(player, "n_debt_cleared")
+		Analytics.track(player, "debt_cleared", 1, { if hadOverdue then "overdue" else "ontime" })
 		if not hadOverdue then
 			BadgeService.award(player, "debt_free")
 		end
@@ -173,11 +198,11 @@ function DebtService.repay(player: Player, amount: any): boolean
 	return true
 end
 
--- Seize crops from gudang to repay overdue debt
-local function seizeGudang(player: Player, data, debt)
+-- Seize crops from gudang to repay overdue debt. Returns the value recovered.
+local function seizeGudang(player: Player, data, debt): number
 	local gudang = data.gudang
 	if not gudang or not gudang.stacks then
-		return
+		return 0
 	end
 
 	local recovered = 0
@@ -205,6 +230,7 @@ local function seizeGudang(player: Player, data, debt)
 		StorageService.publish(player, data)
 		State.touch(player, "gudang")
 	end
+	return recovered
 end
 
 function DebtService.tick(player: Player)
@@ -220,22 +246,70 @@ function DebtService.tick(player: Player)
 	local now = os.time()
 	DebtService.accrueInterest(data, now, false)
 
-	-- Overdue escalation check
+	-- Overdue escalation. Sequential (not elseif) so a player who comes back after being
+	-- offline for a long time lands on the right stage in one tick instead of waiting 90s.
 	local overdueSeconds = now - debt.dueAt
-	if overdueSeconds > Pinjol.OVERDUE_STAGE_NOTIFY and debt.stage == 0 then
+	if overdueSeconds > Pinjol.OVERDUE_STAGE_NOTIFY and debt.stage < 1 then
 		debt.stage = 1
 		Notify.send(player, "n_debt_overdue_warning")
-	elseif overdueSeconds > Pinjol.OVERDUE_STAGE_SHAME and debt.stage == 1 then
+		Analytics.track(player, "debt_overdue", 1, { "warning" })
+	end
+	if overdueSeconds > Pinjol.OVERDUE_STAGE_SHAME and debt.stage < 2 then
 		debt.stage = 2
-		-- Hit Nama Baik
+		-- Hit Nama Baik and shame the player in front of the server.
 		RankService.addNamaBaik(player, -Pinjol.shameNamaBaikPenalty)
 		Notify.send(player, "n_debt_shamed", Pinjol.shameNamaBaikPenalty)
-	elseif overdueSeconds > Pinjol.OVERDUE_STAGE_SEIZE and debt.stage == 2 then
+		Notify.broadcast("n_debt_shamed_public", player.Name)
+		if collectorApi then
+			collectorApi.summon(player)
+		end
+		Notify.send(player, "n_debt_collector")
+		Analytics.track(player, "debt_overdue", 2, { "shame" })
+	end
+	if overdueSeconds > Pinjol.OVERDUE_STAGE_SEIZE and debt.stage < 3 then
 		debt.stage = 3
-		seizeGudang(player, data, debt)
+		Analytics.track(player, "debt_overdue", 3, { "seize" })
+	end
+
+	-- Stage 1-2: the phone keeps buzzing every tick until the collector gets paid.
+	if debt.stage >= 1 and debt.stage < 3 then
+		Notify.send(player, "n_debt_spam")
+	end
+
+	-- Stage 3+: seize every tick until the debt is paid or the gudang is empty.
+	if debt.stage >= 3 then
+		local recovered = seizeGudang(player, data, debt)
+		if recovered > 0 then
+			Analytics.track(player, "debt_seized", math.floor(recovered), { "gudang" })
+		end
+		if debt.owed <= 0 then
+			debt.active = false
+			debt.owed = 0
+			debt.principal = 0
+			debt.stage = 0
+			if collectorApi then
+				collectorApi.dismiss(player)
+			end
+			Notify.send(player, "n_debt_cleared")
+			Analytics.track(player, "debt_cleared", 1, { "seized" })
+		end
 	end
 
 	DebtService.publish(player, data)
+end
+
+-- Runs after a profile loads (and after a rejoin): offline interest, attributes, and the
+-- collector marker if the loan is already deep overdue.
+function DebtService.onLoaded(player: Player, data)
+	local debt = DebtService.ensure(data)
+	if debt.active and debt.owed > 0 then
+		DebtService.accrueInterest(data, os.time(), true)
+		if debt.stage >= 2 and collectorApi then
+			collectorApi.summon(player)
+		end
+	end
+	DebtService.publish(player, data)
+	State.touch(player, "debt")
 end
 
 function DebtService.start()
@@ -247,14 +321,12 @@ function DebtService.start()
 		DebtService.repay(player, amount)
 	end)
 
-	PlayerData.onLoaded(function(player, data)
-		-- Accrue offline interest
-		local debt = DebtService.ensure(data)
-		if debt.active and debt.owed > 0 then
-			DebtService.accrueInterest(data, os.time(), true)
+	PlayerData.onLoaded(DebtService.onLoaded)
+
+	Players.PlayerRemoving:Connect(function(player)
+		if collectorApi then
+			collectorApi.dismiss(player)
 		end
-		DebtService.publish(player, data)
-		State.touch(player, "debt")
 	end)
 
 	task.spawn(function()

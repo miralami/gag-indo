@@ -6,14 +6,21 @@
 local Products = {}
 
 -- Game passes: id + the attribute the rest of the server reads.
+-- gudangBesar raises the gudang capacity (StorageService reads the attribute);
+-- autoPanen makes the buruh free and permanent (WorkerService reads the attribute).
 Products.passes = {
 	ordal = { id = 0, attribute = "Pass_Ordal" },
 	extraPlot = { id = 0, attribute = "Pass_ExtraPlot", extraTiles = 4 },
 	vipWarung = { id = 0, attribute = "Pass_VIPWarung" },
+	gudangBesar = { id = 0, attribute = "Pass_GudangBesar" },
+	autoPanen = { id = 0, attribute = "Pass_AutoPanen" },
 }
 
 -- Developer products: id + what Receipts adds to the profile when bought.
 -- `grant` is a key handled by Receipts.luau, never a function (config stays data).
+--
+-- Rupiah packs carry `cash` instead of `amount`: how much cash one pack is worth is a
+-- balance/price decision, so it ships unset. A pack with id 0 or cash <= 0 grants nothing.
 Products.products = {
 	amplopPremium = { id = 0, grant = "inventory", item = "amplopPremium", amount = 1 },
 	jaminanKilat = { id = 0, grant = "inventory", item = "jaminanKilat", amount = 1 },
@@ -22,6 +29,12 @@ Products.products = {
 		grant = "seeds",
 		seeds = { padi = 10, jagung = 5, cabai = 3 },
 	},
+	-- Restocks the Toko Bibit shelves immediately (a fresh roll, not a free cycle).
+	restockToko = { id = 0, grant = "restock" },
+	-- Rupiah packs. Purchased cash is not "earned": it must not raise rank or leaderboard.
+	rupiahKecil = { id = 0, grant = "cash", cash = 0 },
+	rupiahSedang = { id = 0, grant = "cash", cash = 0 },
+	rupiahBesar = { id = 0, grant = "cash", cash = 0 },
 }
 
 -- Filled at require time so Receipts can do a single table lookup.

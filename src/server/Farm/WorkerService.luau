@@ -26,13 +26,25 @@ function WorkerService.endsAt(data): number
 	return tonumber((data.worker or {}).hiredUntil) or 0
 end
 
-function WorkerService.active(data, now: number?): boolean
+-- Auto-Panen pass holders never pay a wage; everyone else pays per harvested item.
+function WorkerService.wageFor(player: Player?): number
+	if player and player:GetAttribute("Pass_AutoPanen") then
+		return 0
+	end
+	return Worker.wagePerItem
+end
+
+-- `player` is optional so old call sites still work; the Auto-Panen pass keeps the buruh on.
+function WorkerService.active(data, now: number?, player: Player?): boolean
+	if player and player:GetAttribute("Pass_AutoPanen") then
+		return true
+	end
 	return WorkerService.endsAt(data) > (now or os.time())
 end
 
 function WorkerService.publish(player: Player, data)
 	player:SetAttribute("WorkerUntil", WorkerService.endsAt(data))
-	player:SetAttribute("WorkerActive", WorkerService.active(data))
+	player:SetAttribute("WorkerActive", WorkerService.active(data, nil, player))
 end
 
 function WorkerService.hire(player: Player): boolean
@@ -43,11 +55,16 @@ function WorkerService.hire(player: Player): boolean
 	if not data then
 		return false
 	end
+	if player:GetAttribute("Pass_AutoPanen") then
+		-- The pass already keeps a free buruh on; hiring would charge for nothing.
+		Notify.send(player, "n_worker_hired_auto")
+		return true
+	end
 	if WorkerService.active(data) then
 		Notify.send(player, "n_worker_busy")
 		return false
 	end
-	if not EconomyService.trySpend(player, Worker.hireCost) then
+	if not EconomyService.trySpend(player, Worker.hireCost, { sku = "buruh_sewa" }) then
 		return false
 	end
 	data.worker = data.worker or { hiredUntil = 0 }
@@ -64,15 +81,20 @@ function WorkerService.tick(player: Player): number
 		return 0
 	end
 	local now = os.time()
-	if not WorkerService.active(data, now) then
+	if not WorkerService.active(data, now, player) then
 		if player:GetAttribute("WorkerActive") then
 			WorkerService.publish(player, data)
 		end
 		return 0
 	end
 
-	local wage = Worker.wagePerItem
-	local affordable = math.min(Worker.maxItemsPerPass, math.floor(data.cash / wage))
+	local wage = WorkerService.wageFor(player)
+	local affordable: number
+	if wage <= 0 then
+		affordable = Worker.maxItemsPerPass
+	else
+		affordable = math.min(Worker.maxItemsPerPass, math.floor(data.cash / wage))
+	end
 	if affordable <= 0 then
 		-- No cash for the wage: the buruh goes home.
 		data.worker.hiredUntil = 0
@@ -96,8 +118,10 @@ function WorkerService.tick(player: Player): number
 	end
 
 	if harvested > 0 then
-		EconomyService.trySpend(player, harvested * Worker.wagePerItem)
-		Notify.send(player, "n_worker_harvested", harvested, Worker.wagePerItem * harvested)
+		if wage > 0 then
+			EconomyService.trySpend(player, harvested * wage, { sku = "upah_buruh" })
+		end
+		Notify.send(player, "n_worker_harvested", harvested, wage * harvested)
 	end
 	WorkerService.publish(player, data)
 	return harvested

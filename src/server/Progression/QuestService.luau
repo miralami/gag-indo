@@ -17,6 +17,7 @@ local Notify = require(script.Parent.Parent.Net.Notify)
 local State = require(script.Parent.Parent.Net.State)
 local EconomyService = require(script.Parent.Parent.Economy.EconomyService)
 local RankService = require(script.Parent.RankService)
+local Analytics = require(script.Parent.Parent.Analytics.Analytics)
 
 local QuestService = {}
 
@@ -118,7 +119,7 @@ function QuestService.claimDaily(player: Player): boolean
 
 	if reward then
 		if reward.type == "cash" then
-			EconomyService.addCash(player, reward.amount, false)
+			EconomyService.addCash(player, reward.amount, false, { sku = "hadiah_login" })
 			Notify.send(player, "n_login_reward_cash", reward.amount)
 		elseif reward.type == "seeds" then
 			data.items = data.items or {}
@@ -136,6 +137,7 @@ function QuestService.claimDaily(player: Player): boolean
 
 	QuestService.publish(player, data)
 	State.touch(player, "quests")
+	Analytics.log(player, "login_streak", quests.loginStreak)
 	return true
 end
 
@@ -204,13 +206,14 @@ function QuestService.claimTask(player: Player, taskId: any): boolean
 
 	task.done = true
 	if def.rewardCash and def.rewardCash > 0 then
-		EconomyService.addCash(player, def.rewardCash, false)
+		EconomyService.addCash(player, def.rewardCash, false, { sku = "hadiah_tugas" })
 	end
 	if def.rewardNamaBaik and def.rewardNamaBaik > 0 then
 		RankService.addNamaBaik(player, def.rewardNamaBaik)
 	end
 
 	Notify.send(player, "n_task_claimed", def.rewardCash or 0, def.rewardNamaBaik or 0)
+	Analytics.log(player, "task_claimed", 1)
 	State.touch(player, "quests")
 	return true
 end

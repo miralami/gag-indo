@@ -14,6 +14,7 @@ local Inventory = require(Shared.Inventory)
 local Produce = require(Shared.Produce)
 
 local PlayerData = require(script.Parent.Parent.Data.PlayerData)
+local Analytics = require(script.Parent.Parent.Analytics.Analytics)
 local RateLimit = require(script.Parent.Parent.Net.RateLimit)
 local Notify = require(script.Parent.Parent.Net.Notify)
 local State = require(script.Parent.Parent.Net.State)
@@ -22,6 +23,8 @@ local OnboardingService = require(script.Parent.Parent.Progression.OnboardingSer
 local Village = require(script.Parent.Parent.World.Village)
 local CabaiEvent = require(script.Parent.Parent.Events.CabaiEvent)
 local MarketService = require(script.Parent.MarketService)
+local MarketConfig = require(Shared.Config.Market)
+local Law = require(Shared.Config.Law)
 
 local EconomyService = {}
 
@@ -69,8 +72,14 @@ function EconomyService.sync(player: Player)
 	player:SetAttribute("HarvestCount", Produce.count(data.produce or {}))
 end
 
+-- `options` = { sku = string?, transaction = string? } names the analytics trigger.
 -- earned = true when this is income (counts toward lifetimeEarned / ranks)
-function EconomyService.addCash(player: Player, amount: number, earned: boolean)
+function EconomyService.addCash(
+	player: Player,
+	amount: number,
+	earned: boolean,
+	options: { sku: string?, transaction: string? }?
+)
 	local data = PlayerData.get(player)
 	if not data or not isFiniteNumber(amount) or amount <= 0 then
 		return
@@ -82,10 +91,16 @@ function EconomyService.addCash(player: Player, amount: number, earned: boolean)
 		RankService.refresh(player)
 	end
 	EconomyService.sync(player)
+	local opts = options or {}
+	Analytics.economy(player, "Source", amount, data.cash, opts.transaction or "Gameplay", opts.sku or "cash_grant")
 end
 
 -- Returns true and deducts if the player can afford it.
-function EconomyService.trySpend(player: Player, amount: number): boolean
+function EconomyService.trySpend(
+	player: Player,
+	amount: number,
+	options: { sku: string?, transaction: string? }?
+): boolean
 	local data = PlayerData.get(player)
 	if not data or not isFiniteNumber(amount) or amount < 0 then
 		return false
@@ -97,12 +112,14 @@ function EconomyService.trySpend(player: Player, amount: number): boolean
 	end
 	data.cash -= amount
 	EconomyService.sync(player)
+	local opts = options or {}
+	Analytics.economy(player, "Sink", amount, data.cash, opts.transaction or "Gameplay", opts.sku or "cash_spend")
 	return true
 end
 
 -- Move money between two players without minting any (GDD §6).
 -- Returns how much actually moved.
-function EconomyService.transfer(from: Player, to: Player, amount: number): number
+function EconomyService.transfer(from: Player, to: Player, amount: number, sku: string?): number
 	local fromData = PlayerData.get(from)
 	local toData = PlayerData.get(to)
 	if not fromData or not toData or not isFiniteNumber(amount) then
@@ -116,6 +133,8 @@ function EconomyService.transfer(from: Player, to: Player, amount: number): numb
 	toData.cash += moved
 	EconomyService.sync(from)
 	EconomyService.sync(to)
+	Analytics.economy(from, "Sink", moved, fromData.cash, "Gameplay", sku or "transfer_out")
+	Analytics.economy(to, "Source", moved, toData.cash, "Gameplay", sku or "transfer_in")
 	return moved
 end
 
@@ -208,7 +227,7 @@ function EconomyService.sellAll(player: Player, channel: string)
 		local total = (legalValue + hotValue) * multiplier
 		local extra = total - (legalValue + hotValue)
 		data.produce = {}
-		EconomyService.addCash(player, total, true)
+		EconomyService.addCash(player, total, true, { sku = "tengkulak_gelap" })
 		State.touch(player, "produce")
 		Notify.send(player, "n_sold_gelap", math.floor(total))
 		if cheatSaleHandler then
@@ -222,8 +241,12 @@ function EconomyService.sellAll(player: Player, channel: string)
 		Notify.send(player, if hotValue > 0 then "n_hot_pasar" else "n_nothing_to_sell")
 		return
 	end
-	local multiplier = if player:GetAttribute("Pass_Ordal") then ORDAL_SALE_BONUS else 1
-	local total = marketValue * multiplier
+	local ordalMultiplier = if player:GetAttribute("Pass_Ordal") then ORDAL_SALE_BONUS else 1
+	-- Nama Baik bonus/penalty: 50 is baseline 1.0, 0 is 0.95, 100 is 1.05
+	local namaBaik = data.namaBaik or Law.namaBaikStart
+	local namaBaikScale = (namaBaik - Law.namaBaikStart) / Law.namaBaikStart
+	local namaBaikMultiplier = 1 + math.clamp(namaBaikScale * (MarketConfig.namaBaikMaxBonus or 0.05), -0.05, 0.05)
+	local total = marketValue * ordalMultiplier * namaBaikMultiplier
 
 	-- Clean produce sold; only the hot (oplosan) stacks stay in the sack.
 	Produce.removeClean(data.produce or {})
@@ -231,7 +254,7 @@ function EconomyService.sellAll(player: Player, channel: string)
 		MarketService.recordSale(cropId, count)
 	end
 
-	EconomyService.addCash(player, total, true)
+	EconomyService.addCash(player, total, true, { sku = "pasar" })
 	State.touch(player, "produce")
 	Notify.send(player, "n_sold", math.floor(total))
 	OnboardingService.advance(player, "sell")
@@ -254,7 +277,7 @@ function EconomyService.buySeed(player: Player, cropId: string, amount: number):
 	if not EconomyService.hasRank(data, crop.rank) then
 		return false
 	end
-	if not EconomyService.trySpend(player, crop.seedCost * amount) then
+	if not EconomyService.trySpend(player, crop.seedCost * amount, { sku = "bibit_" .. cropId }) then
 		return false
 	end
 	Inventory.addSeed(data, cropId, amount)
@@ -263,8 +286,8 @@ function EconomyService.buySeed(player: Player, cropId: string, amount: number):
 	return true
 end
 
-local function onMarketSell(player: Player, _cropId: any, channel: any)
-	local resolved = if channel == "gelap" then "gelap" else "pasar"
+local function onMarketSell(player: Player, arg1: any, arg2: any)
+	local resolved = if arg1 == "gelap" or arg2 == "gelap" then "gelap" else "pasar"
 	EconomyService.sellAll(player, resolved)
 end
 

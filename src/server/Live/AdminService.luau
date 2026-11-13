@@ -33,6 +33,7 @@ local ACTIONS = {
 	setAnomaly = true,
 	setEvent = true,
 	grantItem = true,
+	grantCash = true,
 	getConfig = true,
 	refresh = true,
 }
@@ -133,6 +134,26 @@ local function grantItem(player: Player, value: any)
 	reply(player, { ok = true, message = `Gave {amount}x {itemId} to {target.Name}` })
 end
 
+local function grantCash(player: Player, value: any)
+	if type(value) ~= "table" then
+		fail(player, "Bad grant.")
+		return
+	end
+	local target = targetOf(value.userId)
+	local data = target and PlayerData.get(target)
+	if not target or not data then
+		fail(player, "Player is not online.")
+		return
+	end
+	local amount = value.amount
+	if type(amount) ~= "number" or amount ~= math.floor(amount) or amount < 1 or amount > 10_000_000 then
+		fail(player, "Amount must be 1..10000000.")
+		return
+	end
+	EconomyService.addCash(target, amount, false, { sku = "admin_grant" })
+	reply(player, { ok = true, message = `Gave Rp {amount} to {target.Name}` })
+end
+
 local function getConfig(player)
 	reply(player, {
 		ok = true,
@@ -154,6 +175,7 @@ local handlers = {
 	setAnomaly = setAnomaly,
 	setEvent = setEvent,
 	grantItem = grantItem,
+	grantCash = grantCash,
 	getConfig = function(player)
 		getConfig(player)
 	end,

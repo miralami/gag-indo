@@ -11,5 +11,6 @@ Market.pressurePerItem = 0.003 -- 100 items sold => 0.70x at once
 Market.minMultiplier = 0.6 -- the floor
 Market.maxMultiplier = 1.25 -- the HET ceiling; never above this
 Market.tickSeconds = 5
+Market.namaBaikMaxBonus = 0.05 -- Pasar price +-5% based on Nama Baik (50 = baseline 1.0, 0 = 0.95, 100 = 1.05)
 
 return Market

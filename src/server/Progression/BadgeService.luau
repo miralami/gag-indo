@@ -7,6 +7,8 @@ local BadgeServiceRoblox = game:GetService("BadgeService")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Badges = require(Shared.Config.Badges)
 
+local Analytics = require(script.Parent.Parent.Analytics.Analytics)
+
 local BadgeService = {}
 
 function BadgeService.award(player: Player, badgeKey: string): boolean
@@ -15,13 +17,16 @@ function BadgeService.award(player: Player, badgeKey: string): boolean
 	end
 	local def = Badges.list[badgeKey]
 	if not def or def.id <= 0 then
-		-- In dev / studio with id 0, skip quietly
 		return false
 	end
 
 	local ok, awarded = pcall(function()
 		return BadgeServiceRoblox:AwardBadge(player.UserId, def.id)
 	end)
+
+	if ok and awarded == true then
+		Analytics.log(player, "badge_awarded", def.id)
+	end
 
 	return ok and awarded == true
 end

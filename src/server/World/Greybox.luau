@@ -8,13 +8,77 @@
 local Map = require(script.Parent.Map)
 local Props = require(script.Parent.Props)
 local NpcFactory = require(script.Parent.NpcFactory)
+local Visuals = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").Config.Visuals)
 
 local Greybox = {}
 
 local GROUND_Y = 0.5
+local C = {
+	paper = Props.palette("kertas"), grass = Props.palette("padi"),
+	clay = Props.palette("genteng"), red = Props.palette("merah"),
+	wood = Props.palette("bambu"), gold = Props.palette("kunyit"),
+	blue = Props.palette("malam"), shadow = Props.palette("indigo"),
+}
+
+local function contour(model: Model, maxDistance: number?)
+	local highlight = Instance.new("Highlight")
+	highlight.Name = "InkContour"
+	highlight.Adornee = model
+	highlight.FillTransparency = 1
+	highlight.OutlineColor = Props.palette("tinta")
+	highlight.DepthMode = Enum.HighlightDepthMode.Occluded
+	highlight.Parent = model
+	model:SetAttribute("ContourMaxDistance", maxDistance or 60)
+end
+
+local function contourDescendants(model: Model)
+	for _, item in model:GetDescendants() do
+		if item:IsA("Model") and not item:FindFirstChild("InkContour") then
+			contour(item, 48)
+		end
+	end
+end
 
 local function part(props: { [string]: any }): Part
+	if props.Material == nil then
+		props.Material = Enum.Material.Wood
+	end
 	return Props.part(props)
+end
+
+local DRESSING_PROPS = {
+	{ "Sack", Vector3.new(7, GROUND_Y + 0.45, 5), Vector3.new(1.4, 0.9, 1.2), C.wood },
+	{ "Galon", Vector3.new(10, GROUND_Y + 0.7, 5), Vector3.new(0.8, 1.4, 0.8), C.blue },
+	{ "MotorBody", Vector3.new(-10, GROUND_Y + 0.5, 5), Vector3.new(2.8, 0.7, 1.2), C.red },
+	{ "Laundry", Vector3.new(13, GROUND_Y + 1.5, 7), Vector3.new(2, 1.2, 0.2), C.paper },
+}
+
+local function dressingKit(): Model
+	local kit = Instance.new("Model")
+	kit.Name = "DressingKit"
+	for _, def in DRESSING_PROPS do
+		local shape = if def[1] == "Galon" then Enum.PartType.Cylinder else Enum.PartType.Block
+		local material = if def[1] == "Sack" or def[1] == "Laundry" then Enum.Material.Fabric else Enum.Material.Wood
+		local p = part({ Name = def[1], Position = def[2], Size = def[3], Shape = shape, Color = def[4], Material = material, CanCollide = false })
+		p.Parent = kit
+	end
+	local motor = kit:FindFirstChild("MotorBody") :: Part
+	for _, side in { -1, 1 } do
+		local wheel = part({ Name = "MotorWheel", Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.35, 0.8, 0.8), Position = motor.Position + Vector3.new(0, -0.3, side * 0.65), Orientation = Vector3.new(0, 0, 90), Color = Props.palette("tinta"), Material = Enum.Material.Rubber })
+		wheel.Parent = kit
+	end
+	return kit
+end
+
+local function buildDressing(world: Folder)
+	for index, origin in { Vector3.new(0, 0, 0), Vector3.new(30, 0, 30), Vector3.new(-30, 0, 30) } do
+		local clone = dressingKit()
+		clone.Name = "DressingCluster_" .. index
+		for _, item in clone:GetChildren() do
+			if item:IsA("BasePart") then item.Position += origin end
+		end
+		clone.Parent = world
+	end
 end
 
 local function sign(parent: Instance, cframe: CFrame, text: string, size: Vector2?): Part
@@ -22,24 +86,29 @@ local function sign(parent: Instance, cframe: CFrame, text: string, size: Vector
 		Name = "Sign",
 		Size = Vector3.new(9, 3.2, 0.4),
 		CFrame = cframe,
-		Color = Color3.fromRGB(95, 65, 45),
+		Color = C.wood,
 		Material = Enum.Material.Wood,
 	})
 	board.Parent = parent
 	local label = Props.billboard(board, 0, size or Vector2.new(260, 70), { alwaysOnTop = true, maxDistance = 140 })
 	label.Text = text
-	label.TextColor3 = Color3.fromRGB(255, 240, 190)
+	label.TextColor3 = C.paper
 	return board
 end
 
 local function roof(parent: Instance, position: Vector3, size: Vector3, color: Color3, material: Enum.Material?)
-	part({
+	local roofPart = part({
 		Name = "Roof",
 		Size = size,
 		Position = position,
 		Color = color,
 		Material = material or Enum.Material.Fabric,
-	}).Parent = parent
+	})
+	roofPart.Parent = parent
+	if color == C.red or color == C.clay or color == C.gold or color == C.blue then
+		local slot = if color == C.red then "genteng" elseif color == C.clay then "genteng" elseif color == C.gold then "genteng" else "seng"
+		Visuals.applySurface(roofPart, slot, material or Enum.Material.Metal)
+	end
 end
 
 local function posts(parent: Instance, corners: { Vector3 }, height: number, color: Color3)
@@ -57,12 +126,13 @@ end
 local function buildPasar(world: Folder)
 	local model = Instance.new("Model")
 	model.Name = "Pasar"
+	model:SetAttribute("HubAccent", "merah")
 
 	local counter = part({
 		Name = "Counter",
 		Size = Vector3.new(14, 3, 5),
 		Position = Vector3.new(0, GROUND_Y + 1.5, 0),
-		Color = Color3.fromRGB(150, 100, 60),
+		Color = C.wood,
 		Material = Enum.Material.WoodPlanks,
 	})
 	counter.Parent = model
@@ -71,8 +141,8 @@ local function buildPasar(world: Folder)
 		Vector3.new(6.5, GROUND_Y, -2),
 		Vector3.new(-6.5, GROUND_Y, 2),
 		Vector3.new(6.5, GROUND_Y, 2),
-	}, 8, Color3.fromRGB(110, 80, 50))
-	roof(model, Vector3.new(0, GROUND_Y + 8, 0), Vector3.new(17, 0.6, 8), Color3.fromRGB(30, 110, 170))
+	}, 8, C.shadow)
+	roof(model, Vector3.new(0, GROUND_Y + 8, 0), Vector3.new(17, 0.6, 8), C.red, Enum.Material.Metal)
 	sign(model, CFrame.new(0, GROUND_Y + 10, 0), "PASAR")
 
 	local prompt = Props.prompt(counter, "Pasar", "Jual hasil panen")
@@ -81,18 +151,20 @@ local function buildPasar(world: Folder)
 	Map.add(prompt, Map.TAGS.Pasar)
 
 	model.PrimaryPart = counter
+	contour(model)
 	model.Parent = world
 end
 
 local function buildGelap(world: Folder)
 	local model = Instance.new("Model")
 	model.Name = "TengkulakGelap"
+	model:SetAttribute("HubAccent", "genteng")
 
 	local counter = part({
 		Name = "Counter",
 		Size = Vector3.new(10, 2.6, 4),
 		Position = Vector3.new(0, GROUND_Y + 1.3, -16),
-		Color = Color3.fromRGB(80, 55, 40),
+		Color = C.wood,
 		Material = Enum.Material.WoodPlanks,
 	})
 	counter.Parent = model
@@ -101,8 +173,8 @@ local function buildGelap(world: Folder)
 		Vector3.new(4.5, GROUND_Y, -18),
 		Vector3.new(-4.5, GROUND_Y, -14),
 		Vector3.new(4.5, GROUND_Y, -14),
-	}, 7, Color3.fromRGB(60, 45, 35))
-	roof(model, Vector3.new(0, GROUND_Y + 7, -16), Vector3.new(13, 0.6, 7), Color3.fromRGB(120, 35, 35), Enum.Material.Fabric)
+	}, 7, C.shadow)
+	roof(model, Vector3.new(0, GROUND_Y + 7, -16), Vector3.new(13, 0.6, 7), C.clay, Enum.Material.Metal)
 	sign(model, CFrame.new(0, GROUND_Y + 9, -16), "TENGKULAK GELAP", Vector2.new(300, 70))
 
 	local prompt = Props.prompt(counter, "Tengkulak Gelap", "Jual (harga gelap)")
@@ -111,19 +183,21 @@ local function buildGelap(world: Folder)
 	Map.add(prompt, Map.TAGS.Gelap)
 
 	model.PrimaryPart = counter
+	contour(model)
 	model.Parent = world
 end
 
 local function buildPakRtHouse(world: Folder)
 	local model = Instance.new("Model")
 	model.Name = "RumahPakRT"
+	model:SetAttribute("HubAccent", "kunyit")
 
 	local center = Vector3.new(30, GROUND_Y, 26)
 	local floor = part({
 		Name = "Floor",
 		Size = Vector3.new(18, 0.6, 14),
 		Position = center,
-		Color = Color3.fromRGB(160, 130, 90),
+		Color = C.wood,
 		Material = Enum.Material.WoodPlanks,
 	})
 	floor.Parent = model
@@ -132,8 +206,8 @@ local function buildPakRtHouse(world: Folder)
 		center + Vector3.new(8.5, 0, -6.5),
 		center + Vector3.new(-8.5, 0, 6.5),
 		center + Vector3.new(8.5, 0, 6.5),
-	}, 9, Color3.fromRGB(120, 90, 60))
-	roof(model, center + Vector3.new(0, 9.5, 0), Vector3.new(21, 0.8, 17), Color3.fromRGB(160, 70, 40), Enum.Material.Slate)
+	}, 9, C.shadow)
+	roof(model, center + Vector3.new(0, 9.5, 0), Vector3.new(21, 0.8, 17), C.gold, Enum.Material.Slate)
 	sign(model, CFrame.new(30, GROUND_Y + 11.5, 19.5), "RUMAH PAK RT", Vector2.new(280, 70))
 
 	local table = part({
@@ -150,19 +224,21 @@ local function buildPakRtHouse(world: Folder)
 	Map.add(prompt, Map.TAGS.PakRT)
 
 	model.PrimaryPart = floor
+	contour(model)
 	model.Parent = world
 end
 
 local function buildPosPolisi(world: Folder)
 	local model = Instance.new("Model")
 	model.Name = "PosPolisi"
+	model:SetAttribute("HubAccent", "malam")
 
 	local center = Vector3.new(-30, GROUND_Y, 26)
 	local floor = part({
 		Name = "Floor",
 		Size = Vector3.new(16, 0.6, 12),
 		Position = center,
-		Color = Color3.fromRGB(180, 180, 185),
+		Color = C.blue,
 		Material = Enum.Material.Concrete,
 	})
 	floor.Parent = model
@@ -171,15 +247,15 @@ local function buildPosPolisi(world: Folder)
 		center + Vector3.new(7.5, 0, -5.5),
 		center + Vector3.new(-7.5, 0, 5.5),
 		center + Vector3.new(7.5, 0, 5.5),
-	}, 9, Color3.fromRGB(70, 80, 110))
-	roof(model, center + Vector3.new(0, 9.5, 0), Vector3.new(19, 0.8, 15), Color3.fromRGB(25, 70, 140), Enum.Material.Slate)
+	}, 9, C.shadow)
+	roof(model, center + Vector3.new(0, 9.5, 0), Vector3.new(19, 0.8, 15), C.blue, Enum.Material.Metal)
 	sign(model, CFrame.new(-30, GROUND_Y + 11.5, 20), "POS POLISI", Vector2.new(260, 70))
 
 	local desk = part({
 		Name = "Desk",
 		Size = Vector3.new(6, 2.2, 3),
 		Position = Vector3.new(-30, GROUND_Y + 1.1, 20),
-		Color = Color3.fromRGB(70, 85, 120),
+		Color = C.blue,
 		Material = Enum.Material.Metal,
 	})
 	desk.Parent = model
@@ -189,6 +265,7 @@ local function buildPosPolisi(world: Folder)
 	Map.add(prompt, Map.TAGS.Polisi)
 
 	model.PrimaryPart = floor
+	contour(model)
 	model.Parent = world
 end
 
@@ -201,7 +278,7 @@ local function buildPosRonda(world: Folder)
 		Name = "Floor",
 		Size = Vector3.new(12, 0.6, 10),
 		Position = center,
-		Color = Color3.fromRGB(110, 85, 60),
+		Color = C.shadow,
 		Material = Enum.Material.WoodPlanks,
 	})
 	floor.Parent = model
@@ -210,8 +287,8 @@ local function buildPosRonda(world: Folder)
 		center + Vector3.new(5.5, 0, -4.5),
 		center + Vector3.new(-5.5, 0, 4.5),
 		center + Vector3.new(5.5, 0, 4.5),
-	}, 8, Color3.fromRGB(95, 70, 50))
-	roof(model, center + Vector3.new(0, 8.5, 0), Vector3.new(14, 0.7, 12), Color3.fromRGB(200, 120, 30), Enum.Material.Fabric)
+	}, 8, C.shadow)
+	roof(model, center + Vector3.new(0, 8.5, 0), Vector3.new(14, 0.7, 12), C.gold, Enum.Material.Fabric)
 	sign(model, CFrame.new(-30, GROUND_Y + 10, -20.5), "POS RONDA", Vector2.new(240, 70))
 	Map.add(floor, Map.TAGS.Ronda)
 
@@ -227,19 +304,21 @@ local function buildPosRonda(world: Folder)
 	end
 
 	model.PrimaryPart = floor
+	contour(model)
 	model.Parent = world
 end
 
 local function buildWarung(world: Folder)
 	local model = Instance.new("Model")
 	model.Name = "Warung"
+	model:SetAttribute("HubAccent", "genteng")
 
 	local center = Vector3.new(30, GROUND_Y, -26)
 	local floor = part({
 		Name = "Floor",
 		Size = Vector3.new(14, 0.6, 12),
 		Position = center,
-		Color = Color3.fromRGB(150, 120, 85),
+		Color = C.wood,
 		Material = Enum.Material.WoodPlanks,
 	})
 	floor.Parent = model
@@ -248,8 +327,8 @@ local function buildWarung(world: Folder)
 		center + Vector3.new(6.5, 0, -5.5),
 		center + Vector3.new(-6.5, 0, 5.5),
 		center + Vector3.new(6.5, 0, 5.5),
-	}, 8, Color3.fromRGB(110, 85, 60))
-	roof(model, center + Vector3.new(0, 8.5, 0), Vector3.new(17, 0.7, 15), Color3.fromRGB(60, 120, 80), Enum.Material.Fabric)
+	}, 8, C.shadow)
+	roof(model, center + Vector3.new(0, 8.5, 0), Vector3.new(17, 0.7, 15), C.clay, Enum.Material.Metal)
 	sign(model, CFrame.new(30, GROUND_Y + 10, -20), "WARUNG", Vector2.new(240, 70))
 
 	local table = part({
@@ -276,6 +355,7 @@ local function buildWarung(world: Folder)
 	Map.add(prompt, Map.TAGS.Warung)
 
 	model.PrimaryPart = floor
+	contour(model)
 	model.Parent = world
 end
 
@@ -304,11 +384,12 @@ local function scatterTrees(world: Folder)
 			Name = "Leaves",
 			Size = Vector3.new(11, 8, 11),
 			Position = spot + Vector3.new(0, 11, 0),
-			Color = Color3.fromRGB(60, 130, 60),
+			Color = C.grass,
 			Material = Enum.Material.Grass,
 			Transparency = 0.05,
 		}).Parent = tree
 		tree.Parent = world
+		contour(tree, 40)
 	end
 end
 
@@ -318,7 +399,7 @@ local function buildRoads(world: Folder)
 			Name = "Road",
 			Size = if horizontal then Vector3.new(512, 0.1, 18) else Vector3.new(18, 0.1, 512),
 			Position = Vector3.new(0, GROUND_Y + 0.03, 0),
-			Color = Color3.fromRGB(120, 115, 105),
+			Color = C.shadow,
 			Material = Enum.Material.Asphalt,
 		}).Parent = world
 	end
@@ -343,10 +424,19 @@ function Greybox.build(): Folder
 		Name = "Ground",
 		Size = Vector3.new(512, 1, 512),
 		Position = Vector3.new(0, 0, 0),
-		Color = Color3.fromRGB(110, 160, 70),
+		Color = C.grass,
 		Material = Enum.Material.Grass,
 	})
 	ground.Parent = world
+	local waterColor = Props.palette("malam")
+	local grassColor = Props.palette("padi")
+	workspace.Terrain.WaterColor = waterColor
+	workspace.Terrain:SetMaterialColor(Enum.Material.Ground, Props.palette("bambu"))
+	workspace.Terrain:SetMaterialColor(Enum.Material.Grass, grassColor)
+	workspace.Terrain:FillBlock(CFrame.new(0, -4, 110), Vector3.new(220, 8, 100), Enum.Material.Water)
+	for row = 0, 3 do
+		workspace.Terrain:FillBlock(CFrame.new(0, -1.5 + row * 1.5, -100 + row * 14), Vector3.new(120 - row * 22, 3, 18), Enum.Material.Ground)
+	end
 
 	buildRoads(world)
 
@@ -368,7 +458,9 @@ function Greybox.build(): Folder
 	buildPosPolisi(world)
 	buildPosRonda(world)
 	buildWarung(world)
+	buildDressing(world)
 	scatterTrees(world)
+	contourDescendants(world)
 
 	-- NPCs -----------------------------------------------------------------
 	NpcFactory.build({
@@ -376,7 +468,7 @@ function Greybox.build(): Folder
 		subtitle = "Ketua RT 01",
 		npc = "pakrt",
 		position = Vector3.new(30, GROUND_Y, 24),
-		shirt = Color3.fromRGB(150, 130, 70),
+		shirt = C.gold,
 		skin = Color3.fromRGB(200, 155, 110),
 		mustache = true,
 		peci = true,
@@ -387,7 +479,7 @@ function Greybox.build(): Folder
 		subtitle = "Tengkulak",
 		npc = "tengkulak",
 		position = Vector3.new(-3, GROUND_Y, -16),
-		shirt = Color3.fromRGB(60, 55, 60),
+		shirt = C.shadow,
 		skin = Color3.fromRGB(170, 125, 90),
 		parent = world,
 	})
@@ -396,9 +488,9 @@ function Greybox.build(): Folder
 			name = "Polisi Desa",
 			npc = "polisi",
 			position = Vector3.new(x, GROUND_Y, 23),
-			shirt = Color3.fromRGB(40, 70, 120),
+			shirt = C.blue,
 			skin = Color3.fromRGB(185, 140, 100),
-			cap = Color3.fromRGB(30, 50, 95),
+			cap = C.shadow,
 			parent = world,
 		})
 	end

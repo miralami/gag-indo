@@ -40,53 +40,88 @@ Seasons.anomaliGrowth = {
 	laNina = 1.1,
 }
 
--- Sky presets (v2 PLAN §3.3). The client merges the season preset with the weather overlay
--- and tweens Lighting towards it; nothing on the server reads these.
+-- Seasonal risk events (v2 PLAN §3.3). Checked on harvest.
+Seasons.risks = {
+	banjirChance = 0.08, -- in musim hujan + weather badai/hujan, palawija can drown
+	hamaChance = 0.06, -- in musim pancaroba, any crop can get pest-damaged
+	elNinoFailChance = 0.08, -- in anomali elNino, crops can fail from drought
+}
+
+-- Sky presets (v2 PLAN §3.3, ART.md §5). The client merges the season preset with the weather
+-- overlay and tweens Lighting towards it; nothing on the server reads these.
+-- Golden-hour look: low warm sun, shadows tinted indigo-brown (never grey or black), warm haze.
+-- Colours come from the ART.md palette (senja, padi, genteng, indigo, malam).
 Seasons.sky = {
 	hujan = {
-		clockTime = 14,
-		brightness = 1.2,
-		fogEnd = 320,
-		fogColor = Color3.fromRGB(150, 160, 170),
-		ambient = Color3.fromRGB(95, 105, 115),
-		outdoorAmbient = Color3.fromRGB(120, 130, 140),
-		atmosphereDensity = 0.42,
-		atmosphereHaze = 2.2,
+		clockTime = 16.0,
+		brightness = 1.8,
+		fogEnd = 360,
+		fogColor = Color3.fromRGB(146, 162, 178),
+		ambient = Color3.fromRGB(86, 96, 118),
+		outdoorAmbient = Color3.fromRGB(122, 136, 158),
+		colorShiftTop = Color3.fromRGB(200, 215, 235),
+		colorShiftBottom = Color3.fromRGB(96, 104, 130),
+		atmosphereDensity = 0.4,
+		atmosphereHaze = 2.0,
+		atmosphereColor = Color3.fromRGB(150, 165, 185),
+		atmosphereDecay = Color3.fromRGB(90, 100, 125),
 		cloudCover = 0.75,
+		tint = Color3.fromRGB(225, 235, 245),
+		saturation = 0.18,
+		contrast = 0.08,
+		bloom = 0.25,
+		sunRays = 0.02,
 	},
 	kemarau = {
-		clockTime = 15.2,
-		brightness = 2.6,
+		clockTime = 16.9,
+		brightness = 3.0,
 		fogEnd = 950,
-		fogColor = Color3.fromRGB(225, 215, 190),
-		ambient = Color3.fromRGB(130, 120, 100),
-		outdoorAmbient = Color3.fromRGB(150, 140, 120),
-		atmosphereDensity = 0.28,
-		atmosphereHaze = 0.8,
+		fogColor = Color3.fromRGB(240, 200, 140),
+		ambient = Color3.fromRGB(120, 98, 84),
+		outdoorAmbient = Color3.fromRGB(170, 140, 108),
+		colorShiftTop = Color3.fromRGB(255, 214, 150),
+		colorShiftBottom = Color3.fromRGB(110, 92, 110),
+		atmosphereDensity = 0.3,
+		atmosphereHaze = 1.2,
+		atmosphereColor = Color3.fromRGB(246, 201, 122),
+		atmosphereDecay = Color3.fromRGB(200, 120, 70),
 		cloudCover = 0.1,
+		tint = Color3.fromRGB(255, 236, 205),
+		saturation = 0.22,
+		contrast = 0.1,
+		bloom = 0.35,
+		sunRays = 0.14,
 	},
 	pancaroba = {
-		clockTime = 14.5,
-		brightness = 2.0,
-		fogEnd = 700,
-		fogColor = Color3.fromRGB(200, 205, 210),
-		ambient = Color3.fromRGB(120, 125, 130),
-		outdoorAmbient = Color3.fromRGB(140, 145, 150),
-		atmosphereDensity = 0.33,
-		atmosphereHaze = 1.4,
+		clockTime = 16.5,
+		brightness = 2.4,
+		fogEnd = 750,
+		fogColor = Color3.fromRGB(230, 205, 160),
+		ambient = Color3.fromRGB(104, 100, 104),
+		outdoorAmbient = Color3.fromRGB(150, 140, 130),
+		colorShiftTop = Color3.fromRGB(255, 226, 180),
+		colorShiftBottom = Color3.fromRGB(104, 98, 118),
+		atmosphereDensity = 0.34,
+		atmosphereHaze = 1.5,
+		atmosphereColor = Color3.fromRGB(235, 215, 170),
+		atmosphereDecay = Color3.fromRGB(190, 130, 90),
 		cloudCover = 0.4,
+		tint = Color3.fromRGB(255, 242, 222),
+		saturation = 0.2,
+		contrast = 0.08,
+		bloom = 0.3,
+		sunRays = 0.08,
 	},
 }
 
--- Weather overlays on top of the season preset. brightness/fogEnd are multipliers;
--- cloudCover/atmosphereDensity/atmosphereHaze are additive and clamped in skyFor.
+-- Weather overlays on top of the season preset. brightness/fogEnd/sunRays are multipliers;
+-- cloudCover/atmosphereDensity/atmosphereHaze/saturation are additive and clamped in skyFor.
 Seasons.cuacaSky = {
 	cerah = { brightness = 1.0, cloudCover = -0.2 },
-	hujan = { brightness = 0.75, fogEnd = 0.7, cloudCover = 0.2 },
-	badai = { brightness = 0.55, fogEnd = 0.45, cloudCover = 1, atmosphereDensity = 0.2 },
-	kabut = { brightness = 0.85, fogEnd = 0.4, atmosphereDensity = 0.25, atmosphereHaze = 2 },
+	hujan = { brightness = 0.75, fogEnd = 0.7, cloudCover = 0.2, saturation = -0.04, sunRays = 0.3 },
+	badai = { brightness = 0.55, fogEnd = 0.45, cloudCover = 1, atmosphereDensity = 0.2, saturation = -0.12, sunRays = 0 },
+	kabut = { brightness = 0.85, fogEnd = 0.4, atmosphereDensity = 0.25, atmosphereHaze = 2, saturation = -0.08, sunRays = 0.5 },
 }
-
 
 -- Weighted weather table per season. `roll` is a number in [0, 1) — pass math.random()
 -- in game, or a fixed value in tests.
@@ -164,6 +199,8 @@ function Seasons.skyFor(musim: string?, cuaca: string?): any
 	out.cloudCover = math.clamp((base.cloudCover or 0) + (overlay.cloudCover or 0), 0, 1)
 	out.atmosphereDensity = math.clamp((base.atmosphereDensity or 0) + (overlay.atmosphereDensity or 0), 0, 1)
 	out.atmosphereHaze = math.clamp((base.atmosphereHaze or 0) + (overlay.atmosphereHaze or 0), 0, 10)
+	out.saturation = math.clamp((base.saturation or 0) + (overlay.saturation or 0), -1, 1)
+	out.sunRays = math.clamp((base.sunRays or 0) * (overlay.sunRays or 1), 0, 1)
 	return out
 end
 

@@ -54,8 +54,9 @@ function ShopStock.maxAmount(cropId: string): number
 end
 
 -- The shelves for one restock cycle. Returns { [cropId] = amount } with absent = not stocked.
-function ShopStock.roll(cycle: number, userId: number, musim: string?): { [string]: number }
-	local seed = (cycle * 48271 + math.abs(userId or 0) % MOD) % MOD
+-- `nonce` (a paid Restock) rerolls the same cycle; 0 is the free, deterministic roll.
+function ShopStock.roll(cycle: number, userId: number, musim: string?, nonce: number?): { [string]: number }
+	local seed = (cycle * 48271 + math.abs(userId or 0) % MOD + math.abs(nonce or 0) * 104729) % MOD
 	local stock = {}
 	for _, cropId in Crops.order do
 		seed = nextSeed(seed)

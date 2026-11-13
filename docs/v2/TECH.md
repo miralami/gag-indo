@@ -417,6 +417,9 @@ seconds **at plant time** and stores them on the tile, so a season change never 
 already in the ground; the next regrow picks up the new season. `SeasonService` mirrors
 `Growth_<family>` onto `ReplicatedStorage` for the UI; `client/World/Sky.luau` tweens Lighting
 and Atmosphere towards the `Seasons.sky` preset merged with the weather overlay from `Cuaca`.
+It also drives ColorCorrection, Bloom and SunRays (golden-hour look, `ART.md` §5). **Manual step:**
+`Lighting.Technology` cannot be set from a script, so set it to `Future` once in Studio (Lighting
+properties) and save the place file; `ShadowSoftness`, exposure and the effects are set by `Sky.mount`.
 
 ### Toko Bibit: rotating, deterministic shelves
 
@@ -538,7 +541,16 @@ Manual checks still required in Studio (see [docs/testing](../testing/README.md)
 - M2 tuning is a starting point, not a balance pass: shop odds, market pressure/floor, tool
   prices and the buruh wage all sit in `Config/*` for the balance sheet. `traktor` is a
   placeholder row until row planting exists.
-- Season risk events from PLAN §3.3 (*banjir*, *hama*, *gagal panen*) are **not** implemented;
-  seasons currently change growth, shop odds and sky only.
+- Season risk events from PLAN §3.3 (*banjir*, *hama*, *gagal panen*) are **implemented** in
+  `FarmService` at harvest time: flood drowns palawija in rain/storm weather, pests strike during
+  pancaroba, and El Niño drought can destroy any crop. Config in `Seasons.risks`.
+- **LeaderboardService** (`server/Social/LeaderboardService.luau`) is implemented: three
+  `OrderedDataStore` categories (richest, sultan harvests, most raided), periodic refresh,
+  client broadcast via `Leaderboard_Data`.
+- **Nama Baik → Pasar price ±5%** is implemented in `EconomyService.sellAll`; config in
+  `Market.namaBaikMaxBonus`.
+- **Raid cutscene skip button** is implemented in `RaidOverlay.luau`; full cutscene (police
+  walk-in, establishing shot, letter overlay) still needs Studio map and NPC assets.
+- **Analytics events** added to DebtService, QuestService, BadgeService, FarmService risk events.
 - `Config/Audio.luau`, real pass/product ids and the `Mbah Dukun` / pinjol names stay open (D4–D9).
 - The `VillageWorld` tag contract needs a real map before M3; the greybox remains the fallback.

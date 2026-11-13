@@ -1,10 +1,34 @@
 --!nocheck
 -- Pinjol (DebtService) unit spec (v2 PLAN §3.5).
+--
+-- The loan is the riskiest economy loop in the game: it must cap interest, allow one loan at a
+-- time, refuse borrowing during a raid, and escalate overdue loans all the way to repeated
+-- gudang seizure until the debt is paid.
 
 return function(t, Env, Fakes)
 	local expect = t.expect
 	local env, Pinjol, DebtService, StorageService
-	local playerData, notify, state, player, data
+	local playerData, notify, state, player, data, raid, collector
+
+	local function countKey(key)
+		local count = 0
+		for _, sent in notify.sent do
+			if sent.key == key then
+				count += 1
+			end
+		end
+		return count
+	end
+
+	local function countBroadcast(key)
+		local count = 0
+		for _, sent in notify.broadcasts do
+			if sent.key == key then
+				count += 1
+			end
+		end
+		return count
+	end
 
 	t:describe("DebtService", function()
 		t:beforeEach(function()
@@ -30,6 +54,20 @@ return function(t, Env, Fakes)
 			EconomyService.start()
 			StorageService = env:require("server/Farm/StorageService")
 			DebtService = env:require("server/Economy/DebtService")
+
+			raid = { busy = false }
+			raid.isBusy = function()
+				return raid.busy
+			end
+			collector = { summons = 0, dismissals = 0 }
+			collector.summon = function()
+				collector.summons += 1
+			end
+			collector.dismiss = function()
+				collector.dismissals += 1
+			end
+			DebtService.bindRaid(raid)
+			DebtService.bindCollector(collector)
 
 			player = Fakes.player(env)
 			data = playerData.set(player, Fakes.newData(env))
@@ -70,6 +108,16 @@ return function(t, Env, Fakes)
 			expect(notify.keys(player)):toContain("n_debt_already_active")
 		end)
 
+		t:it("refuses borrowing during a raid", function()
+			raid.busy = true
+			expect(DebtService.borrow(player, 400)):toBe(false)
+			expect(data.debt.active):toBe(false)
+			expect(notify.keys(player)):toContain("n_debt_raid")
+
+			raid.busy = false
+			expect(DebtService.borrow(player, 400)):toBe(true)
+		end)
+
 		t:it("accrues interest with hard cap at 3x principal", function()
 			DebtService.borrow(player, 400)
 			local now = data.debt.lastInterestAt + 7200 -- 2 hours later
@@ -102,26 +150,104 @@ return function(t, Env, Fakes)
 			expect(notify.keys(player)):toContain("n_debt_cleared")
 		end)
 
-		t:it("progresses overdue stages and seizes crops from gudang", function()
+		t:it("dismisses the collector when the loan is fully repaid", function()
 			DebtService.borrow(player, 400)
+			data.debt.dueAt = env.wallTime - 200
+			DebtService.tick(player)
+			expect(collector.summons):toBe(1)
+
+			data.cash = 1000
+			expect(DebtService.repay(player, nil)):toBe(true)
+			expect(collector.dismissals):toBe(1)
+		end)
+
+		t:it("escalates overdue loans: warning, phone spam, public shame, collector", function()
+			DebtService.borrow(player, 400)
+
+			-- Stage 1: warning + the phone starts buzzing.
+			data.debt.dueAt = env.wallTime - 1
+			DebtService.tick(player)
+			expect(data.debt.stage):toBe(1)
+			expect(notify.keys(player)):toContain("n_debt_overdue_warning")
+			expect(countKey("n_debt_spam")):toBe(1)
+
+			-- The spam repeats on the next tick while the loan stays overdue.
+			DebtService.tick(player)
+			expect(countKey("n_debt_spam")):toBe(2)
+
+			-- Stage 2: Nama Baik hit, server-wide shame, collector at the plot.
+			data.debt.dueAt = env.wallTime - 200
+			DebtService.tick(player)
+			expect(data.debt.stage):toBe(2)
+			expect(data.namaBaik):toBe(50 - Pinjol.shameNamaBaikPenalty)
+			expect(countBroadcast("n_debt_shamed_public")):toBe(1)
+			expect(collector.summons):toBe(1)
+			expect(notify.keys(player)):toContain("n_debt_collector")
+
+			-- Stage 3 is reached without waiting for another transition tick.
+			data.debt.dueAt = env.wallTime - 400
+			DebtService.tick(player)
+			expect(data.debt.stage):toBe(3)
+		end)
+
+		t:it("seizes gudang every tick until the debt is paid", function()
+			DebtService.borrow(player, 400) -- owed 440
 			data.gudang = {
 				capacity = 100,
 				stacks = {
-					stack1 = { crop = "padi", count = 50, tier = "biasa", traits = {} },
+					first = { crop = "padi", count = 10, tier = "biasa", traits = {} }, -- 10 * 18 * 0.5 = 90
 				},
 			}
-			local now = env.wallTime
-			data.debt.dueAt = now - 400 -- 400s overdue (past stage 3: 360s)
-			data.debt.lastInterestAt = now
-
+			data.debt.dueAt = env.wallTime - 400
 			DebtService.tick(player)
-			expect(data.debt.stage):toBe(1)
 
-			data.debt.stage = 2
-			data.debt.lastInterestAt = now
-			DebtService.tick(player)
 			expect(data.debt.stage):toBe(3)
+			expect(data.debt.owed):toBe(350)
+			expect(data.gudang.stacks.first):toBeNil()
 			expect(notify.keys(player)):toContain("n_debt_seized")
+			expect(data.debt.active):toBe(true)
+
+			-- More crops arrive later: the next tick seizes them too.
+			data.gudang.stacks.second = { crop = "padi", count = 10, tier = "biasa", traits = {} }
+			DebtService.tick(player)
+			expect(data.debt.owed):toBe(260)
+			expect(data.debt.active):toBe(true)
+
+			-- Enough crops to settle the rest: the loan closes and the collector leaves.
+			data.gudang.stacks.third = { crop = "padi", count = 100, tier = "biasa", traits = {} }
+			DebtService.tick(player)
+			expect(data.debt.owed):toBe(0)
+			expect(data.debt.active):toBe(false)
+			expect(data.debt.stage):toBe(0)
+			expect(notify.keys(player)):toContain("n_debt_cleared")
+			expect(collector.dismissals):toBe(1)
+		end)
+
+		t:it("keeps the loan after a rejoin and accrues offline interest", function()
+			DebtService.borrow(player, 400) -- owed 440
+			data.debt.lastInterestAt = env.wallTime - 3600 -- one hour offline
+			data.debt.dueAt = env.wallTime + 600
+
+			local rejoinPlayer = Fakes.player(env)
+			playerData.set(rejoinPlayer, data)
+			DebtService.onLoaded(rejoinPlayer, data)
+
+			-- 400 * 2% offline rate * 1 hour = 8
+			expect(data.debt.owed):toBe(448)
+			expect(data.debt.active):toBe(true)
+			expect(rejoinPlayer:GetAttribute("DebtActive")):toBe(true)
+		end)
+
+		t:it("summons the collector again when a shamed loan is still overdue on rejoin", function()
+			DebtService.borrow(player, 400)
+			data.debt.dueAt = env.wallTime - 200
+			DebtService.tick(player)
+			expect(data.debt.stage):toBe(2)
+
+			local rejoinPlayer = Fakes.player(env)
+			playerData.set(rejoinPlayer, data)
+			DebtService.onLoaded(rejoinPlayer, data)
+			expect(collector.summons):toBe(2)
 		end)
 	end)
 end

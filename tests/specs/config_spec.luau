@@ -339,9 +339,34 @@ return function(t, Env)
 			end)
 
 			t:it("has a known grant type for every product", function()
-				for _, product in Products.products do
-					expect(product.grant == "inventory" or product.grant == "seeds"):toBe(true)
+				local known = { inventory = true, seeds = true, restock = true, cash = true }
+				for key, product in Products.products do
+					expect(known[product.grant] == true):toBe(true)
+					expect(key):toBeTruthy()
 				end
+			end)
+
+			t:it("gives every cash pack a non-negative cash amount", function()
+				for _, product in Products.products do
+					if product.grant == "cash" then
+						expect(type(product.cash)):toBe("number")
+						expect(product.cash):toBeAtLeast(0)
+					end
+				end
+			end)
+
+			t:it("gives every pass a unique attribute", function()
+				local seen = {}
+				for _, pass in Products.passes do
+					expect(type(pass.attribute)):toBe("string")
+					expect(seen[pass.attribute]):toBeNil()
+					seen[pass.attribute] = true
+				end
+			end)
+
+			t:it("ships the gudang and auto-panen passes unconfigured", function()
+				expect(Products.passConfigured("gudangBesar")):toBe(false)
+				expect(Products.passConfigured("autoPanen")):toBe(false)
 			end)
 
 			t:it("treats id 0 as not configured", function()

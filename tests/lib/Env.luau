@@ -197,6 +197,9 @@ function Env.new()
 			end
 			return nil
 		end,
+		GetNameFromUserIdAsync = function(_, userId)
+			return `User{userId}`
+		end,
 	}
 	self.services.RunService = {
 		IsStudio = function()
@@ -211,11 +214,28 @@ function Env.new()
 	}
 	self.services.AnalyticsService = {
 		LogCustomEvent = function() end,
+		LogEconomyEvent = function() end,
+		LogFunnelStepEvent = function() end,
+		LogOnboardingFunnelStepEvent = function() end,
 	}
 	self.services.MarketplaceService = { ProcessReceipt = nil }
 	self.services.BadgeService = {
 		AwardBadge = function()
 			return true
+		end,
+	}
+	self.services.DataStoreService = {
+		GetOrderedDataStore = function()
+			return {
+				SetAsync = function() end,
+				GetSortedAsync = function()
+					return {
+						GetCurrentPage = function()
+							return {}
+						end,
+					}
+				end,
+			}
 		end,
 	}
 

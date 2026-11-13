@@ -176,6 +176,37 @@ return function(t, Env)
 				end
 			end)
 
+			t:it("gives every preset the golden-hour fields the client tweens", function()
+				for _, musim in Seasons.musimOrder do
+					local sky = Seasons.sky[musim]
+					for _, key in { "colorShiftTop", "colorShiftBottom", "atmosphereColor", "atmosphereDecay", "tint" } do
+						expect(sky[key] ~= nil):toBe(true)
+					end
+					-- Warm late-afternoon sun: low, not noon.
+					expect(sky.clockTime):toBeAtLeast(15.5)
+					expect(sky.clockTime):toBeAtMost(18)
+				end
+			end)
+
+			t:it("keeps post effects inside their real ranges", function()
+				for _, musim in Seasons.musimOrder do
+					for _, cuaca in Seasons.cuacaOrder do
+						local sky = Seasons.skyFor(musim, cuaca)
+						expect(sky.saturation):toBeAtLeast(-1)
+						expect(sky.saturation):toBeAtMost(1)
+						expect(sky.sunRays):toBeAtLeast(0)
+						expect(sky.sunRays):toBeAtMost(1)
+					end
+				end
+			end)
+
+			t:it("removes sun rays in a storm and mutes colour", function()
+				local clear = Seasons.skyFor("kemarau", "cerah")
+				local storm = Seasons.skyFor("kemarau", "badai")
+				expect(storm.sunRays):toBe(0)
+				expect(storm.saturation):toBeLessThan(clear.saturation)
+			end)
+
 			t:it("falls back for unknown inputs", function()
 				local sky = Seasons.skyFor("salju", "salju")
 				expect(sky.clockTime):toBe(Seasons.sky.pancaroba.clockTime)
@@ -207,6 +238,14 @@ return function(t, Env)
 
 			t:it("never drops below five seconds", function()
 				expect(SeasonService.growSeconds(1, "palawija")):toBe(5)
+			end)
+		end)
+
+		t:describe("seasonal risks", function()
+			t:it("has non-zero probabilities for all three risks", function()
+				expect(Seasons.risks.banjirChance):toBeGreaterThan(0)
+				expect(Seasons.risks.hamaChance):toBeGreaterThan(0)
+				expect(Seasons.risks.elNinoFailChance):toBeGreaterThan(0)
 			end)
 		end)
 	end)

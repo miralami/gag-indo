@@ -35,7 +35,14 @@ local specs = {
 	require("./specs/rank_spec"),
 	require("./specs/economy_spec"),
 	require("./specs/receipts_spec"),
+	require("./specs/passes_spec"),
 	require("./specs/playerdata_spec"),
+	require("./specs/leaderboard_spec"),
+	require("./specs/analytics_spec"),
+	require("./specs/visuals_spec"),
+	require("./specs/visual_art_spec"),
+	require("./specs/security_spec"),
+	require("./specs/balance_spec"),
 }
 
 local t = Test.new()

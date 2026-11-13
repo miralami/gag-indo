@@ -85,6 +85,7 @@ end
 function Fakes.playerData()
 	local datas = {}
 	local profiles = {}
+	local loadedCallbacks = {}
 	local fake = {
 		confirmSaves = true, -- flip to false to simulate a failed save
 		saveCalls = {},
@@ -95,7 +96,15 @@ function Fakes.playerData()
 	function fake.getProfile(player)
 		return profiles[player]
 	end
-	function fake.onLoaded() end
+	function fake.onLoaded(callback)
+		table.insert(loadedCallbacks, callback)
+	end
+	-- Fire the onLoaded callbacks a service registered, like PlayerData does after a load.
+	function fake.fireLoaded(player, data)
+		for _, callback in loadedCallbacks do
+			callback(player, data)
+		end
+	end
 	function fake.onBeforeRelease() end
 	function fake.saveAndConfirm(profile, purchaseId, timeout)
 		table.insert(fake.saveCalls, { profile = profile, purchaseId = purchaseId, timeout = timeout })
@@ -133,10 +142,33 @@ function Fakes.notify()
 	return fake
 end
 
+-- Stand-in for server/Analytics/Analytics (the wrapper, not AnalyticsService).
 function Fakes.analytics()
-	local fake = { events = {} }
-	function fake.log(player, name, value)
-		table.insert(fake.events, { player = player, name = name, value = value })
+	local fake = { events = {}, economyEvents = {}, funnelSteps = {} }
+	local function record(player, name, value, fields)
+		table.insert(fake.events, { player = player, name = name, value = value, fields = fields })
+	end
+	fake.log = record
+	fake.track = record
+	function fake.once(player, name, value, fields)
+		record(player, name, value, fields)
+	end
+	function fake.economy(player, flow, amount, balance, transaction, sku, fields)
+		table.insert(fake.economyEvents, {
+			player = player,
+			flow = flow,
+			amount = amount,
+			balance = balance,
+			transaction = transaction,
+			sku = sku,
+			fields = fields,
+		})
+	end
+	function fake.onboarding(player, step, stepName)
+		table.insert(fake.funnelSteps, { player = player, step = step, name = stepName })
+	end
+	function fake.funnel(player, funnel, session, step, stepName)
+		table.insert(fake.funnelSteps, { player = player, funnel = funnel, session = session, step = step, name = stepName })
 	end
 	return fake
 end

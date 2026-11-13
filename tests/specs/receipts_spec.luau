@@ -3,10 +3,12 @@
 
 return function(t, Env, Fakes)
 	local expect = t.expect
-	local env, playerData, notify, analytics, marketplace, player, data
+	local env, playerData, notify, analytics, marketplace, player, data, shop, economy
 
 	local AMPLOP_ID = 111
 	local BIBIT_ID = 222
+	local RESTOCK_ID = 333
+	local CASH_ID = 444
 
 	local function receipt(purchaseId, productId)
 		return { PlayerId = player.UserId, PurchaseId = purchaseId, ProductId = productId or AMPLOP_ID }
@@ -29,15 +31,35 @@ return function(t, Env, Fakes)
 			env:mock("server/Net/Notify", notify)
 			env:mock("server/Net/RateLimit", Fakes.rateLimit(true))
 			env:mock("server/Analytics/Analytics", analytics)
-			env:mock("server/Economy/EconomyService", { sync = function() end })
+			economy = {
+				sync = function() end,
+				cashAdded = {},
+				addCash = function(_, amount, earned)
+					table.insert(economy.cashAdded, { amount = amount, earned = earned })
+				end,
+			}
+			shop = {
+				restocks = 0,
+				restockNow = function()
+					shop.restocks += 1
+					return true
+				end,
+			}
+			env:mock("server/Economy/EconomyService", economy)
+			env:mock("server/Economy/ShopService", shop)
 			env:mock("shared/Remotes", Fakes.remotes(env))
 
-			-- Configure two products (the real config ships with id 0 = not configured).
+			-- Configure products (the real config ships with id 0 = not configured).
 			local Products = env:require("shared/Config/Products")
 			Products.products.amplopPremium.id = AMPLOP_ID
 			Products.products.karungBibit.id = BIBIT_ID
+			Products.products.restockToko.id = RESTOCK_ID
+			Products.products.rupiahKecil.id = CASH_ID
+			Products.products.rupiahKecil.cash = 2500
 			Products.byProductId[AMPLOP_ID] = { key = "amplopPremium", product = Products.products.amplopPremium }
 			Products.byProductId[BIBIT_ID] = { key = "karungBibit", product = Products.products.karungBibit }
+			Products.byProductId[RESTOCK_ID] = { key = "restockToko", product = Products.products.restockToko }
+			Products.byProductId[CASH_ID] = { key = "rupiahKecil", product = Products.products.rupiahKecil }
 
 			local Receipts = env:require("server/Monetization/Receipts")
 			Receipts.start()
@@ -108,6 +130,36 @@ return function(t, Env, Fakes)
 			expect(process(receipt("p1", 999999))):toBe("ProductPurchaseDecision.NotProcessedYet")
 			expect(data.items.amplopPremium):toBe(0)
 			expect(#data.receipts):toBe(0)
+		end)
+
+		t:it("never treats the placeholder id 0 as a real Roblox purchase", function()
+			-- Every product ships with id 0 until the designer creates it in the dashboard.
+			expect(process(receipt("p0", 0))):toBe("ProductPurchaseDecision.NotProcessedYet")
+			expect(data.items.amplopPremium):toBe(0)
+			expect(#data.receipts):toBe(0)
+			expect(#notify.keys(player)):toBe(0)
+		end)
+
+		t:it("restocks the shop once per purchase", function()
+			expect(process(receipt("p1", RESTOCK_ID))):toBe("ProductPurchaseDecision.PurchaseGranted")
+			expect(shop.restocks):toBe(1)
+			process(receipt("p1", RESTOCK_ID))
+			expect(shop.restocks):toBe(1)
+		end)
+
+		t:it("grants cash without counting it as earned income", function()
+			expect(process(receipt("p1", CASH_ID))):toBe("ProductPurchaseDecision.PurchaseGranted")
+			expect(#economy.cashAdded):toBe(1)
+			expect(economy.cashAdded[1].amount):toBe(2500)
+			expect(economy.cashAdded[1].earned):toBe(false)
+		end)
+
+		t:it("grants no cash while a pack has no price yet", function()
+			local Products = env:require("shared/Config/Products")
+			Products.products.rupiahKecil.cash = 0
+			expect(process(receipt("p1", CASH_ID))):toBe("ProductPurchaseDecision.PurchaseGranted")
+			expect(#economy.cashAdded):toBe(0)
+			expect(data.receipts):toContain("p1")
 		end)
 
 		t:it("remembers only the latest 50 purchase ids", function()

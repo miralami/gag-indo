@@ -116,6 +116,13 @@ return function(t, Env, Fakes)
 				expect(WorkerService.hire(player)):toBe(false)
 				expect(data.cash):toBe(1000)
 			end)
+
+			t:it("does not charge a pass holder for hiring", function()
+				player:SetAttribute("Pass_AutoPanen", true)
+				expect(WorkerService.hire(player)):toBe(true)
+				expect(data.cash):toBe(1000)
+				expect(notify.keys(player)):toContain("n_worker_hired_auto")
+			end)
 		end)
 
 		t:describe("tick", function()
@@ -173,6 +180,23 @@ return function(t, Env, Fakes)
 				ready = { 1 }
 				expect(WorkerService.tick(player)):toBe(0)
 				expect(player:GetAttribute("WorkerActive")):toBe(false)
+			end)
+
+			t:it("harvests for free with the auto-panen pass and no shift", function()
+				player:SetAttribute("Pass_AutoPanen", true)
+				ready = { 1, 2, 3 }
+				expect(WorkerService.tick(player)):toBe(3)
+				expect(harvested):toBe(3)
+				expect(data.cash):toBe(1000)
+				expect(WorkerService.active(data, nil, player)):toBe(true)
+			end)
+
+			t:it("keeps working for a pass holder with no cash", function()
+				player:SetAttribute("Pass_AutoPanen", true)
+				data.cash = 0
+				ready = { 1 }
+				expect(WorkerService.tick(player)):toBe(1)
+				expect(notify.keys(player)):toContain("n_worker_harvested")
 			end)
 		end)
 	end)

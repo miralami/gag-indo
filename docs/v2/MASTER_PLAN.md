@@ -8,7 +8,7 @@
 
 ## Progress tracker — read first, update last
 
-**Last updated:** 2026-11-14 · branch `track/c-world-look` · commit `ce34ab9` · `lune run tests/run.luau`: 596 passing.
+**Last updated:** 2026-11-14 · branch `track/c-world-look` · `lune run tests/run.luau`: 603 passing.
 
 **Rules for this section.** Every agent reads it before touching the repo, so nobody has to rediscover
 the state from scratch. Whoever finishes a task ticks it here **in the same commit**, adds its status
@@ -50,8 +50,8 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 
 **A. Game feel**
 - [~] Crop growth stages (bibit / tumbuh / siap) exist in `FarmService`; not judged by a human.
-- [ ] Plant, harvest, sell feedback: particles, tweens, camera nudge, cash-fly.
-- [~] Rarity reveal: toast tint, Sultan shake and sting hooks exist; sting sounds are `0`.
+- [x] Plant, harvest, sell feedback: particles, tweens, camera nudge, cash-fly — `LUNE-ONLY`, `tests/specs/feel_spec.luau`.
+- [x] Rarity reveal: toast tint, Sultan/Langka shake, sting hooks, ActionFeel — `LUNE-ONLY`, `tests/specs/feel_spec.luau`.
 
 **B. First session**
 - [x] Four-step tutorial (plant, harvest, sell, buy) — `SEEN-IN-STUDIO` via harness.

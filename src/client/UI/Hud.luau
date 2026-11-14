@@ -16,6 +16,7 @@ local Visuals = require(Shared.Config.Visuals)
 local Audio = require(script.Parent.Parent.Audio)
 local Icons = require(script.Parent.Icons)
 local Theme = require(script.Parent.Theme)
+local ActionFeel = require(script.Parent.Parent.Feel.ActionFeel)
 
 -- Register "sack" fallback in Visuals.icons if missing.
 if not Visuals.icons["sack"] then
@@ -534,33 +535,32 @@ function Hud.mount(initialLang: string?)
 		updateRestock()
 	end
 
-	---------------------------------------------------------------- notifications
+	---------------------------------------------------------------- notifications & feel
+	local lastCash = player:GetAttribute("Cash") or 0
+	local recentSaleAmount: number? = nil
+	local recentSaleTime = 0
+
+	local function triggerSell(amount: number)
+		local originPos = nil
+		local char = player.Character
+		if char and char:FindFirstChild("HumanoidRootPart") then
+			originPos = char.HumanoidRootPart.Position
+		end
+		ActionFeel.onSell(amount, originPos)
+	end
+
 	Remotes.Notify.OnClientEvent:Connect(function(key: string, params: { any }?)
 		if type(key) ~= "string" then
 			return
 		end
 		local color: Color3? = nil
 		if key == "n_rarity_reveal" and params and type(params[3]) == "string" then
-			local tier = Tiers.list[params[3]]
+			local tierName = params[3]
+			local tier = Tiers.list[tierName]
 			if tier then
 				color = tier.color
 			end
-			Audio.play(if params[3] == "sultan" then "sting_sultan" else "sting_rare")
-			if params[3] == "sultan" then
-				revealToken += 1
-				local token = revealToken
-				local camera = workspace.CurrentCamera
-				if camera then
-					local original = camera.CFrame
-					task.spawn(function()
-						for _, offset in { 0.18, -0.18, 0.1, -0.1, 0 } do
-							if token ~= revealToken or workspace.CurrentCamera ~= camera then return end
-							camera.CFrame = original * CFrame.new(offset, 0, 0)
-							task.wait(0.025)
-						end
-					end)
-				end
-			end
+			ActionFeel.onHarvest(nil, tierName)
 		elseif key == "n_almanak_page" or key == "n_almanak_new" then
 			Audio.play("sting_almanak")
 		elseif key == "n_rank_up" then
@@ -568,9 +568,35 @@ function Hud.mount(initialLang: string?)
 		elseif key == "n_bought_seeds" then
 			Audio.play("ui_buy")
 		elseif key == "n_sold" or key == "n_sold_gelap" then
-			Audio.play("ui_sell")
+			local amount = if params and type(params[1]) == "number" then params[1] else 0
+			if recentSaleTime > 0 and (os.clock() - recentSaleTime) < 1.5 then
+				recentSaleTime = 0
+				local sellAmt = if amount > 0 then amount else (recentSaleAmount or 0)
+				recentSaleAmount = nil
+				triggerSell(sellAmt)
+			else
+				recentSaleAmount = amount
+				recentSaleTime = os.clock()
+			end
 		end
 		Theme.toast(Strings.get(activeLang, key, table.unpack(params or {})), color)
+	end)
+
+	player:GetAttributeChangedSignal("Cash"):Connect(function()
+		local current = player:GetAttribute("Cash") or 0
+		local diff = current - lastCash
+		lastCash = current
+		if diff > 0 then
+			if recentSaleTime > 0 and (os.clock() - recentSaleTime) < 1.5 then
+				recentSaleTime = 0
+				local amount = if (recentSaleAmount and recentSaleAmount > 0) then recentSaleAmount else diff
+				recentSaleAmount = nil
+				triggerSell(amount)
+			else
+				recentSaleAmount = diff
+				recentSaleTime = os.clock()
+			end
+		end
 	end)
 
 	---------------------------------------------------------------- wiring

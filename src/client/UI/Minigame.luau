@@ -8,6 +8,7 @@ local Remotes = require(Shared.Remotes)
 local Theme = require(script.Parent.Theme)
 local Mencangkul = require(script.Parent.Parent.Minigames.Mencangkul)
 local Babat = require(script.Parent.Parent.Minigames.Babat)
+local ActionFeel = require(script.Parent.Parent.Feel.ActionFeel)
 
 local Minigame = {}
 
@@ -134,6 +135,10 @@ function Minigame.mount(lang: string)
 			if current ~= attempt then
 				return
 			end
+			local action = attempt.action
+			local tileIndex = attempt.tile
+			local tilePart = ActionFeel.getTilePart(tileIndex)
+			ActionFeel.setLastTile(tilePart)
 			current = nil
 			if playArea then
 				playArea:Destroy()
@@ -143,6 +148,12 @@ function Minigame.mount(lang: string)
 			Remotes.Farm_Complete:FireServer(score)
 			local quality = 0.8 + 0.5 * math.clamp(score, 0, 1)
 			Theme.toast(t("mg_score", string.format("%.2f", quality)), Theme.green)
+
+			if action == "plant" then
+				ActionFeel.onPlant(tilePart)
+			elseif action == "harvest" then
+				ActionFeel.onHarvest(tilePart, "biasa")
+			end
 		end
 
 		attempt.cleanup = if isPlant
@@ -155,8 +166,17 @@ function Minigame.mount(lang: string)
 		if not attempt then
 			return
 		end
+		local action = attempt.action
+		local tileIndex = attempt.tile
+		local tilePart = ActionFeel.getTilePart(tileIndex)
+		ActionFeel.setLastTile(tilePart)
 		close()
 		Remotes.Farm_Auto:FireServer(attempt.tile, attempt.action, attempt.cropId)
+		if action == "plant" then
+			ActionFeel.onPlant(tilePart)
+		elseif action == "harvest" then
+			ActionFeel.onHarvest(tilePart, "biasa")
+		end
 	end)
 
 	cancel.Activated:Connect(close)

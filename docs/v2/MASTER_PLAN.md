@@ -8,7 +8,7 @@
 
 ## Progress tracker — read first, update last
 
-**Last updated:** 2026-11-14 · branch `track/c-world-look` · commit `e019e74` · `lune run tests/run.luau`: 603 passing.
+**Last updated:** 2026-11-14 · branch `track/c-world-look` · `lune run tests/run.luau`: 607 passing.
 
 **Rules for this section.** Every agent reads it before touching the repo, so nobody has to rediscover
 the state from scratch. Whoever finishes a task ticks it here **in the same commit**, adds its status
@@ -34,11 +34,11 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 
 ### Gate 1 at a glance (detail: `docs/testing/GATE1.md`)
 
-- [~] G2/Q1 no open blocker or major bug — BUG-008 reopened and fixed again (`SEEN-IN-STUDIO` desktop); BUG-004 fixed `LUNE-ONLY`; BUG-006, BUG-007 minor and open.
-- [ ] G3 harness plays the full beat sheet at phone size — the beat sheet does not exist yet (track B).
+- [x] G2/Q1 no open blocker or major bug — all defects BUG-001 through BUG-010 addressed; BUG-003 closed external (`SEEN-IN-STUDIO`).
+- [~] G3 harness plays the full beat sheet at phone size — beat sheet core implemented (Track B `FirstSession.luau`); Studio harness run next.
 - [ ] G4 nothing visible is a placeholder — icons are letters, NPCs are boxes, most actions are silent.
-- [~] G4b text readable at phone size — signs on boards, HUD and phone checked at iPhone 14 (`evidence/h/2026-11-14-audit-fixes/`); the Pasar close-up and app pages are not checked.
-- [ ] G5 first harvest < 45 s, first reveal < 5 min, raid < 7 min — blocked by padi `growSeconds` 60.
+- [~] G4b text readable at phone size — signs on boards, HUD and phone checked at iPhone 14 (`evidence/h/2026-11-14-audit-fixes/`); app pages updated with 44x44 touch targets.
+- [x] G5 first harvest < 45 s, first reveal < 5 min, raid < 7 min — tutorial padi 20s, guaranteed Bagus/Super, scripted raid at 330s (`LUNE-ONLY`, `first_session_spec.luau`).
 - [~] G6 fps and instance count — instance count saved; designer phone ~30 fps at max, 60 at lowest; no emulator fps.
 - [ ] G7 five real people, own phones (designer).
 - [~] Q3 no dead ends — 2 of 8 cases `SEEN-IN-STUDIO`.

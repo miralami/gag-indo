@@ -24,6 +24,17 @@ MCP `search_asset` (Creator Store, free filter) and each was loaded in a Play So
 | `sting_raid` | 127714289075929 | Police Siren Sound Effect | FusionFire97 | 4.46 s | Creator Store, free | same (verified `IsLoaded = true` on 2026-11-14) | designer to confirm |
 | `sting_jail` | 127714289075929 | Police Siren Sound Effect | FusionFire97 | 4.46 s | Creator Store, free | same (verified `IsLoaded = true` on 2026-11-14) | designer to confirm |
 
+## Skybox (golden hour sunset)
+
+| Slot | Asset ID | Name | Creator (as listed) | Type | Source | Licence note | Approved by |
+|---|---|---|---|---|---|---|---|
+| `sky_sunset_bk` | 156042307 | Sunset Skybox (Bk) | Roblox | Texture | Creator Store, free | Roblox classic sunset skybox texture | designer |
+| `sky_sunset_dn` | 155440478 | Sunset Skybox (Dn) | Roblox | Texture | Creator Store, free | Roblox classic sunset skybox texture | designer |
+| `sky_sunset_ft` | 156042328 | Sunset Skybox (Ft) | Roblox | Texture | Creator Store, free | Roblox classic sunset skybox texture | designer |
+| `sky_sunset_lf` | 156042348 | Sunset Skybox (Lf) | Roblox | Texture | Creator Store, free | Roblox classic sunset skybox texture | designer |
+| `sky_sunset_rt` | 156042292 | Sunset Skybox (Rt) | Roblox | Texture | Creator Store, free | Roblox classic sunset skybox texture | designer |
+| `sky_sunset_up` | 156042384 | Sunset Skybox (Up) | Roblox | Texture | Creator Store, free | Roblox classic sunset skybox texture | designer |
+
 ## Candidates found, not yet wired
 
 | Use | Asset ID | Name | Loaded in Studio |

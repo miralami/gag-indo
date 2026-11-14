@@ -201,6 +201,22 @@ return function(t, Env)
 				end
 			end)
 
+			t:it("tunes pancaroba golden hour sunset values", function()
+				local p = Seasons.sky.pancaroba
+				expect(p.clockTime):toBe(17.0)
+				expect(p.brightness):toBe(2.5)
+				expect(p.fogEnd):toBe(1400)
+				expect(p.fogStart):toBe(80)
+				expect(p.atmosphereDensity):toBe(0.25)
+				expect(p.atmosphereHaze):toBe(1.1)
+				expect(p.atmosphereGlare):toBe(0.35)
+				expect(p.cloudCover):toBe(0.35)
+				expect(p.saturation):toBe(0.14)
+				expect(p.contrast):toBe(0.05)
+				expect(p.bloom):toBe(0.18)
+				expect(p.sunRays):toBe(0.08)
+			end)
+
 			t:it("keeps post effects inside their real ranges", function()
 				for _, musim in Seasons.musimOrder do
 					for _, cuaca in Seasons.cuacaOrder do

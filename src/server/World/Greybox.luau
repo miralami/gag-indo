@@ -612,6 +612,67 @@ local function scatterTrees(world: Folder)
 	end
 end
 
+local TURF_PATCH_DEFS = {
+	-- Northeast
+	{ pos = Vector3.new(18, 0.55, 14), size = Vector3.new(12, 0.1, 8), rot = 15, col = "padi" },
+	{ pos = Vector3.new(48, 0.55, 18), size = Vector3.new(16, 0.1, 12), rot = -20, col = "padi" },
+	{ pos = Vector3.new(20, 0.55, 44), size = Vector3.new(14, 0.1, 10), rot = 30, col = "daun" },
+	{ pos = Vector3.new(38, 0.55, 48), size = Vector3.new(16, 0.1, 12), rot = -10, col = "padi" },
+	{ pos = Vector3.new(60, 0.55, 32), size = Vector3.new(20, 0.1, 14), rot = 25, col = "daun" },
+	{ pos = Vector3.new(68, 0.55, 16), size = Vector3.new(18, 0.1, 12), rot = -15, col = "padi" },
+	{ pos = Vector3.new(66, 0.55, 48), size = Vector3.new(18, 0.1, 14), rot = 10, col = "padi" },
+
+	-- Northwest
+	{ pos = Vector3.new(-18, 0.55, 14), size = Vector3.new(12, 0.1, 8), rot = -15, col = "padi" },
+	{ pos = Vector3.new(-48, 0.55, 18), size = Vector3.new(16, 0.1, 12), rot = 20, col = "padi" },
+	{ pos = Vector3.new(-20, 0.55, 44), size = Vector3.new(14, 0.1, 10), rot = -30, col = "daun" },
+	{ pos = Vector3.new(-38, 0.55, 48), size = Vector3.new(16, 0.1, 12), rot = 10, col = "padi" },
+	{ pos = Vector3.new(-60, 0.55, 32), size = Vector3.new(20, 0.1, 14), rot = -25, col = "daun" },
+	{ pos = Vector3.new(-68, 0.55, 16), size = Vector3.new(18, 0.1, 12), rot = 15, col = "padi" },
+	{ pos = Vector3.new(-66, 0.55, 48), size = Vector3.new(18, 0.1, 14), rot = -10, col = "padi" },
+
+	-- Southeast
+	{ pos = Vector3.new(18, 0.55, -14), size = Vector3.new(12, 0.1, 8), rot = -12, col = "padi" },
+	{ pos = Vector3.new(48, 0.55, -15), size = Vector3.new(16, 0.1, 10), rot = 18, col = "padi" },
+	{ pos = Vector3.new(18, 0.55, -44), size = Vector3.new(14, 0.1, 12), rot = 22, col = "daun" },
+	{ pos = Vector3.new(38, 0.55, -48), size = Vector3.new(18, 0.1, 12), rot = -18, col = "padi" },
+	{ pos = Vector3.new(60, 0.55, -30), size = Vector3.new(20, 0.1, 14), rot = -20, col = "daun" },
+	{ pos = Vector3.new(68, 0.55, -16), size = Vector3.new(18, 0.1, 12), rot = 15, col = "padi" },
+	{ pos = Vector3.new(64, 0.55, -46), size = Vector3.new(18, 0.1, 14), rot = -25, col = "padi" },
+
+	-- Southwest
+	{ pos = Vector3.new(-18, 0.55, -14), size = Vector3.new(12, 0.1, 8), rot = 12, col = "padi" },
+	{ pos = Vector3.new(-48, 0.55, -15), size = Vector3.new(16, 0.1, 10), rot = -18, col = "padi" },
+	{ pos = Vector3.new(-18, 0.55, -44), size = Vector3.new(14, 0.1, 12), rot = -22, col = "daun" },
+	{ pos = Vector3.new(-38, 0.55, -48), size = Vector3.new(18, 0.1, 12), rot = 18, col = "padi" },
+	{ pos = Vector3.new(-60, 0.55, -30), size = Vector3.new(20, 0.1, 14), rot = 20, col = "daun" },
+	{ pos = Vector3.new(-68, 0.55, -16), size = Vector3.new(18, 0.1, 12), rot = -15, col = "padi" },
+	{ pos = Vector3.new(-64, 0.55, -46), size = Vector3.new(18, 0.1, 14), rot = 25, col = "padi" },
+
+	-- Outer open fields
+	{ pos = Vector3.new(90, 0.55, 22), size = Vector3.new(24, 0.1, 18), rot = 15, col = "padi" },
+	{ pos = Vector3.new(90, 0.55, -22), size = Vector3.new(24, 0.1, 18), rot = -15, col = "padi" },
+	{ pos = Vector3.new(-90, 0.55, 22), size = Vector3.new(24, 0.1, 18), rot = -15, col = "padi" },
+	{ pos = Vector3.new(-90, 0.55, -22), size = Vector3.new(24, 0.1, 18), rot = 15, col = "padi" },
+}
+
+local function buildTurfPatches(world: Folder)
+	for _, def in TURF_PATCH_DEFS do
+		part({
+			Name = "GrassTurf",
+			Size = def.size,
+			Position = def.pos,
+			Orientation = Vector3.new(0, def.rot, 0),
+			Color = Props.palette(def.col),
+			Material = Enum.Material.Grass,
+			CanCollide = false,
+			CanTouch = false,
+			CanQuery = false,
+			CastShadow = false,
+		}).Parent = world
+	end
+end
+
 -- Warm packed earth: bambu #b98a5a shaded about 25 percent, with a thin kertas edge on each side
 -- so the strip reads as a path. Six road parts in total: two roads and four edge strips.
 local function buildRoads(world: Folder)
@@ -706,6 +767,7 @@ function Greybox.build(): Folder
 	Landscape.apply(workspace.Terrain) -- after the Ground colour above, which it recolours
 
 	buildRoads(world)
+	buildTurfPatches(world)
 
 	local spawnPos = Vector3.new(0, GROUND_Y + 0.5, 16)
 	local spawnLook = Vector3.new(0, GROUND_Y + 1.5, 0)

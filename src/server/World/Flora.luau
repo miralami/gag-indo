@@ -72,9 +72,9 @@ local ORIGIN_X = -70
 local ORIGIN_Z = -80
 
 -- Cumulative chances per lattice cell: bush, then rock, then grass tuft; the rest stay empty.
-local BUSH_CHANCE = 0.12
-local ROCK_CHANCE = 0.2
-local TUFT_CHANCE = 0.36
+local BUSH_CHANCE = 0.08
+local ROCK_CHANCE = 0.14
+local TUFT_CHANCE = 0.42
 
 -- Integer hash in [0, 1). Pure: the same cell and salt always give the same number.
 local function roll(cell: number, salt: number): number
@@ -183,23 +183,26 @@ local function rockParts(cell: number, x: number, z: number, scale: number): { P
 	}
 end
 
--- A grass tuft: three to five thin WedgePart blades in daun or padi, fanned and slightly tilted.
+-- A grass tuft: 3 to 4 chunky stylized WedgePart blades in daun and padi, fanned outwards slightly.
 local function tuftParts(cell: number, x: number, z: number, scale: number): { PartDef }
 	local parts = {}
-	local count = 3 + math.floor(roll(cell, 60) * 3)
+	local count = 3 + math.floor(roll(cell, 60) * 2)
 	local turn = roll(cell, 61) * 360
 	for k = 1, count do
-		local spread = (k - (count + 1) / 2) * 0.45
-		local ox = spread + (roll(cell, 62 + k) * 2 - 1) * 0.2
-		local oz = (roll(cell, 70 + k) * 2 - 1) * 0.3
-		local height = (1 + roll(cell, 80 + k) * 0.8) * scale
+		local spread = (k - (count + 1) / 2) * 0.4
+		local ox = spread + (roll(cell, 62 + k) * 2 - 1) * 0.15
+		local oz = (roll(cell, 70 + k) * 2 - 1) * 0.15
+		local width = 0.45 + roll(cell, 75 + k) * 0.30
+		local depth = 0.25 + roll(cell, 80 + k) * 0.10
+		local height = 1.3 + roll(cell, 85 + k) * 0.90
+		local fanAngle = (k - (count + 1) / 2) * 16 + (roll(cell, 90 + k) * 2 - 1) * 6
 		table.insert(parts, {
 			name = "FloraGrass",
 			class = "WedgePart",
-			size = Vector3.new(0.2, height, 0.45),
+			size = Vector3.new(width, height, depth),
 			pos = Vector3.new(x + ox, GROUND_Y + height / 2, z + oz),
-			orient = Vector3.new((roll(cell, 90 + k) * 2 - 1) * 12, turn + k * 25, 0),
-			colour = if k % 2 == 0 then "padi" else "daun",
+			orient = Vector3.new((roll(cell, 95 + k) * 2 - 1) * 8, turn + fanAngle, 0),
+			colour = if (k + math.floor(roll(cell, 105) * 2)) % 2 == 0 then "padi" else "daun",
 			material = Enum.Material.Grass,
 			jitter = roll(cell, 100 + k),
 		})
@@ -227,6 +230,7 @@ local function makePart(folder: Instance, def: PartDef)
 	p.Anchored = true
 	p.CanCollide = false
 	p.CanQuery = false
+	p.CanTouch = false
 	p.CastShadow = false
 	p.Size = def.size
 	p.Position = def.pos

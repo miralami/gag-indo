@@ -162,5 +162,34 @@ return function(t, Env)
 			expect(findChild(Lighting, "Clouds")):toBe(nil)
 			expect(#cloudTweens()):toBe(0)
 		end)
+
+		t:it("creates and maintains a Sky instance under Lighting with golden-hour sunset textures", function()
+			mountSky()
+
+			local sky = findChild(Lighting, "Sky")
+			expect(sky ~= nil):toBe(true)
+			expect(sky.SkyboxBk):toBe("rbxassetid://156042307")
+			expect(sky.SkyboxDn):toBe("rbxassetid://155440478")
+			expect(sky.SkyboxFt):toBe("rbxassetid://156042328")
+			expect(sky.SkyboxLf):toBe("rbxassetid://156042348")
+			expect(sky.SkyboxRt):toBe("rbxassetid://156042292")
+			expect(sky.SkyboxUp):toBe("rbxassetid://156042384")
+			expect(sky.CelestialBodiesShown):toBe(true)
+			expect(Lighting.ExposureCompensation):toBe(0.08)
+		end)
+
+		t:it("tweens atmosphere Glare in apply", function()
+			mountSky()
+
+			local atmoTween
+			for _, tween in tweens do
+				if tween.object.ClassName == "Atmosphere" then
+					atmoTween = tween
+					break
+				end
+			end
+			expect(atmoTween ~= nil):toBe(true)
+			expect(atmoTween.goal.Glare ~= nil):toBe(true)
+		end)
 	end)
 end

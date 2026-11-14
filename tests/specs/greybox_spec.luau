@@ -408,5 +408,25 @@ return function(t, Env)
 			expect(spawnPart.Position.Z):toBe(16)
 			expect(spawnPart.CFrame.LookVector.Z < 0):toBe(true)
 		end)
+
+		t:it("adds stylized grass turf layer patches outside road and hub keepouts", function()
+			local turfs = {}
+			for _, child in world:GetChildren() do
+				if child.Name == "GrassTurf" then
+					table.insert(turfs, child)
+				end
+			end
+			expect(#turfs >= 10):toBe(true)
+			for _, turf in turfs do
+				expect(turf.Material):toBe(env.globals.Enum.Material.Grass)
+				expect(turf.CanCollide):toBe(false)
+				expect(turf.CanTouch):toBe(false)
+				expect(turf.CanQuery):toBe(false)
+				expect(turf.CastShadow):toBe(false)
+				expect(turf.Position.Y):toBeNear(0.55, 1e-4)
+				local outsideRoad = math.abs(turf.Position.X) >= 9 or math.abs(turf.Position.Z) >= 9
+				expect(outsideRoad):toBe(true)
+			end
+		end)
 	end)
 end

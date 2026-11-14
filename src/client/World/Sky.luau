@@ -56,14 +56,31 @@ local function effect(className: string): any
 	return found
 end
 
+local function skyInstance(): Sky
+	local found = Lighting:FindFirstChildOfClass("Sky")
+	if not found then
+		found = Instance.new("Sky")
+		found.Parent = Lighting
+	end
+	found.SkyboxBk = "rbxassetid://156042307"
+	found.SkyboxDn = "rbxassetid://155440478"
+	found.SkyboxFt = "rbxassetid://156042328"
+	found.SkyboxLf = "rbxassetid://156042348"
+	found.SkyboxRt = "rbxassetid://156042292"
+	found.SkyboxUp = "rbxassetid://156042384"
+	found.CelestialBodiesShown = true
+	return found :: Sky
+end
+
 -- Fixed look values. Lighting.Technology (Future) cannot be set from a script: it is saved in the
 -- place file (Studio > Lighting > Technology), see docs/v2/TECH.md.
 local function configureStatic()
+	skyInstance()
 	Lighting.GlobalShadows = true
 	Lighting.ShadowSoftness = 0.3
 	Lighting.EnvironmentDiffuseScale = 1
 	Lighting.EnvironmentSpecularScale = 0.5
-	Lighting.ExposureCompensation = 0
+	Lighting.ExposureCompensation = 0.08
 
 	local bloom = effect("BloomEffect")
 	bloom.Size = 28
@@ -77,11 +94,13 @@ local function apply()
 	local cuaca = ReplicatedStorage:GetAttribute("Cuaca")
 	local preset = Seasons.skyFor(musim, cuaca)
 
+	Lighting.ExposureCompensation = 0.08
+
 	TweenService:Create(Lighting, TWEEN, {
 		ClockTime = preset.clockTime,
 		Brightness = preset.brightness,
 		FogEnd = preset.fogEnd,
-		FogStart = math.min(40, preset.fogEnd * 0.1),
+		FogStart = preset.fogStart or math.min(40, preset.fogEnd * 0.1),
 		FogColor = preset.fogColor,
 		Ambient = preset.ambient,
 		OutdoorAmbient = preset.outdoorAmbient,
@@ -94,6 +113,7 @@ local function apply()
 		Haze = preset.atmosphereHaze,
 		Color = preset.atmosphereColor,
 		Decay = preset.atmosphereDecay,
+		Glare = preset.atmosphereGlare or 0.3,
 	}):Play()
 
 	TweenService:Create(effect("ColorCorrectionEffect"), TWEEN, {

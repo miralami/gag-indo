@@ -1,0 +1,296 @@
+<!doctype html>
+<!-- Juragan Desa UI mockups. Every value below mirrors src/shared/Config/Visuals.luau.
+     Open with #<screen-id> to show one screen; render.ps1 screenshots each. -->
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Juragan Desa mockups</title>
+<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Nunito:wght@600;800;900&display=block" rel="stylesheet">
+<style>
+:root{
+  --kertas:#f3e9d2; --tinta:#2b2118; --tinta-lembut:#5b4a38; --senja:#f6c97a;
+  --padi:#9bb25a; --daun:#6f8a3f; --genteng:#a8452f; --merah:#a83226;
+  --bambu:#b98a5a; --kunyit:#c99a2e; --indigo:#3b4f6b; --malam:#1f4e6b;
+  --t-display:28px; --t-heading:18px; --t-body:13px; --t-small:11px;
+  --xs:4px; --sm:8px; --md:12px; --lg:16px; --xl:24px; --xxl:32px;
+  --r-card:14px; --r-button:10px; --r-chip:8px;
+  --outline:2px; --shadow:4px; --touch:44px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#7a8f6a;font-family:Nunito,system-ui,sans-serif;font-weight:800;color:var(--tinta)}
+section{display:none}
+section:target{display:block}
+.portrait{width:360px;height:640px}
+.landscape{width:844px;height:390px;position:relative;overflow:hidden}
+/* sticker = 2px ink outline + 4px hard offset shadow, no blur */
+.st{border:var(--outline) solid var(--tinta);box-shadow:var(--shadow) var(--shadow) 0 rgba(43,33,24,.88)}
+.card{background:var(--kertas);border-radius:var(--r-card);padding:var(--md)}
+.btn{display:flex;align-items:center;justify-content:center;min-height:var(--touch);padding:var(--xs) var(--sm);
+  border-radius:var(--r-button);background:var(--bambu);font-size:var(--t-body);font-weight:900;text-align:center;line-height:1.1}
+.btn.dark{color:var(--kertas)}
+.chip{display:inline-flex;align-items:center;gap:var(--xs);height:28px;padding:0 var(--sm);border-radius:var(--r-chip);
+  background:var(--kertas);font-size:var(--t-small);font-weight:900}
+.h{font-family:"Luckiest Guy",Nunito,sans-serif;font-weight:400;letter-spacing:.5px}
+.muted{color:var(--tinta-lembut)}
+.small{font-size:var(--t-small)}
+.body{font-size:var(--t-body)}
+.heading{font-size:var(--t-heading)}
+.row{display:flex;align-items:center;gap:var(--sm)}
+.col{display:flex;flex-direction:column;gap:var(--md)}
+.grow{flex:1}
+.ico{width:32px;height:32px;border-radius:var(--r-chip);display:flex;align-items:center;justify-content:center;
+  font-family:"Luckiest Guy",sans-serif;font-size:14px;color:var(--kertas);flex:none}
+/* phone shell */
+.phone{width:360px;height:640px;background:var(--kertas);display:flex;flex-direction:column;overflow:hidden}
+.status{height:24px;display:flex;justify-content:space-between;align-items:center;padding:0 var(--md);font-size:var(--t-small);background:var(--tinta);color:var(--kertas)}
+.nav{height:56px;display:flex;align-items:center;gap:var(--sm);padding:0 var(--sm);border-bottom:var(--outline) solid var(--tinta)}
+.nav .t{flex:1;text-align:center;font-size:22px;color:var(--kertas)}
+.navbtn{width:var(--touch);height:var(--touch);border-radius:var(--r-button);background:var(--kertas);display:flex;align-items:center;justify-content:center;font-family:"Luckiest Guy";font-size:18px}
+.page{flex:1;padding:var(--md);display:flex;flex-direction:column;gap:var(--md);overflow:hidden}
+.sec{display:flex;align-items:center;gap:var(--sm);font-size:var(--t-heading)}
+.bar{height:12px;border-radius:6px;background:#e3d5b5;border:var(--outline) solid var(--tinta);overflow:hidden}
+.bar i{display:block;height:100%}
+/* world backdrop for landscape screens */
+.world{position:absolute;inset:0;background:linear-gradient(#f6c97a 0%,#f3d9a0 38%,#9bb25a 39%,#6f8a3f 100%)}
+.world:after{content:"";position:absolute;left:0;right:0;top:38%;height:30px;background:repeating-linear-gradient(90deg,#6f8a3f 0 18px,#5d7535 18px 30px);opacity:.6}
+</style>
+</head>
+<body>
+
+<!-- ======================= PHONE: TUGAS ======================= -->
+<section id="phone-tugas"><div class="phone">
+  <div class="status"><span>07:30</span><span>▮▮▮ 86%</span></div>
+  <div class="nav" style="background:var(--kunyit)">
+    <div class="navbtn st">&lt;</div><div class="t h" style="color:var(--tinta)">Tugas</div><div class="navbtn st" style="color:var(--merah)">X</div>
+  </div>
+  <div class="page">
+    <div class="card st col" style="gap:var(--sm)">
+      <div class="row"><div class="ico st" style="background:var(--malam)">7</div><div class="heading grow">Absen Harian (Hari 3/7)</div></div>
+      <div class="row" style="justify-content:space-between">
+        <span class="chip st" style="background:var(--padi)">1 OK</span><span class="chip st" style="background:var(--padi)">2 OK</span><span class="chip st" style="background:var(--senja)">3</span>
+        <span class="chip st">4</span><span class="chip st">5</span><span class="chip st">6</span><span class="chip st" style="background:var(--kunyit)">7</span>
+      </div>
+      <div class="btn st" style="background:var(--kunyit)">Klaim Hadiah Harian</div>
+    </div>
+    <div class="sec h"><div class="ico st" style="background:var(--daun)">=</div>Tugas Hari Ini</div>
+    <div class="card st col" style="gap:var(--sm)">
+      <div class="row"><span class="body grow">Panen 10 padi</span><span class="small muted">6/10</span></div>
+      <div class="bar"><i style="width:60%;background:var(--padi)"></i></div>
+    </div>
+    <div class="card st col" style="gap:var(--sm)">
+      <div class="row"><span class="body grow">Jual ke pasar 3 kali</span><span class="small muted">2/3</span></div>
+      <div class="bar"><i style="width:66%;background:var(--padi)"></i></div>
+    </div>
+    <div class="card st row">
+      <div class="col grow" style="gap:var(--sm)">
+        <div class="row"><span class="body grow">Siram tanaman tetangga</span><span class="small muted">1/1</span></div>
+        <div class="bar"><i style="width:100%;background:var(--daun)"></i></div>
+      </div>
+      <div class="btn st" style="background:var(--daun);width:76px">Klaim</div>
+    </div>
+    <div class="card st row" style="opacity:.6">
+      <span class="body grow">Tanam 5 bibit</span><span class="chip st">Sudah Diklaim</span>
+    </div>
+  </div>
+</div></section>
+
+<!-- ======================= PHONE: CURANG ======================= -->
+<section id="phone-curang"><div class="phone">
+  <div class="status"><span>07:30</span><span>▮▮▮ 86%</span></div>
+  <div class="nav" style="background:var(--merah)">
+    <div class="navbtn st">&lt;</div><div class="t h">Curang</div><div class="navbtn st" style="color:var(--merah)">X</div>
+  </div>
+  <div class="page">
+    <div class="card st col" style="gap:var(--sm)">
+      <div class="row"><div class="ico st" style="background:var(--merah)">?</div><span class="heading grow">Sus</span><span class="heading" style="color:var(--merah)">62</span></div>
+      <div class="bar" style="height:16px"><i style="width:62%;background:linear-gradient(90deg,var(--kunyit),var(--merah))"></i></div>
+    </div>
+    <div class="sec h"><div class="ico st" style="background:var(--genteng)">!</div>Akal-akalan</div>
+    <div class="card st row">
+      <div class="ico st" style="background:var(--padi)">B</div>
+      <div class="col grow" style="gap:2px"><span class="body">Oplos pupuk</span><span class="small muted">Panen lebih cepat, Sus naik</span></div>
+      <div class="btn st" style="background:var(--kunyit);width:118px">Oplos Cabai<br>(Rp 300)</div>
+    </div>
+    <div class="sec h"><div class="ico st" style="background:var(--indigo)">U</div>Tetangga</div>
+    <div class="card st row">
+      <div class="ico st" style="background:var(--indigo)">B</div><span class="body grow">Budi</span>
+      <div class="btn st dark" style="background:var(--genteng);width:64px">Curi</div>
+      <div class="btn st" style="background:var(--daun);width:64px">Siram</div>
+    </div>
+    <div class="card st row">
+      <div class="ico st" style="background:var(--indigo)">S</div><span class="body grow">Sari</span>
+      <div class="btn st dark" style="background:var(--genteng);width:64px">Curi</div>
+      <div class="btn st" style="background:var(--daun);width:64px">Siram</div>
+    </div>
+    <div class="small muted" style="text-align:center">Siram tanaman tetangga = +Nama Baik</div>
+    <div class="card st small" style="background:var(--senja)">Tips: curang itu cepat, tapi tetangga bisa ngerekam.</div>
+  </div>
+</div></section>
+
+<!-- ======================= PHONE: DEKOR ======================= -->
+<section id="phone-dekor"><div class="phone">
+  <div class="status"><span>07:30</span><span>▮▮▮ 86%</span></div>
+  <div class="nav" style="background:var(--indigo)">
+    <div class="navbtn st">&lt;</div><div class="t h">Dekorasi</div><div class="navbtn st" style="color:var(--merah)">X</div>
+  </div>
+  <div class="page" style="display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:min-content;gap:var(--md)">
+    <div class="card st col" style="gap:var(--sm);padding:var(--sm)">
+      <div style="height:84px;border-radius:var(--r-chip);background:var(--senja);display:flex;align-items:center;justify-content:center;font-size:44px;font-family:'Luckiest Guy';color:var(--tinta)">C</div>
+      <div class="row"><span class="body grow">Caping</span><span class="chip" style="border:2px solid var(--tinta-lembut)">biasa</span></div>
+      <div class="btn st" style="background:var(--padi)">Pakai</div>
+    </div>
+    <div class="card st col" style="gap:var(--sm);padding:var(--sm)">
+      <div style="height:84px;border-radius:var(--r-chip);background:var(--padi);display:flex;align-items:center;justify-content:center;font-size:44px;font-family:'Luckiest Guy';color:var(--tinta)">P</div>
+      <div class="row"><span class="body grow">Peci</span><span class="chip" style="border:2px solid var(--daun)">bagus</span></div>
+      <div class="btn st dark" style="background:var(--genteng)">Lepas</div>
+    </div>
+    <div class="card st col" style="gap:var(--sm);padding:var(--sm)">
+      <div style="height:84px;border-radius:var(--r-chip);background:#c9d6e3;display:flex;align-items:center;justify-content:center;font-size:44px;font-family:'Luckiest Guy';color:var(--tinta)">O</div>
+      <div class="row"><span class="body grow">Orang-orangan</span><span class="chip" style="border:3px double var(--malam)">super</span></div>
+      <div class="btn st" style="background:var(--kunyit)">Beli (Rp 2.000)</div>
+    </div>
+    <div class="card st col" style="gap:var(--sm);padding:var(--sm);box-shadow:4px 4px 0 var(--kunyit)">
+      <div style="height:84px;border-radius:var(--r-chip);background:var(--kunyit);display:flex;align-items:center;justify-content:center;font-size:44px;font-family:'Luckiest Guy';color:var(--tinta)">B</div>
+      <div class="row"><span class="body grow">Blangkon</span><span class="chip" style="border:3px solid var(--kunyit)">sultan</span></div>
+      <div class="btn st" style="background:var(--kertas)">Dimiliki</div>
+    </div>
+  </div>
+</div></section>
+
+<!-- ======================= PHONE: LAPOR ======================= -->
+<section id="phone-lapor"><div class="phone">
+  <div class="status"><span>07:30</span><span>▮▮▮ 86%</span></div>
+  <div class="nav" style="background:var(--malam)">
+    <div class="navbtn st">&lt;</div><div class="t h">Lapor</div><div class="navbtn st" style="color:var(--merah)">X</div>
+  </div>
+  <div class="page">
+    <div class="row" style="justify-content:space-between">
+      <span class="chip st"><b style="color:var(--merah)">?</b> Sus 30</span>
+      <span class="chip st"><b style="color:var(--malam)">*</b> Nama Baik 120</span>
+      <span class="chip st"><b style="color:var(--kunyit)">^</b> Juragan Kecil</span>
+    </div>
+    <div class="col" style="align-items:center;gap:var(--sm);padding:var(--sm) 0">
+      <div class="st" style="width:96px;height:96px;border-radius:50%;background:var(--merah);display:flex;align-items:center;justify-content:center">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--kertas)"></div></div>
+      <span class="h heading">Rekam</span>
+      <span class="small muted">Rekam tetangga yang curang, lalu laporkan.</span>
+    </div>
+    <div class="sec h"><div class="ico st" style="background:var(--bambu)">@</div>Bukti</div>
+    <div class="card st row">
+      <div style="width:56px;height:44px;border-radius:var(--r-chip);background:var(--tinta);color:var(--kertas);display:flex;align-items:center;justify-content:center" class="small">0:08</div>
+      <div class="col grow" style="gap:2px"><span class="body">Budi mencuri air</span><span class="small muted">2 menit lalu</span></div>
+      <div class="btn st" style="background:var(--bambu);width:56px">Pakai</div>
+      <div class="btn st dark" style="background:var(--malam);width:60px">Lapor</div>
+    </div>
+    <div class="card st row" style="opacity:.55;border-style:dashed;box-shadow:none">
+      <span class="body muted grow" style="text-align:center">Kosong.</span>
+    </div>
+  </div>
+</div></section>
+
+<!-- ======================= HUD (landscape) ======================= -->
+<section id="hud"><div class="landscape">
+  <div class="world"></div>
+  <div style="position:absolute;left:12px;top:12px;display:flex;flex-direction:column;gap:8px">
+    <div class="chip st" style="height:36px;font-size:15px"><span class="ico" style="width:24px;height:24px;background:var(--kunyit);font-size:10px">Rp</span>Rp 12.450</div>
+    <div class="chip st" style="height:28px">Pangkat: Juragan Kecil</div>
+    <div class="row" style="gap:8px">
+      <div class="chip st"><b style="color:var(--merah)">?</b> Sus 30</div>
+      <div class="chip st"><b style="color:var(--malam)">*</b> Nama Baik 120</div>
+    </div>
+  </div>
+  <div class="card st body" style="position:absolute;left:50%;top:12px;transform:translateX(-50%);background:var(--merah);color:var(--kertas);padding:8px 16px">Harga cabai naik x2 · 3:12 lagi</div>
+  <div class="chip st" style="position:absolute;right:12px;top:12px;height:36px">Karung: 14/20</div>
+  <!-- seed bar -->
+  <div style="position:absolute;left:50%;bottom:12px;transform:translateX(-50%);display:flex;gap:8px">
+    <div class="card st col" style="width:76px;height:64px;padding:4px;align-items:center;gap:0;background:var(--senja)"><span class="ico" style="background:var(--padi)">B</span><span class="small">Padi x12</span></div>
+    <div class="card st col" style="width:76px;height:64px;padding:4px;align-items:center;gap:0"><span class="ico" style="background:var(--merah)">B</span><span class="small">Cabai x4</span></div>
+    <div class="card st col" style="width:76px;height:64px;padding:4px;align-items:center;gap:0"><span class="ico" style="background:var(--kunyit)">B</span><span class="small">Jagung x7</span></div>
+    <div class="card st col" style="width:76px;height:64px;padding:4px;align-items:center;gap:0;opacity:.55"><span class="ico" style="background:var(--tinta-lembut)">L</span><span class="small">Terkunci</span></div>
+  </div>
+  <!-- right action column -->
+  <div style="position:absolute;right:12px;bottom:12px;display:flex;flex-direction:column;gap:10px">
+    <div class="btn st dark" style="width:72px;height:56px;background:var(--malam)">HP</div>
+    <div class="btn st dark" style="width:72px;height:56px;background:var(--genteng)">Curang</div>
+    <div class="btn st dark" style="width:72px;height:56px;background:var(--daun)">Bibit</div>
+  </div>
+  <!-- joystick area hint -->
+  <div style="position:absolute;left:28px;bottom:28px;width:96px;height:96px;border-radius:50%;border:2px dashed rgba(43,33,24,.4)"></div>
+</div></section>
+
+<!-- ======================= TOKO BIBIT (landscape) ======================= -->
+<section id="toko-bibit"><div class="landscape">
+  <div class="world" style="filter:brightness(.55)"></div>
+  <div class="card st" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:620px;height:340px;padding:0;overflow:hidden;display:flex;flex-direction:column">
+    <div class="row" style="background:var(--padi);padding:8px 12px;border-bottom:2px solid var(--tinta)">
+      <span class="h heading grow" style="font-size:22px">Toko Bibit</span><span class="chip st">Restock 4:59</span><div class="navbtn st" style="color:var(--merah)">X</div>
+    </div>
+    <div style="flex:1;padding:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+      <div class="card st col" style="gap:6px;padding:8px;background:#fbf4e3"><div class="row"><span class="ico st" style="background:var(--padi)">B</span><span class="body grow">Padi</span><span class="small muted">x9</span></div><div class="btn st" style="background:var(--kunyit)">Beli 1 (Rp 20)</div><div class="btn st" style="background:var(--bambu);min-height:36px">Semua (Rp 180)</div></div>
+      <div class="card st col" style="gap:6px;padding:8px;background:#fbf4e3"><div class="row"><span class="ico st" style="background:var(--merah)">B</span><span class="body grow">Cabai</span><span class="small muted">x3</span></div><div class="btn st" style="background:var(--kunyit)">Beli 1 (Rp 90)</div><div class="btn st" style="background:var(--bambu);min-height:36px">Semua (Rp 270)</div></div>
+      <div class="card st col" style="gap:6px;padding:8px;background:#fbf4e3"><div class="row"><span class="ico st" style="background:var(--kunyit)">B</span><span class="body grow">Jagung</span></div><div class="btn" style="background:#e3d5b5;border:2px solid var(--tinta-lembut);color:var(--tinta-lembut)">Habis</div></div>
+      <div class="card st col" style="gap:6px;padding:8px;background:#e9dfc6;opacity:.75"><div class="row"><span class="ico st" style="background:var(--tinta-lembut)">L</span><span class="body grow">Bawang</span><span class="chip st" style="height:22px">Petani?</span></div><span class="small muted">Butuh pangkat Petani</span></div>
+      <div class="card st col" style="gap:6px;padding:8px;background:#e9dfc6;opacity:.75"><div class="row"><span class="ico st" style="background:var(--tinta-lembut)">L</span><span class="body grow">Tembakau</span></div><span class="small muted">Tidak dijual</span></div>
+      <div class="card st col" style="gap:6px;padding:8px;background:#e9dfc6;opacity:.75"><div class="row"><span class="ico st" style="background:var(--tinta-lembut)">L</span><span class="body grow">Singkong</span><span class="chip st" style="height:22px">Juragan?</span></div><span class="small muted">Butuh pangkat Juragan</span></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- ======================= PAPAN (landscape) ======================= -->
+<section id="papan"><div class="landscape">
+  <div class="world" style="filter:brightness(.55)"></div>
+  <div class="card st" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:520px;height:350px;padding:0;overflow:hidden;display:flex;flex-direction:column">
+    <div class="row" style="background:var(--kunyit);padding:8px 12px;border-bottom:2px solid var(--tinta)">
+      <span class="ico st" style="background:var(--senja);color:var(--tinta)">1</span><span class="h heading grow" style="font-size:22px">Papan Juragan</span><div class="navbtn st" style="color:var(--merah)">X</div>
+    </div>
+    <div class="row" style="padding:8px 12px 0;gap:8px"><span class="chip st" style="background:var(--senja)">Kekayaan</span><span class="chip st">Nama Baik</span><span class="chip st">Panen</span></div>
+    <div class="col" style="padding:8px 12px;gap:6px">
+      <div class="row card st" style="padding:6px 10px;background:#f6dc9a"><span class="h heading" style="width:28px">1</span><span class="body grow">Pak_Lurah88</span><span class="body">Rp 1.240.000</span></div>
+      <div class="row card st" style="padding:6px 10px"><span class="h heading" style="width:28px">2</span><span class="body grow">SariTani</span><span class="body">Rp 812.300</span></div>
+      <div class="row card st" style="padding:6px 10px"><span class="h heading" style="width:28px">3</span><span class="body grow">BudiCangkul</span><span class="body">Rp 640.050</span></div>
+      <div class="row card st" style="padding:6px 10px"><span class="h heading" style="width:28px">4</span><span class="body grow">jagungmania</span><span class="body">Rp 455.900</span></div>
+      <div class="row card st" style="padding:6px 10px;background:var(--padi)"><span class="h heading" style="width:28px">17</span><span class="body grow">Kamu</span><span class="body">Rp 12.450</span></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- ======================= MINIGAME (landscape) ======================= -->
+<section id="minigame"><div class="landscape">
+  <div class="world"></div>
+  <div class="card st col" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:400px;align-items:center;gap:12px;padding:16px">
+    <span class="h" style="font-size:var(--t-display)">MENCANGKUL</span>
+    <span class="small muted">Tap saat jarum di zona hijau</span>
+    <div style="position:relative;width:340px;height:28px;border:2px solid var(--tinta);border-radius:14px;background:#e3d5b5;overflow:hidden">
+      <div style="position:absolute;left:58%;width:18%;top:0;bottom:0;background:var(--padi);border-left:2px solid var(--tinta);border-right:2px solid var(--tinta)"></div>
+      <div style="position:absolute;left:63%;width:6%;top:0;bottom:0;background:var(--daun)"></div>
+      <div style="position:absolute;left:44%;top:-4px;width:6px;height:36px;background:var(--tinta);border-radius:3px"></div>
+    </div>
+    <div class="row" style="width:340px"><span class="body grow">3 / 5</span><span class="body">Kualitas: Bagus</span></div>
+    <div class="row" style="gap:12px">
+      <div class="btn st" style="width:180px;height:56px;background:var(--kunyit);font-size:var(--t-heading)">TAP!</div>
+      <div class="btn st" style="width:80px;background:var(--kertas)">Auto</div>
+    </div>
+  </div>
+</div></section>
+
+<!-- ======================= RAZIA (landscape) ======================= -->
+<section id="razia"><div class="landscape" style="background:var(--tinta)">
+  <div style="position:absolute;left:0;right:0;top:24px;background:var(--merah);border-top:2px solid var(--kertas);border-bottom:2px solid var(--kertas);padding:6px 16px;display:flex;gap:16px;align-items:center">
+    <span class="h" style="background:var(--kertas);color:var(--merah);padding:2px 8px;border-radius:4px">BREAKING NEWS</span>
+    <span class="body" style="color:var(--kertas)">Polisi Desa datang ke ladangmu!</span>
+  </div>
+  <div class="col" style="position:absolute;left:0;right:0;top:84px;align-items:center;gap:8px">
+    <span class="h" style="font-size:40px;color:var(--senja);text-shadow:4px 4px 0 var(--merah)">OPERASI SAPU BERSIH</span>
+    <span class="heading" style="color:var(--kertas)">Apa yang kamu lakukan?</span>
+  </div>
+  <div class="row" style="position:absolute;left:50%;bottom:64px;transform:translateX(-50%);gap:16px">
+    <div class="btn st" style="width:200px;height:72px;background:var(--kertas);font-size:15px">Bayar Denda<br>Rp 2.500</div>
+    <div class="btn st" style="width:200px;height:72px;background:var(--kunyit);font-size:15px">Kasih Amplop<br>Rp 1.875 (75%)</div>
+    <div class="btn st dark" style="width:160px;height:72px;background:var(--tinta-lembut);font-size:15px">Tidak bisa bayar</div>
+  </div>
+  <div class="bar" style="position:absolute;left:50%;bottom:28px;transform:translateX(-50%);width:420px;height:10px;background:#5b4a38"><i style="width:70%;background:var(--senja)"></i></div>
+  <div class="chip st" style="position:absolute;right:12px;top:72px">Lewati Cutscene</div>
+</div></section>
+
+</body>
+</html>

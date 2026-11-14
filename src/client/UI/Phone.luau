@@ -92,26 +92,12 @@ function Phone.mount(lang: string)
 		return Strings.get(lang, key, ...)
 	end
 
-	local gui = Theme.screenGui("Phone", 30)
+	-- Above the HUD (DisplayOrder 10) so the dim backdrop covers the Next Goal card and stats.
+	local gui = Theme.screenGui("Phone", 20)
+	-- The scrim must cover the whole screen, including the top-bar strip where the HUD goal card sits.
+	gui.IgnoreGuiInset = true
 
-	-- Toggle button lives in the HUD's top-right column so both buttons line up.
-	local hud = player:WaitForChild("PlayerGui"):WaitForChild("Hud", 20)
-	local column = hud and hud:FindFirstChild("Buttons") :: Frame?
-	local toggle = Theme.button({
-		Name = "PhoneButton",
-		LayoutOrder = 2,
-		Size = UDim2.fromScale(1, 0.5),
-		BackgroundColor3 = Theme.malam,
-		Text = t("hud_phone"),
-		Parent = column or gui,
-	})
-	if not column then
-		toggle.AnchorPoint = Vector2.new(1, 0)
-		toggle.Position = UDim2.new(1, -10, 0, 72)
-		toggle.Size = UDim2.new(0.18, 0, 0.075, 0)
-	end
-
-	-- Full-screen scrim + card
+	-- Full-screen scrim. Tapping outside the device closes the phone.
 	local root = Theme.new("Frame", {
 		Name = "Root",
 		Size = UDim2.fromScale(1, 1),
@@ -121,34 +107,114 @@ function Phone.mount(lang: string)
 		Parent = gui,
 	})
 
-	local card = Theme.card({
+	-- The device follows the screen orientation (applyLayout, below): a portrait phone
+	-- (aspect 0.5, 88% of the height) normally, or a landscape phone (aspect 2, 90% of the
+	-- height) on short screens. The aspect constraint keeps the shape; MaxSize only caps it.
+	-- No MinSize: a minimum would break the aspect ratio on small screens.
+	local aspect = Theme.new("UIAspectRatioConstraint", {
+		AspectRatio = 0.5,
+		AspectType = Enum.AspectType.FitWithinMaxSize,
+		DominantAxis = Enum.DominantAxis.Height,
+	})
+	local sizeLimit = Theme.new("UISizeConstraint", { MaxSize = Vector2.new(340, 680) })
+	local card = Theme.new("Frame", {
 		Name = "Card",
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromScale(0.9, 0.84),
+		Size = UDim2.fromScale(0.9, 0.88),
+		BackgroundColor3 = Theme.ink,
+		BorderSizePixel = 0,
 		Parent = root,
 	}, {
-		Theme.new("UISizeConstraint", { MinSize = Vector2.new(290, 320), MaxSize = Vector2.new(520, 680) }),
+		Theme.corner(nil, 26),
+		Theme.new("UIStroke", { Color = Theme.inkSoft, Thickness = 2 }),
+		aspect,
+		sizeLimit,
 	})
-	local cardPadding = Instance.new("UIPadding")
-	cardPadding.PaddingLeft = UDim.new(0, 12)
-	cardPadding.PaddingRight = UDim.new(0, 12)
-	cardPadding.PaddingTop = UDim.new(0, 10)
-	cardPadding.PaddingBottom = UDim.new(0, 10)
-	cardPadding.Parent = card
+
+	-- Speaker slit in the top bezel.
+	Theme.new("Frame", {
+		Name = "Speaker",
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.new(0.5, 0, 0, 6),
+		Size = UDim2.fromOffset(40, 4),
+		BackgroundColor3 = Theme.inkSoft,
+		BorderSizePixel = 0,
+		Parent = card,
+	}, { Theme.corner(nil, 2) })
+
+	-- The lit screen, inset by the bezel (10 px sides and bottom, 16 px top for the speaker).
+	local deviceScreen = Theme.new("Frame", {
+		Name = "Screen",
+		Position = UDim2.fromOffset(10, 16),
+		Size = UDim2.new(1, -20, 1, -26),
+		BackgroundColor3 = Theme.paper,
+		BorderSizePixel = 0,
+		ClipsDescendants = true,
+		Parent = card,
+	}, { Theme.corner(nil, 18) })
+
+	-- Wallpaper: only visible on the home grid.
+	local wallpaper = Theme.new("Frame", {
+		Name = "Wallpaper",
+		Size = UDim2.fromScale(1, 1),
+		BackgroundColor3 = Theme.malam,
+		BorderSizePixel = 0,
+		Parent = deviceScreen,
+	}, {
+		Theme.new("UIGradient", { Color = ColorSequence.new(Theme.malam, Theme.indigo), Rotation = 90 }),
+	})
+
+	-- Top bar: status line (clock, glyphs) over the navigation row (back, title, close).
+	-- 22 px status row + 44 px navigation row (44 px touch targets for Back and Close).
+	local topBar = Theme.new("Frame", {
+		Name = "TopBar",
+		Size = UDim2.new(1, 0, 0, 66),
+		BackgroundColor3 = Theme.malam,
+		BorderSizePixel = 0,
+		Parent = deviceScreen,
+	})
+	local clock = Theme.label({
+		Name = "Clock",
+		Position = UDim2.fromOffset(12, 0),
+		Size = UDim2.new(0.5, 0, 0, 22),
+		Text = "",
+		TextScaled = false,
+		TextSize = 12,
+		Font = Theme.displayFont,
+		TextColor3 = Theme.paper,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Parent = topBar,
+	})
+	Theme.label({
+		Name = "Glyphs",
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.new(1, -12, 0, 0),
+		Size = UDim2.new(0.5, 0, 0, 22),
+		Text = "|||| 4G [===]",
+		TextScaled = false,
+		TextSize = 11,
+		TextColor3 = Theme.paper,
+		TextXAlignment = Enum.TextXAlignment.Right,
+		Parent = topBar,
+	})
+
+	local function updateClock()
+		clock.Text = os.date("%H:%M")
+	end
 
 	local header = Theme.new("Frame", {
 		Name = "Header",
-		Position = UDim2.new(0, 0, 0, 0),
+		Position = UDim2.fromOffset(0, 22),
 		Size = UDim2.new(1, 0, 0, 44),
 		BackgroundTransparency = 1,
-		Parent = card,
+		Parent = topBar,
 	})
 
 	local backButton = Theme.button({
 		Name = "Back",
-		Position = UDim2.new(0, 0, 0, 0),
-		Size = UDim2.new(0, 44, 0, 44),
+		Position = UDim2.fromOffset(6, 0),
+		Size = UDim2.fromOffset(44, 44),
 		Text = "<",
 		BackgroundColor3 = Theme.bambu,
 		Visible = false,
@@ -157,35 +223,112 @@ function Phone.mount(lang: string)
 
 	local titleLabel = Theme.label({
 		Name = "Title",
-		Position = UDim2.new(0, 0, 0, 0),
-		Size = UDim2.new(1, -50, 1, 0),
+		Position = UDim2.fromOffset(12, 0),
+		Size = UDim2.new(1, -62, 1, 0),
 		Text = t("phone_title"),
 		Font = Theme.displayFont,
-		TextColor3 = Theme.merah,
+		TextColor3 = Theme.paper,
 		TextXAlignment = Enum.TextXAlignment.Left,
+		TextWrapped = false,
 		Parent = header,
 	})
+	-- One line: the title scales down to fit its row and never wraps.
+	Theme.new("UITextSizeConstraint", { MaxTextSize = 22, MinTextSize = 12, Parent = titleLabel })
 
 	local close = Theme.button({
 		Name = "Close",
 		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.fromScale(1, 0),
-		Size = UDim2.new(0, 44, 0, 44),
+		Position = UDim2.new(1, -6, 0, 0),
+		Size = UDim2.fromOffset(44, 44),
 		Text = "X",
 		BackgroundColor3 = Theme.red,
 		Parent = header,
 	})
 
-	-- Content frame fills rest of the card
+	-- Content: fills the screen between the top bar and the home bar.
 	local content = Theme.new("Frame", {
 		Name = "Content",
-		Position = UDim2.new(0, 0, 0, 50),
-		Size = UDim2.new(1, 0, 1, -50),
+		-- Top: 66 px TopBar + 4 px gap. Bottom: 34 px HomeBar + 4 px gap.
+		Position = UDim2.new(0, 8, 0, 70),
+		Size = UDim2.new(1, -16, 1, -104),
 		BackgroundTransparency = 1,
-		Parent = card,
+		Parent = deviceScreen,
 	})
 
-	-- Home grid
+	-- Home bar: a thin pill at the bottom. Inside an app it goes home; on home it closes the phone.
+	local homeBar = Theme.new("TextButton", {
+		Name = "HomeBar",
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.new(0, 0, 1, 0),
+		Size = UDim2.new(1, 0, 0, 34),
+		BackgroundTransparency = 1,
+		AutoButtonColor = false,
+		Text = "",
+		Parent = deviceScreen,
+	})
+	local homePill = Theme.new("Frame", {
+		Name = "Pill",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromOffset(84, 5),
+		BackgroundColor3 = Theme.paper,
+		BorderSizePixel = 0,
+		Parent = homeBar,
+	}, { Theme.corner(nil, 3) })
+
+	-- Closing is always possible: the X, the home bar on home, and a tap outside the device.
+	local toggle: TextButton
+	local function closePhone()
+		root.Visible = false
+		toggle.Visible = true
+	end
+
+	-- The only top-right control: a small phone. Hidden while the phone is open.
+	toggle = Theme.new("TextButton", {
+		Name = "PhoneButton",
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.new(1, -10, 0, 10),
+		Size = UDim2.fromOffset(44, 64),
+		BackgroundColor3 = Theme.ink,
+		BorderSizePixel = 0,
+		AutoButtonColor = true,
+		Text = "",
+		Parent = gui,
+	}, {
+		Theme.corner(nil, 10),
+		Theme.new("UIStroke", { Color = Theme.inkSoft, Thickness = 2 }),
+		Theme.new("UISizeConstraint", { MinSize = Vector2.new(44, 64), MaxSize = Vector2.new(56, 80) }),
+	})
+	local lit = Theme.new("Frame", {
+		Name = "LitScreen",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.new(1, -8, 1, -12),
+		BackgroundColor3 = Theme.malam,
+		BorderSizePixel = 0,
+		Parent = toggle,
+	}, {
+		Theme.corner(nil, 6),
+		Theme.new("UIGradient", { Color = ColorSequence.new(Theme.malam, Theme.indigo), Rotation = 90 }),
+	})
+	local litLabel = Theme.label({
+		Name = "Label",
+		Size = UDim2.fromScale(1, 1),
+		Text = t("hud_phone"),
+		Font = Theme.displayFont,
+		TextColor3 = Theme.paper,
+		Parent = lit,
+	})
+	Theme.new("UITextSizeConstraint", { MaxTextSize = 14, MinTextSize = 9, Parent = litLabel })
+
+	-- Home grid: column count and cell size are set by applyLayout (3 portrait, 4 landscape).
+	local homeGrid = Theme.new("UIGridLayout", {
+		CellSize = UDim2.new(1 / 3, -4, 0, 88),
+		CellPadding = UDim2.fromOffset(4, 6),
+		FillDirectionMaxCells = 3,
+		HorizontalAlignment = Enum.HorizontalAlignment.Center,
+		SortOrder = Enum.SortOrder.LayoutOrder,
+	})
 	local homePage = Theme.new("ScrollingFrame", {
 		Name = "PageHome",
 		Size = UDim2.fromScale(1, 1),
@@ -198,17 +341,47 @@ function Phone.mount(lang: string)
 		Visible = true,
 		Parent = content,
 	}, {
-		Theme.new("UIGridLayout", {
-			CellSize = UDim2.fromOffset(84, 88),
-			CellPadding = UDim2.fromOffset(12, 12),
-			HorizontalAlignment = Enum.HorizontalAlignment.Center,
-			SortOrder = Enum.SortOrder.LayoutOrder,
-		}),
+		homeGrid,
 		Theme.new("UIPadding", {
 			PaddingTop = UDim.new(0, 8),
 			PaddingBottom = UDim.new(0, 8),
 		}),
 	})
+
+	-- Orientation by screen: landscape when the screen is short (height < 500, or wide and
+	-- under 600 high), portrait otherwise. Only the card aspect, its size cap and the grid
+	-- columns change; pages are not rebuilt.
+	local function isLandscape(viewport: Vector2): boolean
+		return viewport.Y < 500 or (viewport.X > 1.6 * viewport.Y and viewport.Y < 600)
+	end
+
+	local function applyLayout()
+		local camera = workspace.CurrentCamera
+		if not camera then
+			return
+		end
+		local landscape = isLandscape(camera.ViewportSize)
+		aspect.AspectRatio = if landscape then 2 else 0.5
+		card.Size = if landscape then UDim2.fromScale(0.95, 0.9) else UDim2.fromScale(0.9, 0.88)
+		sizeLimit.MaxSize = if landscape then Vector2.new(1200, 600) else Vector2.new(340, 680)
+		homeGrid.FillDirectionMaxCells = if landscape then 4 else 3
+		homeGrid.CellSize = if landscape then UDim2.new(1 / 4, -4, 0, 88) else UDim2.new(1 / 3, -4, 0, 88)
+	end
+
+	local viewportConnection: RBXScriptConnection? = nil
+	local function watchCamera()
+		if viewportConnection then
+			viewportConnection:Disconnect()
+			viewportConnection = nil
+		end
+		local camera = workspace.CurrentCamera
+		if camera then
+			viewportConnection = camera:GetPropertyChangedSignal("ViewportSize"):Connect(applyLayout)
+		end
+		applyLayout()
+	end
+	workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(watchCamera)
+	watchCamera()
 
 	local pages: { [string]: ScrollingFrame } = {
 		phone = scrollPage(content, "PagePhone"),
@@ -222,6 +395,7 @@ function Phone.mount(lang: string)
 		page.Visible = false
 	end
 
+	-- Apps with `page` open a screen inside the phone; apps with `action` open a panel elsewhere.
 	local appDefs = {
 		{ id = "phone", icon = "phone", label = "phone_tab_phone", color = Theme.malam },
 		{ id = "kebun", icon = "garden", label = "phone_tab_kebun", color = Theme.daun },
@@ -229,6 +403,8 @@ function Phone.mount(lang: string)
 		{ id = "tugas", icon = "quest", label = "phone_tab_tugas", color = Theme.kunyit },
 		{ id = "cheat", icon = "cheat", label = "phone_tab_cheat", color = Theme.merah },
 		{ id = "dekor", icon = "hat", label = "phone_tab_dekor", color = Theme.indigo },
+		{ id = "shop", icon = "shop", label = "hud_shop", color = Theme.padi, action = "shop" },
+		{ id = "board", icon = "trophy", label = "phone_app_board", color = Theme.kunyit, action = "board" },
 	}
 
 	local currentScreen = "home"
@@ -237,13 +413,15 @@ function Phone.mount(lang: string)
 	local function showScreen(screen: string)
 		currentScreen = screen
 		homePage.Visible = screen == "home"
+		wallpaper.Visible = screen == "home"
+		homePill.BackgroundColor3 = if screen == "home" then Theme.paper else Theme.ink
 		backButton.Visible = screen ~= "home"
 		if screen == "home" then
-			titleLabel.Position = UDim2.new(0, 0, 0, 0)
-			titleLabel.Size = UDim2.new(1, -50, 1, 0)
+			titleLabel.Position = UDim2.fromOffset(12, 0)
+			titleLabel.Size = UDim2.new(1, -62, 1, 0)
 			titleLabel.Text = t("phone_title")
 		else
-			titleLabel.Position = UDim2.new(0, 50, 0, 0)
+			titleLabel.Position = UDim2.fromOffset(50, 0)
 			titleLabel.Size = UDim2.new(1, -100, 1, 0)
 			titleLabel.Text = t("phone_tab_" .. screen)
 		end
@@ -260,33 +438,60 @@ function Phone.mount(lang: string)
 	end)
 
 	for order, app in appDefs do
-		local appCard = Theme.button({
+		local tile = Theme.new("TextButton", {
 			Name = "App_" .. app.id,
 			LayoutOrder = order,
-			Size = UDim2.fromOffset(84, 88),
-			BackgroundColor3 = Theme.paper,
+			BackgroundTransparency = 1,
+			AutoButtonColor = false,
 			Text = "",
 			Parent = homePage,
 		})
-		Icons.make(app.icon, {
+		-- Rounded app icon (a sticker: paper square with an ink outline).
+		local square = Theme.new("Frame", {
+			Name = "Icon",
 			AnchorPoint = Vector2.new(0.5, 0),
-			Position = UDim2.new(0.5, 0, 0, 8),
-			Size = UDim2.fromOffset(40, 40),
+			Position = UDim2.new(0.5, 0, 0, 4),
+			-- Height follows width (RelativeXX): a 0 Y-scale with only an aspect constraint collapses to 0x0.
+			Size = UDim2.fromScale(0.6, 0.6),
+			SizeConstraint = Enum.SizeConstraint.RelativeXX,
+			BackgroundColor3 = Theme.paper,
+			BorderSizePixel = 0,
+			Parent = tile,
+		}, {
+			Theme.corner(nil, 14),
+			Theme.new("UIStroke", { Color = Theme.ink, Thickness = 2 }),
+			Theme.new("UIAspectRatioConstraint", { AspectRatio = 1 }),
+			Theme.new("UISizeConstraint", { MaxSize = Vector2.new(60, 60) }),
+		})
+		Icons.make(app.icon, {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(0.5, 0.5),
+			Size = UDim2.fromScale(0.62, 0.62),
 			Color = app.color,
-			Parent = appCard,
+			Parent = square,
 		})
 		local label = Theme.label({
 			AnchorPoint = Vector2.new(0.5, 1),
-			Position = UDim2.new(0.5, 0, 1, -6),
-			Size = UDim2.new(1, -4, 0, 26),
+			Position = UDim2.new(0.5, 0, 1, 0),
+			Size = UDim2.new(1, 0, 0, 26),
 			Text = t(app.label),
-			TextColor3 = Theme.ink,
+			TextColor3 = Theme.paper,
+			TextStrokeColor3 = Theme.ink,
+			TextStrokeTransparency = 0.3,
 			TextWrapped = true,
-			Parent = appCard,
+			Parent = tile,
 		})
-		label.TextSize = 12
-		appCard.Activated:Connect(function()
-			showScreen(app.id)
+		Theme.new("UITextSizeConstraint", { MaxTextSize = 14, MinTextSize = 10, Parent = label })
+		tile.Activated:Connect(function()
+			if app.action == "shop" then
+				closePhone()
+				require(script.Parent.Hud).openShop()
+			elseif app.action == "board" then
+				closePhone()
+				require(script.Parent.Leaderboard).open()
+			else
+				showScreen(app.id)
+			end
 		end)
 	end
 
@@ -1041,6 +1246,8 @@ function Phone.mount(lang: string)
 
 	local function open()
 		root.Visible = true
+		toggle.Visible = false
+		updateClock()
 		lastPhoneSignature = ""
 		kebunSignature = ""
 		cheatSignature = ""
@@ -1048,21 +1255,19 @@ function Phone.mount(lang: string)
 		showScreen("home")
 	end
 
-	local function closePhone()
-		root.Visible = false
-	end
-
-	toggle.Activated:Connect(function()
-		if root.Visible then
+	toggle.Activated:Connect(open)
+	close.Activated:Connect(closePhone)
+	homeBar.Activated:Connect(function()
+		if currentScreen == "home" then
 			closePhone()
 		else
-			open()
+			showScreen("home")
 		end
 	end)
-	close.Activated:Connect(closePhone)
 	root.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.Touch and input.Position then
-			-- scrim tap closes only when the card was not hit; card buttons swallow input
+		local kind = input.UserInputType
+		if (kind == Enum.UserInputType.Touch or kind == Enum.UserInputType.MouseButton1) and input.Position then
+			-- scrim tap closes only when the device was not hit; device buttons swallow input
 			local cardPos = card.AbsolutePosition
 			local cardSize = card.AbsoluteSize
 			local p = input.Position
@@ -1086,12 +1291,15 @@ function Phone.mount(lang: string)
 		end
 	end)
 
-	-- Refresh the open tab once a second (tiles change state, neighbors join/leave).
+	-- Once a second: the status-bar clock, and the open tab (tiles change state, neighbors join/leave).
 	task.spawn(function()
 		while true do
 			task.wait(1)
-			if root.Visible and currentScreen ~= "home" then
-				refreshCurrent()
+			if root.Visible then
+				updateClock()
+				if currentScreen ~= "home" then
+					refreshCurrent()
+				end
 			end
 		end
 	end)

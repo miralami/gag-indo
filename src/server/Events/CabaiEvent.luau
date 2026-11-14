@@ -47,6 +47,10 @@ end
 local function syncFlag()
 	local active = CabaiEvent.isActive()
 	ReplicatedStorage:SetAttribute("CabaiEvent", active)
+	-- Timed events end at activeUntil (os.time() + cabaiEventDuration). An admin-forced "on"
+	-- has no end, so it publishes 0 and the HUD shows the banner without a countdown.
+	local endsAt = if active and activeUntil > os.time() then activeUntil else 0
+	ReplicatedStorage:SetAttribute("CabaiEventEndsAt", endsAt)
 	if active == lastEffective then
 		return
 	end

@@ -54,6 +54,7 @@ local specs = {
 	require("./specs/landscape_spec"),
 		require("./specs/enums_spec"),
 	require("./specs/camerafeel_spec"),
+	require("./specs/nextgoal_spec"),
 }
 
 local t = Test.new()

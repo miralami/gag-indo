@@ -125,7 +125,7 @@ local S: { [string]: { id: string, en: string } } = {
 	tutorial_plant = { id = "Tanam bibit padi di petakmu", en = "Plant a rice seed in your plot" },
 	tutorial_harvest = { id = "Tunggu tumbuh, lalu panen", en = "Wait for it to grow, then harvest" },
 	tutorial_sell = { id = "Bawa hasil panen ke Pasar", en = "Bring your harvest to the Market" },
-	tutorial_buy = { id = "Beli bibit baru di Toko Bibit", en = "Buy fresh seeds in the Seed Shop" },
+	tutorial_buy = { id = "Buka HP → Toko Bibit, beli bibit baru", en = "Open your Phone → Seed Shop and buy seeds" },
 	tutorial_card_title = { id = "Panduan Juragan", en = "Village Guide" },
 
 	-- prompts
@@ -270,7 +270,8 @@ local S: { [string]: { id: string, en: string } } = {
 	-- phone
 	phone_title = { id = "HP Juragan", en = "Juragan Phone" },
 	phone_home = { id = "Beranda", en = "Home" },
-	phone_tab_phone = { id = "HP", en = "Phone" },
+	phone_tab_phone = { id = "Lapor", en = "Report" },
+	phone_app_board = { id = "Papan", en = "Leaderboard" },
 	phone_tab_kebun = { id = "Kebun", en = "Farm" },
 	phone_tab_pinjol = { id = "BayarLater", en = "Loan" },
 	phone_tab_tugas = { id = "Tugas", en = "Quests" },
@@ -380,6 +381,19 @@ local S: { [string]: { id: string, en: string } } = {
 	raid_outcome_amplop_fail = { id = "Amplop kurang tebal! Denda x1,5.", en = "Envelope too thin! Fine x1.5." },
 	raid_outcome_jail = { id = "Kamu digelandang ke Pos Ronda.", en = "You're dragged to the Guard Post." },
 	raid_skip = { id = "Lewati Cutscene", en = "Skip Cutscene" },
+
+	-- Guide card: next goal after the tutorial (Shared/NextGoal)
+	goal_card_title = { id = "Tujuan Berikutnya", en = "Next Goal" },
+	goal_rank_money = { id = "Kumpulkan Rp %s / %s untuk naik ke %s", en = "Earn Rp %s / %s to reach %s" },
+	goal_rank_tiles = { id = "Punya %s / %s petak untuk naik ke %s", en = "Own %s / %s plots to reach %s" },
+	goal_daily = { id = "Cek Tugas Harian di HP", en = "Check Daily Tasks on your phone" },
+
+	-- Cabai banner with time left (Hud), and the untimed variant for admin-forced events
+	hud_event_cabai_left = { id = "Harga cabai naik x%s · %s lagi", en = "Chili sells x%s · %s left" },
+	hud_event_cabai_on = { id = "Harga cabai naik x%s", en = "Chili sells x%s" },
+
+	-- Seed bar fallback when the player owns no seeds
+	hud_buy_seeds = { id = "Beli bibit di Toko", en = "Buy seeds at the Shop" },
 }
 
 local Strings = {}

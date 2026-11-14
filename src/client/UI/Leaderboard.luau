@@ -38,20 +38,7 @@ function LeaderboardUI.mount(lang: string)
 	local boards = Leaderboard.emptyBoards()
 	local current = "richest"
 
-	local button = Theme.button({
-		Name = "Open",
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -10, 0, 170),
-		Size = UDim2.new(0.18, 0, 0, 44),
-		Text = t("lb_button"),
-		Parent = gui,
-	})
-	Theme.new("UISizeConstraint", {
-		MinSize = Vector2.new(96, 44),
-		MaxSize = Vector2.new(180, 52),
-		Parent = button,
-	})
-
+	-- No HUD button: the phone opens the board through LeaderboardUI.open().
 	local panel = Theme.card({
 		Name = "Panel",
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -255,12 +242,14 @@ function LeaderboardUI.mount(lang: string)
 		LeaderboardUI.render()
 	end)
 
-	button.Activated:Connect(function()
-		panel.Visible = not panel.Visible
-	end)
 	close.Activated:Connect(function()
 		panel.Visible = false
 	end)
+
+	function LeaderboardUI.open()
+		LeaderboardUI.render()
+		panel.Visible = true
+	end
 
 	LeaderboardUI.render()
 	return gui

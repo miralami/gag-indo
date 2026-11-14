@@ -8,6 +8,7 @@ local Crops = require(Shared.Config.Crops)
 local GameConfig = require(Shared.Config.Game)
 local Tiers = require(Shared.Config.Tiers)
 local Strings = require(Shared.Strings)
+local NextGoal = require(Shared.NextGoal)
 local Remotes = require(Shared.Remotes)
 
 local Audio = require(script.Parent.Parent.Audio)
@@ -17,6 +18,15 @@ local Theme = require(script.Parent.Theme)
 local player = Players.LocalPlayer
 
 local Hud = {}
+
+-- Set by Hud.mount; the phone opens the seed shop through Hud.openShop().
+local openShopFn: (() -> ())? = nil
+
+function Hud.openShop()
+	if openShopFn then
+		openShopFn()
+	end
+end
 
 local function susColor(sus: number): Color3
 	if sus >= 80 then
@@ -141,7 +151,7 @@ function Hud.mount(lang: string)
 		Name = "CabaiEvent",
 		Position = UDim2.new(0, 10, 0, statsTop + 102),
 		Size = UDim2.new(0.24, 0, 0, 32),
-		BackgroundColor3 = Theme.merah,
+		BackgroundColor3 = Theme.kunyit,
 		Visible = false,
 		Parent = gui,
 	}, {
@@ -149,20 +159,34 @@ function Hud.mount(lang: string)
 	})
 	local eventLabel = Theme.label({
 		Size = UDim2.fromScale(1, 1),
-		Text = t("hud_event_cabai", GameConfig.cabaiEventMultiplier),
-		TextColor3 = Theme.paper,
+		Text = "",
+		TextColor3 = Theme.ink,
 		TextScaled = false,
 		TextSize = 14,
 		Parent = eventChip,
 	})
 
+	-- Remaining time comes from CabaiEventEndsAt (os.time()); 0 means no end (admin-forced on).
+	local function updateEventLabel()
+		local multiplier = GameConfig.cabaiEventMultiplier
+		local endsAt = ReplicatedStorage:GetAttribute("CabaiEventEndsAt")
+		if type(endsAt) ~= "number" or endsAt <= 0 then
+			eventLabel.Text = t("hud_event_cabai_on", multiplier)
+			return
+		end
+		local left = math.max(0, math.ceil(endsAt - os.time()))
+		eventLabel.Text = t("hud_event_cabai_left", multiplier, string.format("%d:%02d", math.floor(left / 60), left % 60))
+	end
+
 	local function refreshEvent()
 		eventChip.Visible = ReplicatedStorage:GetAttribute("CabaiEvent") == true
 		if eventChip.Visible then
 			eventChip.Position = UDim2.new(0, 10, 0, statsTop + stats.AbsoluteSize.Y + 6)
+			updateEventLabel()
 		end
 	end
 	ReplicatedStorage:GetAttributeChangedSignal("CabaiEvent"):Connect(refreshEvent)
+	ReplicatedStorage:GetAttributeChangedSignal("CabaiEventEndsAt"):Connect(refreshEvent)
 	stats:GetPropertyChangedSignal("AbsoluteSize"):Connect(refreshEvent)
 	refreshEvent()
 
@@ -229,17 +253,20 @@ function Hud.mount(lang: string)
 		Parent = tutorialCard,
 	})
 
-	local function refreshTutorial()
+	-- The card always shows one goal: the tutorial step, then the next rank, then daily tasks.
+	local function refreshGoal()
 		local stepId = player:GetAttribute("TutorialStep")
-		if type(stepId) == "string" and stepId ~= "" then
-			tutorialText.Text = t("tutorial_" .. stepId)
-			tutorialCard.Visible = true
-		else
-			tutorialCard.Visible = false
-		end
+		local goal = NextGoal.pick({
+			tutorialStep = if type(stepId) == "string" then stepId else nil,
+			rank = player:GetAttribute("Rank"),
+			lifetimeEarned = player:GetAttribute("LifetimeEarned"),
+			tilesOwned = player:GetAttribute("TilesOwned"),
+		})
+		tutorialTitle.Text = if goal.kind == "tutorial" then t("tutorial_card_title") else t("goal_card_title")
+		tutorialText.Text = t(goal.key, table.unpack(goal.params))
+		tutorialCard.Visible = true
 	end
-	player:GetAttributeChangedSignal("TutorialStep"):Connect(refreshTutorial)
-	refreshTutorial()
+	refreshGoal()
 
 	---------------------------------------------------------------- seed bar (bottom)
 	local seedBar = Theme.new("ScrollingFrame", {
@@ -258,7 +285,7 @@ function Hud.mount(lang: string)
 		Theme.new("UISizeConstraint", { MinSize = Vector2.new(320, 52), MaxSize = Vector2.new(760, 76) }),
 		Theme.new("UIListLayout", {
 			FillDirection = Enum.FillDirection.Horizontal,
-			HorizontalAlignment = Enum.HorizontalAlignment.Left,
+			HorizontalAlignment = Enum.HorizontalAlignment.Center,
 			VerticalAlignment = Enum.VerticalAlignment.Center,
 			Padding = UDim.new(0, 6),
 			SortOrder = Enum.SortOrder.LayoutOrder,
@@ -287,6 +314,17 @@ function Hud.mount(lang: string)
 		seedButtons[cropId] = button
 	end
 
+	-- Shown only when no crop button is visible (the player owns no seeds and has none selected).
+	local buySeedsButton = Theme.button({
+		Name = "BuySeedsButton",
+		LayoutOrder = 0,
+		Size = UDim2.fromOffset(160, 44),
+		BackgroundColor3 = Theme.green,
+		Text = t("hud_buy_seeds"),
+		Visible = false,
+		Parent = seedBar,
+	})
+
 	local function hasRank(rank: string): boolean
 		local mine = GameConfig.rankIndex[player:GetAttribute("Rank") or "gurem"] or 1
 		return mine >= (GameConfig.rankIndex[rank] or 1)
@@ -300,10 +338,16 @@ function Hud.mount(lang: string)
 
 	local function refreshSeeds()
 		local selected = player:GetAttribute("SelectedSeed")
+		local anyVisible = false
 		for cropId, button in seedButtons do
 			local crop = Crops.list[cropId]
 			local unlocked = hasRank(crop.rank)
 			local owned = player:GetAttribute("Seed_" .. cropId) or 0
+			-- Only crops the player holds, plus the selected one, take a slot in the bar.
+			button.Visible = owned > 0 or selected == cropId
+			if button.Visible then
+				anyVisible = true
+			end
 			button.Text = if unlocked
 				then t("hud_seed_count", "@crop_" .. cropId, owned)
 				else t("hud_locked", "@crop_" .. cropId)
@@ -320,32 +364,10 @@ function Hud.mount(lang: string)
 				stroke.Enabled = selected == cropId
 			end
 		end
+		buySeedsButton.Visible = not anyVisible
 	end
 
-	---------------------------------------------------------------- buttons (top-right)
-	local buttonColumn = Theme.new("Frame", {
-		Name = "Buttons",
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -10, 0, 10),
-		Size = UDim2.new(0.2, 0, 0, 44),
-		BackgroundTransparency = 1,
-		Parent = gui,
-	}, {
-		Theme.new("UISizeConstraint", { MinSize = Vector2.new(120, 44), MaxSize = Vector2.new(170, 44) }),
-		Theme.new("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 6) }),
-	})
-
-	local shopButton = Theme.button({
-		Name = "ShopButton",
-		LayoutOrder = 1,
-		Size = UDim2.new(1, 0, 1, 0),
-		BackgroundColor3 = Theme.green,
-		Text = t("hud_shop_button"),
-		TextScaled = false,
-		TextSize = 16,
-		Parent = buttonColumn,
-	})
-
+	-- No top-right buttons here: the phone is the single control panel (Phone.luau).
 	---------------------------------------------------------------- shop
 	local shop = Theme.card({
 		Name = "Shop",
@@ -451,7 +473,7 @@ function Hud.mount(lang: string)
 	close.Activated:Connect(function()
 		shop.Visible = false
 	end)
-	shopButton.Activated:Connect(function()
+	buySeedsButton.Activated:Connect(function()
 		shop.Visible = not shop.Visible
 	end)
 
@@ -536,18 +558,27 @@ function Hud.mount(lang: string)
 	---------------------------------------------------------------- wiring
 	local function refreshAll()
 		refreshStats()
+		refreshGoal()
 		refreshSeeds()
 		refreshShop()
 	end
 	player.AttributeChanged:Connect(refreshAll)
 	refreshAll()
 
-	-- Only the countdown ticks; the rows refresh when an attribute changes.
+	openShopFn = function()
+		shop.Visible = true
+		refreshShop()
+	end
+
+	-- Only the countdowns tick; the rows refresh when an attribute changes.
 	task.spawn(function()
 		while true do
 			task.wait(1)
 			if shop.Visible then
 				updateRestock()
+			end
+			if eventChip.Visible then
+				updateEventLabel()
 			end
 		end
 	end)

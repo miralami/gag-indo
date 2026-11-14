@@ -1,0 +1,9 @@
+[package]
+name = "juragan-desa/juragan-desa"
+version = "0.1.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+
+[dependencies]
+React = "roblox/react@17.3.13"
+Fusion = "elttob/fusion@0.3.0"

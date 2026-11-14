@@ -8,3 +8,4 @@ globalTypes.d.luau
 
 # local agent tooling
 .claude/
+Packages/

@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "docs/v2/mockups/src/screens.html"
+        ],
+        "createdAt": "2026-11-14T20:00:21.138Z",
+        "reason": "verified false positive: fixed-height status/nav bars center their children (critique B, 2026-11-15)"
+      }
+    ]
+  }
+}

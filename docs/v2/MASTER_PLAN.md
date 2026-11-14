@@ -6,6 +6,111 @@
 > `DECISIONS.md` the designer's decisions. Where this file disagrees with them on *what comes
 > first* or *what counts as done*, this file wins.
 
+## Progress tracker — read first, update last
+
+**Last updated:** 2026-11-14 · branch `track/c-world-look` · commit `db9cc86` · `lune run tests/run.luau`: 584 passing.
+
+**Rules for this section.** Every agent reads it before touching the repo, so nobody has to rediscover
+the state from scratch. Whoever finishes a task ticks it here **in the same commit**, adds its status
+word (§7) and an evidence path, and bumps the "Last updated" line. `[x]` = done with evidence,
+`[~]` = partly done (say what is missing), `[ ]` = not started. Never tick without evidence. The
+gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/testing/BUGS.md`.
+
+### Next up (recommended order)
+
+1. **B — beat sheet core:** tutorial padi grows in ~20 s (60 s today blocks G5), guaranteed Bagus/Super, scripted NPC raid before 7:00.
+2. **A + E — game feel and sound:** plant/harvest/sell feedback; UI sounds and tier stings (all `0` today).
+3. **G — first icon set via Open Cloud** (key verified 2026-11-14): crops, currency, phone apps; unblocks G4.
+4. **D — phone app pages at phone size** and real taps.
+5. **C — spawn composition and golden-hour tuning.**
+
+### Phase 0 — repo safe for parallel work
+
+- [x] 0.1 Working tree committed in topical commits.
+- [x] 0.2 Studio failures: BUG-001, BUG-002 fixed `SEEN-IN-STUDIO`; BUG-003 is external, excluded by D-G4.
+- [x] 0.3 Playtest harness — `docs/testing/HARNESS.md`.
+- [x] 0.3b Bug sweep — `docs/testing/BUGS.md`.
+- [x] 0.4 Baseline — `docs/v2/evidence/baseline/`.
+- [x] 0.5 Tool pipeline — `TOOLS.md`, D-G1 decided; Open Cloud key exists and introspects valid 2026-11-14 (user env var `ROBLOX_API_KEY`, scopes include `asset` read/write). Shells started before it was set see it empty: read it from the User environment or restart.
+
+### Gate 1 at a glance (detail: `docs/testing/GATE1.md`)
+
+- [~] G2/Q1 no open blocker or major bug — BUG-008 reopened and fixed again (`SEEN-IN-STUDIO` desktop); BUG-004 fixed `LUNE-ONLY`; BUG-006, BUG-007 minor and open.
+- [ ] G3 harness plays the full beat sheet at phone size — the beat sheet does not exist yet (track B).
+- [ ] G4 nothing visible is a placeholder — icons are letters, NPCs are boxes, most actions are silent.
+- [~] G4b text readable at phone size — signs on boards, HUD and phone checked at iPhone 14 (`evidence/h/2026-11-14-audit-fixes/`); the Pasar close-up and app pages are not checked.
+- [ ] G5 first harvest < 45 s, first reveal < 5 min, raid < 7 min — blocked by padi `growSeconds` 60.
+- [~] G6 fps and instance count — instance count saved; designer phone ~30 fps at max, 60 at lowest; no emulator fps.
+- [ ] G7 five real people, own phones (designer).
+- [~] Q3 no dead ends — 2 of 8 cases `SEEN-IN-STUDIO`.
+- [~] Q5 soak — 30-min client soak done; ten-player session not run.
+- [ ] Q6 persistence in a published place.
+- [ ] Q7 touch on a real mid-range phone.
+
+### Tracks
+
+**A. Game feel**
+- [~] Crop growth stages (bibit / tumbuh / siap) exist in `FarmService`; not judged by a human.
+- [ ] Plant, harvest, sell feedback: particles, tweens, camera nudge, cash-fly.
+- [~] Rarity reveal: toast tint, Sultan shake and sting hooks exist; sting sounds are `0`.
+
+**B. First session**
+- [x] Four-step tutorial (plant, harvest, sell, buy) — `SEEN-IN-STUDIO` via harness.
+- [x] Next Goal card after the tutorial (next rank, then daily tasks) — `SEEN-IN-STUDIO` desktop, `src/shared/NextGoal.luau`.
+- [x] Broke-player seed floor (BUG-004, D-G3) — `LUNE-ONLY`.
+- [ ] Tutorial padi ~20 s, first session only.
+- [ ] Guaranteed Bagus on first harvest, Super/Langka on the second.
+- [ ] BayarLater loan offer beat (~2:30).
+- [ ] Scripted NPC neighbour raid as a spectator (~5:30).
+- [ ] Warung rumour / Tengkulak whisper (~7:00).
+- [ ] Rank-up ceremony to Petani (~9:00).
+- [ ] Explain "Sus" the first time it changes (keep the word; it is satire).
+- [ ] Analytics funnel step per beat.
+
+**C. World** (art direction: **cartoonish realism**, D11 — chunky shapes, Roblox textured materials; reference: the Warung)
+- [x] Hub buildings, trees, decor, flora, shelf goods, hills — `SEEN-IN-STUDIO` desktop.
+- [x] Hub names painted on sign boards (BUG-008) — `SEEN-IN-STUDIO` desktop.
+- [~] 9.5-stud headroom in all six hubs — spec in `greybox_spec`; only the Warung photographed.
+- [ ] Spawn composition: the player spawns facing a tree trunk; frame plot, NPC and hub instead.
+- [ ] Golden-hour look: clock is already 16:00–16:54, the screen still reads as midday blue (colour and atmosphere).
+- [ ] Terrain grass decoration (place-file setting, tick in Studio).
+- [ ] Terraced sawah and river; three season presets re-tuned.
+- [ ] `Greybox.luau` retired to a test fallback.
+
+**D. UI**
+- [x] HUD readable, stats under the top bar (BUG-009) — `SEEN-IN-STUDIO` desktop.
+- [x] Phone is the single control panel (Seed Shop and Leaderboard are apps; device look; landscape on short screens) — `SEEN-IN-STUDIO` desktop and iPhone 14.
+- [x] Seed bar shows only owned or selected seeds, centred — `SEEN-IN-STUDIO`.
+- [~] Cabai banner gold with countdown — `LUNE-ONLY` (event not seen running).
+- [ ] App pages (Report, Farm, Loan, Quests, Cheat, Decor) at phone size and with real taps.
+- [ ] Stats panel as icon chips (cash first, sack, Sus, Nama Baik).
+- [ ] D6: Indonesian default plus a language picker (today only `Strings.langFor`); closes BUG-007.
+- [ ] BUG-006 world label under the HUD panel.
+- [ ] Fonts chosen on a phone (§9.3).
+
+**E. Audio**
+- [x] Village music, Pasar music, day ambience — `SEEN-IN-STUDIO`, `art/ASSET_MANIFEST.md`.
+- [ ] UI sounds, tier stings, raid sting, rain and night ambience (all `0`).
+
+**F. Characters and cutscenes**
+- [ ] Caricature NPCs from design cards (Pak RT and others are box heads today).
+- [ ] Sinetron raid cutscene; debt collector scene.
+
+**G. Asset pipeline**
+- [x] Asset manifest started.
+- [x] Open Cloud key — verified by introspection 2026-11-14 (`ROBLOX_API_KEY`, never committed or printed).
+- [ ] Icon set (crops, tools, tiers, currency, phone apps); 6–8 hero textures.
+
+**H. QA and integration**
+- [x] Thirty-minute client soak — `evidence/h/2026-11-14-soak/`.
+- [ ] Full-session `output.log`; fps on the phone emulator; ten-player session; published-place persistence.
+- [ ] Five real players (designer).
+
+### Parked for Phase 2 (do not start before Gate 1)
+
+- Crop economy has no trade-off: profit per minute per tile rises in a straight line (padi 8 → sawit 96); only the cabai x3 event creates a choice. Needs the balance simulation (§6).
+- Outside-audit ideas (gotong royong, koperasi, pasar mingguan, proyek desa): see `docs/improvements/SINTESIS.md` §4.
+
 ## 0. The one rule above all others
 
 **It has to be a game.** Playable, fun, solid, tested, with no stupid bugs: an actual product a
@@ -51,6 +156,9 @@ H keeps one list, `docs/testing/BUGS.md` (id, severity, steps, owner track, stat
 the first thing every agent reads at the start of a session.
 
 ## 1. Where the game really is
+
+> Written 2026-11-14 at the start of Phase 0; kept as the original diagnosis. The current state is
+> the **Progress tracker** at the top of this file.
 
 | Fact | Consequence |
 |---|---|
@@ -242,7 +350,7 @@ with unblocked work.
 
 ## 8. Hard rules
 
-- Do not revert or overwrite another track's work. Do not commit unless the designer asks; no attribution lines.
+- Do not revert or overwrite another track's work. **Always commit finished work** (designer, 2026-11-14): topical commits, tests passing, tracker ticked in the same commit; no attribution lines. Never push.
 - Do not publish, change experience settings, create products, or spend Robux or money.
 - Do not start a system from Phase 2 or later before its gate, even if it looks easy.
 - Do not mark anything `SEEN-IN-STUDIO` without the evidence folder.

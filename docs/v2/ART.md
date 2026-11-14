@@ -3,6 +3,11 @@
 Status: **draft, direction chosen (A + B)**. Moodboard: `docs/v2/art/moodboard.html`.
 Decision record: D11 in `DECISIONS.md`.
 
+> **2026-11-14, designer: cartoonish realism.** Shapes, palette and warmth below still hold, but
+> Roblox textured materials are welcome on buildings, props and foliage (the Warung hub is the
+> reference). This overrides "no default materials" in §5 and §11. Do not flatten to SmoothPlastic;
+> fight noise with composition, colour variation and density. Record in `DECISIONS.md` D11.
+
 ## 1. Direction in one line
 
 **Cat tangan berkontur.** Warm painted volume (moodboard A) held together by a clean ink contour and

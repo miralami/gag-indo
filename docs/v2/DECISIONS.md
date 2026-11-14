@@ -23,6 +23,7 @@ Status values: **open** · **decided** · **changed**
 | D-G1 | Asset upload route (MASTER_PLAN §9.1). See `docs/v2/TOOLS.md` §3. | An Open Cloud API key scoped to the designer's account, `asset:read` + `asset:write`, kept outside the repo. Meshes still go through Studio Importer; icons, textures and audio can be automated. Hand upload alone cannot cover the `ART.md` volume. | open |
 | D-G2 | Studio sessions (MASTER_PLAN §9.2). | One shared session run by track H; tracks queue for it. Importer presets are per-machine and must match between imports. | open |
 | D-G3 | How a broke player recovers when an active pinjol loan blocks borrowing and today's login reward is already claimed (BUG-004). | Free 1 `padi` seed floor, once per session, when the player has no cash, no seeds and no planted crop. No cash is granted, so the loan still hurts. Alternative in `docs/testing/BUGS.md`. | open |
+| D-G4 | May the quality bar's "zero errors and zero warnings" pass with the BUG-003 line excluded? The line is external: a blank place with no content reproduces it and the id exists nowhere on this machine (`docs/v2/evidence/h/2026-11-14-phase0/bug003-blank-place.log`). | Accept the exclusion and record it as a known external line, because nothing in this repo can remove it. The alternative is a bar that cannot be met until Roblox fixes it upstream. | open |
 
 ## How to change one
 

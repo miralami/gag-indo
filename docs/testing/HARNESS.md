@@ -228,3 +228,133 @@ Only steps actually observed get `SEEN-IN-STUDIO`; everything else is `LUNE-ONLY
 Still `UNVERIFIED` after the 2026-11-14 run: §6 screenshot automation, desktop-size capture, a
 saved `output.log`, the ten-player session and the thirty-minute soak. Next step: save those,
 then run sections 2–4 again with ten players and flip the soak row.
+
+## 11. Soak and stamina run
+
+**Status: `UNVERIFIED` — started 2026-11-14, 1800 s, results pending.** No memory number, no cycle
+count and no failure count exists yet. Everything below is the recipe; do not read it as a result.
+
+What it answers: Master Plan §0 quality bar 5, "Thirty-minute soak with the harness … with no leak,
+no desync and no stuck state". This section is the soak only. The ten-player half of that row is a
+separate run and stays `UNVERIFIED` until someone does it.
+
+### Before it starts
+
+1. Launch checklist §2 done, device emulator on iPhone 14, Play Solo running, no red Output.
+2. Enable the gate: `game:GetService("ReplicatedStorage").Remotes.Harness_Command:FireServer({ action = "enable" })` → `Harness on.`
+3. `{ action = "status" }` and **write down cash, `Seed_padi` and tilesOwned**. That is the baseline
+   the desync check at the end compares against; without it the run proves nothing about economy.
+4. Leave the command bar in client context and paste the block below once.
+
+### The loop
+
+Fixed 1800 s, one cycle every 7.5 s: plant tiles 1–6 `padi` → `ready` → harvest tiles 1–6 → sell
+`pasar` → buy `padi` 1. Fifteen commands per cycle at 0.5 s apart, which is 2/s, under the 4/s
+`RateLimit` bucket. That is roughly 240 cycles (arithmetic from the waits, not a measured count).
+
+```lua
+local R = game:GetService("ReplicatedStorage").Remotes
+local Stats = game:GetService("Stats")
+local SECONDS, GAP, TILES = 1800, 0.5, 6
+
+_G.soak = {
+	startClock = os.clock(),
+	calls = {}, failures = {}, lastFailure = {},
+	memoryMb = { Stats:GetTotalMemoryUsageMb() },
+	cycles = 0, pending = {}, done = false,
+}
+
+R.Harness_Result.OnClientEvent:Connect(function(result)
+	local action = table.remove(_G.soak.pending, 1) or "unknown"
+	if result and result.ok == false then
+		_G.soak.failures[action] = (_G.soak.failures[action] or 0) + 1
+		_G.soak.lastFailure[action] = tostring(result.message)
+	end
+end)
+
+local function send(action, value)
+	_G.soak.calls[action] = (_G.soak.calls[action] or 0) + 1
+	table.insert(_G.soak.pending, action)
+	R.Harness_Command:FireServer({ action = action, value = value })
+	task.wait(GAP)
+end
+
+task.spawn(function()
+	local deadline = os.clock() + SECONDS
+	while os.clock() < deadline do
+		for tile = 1, TILES do send("plant", { tile = tile, cropId = "padi" }) end
+		send("ready")
+		for tile = 1, TILES do send("harvest", { tile = tile }) end
+		send("sell", { channel = "pasar" })
+		send("buy", { cropId = "padi", amount = 1 })
+		_G.soak.cycles += 1
+		table.insert(_G.soak.memoryMb, Stats:GetTotalMemoryUsageMb())
+	end
+	_G.soak.done = true
+	_G.soak.endClock = os.clock()
+end)
+```
+
+`_G.soak` holds: `calls` and `failures` per action, `lastFailure` per action (the message that
+explains the refusal), `cycles`, `memoryMb` (one sample at start, then one after every cycle), and
+`done`. The loop stops itself at the deadline; nothing needs to be fired to end it.
+
+### Reading it back
+
+One call, client context, `execute_luau`:
+
+```lua
+return _G.soak
+```
+
+Server memory is a **separate process** — read it in the Server context with the same call,
+`return game:GetService("Stats"):GetTotalMemoryUsageMb()`, at the start and at the end. Do not
+subtract the client number from the server number; compare each series to its own start value.
+
+### What counts as what
+
+| Signal | Verdict |
+|---|---|
+| `memoryMb` climbs cycle after cycle, no plateau, and stays high after `done` | **Leak signal.** Save the series and file it against the owning track. |
+| `memoryMb` rises and falls with the crop count (sawtooth) | Expected. Crops are created and destroyed every cycle; the question is the floor, not the peak. |
+| `done` is `true` but `calls` keeps increasing | **Stuck loop.** Something re-fired after the deadline. |
+| Fewer than 15 calls in a cycle, or a cycle that never returns | **Stuck state.** Note the action that stopped replying. |
+| End `status` cash or seeds disagree with the counted successful sells and buys | **Desync.** |
+| `plant` refused because there is no seed or no cash | **Expected.** One `buy` per cycle funds one plant while six tiles are planted, so the seed stock runs dry by design. `plantRefusal` explains it. The number that matters is plant failures while `Seed_padi` > 0. |
+| `harvest` refused on a tile with no crop or an unripe one | **Expected.** A tile whose `plant` was refused has nothing to harvest, and a harvested tile stays empty until the next cycle. |
+| `sell` refused with an empty sack | **Expected** on a cycle with no successful harvest. |
+| `buy` refused for shelf stock or rank | **Real failure** only if `status.shop` lists `padi` and cash is above the price. Check that first. |
+| Any other failure, any `ready` failure, a `sell` failure with sack > 0 | **Real bug.** File it in `BUGS.md` with the `lastFailure` message. |
+
+### Recording it
+
+`docs/v2/evidence/h/<yyyy-mm-dd>-soak/` with `soak.json` (the returned table), `output.log` per §7,
+`REPORT.md` per §8: cycle count, per-action call and failure counts, the memory series at start,
+mid and end for client and server, and the end `status` against the baseline. Then flip the soak
+row in §10 to `SEEN-IN-STUDIO` and leave the ten-player half `UNVERIFIED`.
+
+Do not save `JuraganDesa.rbxl` (§9). Do not run this while another agent holds the Studio session
+(D-G2).
+
+### First attempt, 2026-11-14, and why the loop above is not enough
+
+Two loops were run and both stalled inside a minute, so neither is a soak result:
+
+1. The first rotated the plant tile every cycle but `ready` ripens *all* crops, so `harvest` usually
+   targeted a tile with no crop: 454 cycles, `harvest` 91 calls / 70 failures, `sell` 91 / 70,
+   `buy` 90 / 76. Cash still rose 155 → 458 because the few successful sales were pure profit.
+2. The second pinned tile 1 (plant → ready → harvest → sell → buy): 11 cycles, `plant` 10 / 9
+   failures (`tile 1 is not empty`, then `no padi seed`), `buy` 10 / 10 (`shop refused padi x1`),
+   cash 458 → 499. Once the seeds run out and the shelf will not sell another seed, the ring cannot
+   restart itself.
+
+So a real soak needs a recovery step: read `status` each cycle and only advance the ring from a
+state it can actually reach — sell before buying, buy seeds before planting, and re-check
+`status.shop`/`status.seeds` instead of assuming the previous action worked. What the two attempts
+do prove is that several hundred refused commands produce no stack trace and no stuck state:
+0 `Stack Begin` in Output, and the only line is BUG-003 ×3. Client memory went 1982.5 → 2082.2 MB
+across the first 454-cycle run, but that run also kept every harness reply in `_G.hreplies`, so the
+growth is not attributable to the game until a capped run is done. The second run capped replies and
+grew 4.4 MB in 27 s — too short to call either way.
+
+Status of the soak criterion: still `UNVERIFIED`.

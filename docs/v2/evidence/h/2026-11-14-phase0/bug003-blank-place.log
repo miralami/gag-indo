@@ -31,4 +31,9 @@ Conclusion
 BUG-003 is external to this project. A place with no scripts and no asset references reproduces it,
 and the earlier sweep showed the id is in no file, no Roblox binary and no registry value on this
 machine. It is emitted by Studio or the account/cloud during play start, so no change in this repo
-can remove it. Track C is clear of it; the "zero warnings" bar is judged with this line excluded.
+can remove it. Track C is clear of it.
+
+This does NOT by itself clear the quality bar. "Zero errors and zero warnings" has no exclusion
+clause in MASTER_PLAN §0 or §8, so the bar stays formally unmet until the designer accepts the
+exclusion — that is decision D-G4 in `docs/v2/DECISIONS.md`. Until then the correct status for
+that criterion is `UNVERIFIED`, not `SEEN-IN-STUDIO`.

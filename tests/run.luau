@@ -45,6 +45,7 @@ local specs = {
 	require("./specs/balance_spec"),
 	require("./specs/harness_spec"),
 	require("./specs/greybox_spec"),
+	require("./specs/sky_spec"),
 }
 
 local t = Test.new()

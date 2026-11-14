@@ -1,0 +1,34 @@
+BUG-003 reproduction test, 2026-11-14
+=====================================
+
+Question: does `ContentId: rbxassetid://203785492 failed due to: Asset type does not match
+requested type` come from this project's place, or from Studio/cloud?
+
+Method
+------
+A throwaway place containing nothing but three empty services was written by hand at
+%TEMP%\opencode\blank-probe.rbxlx (`Workspace`, `Lighting`, `Players`, no scripts, no Rojo sync,
+no StarterGui, no models, no asset references of any kind) and opened in a second Studio instance:
+
+    RobloxStudioBeta.exe -task EditFile -localPlaceFile %TEMP%\opencode\blank-probe.rbxlx
+
+MCP reported it as `persistedToCloud: false`, `placeId` absent, unlike the project place
+(`persistedToCloud: true`, placeId 132087524375529).
+
+Play was started on the blank place; the first console read immediately after the start returned
+empty (`null`). After a further 6 seconds of play the console read:
+
+```
+ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type
+```
+
+That is the same three lines, three times, from a place with no content at all.
+
+Conclusion
+----------
+BUG-003 is external to this project. A place with no scripts and no asset references reproduces it,
+and the earlier sweep showed the id is in no file, no Roblox binary and no registry value on this
+machine. It is emitted by Studio or the account/cloud during play start, so no change in this repo
+can remove it. Track C is clear of it; the "zero warnings" bar is judged with this line excluded.

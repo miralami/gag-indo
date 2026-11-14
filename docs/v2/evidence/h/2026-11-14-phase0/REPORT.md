@@ -11,7 +11,7 @@ Build: 125e480 + two fixes now committed as 71df11b (src/server/Analytics/Analyt
 - Second session full loop: SEEN-IN-STUDIO (sell 48 → 75, buy 75 → 65, padi 6)
 - BUG-001 Clouds under Terrain: SEEN-IN-STUDIO (Cover 0.55, none under Lighting, no warning)
 - BUG-002 Greybox rebuild: SEEN-IN-STUDIO (river water voxels 2700 / 2700 / 2700 after build 1 and 2)
-- BUG-003 rbxassetid://203785492: UNVERIFIED (still 3× per play start; not in DataModel, place bytes, scripts, the only installed plugin or any Studio `content` folder)
+- BUG-003 rbxassetid://203785492: closed — external (a hand-written blank place with no content reproduces the same 3 lines ~6 s after play start, `bug003-blank-place.log`)
 - BUG-005 Analytics transactionType: SEEN-IN-STUDIO (error gone, `LogEconomyEvent event fired.` twice)
 - Death / reset: SEEN-IN-STUDIO (killed from the server, respawned in 5.5 s at the plot 68, 4.69, 0; cash 65, padi 6, tiles 6 unchanged; no minigame node visible)
 - Login-reward recovery: SEEN-IN-STUDIO (`quest` login reward cash 65 → 165, then buy 165 → 155, padi 6 → 7)

@@ -17,7 +17,7 @@ proven. These rules sit on top of it and never override it.
 
 ## Rules that bite
 
-- `lune run tests/run.luau` must pass before every commit; currently 498 tests.
+- `lune run tests/run.luau` must pass before every commit; currently 502 tests.
 - Status words are exactly `SEEN-IN-STUDIO`, `LUNE-ONLY`, `UNVERIFIED`, `BLOCKED`. A claim without a
   file under `docs/v2/evidence/` is not `SEEN-IN-STUDIO`.
 - Never invent asset IDs, product IDs, prices or UserIds. Never publish, never save

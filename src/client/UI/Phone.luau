@@ -16,6 +16,7 @@ local PinjolConfig = require(Shared.Config.Pinjol)
 local QuestsConfig = require(Shared.Config.Quests)
 local Strings = require(Shared.Strings)
 local Remotes = require(Shared.Remotes)
+local Audio = require(script.Parent.Parent.Audio)
 local ClientState = require(script.Parent.Parent.State)
 
 local Icons = require(script.Parent.Icons)
@@ -305,6 +306,7 @@ function Phone.mount(initialLang: string?)
 	-- Closing is always possible: the X, the home bar on home, and a tap outside the device.
 	local toggle: TextButton
 	local function closePhone()
+		Audio.play("ui_close")
 		root.Visible = false
 		toggle.Visible = true
 	end
@@ -463,6 +465,7 @@ function Phone.mount(initialLang: string?)
 	end
 
 	backButton.Activated:Connect(function()
+		Audio.play("ui_click")
 		showScreen("home")
 	end)
 
@@ -513,6 +516,7 @@ function Phone.mount(initialLang: string?)
 		Theme.new("UITextSizeConstraint", { MaxTextSize = 14, MinTextSize = 10, Parent = label })
 		appLabels[app.id] = label
 		tile.Activated:Connect(function()
+			Audio.play("ui_click")
 			if app.action == "shop" then
 				closePhone()
 				require(script.Parent.Hud).openShop()
@@ -1313,6 +1317,7 @@ function Phone.mount(initialLang: string?)
 	end
 
 	local function open()
+		Audio.play("ui_open")
 		root.Visible = true
 		toggle.Visible = false
 		updateClock()

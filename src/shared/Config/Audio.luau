@@ -48,24 +48,24 @@ Audio.sounds = {
 
 	-- ambience
 	ambience_cerah = { group = "ambience", id = 9112748018, looped = true, volume = 0.25 }, -- Birds And Cicadas 2 (SFX)
-	ambience_hujan = { group = "ambience", id = 0, looped = true, volume = 0.35 },
-	ambience_badai = { group = "ambience", id = 0, looped = true, volume = 0.45 },
-	ambience_kabut = { group = "ambience", id = 0, looped = true, volume = 0.2 },
+	ambience_hujan = { group = "ambience", id = 9112853422, looped = true, volume = 0.35 },
+	ambience_badai = { group = "ambience", id = 9112853563, looped = true, volume = 0.45 },
+	ambience_kabut = { group = "ambience", id = 9112826489, looped = true, volume = 0.25 },
 
 	-- ui
-	ui_click = { group = "ui", id = 0, volume = 0.5 },
-	ui_open = { group = "ui", id = 0, volume = 0.5 },
-	ui_close = { group = "ui", id = 0, volume = 0.5 },
-	ui_buy = { group = "ui", id = 0, volume = 0.6 },
-	ui_sell = { group = "ui", id = 0, volume = 0.6 },
+	ui_click = { group = "ui", id = 88442833509532, volume = 0.5 },
+	ui_open = { group = "ui", id = 17779566040, volume = 0.5 },
+	ui_close = { group = "ui", id = 72264591133889, volume = 0.5 },
+	ui_buy = { group = "ui", id = 133570405319995, volume = 0.6 },
+	ui_sell = { group = "ui", id = 135483737426662, volume = 0.6 },
 
 	-- stings
-	sting_rare = { group = "sting", id = 0, volume = 0.7 },
-	sting_sultan = { group = "sting", id = 0, volume = 0.9 },
-	sting_almanak = { group = "sting", id = 0, volume = 0.7 },
-	sting_rankup = { group = "sting", id = 0, volume = 0.8 },
-	sting_raid = { group = "sting", id = 0, volume = 1 },
-	sting_jail = { group = "sting", id = 0, volume = 0.8 },
+	sting_rare = { group = "sting", id = 4612374393, volume = 0.7 },
+	sting_sultan = { group = "sting", id = 103516326607012, volume = 0.9 },
+	sting_almanak = { group = "sting", id = 4612374495, volume = 0.7 },
+	sting_rankup = { group = "sting", id = 3120909354, volume = 0.8 },
+	sting_raid = { group = "sting", id = 127714289075929, volume = 1.0 },
+	sting_jail = { group = "sting", id = 127714289075929, volume = 0.8 },
 }
 
 function Audio.exists(key: any): boolean

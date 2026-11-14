@@ -8,7 +8,7 @@
 
 ## Progress tracker — read first, update last
 
-**Last updated:** 2026-11-14 · branch `track/c-world-look` · commit `963319e` · `lune run tests/run.luau`: 603 passing.
+**Last updated:** 2026-11-14 · branch `track/c-world-look` · commit `937ae33` · `lune run tests/run.luau`: 603 passing.
 
 **Rules for this section.** Every agent reads it before touching the repo, so nobody has to rediscover
 the state from scratch. Whoever finishes a task ticks it here **in the same commit**, adds its status
@@ -89,7 +89,7 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 
 **E. Audio**
 - [x] Village music, Pasar music, day ambience — `SEEN-IN-STUDIO`, `art/ASSET_MANIFEST.md`.
-- [ ] UI sounds, tier stings, raid sting, rain and night ambience (all `0`).
+- [x] UI sounds, tier stings, raid sting, rain and night ambience — `SEEN-IN-STUDIO`, `art/ASSET_MANIFEST.md`.
 
 **F. Characters and cutscenes**
 - [ ] Caricature NPCs from design cards (Pak RT and others are box heads today).

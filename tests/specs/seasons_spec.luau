@@ -188,6 +188,19 @@ return function(t, Env)
 				end
 			end)
 
+			t:it("tunes atmosphere, sun and haze toward warm golden hour senja tones", function()
+				for _, musim in Seasons.musimOrder do
+					local sky = Seasons.sky[musim]
+					expect(sky.clockTime):toBeAtLeast(16.0)
+					expect(sky.clockTime):toBeAtMost(17.0)
+					-- Warm tones: Red channel higher than Blue channel for golden hour
+					expect(sky.atmosphereColor.R):toBeGreaterThan(sky.atmosphereColor.B)
+					expect(sky.atmosphereDecay.R):toBeGreaterThan(sky.atmosphereDecay.B)
+					expect(sky.colorShiftTop.R):toBeGreaterThan(sky.colorShiftTop.B)
+					expect(sky.fogColor.R):toBeGreaterThan(sky.fogColor.B)
+				end
+			end)
+
 			t:it("keeps post effects inside their real ranges", function()
 				for _, musim in Seasons.musimOrder do
 					for _, cuaca in Seasons.cuacaOrder do

@@ -32,6 +32,9 @@ return function(t, Env)
 				new = function(x, y, z)
 					return { position = Env.Vector3.new(x, y, z) }
 				end,
+				lookAt = function(at, look)
+					return { position = at, look = look }
+				end,
 			}
 			Greybox = env:require("server/World/Greybox")
 		end)
@@ -253,6 +256,10 @@ return function(t, Env)
 				Angles = function(x)
 					return setmetatable({ Position = { X = 0, Y = 0, Z = 0 }, tiltX = x }, cframeMeta)
 				end,
+				lookAt = function(at, look)
+					local lookVec = if look and at then { X = look.X - at.X, Y = look.Y - at.Y, Z = look.Z - at.Z } else { X = 0, Y = 0, Z = -1 }
+					return setmetatable({ Position = at, LookVector = lookVec, tiltX = 0 }, cframeMeta)
+				end,
 			}
 			env.globals.Color3 = {
 				fromHex = function(hex)
@@ -385,6 +392,21 @@ return function(t, Env)
 					expect(gui:FindFirstChild("Label").Text):toBe(text)
 				end
 			end
+		end)
+
+		t:it("frames spawn toward the village road, Pasar and Pak RT landmark", function()
+			local spawnPart
+			for _, child in world:GetChildren() do
+				if child.Name == "Spawn" then
+					spawnPart = child
+					break
+				end
+			end
+			expect(spawnPart ~= nil):toBe(true)
+			expect(spawnPart.CFrame ~= nil):toBe(true)
+			expect(spawnPart.Position.X):toBe(0)
+			expect(spawnPart.Position.Z):toBe(16)
+			expect(spawnPart.CFrame.LookVector.Z < 0):toBe(true)
 		end)
 	end)
 end

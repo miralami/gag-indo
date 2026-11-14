@@ -8,7 +8,7 @@
 
 ## Progress tracker — read first, update last
 
-**Last updated:** 2026-11-14 · branch `track/c-world-look` · commit `b9f4779` · `lune run tests/run.luau`: 594 passing.
+**Last updated:** 2026-11-14 · branch `track/c-world-look` · commit `3559d49` · `lune run tests/run.luau`: 596 passing.
 
 **Rules for this section.** Every agent reads it before touching the repo, so nobody has to rediscover
 the state from scratch. Whoever finishes a task ticks it here **in the same commit**, adds its status
@@ -70,8 +70,8 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 - [x] Hub buildings, trees, decor, flora, shelf goods, hills — `SEEN-IN-STUDIO` desktop.
 - [x] Hub names painted on sign boards (BUG-008) — `SEEN-IN-STUDIO` desktop.
 - [~] 9.5-stud headroom in all six hubs — spec in `greybox_spec`; only the Warung photographed.
-- [ ] Spawn composition: the player spawns facing a tree trunk; frame plot, NPC and hub instead.
-- [ ] Golden-hour look: clock is already 16:00–16:54, the screen still reads as midday blue (colour and atmosphere).
+- [x] Spawn composition: the player spawns facing a tree trunk; frame plot, NPC and hub instead — `LUNE-ONLY`, `tests/specs/greybox_spec.luau`.
+- [x] Golden-hour look: clock is already 16:00–16:54, the screen still reads as midday blue (colour and atmosphere) — `LUNE-ONLY`, `tests/specs/seasons_spec.luau`.
 - [ ] Terrain grass decoration (place-file setting, tick in Studio).
 - [ ] Terraced sawah and river; three season presets re-tuned.
 - [ ] `Greybox.luau` retired to a test fallback.

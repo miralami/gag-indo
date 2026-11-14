@@ -707,11 +707,14 @@ function Greybox.build(): Folder
 
 	buildRoads(world)
 
+	local spawnPos = Vector3.new(0, GROUND_Y + 0.5, 16)
+	local spawnLook = Vector3.new(0, GROUND_Y + 1.5, 0)
 	local spawn = Instance.new("SpawnLocation")
 	spawn.Name = "Spawn"
 	spawn.Anchored = true
 	spawn.Size = Vector3.new(8, 1, 8)
-	spawn.Position = Vector3.new(0, GROUND_Y + 0.5, 16)
+	spawn.CFrame = CFrame.lookAt(spawnPos, spawnLook)
+	spawn.Position = spawnPos
 	spawn.Transparency = 1
 	spawn.CanCollide = false
 	spawn.Neutral = true

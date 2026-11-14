@@ -129,6 +129,8 @@ seconds without something to do or watch.
 - The harness plays the full beat sheet on phone size with zero Output errors or warnings.
 - Nothing visible in the first ten minutes is a placeholder: no greybox part, no emoji, no missing icon, no silent action.
 - Time to first harvest is under 45 seconds, first rarity reveal under 5 minutes, raid witnessed under 7 minutes.
+- All text a player sees, in the world and on the HUD, is readable at phone size: no overlapping labels, no clipped text, nothing hidden under the HUD (BUG-006, BUG-008, BUG-009). Added 2026-11-14 after the designer's phone playtest; it is part of 'no placeholder visible', made explicit.
+- Measured on a real phone by the designer (Xiaomi 12 Lite, 2026-11-14, self-reported): about 30 fps at maximum graphics and 60 fps at the lowest. Recorded in `docs/v2/evidence/h/2026-11-14-perf/DESIGNER_PHONE_REPORT.md`; the 60 fps target must hold at the device's default quality.
 - Frame rate and instance count are measured on the phone emulator and recorded; the target is 60 fps on mid-range Android (`ART.md` §5).
 - Five real people play ten minutes on their own phones without help. The designer runs this. Their confusion points are fixed or logged.
 

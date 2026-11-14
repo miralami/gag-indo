@@ -41,6 +41,13 @@ function Props.prompt(parent: Instance, objectText: string, actionText: string):
 	return prompt
 end
 
+-- Label limits: a phone screen is ~390px wide, so pixel sizes stay small and text is capped.
+local LABEL_MAX_WIDTH = 240
+local LABEL_MAX_HEIGHT = 60
+local TEXT_MAX_SIZE = 28
+local TEXT_MIN_SIZE = 12
+local DEFAULT_MAX_DISTANCE = 60
+
 -- options: { name: string?, alwaysOnTop: boolean?, maxDistance: number? }
 function Props.billboard(
 	parent: Instance,
@@ -50,9 +57,9 @@ function Props.billboard(
 ): TextLabel
 	local gui = Instance.new("BillboardGui")
 	gui.Name = (options and options.name) or "BillboardGui"
-	gui.Size = UDim2.fromOffset(size.X, size.Y)
+	gui.Size = UDim2.fromOffset(math.min(size.X, LABEL_MAX_WIDTH), math.min(size.Y, LABEL_MAX_HEIGHT))
 	gui.StudsOffset = Vector3.new(0, height, 0)
-	gui.MaxDistance = (options and options.maxDistance) or 90
+	gui.MaxDistance = (options and options.maxDistance) or DEFAULT_MAX_DISTANCE
 	gui.AlwaysOnTop = options ~= nil and options.alwaysOnTop == true
 	gui.Parent = parent
 	local label = Instance.new("TextLabel")
@@ -67,6 +74,10 @@ function Props.billboard(
 	label.TextWrapped = true
 	label.Text = ""
 	label.Parent = gui
+	local textLimit = Instance.new("UITextSizeConstraint")
+	textLimit.MaxTextSize = TEXT_MAX_SIZE
+	textLimit.MinTextSize = TEXT_MIN_SIZE
+	textLimit.Parent = label
 	return label
 end
 

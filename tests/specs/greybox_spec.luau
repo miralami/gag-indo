@@ -77,4 +77,70 @@ return function(t, Env)
 			end
 		end)
 	end)
+
+	-- Billboards are the world labels a phone player reads. The real Props module is loaded here
+	-- with just enough Roblox globals to build BillboardGui/TextLabel stand-ins.
+	t:describe("Props billboard readability", function()
+		local env, Props, instances
+
+		t:beforeEach(function()
+			env = Env.new()
+			instances = {}
+			env.globals.Color3 = {
+				fromHex = function()
+					return { R = 0, G = 0, B = 0 }
+				end,
+				fromRGB = function(r, g, b)
+					return { R = r, G = g, B = b }
+				end,
+				new = function(r, g, b)
+					return { R = r, G = g, B = b }
+				end,
+			}
+			env.globals.UDim2 = {
+				fromOffset = function(x, y)
+					return { Width = x, Height = y }
+				end,
+				fromScale = function(x, y)
+					return { Width = x, Height = y }
+				end,
+			}
+			env.globals.Instance = {
+				new = function(className)
+					local object = { ClassName = className }
+					table.insert(instances, object)
+					return object
+				end,
+			}
+			Props = env:require("server/World/Props")
+		end)
+
+		t:it("caps the pixel size of a label", function()
+			local label = Props.billboard({}, 4, { X = 400, Y = 200 })
+			local gui = label.Parent
+			expect(gui.Size.Width):toBe(240)
+			expect(gui.Size.Height):toBe(60)
+		end)
+
+		t:it("fades labels by default within 140 studs and is not AlwaysOnTop", function()
+			local label = Props.billboard({}, 4, { X = 140, Y = 40 })
+			local gui = label.Parent
+			expect(gui.MaxDistance > 0):toBe(true)
+			expect(gui.MaxDistance <= 140):toBe(true)
+			expect(gui.AlwaysOnTop):toBe(false)
+		end)
+
+		t:it("attaches a UITextSizeConstraint of 12 to 28 to the label", function()
+			local label = Props.billboard({}, 4, { X = 140, Y = 40 })
+			local found = nil
+			for _, object in instances do
+				if object.ClassName == "UITextSizeConstraint" and object.Parent == label then
+					found = object
+				end
+			end
+			expect(found ~= nil):toBe(true)
+			expect(found.MaxTextSize):toBe(28)
+			expect(found.MinTextSize):toBe(12)
+		end)
+	end)
 end

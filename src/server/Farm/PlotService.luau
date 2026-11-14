@@ -99,7 +99,7 @@ local function buildPlot(world: Instance, index: number, anchorCFrame: CFrame?):
 		Material = Enum.Material.Wood,
 	})
 	signPost.Parent = model
-	local sign = Props.billboard(signPost, 3, Vector2.new(220, 50), { alwaysOnTop = true })
+	local sign = Props.billboard(signPost, 3, Vector2.new(220, 50), { maxDistance = 60 })
 	sign.Text = "Lahan Kosong"
 
 	model.Parent = world

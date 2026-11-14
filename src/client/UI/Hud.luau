@@ -35,17 +35,30 @@ function Hud.mount(lang: string)
 	end
 
 	local gui = Theme.screenGui("Hud", 10)
+	-- Keep the HUD clear of the phone notch / rounded corners in landscape.
+	pcall(function()
+		(gui :: any).ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
+	end)
 	local revealToken = 0
+
+	-- The ScreenGui starts below Roblox's top bar (IgnoreGuiInset is false), but the
+	-- menu and chat icons still reach about 58 px down the left edge. Start the stats
+	-- panel at about 60 px absolute: subtract the top-bar inset from that offset.
+	local topInset = 0
+	pcall(function()
+		topInset = game:GetService("GuiService"):GetGuiInset().Y
+	end)
+	local statsTop = math.max(0, 60 - topInset)
 
 	---------------------------------------------------------------- stats (top-left)
 	local stats = Theme.card({
 		Name = "Stats",
-		Position = UDim2.new(0, 10, 0, 10),
-		Size = UDim2.new(0.34, 0, 0.2, 0),
+		Position = UDim2.new(0, 10, 0, statsTop),
+		Size = UDim2.new(0.24, 0, 0, 96),
 		BackgroundTransparency = 0.12,
 		Parent = gui,
 	}, {
-		Theme.new("UISizeConstraint", { MinSize = Vector2.new(190, 96), MaxSize = Vector2.new(330, 150) }),
+		Theme.new("UISizeConstraint", { MinSize = Vector2.new(168, 90), MaxSize = Vector2.new(236, 104) }),
 	})
 
 	-- Theme.card already created the frame; add padding to it explicitly.
@@ -61,9 +74,12 @@ function Hud.mount(lang: string)
 		Parent = stats,
 	})
 
+	-- Fixed pixel sizes (not TextScaled) so no secondary line drops below 14 px on a phone.
 	local cashLabel = Theme.label({
 		LayoutOrder = 1,
-		Size = UDim2.fromScale(1, 0.36),
+		Size = UDim2.new(1, 0, 0, 26),
+		TextScaled = false,
+		TextSize = 22,
 		Font = Theme.displayFont,
 		TextColor3 = Theme.ink,
 		TextXAlignment = Enum.TextXAlignment.Left,
@@ -71,13 +87,17 @@ function Hud.mount(lang: string)
 	})
 	local rankLabel = Theme.label({
 		LayoutOrder = 2,
-		Size = UDim2.fromScale(1, 0.2),
+		Size = UDim2.new(1, 0, 0, 16),
+		TextScaled = false,
+		TextSize = 14,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = stats,
 	})
 	local sackLabel = Theme.label({
 		LayoutOrder = 3,
-		Size = UDim2.fromScale(1, 0.18),
+		Size = UDim2.new(1, 0, 0, 16),
+		TextScaled = false,
+		TextSize = 14,
 		TextColor3 = Theme.muted,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = stats,
@@ -85,7 +105,7 @@ function Hud.mount(lang: string)
 
 	local chips = Theme.new("Frame", {
 		LayoutOrder = 4,
-		Size = UDim2.fromScale(1, 0.26),
+		Size = UDim2.new(1, 0, 0, 18),
 		BackgroundTransparency = 1,
 		Parent = stats,
 	}, {
@@ -98,13 +118,19 @@ function Hud.mount(lang: string)
 
 	local susLabel = Theme.label({
 		LayoutOrder = 1,
-		Size = UDim2.fromScale(0.45, 1),
+		Size = UDim2.new(0, 0, 1, 0),
+		AutomaticSize = Enum.AutomaticSize.X,
+		TextScaled = false,
+		TextSize = 14,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = chips,
 	})
 	local namaBaikLabel = Theme.label({
 		LayoutOrder = 2,
-		Size = UDim2.fromScale(0.45, 1),
+		Size = UDim2.new(0, 0, 1, 0),
+		AutomaticSize = Enum.AutomaticSize.X,
+		TextScaled = false,
+		TextSize = 14,
 		TextColor3 = Theme.malam,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = chips,
@@ -113,26 +139,27 @@ function Hud.mount(lang: string)
 	---------------------------------------------------------------- Harga Cabai Meroket banner
 	local eventChip = Theme.card({
 		Name = "CabaiEvent",
-		Position = UDim2.new(0, 10, 0, 116),
-		Size = UDim2.new(0.34, 0, 0, 32),
+		Position = UDim2.new(0, 10, 0, statsTop + 102),
+		Size = UDim2.new(0.24, 0, 0, 32),
 		BackgroundColor3 = Theme.merah,
 		Visible = false,
 		Parent = gui,
 	}, {
-		Theme.new("UISizeConstraint", { MinSize = Vector2.new(190, 30), MaxSize = Vector2.new(330, 34) }),
+		Theme.new("UISizeConstraint", { MinSize = Vector2.new(168, 30), MaxSize = Vector2.new(236, 34) }),
 	})
 	local eventLabel = Theme.label({
 		Size = UDim2.fromScale(1, 1),
 		Text = t("hud_event_cabai", GameConfig.cabaiEventMultiplier),
 		TextColor3 = Theme.paper,
+		TextScaled = false,
+		TextSize = 14,
 		Parent = eventChip,
 	})
-	eventLabel.TextSize = 14
 
 	local function refreshEvent()
 		eventChip.Visible = ReplicatedStorage:GetAttribute("CabaiEvent") == true
 		if eventChip.Visible then
-			eventChip.Position = UDim2.new(0, 10, 0, 10 + stats.AbsoluteSize.Y + 6)
+			eventChip.Position = UDim2.new(0, 10, 0, statsTop + stats.AbsoluteSize.Y + 6)
 		end
 	end
 	ReplicatedStorage:GetAttributeChangedSignal("CabaiEvent"):Connect(refreshEvent)
@@ -158,12 +185,12 @@ function Hud.mount(lang: string)
 		Name = "TutorialGuide",
 		AnchorPoint = Vector2.new(0.5, 0),
 		Position = UDim2.new(0.5, 0, 0, 10),
-		Size = UDim2.new(0.42, 0, 0, 48),
+		Size = UDim2.new(0.42, 0, 0, 56),
 		BackgroundColor3 = Theme.padi,
 		Visible = false,
 		Parent = gui,
 	}, {
-		Theme.new("UISizeConstraint", { MinSize = Vector2.new(240, 42), MaxSize = Vector2.new(460, 56) }),
+		Theme.new("UISizeConstraint", { MinSize = Vector2.new(240, 50), MaxSize = Vector2.new(460, 64) }),
 	})
 	local tutorialPadding = Instance.new("UIPadding")
 	tutorialPadding.PaddingLeft = UDim.new(0, 10)
@@ -180,25 +207,27 @@ function Hud.mount(lang: string)
 
 	local tutorialTitle = Theme.label({
 		Position = UDim2.new(0, 20, 0, 0),
-		Size = UDim2.new(1, -20, 0, 16),
+		Size = UDim2.new(1, -20, 0, 18),
 		Text = t("tutorial_card_title"),
 		Font = Theme.displayFont,
 		TextColor3 = Theme.merah,
+		TextScaled = false,
+		TextSize = 14,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = tutorialCard,
 	})
-	tutorialTitle.TextSize = 12
 
 	local tutorialText = Theme.label({
-		Position = UDim2.new(0, 0, 0, 18),
-		Size = UDim2.new(1, 0, 1, -18),
+		Position = UDim2.new(0, 0, 0, 20),
+		Size = UDim2.new(1, 0, 1, -20),
 		Text = "",
 		TextColor3 = Theme.text,
+		TextScaled = false,
+		TextSize = 14,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextWrapped = true,
 		Parent = tutorialCard,
 	})
-	tutorialText.TextSize = 13
 
 	local function refreshTutorial()
 		local stepId = player:GetAttribute("TutorialStep")
@@ -274,13 +303,18 @@ function Hud.mount(lang: string)
 		for cropId, button in seedButtons do
 			local crop = Crops.list[cropId]
 			local unlocked = hasRank(crop.rank)
+			local owned = player:GetAttribute("Seed_" .. cropId) or 0
 			button.Text = if unlocked
-				then t("hud_seed_count", "@crop_" .. cropId, player:GetAttribute("Seed_" .. cropId) or 0)
+				then t("hud_seed_count", "@crop_" .. cropId, owned)
 				else t("hud_locked", "@crop_" .. cropId)
-			button.TextColor3 = if unlocked then Theme.text else Theme.muted
-			button.BackgroundColor3 = if unlocked
-				then crop.color:Lerp(Color3.new(0, 0, 0), 0.55)
-				else Theme.inkSoft
+			-- Text is always cream with a dark outline; only the background carries the dimming.
+			button.TextColor3 = Theme.paper
+			button.TextStrokeColor3 = Theme.ink
+			button.TextStrokeTransparency = 0
+			button.BackgroundColor3 = if not unlocked
+				then Theme.inkSoft
+				elseif owned > 0 then crop.color:Lerp(Color3.new(0, 0, 0), 0.55)
+				else crop.color:Lerp(Color3.new(0, 0, 0), 0.8)
 			local stroke = button:FindFirstChild("Selected") :: UIStroke?
 			if stroke then
 				stroke.Enabled = selected == cropId
@@ -293,20 +327,22 @@ function Hud.mount(lang: string)
 		Name = "Buttons",
 		AnchorPoint = Vector2.new(1, 0),
 		Position = UDim2.new(1, -10, 0, 10),
-		Size = UDim2.new(0.2, 0, 0.16, 0),
+		Size = UDim2.new(0.2, 0, 0, 44),
 		BackgroundTransparency = 1,
 		Parent = gui,
 	}, {
-		Theme.new("UISizeConstraint", { MinSize = Vector2.new(120, 96), MaxSize = Vector2.new(190, 150) }),
+		Theme.new("UISizeConstraint", { MinSize = Vector2.new(120, 44), MaxSize = Vector2.new(170, 44) }),
 		Theme.new("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 6) }),
 	})
 
 	local shopButton = Theme.button({
 		Name = "ShopButton",
 		LayoutOrder = 1,
-		Size = UDim2.fromScale(1, 0.5),
+		Size = UDim2.new(1, 0, 1, 0),
 		BackgroundColor3 = Theme.green,
 		Text = t("hud_shop_button"),
+		TextScaled = false,
+		TextSize = 16,
 		Parent = buttonColumn,
 	})
 

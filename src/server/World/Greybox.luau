@@ -90,7 +90,8 @@ local function sign(parent: Instance, cframe: CFrame, text: string, size: Vector
 		Material = Enum.Material.Wood,
 	})
 	board.Parent = parent
-	local label = Props.billboard(board, 0, size or Vector2.new(260, 70), { alwaysOnTop = true, maxDistance = 140 })
+	-- Raised above the board (and above the NPC name tags, which sit near 8 studs) so the two never stack.
+	local label = Props.billboard(board, 4.5, size or Vector2.new(260, 70), { maxDistance = 55 })
 	label.Text = text
 	label.TextColor3 = C.paper
 	return board

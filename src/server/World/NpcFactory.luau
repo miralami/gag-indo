@@ -61,14 +61,24 @@ function NpcFactory.wrap(model: Model, info: { name: string?, subtitle: string?,
 	local nameLabel: TextLabel? = nil
 	local speechLabel: TextLabel? = nil
 	if anchor then
-		local nameTag = Props.billboard(anchor, 4.4, Vector2.new(260, 60), { name = "NameTag", maxDistance = 95 })
-		nameTag.Text = displayName .. (if opts.subtitle then " · " .. opts.subtitle else "")
-		nameTag.TextColor3 = Color3.fromRGB(255, 236, 180)
+		-- Idempotent: build() wraps once and Village wraps the same model again. Reuse the
+		-- billboards that already exist so a name tag is never drawn twice on one NPC.
+		local existingName = anchor:FindFirstChild("NameTag")
+		local existingSpeech = anchor:FindFirstChild("Speech")
+		local nameTag = existingName and existingName:FindFirstChild("Label") :: TextLabel?
+		if not nameTag then
+			nameTag = Props.billboard(anchor, 4.4, Vector2.new(260, 60), { name = "NameTag", maxDistance = 70 })
+			nameTag.Text = displayName .. (if opts.subtitle then " · " .. opts.subtitle else "")
+			nameTag.TextColor3 = Color3.fromRGB(255, 236, 180)
+		end
 		nameLabel = nameTag
 
-		local speech = Props.billboard(anchor, 6.4, Vector2.new(320, 90), { name = "Speech" })
-		speech.TextColor3 = Color3.new(1, 1, 1)
-		speech.TextWrapped = true
+		local speech = existingSpeech and existingSpeech:FindFirstChild("Label") :: TextLabel?
+		if not speech then
+			speech = Props.billboard(anchor, 6.4, Vector2.new(320, 90), { name = "Speech" })
+			speech.TextColor3 = Color3.new(1, 1, 1)
+			speech.TextWrapped = true
+		end
 		speechLabel = speech
 	end
 

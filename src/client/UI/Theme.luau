@@ -146,6 +146,31 @@ local function addSticker(inst: GuiObject, radius: number)
 	})
 	Theme.corner(shadow, radius)
 
+	-- The shadow must clamp exactly like the panel, or a scale-sized panel with a
+	-- UISizeConstraint gets a wider shadow that shows up as an empty dark box beside it.
+	local function mirrorConstraint(constraint: Instance)
+		if not constraint:IsA("UISizeConstraint") then
+			return
+		end
+		local copy = shadow:FindFirstChildOfClass("UISizeConstraint")
+		if not copy then
+			copy = Instance.new("UISizeConstraint")
+			copy.Parent = shadow
+		end
+		copy.MinSize = constraint.MinSize
+		copy.MaxSize = constraint.MaxSize
+		constraint:GetPropertyChangedSignal("MinSize"):Connect(function()
+			copy.MinSize = constraint.MinSize
+		end)
+		constraint:GetPropertyChangedSignal("MaxSize"):Connect(function()
+			copy.MaxSize = constraint.MaxSize
+		end)
+	end
+	for _, child in inst:GetChildren() do
+		mirrorConstraint(child)
+	end
+	inst.ChildAdded:Connect(mirrorConstraint)
+
 	local function syncPosition()
 		shadow.Position = inst.Position + UDim2.fromOffset(Visuals.shadow, Visuals.shadow)
 	end

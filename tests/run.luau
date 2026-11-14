@@ -47,6 +47,7 @@ local specs = {
 	require("./specs/greybox_spec"),
 	require("./specs/sky_spec"),
 	require("./specs/seedfloor_spec"),
+	require("./specs/npcfactory_spec"),
 }
 
 local t = Test.new()

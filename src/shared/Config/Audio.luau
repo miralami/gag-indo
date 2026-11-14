@@ -39,13 +39,15 @@ Audio.weather = {
 
 Audio.sounds = {
 	-- music
-	music_desa = { group = "music", id = 0, looped = true, volume = 0.35 },
-	music_pasar = { group = "music", id = 0, looped = true, volume = 0.35 },
+	-- IDs below come from the Creator Store audio search, free, each loaded in Studio on 2026-11-14
+	-- (IsLoaded true). Sources and licence notes: docs/v2/art/ASSET_MANIFEST.md.
+	music_desa = { group = "music", id = 83077123902599, looped = true, volume = 0.35 }, -- Gamelan Resonance Field
+	music_pasar = { group = "music", id = 135973738646382, looped = true, volume = 0.35 }, -- Golden Gamelan
 	music_sawah = { group = "music", id = 0, looped = true, volume = 0.3 },
 	music_hutan = { group = "music", id = 0, looped = true, volume = 0.3 },
 
 	-- ambience
-	ambience_cerah = { group = "ambience", id = 0, looped = true, volume = 0.25 },
+	ambience_cerah = { group = "ambience", id = 9112748018, looped = true, volume = 0.25 }, -- Birds And Cicadas 2 (SFX)
 	ambience_hujan = { group = "ambience", id = 0, looped = true, volume = 0.35 },
 	ambience_badai = { group = "ambience", id = 0, looped = true, volume = 0.45 },
 	ambience_kabut = { group = "ambience", id = 0, looped = true, volume = 0.2 },

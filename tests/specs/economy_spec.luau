@@ -227,6 +227,18 @@ return function(t, Env, Fakes)
 				expect(player:GetAttribute("HarvestCount")):toBe(0)
 			end)
 
+			-- Regression: sellAll gates on nothing but the sack; a full gudang is not a sale block.
+			t:it("sells the sack while the gudang sits at capacity", function()
+				for _ = 1, GameConfig.gudangBaseCapacity do
+					Produce.add(data.gudang.stacks, "jagung", 1)
+				end
+				setStack("padi", 2, 2, false)
+				Economy.sellAll(player, "pasar")
+				expect(data.cash):toBe(GameConfig.startCash + math.floor(Crops.list.padi.sellPrice * 2))
+				expect(next(data.produce)):toBeNil()
+				expect(Produce.count(data.gudang.stacks)):toBe(GameConfig.gudangBaseCapacity)
+			end)
+
 			-- Regression: commit f0443f8 "Fix Pasar sale leaving clean produce count in the sack".
 			t:it("leaves only the hot items in the sack after selling the clean ones", function()
 				setStack("padi", 3, 3.0, false)

@@ -221,6 +221,8 @@ Only steps actually observed get `SEEN-IN-STUDIO`; everything else is `LUNE-ONLY
 | Phone-size screenshots | SEEN-IN-STUDIO, manual `Win+Shift+S` only (`phone-01.png`); desktop size not captured | Win+Shift+S with the emulator on; or play on a real phone. |
 | Output log capture | UNVERIFIED (Output read in Studio, no `output.log` saved) | Copy from the Output window. |
 | Save + rejoin | SEEN-IN-STUDIO (cash 48, `padi` 6, tilesOwned 6 after stop and replay) | Enable API services, play, leave, rejoin, compare cash. |
+| Death / reset mid-session | SEEN-IN-STUDIO 2026-11-14 (character killed from the server; respawned in 5.5 s and `CharacterAdded` returned it to the plot at 68, 4.69, 0; cash 65, `padi` 6, tilesOwned 6 unchanged; no minigame node left visible; no error in Output) | Play, take fall damage or `Humanoid.Health = 0` in the command bar, watch where you respawn. |
+| Login-reward recovery | SEEN-IN-STUDIO 2026-11-14 (`quest` with no `taskId` claimed the login reward: cash 65 → 165, then `buy` 165 → 155 with `padi` 6 → 7) | Open the phone HUD and claim the daily reward by hand. |
 | Minigame, feel, frame rate | UNVERIFIED | Only a human can judge these; not a harness job. |
 
 Still `UNVERIFIED` after the 2026-11-14 run: §6 screenshot automation, desktop-size capture, a

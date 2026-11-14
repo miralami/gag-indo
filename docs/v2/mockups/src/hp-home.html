@@ -1,0 +1,144 @@
+<!doctype html>
+<!-- HP Juragan home, v3: the Figma "cat tangan berkontur" frame as the base (painted icons,
+     paper texture, stempel), with the Stitch keepers (status bar, RAWAN stamp, Aman/Razia labels,
+     taped note signed by Pak RT). Values follow docs/v2/ART.md and Visuals.luau.
+     Painted icons in icons/ are 56 px crops of reference/figma-cat-tangan.png; swap in 4x exports. -->
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>HP Juragan home</title>
+<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Nunito:wght@700;800;900&display=block" rel="stylesheet">
+<style>
+:root{
+  --kertas:#f3e9d2; --kertas-2:#e7d9b8; --tinta:#2b2118; --tinta-lembut:#5b4a38;
+  --senja:#f6c97a; --padi:#9bb25a; --daun:#6f8a3f; --merah:#a83226; --kunyit:#c99a2e; --bambu:#b98a5a;
+  --t-display:28px; --t-heading:18px; --t-body:13px; --t-small:11px;
+  --xs:4px; --sm:8px; --md:12px; --lg:16px;
+  --r-card:14px; --r-button:10px; --r-chip:8px; --touch:44px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#55634a}
+body{font-family:Nunito,sans-serif;font-weight:800;color:var(--tinta);font-size:var(--t-body);line-height:1.25}
+.h{font-family:"Luckiest Guy",sans-serif;font-weight:400;letter-spacing:.5px;line-height:1}
+.st{border:2px solid var(--tinta);box-shadow:4px 4px 0 var(--tinta)}
+
+.phone{position:relative;width:360px;height:640px;overflow:hidden;background:var(--kertas)}
+/* painted paper: warm fibre noise + soft vignette, never flat */
+.phone::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.55;mix-blend-mode:multiply;
+  background:
+    radial-gradient(120% 90% at 30% 20%,rgba(255,250,235,.0) 55%,rgba(185,138,90,.22) 100%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' seed='7'/><feColorMatrix values='0 0 0 0 .55  0 0 0 0 .42  0 0 0 0 .27  0 0 0 .22 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");}
+.phone>*{position:absolute;left:16px;right:16px}
+
+/* status bar (Stitch) */
+.status{top:6px;height:20px;display:flex;align-items:center;justify-content:space-between;font-size:var(--t-small);color:var(--tinta-lembut)}
+.status .sig{display:flex;align-items:flex-end;gap:2px;margin-right:6px}
+.status .sig i{display:block;width:4px;background:var(--tinta);border-radius:1px}
+.status .bat{display:inline-flex;align-items:center;gap:4px}
+.status .bat b{display:block;width:22px;height:11px;border:2px solid var(--tinta);border-radius:3px;position:relative}
+.status .bat b::before{content:"";position:absolute;left:1px;top:1px;bottom:1px;width:13px;background:var(--daun);border-radius:1px}
+
+.title{top:30px;height:36px;display:flex;align-items:center;gap:var(--sm)}
+.title .h{font-size:var(--t-display)}
+
+/* Sus card */
+.sus{top:76px;height:112px;background:#f8efda;border-radius:var(--r-card);padding:var(--md)}
+.stamp{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border:2px solid var(--merah);border-radius:4px;
+  color:var(--merah);transform:rotate(-2deg);box-shadow:inset 0 0 0 1px rgba(168,50,38,.25)}
+.stamp .h{font-size:22px;letter-spacing:1px}
+.sus .top{display:flex;align-items:center;justify-content:space-between}
+.sus .of{color:var(--tinta-lembut)}
+.meter{position:relative;margin-top:12px;height:16px;border:2px solid var(--tinta);border-radius:8px;background:var(--kertas-2)}
+.meter>i{position:absolute;left:2px;top:2px;bottom:2px;width:calc(62% - 4px);border-radius:5px;
+  background:linear-gradient(180deg,#c24a39 0%,var(--merah) 60%,#8e2a20 100%)}
+.meter .flag{position:absolute;left:80%;top:-9px;width:3px;height:30px;background:var(--tinta);border-radius:2px}
+.meter .flag::after{content:"80";position:absolute;left:5px;top:-6px;font-size:var(--t-small)}
+.scale{display:flex;justify-content:space-between;margin-top:6px;font-size:var(--t-small);color:var(--tinta-lembut)}
+.scale b{color:var(--merah)}
+
+/* chips */
+.chips{top:204px;height:var(--touch);display:flex;gap:var(--md)}
+.chip{flex:1;display:flex;align-items:center;gap:var(--sm);padding:0 var(--md);border-radius:var(--r-chip);background:#f8efda}
+.chip svg{width:26px;height:26px;flex:none}
+.chip small{display:block;font-size:var(--t-small);color:var(--tinta-lembut);line-height:1}
+
+/* app grid with painted icons */
+.grid{top:264px;display:grid;grid-template-columns:repeat(4,1fr);row-gap:12px}
+.app{display:flex;flex-direction:column;align-items:center;gap:6px}
+.app .tile{position:relative;width:64px;height:64px;border-radius:var(--r-button);background:#f6ecd5 center/60px 60px no-repeat}
+.app span{font-size:var(--t-body)}
+.badge{position:absolute;top:-8px;right:-8px;min-width:24px;height:24px;padding:0 6px;border-radius:12px;
+  background:var(--merah);color:var(--kertas);border:2px solid var(--tinta);font-size:var(--t-body);font-weight:900;
+  display:flex;align-items:center;justify-content:center}
+
+/* taped note */
+.note{top:458px;height:92px;background:#fbf3df;border-radius:var(--r-card);padding:var(--md) var(--md) var(--md) 52px;
+  transform:rotate(-.6deg);border-style:dashed}
+.note .tape{position:absolute;left:50%;top:-10px;width:64px;height:18px;margin-left:-32px;transform:rotate(3deg);
+  background:rgba(246,201,122,.75);border-left:1px dashed rgba(43,33,24,.25);border-right:1px dashed rgba(43,33,24,.25)}
+.note .who{position:absolute;left:12px;top:14px;width:30px;height:30px}
+.note q{display:block;font-style:italic;quotes:"\201C" "\201D"}
+.note .sig{margin-top:6px;font-size:var(--t-small);color:var(--tinta-lembut)}
+.note .stempel{position:absolute;right:10px;bottom:8px;padding:1px 6px;border:2px solid var(--merah);border-radius:4px;
+  color:var(--merah);font-size:var(--t-small);font-weight:900;transform:rotate(-6deg);opacity:.9}
+
+.close{top:572px;height:52px;border-radius:var(--r-button);background:var(--padi);display:flex;align-items:center;justify-content:center;gap:var(--sm)}
+.close .h{font-size:20px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="gold" x1="0" y1="0" x2=".8" y2="1"><stop offset="0" stop-color="#f7d98f"/><stop offset=".55" stop-color="#d9a838"/><stop offset="1" stop-color="#a87a1e"/></linearGradient>
+  <linearGradient id="wood" x1="0" y1="0" x2=".7" y2="1"><stop offset="0" stop-color="#f6c97a"/><stop offset="1" stop-color="#c99a2e"/></linearGradient>
+  <symbol id="star" viewBox="0 0 32 32"><path d="M16 3.5l3.9 8.2 9 1.2-6.6 6.2 1.7 8.9L16 23.6l-8 4.4 1.7-8.9L3.1 12.9l9-1.2z" fill="url(#gold)" stroke="#2b2118" stroke-width="2" stroke-linejoin="round"/><path d="M11 13.5l3-.4 1.6-3.4" fill="none" stroke="#fff3cf" stroke-width="1.6" stroke-linecap="round" opacity=".9"/></symbol>
+  <symbol id="crown" viewBox="0 0 32 32"><path d="M5 24L3.5 9.5l7 5.5L16 6l5.5 9 7-5.5L27 24z" fill="url(#gold)" stroke="#2b2118" stroke-width="2" stroke-linejoin="round"/><path d="M5 27h22" stroke="#2b2118" stroke-width="2.5" stroke-linecap="round"/><circle cx="16" cy="18" r="2" fill="#a83226" stroke="#2b2118" stroke-width="1.2"/><path d="M8 13l1 6" stroke="#fff3cf" stroke-width="1.5" stroke-linecap="round" opacity=".8"/></symbol>
+  <symbol id="rt" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" fill="#f6c97a" stroke="#2b2118" stroke-width="2"/><circle cx="16" cy="13" r="4.5" fill="#b98a5a" stroke="#2b2118" stroke-width="1.6"/><path d="M8 25c1.5-5 4.5-7 8-7s6.5 2 8 7" fill="#3b4f6b" stroke="#2b2118" stroke-width="1.6"/><path d="M10.5 9.5c1.5-3 9.5-3 11 0z" fill="#2b2118"/></symbol>
+  <symbol id="x" viewBox="0 0 32 32"><path d="M9 9l14 14M23 9L9 23" fill="none" stroke="#2b2118" stroke-width="4" stroke-linecap="round"/></symbol>
+</defs></svg>
+
+<div class="phone">
+  <div class="status">
+    <span style="display:flex;align-items:center"><span class="sig"><i style="height:4px"></i><i style="height:7px"></i><i style="height:10px"></i><i style="height:13px;opacity:.3"></i></span>DESA-4G</span>
+    <span>07:30</span>
+    <span class="bat">62%<b></b></span>
+  </div>
+
+  <div class="title"><span class="h">HP Juragan</span></div>
+
+  <div class="sus st">
+    <div class="top">
+      <span class="stamp"><span class="h">Sus 62</span></span>
+      <span class="of">dari 100</span>
+    </div>
+    <div class="meter"><i></i><span class="flag"></span></div>
+    <div class="scale"><span>Aman</span><b>Sampai 80, Polisi Desa datang razia</b></div>
+  </div>
+
+  <div class="chips">
+    <div class="chip st"><svg><use href="#star"/></svg><div><small>Nama Baik</small>120</div></div>
+    <div class="chip st"><svg><use href="#crown"/></svg><div><small>Pangkat</small>Juragan Kecil</div></div>
+  </div>
+
+  <div class="grid">
+    <div class="app"><div class="tile st" style="background-image:url(icons/kebun.png)"></div><span>Kebun</span></div>
+    <div class="app"><div class="tile st" style="background-image:url(icons/tugas.png)"><span class="badge">2</span></div><span>Tugas</span></div>
+    <div class="app"><div class="tile st" style="background-image:url(icons/toko.png)"></div><span>Toko Bibit</span></div>
+    <div class="app"><div class="tile st" style="background-image:url(icons/papan.png)"></div><span>Papan</span></div>
+    <div class="app"><div class="tile st" style="background-image:url(icons/lapor.png)"><span class="badge">1</span></div><span>Lapor</span></div>
+    <div class="app"><div class="tile st" style="background-image:url(icons/dekorasi.png)"></div><span>Dekorasi</span></div>
+    <div class="app"><div class="tile st" style="background-image:url(icons/bayarlater.png)"></div><span>BayarLater</span></div>
+    <div class="app"><div class="tile st" style="background-image:url(icons/curang.png)"></div><span>Curang</span></div>
+  </div>
+
+  <div class="note st">
+    <span class="tape"></span>
+    <svg class="who"><use href="#rt"/></svg>
+    <q>Curang itu cepat, tapi tetangga bisa ngerekam.</q>
+    <div class="sig">Pak RT, Pos Ronda 03</div>
+    <span class="stempel">PETUAH</span>
+  </div>
+
+  <div class="close st"><svg width="22" height="22"><use href="#x"/></svg><span class="h">Tutup HP</span></div>
+</div>
+</body>
+</html>

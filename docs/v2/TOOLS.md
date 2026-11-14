@@ -230,3 +230,37 @@ Roblox: `art/modeling/specifications`, `art/modeling/export-requirements`, `art/
 Vendors: `tripo3d.ai/terms` (updated 2026-11-13), `meshy.ai/terms-of-use` (updated 2026-09-19),
 `elevenlabs.io/terms-of-use`, `suno.com/terms`, `leonardo.ai/terms-of-service` (updated
 2026-01-19), `kenney.nl` support page, `freesound.org` FAQ, `github.com/ahujasid/mcp-for-blender`.
+
+---
+
+## 9. Tool layers on top of code-first (research, 2026-11-15)
+
+**Status:** `UNVERIFIED` — desk research from DevForum, vendor pages and blogs; no tool below has
+been installed or run. Adding any of them (accounts, plugins, Wally packages, MCP servers) is the
+designer's step (Master Plan §5), and any gameplay-facing UI change still waits for Gate 1 (§4).
+
+**Constraint that shapes every row:** UI is built in Luau (`src/client/UI/*.luau`) and synced by
+Rojo. Tools that write instances into Studio fight that. Outside tools should therefore feed
+**tokens and assets** (colours, sizes, PNGs, meshes), not replace layout code.
+
+| Layer | Candidate tools | How it enters the repo | Notes |
+|---|---|---|---|
+| UI design (source of truth) | **Figma**; importers: Figma Importer Assistant, UILint v2 (some paid), FigBloxUI (active 2026), roimport (free), MonkeyPTR Export | Tokens copied by hand into `src/client/UI/Theme.luau`; panels (9-slice), icons, ornaments exported as PNG → Open Cloud (§3) → `ASSET_MANIFEST.md`; layout stays in code | Importers build ScreenGui instances or `.rbxmx`; DevForum threads report scaling and split-element problems. If one is ever used, commit its `.rbxmx` under `src/` so Rojo owns it. |
+| UI exploration | **Google Stitch** (+ community Stitch MCP servers) | Only as mockups (`docs/v2/mockups/`) and a `design.md` token list; can export to Figma | Outputs HTML/Tailwind/React — no Roblox path. Community MCP servers, not official. |
+| UI framework in code | **React-lua** (maintained by Roblox) or **Fusion** (community) via **Wally** | `wally.toml` + `Packages/` in `default.project.json` | Architecture decision; repo has no Wally yet. Post-Gate 1. |
+| Textures / PBR | **Substance Painter** (paid, named in Roblox's DCC docs), **Material Maker** (free); Studio MCP `generate_material` / `generate_texture` | PNG maps ≤1024² → Open Cloud → SurfaceAppearance | Studio generators are already available in this session. |
+| Animation | Blender rig → **Moon Animator 2** (Studio plugin); **Mixamo** (retarget needed); **Cascadeur**; Studio MCP `generate_animation` | Animation asset ID → manifest | One track per export (§2). Mixamo licence not yet read — add to §5 before use. |
+| 2D / icons / marketing | **Canva** (MCP connected), Krita or Affinity for hand-drawn icons | PNG → Open Cloud; thumbnails uploaded via Creator Dashboard | Icon rules in `art/ICONS.md`. |
+| Audio editing | **Audacity**, **Reaper** | Edited file → Open Cloud Audio | Generation tools stay paid-only per §5 (ElevenLabs, Suno). |
+| Code quality | **Selene** (lint), **StyLua** (format), Wally; CI running `lune run tests/run.luau` | `rokit add`, config files at repo root | Cheapest layer to add; no licence gate. |
+
+Suggested order: Selene + StyLua → Figma for tokens and UI assets → Moon Animator → Substance or
+Material Maker → React-lua/Fusion (only if UI growth justifies it).
+
+Sources: DevForum threads `figma-importer-assistant-a-faster-way-to-create-your-ui/2961561`,
+`plugin-uilint-v2-import-figma-ui-into-roblox-studio/4765869`,
+`free-figma-to-roblox-plugin-roimport/4731967`, `importing-ui-from-figma-sucks/3381689`,
+`how-to-react-roblox/2964543`, `fusion-vs-react-lua-which-one-to-use-for-long-term-development/2781328`,
+`every-single-ai-tool-u-need-w-roblox-studio-2026/4621350`; `figbloxui.pages.dev/changelog`;
+`create.roblox.com/docs/art/overview-dcc`; `mindstudio.ai/blog/google-stitch-mcp-coding-agents`;
+`nilo.io/articles/export-animation-cascadeur-roblox-studio`.

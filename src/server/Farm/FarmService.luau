@@ -38,6 +38,43 @@ local OWNED_COLOR = Color3.fromRGB(105, 72, 45)
 local LOCKED_COLOR = Color3.fromRGB(100, 100, 100)
 local HOT_COLOR = Color3.fromRGB(120, 200, 80)
 
+-- BUG-004 seed floor (decision D-G3, option A). A player with no cash, no seed of any kind and
+-- no planted tile is stuck, so they get exactly 1 padi seed, once per session. Never cash.
+-- Weak keys: the record goes away with the Player object, so a rejoin is a new session.
+local seedFloorGranted: { [Player]: boolean } = setmetatable({}, { __mode = "k" })
+local SEED_FLOOR_CROP = "padi"
+local SEED_PREFIX = Inventory.seedId("")
+
+local function hasAnySeed(data): boolean
+	for itemId, count in Inventory.snapshot(data) do
+		if string.sub(itemId, 1, #SEED_PREFIX) == SEED_PREFIX and count > 0 then
+			return true
+		end
+	end
+	return false
+end
+
+-- Called on join, after a harvest, and after a tile purchase: the only paths here that can
+-- leave a player with nothing to spend or plant. Returns true when the seed was granted.
+local function checkSeedFloor(player: Player): boolean
+	if seedFloorGranted[player] then
+		return false
+	end
+	local data = PlayerData.get(player)
+	if not data then
+		return false
+	end
+	if data.cash > 0 or hasAnySeed(data) or next(data.tiles or {}) ~= nil then
+		return false
+	end
+	seedFloorGranted[player] = true
+	Inventory.addSeed(data, SEED_FLOOR_CROP, 1)
+	EconomyService.sync(player)
+	State.touch(player, "items")
+	Notify.send(player, "n_seed_floor")
+	return true
+end
+
 local function cropToken(cropId: string): string
 	if cropId == "padi" or cropId == "tebu" then return "kunyit" end
 	if cropId == "cabai" or cropId == "bawang" then return "merah" end
@@ -429,6 +466,7 @@ local function doHarvest(
 	end
 
 	refreshTile(player, data, plot, index)
+	checkSeedFloor(player)
 	revealHarvest(player, entry.crop, tier, discovery)
 	OnboardingService.advance(player, "harvest")
 	QuestService.progress(player, "harvest", 1, entry.crop)
@@ -449,6 +487,7 @@ local function buyTile(player: Player, data, plot, index: number)
 	refreshTile(player, data, plot, index)
 	refreshTile(player, data, plot, index + 1)
 	Notify.send(player, "n_tile_bought")
+	checkSeedFloor(player)
 end
 
 local function isOwnedAndNear(player: Player, data, plot, index: number): boolean
@@ -761,6 +800,11 @@ function FarmService.refresh(player: Player)
 	refreshAll(player)
 end
 
+-- Exposed for tests; the game calls it from join, harvest and tile purchase.
+function FarmService.checkSeedFloor(player: Player): boolean
+	return checkSeedFloor(player)
+end
+
 local function onLoaded(player: Player, _data)
 	local plot = PlotService.claim(player)
 	if not plot then
@@ -772,6 +816,7 @@ local function onLoaded(player: Player, _data)
 	player:SetAttribute("SelectedSeed", "padi")
 	player:SetAttribute("PlotIndex", plot.index)
 	refreshAll(player)
+	checkSeedFloor(player)
 
 	local function onCharacter(_character: Model)
 		task.wait(0.2) -- let the character finish spawning before moving it

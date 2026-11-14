@@ -179,6 +179,7 @@ local S: { [string]: { id: string, en: string } } = {
 	n_shop_stock = { id = "Stok %s tinggal %s.", en = "Only %s %s left in stock." },
 	n_shop_sold_out = { id = "Stok %s habis. Tunggu restock.", en = "%s is sold out. Wait for the restock." },
 	n_tile_bought = { id = "Petak baru dibeli!", en = "New tile bought!" },
+	n_seed_floor = { id = "Tetangga kasih bibit padi.", en = "A neighbour gave you a padi seed." },
 	n_sack_full = { id = "Karung penuh. Jual atau simpan ke gudang dulu.", en = "Your sack is full. Sell or store the harvest first." },
 	n_gudang_full = { id = "Gudang penuh.", en = "The storehouse is full." },
 	n_gudang_nothing = { id = "Tidak ada hasil bersih untuk disimpan.", en = "No clean produce to store." },

@@ -52,6 +52,17 @@ return function(t, Env)
 			end
 		end)
 
+		t:it("scatters at least 14 trees", function()
+			expect(#Greybox.treeSpots() >= 14):toBe(true)
+		end)
+
+		t:it("gives every tree at least 3 canopy balls", function()
+			local spots = Greybox.treeSpots()
+			for index = 1, #spots do
+				expect(#Greybox.canopyLayout(index) >= 3):toBe(true)
+			end
+		end)
+
 		t:it("clears each owned volume with Air before filling it", function()
 			local calls = {}
 			local terrain = {
@@ -135,6 +146,190 @@ return function(t, Env)
 			expect(label.TextScaled):toBe(false)
 			expect(label.TextSize >= 12):toBe(true)
 			expect(label.TextSize <= 28):toBe(true)
+		end)
+	end)
+
+	-- Hub buildings: the real Greybox.build runs against fake Instances with the real Props, so
+	-- every hub it builds is checked for a pitched roof and a readable sign label.
+	t:describe("Greybox hub buildings", function()
+		local HUB_SIGNS = {
+			Pasar = "PASAR",
+			TengkulakGelap = "TENGKULAK GELAP",
+			RumahPakRT = "RUMAH PAK RT",
+			PosPolisi = "POS POLISI",
+			PosRonda = "POS RONDA",
+			Warung = "WARUNG",
+		}
+		local env, instances, Greybox, world
+
+		local function hub(name)
+			for _, child in world:GetChildren() do
+				if child.Name == name and child.ClassName == "Model" then
+					return child
+				end
+			end
+			return nil
+		end
+
+		t:beforeEach(function()
+			env = Env.new()
+			instances = {}
+
+			local function children(parent)
+				local list = {}
+				for _, object in instances do
+					if object.Parent == parent and not object.Destroyed then
+						table.insert(list, object)
+					end
+				end
+				return list
+			end
+
+			local function descendants(parent)
+				local list = {}
+				for _, child in children(parent) do
+					table.insert(list, child)
+					for _, item in descendants(child) do
+						table.insert(list, item)
+					end
+				end
+				return list
+			end
+
+			local function newInstance(className)
+				local object = { ClassName = className, Name = className }
+				object.SetAttribute = function(self, key, value)
+					self.attributes = self.attributes or {}
+					self.attributes[key] = value
+				end
+				object.IsA = function(self, name)
+					return self.ClassName == name or (name == "BasePart" and self.ClassName == "Part")
+				end
+				object.GetChildren = function(self)
+					return children(self)
+				end
+				object.GetDescendants = function(self)
+					return descendants(self)
+				end
+				object.FindFirstChild = function(self, name)
+					for _, child in children(self) do
+						if child.Name == name then
+							return child
+						end
+					end
+					return nil
+				end
+				object.FindFirstChildOfClass = function(self, className)
+					for _, child in children(self) do
+						if child.ClassName == className then
+							return child
+						end
+					end
+					return nil
+				end
+				object.Destroy = function(self)
+					self.Destroyed = true
+					self.Parent = nil
+				end
+				table.insert(instances, object)
+				return object
+			end
+
+			local cframeMeta = {}
+			cframeMeta.__mul = function()
+				return setmetatable({}, cframeMeta)
+			end
+			env.globals.CFrame = {
+				new = function()
+					return setmetatable({}, cframeMeta)
+				end,
+				Angles = function()
+					return setmetatable({}, cframeMeta)
+				end,
+			}
+			env.globals.Color3 = {
+				fromHex = function(hex)
+					return { hex = hex }
+				end,
+				fromRGB = function(r, g, b)
+					return { R = r, G = g, B = b }
+				end,
+				new = function(r, g, b)
+					return { R = r, G = g, B = b }
+				end,
+			}
+			env.globals.Vector2 = {
+				new = function(x, y)
+					return { X = x, Y = y }
+				end,
+			}
+			env.globals.UDim2 = {
+				fromOffset = function(x, y)
+					return { Width = x, Height = y }
+				end,
+				fromScale = function(x, y)
+					return { Width = x, Height = y }
+				end,
+			}
+			env.globals.Instance = {
+				new = newInstance,
+			}
+			local terrain = {
+				FillBlock = function() end,
+				SetMaterialColor = function() end,
+			}
+			env.globals.workspace = {
+				Terrain = terrain,
+				FindFirstChild = function()
+					return nil
+				end,
+			}
+			env:mock("server/World/Map", {
+				TAGS = {
+					Greybox = "GreyboxWorld",
+					Pasar = "Pasar",
+					Gelap = "Gelap",
+					PakRT = "PakRT",
+					Polisi = "Polisi",
+					Ronda = "Ronda",
+					Warung = "Warung",
+					PlayerSpawn = "PlayerSpawn",
+				},
+				all = function()
+					return {}
+				end,
+				isDesignerWorld = function()
+					return false
+				end,
+				add = function() end,
+			})
+			env:mock("server/World/NpcFactory", { build = function() end })
+			Greybox = env:require("server/World/Greybox")
+			world = Greybox.build()
+		end)
+
+		t:it("gives every hub a pitched roof built from at least two Roof slabs", function()
+			for name in HUB_SIGNS do
+				local model = hub(name)
+				expect(model ~= nil):toBe(true)
+				local roofs = 0
+				for _, item in model:GetDescendants() do
+					if item.Name == "Roof" then
+						roofs = roofs + 1
+					end
+				end
+				expect(roofs >= 2):toBe(true)
+			end
+		end)
+
+		t:it("keeps a readable sign label with the hub's name on every hub", function()
+			for name, text in HUB_SIGNS do
+				local board = hub(name):FindFirstChild("Sign")
+				expect(board ~= nil):toBe(true)
+				local gui = board:FindFirstChildOfClass("BillboardGui")
+				expect(gui ~= nil):toBe(true)
+				expect(gui:FindFirstChild("Label").Text):toBe(text)
+			end
 		end)
 	end)
 end

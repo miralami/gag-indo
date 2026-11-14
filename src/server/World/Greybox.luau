@@ -8,6 +8,7 @@
 local Map = require(script.Parent.Map)
 local Props = require(script.Parent.Props)
 local NpcFactory = require(script.Parent.NpcFactory)
+local Decor = require(script.Parent.Decor)
 local Visuals = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").Config.Visuals)
 
 local Greybox = {}
@@ -97,19 +98,67 @@ local function sign(parent: Instance, cframe: CFrame, text: string, size: Vector
 	return board
 end
 
-local function roof(parent: Instance, position: Vector3, size: Vector3, color: Color3, material: Enum.Material?)
-	local roofPart = part({
-		Name = "Roof",
-		Size = size,
+-- Hub kit -------------------------------------------------------------------
+-- Each hub is a building, not a slab: a raised stone plinth, real walls where the front stays
+-- open for its prompt, a pitched roof (two tilted slabs and a ridge beam) that reads from 40
+-- studs, and one palette accent. Every prompt keeps a clear walkway from the open side.
+local STONE = Props.palette("tintaLembut")
+local PLINTH_HEIGHT = 0.8
+local PLINTH_TOP = GROUND_Y + PLINTH_HEIGHT
+local ROOF_THICK = 0.6
+
+local function block(parent: Instance, name: string, position: Vector3, size: Vector3, color: Color3, material: Enum.Material): Part
+	local p = part({ Name = name, Position = position, Size = size, Color = color, Material = material })
+	p.Parent = parent
+	return p
+end
+
+-- Decorative trim, thinner than a stud: it never blocks a player, a click or a shadow.
+local function trim(parent: Instance, name: string, position: Vector3, size: Vector3, color: Color3, material: Enum.Material): Part
+	local p = part({
+		Name = name,
 		Position = position,
+		Size = size,
 		Color = color,
-		Material = material or Enum.Material.Fabric,
+		Material = material,
+		CanCollide = false,
+		CanQuery = false,
+		CastShadow = false,
 	})
-	roofPart.Parent = parent
-	if color == C.red or color == C.clay or color == C.gold or color == C.blue then
-		local slot = if color == C.red then "genteng" elseif color == C.clay then "genteng" elseif color == C.gold then "genteng" else "seng"
-		Visuals.applySurface(roofPart, slot, material or Enum.Material.Metal)
+	p.Parent = parent
+	return p
+end
+
+-- A raised stone base the building stands on. `centre` is the hub centre at ground level.
+local function plinth(parent: Instance, name: string, centre: Vector3, size: Vector2, color: Color3, material: Enum.Material): Part
+	return block(parent, name, Vector3.new(centre.X, GROUND_Y + PLINTH_HEIGHT / 2, centre.Z), Vector3.new(size.X, PLINTH_HEIGHT, size.Y), color, material)
+end
+
+-- Pitched roof running along X. `ridge` is the peak on the centre line; `halfDepth` is the eave
+-- reach from the ridge along Z (overhang included); `rise` is the drop from ridge to eave.
+-- Two tilted slabs meet at the ridge, with a ridge beam on top.
+local function roof(parent: Instance, ridge: Vector3, length: number, halfDepth: number, rise: number, color: Color3, material: Enum.Material, ridgeColor: Color3, slot: string?)
+	local angle = math.atan2(rise, halfDepth)
+	local slope = math.sqrt(halfDepth * halfDepth + rise * rise)
+	for _, side in { -1, 1 } do
+		local centre = Vector3.new(
+			ridge.X,
+			ridge.Y - rise / 2 + math.cos(angle) * ROOF_THICK / 2,
+			ridge.Z + side * (halfDepth / 2 + math.sin(angle) * ROOF_THICK / 2)
+		)
+		local slab = part({
+			Name = "Roof",
+			Size = Vector3.new(length, ROOF_THICK, slope),
+			CFrame = CFrame.new(centre) * CFrame.Angles(side * angle, 0, 0),
+			Color = color,
+			Material = material,
+		})
+		slab.Parent = parent
+		if slot then
+			Visuals.applySurface(slab, slot, material)
+		end
 	end
+	trim(parent, "RoofRidge", ridge + Vector3.new(0, ROOF_THICK / 2 + 0.25, 0), Vector3.new(length + 0.4, 0.5, 0.5), ridgeColor, Enum.Material.Wood)
 end
 
 local function posts(parent: Instance, corners: { Vector3 }, height: number, color: Color3)
@@ -129,6 +178,8 @@ local function buildPasar(world: Folder)
 	model.Name = "Pasar"
 	model:SetAttribute("HubAccent", "merah")
 
+	-- Open-front stall: plinth, a plank back wall, posts, and a tent roof with merah spanduk on the eaves.
+	plinth(model, "Plinth", Vector3.new(0, GROUND_Y, 0), Vector2.new(16, 10), STONE, Enum.Material.Slate)
 	local counter = part({
 		Name = "Counter",
 		Size = Vector3.new(14, 3, 5),
@@ -142,9 +193,13 @@ local function buildPasar(world: Folder)
 		Vector3.new(6.5, GROUND_Y, -2),
 		Vector3.new(-6.5, GROUND_Y, 2),
 		Vector3.new(6.5, GROUND_Y, 2),
-	}, 8, C.shadow)
-	roof(model, Vector3.new(0, GROUND_Y + 8, 0), Vector3.new(17, 0.6, 8), C.red, Enum.Material.Metal)
-	sign(model, CFrame.new(0, GROUND_Y + 10, 0), "PASAR")
+	}, 9, C.shadow)
+	block(model, "BackWall", Vector3.new(0, 4.95, -4.25), Vector3.new(14, 7.3, 0.5), C.wood, Enum.Material.WoodPlanks)
+	roof(model, Vector3.new(0, 10.6, 0), 18, 5.5, 2, C.shadow, Enum.Material.Metal, C.wood)
+	for _, z in { -5.8, 5.8 } do
+		trim(model, "Spanduk", Vector3.new(0, 8.5, z), Vector3.new(18.4, 1, 0.3), C.red, Enum.Material.Fabric)
+	end
+	sign(model, CFrame.new(0, 12.6, 0), "PASAR")
 
 	local prompt = Props.prompt(counter, "Pasar", "Jual hasil panen")
 	prompt.Name = "SellPrompt"
@@ -161,6 +216,9 @@ local function buildGelap(world: Folder)
 	model.Name = "TengkulakGelap"
 	model:SetAttribute("HubAccent", "genteng")
 
+	-- Dark back-alley stall: tinta-lembut planks on three sides, open to the front, with a kunyit lantern door.
+	local dark = Props.palette("tintaLembut")
+	plinth(model, "Plinth", Vector3.new(0, GROUND_Y, -16), Vector2.new(11, 8), STONE, Enum.Material.Slate)
 	local counter = part({
 		Name = "Counter",
 		Size = Vector3.new(10, 2.6, 4),
@@ -174,9 +232,14 @@ local function buildGelap(world: Folder)
 		Vector3.new(4.5, GROUND_Y, -18),
 		Vector3.new(-4.5, GROUND_Y, -14),
 		Vector3.new(4.5, GROUND_Y, -14),
-	}, 7, C.shadow)
-	roof(model, Vector3.new(0, GROUND_Y + 7, -16), Vector3.new(13, 0.6, 7), C.clay, Enum.Material.Metal)
-	sign(model, CFrame.new(0, GROUND_Y + 9, -16), "TENGKULAK GELAP", Vector2.new(300, 70))
+	}, 7.8, C.shadow)
+	block(model, "BackWall", Vector3.new(0, 4.25, -19.5), Vector3.new(11, 5.9, 0.5), dark, Enum.Material.WoodPlanks)
+	for _, x in { -5.25, 5.25 } do
+		block(model, "SideWall", Vector3.new(x, 4.25, -17.25), Vector3.new(0.5, 5.9, 4.5), dark, Enum.Material.WoodPlanks)
+	end
+	trim(model, "LanternDoor", Vector3.new(-5.6, 3.3, -17.25), Vector3.new(0.2, 4, 1.8), C.gold, Enum.Material.Wood)
+	roof(model, Vector3.new(0, 9.4, -16), 13, 5.5, 2.2, C.clay, Enum.Material.Slate, Props.palette("tinta"), "genteng")
+	sign(model, CFrame.new(0, 11.4, -16), "TENGKULAK GELAP", Vector2.new(300, 70))
 
 	local prompt = Props.prompt(counter, "Tengkulak Gelap", "Jual (harga gelap)")
 	prompt.Name = "SellPrompt"
@@ -193,22 +256,23 @@ local function buildPakRtHouse(world: Folder)
 	model.Name = "RumahPakRT"
 	model:SetAttribute("HubAccent", "kunyit")
 
+	-- House with a genteng roof and kunyit trim: plank back and side walls, open porch to the front.
 	local center = Vector3.new(30, GROUND_Y, 26)
-	local floor = part({
-		Name = "Floor",
-		Size = Vector3.new(18, 0.6, 14),
-		Position = center,
-		Color = C.wood,
-		Material = Enum.Material.WoodPlanks,
-	})
-	floor.Parent = model
+	local floor = plinth(model, "Floor", center, Vector2.new(18, 14), STONE, Enum.Material.Slate)
 	posts(model, {
 		center + Vector3.new(-8.5, 0, -6.5),
 		center + Vector3.new(8.5, 0, -6.5),
 		center + Vector3.new(-8.5, 0, 6.5),
 		center + Vector3.new(8.5, 0, 6.5),
-	}, 9, C.shadow)
-	roof(model, center + Vector3.new(0, 9.5, 0), Vector3.new(21, 0.8, 17), C.gold, Enum.Material.Slate)
+	}, 6.4, C.shadow)
+	block(model, "BackWall", Vector3.new(30, 3.9, 32.5), Vector3.new(18, 5.2, 0.5), C.wood, Enum.Material.WoodPlanks)
+	for _, x in { 21.5, 38.5 } do
+		block(model, "SideWall", Vector3.new(x, 3.9, 28), Vector3.new(0.5, 5.2, 10), C.wood, Enum.Material.WoodPlanks)
+	end
+	roof(model, Vector3.new(30, 10, 26), 21, 8, 3.5, C.clay, Enum.Material.Slate, C.gold, "genteng")
+	for _, z in { 18, 34 } do
+		trim(model, "KunyitTrim", Vector3.new(30, 6.4, z), Vector3.new(21.4, 0.5, 0.5), C.gold, Enum.Material.Metal)
+	end
 	sign(model, CFrame.new(30, GROUND_Y + 11.5, 19.5), "RUMAH PAK RT", Vector2.new(280, 70))
 
 	local table = part({
@@ -234,22 +298,23 @@ local function buildPosPolisi(world: Folder)
 	model.Name = "PosPolisi"
 	model:SetAttribute("HubAccent", "malam")
 
+	-- Police post in malam: concrete plinth, malam walls and trim, indigo roof, open porch to the front.
 	local center = Vector3.new(-30, GROUND_Y, 26)
-	local floor = part({
-		Name = "Floor",
-		Size = Vector3.new(16, 0.6, 12),
-		Position = center,
-		Color = C.blue,
-		Material = Enum.Material.Concrete,
-	})
-	floor.Parent = model
+	local floor = plinth(model, "Floor", center, Vector2.new(16, 12), C.blue, Enum.Material.Concrete)
 	posts(model, {
 		center + Vector3.new(-7.5, 0, -5.5),
 		center + Vector3.new(7.5, 0, -5.5),
 		center + Vector3.new(-7.5, 0, 5.5),
 		center + Vector3.new(7.5, 0, 5.5),
-	}, 9, C.shadow)
-	roof(model, center + Vector3.new(0, 9.5, 0), Vector3.new(19, 0.8, 15), C.blue, Enum.Material.Metal)
+	}, 6.4, C.shadow)
+	block(model, "BackWall", Vector3.new(-30, 3.9, 31.5), Vector3.new(16, 5.2, 0.5), C.blue, Enum.Material.WoodPlanks)
+	for _, x in { -37.5, -22.5 } do
+		block(model, "SideWall", Vector3.new(x, 3.9, 28), Vector3.new(0.5, 5.2, 8), C.blue, Enum.Material.WoodPlanks)
+	end
+	roof(model, Vector3.new(-30, 9.5, 26), 18, 7.5, 3, C.shadow, Enum.Material.Metal, C.blue)
+	for _, z in { 18.5, 33.5 } do
+		trim(model, "MalamTrim", Vector3.new(-30, 6.4, z), Vector3.new(18.4, 0.5, 0.5), C.blue, Enum.Material.Metal)
+	end
 	sign(model, CFrame.new(-30, GROUND_Y + 11.5, 20), "POS POLISI", Vector2.new(260, 70))
 
 	local desk = part({
@@ -273,23 +338,19 @@ end
 local function buildPosRonda(world: Folder)
 	local model = Instance.new("Model")
 	model.Name = "PosRonda"
+	model:SetAttribute("HubAccent", "bambu")
 
+	-- Bamboo hut on a stone plinth with a thatch roof, and a small watchtower on the back corner.
 	local center = Vector3.new(-30, GROUND_Y, -26)
-	local floor = part({
-		Name = "Floor",
-		Size = Vector3.new(12, 0.6, 10),
-		Position = center,
-		Color = C.shadow,
-		Material = Enum.Material.WoodPlanks,
-	})
-	floor.Parent = model
+	plinth(model, "Plinth", center, Vector2.new(12.4, 10.4), STONE, Enum.Material.Slate)
+	local floor = block(model, "Floor", Vector3.new(center.X, PLINTH_TOP + 0.3, center.Z), Vector3.new(12, 0.6, 10), C.wood, Enum.Material.WoodPlanks)
 	posts(model, {
 		center + Vector3.new(-5.5, 0, -4.5),
 		center + Vector3.new(5.5, 0, -4.5),
 		center + Vector3.new(-5.5, 0, 4.5),
 		center + Vector3.new(5.5, 0, 4.5),
-	}, 8, C.shadow)
-	roof(model, center + Vector3.new(0, 8.5, 0), Vector3.new(14, 0.7, 12), C.gold, Enum.Material.Fabric)
+	}, 8.4, C.shadow)
+	roof(model, Vector3.new(-30, 11, -26), 14, 6, 2.5, Props.palette("padi"), Enum.Material.Grass, C.wood)
 	sign(model, CFrame.new(-30, GROUND_Y + 10, -20.5), "POS RONDA", Vector2.new(240, 70))
 	Map.add(floor, Map.TAGS.Ronda)
 
@@ -304,6 +365,16 @@ local function buildPosRonda(world: Folder)
 		}).Parent = model
 	end
 
+	-- Watchtower on the back-right corner: four bamboo legs, a deck and a small pitched roof.
+	local tower = Vector3.new(-26, 0, -30)
+	for _, dx in { -1.2, 1.2 } do
+		for _, dz in { -1.2, 1.2 } do
+			block(model, "TowerLeg", Vector3.new(tower.X + dx, 6.75, tower.Z + dz), Vector3.new(0.6, 9.7, 0.6), C.wood, Enum.Material.Wood)
+		end
+	end
+	block(model, "TowerDeck", Vector3.new(tower.X, 11.8, tower.Z), Vector3.new(3.6, 0.4, 3.6), C.wood, Enum.Material.WoodPlanks)
+	roof(model, Vector3.new(tower.X, 13.6, tower.Z), 3.6, 2.2, 1.6, Props.palette("padi"), Enum.Material.Grass, C.wood)
+
 	model.PrimaryPart = floor
 	contour(model)
 	model.Parent = world
@@ -314,23 +385,31 @@ local function buildWarung(world: Folder)
 	model.Name = "Warung"
 	model:SetAttribute("HubAccent", "genteng")
 
+	-- Warung: genteng roof with a corrugated seng awning over the front bench, open to the front.
 	local center = Vector3.new(30, GROUND_Y, -26)
-	local floor = part({
-		Name = "Floor",
-		Size = Vector3.new(14, 0.6, 12),
-		Position = center,
-		Color = C.wood,
-		Material = Enum.Material.WoodPlanks,
-	})
-	floor.Parent = model
+	local floor = plinth(model, "Floor", center, Vector2.new(14, 12), STONE, Enum.Material.Slate)
 	posts(model, {
 		center + Vector3.new(-6.5, 0, -5.5),
 		center + Vector3.new(6.5, 0, -5.5),
 		center + Vector3.new(-6.5, 0, 5.5),
 		center + Vector3.new(6.5, 0, 5.5),
-	}, 8, C.shadow)
-	roof(model, center + Vector3.new(0, 8.5, 0), Vector3.new(17, 0.7, 15), C.clay, Enum.Material.Metal)
-	sign(model, CFrame.new(30, GROUND_Y + 10, -20), "WARUNG", Vector2.new(240, 70))
+	}, 6.2, C.shadow)
+	block(model, "BackWall", Vector3.new(30, 3.9, -31.5), Vector3.new(14, 5.2, 0.5), C.wood, Enum.Material.WoodPlanks)
+	for _, x in { 23.5, 36.5 } do
+		block(model, "SideWall", Vector3.new(x, 3.9, -28.75), Vector3.new(0.5, 5.2, 5.5), C.wood, Enum.Material.WoodPlanks)
+	end
+	roof(model, Vector3.new(30, 9.5, -26), 15, 7, 3, C.clay, Enum.Material.Slate, Props.palette("tinta"), "genteng")
+
+	-- Seng lean-to: tilted from the front eave (z -19, y 6.5) down to z -15.4 (y 5.5).
+	local tilt = math.atan2(1, 3.6)
+	part({
+		Name = "Awning",
+		Size = Vector3.new(14, 0.5, math.sqrt(3.6 * 3.6 + 1)),
+		CFrame = CFrame.new(30, 6, -17.2) * CFrame.Angles(tilt, 0, 0),
+		Color = C.shadow,
+		Material = Enum.Material.CorrodedMetal,
+	}).Parent = model
+	posts(model, { Vector3.new(24, GROUND_Y, -15.5), Vector3.new(36, GROUND_Y, -15.5) }, 5, C.wood)
 
 	local table = part({
 		Name = "Table",
@@ -340,6 +419,7 @@ local function buildWarung(world: Folder)
 		Material = Enum.Material.WoodPlanks,
 	})
 	table.Parent = model
+	sign(model, CFrame.new(30, GROUND_Y + 10, -20), "WARUNG", Vector2.new(240, 70))
 	for _, x in { -3.2, 3.2 } do
 		part({
 			Name = "Bench",
@@ -360,49 +440,126 @@ local function buildWarung(world: Folder)
 	model.Parent = world
 end
 
-local function scatterTrees(world: Folder)
-	local spots = {
-		Vector3.new(14, GROUND_Y, -42),
-		Vector3.new(-16, GROUND_Y, -44),
-		Vector3.new(46, GROUND_Y, 2),
-		Vector3.new(-46, GROUND_Y, -8),
-		Vector3.new(4, GROUND_Y, 48),
-		Vector3.new(-2, GROUND_Y, -56),
-		Vector3.new(52, GROUND_Y, 44),
-		Vector3.new(-52, GROUND_Y, 48),
-	}
-	for i, spot in spots do
-		local tree = Instance.new("Model")
-		tree.Name = "Tree_" .. i
+-- Tree positions in XZ (studs). Each sits in a quadrant clear of the 18-wide road cross
+-- (|x| and |z| >= 14), at least 14 studs from every hub centre, inside the village band
+-- (|z| <= 52), so nothing lands on a road, a hub, the sawah terraces or the river.
+local TREE_XZ = {
+	{ 20, 40 }, { 44, 40 }, { 54, 16 }, { 56, -18 }, { 48, -40 }, { 20, -40 }, { -20, -40 },
+	{ -48, -36 }, { -56, 18 }, { -52, 36 }, { -20, 40 }, { -46, -18 }, { -24, 46 }, { 40, 52 },
+}
+
+-- Canopy balls for the base tree. Colours are palette keys; tree and ball index flip them so
+-- the grove mixes daun and padi, and the size scale varies per tree (deterministic, no random).
+local CANOPY_BALLS = {
+	{ size = 8, offset = Vector3.new(0, 11, 0) },
+	{ size = 6.4, offset = Vector3.new(-2.2, 9.6, 1.2) },
+	{ size = 5.6, offset = Vector3.new(1.8, 10.8, -1.8) },
+}
+
+local function treeSpots(): { Vector3 }
+	local spots = {}
+	for _, xz in TREE_XZ do
+		table.insert(spots, Vector3.new(xz[1], GROUND_Y, xz[2]))
+	end
+	return spots
+end
+
+local function canopyLayout(index: number): { { size: number, offset: Vector3, color: string, castShadow: boolean } }
+	local scale = 0.92 + (index % 3) * 0.08
+	local layout = {}
+	for ballIndex, def in CANOPY_BALLS do
+		table.insert(layout, {
+			size = def.size * scale,
+			offset = Vector3.new(def.offset.X * scale, def.offset.Y * scale, def.offset.Z * scale),
+			color = if (index + ballIndex) % 2 == 0 then "daun" else "padi",
+			castShadow = ballIndex == 1,
+		})
+	end
+	return layout
+end
+
+Greybox.treeSpots = treeSpots
+Greybox.canopyLayout = canopyLayout
+
+-- A stylised tree: a two-section tapered trunk (Cylinder parts, bambu wood) and three overlapping
+-- Ball canopy parts. Five parts in total; only the first canopy ball casts a shadow.
+local function buildTree(index: number, spot: Vector3): Model
+	local tree = Instance.new("Model")
+	tree.Name = "Tree_" .. index
+
+	part({
+		Name = "TrunkBase",
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(4, 2.6, 2.6),
+		Position = spot + Vector3.new(0, 2, 0),
+		Orientation = Vector3.new(0, 0, 90),
+		Color = C.wood,
+		Material = Enum.Material.Wood,
+	}).Parent = tree
+	part({
+		Name = "Trunk",
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(6, 1.6, 1.6),
+		Position = spot + Vector3.new(0, 7, 0),
+		Orientation = Vector3.new(0, 0, 90),
+		Color = C.wood,
+		Material = Enum.Material.Wood,
+	}).Parent = tree
+
+	for ballIndex, ball in canopyLayout(index) do
 		part({
-			Name = "Trunk",
-			Size = Vector3.new(2, 9, 2),
-			Position = spot + Vector3.new(0, 4.5, 0),
-			Color = Color3.fromRGB(100, 70, 45),
-			Material = Enum.Material.Wood,
-		}).Parent = tree
-		part({
-			Name = "Leaves",
-			Size = Vector3.new(11, 8, 11),
-			Position = spot + Vector3.new(0, 11, 0),
-			Color = C.grass,
+			Name = "Canopy_" .. ballIndex,
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(ball.size, ball.size, ball.size),
+			Position = spot + ball.offset,
+			Color = Props.palette(ball.color),
 			Material = Enum.Material.Grass,
-			Transparency = 0.05,
+			Transparency = 0,
+			CanCollide = false,
+			CastShadow = ball.castShadow,
 		}).Parent = tree
+	end
+	return tree
+end
+
+local function scatterTrees(world: Folder)
+	for index, spot in treeSpots() do
+		local tree = buildTree(index, spot)
 		tree.Parent = world
 		contour(tree, 40)
 	end
 end
 
+-- Warm packed earth: bambu #b98a5a shaded about 25 percent, with a thin kertas edge on each side
+-- so the strip reads as a path. Six road parts in total: two roads and four edge strips.
 local function buildRoads(world: Folder)
+	local earth = Color3.fromRGB(138, 106, 70)
+	local edge = Props.palette("kertas")
+	local ROAD_WIDTH = 18
+	local EDGE_WIDTH = 0.4
+	local ROAD_Y = GROUND_Y + 0.03
+	local EDGE_Y = GROUND_Y + 0.11
+
 	for _, horizontal in { true, false } do
 		part({
 			Name = "Road",
-			Size = if horizontal then Vector3.new(512, 0.1, 18) else Vector3.new(18, 0.1, 512),
-			Position = Vector3.new(0, GROUND_Y + 0.03, 0),
-			Color = C.shadow,
-			Material = Enum.Material.Asphalt,
+			Size = if horizontal then Vector3.new(512, 0.1, ROAD_WIDTH) else Vector3.new(ROAD_WIDTH, 0.1, 512),
+			Position = Vector3.new(0, ROAD_Y, 0),
+			Color = earth,
+			Material = Enum.Material.Ground,
 		}).Parent = world
+
+		for _, side in { -1, 1 } do
+			local across = side * (ROAD_WIDTH / 2 - EDGE_WIDTH / 2)
+			part({
+				Name = "RoadEdge",
+				Size = if horizontal then Vector3.new(512, 0.12, EDGE_WIDTH) else Vector3.new(EDGE_WIDTH, 0.12, 512),
+				Position = if horizontal then Vector3.new(0, EDGE_Y, across) else Vector3.new(across, EDGE_Y, 0),
+				Color = edge,
+				Material = Enum.Material.Slate,
+				CanCollide = false,
+			}).Parent = world
+		end
 	end
 end
 
@@ -454,7 +611,7 @@ function Greybox.build(): Folder
 		Name = "Ground",
 		Size = Vector3.new(512, 1, 512),
 		Position = Vector3.new(0, 0, 0),
-		Color = C.grass,
+		Color = Props.palette("daun"),
 		Material = Enum.Material.Grass,
 	})
 	ground.Parent = world
@@ -488,6 +645,7 @@ function Greybox.build(): Folder
 	buildDressing(world)
 	scatterTrees(world)
 	contourDescendants(world)
+	Decor.build(world) -- after contour: decor stays outline-free to keep the Highlight count down
 
 	-- NPCs -----------------------------------------------------------------
 	NpcFactory.build({

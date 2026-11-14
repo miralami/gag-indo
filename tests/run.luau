@@ -48,6 +48,8 @@ local specs = {
 	require("./specs/sky_spec"),
 	require("./specs/seedfloor_spec"),
 	require("./specs/npcfactory_spec"),
+	require("./specs/decor_spec"),
+		require("./specs/enums_spec"),
 }
 
 local t = Test.new()

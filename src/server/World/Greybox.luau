@@ -9,6 +9,9 @@ local Map = require(script.Parent.Map)
 local Props = require(script.Parent.Props)
 local NpcFactory = require(script.Parent.NpcFactory)
 local Decor = require(script.Parent.Decor)
+local Flora = require(script.Parent.Flora)
+local Details = require(script.Parent.Details)
+local Landscape = require(script.Parent.Landscape)
 local Visuals = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").Config.Visuals)
 
 local Greybox = {}
@@ -621,6 +624,7 @@ function Greybox.build(): Folder
 	workspace.Terrain:SetMaterialColor(Enum.Material.Ground, Props.palette("bambu"))
 	workspace.Terrain:SetMaterialColor(Enum.Material.Grass, grassColor)
 	Greybox.applyTerrain(workspace.Terrain)
+	Landscape.apply(workspace.Terrain) -- after the Ground colour above, which it recolours
 
 	buildRoads(world)
 
@@ -646,6 +650,8 @@ function Greybox.build(): Folder
 	scatterTrees(world)
 	contourDescendants(world)
 	Decor.build(world) -- after contour: decor stays outline-free to keep the Highlight count down
+	Flora.build(world)
+	Details.build(world)
 
 	-- NPCs -----------------------------------------------------------------
 	NpcFactory.build({

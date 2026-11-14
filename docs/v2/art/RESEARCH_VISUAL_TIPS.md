@@ -32,11 +32,15 @@ with contour lines (D11, `ART.md`), so we take the techniques, not the photoreal
 | Tip | Lane and file | Status |
 |---|---|---|
 | Trees, roads, hub buildings, decor | `Greybox.luau`, `Decor.luau` | LUNE-ONLY plus structure measured in Studio; no after screenshot |
-| Terrain, hills, rumput | `Landscape.luau` | see commit log |
-| Bushes, rocks, grass, wind tag and sway | `Flora.luau`, `client/World/Wind.luau` | see commit log |
-| Goods on shelves, sightline breakers, floor details | `Details.luau` | see commit log |
-| Lighting contrast, FOV | `Seasons.luau`, `client/Feel/CameraFeel.luau` | see commit log |
-| Ambient sound and music | `Config/Audio.luau` (needs verified IDs, main session) | see commit log |
+| Terrain, hills, rumput | `Landscape.luau` | applied 2026-11-14; hills 12 to 18 studs measured in Studio; grass Decoration is a place-file setting that scripts cannot write, tick it in Studio > Terrain (track C) |
+| Bushes, rocks, grass, wind tag and sway | `Flora.luau`, `client/World/Wind.luau` | applied; 64 parts, 42 canopies tagged `WindShake`; sway not seen by a human |
+| Goods on shelves, sightline breakers, floor details | `Details.luau` | applied; 98 parts; not seen by a human |
+| Lighting contrast, FOV | `Seasons.luau`, `client/Feel/CameraFeel.luau` | applied; ambient only 4 to 8 percent darker (subtle); FOV 72 measured |
+| Ambient sound and music | `Config/Audio.luau`, `art/ASSET_MANIFEST.md` | applied; music_desa and ambience_cerah playing in Studio; by ear not judged |
+
+Studio caught three errors Lune could not (mock Enum and Terrain accept anything): invalid
+`Enum.Material.CorrugatedMetal`, `Terrain.Decoration` written from script, and `Water` passed to
+`SetMaterialColor`. Each now has a regression test or note.
 
 ## 3. Optimise later (backlog, nothing here is applied)
 

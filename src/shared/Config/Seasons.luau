@@ -51,14 +51,17 @@ Seasons.risks = {
 -- overlay and tweens Lighting towards it; nothing on the server reads these.
 -- Golden-hour look: low warm sun, shadows tinted indigo-brown (never grey or black), warm haze.
 -- Colours come from the ART.md palette (senja, padi, genteng, indigo, malam).
+-- Lighting pass (RESEARCH_VISUAL_TIPS: darker ambient = stronger shadows): ambient and
+-- outdoorAmbient moved about 18% toward indigo #3b4f6b; kemarau and pancaroba colorShiftTop
+-- moved about 30% toward warm #fff0c8. Brightness, clockTime, bloom and sunRays unchanged.
 Seasons.sky = {
 	hujan = {
 		clockTime = 16.0,
 		brightness = 1.8,
 		fogEnd = 360,
 		fogColor = Color3.fromRGB(146, 162, 178),
-		ambient = Color3.fromRGB(86, 96, 118),
-		outdoorAmbient = Color3.fromRGB(122, 136, 158),
+		ambient = Color3.fromRGB(81, 93, 116),
+		outdoorAmbient = Color3.fromRGB(111, 126, 149),
 		colorShiftTop = Color3.fromRGB(200, 215, 235),
 		colorShiftBottom = Color3.fromRGB(96, 104, 130),
 		atmosphereDensity = 0.4,
@@ -77,9 +80,9 @@ Seasons.sky = {
 		brightness = 3.0,
 		fogEnd = 950,
 		fogColor = Color3.fromRGB(240, 200, 140),
-		ambient = Color3.fromRGB(120, 98, 84),
-		outdoorAmbient = Color3.fromRGB(170, 140, 108),
-		colorShiftTop = Color3.fromRGB(255, 214, 150),
+		ambient = Color3.fromRGB(109, 95, 88),
+		outdoorAmbient = Color3.fromRGB(150, 129, 108),
+		colorShiftTop = Color3.fromRGB(255, 222, 165),
 		colorShiftBottom = Color3.fromRGB(110, 92, 110),
 		atmosphereDensity = 0.3,
 		atmosphereHaze = 1.2,
@@ -97,9 +100,9 @@ Seasons.sky = {
 		brightness = 2.4,
 		fogEnd = 750,
 		fogColor = Color3.fromRGB(230, 205, 160),
-		ambient = Color3.fromRGB(104, 100, 104),
-		outdoorAmbient = Color3.fromRGB(150, 140, 130),
-		colorShiftTop = Color3.fromRGB(255, 226, 180),
+		ambient = Color3.fromRGB(96, 96, 105),
+		outdoorAmbient = Color3.fromRGB(134, 129, 126),
+		colorShiftTop = Color3.fromRGB(255, 230, 186),
 		colorShiftBottom = Color3.fromRGB(104, 98, 118),
 		atmosphereDensity = 0.34,
 		atmosphereHaze = 1.5,

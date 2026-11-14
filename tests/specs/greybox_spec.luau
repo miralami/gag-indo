@@ -271,11 +271,18 @@ return function(t, Env)
 					return { Width = x, Height = y }
 				end,
 			}
+			env.services.CollectionService = {
+				AddTag = function() end,
+				GetTagged = function()
+					return {}
+				end,
+			}
 			env.globals.Instance = {
 				new = newInstance,
 			}
 			local terrain = {
 				FillBlock = function() end,
+				FillBall = function() end,
 				SetMaterialColor = function() end,
 			}
 			env.globals.workspace = {

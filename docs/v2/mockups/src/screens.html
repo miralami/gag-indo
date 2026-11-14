@@ -18,8 +18,14 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{background:#7a8f6a;font-family:Nunito,system-ui,sans-serif;font-weight:800;color:var(--tinta)}
-section{display:none}
-section:target{display:block}
+/* No #hash: gallery of every screen. With #screen-id: only that screen (used by render.ps1). */
+body{padding:24px;display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start}
+section::before{content:attr(id);display:block;color:var(--kertas);font-size:13px;margin-bottom:8px}
+section{box-shadow:0 0 0 2px var(--tinta)}
+body:has(section:target){padding:0;display:block}
+body:has(section:target) section:not(:target){display:none}
+body:has(section:target) section{box-shadow:none}
+section:target::before{display:none}
 .portrait{width:360px;height:640px}
 .landscape{width:844px;height:390px;position:relative;overflow:hidden}
 /* sticker = 2px ink outline + 4px hard offset shadow, no blur */

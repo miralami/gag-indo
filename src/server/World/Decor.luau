@@ -10,12 +10,43 @@ local Decor = {}
 local GROUND_Y = 0.5
 local MAX_LIGHTS = 6
 
--- Hub roof undersides, taken from Greybox.luau (roof centre minus half thickness).
-local WARUNG_ROOF_UNDERSIDE = GROUND_Y + 8.5 - 0.35
-local PAKRT_ROOF_UNDERSIDE = GROUND_Y + 9.5 - 0.4
+-- Hub headroom. Greybox puts the underside of every hub roof eave, awning, trim and spanduk on
+-- EAVE_UNDERSIDE, which is at least HEADROOM studs above GROUND_Y (a player stands about 6.5 studs tall).
+-- The quarter stud of slack keeps float rounding from ever dipping under the minimum.
+Decor.HEADROOM = 9.5
+Decor.EAVE_UNDERSIDE = GROUND_Y + Decor.HEADROOM + 0.25
+
+-- Pitch of each hub roof: `rise` from eave to ridge, `halfDepth` the eave reach from the ridge along Z.
+-- Greybox builds the roofs from these, and the lanterns below hang from them.
+Decor.HUB_ROOFS = {
+	pasar = { rise = 2, halfDepth = 5.5 },
+	gelap = { rise = 2.2, halfDepth = 5.5 },
+	pakRt = { rise = 3.5, halfDepth = 8 },
+	posPolisi = { rise = 3, halfDepth = 7.5 },
+	posRonda = { rise = 2.5, halfDepth = 6 },
+	warung = { rise = 3, halfDepth = 7 },
+}
+
+-- Underside of a hub roof `depth` studs in from its ridge line. It falls straight from the ridge to the eave.
+function Decor.undersideAt(roof: { rise: number, halfDepth: number }, depth: number): number
+	return Decor.EAVE_UNDERSIDE + roof.rise * (1 - depth / roof.halfDepth)
+end
+
+-- A lantern ball hangs with its bottom on the eave line, so it never sits in a player's head.
+local LANTERN_RADIUS = 0.7
+local LANTERN_Y = Decor.EAVE_UNDERSIDE + LANTERN_RADIUS
 
 local function colour(name: string): Color3
 	return Props.palette(name)
+end
+
+-- Flowers get a small deterministic brightness shift so neighbouring beds do not match:
+-- 0 to 8 percent toward kertas (lighter) or indigo (cooler). Both ends are palette colours.
+local function tint(base: Color3, r: number): Color3
+	if r < 0.5 then
+		return base:Lerp(Props.palette("kertas"), r * 0.16)
+	end
+	return base:Lerp(Props.palette("indigo"), (r - 0.5) * 0.16)
 end
 
 -- Every Decor part goes through here so the shared rules live in one place.
@@ -73,8 +104,8 @@ end
 
 -- Hanging lantern: a rod up to the roof underside and a warm glowing ball. Returns the ball.
 local function lantern(folder: Instance, x: number, z: number, roofUnderside: number): Instance
-	local ballY = 7.0
-	local ballRadius = 0.7
+	local ballY = LANTERN_Y
+	local ballRadius = LANTERN_RADIUS
 	local rodBottom = ballY + ballRadius
 	piece(folder, "Part", {
 		Name = "LanternRod",
@@ -202,7 +233,7 @@ local function flowerBeds(folder: Instance)
 				Shape = Enum.PartType.Ball,
 				Size = Vector3.new(0.7, 0.7, 0.7),
 				Position = Vector3.new(centre.X + offset.X, GROUND_Y + 0.65, centre.Z + offset.Z),
-				Color = colour(BED_COLOURS[(index + i) % #BED_COLOURS + 1]),
+				Color = tint(colour(BED_COLOURS[(index + i) % #BED_COLOURS + 1]), ((index * 5 + i * 3) % 7) / 7),
 				Material = Enum.Material.Grass,
 			})
 		end
@@ -255,8 +286,9 @@ function Decor.build(world: Instance): Instance
 			light.Parent = ball
 		end
 	end
-	addLantern(30, -22, WARUNG_ROOF_UNDERSIDE)
-	addLantern(30, 22, PAKRT_ROOF_UNDERSIDE)
+	-- Each lantern hangs two studs in from its roof's ridge line, where the underside is high enough for a ball.
+	addLantern(30, -24, Decor.undersideAt(Decor.HUB_ROOFS.warung, 2))
+	addLantern(30, 24, Decor.undersideAt(Decor.HUB_ROOFS.pakRt, 2))
 
 	stack(folder, Vector3.new(12, GROUND_Y, 12))
 	stack(folder, Vector3.new(-12, GROUND_Y, 12))

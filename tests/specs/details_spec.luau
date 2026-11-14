@@ -2,7 +2,8 @@
 -- Details spec: the goods, sightline and floor lane builds one `Details` folder under the world, stays
 -- inside the 220 part budget, rebuilds idempotently, keeps ground-level parts out of the road cross
 -- (|x|<9 or |z|<9), keeps breakers clear of the walkways and of every ProximityPrompt (3 studs), and
--- mixes at least five materials. The real Props module is loaded; only Instance and Color3 are faked.
+-- mixes at least five materials, and foliage is shifted by at most 8 percent from its palette colour.
+-- The real Props module is loaded; only Instance and Color3 are faked.
 
 return function(t, Env)
 	local expect = t.expect
@@ -13,6 +14,15 @@ return function(t, Env)
 	local LOW_Y = 2
 	local WALKWAY = 3
 	local MIN_MATERIALS = 5
+	local MAX_JITTER = 0.08
+	local PALETTE_SET = {}
+	for _, hex in { "f3e9d2", "2b2118", "5b4a38", "f6c97a", "9bb25a", "6f8a3f", "a8452f", "a83226", "b98a5a", "c99a2e", "3b4f6b", "1f4e6b", "7652a8" } do
+		PALETTE_SET[hex] = true
+	end
+	-- Stand-in for Color3:Lerp: remembers the palette colour it came from, the goal and the amount.
+	local function lerpColour(self, goal, alpha)
+		return { base = self.base or self.hex, toward = goal.hex, amount = alpha, Lerp = lerpColour }
+	end
 	local BREAKER_PREFIXES = { "Hedge", "BreakerWall", "StackCrate" }
 
 	-- Prompt parents (x0, x1, z0, z1) from Greybox.luau: Pasar counter, TengkulakGelap counter,
@@ -115,7 +125,7 @@ return function(t, Env)
 
 			env.globals.Color3 = {
 				fromHex = function(hex)
-					return { hex = hex }
+					return { hex = hex, Lerp = lerpColour }
 				end,
 				fromRGB = function(r, g, b)
 					return { R = r, G = g, B = b }
@@ -240,6 +250,21 @@ return function(t, Env)
 				end
 			end
 			expect(count):toBeAtLeast(MIN_MATERIALS)
+		end)
+
+		t:it("shifts foliage colour by at most 8 percent from a palette colour", function()
+			build()
+			local shifted = 0
+			for _, part in detailsParts() do
+				local colour = part.Color
+				if colour.toward then
+					shifted += 1
+					expect(PALETTE_SET[colour.base] == true):toBe(true)
+					expect(PALETTE_SET[colour.toward] == true):toBe(true)
+					expect(colour.amount >= 0 and colour.amount <= MAX_JITTER):toBe(true)
+				end
+			end
+			expect(shifted > 0):toBe(true)
 		end)
 	end)
 end

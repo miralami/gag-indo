@@ -47,6 +47,19 @@ local function scaleOf(n: number): number
 	return 0.9 + ((n * 13) % 7) * (0.2 / 6)
 end
 
+-- Brightness shift in [0, 1) from an index, so repeated foliage balls do not look identical.
+local function jitterOf(n: number): number
+	return ((n * 17) % 13) / 13
+end
+
+-- Shifts a palette colour by 0 to 8 percent: toward kertas (lighter) or indigo (cooler). Palette only.
+local function tint(base: Color3, r: number): Color3
+	if r < 0.5 then
+		return base:Lerp(Props.palette("kertas"), r * 0.16)
+	end
+	return base:Lerp(Props.palette("indigo"), (r - 0.5) * 0.16)
+end
+
 -- Every Details part goes through here so the shared rules live in one place.
 local function piece(parent: Instance, className: string, props: { [string]: any }): Instance
 	local p = Instance.new(className)
@@ -82,13 +95,14 @@ local function box(folder: Instance, name: string, centre: Vector3, size: Vector
 	})
 end
 
-local function ball(folder: Instance, name: string, centre: Vector3, diameter: number, colourName: string, material: Enum.Material, collide: boolean)
+local function ball(folder: Instance, name: string, centre: Vector3, diameter: number, colourName: string, material: Enum.Material, collide: boolean, jitter: number?)
+	local base = colour(colourName)
 	piece(folder, "Part", {
 		Name = name,
 		Shape = Enum.PartType.Ball,
 		Size = Vector3.new(diameter, diameter, diameter),
 		Position = centre,
-		Color = colour(colourName),
+		Color = if jitter then tint(base, jitter) else base,
 		Material = material,
 		CanCollide = collide,
 	})
@@ -191,7 +205,7 @@ local function hedgeRow(folder: Instance, x: number, z: number, stepX: number, s
 	for i = 0, count - 1 do
 		local n = nextSerial()
 		local colourName = if i % 3 == 2 then "padi" else "daun"
-		ball(folder, "Hedge", Vector3.new(x + stepX * i, GROUND_Y + 1.3, z + stepZ * i), 2.4 * scaleOf(n), colourName, Enum.Material.Grass, true)
+		ball(folder, "Hedge", Vector3.new(x + stepX * i, GROUND_Y + 1.3, z + stepZ * i), 2.4 * scaleOf(n), colourName, Enum.Material.Grass, true, jitterOf(n))
 	end
 end
 

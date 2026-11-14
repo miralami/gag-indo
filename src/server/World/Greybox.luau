@@ -24,6 +24,15 @@ local C = {
 	blue = Props.palette("malam"), shadow = Props.palette("indigo"),
 }
 
+-- Each canopy ball gets a small deterministic brightness shift: 0 to 8 percent toward paper
+-- (lighter) or shadow (cooler). Both ends are palette colours.
+local function tint(base: Color3, r: number): Color3
+	if r < 0.5 then
+		return base:Lerp(C.paper, r * 0.16)
+	end
+	return base:Lerp(C.shadow, (r - 0.5) * 0.16)
+end
+
 local function contour(model: Model, maxDistance: number?)
 	local highlight = Instance.new("Highlight")
 	highlight.Name = "InkContour"
@@ -85,7 +94,39 @@ local function buildDressing(world: Folder)
 	end
 end
 
-local function sign(parent: Instance, cframe: CFrame, text: string, size: Vector2?): Part
+-- One readable face of a sign: the name is painted on the board itself, so it reads as part of the
+-- building and never floats or stacks with another sign's label.
+local SIGN_PIXELS_PER_STUD = 50
+
+local function signFace(board: Part, name: string, face: Enum.NormalId, text: string)
+	local gui = Instance.new("SurfaceGui")
+	gui.Name = name
+	gui.Face = face
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	gui.PixelsPerStud = SIGN_PIXELS_PER_STUD
+	gui.LightInfluence = 0
+	gui.Parent = board
+
+	local label = Instance.new("TextLabel")
+	label.Name = "Label"
+	label.Size = UDim2.fromScale(1, 1)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.LuckiestGuy
+	label.TextScaled = true
+	label.TextWrapped = true
+	label.Text = text
+	label.TextColor3 = C.paper
+	label.TextStrokeColor3 = Props.palette("tinta")
+	label.TextStrokeTransparency = 0
+	label.Parent = gui
+	local limit = Instance.new("UITextSizeConstraint")
+	limit.MaxTextSize = 60
+	limit.Parent = label
+end
+
+-- The board carries its name on both faces (readable from either side). `_size` is unused now that
+-- the text is on the board; it stays in the signature so existing callers keep working.
+local function sign(parent: Instance, cframe: CFrame, text: string, _size: Vector2?): Part
 	local board = part({
 		Name = "Sign",
 		Size = Vector3.new(9, 3.2, 0.4),
@@ -94,10 +135,8 @@ local function sign(parent: Instance, cframe: CFrame, text: string, size: Vector
 		Material = Enum.Material.Wood,
 	})
 	board.Parent = parent
-	-- Raised above the board (and above the NPC name tags, which sit near 8 studs) so the two never stack.
-	local label = Props.billboard(board, 7, size or Vector2.new(260, 70), { maxDistance = 55 })
-	label.Text = text
-	label.TextColor3 = C.paper
+	signFace(board, "SignFront", Enum.NormalId.Front, text)
+	signFace(board, "SignBack", Enum.NormalId.Back, text)
 	return board
 end
 
@@ -164,7 +203,9 @@ local function roof(parent: Instance, ridge: Vector3, length: number, halfDepth:
 	trim(parent, "RoofRidge", ridge + Vector3.new(0, ROOF_THICK / 2 + 0.25, 0), Vector3.new(length + 0.4, 0.5, 0.5), ridgeColor, Enum.Material.Wood)
 end
 
-local function posts(parent: Instance, corners: { Vector3 }, height: number, color: Color3)
+-- Posts stand from the plinth up to `top`: the roof underside they hold up at their own depth.
+local function posts(parent: Instance, corners: { Vector3 }, top: number, color: Color3)
+	local height = top - GROUND_Y
 	for _, position in corners do
 		part({
 			Name = "Post",
@@ -176,12 +217,36 @@ local function posts(parent: Instance, corners: { Vector3 }, height: number, col
 	end
 end
 
+-- Headroom. Every part a player can walk under at a hub (roof eave, awning, trim, spanduk) has its
+-- underside on EAVE, which Decor keeps at least 9.5 studs above GROUND_Y. A roof is built from that
+-- eave line up: its ridge sits `rise` above it, and the underside falls from the ridge to the eave.
+local HUB_ROOFS = Decor.HUB_ROOFS
+local EAVE = Decor.EAVE_UNDERSIDE
+local SPANDUK_HEIGHT = 1
+local AWNING_THICK = 0.5
+local SIGN_HALF_HEIGHT = 1.6 -- sign() builds a 3.2 stud board
+
+local function ridgeOf(roof: { rise: number, halfDepth: number }): number
+	return EAVE + roof.rise
+end
+
+-- Roof underside `depth` studs in from its ridge line.
+local function under(roof: { rise: number, halfDepth: number }, depth: number): number
+	return Decor.undersideAt(roof, depth)
+end
+
+-- A wall from the plinth top up to `top` (the roof underside it meets), centred on x and z.
+local function wall(parent: Instance, name: string, x: number, z: number, sizeX: number, sizeZ: number, top: number, color: Color3, material: Enum.Material): Part
+	return block(parent, name, Vector3.new(x, (PLINTH_TOP + top) / 2, z), Vector3.new(sizeX, top - PLINTH_TOP, sizeZ), color, material)
+end
+
 local function buildPasar(world: Folder)
 	local model = Instance.new("Model")
 	model.Name = "Pasar"
 	model:SetAttribute("HubAccent", "merah")
 
 	-- Open-front stall: plinth, a plank back wall, posts, and a tent roof with merah spanduk on the eaves.
+	local pasar = HUB_ROOFS.pasar
 	plinth(model, "Plinth", Vector3.new(0, GROUND_Y, 0), Vector2.new(16, 10), STONE, Enum.Material.Slate)
 	local counter = part({
 		Name = "Counter",
@@ -196,13 +261,14 @@ local function buildPasar(world: Folder)
 		Vector3.new(6.5, GROUND_Y, -2),
 		Vector3.new(-6.5, GROUND_Y, 2),
 		Vector3.new(6.5, GROUND_Y, 2),
-	}, 9, C.shadow)
-	block(model, "BackWall", Vector3.new(0, 4.95, -4.25), Vector3.new(14, 7.3, 0.5), C.wood, Enum.Material.WoodPlanks)
-	roof(model, Vector3.new(0, 10.6, 0), 18, 5.5, 2, C.shadow, Enum.Material.Metal, C.wood)
+	}, under(pasar, 2), C.shadow)
+	wall(model, "BackWall", 0, -4.25, 14, 0.5, under(pasar, 4.25), C.wood, Enum.Material.WoodPlanks)
+	roof(model, Vector3.new(0, ridgeOf(pasar), 0), 18, pasar.halfDepth, pasar.rise, C.shadow, Enum.Material.Metal, C.wood)
 	for _, z in { -5.8, 5.8 } do
-		trim(model, "Spanduk", Vector3.new(0, 8.5, z), Vector3.new(18.4, 1, 0.3), C.red, Enum.Material.Fabric)
+		trim(model, "Spanduk", Vector3.new(0, EAVE + SPANDUK_HEIGHT / 2, z), Vector3.new(18.4, SPANDUK_HEIGHT, 0.3), C.red, Enum.Material.Fabric)
 	end
-	sign(model, CFrame.new(0, 12.6, 0), "PASAR")
+	-- Front sign rests on top of the front spanduk, so it hangs from nothing and intersects nothing.
+	sign(model, CFrame.new(0, EAVE + SPANDUK_HEIGHT + SIGN_HALF_HEIGHT, 6.1), "PASAR")
 
 	local prompt = Props.prompt(counter, "Pasar", "Jual hasil panen")
 	prompt.Name = "SellPrompt"
@@ -220,6 +286,7 @@ local function buildGelap(world: Folder)
 	model:SetAttribute("HubAccent", "genteng")
 
 	-- Dark back-alley stall: tinta-lembut planks on three sides, open to the front, with a kunyit lantern door.
+	local gelap = HUB_ROOFS.gelap
 	local dark = Props.palette("tintaLembut")
 	plinth(model, "Plinth", Vector3.new(0, GROUND_Y, -16), Vector2.new(11, 8), STONE, Enum.Material.Slate)
 	local counter = part({
@@ -235,14 +302,15 @@ local function buildGelap(world: Folder)
 		Vector3.new(4.5, GROUND_Y, -18),
 		Vector3.new(-4.5, GROUND_Y, -14),
 		Vector3.new(4.5, GROUND_Y, -14),
-	}, 7.8, C.shadow)
-	block(model, "BackWall", Vector3.new(0, 4.25, -19.5), Vector3.new(11, 5.9, 0.5), dark, Enum.Material.WoodPlanks)
+	}, under(gelap, 2), C.shadow)
+	wall(model, "BackWall", 0, -19.5, 11, 0.5, under(gelap, 3.5), dark, Enum.Material.WoodPlanks)
 	for _, x in { -5.25, 5.25 } do
-		block(model, "SideWall", Vector3.new(x, 4.25, -17.25), Vector3.new(0.5, 5.9, 4.5), dark, Enum.Material.WoodPlanks)
+		wall(model, "SideWall", x, -17.25, 0.5, 4.5, under(gelap, 3.5), dark, Enum.Material.WoodPlanks)
 	end
 	trim(model, "LanternDoor", Vector3.new(-5.6, 3.3, -17.25), Vector3.new(0.2, 4, 1.8), C.gold, Enum.Material.Wood)
-	roof(model, Vector3.new(0, 9.4, -16), 13, 5.5, 2.2, C.clay, Enum.Material.Slate, Props.palette("tinta"), "genteng")
-	sign(model, CFrame.new(0, 11.4, -16), "TENGKULAK GELAP", Vector2.new(300, 70))
+	roof(model, Vector3.new(0, ridgeOf(gelap), -16), 13, gelap.halfDepth, gelap.rise, C.clay, Enum.Material.Slate, Props.palette("tinta"), "genteng")
+	-- Sign hangs from the road-side eave (+Z), its bottom on the eave line.
+	sign(model, CFrame.new(0, EAVE + SIGN_HALF_HEIGHT, -10.3), "TENGKULAK GELAP", Vector2.new(300, 70))
 
 	local prompt = Props.prompt(counter, "Tengkulak Gelap", "Jual (harga gelap)")
 	prompt.Name = "SellPrompt"
@@ -260,6 +328,7 @@ local function buildPakRtHouse(world: Folder)
 	model:SetAttribute("HubAccent", "kunyit")
 
 	-- House with a genteng roof and kunyit trim: plank back and side walls, open porch to the front.
+	local pakRt = HUB_ROOFS.pakRt
 	local center = Vector3.new(30, GROUND_Y, 26)
 	local floor = plinth(model, "Floor", center, Vector2.new(18, 14), STONE, Enum.Material.Slate)
 	posts(model, {
@@ -267,16 +336,17 @@ local function buildPakRtHouse(world: Folder)
 		center + Vector3.new(8.5, 0, -6.5),
 		center + Vector3.new(-8.5, 0, 6.5),
 		center + Vector3.new(8.5, 0, 6.5),
-	}, 6.4, C.shadow)
-	block(model, "BackWall", Vector3.new(30, 3.9, 32.5), Vector3.new(18, 5.2, 0.5), C.wood, Enum.Material.WoodPlanks)
+	}, under(pakRt, 6.5), C.shadow)
+	wall(model, "BackWall", 30, 32.5, 18, 0.5, under(pakRt, 6.5), C.wood, Enum.Material.WoodPlanks)
 	for _, x in { 21.5, 38.5 } do
-		block(model, "SideWall", Vector3.new(x, 3.9, 28), Vector3.new(0.5, 5.2, 10), C.wood, Enum.Material.WoodPlanks)
+		wall(model, "SideWall", x, 28, 0.5, 10, under(pakRt, 7), C.wood, Enum.Material.WoodPlanks)
 	end
-	roof(model, Vector3.new(30, 10, 26), 21, 8, 3.5, C.clay, Enum.Material.Slate, C.gold, "genteng")
+	roof(model, Vector3.new(30, ridgeOf(pakRt), 26), 21, pakRt.halfDepth, pakRt.rise, C.clay, Enum.Material.Slate, C.gold, "genteng")
 	for _, z in { 18, 34 } do
-		trim(model, "KunyitTrim", Vector3.new(30, 6.4, z), Vector3.new(21.4, 0.5, 0.5), C.gold, Enum.Material.Metal)
+		trim(model, "KunyitTrim", Vector3.new(30, EAVE + 0.25, z), Vector3.new(21.4, 0.5, 0.5), C.gold, Enum.Material.Metal)
 	end
-	sign(model, CFrame.new(30, GROUND_Y + 11.5, 19.5), "RUMAH PAK RT", Vector2.new(280, 70))
+	-- Sign rests on the road-side KunyitTrim fascia (z 18), so it hangs from the eave, not over the porch.
+	sign(model, CFrame.new(30, EAVE + 0.5 + SIGN_HALF_HEIGHT, 17.8), "RUMAH PAK RT", Vector2.new(280, 70))
 
 	local table = part({
 		Name = "Table",
@@ -302,6 +372,7 @@ local function buildPosPolisi(world: Folder)
 	model:SetAttribute("HubAccent", "malam")
 
 	-- Police post in malam: concrete plinth, malam walls and trim, indigo roof, open porch to the front.
+	local posPolisi = HUB_ROOFS.posPolisi
 	local center = Vector3.new(-30, GROUND_Y, 26)
 	local floor = plinth(model, "Floor", center, Vector2.new(16, 12), C.blue, Enum.Material.Concrete)
 	posts(model, {
@@ -309,16 +380,17 @@ local function buildPosPolisi(world: Folder)
 		center + Vector3.new(7.5, 0, -5.5),
 		center + Vector3.new(-7.5, 0, 5.5),
 		center + Vector3.new(7.5, 0, 5.5),
-	}, 6.4, C.shadow)
-	block(model, "BackWall", Vector3.new(-30, 3.9, 31.5), Vector3.new(16, 5.2, 0.5), C.blue, Enum.Material.WoodPlanks)
+	}, under(posPolisi, 5.5), C.shadow)
+	wall(model, "BackWall", -30, 31.5, 16, 0.5, under(posPolisi, 5.5), C.blue, Enum.Material.WoodPlanks)
 	for _, x in { -37.5, -22.5 } do
-		block(model, "SideWall", Vector3.new(x, 3.9, 28), Vector3.new(0.5, 5.2, 8), C.blue, Enum.Material.WoodPlanks)
+		wall(model, "SideWall", x, 28, 0.5, 8, under(posPolisi, 6), C.blue, Enum.Material.WoodPlanks)
 	end
-	roof(model, Vector3.new(-30, 9.5, 26), 18, 7.5, 3, C.shadow, Enum.Material.Metal, C.blue)
+	roof(model, Vector3.new(-30, ridgeOf(posPolisi), 26), 18, posPolisi.halfDepth, posPolisi.rise, C.shadow, Enum.Material.Metal, C.blue)
 	for _, z in { 18.5, 33.5 } do
-		trim(model, "MalamTrim", Vector3.new(-30, 6.4, z), Vector3.new(18.4, 0.5, 0.5), C.blue, Enum.Material.Metal)
+		trim(model, "MalamTrim", Vector3.new(-30, EAVE + 0.25, z), Vector3.new(18.4, 0.5, 0.5), C.blue, Enum.Material.Metal)
 	end
-	sign(model, CFrame.new(-30, GROUND_Y + 11.5, 20), "POS POLISI", Vector2.new(260, 70))
+	-- Sign rests on the road-side MalamTrim fascia (z 18.5), so it hangs from the eave, not over the porch.
+	sign(model, CFrame.new(-30, EAVE + 0.5 + SIGN_HALF_HEIGHT, 18.3), "POS POLISI", Vector2.new(260, 70))
 
 	local desk = part({
 		Name = "Desk",
@@ -338,12 +410,17 @@ local function buildPosPolisi(world: Folder)
 	model.Parent = world
 end
 
+-- The watchtower stands beside the hut, on the ground at (-20, -30): clear of the hut roof, which
+-- covers x -37..-23. Its legs run from the ground up to TOWER_TOP, where the deck sits.
+local TOWER_TOP = 11.6
+
 local function buildPosRonda(world: Folder)
 	local model = Instance.new("Model")
 	model.Name = "PosRonda"
 	model:SetAttribute("HubAccent", "bambu")
 
-	-- Bamboo hut on a stone plinth with a thatch roof, and a small watchtower on the back corner.
+	-- Bamboo hut on a stone plinth with a thatch roof, and a small watchtower beside it.
+	local posRonda = HUB_ROOFS.posRonda
 	local center = Vector3.new(-30, GROUND_Y, -26)
 	plinth(model, "Plinth", center, Vector2.new(12.4, 10.4), STONE, Enum.Material.Slate)
 	local floor = block(model, "Floor", Vector3.new(center.X, PLINTH_TOP + 0.3, center.Z), Vector3.new(12, 0.6, 10), C.wood, Enum.Material.WoodPlanks)
@@ -352,9 +429,10 @@ local function buildPosRonda(world: Folder)
 		center + Vector3.new(5.5, 0, -4.5),
 		center + Vector3.new(-5.5, 0, 4.5),
 		center + Vector3.new(5.5, 0, 4.5),
-	}, 8.4, C.shadow)
-	roof(model, Vector3.new(-30, 11, -26), 14, 6, 2.5, Props.palette("padi"), Enum.Material.Grass, C.wood)
-	sign(model, CFrame.new(-30, GROUND_Y + 10, -20.5), "POS RONDA", Vector2.new(240, 70))
+	}, under(posRonda, 4.5), C.shadow)
+	roof(model, Vector3.new(-30, ridgeOf(posRonda), -26), 14, posRonda.halfDepth, posRonda.rise, Props.palette("padi"), Enum.Material.Grass, C.wood)
+	-- Sign hangs from the road-side eave (z -20), its bottom on the eave line.
+	sign(model, CFrame.new(-30, EAVE + SIGN_HALF_HEIGHT, -19.8), "POS RONDA", Vector2.new(240, 70))
 	Map.add(floor, Map.TAGS.Ronda)
 
 	-- The cell: three low walls, open on the +Z side so the player can be walked in.
@@ -368,14 +446,14 @@ local function buildPosRonda(world: Folder)
 		}).Parent = model
 	end
 
-	-- Watchtower on the back-right corner: four bamboo legs, a deck and a small pitched roof.
-	local tower = Vector3.new(-26, 0, -30)
+	-- Watchtower beside the hut: four bamboo legs from the ground, a deck and a small pitched roof.
+	local tower = Vector3.new(-20, 0, -30)
 	for _, dx in { -1.2, 1.2 } do
 		for _, dz in { -1.2, 1.2 } do
-			block(model, "TowerLeg", Vector3.new(tower.X + dx, 6.75, tower.Z + dz), Vector3.new(0.6, 9.7, 0.6), C.wood, Enum.Material.Wood)
+			block(model, "TowerLeg", Vector3.new(tower.X + dx, (GROUND_Y + TOWER_TOP) / 2, tower.Z + dz), Vector3.new(0.6, TOWER_TOP - GROUND_Y, 0.6), C.wood, Enum.Material.Wood)
 		end
 	end
-	block(model, "TowerDeck", Vector3.new(tower.X, 11.8, tower.Z), Vector3.new(3.6, 0.4, 3.6), C.wood, Enum.Material.WoodPlanks)
+	block(model, "TowerDeck", Vector3.new(tower.X, TOWER_TOP + 0.2, tower.Z), Vector3.new(3.6, 0.4, 3.6), C.wood, Enum.Material.WoodPlanks)
 	roof(model, Vector3.new(tower.X, 13.6, tower.Z), 3.6, 2.2, 1.6, Props.palette("padi"), Enum.Material.Grass, C.wood)
 
 	model.PrimaryPart = floor
@@ -388,7 +466,8 @@ local function buildWarung(world: Folder)
 	model.Name = "Warung"
 	model:SetAttribute("HubAccent", "genteng")
 
-	-- Warung: genteng roof with a corrugated seng awning over the front bench, open to the front.
+	-- Warung: genteng roof with a flat seng awning over the front bench, open to the front.
+	local warung = HUB_ROOFS.warung
 	local center = Vector3.new(30, GROUND_Y, -26)
 	local floor = plinth(model, "Floor", center, Vector2.new(14, 12), STONE, Enum.Material.Slate)
 	posts(model, {
@@ -396,23 +475,22 @@ local function buildWarung(world: Folder)
 		center + Vector3.new(6.5, 0, -5.5),
 		center + Vector3.new(-6.5, 0, 5.5),
 		center + Vector3.new(6.5, 0, 5.5),
-	}, 6.2, C.shadow)
-	block(model, "BackWall", Vector3.new(30, 3.9, -31.5), Vector3.new(14, 5.2, 0.5), C.wood, Enum.Material.WoodPlanks)
+	}, under(warung, 5.5), C.shadow)
+	wall(model, "BackWall", 30, -31.5, 14, 0.5, under(warung, 5.5), C.wood, Enum.Material.WoodPlanks)
 	for _, x in { 23.5, 36.5 } do
-		block(model, "SideWall", Vector3.new(x, 3.9, -28.75), Vector3.new(0.5, 5.2, 5.5), C.wood, Enum.Material.WoodPlanks)
+		wall(model, "SideWall", x, -28.75, 0.5, 5.5, under(warung, 5.5), C.wood, Enum.Material.WoodPlanks)
 	end
-	roof(model, Vector3.new(30, 9.5, -26), 15, 7, 3, C.clay, Enum.Material.Slate, Props.palette("tinta"), "genteng")
+	roof(model, Vector3.new(30, ridgeOf(warung), -26), 15, warung.halfDepth, warung.rise, C.clay, Enum.Material.Slate, Props.palette("tinta"), "genteng")
 
-	-- Seng lean-to: tilted from the front eave (z -19, y 6.5) down to z -15.4 (y 5.5).
-	local tilt = math.atan2(1, 3.6)
+	-- Flat seng awning off the front eave (z -19), level with the eave line, so nothing hangs below the roof.
 	part({
 		Name = "Awning",
-		Size = Vector3.new(14, 0.5, math.sqrt(3.6 * 3.6 + 1)),
-		CFrame = CFrame.new(30, 6, -17.2) * CFrame.Angles(tilt, 0, 0),
+		Size = Vector3.new(14, AWNING_THICK, 3.6),
+		CFrame = CFrame.new(30, EAVE + AWNING_THICK / 2, -17.2),
 		Color = C.shadow,
 		Material = Enum.Material.CorrodedMetal,
 	}).Parent = model
-	posts(model, { Vector3.new(24, GROUND_Y, -15.5), Vector3.new(36, GROUND_Y, -15.5) }, 5, C.wood)
+	posts(model, { Vector3.new(24, GROUND_Y, -15.5), Vector3.new(36, GROUND_Y, -15.5) }, EAVE, C.wood)
 
 	local table = part({
 		Name = "Table",
@@ -422,7 +500,8 @@ local function buildWarung(world: Folder)
 		Material = Enum.Material.WoodPlanks,
 	})
 	table.Parent = model
-	sign(model, CFrame.new(30, GROUND_Y + 10, -20), "WARUNG", Vector2.new(240, 70))
+	-- Sign rests on the top of the awning, at the eave.
+	sign(model, CFrame.new(30, EAVE + AWNING_THICK + SIGN_HALF_HEIGHT, -18.8), "WARUNG", Vector2.new(240, 70))
 	for _, x in { -3.2, 3.2 } do
 		part({
 			Name = "Bench",
@@ -515,7 +594,7 @@ local function buildTree(index: number, spot: Vector3): Model
 			Shape = Enum.PartType.Ball,
 			Size = Vector3.new(ball.size, ball.size, ball.size),
 			Position = spot + ball.offset,
-			Color = Props.palette(ball.color),
+			Color = tint(Props.palette(ball.color), ((index * 7 + ballIndex * 3) % 9) / 9),
 			Material = Enum.Material.Grass,
 			Transparency = 0,
 			CanCollide = false,

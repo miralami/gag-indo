@@ -85,6 +85,11 @@ return function(t, Env)
 		return env:require("server/World/Decor").build(world)
 	end
 
+	-- Stand-in for Color3:Lerp: remembers the palette colour it came from, the goal and the amount.
+	local function lerpColour(self, goal, alpha)
+		return { base = self.base or self.hex, toward = goal.hex, amount = alpha, Lerp = lerpColour }
+	end
+
 	t:describe("Decor set dressing", function()
 		t:beforeEach(function()
 			env = Env.new()
@@ -92,7 +97,7 @@ return function(t, Env)
 
 			env.globals.Color3 = {
 				fromHex = function(hex)
-					return { hex = hex }
+					return { hex = hex, Lerp = lerpColour }
 				end,
 				fromRGB = function(r, g, b)
 					return { R = r, G = g, B = b }
@@ -154,12 +159,36 @@ return function(t, Env)
 			expect(#decorParts()):toBe(firstCount)
 		end)
 
+		t:it("hangs every lantern with its bottom at least HEADROOM above the ground", function()
+			build()
+			local lanterns = 0
+			for _, part in decorParts() do
+				if part.Name == "Lantern" then
+					lanterns += 1
+					expect(part.Position.Y - part.Size.Y / 2 >= 0.5 + Decor.HEADROOM):toBe(true)
+				end
+			end
+			expect(lanterns):toBeAtLeast(2)
+		end)
+
 		t:it("every part is anchored, unqueryable and not a script", function()
 			build()
 			for _, part in decorParts() do
 				expect(part.Anchored):toBe(true)
 				expect(part.CanQuery):toBe(false)
 			end
+		end)
+
+		t:it("shifts flower colour by at most 8 percent", function()
+			build()
+			local shifted = 0
+			for _, part in decorParts() do
+				if part.Color.toward then
+					shifted += 1
+					expect(part.Color.amount >= 0 and part.Color.amount <= 0.08):toBe(true)
+				end
+			end
+			expect(shifted > 0):toBe(true)
 		end)
 
 		t:it("keeps low parts out of the road cross unless exempt", function()

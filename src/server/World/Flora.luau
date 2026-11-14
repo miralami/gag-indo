@@ -82,6 +82,15 @@ local function roll(cell: number, salt: number): number
 	return h / 2147483648
 end
 
+-- Each foliage part gets a small deterministic brightness shift: 0 to 8 percent toward kertas
+-- (lighter) or indigo (cooler). Both ends are palette colours.
+local function tint(base: Color3, r: number): Color3
+	if r < 0.5 then
+		return base:Lerp(Props.palette("kertas"), r * 0.16)
+	end
+	return base:Lerp(Props.palette("indigo"), (r - 0.5) * 0.16)
+end
+
 local function distance(x: number, z: number, cx: number, cz: number): number
 	local dx, dz = x - cx, z - cz
 	return math.sqrt(dx * dx + dz * dz)
@@ -130,6 +139,7 @@ type PartDef = {
 	orient: Vector3,
 	colour: string,
 	material: any,
+	jitter: number?,
 }
 
 -- Two or three overlapping Ball parts in daun or padi, sunk slightly into the ground.
@@ -149,6 +159,7 @@ local function bushParts(cell: number, x: number, z: number, scale: number): { P
 			orient = Vector3.new(0, 0, 0),
 			colour = if roll(cell, 40 + k) < 0.5 then "daun" else "padi",
 			material = Enum.Material.Grass,
+			jitter = roll(cell, 46 + k),
 		})
 	end
 	return parts
@@ -190,6 +201,7 @@ local function tuftParts(cell: number, x: number, z: number, scale: number): { P
 			orient = Vector3.new((roll(cell, 90 + k) * 2 - 1) * 12, turn + k * 25, 0),
 			colour = if k % 2 == 0 then "padi" else "daun",
 			material = Enum.Material.Grass,
+			jitter = roll(cell, 100 + k),
 		})
 	end
 	return parts
@@ -220,7 +232,8 @@ local function makePart(folder: Instance, def: PartDef)
 	p.Position = def.pos
 	p.Orientation = def.orient
 	p.Material = def.material
-	p.Color = Props.palette(def.colour)
+	local base = Props.palette(def.colour)
+	p.Color = if def.jitter then tint(base, def.jitter) else base
 	p.TopSurface = Enum.SurfaceType.Smooth
 	p.BottomSurface = Enum.SurfaceType.Smooth
 	p.Parent = folder

@@ -27,6 +27,13 @@ return function(t, Env)
 		PALETTE_SET[hex] = true
 	end
 
+	-- Stand-in for Color3:Lerp. The result remembers the palette colour it came from, the colour it
+	-- moved toward and the amount, so a spec can check each jittered colour against the palette.
+	local function lerpColour(self, goal, alpha)
+		return { base = self.base or self.hex, toward = goal.hex, amount = alpha, Lerp = lerpColour }
+	end
+	local MAX_JITTER = 0.08
+
 	-- Same tree spots as Greybox.TREE_XZ, so the trunk clearance is exercised with real positions.
 	local TREE_XZ = {
 		{ 20, 40 }, { 44, 40 }, { 54, 16 }, { 56, -18 }, { 48, -40 }, { 20, -40 }, { -20, -40 },
@@ -143,7 +150,7 @@ return function(t, Env)
 			local colours = {}
 			env.globals.Color3 = {
 				fromHex = function(hex)
-					colours[hex] = colours[hex] or { hex = hex }
+					colours[hex] = colours[hex] or { hex = hex, Lerp = lerpColour }
 					return colours[hex]
 				end,
 				fromRGB = function(r, g, b)
@@ -219,12 +226,20 @@ return function(t, Env)
 			end
 		end)
 
-		t:it("uses only palette colours", function()
+		t:it("uses only palette colours, shifted by at most 8 percent", function()
 			addTrees()
 			build()
+			local shifted = 0
 			for _, part in floraParts() do
-				expect(PALETTE_SET[part.Color.hex] == true):toBe(true)
+				local colour = part.Color
+				expect(PALETTE_SET[colour.base or colour.hex] == true):toBe(true)
+				if colour.toward then
+					shifted += 1
+					expect(PALETTE_SET[colour.toward] == true):toBe(true)
+					expect(colour.amount >= 0 and colour.amount <= MAX_JITTER):toBe(true)
+				end
 			end
+			expect(shifted > 0):toBe(true)
 		end)
 
 		t:it("keeps every part out of the 18-wide road cross, footprint included", function()

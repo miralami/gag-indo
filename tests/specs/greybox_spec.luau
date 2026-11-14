@@ -162,6 +162,11 @@ return function(t, Env)
 		}
 		local env, instances, Greybox, world
 
+		-- Stand-in for Color3:Lerp: remembers the palette colour it came from, the goal and the amount.
+		local function lerpColour(self, goal, alpha)
+			return { base = self.base or self.hex, toward = goal.hex, amount = alpha, Lerp = lerpColour }
+		end
+
 		local function hub(name)
 			for _, child in world:GetChildren() do
 				if child.Name == name and child.ClassName == "Model" then
@@ -235,21 +240,23 @@ return function(t, Env)
 				return object
 			end
 
+			-- CFrame stand-in: a position and a tilt about X (radians). Enough for the headroom check.
 			local cframeMeta = {}
-			cframeMeta.__mul = function()
-				return setmetatable({}, cframeMeta)
+			cframeMeta.__mul = function(a, b)
+				return setmetatable({ Position = a.Position, tiltX = a.tiltX + b.tiltX }, cframeMeta)
 			end
 			env.globals.CFrame = {
-				new = function()
-					return setmetatable({}, cframeMeta)
+				new = function(x, y, z)
+					local position = if y == nil then x else { X = x, Y = y, Z = z }
+					return setmetatable({ Position = position, tiltX = 0 }, cframeMeta)
 				end,
-				Angles = function()
-					return setmetatable({}, cframeMeta)
+				Angles = function(x)
+					return setmetatable({ Position = { X = 0, Y = 0, Z = 0 }, tiltX = x }, cframeMeta)
 				end,
 			}
 			env.globals.Color3 = {
 				fromHex = function(hex)
-					return { hex = hex }
+					return { hex = hex, Lerp = lerpColour }
 				end,
 				fromRGB = function(r, g, b)
 					return { R = r, G = g, B = b }
@@ -329,13 +336,54 @@ return function(t, Env)
 			end
 		end)
 
-		t:it("keeps a readable sign label with the hub's name on every hub", function()
+		-- Headroom: the lowest point of each roof, awning, spanduk and trim must clear a player by 9.5 studs.
+			local HEADROOM_PARTS = { Roof = true, RoofRidge = true, Awning = true, Spanduk = true, KunyitTrim = true, MalamTrim = true }
+			local GROUND = 0.5
+			local HEADROOM = 9.5
+
+			-- Lowest point of a part. A box tilted about X drops by half-height*|cos| + half-depth*|sin|.
+			local function lowestY(item)
+				local tilt = if item.CFrame then item.CFrame.tiltX else 0
+				local centreY = if item.CFrame then item.CFrame.Position.Y else item.Position.Y
+				return centreY - (item.Size.Y / 2 * math.abs(math.cos(tilt)) + item.Size.Z / 2 * math.abs(math.sin(tilt)))
+			end
+
+			t:it("keeps every hub roof, awning, spanduk and trim at least 9.5 studs above the ground", function()
+				for name in HUB_SIGNS do
+					local checked = 0
+					for _, item in hub(name):GetDescendants() do
+						if HEADROOM_PARTS[item.Name] then
+							checked += 1
+							expect(lowestY(item) >= GROUND + HEADROOM):toBe(true)
+						end
+					end
+					expect(checked > 0):toBe(true)
+				end
+			end)
+
+			t:it("keeps the Pos Ronda watchtower clear of the hut roof footprint", function()
+				-- The hut roof covers x -37..-23 and z -32..-20; no watchtower leg or deck may stand under it.
+				for _, item in hub("PosRonda"):GetDescendants() do
+					if item.Name == "TowerLeg" or item.Name == "TowerDeck" then
+						local insideHut = math.abs(item.Position.X + 30) <= 7 and math.abs(item.Position.Z + 26) <= 6
+						expect(insideHut):toBe(false)
+					end
+				end
+			end)
+
+			t:it("paints the hub's name on both faces of its sign board, with no floating billboard", function()
+			local faces = { SignFront = "NormalId.Front", SignBack = "NormalId.Back" }
 			for name, text in HUB_SIGNS do
 				local board = hub(name):FindFirstChild("Sign")
 				expect(board ~= nil):toBe(true)
-				local gui = board:FindFirstChildOfClass("BillboardGui")
-				expect(gui ~= nil):toBe(true)
-				expect(gui:FindFirstChild("Label").Text):toBe(text)
+				expect(board:FindFirstChildOfClass("BillboardGui") == nil):toBe(true)
+				for faceName, face in faces do
+					local gui = board:FindFirstChild(faceName)
+					expect(gui ~= nil):toBe(true)
+					expect(gui.ClassName):toBe("SurfaceGui")
+					expect(gui.Face):toBe(face)
+					expect(gui:FindFirstChild("Label").Text):toBe(text)
+				end
 			end
 		end)
 	end)

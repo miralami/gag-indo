@@ -235,9 +235,14 @@ Vendors: `tripo3d.ai/terms` (updated 2026-11-13), `meshy.ai/terms-of-use` (updat
 
 ## 9. Tool layers on top of code-first (research, 2026-11-15)
 
-**Status:** `UNVERIFIED` — desk research from DevForum, vendor pages and blogs; no tool below has
-been installed or run. Adding any of them (accounts, plugins, Wally packages, MCP servers) is the
-designer's step (Master Plan §5), and any gameplay-facing UI change still waits for Gate 1 (§4).
+**Status:** `UNVERIFIED` — desk research from DevForum, vendor pages and blogs. Installed locally
+so far (not yet run on the project): Selene 0.27.1 and Wally 0.3.2 (binaries on PATH), StyLua
+2.0.2 registered in `rokit.toml`, Audacity 4.0.2, Krita 5.3.4, REAPER 7.85 (winget). Still to do:
+`rokit install` with trust for Selene, StyLua and Wally (interactive, designer's step). Not
+installed: Figma and Substance (need accounts or purchase), Moon Animator (Studio plugin), Material
+Maker (no official repo found yet), React-lua/Fusion (Gate 1 decision). Adding accounts, plugins,
+Wally packages or MCP servers is the designer's step (Master Plan §5), and any gameplay-facing UI
+change still waits for Gate 1 (§4).
 
 **Constraint that shapes every row:** UI is built in Luau (`src/client/UI/*.luau`) and synced by
 Rojo. Tools that write instances into Studio fight that. Outside tools should therefore feed

@@ -35,6 +35,12 @@ MCP `search_asset` (Creator Store, free filter) and each was loaded in a Play So
 | `sky_sunset_rt` | 156042292 | Sunset Skybox (Rt) | Roblox | Texture | Creator Store, free | Roblox classic sunset skybox texture | designer |
 | `sky_sunset_up` | 156042384 | Sunset Skybox (Up) | Roblox | Texture | Creator Store, free | Roblox classic sunset skybox texture | designer |
 
+## Foliage (background forest)
+
+| Slot | Asset ID | Name | Creator (as listed) | Type | Source | Licence note | Approved by |
+|---|---|---|---|---|---|---|---|
+| `foliage_pine_tree` | 5392132809 | Realistic Pine Tree | GabeQZ | Model / MeshPart | Creator Store, free | Clean realistic pine tree meshes (Trunk `739614116`, Leaves `739619496`, `2312874610`) | designer |
+
 ## Candidates found, not yet wired
 
 | Use | Asset ID | Name | Loaded in Studio |

@@ -612,64 +612,82 @@ local function scatterTrees(world: Folder)
 	end
 end
 
-local TURF_PATCH_DEFS = {
-	-- Northeast
-	{ pos = Vector3.new(18, 0.55, 14), size = Vector3.new(12, 0.1, 8), rot = 15, col = "padi" },
-	{ pos = Vector3.new(48, 0.55, 18), size = Vector3.new(16, 0.1, 12), rot = -20, col = "padi" },
-	{ pos = Vector3.new(20, 0.55, 44), size = Vector3.new(14, 0.1, 10), rot = 30, col = "daun" },
-	{ pos = Vector3.new(38, 0.55, 48), size = Vector3.new(16, 0.1, 12), rot = -10, col = "padi" },
-	{ pos = Vector3.new(60, 0.55, 32), size = Vector3.new(20, 0.1, 14), rot = 25, col = "daun" },
-	{ pos = Vector3.new(68, 0.55, 16), size = Vector3.new(18, 0.1, 12), rot = -15, col = "padi" },
-	{ pos = Vector3.new(66, 0.55, 48), size = Vector3.new(18, 0.1, 14), rot = 10, col = "padi" },
+-- Dense, realistic background forest surrounding the perimeter of the village (radius ~135-170 studs).
+-- Keeps the West sunset corridor (130 deg to 230 deg) open so the low warm sun and horizon glow
+-- are never blocked from illuminating the village.
+local function buildBackgroundForest(world: Folder)
+	local forest = Instance.new("Folder")
+	forest.Name = "BackgroundForest"
+	forest.Parent = world
 
-	-- Northwest
-	{ pos = Vector3.new(-18, 0.55, 14), size = Vector3.new(12, 0.1, 8), rot = -15, col = "padi" },
-	{ pos = Vector3.new(-48, 0.55, 18), size = Vector3.new(16, 0.1, 12), rot = 20, col = "padi" },
-	{ pos = Vector3.new(-20, 0.55, 44), size = Vector3.new(14, 0.1, 10), rot = -30, col = "daun" },
-	{ pos = Vector3.new(-38, 0.55, 48), size = Vector3.new(16, 0.1, 12), rot = 10, col = "padi" },
-	{ pos = Vector3.new(-60, 0.55, 32), size = Vector3.new(20, 0.1, 14), rot = -25, col = "daun" },
-	{ pos = Vector3.new(-68, 0.55, 16), size = Vector3.new(18, 0.1, 12), rot = 15, col = "padi" },
-	{ pos = Vector3.new(-66, 0.55, 48), size = Vector3.new(18, 0.1, 14), rot = -10, col = "padi" },
+	local ok, storage = pcall(function()
+		return game:GetService("ServerStorage")
+	end)
+	local template = ok and storage and storage:FindFirstChild("Realistic Pine Tree")
 
-	-- Southeast
-	{ pos = Vector3.new(18, 0.55, -14), size = Vector3.new(12, 0.1, 8), rot = -12, col = "padi" },
-	{ pos = Vector3.new(48, 0.55, -15), size = Vector3.new(16, 0.1, 10), rot = 18, col = "padi" },
-	{ pos = Vector3.new(18, 0.55, -44), size = Vector3.new(14, 0.1, 12), rot = 22, col = "daun" },
-	{ pos = Vector3.new(38, 0.55, -48), size = Vector3.new(18, 0.1, 12), rot = -18, col = "padi" },
-	{ pos = Vector3.new(60, 0.55, -30), size = Vector3.new(20, 0.1, 14), rot = -20, col = "daun" },
-	{ pos = Vector3.new(68, 0.55, -16), size = Vector3.new(18, 0.1, 12), rot = 15, col = "padi" },
-	{ pos = Vector3.new(64, 0.55, -46), size = Vector3.new(18, 0.1, 14), rot = -25, col = "padi" },
+	for angleDeg = 0, 355, 6 do
+		local inSunset = (angleDeg >= 130 and angleDeg <= 230)
+		if not inSunset then
+			local rad = math.rad(angleDeg)
+			local layers = 2 + (angleDeg % 2)
+			for layer = 1, layers do
+				local baseDist = if layer == 1 then 170 elseif layer == 2 then 150 else 135
+				local dist = baseDist + ((angleDeg * 7 + layer * 13) % 20)
+				local a = rad + math.rad((layer - 1) * 3)
+				local x = math.cos(a) * dist
+				local z = math.sin(a) * dist
 
-	-- Southwest
-	{ pos = Vector3.new(-18, 0.55, -14), size = Vector3.new(12, 0.1, 8), rot = 12, col = "padi" },
-	{ pos = Vector3.new(-48, 0.55, -15), size = Vector3.new(16, 0.1, 10), rot = -18, col = "padi" },
-	{ pos = Vector3.new(-18, 0.55, -44), size = Vector3.new(14, 0.1, 12), rot = -22, col = "daun" },
-	{ pos = Vector3.new(-38, 0.55, -48), size = Vector3.new(18, 0.1, 12), rot = 18, col = "padi" },
-	{ pos = Vector3.new(-60, 0.55, -30), size = Vector3.new(20, 0.1, 14), rot = 20, col = "daun" },
-	{ pos = Vector3.new(-68, 0.55, -16), size = Vector3.new(18, 0.1, 12), rot = -15, col = "padi" },
-	{ pos = Vector3.new(-64, 0.55, -46), size = Vector3.new(18, 0.1, 14), rot = 25, col = "padi" },
+				local tree: Model
+				if template then
+					tree = template:Clone() :: Model
+					local scale = 0.8 + ((angleDeg * 5 + layer * 11) % 9) * 0.05
+					for _, p in tree:GetDescendants() do
+						if p:IsA("BasePart") then
+							p.Anchored = true
+							p.CanCollide = false
+							p.CanQuery = false
+							p.CanTouch = false
+							p.CastShadow = (layer >= 2 and angleDeg % 2 == 0)
+							p.Size = p.Size * scale
+						end
+					end
+					local rotY = math.rad((angleDeg * 37 + layer * 73) % 360)
+					tree:PivotTo(CFrame.new(x, 0.5, z) * CFrame.Angles(0, rotY, 0))
+				else
+					tree = Instance.new("Model")
+					local scale = 0.8 + ((angleDeg * 5 + layer * 11) % 9) * 0.05
+					part({
+						Name = "Trunk",
+						Shape = Enum.PartType.Cylinder,
+						Size = Vector3.new(45 * scale, 2.4 * scale, 2.4 * scale),
+						Position = Vector3.new(x, 22 * scale, z),
+						Orientation = Vector3.new(0, 0, 90),
+						Color = Color3.fromRGB(75, 52, 35),
+						Material = Enum.Material.Wood,
+						CanCollide = false,
+						CanQuery = false,
+						CanTouch = false,
+						CastShadow = false,
+					}).Parent = tree
 
-	-- Outer open fields
-	{ pos = Vector3.new(90, 0.55, 22), size = Vector3.new(24, 0.1, 18), rot = 15, col = "padi" },
-	{ pos = Vector3.new(90, 0.55, -22), size = Vector3.new(24, 0.1, 18), rot = -15, col = "padi" },
-	{ pos = Vector3.new(-90, 0.55, 22), size = Vector3.new(24, 0.1, 18), rot = -15, col = "padi" },
-	{ pos = Vector3.new(-90, 0.55, -22), size = Vector3.new(24, 0.1, 18), rot = 15, col = "padi" },
-}
+					part({
+						Name = "Canopy",
+						Shape = Enum.PartType.Ball,
+						Size = Vector3.new(24 * scale, 48 * scale, 24 * scale),
+						Position = Vector3.new(x, 32 * scale, z),
+						Color = Props.palette("daun"),
+						Material = Enum.Material.Grass,
+						CanCollide = false,
+						CanQuery = false,
+						CanTouch = false,
+						CastShadow = (layer >= 2 and angleDeg % 2 == 0),
+					}).Parent = tree
+				end
 
-local function buildTurfPatches(world: Folder)
-	for _, def in TURF_PATCH_DEFS do
-		part({
-			Name = "GrassTurf",
-			Size = def.size,
-			Position = def.pos,
-			Orientation = Vector3.new(0, def.rot, 0),
-			Color = Props.palette(def.col),
-			Material = Enum.Material.Grass,
-			CanCollide = false,
-			CanTouch = false,
-			CanQuery = false,
-			CastShadow = false,
-		}).Parent = world
+				tree.Name = "Pine_" .. angleDeg .. "_" .. layer
+				tree.Parent = forest
+			end
+		end
 	end
 end
 
@@ -706,10 +724,30 @@ local function buildRoads(world: Folder)
 	end
 end
 
--- The exact terrain volumes Greybox owns: the river and the four sawah terrace rows.
+-- The exact terrain volumes Greybox owns: village ground, road corridors, hub clearings,
+-- the river, and the four sawah terrace rows.
 -- Clearing these before filling makes a rebuild idempotent without touching designer terrain.
 local function terrainBlocks(): { { cframe: CFrame, size: Vector3, material: Enum.Material } }
 	local blocks = {
+		-- Village ground base (allows 3D Terrain.Decoration grass to grow)
+		{ cframe = CFrame.new(0, -1.5, 0), size = Vector3.new(400, 4, 400), material = Enum.Material.Grass },
+
+		-- Road corridors (Ground material suppresses 3D grass decoration along paths)
+		{ cframe = CFrame.new(0, -1.4, 0), size = Vector3.new(400, 4, 18), material = Enum.Material.Ground },
+		{ cframe = CFrame.new(0, -1.4, 0), size = Vector3.new(18, 4, 400), material = Enum.Material.Ground },
+
+		-- Spawn center clearing
+		{ cframe = CFrame.new(0, -1.4, 0), size = Vector3.new(32, 4, 32), material = Enum.Material.Ground },
+
+		-- Hub footprints (clearing building interiors)
+		{ cframe = CFrame.new(30, -1.4, 26), size = Vector3.new(28, 4, 24), material = Enum.Material.Ground },
+		{ cframe = CFrame.new(-30, -1.4, 26), size = Vector3.new(28, 4, 24), material = Enum.Material.Ground },
+		{ cframe = CFrame.new(-30, -1.4, -26), size = Vector3.new(28, 4, 24), material = Enum.Material.Ground },
+		{ cframe = CFrame.new(30, -1.4, -26), size = Vector3.new(28, 4, 24), material = Enum.Material.Ground },
+		{ cframe = CFrame.new(0, -1.4, 26), size = Vector3.new(28, 4, 24), material = Enum.Material.Ground },
+		{ cframe = CFrame.new(0, -1.4, -16), size = Vector3.new(28, 4, 24), material = Enum.Material.Ground },
+
+		-- River
 		{ cframe = CFrame.new(0, -4, 110), size = Vector3.new(220, 8, 100), material = Enum.Material.Water },
 	}
 	for row = 0, 3 do
@@ -726,6 +764,9 @@ Greybox.terrainBlocks = terrainBlocks
 
 -- Clears every owned volume with Air, then fills them. Safe to call on every rebuild.
 function Greybox.applyTerrain(terrain: Terrain)
+	pcall(function()
+		terrain.Decoration = true
+	end)
 	local blocks = terrainBlocks()
 	for _, block in blocks do
 		terrain:FillBlock(block.cframe, block.size, Enum.Material.Air)
@@ -756,6 +797,8 @@ function Greybox.build(): Folder
 		Position = Vector3.new(0, 0, 0),
 		Color = Props.palette("daun"),
 		Material = Enum.Material.Grass,
+		Transparency = 1,
+		CanCollide = false,
 	})
 	ground.Parent = world
 	local waterColor = Props.palette("malam")
@@ -767,7 +810,6 @@ function Greybox.build(): Folder
 	Landscape.apply(workspace.Terrain) -- after the Ground colour above, which it recolours
 
 	buildRoads(world)
-	buildTurfPatches(world)
 
 	local spawnPos = Vector3.new(0, GROUND_Y + 0.5, 16)
 	local spawnLook = Vector3.new(0, GROUND_Y + 1.5, 0)
@@ -792,6 +834,7 @@ function Greybox.build(): Folder
 	buildWarung(world)
 	buildDressing(world)
 	scatterTrees(world)
+	buildBackgroundForest(world)
 	contourDescendants(world)
 	Decor.build(world) -- after contour: decor stays outline-free to keep the Highlight count down
 	Flora.build(world)

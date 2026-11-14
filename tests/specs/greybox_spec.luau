@@ -39,15 +39,18 @@ return function(t, Env)
 			Greybox = env:require("server/World/Greybox")
 		end)
 
-		t:it("owns one river block and four terrace rows", function()
+		t:it("owns village ground, roads, hubs, river and terrace rows", function()
 			local blocks = Greybox.terrainBlocks()
-			expect(#blocks):toBe(5)
-			expect(blocks[1].material):toBe("Material.Water")
-			expect(blocks[1].size.X):toBe(220)
-			expect(blocks[1].size.Y):toBe(8)
-			expect(blocks[1].size.Z):toBe(100)
+			expect(#blocks):toBe(15)
+			expect(blocks[1].material):toBe("Material.Grass")
+			expect(blocks[1].size.X):toBe(400)
+			expect(blocks[1].size.Z):toBe(400)
+			expect(blocks[11].material):toBe("Material.Water")
+			expect(blocks[11].size.X):toBe(220)
+			expect(blocks[11].size.Y):toBe(8)
+			expect(blocks[11].size.Z):toBe(100)
 			for row = 0, 3 do
-				local block = blocks[row + 2]
+				local block = blocks[row + 12]
 				expect(block.material):toBe("Material.Ground")
 				expect(block.size.X):toBe(120 - row * 22)
 				expect(block.size.Z):toBe(18)
@@ -407,26 +410,6 @@ return function(t, Env)
 			expect(spawnPart.Position.X):toBe(0)
 			expect(spawnPart.Position.Z):toBe(16)
 			expect(spawnPart.CFrame.LookVector.Z < 0):toBe(true)
-		end)
-
-		t:it("adds stylized grass turf layer patches outside road and hub keepouts", function()
-			local turfs = {}
-			for _, child in world:GetChildren() do
-				if child.Name == "GrassTurf" then
-					table.insert(turfs, child)
-				end
-			end
-			expect(#turfs >= 10):toBe(true)
-			for _, turf in turfs do
-				expect(turf.Material):toBe(env.globals.Enum.Material.Grass)
-				expect(turf.CanCollide):toBe(false)
-				expect(turf.CanTouch):toBe(false)
-				expect(turf.CanQuery):toBe(false)
-				expect(turf.CastShadow):toBe(false)
-				expect(turf.Position.Y):toBeNear(0.55, 1e-4)
-				local outsideRoad = math.abs(turf.Position.X) >= 9 or math.abs(turf.Position.Z) >= 9
-				expect(outsideRoad):toBe(true)
-			end
 		end)
 	end)
 end

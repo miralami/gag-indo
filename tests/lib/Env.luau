@@ -182,6 +182,7 @@ function Env.new()
 	-- Services. Unknown services fail loudly so a missing fake is obvious.
 	self.services.ReplicatedStorage = replicated
 	self.services.ServerScriptService = serverScripts
+	self.services.ServerStorage = newNode("ServerStorage", "Folder")
 	self.services.Players = {
 		PlayerAdded = newSignal(),
 		PlayerRemoving = newSignal(),

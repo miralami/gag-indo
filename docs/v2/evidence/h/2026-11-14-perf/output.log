@@ -1,0 +1,9 @@
+# Output captured via LogService:GetLogHistory(), 15 s after Play Solo start, 2026-11-14
+# Studio Development-Juragan-Desa, placeId 132087524375529. AnalyticsService info lines filtered out.
+## Server
+MessageOutput: [JuraganDesa] server started
+MessageOutput: [ProfileStore]: Roblox API services available - data will be saved
+MessageWarning: ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type
+## Client
+MessageWarning: ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type
+# Only the external BUG-003 line is a warning. No errors. First 15 s only, not a full session.

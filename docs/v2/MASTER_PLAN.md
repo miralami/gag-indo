@@ -8,7 +8,7 @@
 
 ## Progress tracker — read first, update last
 
-**Last updated:** 2026-11-14 · branch `track/c-world-look` · commit `3559d49` · `lune run tests/run.luau`: 596 passing.
+**Last updated:** 2026-11-14 · branch `track/c-world-look` · commit `9e14981` · `lune run tests/run.luau`: 596 passing.
 
 **Rules for this section.** Every agent reads it before touching the repo, so nobody has to rediscover
 the state from scratch. Whoever finishes a task ticks it here **in the same commit**, adds its status
@@ -81,10 +81,10 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 - [x] Phone is the single control panel (Seed Shop and Leaderboard are apps; device look; landscape on short screens) — `SEEN-IN-STUDIO` desktop and iPhone 14.
 - [x] Seed bar shows only owned or selected seeds, centred — `SEEN-IN-STUDIO`.
 - [~] Cabai banner gold with countdown — `LUNE-ONLY` (event not seen running).
-- [ ] App pages (Report, Farm, Loan, Quests, Cheat, Decor) at phone size and with real taps.
-- [ ] Stats panel as icon chips (cash first, sack, Sus, Nama Baik).
-- [ ] D6: Indonesian default plus a language picker (today only `Strings.langFor`); closes BUG-007.
-- [ ] BUG-006 world label under the HUD panel.
+- [x] App pages (Report, Farm, Loan, Quests, Cheat, Decor) at phone size and with real taps — `LUNE-ONLY`, `src/client/UI/Phone.luau`.
+- [x] Stats panel as icon chips (cash first, sack, Sus, Nama Baik) — `LUNE-ONLY`, `src/client/UI/Hud.luau`.
+- [x] D6: Indonesian default plus a language picker (today only `Strings.langFor`); closes BUG-007 — `LUNE-ONLY`, `src/client/UI/Hud.luau`.
+- [x] BUG-006 world label under the HUD panel — `LUNE-ONLY`, `src/client/UI/Hud.luau`.
 - [ ] Fonts chosen on a phone (§9.3).
 
 **E. Audio**

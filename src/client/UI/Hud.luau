@@ -1,6 +1,7 @@
 -- HUD: cash / rank / sack / Sus / Nama Baik, the seed bar and the seed shop.
 -- Reads player attributes set by the server; sends only requests (select seed, buy seeds).
 
+local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -10,21 +11,38 @@ local Tiers = require(Shared.Config.Tiers)
 local Strings = require(Shared.Strings)
 local NextGoal = require(Shared.NextGoal)
 local Remotes = require(Shared.Remotes)
+local Visuals = require(Shared.Config.Visuals)
 
 local Audio = require(script.Parent.Parent.Audio)
 local Icons = require(script.Parent.Icons)
 local Theme = require(script.Parent.Theme)
 
+-- Register "sack" fallback in Visuals.icons if missing.
+if not Visuals.icons["sack"] then
+	Visuals.icons["sack"] = { id = 0, text = "K", token = "bambu" }
+end
+
 local player = Players.LocalPlayer
 
 local Hud = {}
 
+-- Global / exported language change listener for UI coordination.
+Hud.onLanguageChanged = nil :: ((string) -> ())?
+Hud.currentLang = "id"
+
 -- Set by Hud.mount; the phone opens the seed shop through Hud.openShop().
 local openShopFn: (() -> ())? = nil
+local setLanguageFn: ((string) -> ())? = nil
 
 function Hud.openShop()
 	if openShopFn then
 		openShopFn()
+	end
+end
+
+function Hud.setLanguage(lang: string)
+	if setLanguageFn then
+		setLanguageFn(lang)
 	end
 end
 
@@ -39,123 +57,136 @@ local function susColor(sus: number): Color3
 	return Theme.ink
 end
 
-function Hud.mount(lang: string)
+function Hud.mount(initialLang: string?)
+	-- Default language is Indonesian ("id").
+	local activeLang = if initialLang == "en" then "en" else "id"
+	Hud.currentLang = activeLang
+
 	local t = function(key: string, ...: any): string
-		return Strings.get(lang, key, ...)
+		return Strings.get(activeLang, key, ...)
 	end
 
 	local gui = Theme.screenGui("Hud", 10)
-	-- Keep the HUD clear of the phone notch / rounded corners in landscape.
 	pcall(function()
 		(gui :: any).ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
 	end)
 	local revealToken = 0
 
-	-- The ScreenGui starts below Roblox's top bar (IgnoreGuiInset is false), but the
-	-- menu and chat icons still reach about 58 px down the left edge. Start the stats
-	-- panel at about 60 px absolute: subtract the top-bar inset from that offset.
 	local topInset = 0
 	pcall(function()
-		topInset = game:GetService("GuiService"):GetGuiInset().Y
+		topInset = GuiService:GetGuiInset().Y
 	end)
-	local statsTop = math.max(0, 60 - topInset)
+	local statsTop = math.max(6, 48 - topInset)
 
-	---------------------------------------------------------------- stats (top-left)
-	local stats = Theme.card({
+	---------------------------------------------------------------- stats panel (compact icon chips)
+	local stats = Theme.new("Frame", {
 		Name = "Stats",
-		Position = UDim2.new(0, 10, 0, statsTop),
-		Size = UDim2.new(0.24, 0, 0, 96),
-		BackgroundTransparency = 0.12,
-		Parent = gui,
-	}, {
-		Theme.new("UISizeConstraint", { MinSize = Vector2.new(168, 90), MaxSize = Vector2.new(236, 104) }),
-	})
-
-	-- Theme.card already created the frame; add padding to it explicitly.
-	local padding = Instance.new("UIPadding")
-	padding.PaddingLeft = UDim.new(0, 10)
-	padding.PaddingRight = UDim.new(0, 10)
-	padding.PaddingTop = UDim.new(0, 6)
-	padding.PaddingBottom = UDim.new(0, 6)
-	padding.Parent = stats
-	Theme.new("UIListLayout", {
-		SortOrder = Enum.SortOrder.LayoutOrder,
-		Padding = UDim.new(0, 2),
-		Parent = stats,
-	})
-
-	-- Fixed pixel sizes (not TextScaled) so no secondary line drops below 14 px on a phone.
-	local cashLabel = Theme.label({
-		LayoutOrder = 1,
-		Size = UDim2.new(1, 0, 0, 26),
-		TextScaled = false,
-		TextSize = 22,
-		Font = Theme.displayFont,
-		TextColor3 = Theme.ink,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Parent = stats,
-	})
-	local rankLabel = Theme.label({
-		LayoutOrder = 2,
-		Size = UDim2.new(1, 0, 0, 16),
-		TextScaled = false,
-		TextSize = 14,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Parent = stats,
-	})
-	local sackLabel = Theme.label({
-		LayoutOrder = 3,
-		Size = UDim2.new(1, 0, 0, 16),
-		TextScaled = false,
-		TextSize = 14,
-		TextColor3 = Theme.muted,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Parent = stats,
-	})
-
-	local chips = Theme.new("Frame", {
-		LayoutOrder = 4,
-		Size = UDim2.new(1, 0, 0, 18),
+		Position = UDim2.new(0, 8, 0, statsTop),
+		Size = UDim2.new(0, 0, 0, 32),
+		AutomaticSize = Enum.AutomaticSize.XY,
 		BackgroundTransparency = 1,
-		Parent = stats,
+		Parent = gui,
 	}, {
 		Theme.new("UIListLayout", {
 			FillDirection = Enum.FillDirection.Horizontal,
 			SortOrder = Enum.SortOrder.LayoutOrder,
-			Padding = UDim.new(0, 8),
+			Padding = UDim.new(0, 6),
+			VerticalAlignment = Enum.VerticalAlignment.Center,
 		}),
 	})
 
-	local susLabel = Theme.label({
-		LayoutOrder = 1,
-		Size = UDim2.new(0, 0, 1, 0),
-		AutomaticSize = Enum.AutomaticSize.X,
-		TextScaled = false,
-		TextSize = 14,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Parent = chips,
-	})
-	local namaBaikLabel = Theme.label({
-		LayoutOrder = 2,
-		Size = UDim2.new(0, 0, 1, 0),
-		AutomaticSize = Enum.AutomaticSize.X,
-		TextScaled = false,
-		TextSize = 14,
-		TextColor3 = Theme.malam,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Parent = chips,
+	local function makeChip(name: string, order: number, iconName: string, iconColor: Color3?)
+		local chip = Theme.new("Frame", {
+			Name = name,
+			LayoutOrder = order,
+			Size = UDim2.new(0, 0, 0, 30),
+			AutomaticSize = Enum.AutomaticSize.X,
+			BackgroundColor3 = Theme.paper,
+			BackgroundTransparency = 0.05,
+			BorderSizePixel = 0,
+			Parent = stats,
+		}, {
+			Theme.corner(nil, Visuals.radius.chip),
+			Theme.new("UIStroke", {
+				Color = Theme.ink,
+				Thickness = 2,
+				ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			}),
+			Theme.new("UIPadding", {
+				PaddingLeft = UDim.new(0, 6),
+				PaddingRight = UDim.new(0, 8),
+				PaddingTop = UDim.new(0, 4),
+				PaddingBottom = UDim.new(0, 4),
+			}),
+			Theme.new("UIListLayout", {
+				FillDirection = Enum.FillDirection.Horizontal,
+				SortOrder = Enum.SortOrder.LayoutOrder,
+				Padding = UDim.new(0, 6),
+				VerticalAlignment = Enum.VerticalAlignment.Center,
+			}),
+		})
+
+		Icons.make(iconName, {
+			LayoutOrder = 1,
+			Size = UDim2.fromOffset(20, 20),
+			Color = iconColor,
+			Parent = chip,
+		})
+
+		local lbl = Theme.label({
+			LayoutOrder = 2,
+			Size = UDim2.new(0, 0, 1, 0),
+			AutomaticSize = Enum.AutomaticSize.X,
+			TextScaled = false,
+			TextSize = 14,
+			Font = Theme.displayFont,
+			TextColor3 = Theme.ink,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			Parent = chip,
+		})
+
+		return chip, lbl
+	end
+
+	-- 1. Cash chip (gold / money icon + Rp amount)
+	local _, cashLabel = makeChip("CashChip", 1, "cash", Theme.kunyit)
+	cashLabel.TextSize = 15
+
+	-- 2. Sack chip (harvest bag icon + X/Y count)
+	local _, sackLabel = makeChip("SackChip", 2, "sack", Theme.bambu)
+	sackLabel.Font = Theme.font
+
+	-- 3. Sus chip (warning/sus icon + value)
+	local _, susLabel = makeChip("SusChip", 3, "sus", Theme.merah)
+	susLabel.Font = Theme.font
+
+	-- 4. Nama Baik chip (reputation/star icon + value)
+	local _, namaBaikLabel = makeChip("NamaBaikChip", 4, "reputation", Theme.malam)
+	namaBaikLabel.Font = Theme.font
+
+	-- 5. Language toggle chip ("ID" / "EN")
+	local langToggleBtn = Theme.button({
+		Name = "LangToggle",
+		LayoutOrder = 5,
+		Size = UDim2.new(0, 44, 0, 30),
+		Text = activeLang:upper(),
+		TextSize = 13,
+		Font = Theme.displayFont,
+		BackgroundColor3 = Theme.padi,
+		TextColor3 = Theme.ink,
+		Parent = stats,
 	})
 
 	---------------------------------------------------------------- Harga Cabai Meroket banner
 	local eventChip = Theme.card({
 		Name = "CabaiEvent",
-		Position = UDim2.new(0, 10, 0, statsTop + 102),
-		Size = UDim2.new(0.24, 0, 0, 32),
+		Position = UDim2.new(0, 8, 0, statsTop + 36),
+		Size = UDim2.new(0.24, 0, 0, 30),
 		BackgroundColor3 = Theme.kunyit,
 		Visible = false,
 		Parent = gui,
 	}, {
-		Theme.new("UISizeConstraint", { MinSize = Vector2.new(168, 30), MaxSize = Vector2.new(236, 34) }),
+		Theme.new("UISizeConstraint", { MinSize = Vector2.new(168, 28), MaxSize = Vector2.new(236, 32) }),
 	})
 	local eventLabel = Theme.label({
 		Size = UDim2.fromScale(1, 1),
@@ -166,7 +197,6 @@ function Hud.mount(lang: string)
 		Parent = eventChip,
 	})
 
-	-- Remaining time comes from CabaiEventEndsAt (os.time()); 0 means no end (admin-forced on).
 	local function updateEventLabel()
 		local multiplier = GameConfig.cabaiEventMultiplier
 		local endsAt = ReplicatedStorage:GetAttribute("CabaiEventEndsAt")
@@ -181,7 +211,7 @@ function Hud.mount(lang: string)
 	local function refreshEvent()
 		eventChip.Visible = ReplicatedStorage:GetAttribute("CabaiEvent") == true
 		if eventChip.Visible then
-			eventChip.Position = UDim2.new(0, 10, 0, statsTop + stats.AbsoluteSize.Y + 6)
+			eventChip.Position = UDim2.new(0, 8, 0, statsTop + stats.AbsoluteSize.Y + 4)
 			updateEventLabel()
 		end
 	end
@@ -191,30 +221,28 @@ function Hud.mount(lang: string)
 	refreshEvent()
 
 	local function refreshStats()
-		cashLabel.Text = "Rp " .. Strings.formatNumber(player:GetAttribute("Cash") or 0, lang)
-		rankLabel.Text = t("hud_rank", "@rank_" .. (player:GetAttribute("Rank") or "gurem"))
-		sackLabel.Text = t(
-			"hud_harvest_bag",
+		cashLabel.Text = "Rp " .. Strings.formatNumber(player:GetAttribute("Cash") or 0, activeLang)
+		sackLabel.Text = string.format("%d/%d",
 			player:GetAttribute("HarvestCount") or 0,
 			player:GetAttribute("SackCapacity") or GameConfig.sackBaseCapacity
 		)
 		local sus = player:GetAttribute("Sus") or 0
-		susLabel.Text = t("hud_sus", sus)
+		susLabel.Text = tostring(sus)
 		susLabel.TextColor3 = susColor(sus)
-		namaBaikLabel.Text = t("hud_namabaik", player:GetAttribute("NamaBaik") or 50)
+		namaBaikLabel.Text = tostring(player:GetAttribute("NamaBaik") or 50)
 	end
 
 	---------------------------------------------------------------- tutorial guide card
 	local tutorialCard = Theme.card({
 		Name = "TutorialGuide",
 		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0, 10),
-		Size = UDim2.new(0.42, 0, 0, 56),
+		Position = UDim2.new(0.5, 0, 0, 8),
+		Size = UDim2.new(0.42, 0, 0, 54),
 		BackgroundColor3 = Theme.padi,
 		Visible = false,
 		Parent = gui,
 	}, {
-		Theme.new("UISizeConstraint", { MinSize = Vector2.new(240, 50), MaxSize = Vector2.new(460, 64) }),
+		Theme.new("UISizeConstraint", { MinSize = Vector2.new(240, 48), MaxSize = Vector2.new(460, 60) }),
 	})
 	local tutorialPadding = Instance.new("UIPadding")
 	tutorialPadding.PaddingLeft = UDim.new(0, 10)
@@ -253,7 +281,6 @@ function Hud.mount(lang: string)
 		Parent = tutorialCard,
 	})
 
-	-- The card always shows one goal: the tutorial step, then the next rank, then daily tasks.
 	local function refreshGoal()
 		local stepId = player:GetAttribute("TutorialStep")
 		local goal = NextGoal.pick({
@@ -314,7 +341,6 @@ function Hud.mount(lang: string)
 		seedButtons[cropId] = button
 	end
 
-	-- Shown only when no crop button is visible (the player owns no seeds and has none selected).
 	local buySeedsButton = Theme.button({
 		Name = "BuySeedsButton",
 		LayoutOrder = 0,
@@ -330,7 +356,6 @@ function Hud.mount(lang: string)
 		return mine >= (GameConfig.rankIndex[rank] or 1)
 	end
 
-	-- Today's shelf count for one crop. nil = not sold this restock cycle.
 	local function stockOf(cropId: string): number?
 		local value = player:GetAttribute("ShopStock_" .. cropId)
 		return if type(value) == "number" then value else nil
@@ -343,7 +368,6 @@ function Hud.mount(lang: string)
 			local crop = Crops.list[cropId]
 			local unlocked = hasRank(crop.rank)
 			local owned = player:GetAttribute("Seed_" .. cropId) or 0
-			-- Only crops the player holds, plus the selected one, take a slot in the bar.
 			button.Visible = owned > 0 or selected == cropId
 			if button.Visible then
 				anyVisible = true
@@ -351,7 +375,6 @@ function Hud.mount(lang: string)
 			button.Text = if unlocked
 				then t("hud_seed_count", "@crop_" .. cropId, owned)
 				else t("hud_locked", "@crop_" .. cropId)
-			-- Text is always cream with a dark outline; only the background carries the dimming.
 			button.TextColor3 = Theme.paper
 			button.TextStrokeColor3 = Theme.ink
 			button.TextStrokeTransparency = 0
@@ -367,7 +390,6 @@ function Hud.mount(lang: string)
 		buySeedsButton.Visible = not anyVisible
 	end
 
-	-- No top-right buttons here: the phone is the single control panel (Phone.luau).
 	---------------------------------------------------------------- shop
 	local shop = Theme.card({
 		Name = "Shop",
@@ -391,7 +413,7 @@ function Hud.mount(lang: string)
 		Size = UDim2.fromOffset(22, 22),
 		Parent = shop,
 	})
-	Theme.label({
+	local shopTitle = Theme.label({
 		Name = "Title",
 		Position = UDim2.new(0, 28, 0, 0),
 		Size = UDim2.new(1, -28, 0, 28),
@@ -401,7 +423,6 @@ function Hud.mount(lang: string)
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = shop,
 	})
-	-- Restock countdown, top-right of the title row; refreshed by the timer below.
 	local restockLabel = Theme.label({
 		Name = "Restock",
 		Position = UDim2.new(0, 0, 0, 0),
@@ -411,7 +432,6 @@ function Hud.mount(lang: string)
 		Parent = shop,
 	})
 
-	-- Twelve crops do not fit on one screen, so the list scrolls between the title and Close.
 	local shopScroll = Theme.new("ScrollingFrame", {
 		Name = "Scroll",
 		Position = UDim2.new(0, 0, 0, 30),
@@ -453,7 +473,6 @@ function Hud.mount(lang: string)
 			Remotes.Shop_BuySeed:FireServer(cropId, 1)
 		end)
 		buyAll.Activated:Connect(function()
-			-- The server clamps against the real shelf; this is just the whole stack.
 			local available = stockOf(cropId)
 			if available and available > 0 then
 				Remotes.Shop_BuySeed:FireServer(cropId, available)
@@ -521,7 +540,6 @@ function Hud.mount(lang: string)
 			return
 		end
 		local color: Color3? = nil
-		-- The rarity reveal carries the tier id as the third param; tint the toast with it.
 		if key == "n_rarity_reveal" and params and type(params[3]) == "string" then
 			local tier = Tiers.list[params[3]]
 			if tier then
@@ -552,7 +570,7 @@ function Hud.mount(lang: string)
 		elseif key == "n_sold" or key == "n_sold_gelap" then
 			Audio.play("ui_sell")
 		end
-		Theme.toast(Strings.get(lang, key, table.unpack(params or {})), color)
+		Theme.toast(Strings.get(activeLang, key, table.unpack(params or {})), color)
 	end)
 
 	---------------------------------------------------------------- wiring
@@ -562,6 +580,30 @@ function Hud.mount(lang: string)
 		refreshSeeds()
 		refreshShop()
 	end
+
+	local function switchLanguage(newLang: string)
+		activeLang = newLang
+		Hud.currentLang = activeLang
+		langToggleBtn.Text = activeLang:upper()
+		buySeedsButton.Text = t("hud_buy_seeds")
+		shopTitle.Text = t("hud_shop")
+		close.Text = t("hud_close")
+		refreshAll()
+		if eventChip.Visible then
+			updateEventLabel()
+		end
+		if Hud.onLanguageChanged then
+			Hud.onLanguageChanged(activeLang)
+		end
+	end
+
+	setLanguageFn = switchLanguage
+
+	langToggleBtn.Activated:Connect(function()
+		local nextLang = if activeLang == "id" then "en" else "id"
+		switchLanguage(nextLang)
+	end)
+
 	player.AttributeChanged:Connect(refreshAll)
 	refreshAll()
 
@@ -570,7 +612,6 @@ function Hud.mount(lang: string)
 		refreshShop()
 	end
 
-	-- Only the countdowns tick; the rows refresh when an attribute changes.
 	task.spawn(function()
 		while true do
 			task.wait(1)

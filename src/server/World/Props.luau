@@ -46,6 +46,7 @@ local LABEL_MAX_WIDTH = 240
 local LABEL_MAX_HEIGHT = 60
 local TEXT_MAX_SIZE = 28
 local TEXT_MIN_SIZE = 12
+local TEXT_SIZE = 22 -- fixed: TextScaled ignored the constraint in Studio and rendered ~58 px text
 local DEFAULT_MAX_DISTANCE = 60
 
 -- options: { name: string?, alwaysOnTop: boolean?, maxDistance: number? }
@@ -66,7 +67,8 @@ function Props.billboard(
 	label.Name = "Label"
 	label.Size = UDim2.fromScale(1, 1)
 	label.BackgroundTransparency = 1
-	label.TextScaled = true
+	label.TextScaled = false
+	label.TextSize = TEXT_SIZE
 	label.Font = Enum.Font.LuckiestGuy
 	label.TextColor3 = PALETTE.kertas
 	label.TextStrokeColor3 = PALETTE.tinta

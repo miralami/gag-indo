@@ -130,17 +130,11 @@ return function(t, Env)
 			expect(gui.AlwaysOnTop):toBe(false)
 		end)
 
-		t:it("attaches a UITextSizeConstraint of 12 to 28 to the label", function()
+		t:it("uses a fixed text size between 12 and 28, not TextScaled", function()
 			local label = Props.billboard({}, 4, { X = 140, Y = 40 })
-			local found = nil
-			for _, object in instances do
-				if object.ClassName == "UITextSizeConstraint" and object.Parent == label then
-					found = object
-				end
-			end
-			expect(found ~= nil):toBe(true)
-			expect(found.MaxTextSize):toBe(28)
-			expect(found.MinTextSize):toBe(12)
+			expect(label.TextScaled):toBe(false)
+			expect(label.TextSize >= 12):toBe(true)
+			expect(label.TextSize <= 28):toBe(true)
 		end)
 	end)
 end

@@ -1,10 +1,16 @@
 # Playtest Harness — Studio routine
 
-**Status: UNVERIFIED.** This document was written on 2026-11-14 with no Studio session
-connected. Nobody has run this routine end to end. The gating logic is `LUNE-ONLY`
-(`tests/specs/harness_spec.luau`); everything a Studio run would prove is `UNVERIFIED`.
-A Studio-connected agent must run it once and change the status words in the evidence
-`REPORT.md` to `SEEN-IN-STUDIO` only for the steps it actually observed.
+**Status: sections 2–4 and 9 ran on 2026-11-14** in Studio Play Solo, iPhone 14 device
+emulation, Rojo synced, Studio API services on. Those steps are `SEEN-IN-STUDIO` (see the
+§10 table); §6 screenshot automation, the 10-player session and the soak are still
+`UNVERIFIED`. The gating logic stays `LUNE-ONLY` (`tests/specs/harness_spec.luau`).
+
+What the run proved: the smoke check returned exactly `Harness is off. Enable it from a Studio
+admin first.` and `enable` returned `Harness on.`, so the 2026-11-13 prompt blocker is solved
+and the harness remote round trip works. The full loop (plant, ready, harvest, sell, buy) ran
+twice with the real services, and save → stop → play → `status` came back with cash 48,
+`padi` 6 and tilesOwned 6, so persistence works against real Studio DataStores (not a
+published place). Evidence: `docs/v2/evidence/h/2026-11-14-phase0/`.
 
 The harness exists because the 2026-11-13 run could not plant, harvest, sell or buy: the
 Studio MCP bridge sent `E`, but `ProximityPrompt.Triggered` never fired, so the tile stayed
@@ -163,8 +169,8 @@ Evidence goes to `docs/v2/evidence/<track>/<yyyy-mm-dd>-<slug>/` (Master Plan §
   ```
 
 The run is only clean when this log has zero errors and zero warnings (Master Plan §0 quality
-bar). Known pre-existing noise: `rbxassetid://203785492` wrong asset type, Clouds not under
-Terrain.
+bar). Known pre-existing noise: `rbxassetid://203785492` wrong asset type (3× per play start,
+still open as BUG-003). The Clouds-not-under-Terrain warning is gone as of the 2026-11-14 run.
 
 ## 8. Evidence layout and REPORT.md
 
@@ -209,13 +215,14 @@ Only steps actually observed get `SEEN-IN-STUDIO`; everything else is `LUNE-ONLY
 
 | Step | Status now | Manual fallback |
 |---|---|---|
-| Enable/disable the gate | LUNE-ONLY (gating), UNVERIFIED (remote round trip) | Fire `enable` in the command bar; if no reply, the bootstrap did not run. |
-| Bridge smoke check | UNVERIFIED | Human plays the same loop by hand with `E`. |
-| Plant / harvest / sell / buy | UNVERIFIED | Human taps the tile prompts and the Pasar prompt. |
-| Phone-size screenshots | UNVERIFIED | Win+Shift+S with the emulator on; or play on a real phone. |
-| Output log capture | UNVERIFIED | Copy from the Output window. |
-| Save + rejoin | UNVERIFIED | Enable API services, play, leave, rejoin, compare cash. |
+| Enable/disable the gate | SEEN-IN-STUDIO (enable; teardown §9 followed) | Fire `enable` in the command bar; if no reply, the bootstrap did not run. |
+| Bridge smoke check | SEEN-IN-STUDIO (gate replied `Harness is off…`, then `Harness on.`) | Human plays the same loop by hand with `E`. |
+| Plant / harvest / sell / buy | SEEN-IN-STUDIO (full loop twice; cash 50 → 68 → 48, second session 48 → 75 → 65) | Human taps the tile prompts and the Pasar prompt. |
+| Phone-size screenshots | SEEN-IN-STUDIO, manual `Win+Shift+S` only (`phone-01.png`); desktop size not captured | Win+Shift+S with the emulator on; or play on a real phone. |
+| Output log capture | UNVERIFIED (Output read in Studio, no `output.log` saved) | Copy from the Output window. |
+| Save + rejoin | SEEN-IN-STUDIO (cash 48, `padi` 6, tilesOwned 6 after stop and replay) | Enable API services, play, leave, rejoin, compare cash. |
 | Minigame, feel, frame rate | UNVERIFIED | Only a human can judge these; not a harness job. |
 
-Next step for whoever has Studio: run sections 2–4 once, save the evidence folder, and flip
-this file's status line to `SEEN-IN-STUDIO` with the date.
+Still `UNVERIFIED` after the 2026-11-14 run: §6 screenshot automation, desktop-size capture, a
+saved `output.log`, the ten-player session and the thirty-minute soak. Next step: save those,
+then run sections 2–4 again with ten players and flip the soak row.

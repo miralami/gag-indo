@@ -151,7 +151,9 @@ function Analytics.economy(
 	local flowType = if flow == "Sink"
 		then Enum.AnalyticsEconomyFlowType.Sink
 		else Enum.AnalyticsEconomyFlowType.Source
-	local transactionType = Enum.AnalyticsEconomyTransactionType[transaction or "Gameplay"]
+	-- transactionType is a string in the engine signature, not an enum (checked against the
+	-- AnalyticsService docs, 2026-11-14); passing the enum raises "argument #6 expects a string".
+	local transactionType = transaction or "Gameplay"
 	local itemSku = tostring(sku or "unknown")
 	send(function()
 		AnalyticsService:LogEconomyEvent(

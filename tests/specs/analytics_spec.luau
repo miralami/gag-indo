@@ -136,14 +136,17 @@ return function(t, Env, Fakes)
 				expect(event.currency):toBe("Cash")
 				expect(event.amount):toBe(50)
 				expect(event.balance):toBe(150)
-				expect(event.transaction):toBe("AnalyticsEconomyTransactionType.IAP")
+				-- BUG-005: the engine takes transactionType as a string; an EnumItem raised
+				-- "argument #6 expects a string" on every sell and buy in Studio.
+				expect(type(event.transaction)):toBe("string")
+				expect(event.transaction):toBe("IAP")
 				expect(event.sku):toBe("rupiah_kecil")
 			end)
 
 			t:it("reports a sink separately", function()
 				Analytics.economy(player, "Sink", 200, 800, "Shop", "bibit_padi")
 				expect(recorder.economy[1].flow):toBe("AnalyticsEconomyFlowType.Sink")
-				expect(recorder.economy[1].transaction):toBe("AnalyticsEconomyTransactionType.Shop")
+				expect(recorder.economy[1].transaction):toBe("Shop")
 			end)
 
 			t:it("drops zero, negative and broken amounts", function()

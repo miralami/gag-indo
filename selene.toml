@@ -1,0 +1,2 @@
+# Selene lint for Luau. Roblox globals (game, script, task, ...) come from the built-in std.
+std = "roblox"

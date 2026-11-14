@@ -8,7 +8,7 @@
 
 ## Progress tracker — read first, update last
 
-**Last updated:** 2026-11-14 · branch `track/c-world-look` · commit `db9cc86` · `lune run tests/run.luau`: 584 passing.
+**Last updated:** 2026-11-14 · branch `track/c-world-look` · commit `b9f4779` · `lune run tests/run.luau`: 594 passing.
 
 **Rules for this section.** Every agent reads it before touching the repo, so nobody has to rediscover
 the state from scratch. Whoever finishes a task ticks it here **in the same commit**, adds its status
@@ -18,11 +18,10 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 
 ### Next up (recommended order)
 
-1. **B — beat sheet core:** tutorial padi grows in ~20 s (60 s today blocks G5), guaranteed Bagus/Super, scripted NPC raid before 7:00.
-2. **A + E — game feel and sound:** plant/harvest/sell feedback; UI sounds and tier stings (all `0` today).
-3. **G — first icon set via Open Cloud** (key verified 2026-11-14): crops, currency, phone apps; unblocks G4.
-4. **D — phone app pages at phone size** and real taps.
-5. **C — spawn composition and golden-hour tuning.**
+1. **A + E — game feel and sound:** plant/harvest/sell feedback; UI sounds and tier stings (all `0` today).
+2. **G — first icon set via Open Cloud** (key verified 2026-11-14): crops, currency, phone apps; unblocks G4.
+3. **D — phone app pages at phone size** and real taps.
+4. **C — spawn composition and golden-hour tuning.**
 
 ### Phase 0 — repo safe for parallel work
 
@@ -58,14 +57,14 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 - [x] Four-step tutorial (plant, harvest, sell, buy) — `SEEN-IN-STUDIO` via harness.
 - [x] Next Goal card after the tutorial (next rank, then daily tasks) — `SEEN-IN-STUDIO` desktop, `src/shared/NextGoal.luau`.
 - [x] Broke-player seed floor (BUG-004, D-G3) — `LUNE-ONLY`.
-- [ ] Tutorial padi ~20 s, first session only.
-- [ ] Guaranteed Bagus on first harvest, Super/Langka on the second.
-- [ ] BayarLater loan offer beat (~2:30).
-- [ ] Scripted NPC neighbour raid as a spectator (~5:30).
-- [ ] Warung rumour / Tengkulak whisper (~7:00).
-- [ ] Rank-up ceremony to Petani (~9:00).
-- [ ] Explain "Sus" the first time it changes (keep the word; it is satire).
-- [ ] Analytics funnel step per beat.
+- [x] Tutorial padi ~20 s, first session only — `LUNE-ONLY`, `tests/specs/first_session_spec.luau`.
+- [x] Guaranteed Bagus on first harvest, Super/Langka on the second — `LUNE-ONLY`, `tests/specs/first_session_spec.luau`.
+- [x] BayarLater loan offer beat (~2:30) — `LUNE-ONLY`, `tests/specs/first_session_spec.luau`.
+- [x] Scripted NPC neighbour raid as a spectator (~5:30) — `LUNE-ONLY`, `tests/specs/first_session_spec.luau`.
+- [x] Warung rumour / Tengkulak whisper (~7:00) — `LUNE-ONLY`, `tests/specs/first_session_spec.luau`.
+- [x] Rank-up ceremony to Petani (~9:00) — `LUNE-ONLY`, `tests/specs/first_session_spec.luau`.
+- [x] Explain "Sus" the first time it changes (keep the word; it is satire) — `LUNE-ONLY`, `tests/specs/first_session_spec.luau`.
+- [x] Analytics funnel step per beat — `LUNE-ONLY`, `tests/specs/first_session_spec.luau`.
 
 **C. World** (art direction: **cartoonish realism**, D11 — chunky shapes, Roblox textured materials; reference: the Warung)
 - [x] Hub buildings, trees, decor, flora, shelf goods, hills — `SEEN-IN-STUDIO` desktop.

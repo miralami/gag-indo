@@ -394,6 +394,28 @@ local S: { [string]: { id: string, en: string } } = {
 
 	-- Seed bar fallback when the player owns no seeds
 	hud_buy_seeds = { id = "Beli bibit di Toko", en = "Buy seeds at the Shop" },
+
+	-- First-session beat sheet (v2 PLAN §3.1)
+	sus_explain = {
+		id = "Tingkat 'Sus' (kecurigaan warga & polisi desa) naik! Hati-hati dirazia.",
+		en = "Your 'Sus' level (village & police suspicion) increased! Watch out for raids.",
+	},
+	bayarlater_offer = {
+		id = "BayarLater: Butuh modal kilat tanpa jaminan? Buka app BayarLater di HP!",
+		en = "BayarLater: Need fast unsecured capital? Open BayarLater app on your phone!",
+	},
+	scripted_raid_gossip = {
+		id = "Polisi desa baru saja menggerebek kebun sebelah! Waspada razia.",
+		en = "Village police just raided the neighboring farm! Beware of raids.",
+	},
+	warung_rumour = {
+		id = "Bisik-bisik di Warung Bu Siti: Tengkulak Gelap siap beli hasil panen tanpa nanya asal-usul...",
+		en = "Whispers at Warung Bu Siti: The Black Market Dealer buys produce no questions asked...",
+	},
+	ceremony_petani = {
+		id = "Selamat! Kamu naik kelas jadi Petani Desa. Terus kembangkan lahanmu!",
+		en = "Congratulations! You've ranked up to Village Farmer. Keep expanding your plot!",
+	},
 }
 
 local Strings = {}

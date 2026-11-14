@@ -184,7 +184,12 @@ function Analytics.onboarding(player: Player?, step: number?, stepName: string?)
 end
 
 -- One step of a recurring funnel (not onboarding). `session` must be stable for one attempt.
-function Analytics.funnel(player: Player?, funnel: string?, session: string?, step: number?, stepName: string?)
+function Analytics.funnel(player: Player?, funnel: string?, session: any, step: any, stepName: any)
+	if type(session) == "number" and type(step) == "string" and stepName == nil then
+		stepName = step
+		step = session
+		session = if player and player.UserId then tostring(player.UserId) else "session"
+	end
 	if player == nil or type(funnel) ~= "string" or type(session) ~= "string" then
 		return
 	end

@@ -201,7 +201,7 @@ return function(t, Env, Fakes)
 			expect(entry):toBeTruthy()
 			expect(entry.crop):toBe("padi")
 			expect(data.items.seed_padi):toBe(GameConfig.startSeeds.padi - 1)
-			expect(entry.growSeconds):toBe(ToolService.growSeconds(crop.growSeconds, crop.family, data))
+			expect(entry.growSeconds):toBe(20)
 			local expectedQuality = math.floor(math.clamp(0.9 + ToolService.plantBonus(data), 0, 1) * 1000 + 0.5) / 1000
 			expect(entry.quality):toBe(expectedQuality)
 			expect(advanced.plant):toBe(1)

@@ -9,6 +9,7 @@ local Law = require(Shared.Config.Law)
 local PlayerData = require(script.Parent.Parent.Data.PlayerData)
 local Notify = require(script.Parent.Parent.Net.Notify)
 local Analytics = require(script.Parent.Parent.Analytics.Analytics)
+local FirstSession = require(script.Parent.FirstSession)
 
 local RankService = {}
 
@@ -49,6 +50,7 @@ function RankService.refresh(player: Player)
 			data.rank = rank
 			Notify.send(player, "n_rank_up", "@rank_" .. rank)
 			Analytics.log(player, "rank_up", GameConfig.rankIndex[rank] or 0)
+			FirstSession.onRankUp(player, rank)
 		else
 			break
 		end

@@ -168,6 +168,11 @@ function Fakes.analytics()
 		table.insert(fake.funnelSteps, { player = player, step = step, name = stepName })
 	end
 	function fake.funnel(player, funnel, session, step, stepName)
+		if type(session) == "number" and type(step) == "string" and stepName == nil then
+			stepName = step
+			step = session
+			session = if player and player.UserId then tostring(player.UserId) else "session"
+		end
 		table.insert(fake.funnelSteps, { player = player, funnel = funnel, session = session, step = step, name = stepName })
 	end
 	return fake

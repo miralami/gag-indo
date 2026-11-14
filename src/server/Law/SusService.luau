@@ -8,6 +8,7 @@ local Law = require(Shared.Config.Law)
 local PlayerData = require(script.Parent.Parent.Data.PlayerData)
 local Notify = require(script.Parent.Parent.Net.Notify)
 local RaidService = require(script.Parent.RaidService)
+local FirstSession = require(script.Parent.Parent.Progression.FirstSession)
 
 local SusService = {}
 
@@ -26,8 +27,11 @@ function SusService.setSus(player: Player, value: number)
 	if not data or type(value) ~= "number" or value ~= value then
 		return
 	end
-	data.sus = math.clamp(math.floor(value), 0, Law.susMax)
+	local previous = math.clamp(math.floor(data.sus or 0), 0, Law.susMax)
+	local updated = math.clamp(math.floor(value), 0, Law.susMax)
+	data.sus = updated
 	sync(player, data)
+	FirstSession.onSusChanged(player, updated, previous)
 end
 
 -- Positive raises Sus, negative decays it. Returns the new value.
@@ -40,6 +44,7 @@ function SusService.add(player: Player, amount: number, _reason: string?): numbe
 	local updated = math.clamp(previous + math.floor(amount), 0, Law.susMax)
 	data.sus = updated
 	sync(player, data)
+	FirstSession.onSusChanged(player, updated, previous)
 
 	if previous < Law.letterSus and updated >= Law.letterSus then
 		Notify.send(player, "n_letter", updated)

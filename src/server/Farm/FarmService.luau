@@ -33,6 +33,7 @@ local BadgeService = require(script.Parent.Parent.Progression.BadgeService)
 local PlotService = require(script.Parent.PlotService)
 local SeasonsConfig = require(Shared.Config.Seasons)
 local Analytics = require(script.Parent.Parent.Analytics.Analytics)
+local FirstSession = require(script.Parent.Parent.Progression.FirstSession)
 
 local OWNED_COLOR = Color3.fromRGB(105, 72, 45)
 local LOCKED_COLOR = Color3.fromRGB(100, 100, 100)
@@ -351,7 +352,7 @@ local function doPlant(player: Player, data, plot, index: number, cropId: string
 	data.tiles[tileKey(index)] = {
 		crop = cropId,
 		plantedAt = os.time(),
-		growSeconds = ToolService.growSeconds(crop.growSeconds, crop.family, data),
+		growSeconds = FirstSession.getGrowSeconds(player, cropId, data),
 		quality = roundQuality(math.clamp(quality + ToolService.plantBonus(data), 0, 1)),
 		hot = false,
 		harvests = 0,
@@ -437,6 +438,7 @@ local function doHarvest(
 		anomaly = runtime.anomali,
 	})
 	local tier = RarityService.roll(quality)
+	tier = FirstSession.getHarvestTier(player, data, tier)
 	entry.tier = tier
 	Analytics.track(player, "harvest", 1, { entry.crop, tier, destination or "sack" })
 

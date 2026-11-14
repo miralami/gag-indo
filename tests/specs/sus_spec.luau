@@ -22,6 +22,7 @@ return function(t, Env, Fakes)
 
 			player = Fakes.player(env)
 			data = playerData.set(player, Fakes.newData(env))
+			data.story.flags["sus_explained"] = true
 		end)
 
 		t:describe("add", function()

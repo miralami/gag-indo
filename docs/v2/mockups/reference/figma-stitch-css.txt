@@ -1,0 +1,9074 @@
+/* FIGMA - HP Juragan */
+
+position: relative;
+width: 360px;
+height: 640px;
+
+background: #F3E9D2;
+
+
+/* Kepala HP */
+
+position: absolute;
+width: 328px;
+height: 52px;
+left: 16px;
+top: 16px;
+
+
+
+/* JURAGAN DESA */
+
+position: absolute;
+width: 250px;
+height: 16px;
+left: 0px;
+top: 0px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 145% */
+
+color: #5B4A38;
+
+
+
+/* HP JURAGAN */
+
+position: absolute;
+width: 280px;
+height: 32px;
+left: 0px;
+top: 19px;
+
+font-family: 'Luckiest Guy';
+font-style: normal;
+font-weight: 400;
+font-size: 28px;
+line-height: 32px;
+/* identical to box height, or 114% */
+
+color: #2B2118;
+
+
+
+/* Sinyal desa */
+
+position: absolute;
+width: 5px;
+height: 8px;
+left: 296px;
+top: 33px;
+
+background: #2B2118;
+border-radius: 1px;
+
+
+/* Sinyal desa */
+
+position: absolute;
+width: 5px;
+height: 14px;
+left: 305px;
+top: 27px;
+
+background: #2B2118;
+border-radius: 1px;
+
+
+/* Sinyal desa */
+
+position: absolute;
+width: 5px;
+height: 20px;
+left: 314px;
+top: 21px;
+
+background: #2B2118;
+border-radius: 1px;
+
+
+/* Status juragan */
+
+position: absolute;
+width: 328px;
+height: 152px;
+left: 16px;
+top: 80px;
+
+
+
+/* Meter kecurigaan */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 324px;
+height: 96px;
+left: 0px;
+top: 0px;
+
+background: #F9F1DF;
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 14px;
+
+
+/* Sus 62 */
+
+position: absolute;
+width: 160px;
+height: 26px;
+left: 12px;
+top: 9px;
+
+font-family: 'Luckiest Guy';
+font-style: normal;
+font-weight: 400;
+font-size: 22px;
+line-height: 26px;
+/* identical to box height, or 118% */
+
+color: #A83226;
+
+
+
+/* / 100 */
+
+position: absolute;
+width: 58px;
+height: 16px;
+left: 189px;
+top: 14px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 145% */
+
+color: #5B4A38;
+
+
+
+/* Skala Sus */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 300px;
+height: 16px;
+left: 12px;
+top: 39px;
+
+background: #DFD0AE;
+border: 2px solid #2B2118;
+border-radius: 8px;
+
+
+/* Sus 62 persen */
+
+position: absolute;
+width: 183px;
+height: 12px;
+left: 2px;
+top: 2px;
+
+background: #A83226;
+border-radius: 6px;
+
+
+/* Ambang razia 80 */
+
+position: absolute;
+width: 2px;
+height: 25px;
+left: 251px;
+top: 34px;
+
+background: #2B2118;
+
+
+/* 80 */
+
+position: absolute;
+width: 26px;
+height: 16px;
+left: 242px;
+top: 19px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 145% */
+
+color: #2B2118;
+
+
+
+/* Sampai 80, Polisi Desa datang razia */
+
+position: absolute;
+width: 300px;
+height: 16px;
+left: 12px;
+top: 66px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 145% */
+
+color: #5B4A38;
+
+
+
+/* Nama baik */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 164px;
+height: 44px;
+left: 0px;
+top: 108px;
+
+background: #F6C97A;
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 8px;
+
+
+/* Nama Baik 120 */
+
+position: absolute;
+width: 120px;
+height: 18px;
+left: 38px;
+top: 13px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* identical to box height, or 138% */
+
+color: #2B2118;
+
+
+
+/* Star */
+
+position: absolute;
+left: 5.49%;
+right: 79.88%;
+top: 23.15%;
+bottom: 23.15%;
+
+
+
+/* Vector */
+
+position: absolute;
+left: 5.49%;
+right: 79.88%;
+top: 23.15%;
+bottom: 23.15%;
+
+background: #F6C97A;
+border: 1.5px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 8.92%;
+right: 80.56%;
+top: 44.46%;
+bottom: 26.56%;
+
+background: #C99A2E;
+
+
+/* Pangkat juragan */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 148px;
+height: 44px;
+left: 176px;
+top: 108px;
+
+background: #9BB25A;
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 8px;
+
+
+/* Juragan Kecil */
+
+position: absolute;
+width: 108px;
+height: 18px;
+left: 36px;
+top: 13px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* identical to box height, or 138% */
+
+color: #2B2118;
+
+
+
+/* Crown */
+
+position: absolute;
+left: 6.08%;
+right: 77.7%;
+top: 24.93%;
+bottom: 24.93%;
+
+
+
+/* Vector */
+
+position: absolute;
+left: 6.08%;
+right: 77.7%;
+top: 24.93%;
+bottom: 24.93%;
+
+background: #F6C97A;
+border: 1.54839px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 16.28%;
+right: 78.49%;
+top: 39%;
+bottom: 26.69%;
+
+background: #C99A2E;
+
+
+/* Vector */
+
+position: absolute;
+left: 7.91%;
+right: 79.53%;
+top: 64.52%;
+bottom: 24.93%;
+
+background: #C99A2E;
+border: 1.54839px solid #2B2118;
+
+
+/* Aplikasi desa */
+
+position: absolute;
+width: 328px;
+height: 208px;
+left: 16px;
+top: 248px;
+
+
+
+/* Kebun */
+
+position: absolute;
+width: 72px;
+height: 96px;
+left: 0px;
+top: 0px;
+
+
+
+/* Ikon Kebun */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 64px;
+height: 64px;
+left: 4px;
+top: 0px;
+
+background: #7C9846;
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 10px;
+
+
+/* Gambar Kebun */
+
+position: absolute;
+left: 14.07%;
+right: 14.07%;
+top: 14.06%;
+bottom: 14.06%;
+
+
+
+/* Vector */
+
+position: absolute;
+left: 49.97%;
+right: 50.03%;
+top: 45.26%;
+bottom: 17.65%;
+
+border: 5.35994px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 49.97%;
+right: 50.03%;
+top: 45.26%;
+bottom: 20.04%;
+
+border: 2.29712px solid #B98A5A;
+
+
+/* Vector */
+
+position: absolute;
+left: 14.07%;
+right: 51%;
+top: 20.98%;
+bottom: 46.11%;
+
+background: #7C9846;
+border: 3.06283px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 49.9%;
+right: 14.07%;
+top: 14.06%;
+bottom: 55.01%;
+
+background: #9BB25A;
+border: 3.06283px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 30.82%;
+right: 30.89%;
+top: 28.51%;
+bottom: 46.37%;
+
+border: 2.29712px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 24.84%;
+right: 21.32%;
+top: 71.94%;
+bottom: 14.06%;
+
+background: #B98A5A;
+border: 3.06283px solid #2B2118;
+
+
+/* Kebun */
+
+position: absolute;
+width: 80px;
+height: 18px;
+left: -4px;
+top: 74px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* identical to box height, or 138% */
+text-align: center;
+
+color: #2B2118;
+
+
+
+/* Tugas */
+
+position: absolute;
+width: 72px;
+height: 96px;
+left: 84px;
+top: 0px;
+
+
+
+/* Ikon Tugas */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 64px;
+height: 64px;
+left: 4px;
+top: 0px;
+
+background: #C99A2E;
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 10px;
+
+
+/* Gambar Tugas */
+
+position: absolute;
+left: 20.8%;
+right: 20.8%;
+top: 14.06%;
+bottom: 14.06%;
+
+
+
+/* Vector */
+
+position: absolute;
+left: 20.8%;
+right: 20.8%;
+top: 19.68%;
+bottom: 14.06%;
+
+background: #C99A2E;
+border: 2.875px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 28.66%;
+right: 28.66%;
+top: 27.54%;
+bottom: 23.05%;
+
+background: #F3E9D2;
+border: 2.15625px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 38.77%;
+right: 38.77%;
+top: 14.06%;
+bottom: 69.09%;
+
+background: #F6C97A;
+border: 2.875px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 35.4%;
+right: 36.52%;
+top: 38.77%;
+bottom: 29.79%;
+
+border: 2.15625px solid #2B2118;
+
+
+/* Tugas */
+
+position: absolute;
+width: 80px;
+height: 18px;
+left: -4px;
+top: 74px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* identical to box height, or 138% */
+text-align: center;
+
+color: #2B2118;
+
+
+
+/* Notifikasi 2 */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 24px;
+height: 24px;
+left: 54px;
+top: -6px;
+
+background: #A83226;
+border: 2px solid #2B2118;
+border-radius: 8px;
+
+
+/* 2 */
+
+position: absolute;
+width: 24px;
+height: 18px;
+left: 0px;
+top: 3px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* identical to box height, or 138% */
+text-align: center;
+
+color: #F3E9D2;
+
+
+
+/* Toko Bibit */
+
+position: absolute;
+width: 72px;
+height: 96px;
+left: 168px;
+top: 0px;
+
+
+
+/* Ikon Toko Bibit */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 64px;
+height: 64px;
+left: 4px;
+top: 0px;
+
+background: #F6C97A;
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 10px;
+
+
+/* Gambar Toko Bibit */
+
+position: absolute;
+left: 14.06%;
+right: 14.06%;
+top: 15.75%;
+bottom: 15.75%;
+
+
+
+/* Vector */
+
+position: absolute;
+left: 20.8%;
+right: 20.8%;
+top: 37.08%;
+bottom: 21.36%;
+
+background: #B98A5A;
+border: 2.875px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 15.19%;
+right: 15.19%;
+top: 69.65%;
+bottom: 15.75%;
+
+background: #F6C97A;
+border: 2.875px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 43.51%;
+right: 27.3%;
+top: 47.19%;
+bottom: 23.61%;
+
+background: #7C9846;
+border: 2.875px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 52.25%;
+right: 35.4%;
+top: 56.18%;
+bottom: 43.82%;
+
+border: 2.15625px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 54.34%;
+right: 36.8%;
+top: 64.04%;
+bottom: 28.1%;
+
+background: #F6C97A;
+border: 1.79688px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 14.06%;
+right: 14.06%;
+top: 15.75%;
+bottom: 53.37%;
+
+background: #F6C97A;
+
+
+/* Vector */
+
+position: absolute;
+left: 14.06%;
+right: 32.03%;
+top: 15.75%;
+bottom: 53.37%;
+
+background: #A83226;
+
+
+/* Vector */
+
+position: absolute;
+left: 14.06%;
+right: 14.06%;
+top: 15.75%;
+bottom: 53.37%;
+
+border: 2.875px solid #2B2118;
+
+
+/* Toko Bibit */
+
+position: absolute;
+width: 80px;
+height: 18px;
+left: -4px;
+top: 74px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* identical to box height, or 138% */
+text-align: center;
+
+color: #2B2118;
+
+
+
+/* Papan */
+
+position: absolute;
+width: 72px;
+height: 96px;
+left: 252px;
+top: 0px;
+
+
+
+/* Ikon Papan */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 64px;
+height: 64px;
+left: 4px;
+top: 0px;
+
+background: #3B4F6B;
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 10px;
+
+
+/* Gambar Papan */
+
+position: absolute;
+left: 14.06%;
+right: 14.06%;
+top: 14.64%;
+bottom: 14.64%;
+
+
+
+/* Vector */
+
+position: absolute;
+left: 14.06%;
+right: 14.06%;
+top: 23.92%;
+bottom: 46.96%;
+
+background: #C99A2E;
+border: 2.96774px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 27.97%;
+right: 27.97%;
+top: 54.06%;
+bottom: 14.64%;
+
+background: #C99A2E;
+border: 2.96774px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 26.81%;
+right: 26.81%;
+top: 14.64%;
+bottom: 40.15%;
+
+background: #F6C97A;
+border: 2.96774px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 50%;
+right: 29.13%;
+top: 16.96%;
+bottom: 42.46%;
+
+background: #C99A2E;
+
+
+/* Vector */
+
+position: absolute;
+left: 26.81%;
+right: 26.81%;
+top: 14.64%;
+bottom: 40.15%;
+
+border: 2.96774px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 36.09%;
+right: 36.09%;
+top: 72.61%;
+bottom: 27.39%;
+
+border: 2.22581px solid #2B2118;
+
+
+/* Papan */
+
+position: absolute;
+width: 80px;
+height: 18px;
+left: -4px;
+top: 74px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* identical to box height, or 138% */
+text-align: center;
+
+color: #2B2118;
+
+
+
+/* Lapor */
+
+position: absolute;
+width: 72px;
+height: 96px;
+left: 0px;
+top: 108px;
+
+
+
+/* Ikon Lapor */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 64px;
+height: 64px;
+left: 4px;
+top: 0px;
+
+background: #1F4E6B;
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 10px;
+
+
+/* Gambar Lapor */
+
+position: absolute;
+left: 14.06%;
+right: 14.06%;
+top: 18.55%;
+bottom: 18.55%;
+
+
+
+/* Vector */
+
+position: absolute;
+left: 14.06%;
+right: 14.06%;
+top: 18.55%;
+bottom: 18.55%;
+
+background: #3B4F6B;
+border: 2.875px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 29.79%;
+right: 27.54%;
+top: 33.15%;
+bottom: 24.17%;
+
+background: #F3E9D2;
+border: 2.875px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 39.89%;
+right: 37.65%;
+top: 43.26%;
+bottom: 34.28%;
+
+background: #3B4F6B;
+border: 2.15625px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 24.17%;
+right: 72.46%;
+top: 38.77%;
+bottom: 61.23%;
+
+border: 2.875px solid #F3E9D2;
+
+
+/* Lapor */
+
+position: absolute;
+width: 80px;
+height: 18px;
+left: -4px;
+top: 74px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* identical to box height, or 138% */
+text-align: center;
+
+color: #2B2118;
+
+
+
+/* Notifikasi 1 */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 24px;
+height: 24px;
+left: 54px;
+top: -6px;
+
+background: #A83226;
+border: 2px solid #2B2118;
+border-radius: 8px;
+
+
+/* 1 */
+
+position: absolute;
+width: 24px;
+height: 18px;
+left: 0px;
+top: 3px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* identical to box height, or 138% */
+text-align: center;
+
+color: #F3E9D2;
+
+
+
+/* Dekorasi */
+
+position: absolute;
+width: 72px;
+height: 96px;
+left: 84px;
+top: 108px;
+
+
+
+/* Ikon Dekorasi */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 64px;
+height: 64px;
+left: 4px;
+top: 0px;
+
+background: #B98A5A;
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 10px;
+
+
+/* Gambar Dekorasi */
+
+position: absolute;
+left: 14.06%;
+right: 14.06%;
+top: 22.06%;
+bottom: 22.06%;
+
+
+
+/* Vector */
+
+position: absolute;
+left: 14.06%;
+right: 14.06%;
+top: 26.84%;
+bottom: 22.06%;
+
+background: #B98A5A;
+border: 2.875px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 14.06%;
+right: 14.06%;
+top: 22.06%;
+bottom: 26.56%;
+
+background: #F6C97A;
+border: 2.875px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 51.12%;
+right: 17.43%;
+top: 25.71%;
+bottom: 29.36%;
+
+background: #C99A2E;
+
+
+/* Vector */
+
+position: absolute;
+left: 32.03%;
+right: 34.28%;
+top: 34.7%;
+bottom: 38.35%;
+
+border: 2.15625px solid #B98A5A;
+
+
+/* Vector */
+
+position: absolute;
+left: 14.06%;
+right: 14.06%;
+top: 22.06%;
+bottom: 26.56%;
+
+border: 2.875px solid #2B2118;
+
+
+/* Dekorasi */
+
+position: absolute;
+width: 80px;
+height: 18px;
+left: -4px;
+top: 74px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* identical to box height, or 138% */
+text-align: center;
+
+color: #2B2118;
+
+
+
+/* BayarLater */
+
+position: absolute;
+width: 72px;
+height: 96px;
+left: 168px;
+top: 108px;
+
+
+
+/* Ikon BayarLater */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 64px;
+height: 64px;
+left: 4px;
+top: 0px;
+
+background: #A8452F;
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 10px;
+
+
+/* Gambar BayarLater */
+
+position: absolute;
+left: 14.06%;
+right: 14.06%;
+top: 19.45%;
+bottom: 19.45%;
+
+
+
+/* Vector */
+
+position: absolute;
+left: 15.26%;
+right: 23.65%;
+top: 19.45%;
+bottom: 57.79%;
+
+background: #A8452F;
+border: 3.06667px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 23.65%;
+right: 23.65%;
+top: 26.64%;
+bottom: 57.79%;
+
+background: #F3E9D2;
+border: 2.3px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 14.06%;
+right: 20.05%;
+top: 27.84%;
+bottom: 19.45%;
+
+background: #A8452F;
+border: 3.06667px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 56.59%;
+right: 14.06%;
+top: 48.2%;
+bottom: 32.63%;
+
+background: #C99A2E;
+border: 3.06667px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 63.18%;
+right: 29.64%;
+top: 54.19%;
+bottom: 38.62%;
+
+background: #2B2118;
+
+
+/* BayarLater */
+
+position: absolute;
+width: 80px;
+height: 18px;
+left: -4px;
+top: 74px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* identical to box height, or 138% */
+text-align: center;
+
+color: #2B2118;
+
+
+
+/* Curang */
+
+position: absolute;
+width: 72px;
+height: 96px;
+left: 252px;
+top: 108px;
+
+
+
+/* Ikon Curang */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 64px;
+height: 64px;
+left: 4px;
+top: 0px;
+
+background: #A83226;
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 10px;
+
+
+/* Gambar Curang */
+
+position: absolute;
+left: 14.06%;
+right: 14.06%;
+top: 29.6%;
+bottom: 29.6%;
+
+
+
+/* Vector */
+
+position: absolute;
+left: 14.06%;
+right: 14.06%;
+top: 29.6%;
+bottom: 29.6%;
+
+background: #A83226;
+border: 2.875px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 20.8%;
+right: 20.8%;
+top: 37.07%;
+bottom: 37.62%;
+
+background: #F3E9D2;
+
+
+/* Vector */
+
+position: absolute;
+left: 25.29%;
+right: 25.29%;
+top: 43.81%;
+bottom: 46.17%;
+
+background: #2B2118;
+border: 1.4375px solid #2B2118;
+
+
+/* Curang */
+
+position: absolute;
+width: 80px;
+height: 18px;
+left: -4px;
+top: 74px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* identical to box height, or 138% */
+text-align: center;
+
+color: #2B2118;
+
+
+
+/* Petuah desa */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 324px;
+height: 72px;
+left: 16px;
+top: 472px;
+
+background: #F6C97A;
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 14px;
+
+
+/* PETUAH TETANGGA */
+
+position: absolute;
+width: 296px;
+height: 16px;
+left: 12px;
+top: 8px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 145% */
+
+color: #5B4A38;
+
+
+
+/* Curang itu cepat, tapi tetangga bisa ngerekam. */
+
+position: absolute;
+width: 296px;
+height: 18px;
+left: 12px;
+top: 27px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* identical to box height, or 138% */
+
+color: #2B2118;
+
+
+
+/* Tutup HP */
+
+position: absolute;
+width: 328px;
+height: 56px;
+left: 16px;
+top: 568px;
+
+
+
+/* Tombol Tutup HP */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 324px;
+height: 52px;
+left: 0px;
+top: 0px;
+
+background: #7C9846;
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 10px;
+
+
+/* Tutup HP */
+
+position: absolute;
+width: 324px;
+height: 22px;
+left: 0px;
+top: 15px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 18px;
+line-height: 22px;
+/* identical to box height, or 122% */
+text-align: center;
+
+color: #2B2118;
+
+
+
+/* STITCH HP Juragan - Beranda */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 122px 0px;
+
+position: relative;
+width: 390px;
+height: 884px;
+
+background: linear-gradient(0deg, #1F1A14, #1F1A14), #FFFFFF;
+
+
+/* Main - Mobile Screen Canvas: Exactly 360x640 frame */
+
+box-sizing: border-box;
+
+width: 360px;
+max-width: 360px;
+height: 640px;
+max-height: 640px;
+
+background: #F3E9D2;
+border: 2px solid #2B2118;
+box-shadow: 6px 6px 0px #2B2118;
+border-radius: 24px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Background Pattern: Rustic woven paper dot texture */
+
+position: absolute;
+left: 2px;
+right: 2px;
+top: 2px;
+bottom: 2px;
+
+background: radial-gradient(70.71% 70.71% at 50% 50%, #2B2118 13.26%, rgba(43, 33, 24, 0) 13.26%);
+opacity: 0.15;
+
+
+/* Scrollable Screen Content Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 8px 12px 4px;
+gap: 10px;
+
+position: absolute;
+left: 2px;
+right: 2px;
+top: 72.5px;
+bottom: 124px;
+overflow: scroll;
+
+
+
+/* Section - 2. Status Card: Tingkat Sus & Badges */
+
+box-sizing: border-box;
+
+width: 332px;
+height: 139px;
+
+background: #FFFFFF;
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 14px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Suspicion Meter Header */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 0px;
+gap: 77.67px;
+
+position: absolute;
+height: 22.5px;
+left: 12px;
+right: 12px;
+top: 12px;
+
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 6px;
+
+width: 172.34px;
+height: 22.5px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 17.59px;
+height: 15.21px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 17.59px;
+height: 15.21px;
+
+background: #A83226;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+width: 148.75px;
+height: 22.5px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Text */
+
+position: absolute;
+width: 148.75px;
+height: 23px;
+left: 0px;
+top: -1px;
+
+font-family: 'Luckiest Guy';
+font-style: normal;
+font-weight: 400;
+font-size: 15px;
+line-height: 22px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+letter-spacing: 0.375px;
+
+color: #2B2118;
+
+
+
+/* Background+Border+Shadow */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 2px 6px;
+
+width: 57.58px;
+height: 21px;
+
+background: #A83226;
+border: 1px solid #2B2118;
+box-shadow: 1px 1px 0px #2B2118;
+border-radius: 4px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 43.58px;
+height: 15px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 10px;
+line-height: 15px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+
+color: #FFFFFF;
+font-variation-settings: 'opsz' 10;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Warning Subtext */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+
+position: absolute;
+height: 14px;
+left: 12px;
+right: 12px;
+top: 70.13px;
+
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+width: 197.49px;
+height: 14px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 10.32px;
+height: 12.69px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 10.32px;
+height: 12.69px;
+
+background: #A8452F;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 183.16px;
+height: 14px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 400;
+font-size: 11px;
+line-height: 14px;
+/* identical to box height, or 125% */
+display: flex;
+align-items: center;
+
+color: #5B4A38;
+font-variation-settings: 'opsz' 11;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Pill Badges Row */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 4px 0px 0px;
+gap: 8px;
+
+position: absolute;
+height: 34.5px;
+left: 12px;
+right: 12px;
+top: 92.5px;
+
+border-top: 2px solid rgba(43, 33, 24, 0.2);
+
+
+/* Chip 1: Nama Baik */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 4px 6px;
+gap: 6px;
+
+width: 150px;
+height: 28.5px;
+
+background: rgba(185, 138, 90, 0.3);
+border: 2px solid #2B2118;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 8px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 1;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 15.03px;
+height: 14.28px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 15.03px;
+height: 14.28px;
+
+background: #C99A2E;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+width: 84.8px;
+height: 16.5px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Text */
+
+position: absolute;
+width: 84.8px;
+height: 17px;
+left: 0px;
+top: -1px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+
+color: #2B2118;
+font-variation-settings: 'opsz' 11;
+
+
+
+/* Chip 2: Juragan Kecil */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 4px 6px;
+gap: 6px;
+
+width: 150px;
+height: 28.5px;
+
+background: #C99A2E;
+border: 2px solid #2B2118;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 8px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 13.56px;
+height: 12.94px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 13.56px;
+height: 12.94px;
+
+background: #2B2118;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+width: 69.02px;
+height: 16.5px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Text */
+
+position: absolute;
+width: 69.02px;
+height: 17px;
+left: 0px;
+top: -1px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+letter-spacing: -0.275px;
+
+color: #2B2118;
+font-variation-settings: 'opsz' 11;
+
+
+
+/* Meter Gauge Bar with 80 Threshold Marker */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: flex-start;
+padding: 2px;
+isolation: isolate;
+
+position: absolute;
+height: 20px;
+left: 12px;
+right: 12px;
+top: 42.5px;
+
+background: #E3D9C3;
+border: 2px solid #2B2118;
+border-radius: 9999px;
+
+
+/* Filled bar (62%) */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: flex-end;
+align-items: center;
+padding: 0px 4px 0px 0px;
+
+width: 186px;
+height: 12px;
+
+background: #A83226;
+border-right: 2px solid #2B2118;
+border-radius: 9999px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 1;
+z-index: 0;
+
+
+/* Background */
+
+width: 6px;
+height: 6px;
+
+background: #F6C97A;
+border-radius: 9999px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 80% Threshold Police Flag Marker */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+position: absolute;
+height: 36px;
+left: 72.19%;
+right: 12.97%;
+top: -12px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+z-index: 1;
+
+
+/* Background+Border */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px 4px;
+
+width: 45.7px;
+height: 12px;
+
+background: #2B2118;
+border: 1px solid #F3E9D2;
+border-radius: 2px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 35.7px;
+height: 10px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 8px;
+line-height: 10px;
+/* identical to box height, or 125% */
+display: flex;
+align-items: center;
+letter-spacing: -0.4px;
+
+color: #FFF8EF;
+font-variation-settings: 'opsz' 8;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Vertical Divider */
+
+width: 2px;
+height: 24px;
+
+background: #2B2118;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Section - 3. 4x2 Grid of 64px Chunky App Icon Stickers */
+
+width: 332px;
+height: 169.5px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Button - App 1: Kebun */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+gap: 3.88px;
+
+position: absolute;
+width: 68px;
+height: 75.88px;
+left: 4.5px;
+top: 4px;
+
+
+
+/* Background+Border+Shadow */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+isolation: isolate;
+
+width: 58px;
+height: 58px;
+
+background: #9BB25A;
+border: 2px solid #2B2118;
+box-shadow: 3px 4px 0px #2B2118;
+border-radius: 14px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 26.83px;
+height: 31.67px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+z-index: 0;
+
+
+/* Icon */
+
+width: 26.83px;
+height: 31.67px;
+
+background: #2B2118;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Overlay */
+
+position: absolute;
+width: 32px;
+height: 32px;
+left: -6px;
+top: -6px;
+
+background: rgba(255, 248, 239, 0.3);
+border-radius: 9999px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+z-index: 1;
+
+
+/* Text */
+
+width: 33.97px;
+height: 14px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 800;
+font-size: 11px;
+line-height: 14px;
+/* identical to box height, or 125% */
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #2B2118;
+font-variation-settings: 'opsz' 11;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Button - App 2: Tugas (with notification) */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+gap: 3.88px;
+
+position: absolute;
+width: 68px;
+height: 75.88px;
+left: 89.5px;
+top: 4px;
+
+
+
+/* Background+Border+Shadow */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+isolation: isolate;
+
+width: 58px;
+height: 58px;
+
+background: #C99A2E;
+border: 2px solid #2B2118;
+box-shadow: 3px 4px 0px #2B2118;
+border-radius: 14px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 24.62px;
+height: 27.12px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+z-index: 0;
+
+
+/* Icon */
+
+width: 24.62px;
+height: 27.12px;
+
+background: #2B2118;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Red Badge '2 */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 2px 6px;
+
+position: absolute;
+width: 21.09px;
+height: 23px;
+right: -4px;
+top: -4px;
+
+background: #A83226;
+border: 2px solid #2B2118;
+box-shadow: 1px 1px 0px #2B2118;
+border-radius: 9999px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+z-index: 1;
+
+
+/* Text */
+
+width: 5.09px;
+height: 15px;
+
+font-family: 'Luckiest Guy';
+font-style: normal;
+font-weight: 400;
+font-size: 10px;
+line-height: 15px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #FFFFFF;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 31.64px;
+height: 14px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 800;
+font-size: 11px;
+line-height: 14px;
+/* identical to box height, or 125% */
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #2B2118;
+font-variation-settings: 'opsz' 11;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Button - App 3: Toko Bibit */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+position: absolute;
+width: 68px;
+height: 76px;
+left: 174.5px;
+top: 4px;
+
+
+
+/* Background+Border+Shadow */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 58px;
+height: 58px;
+
+background: #F6C97A;
+border: 2px solid #2B2118;
+box-shadow: 3px 4px 0px #2B2118;
+border-radius: 14px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 27.17px;
+height: 25px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 27.17px;
+height: 25px;
+
+background: #2B2118;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 68px;
+height: 14px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 54px;
+height: 14px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 800;
+font-size: 11px;
+line-height: 14px;
+/* identical to box height, or 125% */
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #2B2118;
+font-variation-settings: 'opsz' 11;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Button - App 4: Papan */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+gap: 3.88px;
+
+position: absolute;
+width: 68px;
+height: 75.88px;
+left: 259.5px;
+top: 4px;
+
+
+
+/* Background+Border+Shadow */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 58px;
+height: 58px;
+
+background: #C99A2E;
+border: 2px solid #2B2118;
+box-shadow: 3px 4px 0px #2B2118;
+border-radius: 14px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 27.12px;
+height: 24.62px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 27.12px;
+height: 24.62px;
+
+background: #2B2118;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 33.42px;
+height: 14px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 800;
+font-size: 11px;
+line-height: 14px;
+/* identical to box height, or 125% */
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #2B2118;
+font-variation-settings: 'opsz' 11;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Button - App 5: Lapor (with notification) */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+gap: 3.88px;
+
+position: absolute;
+width: 68px;
+height: 75.88px;
+left: 4.5px;
+top: 89.75px;
+
+
+
+/* Background+Border+Shadow */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+isolation: isolate;
+
+width: 58px;
+height: 58px;
+
+background: #3B4F6B;
+border: 2px solid #2B2118;
+box-shadow: 3px 4px 0px #2B2118;
+border-radius: 14px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 27.12px;
+height: 24.62px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+z-index: 0;
+
+
+/* Icon */
+
+width: 27.12px;
+height: 24.62px;
+
+background: #FFF8EF;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Tile Red Badge '1 */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 2px 6px;
+
+position: absolute;
+width: 19.89px;
+height: 23px;
+right: -4px;
+top: -4px;
+
+background: #A8452F;
+border: 2px solid #2B2118;
+box-shadow: 1px 1px 0px #2B2118;
+border-radius: 9999px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+z-index: 1;
+
+
+/* Text */
+
+width: 3.89px;
+height: 15px;
+
+font-family: 'Luckiest Guy';
+font-style: normal;
+font-weight: 400;
+font-size: 10px;
+line-height: 15px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #FFFFFF;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 30.89px;
+height: 14px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 800;
+font-size: 11px;
+line-height: 14px;
+/* identical to box height, or 125% */
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #2B2118;
+font-variation-settings: 'opsz' 11;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Button - App 6: Dekorasi */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+gap: 3.88px;
+
+position: absolute;
+width: 68px;
+height: 75.88px;
+left: 89.5px;
+top: 89.75px;
+
+
+
+/* Background+Border+Shadow */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 58px;
+height: 58px;
+
+background: #B98A5A;
+border: 2px solid #2B2118;
+box-shadow: 3px 4px 0px #2B2118;
+border-radius: 14px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Conical Farmer Caping Hat Custom Inked Glyph */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 29.62px;
+height: 23.38px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 29.62px;
+height: 23.38px;
+
+background: #2B2118;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 47.11px;
+height: 14px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 800;
+font-size: 11px;
+line-height: 14px;
+/* identical to box height, or 125% */
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #2B2118;
+font-variation-settings: 'opsz' 11;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Button - App 7: BayarLater */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+gap: 3.88px;
+
+position: absolute;
+width: 68px;
+height: 75.88px;
+left: 174.5px;
+top: 89.75px;
+
+
+
+/* Background+Border+Shadow */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 58px;
+height: 58px;
+
+background: #A8452F;
+border: 2px solid #2B2118;
+box-shadow: 3px 4px 0px #2B2118;
+border-radius: 14px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 25.06px;
+height: 27.62px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 25.06px;
+height: 27.62px;
+
+background: #FFF8EF;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 59.06px;
+height: 14px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 800;
+font-size: 11px;
+line-height: 14px;
+/* identical to box height, or 125% */
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #2B2118;
+font-variation-settings: 'opsz' 11;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Button - App 8: Curang */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+gap: 3.88px;
+
+position: absolute;
+width: 68px;
+height: 75.88px;
+left: 259.5px;
+top: 89.75px;
+
+
+
+/* Background+Border+Shadow */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 58px;
+height: 58px;
+
+background: #A83226;
+border: 2px solid #2B2118;
+box-shadow: 3px 4px 0px #2B2118;
+border-radius: 14px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 29.44px;
+height: 25.56px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 29.44px;
+height: 25.56px;
+
+background: #FFF8EF;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 38.67px;
+height: 14px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 800;
+font-size: 11px;
+line-height: 14px;
+/* identical to box height, or 125% */
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #A83226;
+font-variation-settings: 'opsz' 11;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Section - 4. Tip Card (Stamped Paper Sticker Look):css-transform */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0.552789px 0px 0px;
+
+width: 332.31px;
+height: 75.58px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Section - 4. Tip Card (Stamped Paper Sticker Look) */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 10px;
+isolation: isolate;
+
+width: 332.31px;
+height: 72.13px;
+
+background: #F7EDD6;
+border: 2px dashed #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 14px;
+transform: rotate(-0.5deg);
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: flex-start;
+padding: 2px 0px 0px;
+gap: 7.98px;
+
+width: 308.31px;
+height: 48.13px;
+
+transform: rotate(-0.5deg);
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+z-index: 0;
+
+
+/* Margin */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 2px 0px 0px;
+
+width: 28.02px;
+height: 30px;
+
+transform: rotate(-0.5deg);
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Background+Border */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 28px;
+height: 28px;
+
+background: #F6C97A;
+border: 2px solid #2B2118;
+border-radius: 9999px;
+transform: rotate(-0.5deg);
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 15.7px;
+height: 14.42px;
+
+transform: rotate(-0.5deg);
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 15.7px;
+height: 14.42px;
+
+background: #2B2118;
+transform: rotate(-0.5deg);
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px 24px 0px 0px;
+gap: 1px;
+
+width: 272.31px;
+height: 46.13px;
+
+transform: rotate(-0.5deg);
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* Paragraph */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 248.31px;
+height: 31.13px;
+
+transform: rotate(-0.5deg);
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 192.66px;
+height: 16px;
+
+font-family: 'Nunito Sans';
+font-style: italic;
+font-weight: 700;
+font-size: 11px;
+line-height: 15px;
+/* identical to box height, or 138% */
+display: flex;
+align-items: center;
+
+color: #2B2118;
+font-variation-settings: 'opsz' 11;
+
+transform: rotate(-0.5deg);
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+margin: -0.874355px 0px;
+
+
+/* Text */
+
+width: 59.26px;
+height: 16px;
+
+font-family: 'Nunito Sans';
+font-style: italic;
+font-weight: 700;
+font-size: 11px;
+line-height: 15px;
+/* identical to box height, or 138% */
+display: flex;
+align-items: center;
+
+color: #2B2118;
+font-variation-settings: 'opsz' 11;
+
+transform: rotate(-0.5deg);
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 248.31px;
+height: 14px;
+
+transform: rotate(-0.5deg);
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* — Pak RT (Pos Ronda 03) */
+
+width: 248.31px;
+height: 14px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 9px;
+line-height: 14px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+
+color: #5B4A38;
+font-variation-settings: 'opsz' 9;
+
+transform: rotate(-0.5deg);
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Rubber Stamp Badge */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 2px 8px;
+
+position: absolute;
+width: 96.76px;
+height: 22px;
+right: 14.74px;
+top: -9.55px;
+
+background: #A83226;
+border: 2px solid #2B2118;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 4px;
+transform: rotate(2.5deg);
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+z-index: 1;
+
+
+/* Text */
+
+width: 76.76px;
+height: 14px;
+
+font-family: 'Luckiest Guy';
+font-style: normal;
+font-weight: 400;
+font-size: 9px;
+line-height: 14px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+letter-spacing: 0.45px;
+text-transform: uppercase;
+
+color: #FFFFFF;
+
+transform: rotate(2.5deg);
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* 1. Header / Phone Status Bar & TopAppBar */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+position: absolute;
+height: 70.5px;
+left: 2px;
+right: 2px;
+top: 2px;
+
+background: #F3E9D2;
+border-bottom: 2px solid #2B2118;
+box-shadow: 0px 4px 0px #2B2118;
+
+
+/* Status Notch / Tray */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 4px 12px 2px;
+gap: 75.3px;
+
+width: 356px;
+height: 28.5px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+width: 62.37px;
+height: 18px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 9.6px;
+height: 10.32px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 9.6px;
+height: 10.32px;
+
+background: #2B2118;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 48.77px;
+height: 18px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 48.77px;
+height: 18px;
+
+font-family: 'Luckiest Guy';
+font-style: normal;
+font-weight: 800;
+font-size: 12px;
+line-height: 18px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+letter-spacing: 0.55px;
+
+color: #2B2118;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Background+Border */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 2px 8px;
+gap: 5.99px;
+
+width: 67.85px;
+height: 22.5px;
+
+background: #F1E7D0;
+border: 1px solid #2B2118;
+border-radius: 9999px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 11.75px;
+height: 11.75px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 11.75px;
+height: 11.75px;
+
+background: #A83226;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+width: 32.11px;
+height: 16.5px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Text */
+
+position: absolute;
+width: 32.11px;
+height: 17px;
+left: 0px;
+top: -1px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 800;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+letter-spacing: 0.55px;
+
+color: #2B2118;
+font-variation-settings: 'opsz' 11;
+
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+width: 37.53px;
+height: 16.5px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Container */
+
+width: 25.5px;
+height: 16.5px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Text */
+
+position: absolute;
+width: 25.5px;
+height: 17px;
+left: 0px;
+top: -1px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+letter-spacing: 0.55px;
+
+color: #2B2118;
+font-variation-settings: 'opsz' 11;
+
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 14.47px;
+height: 8.03px;
+
+transform: rotate(90deg);
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 14.47px;
+height: 8.03px;
+
+background: #2B2118;
+transform: rotate(90deg);
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* App Title Bar (Shared Components: TopAppBar) */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 6px 12px;
+gap: 129.81px;
+
+width: 356px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 142.44px;
+height: 28px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Background+Border+Shadow */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 28px;
+height: 28px;
+
+background: #C99A2E;
+border: 2px solid #2B2118;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 8px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 12.51px;
+height: 17.77px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 12.51px;
+height: 17.77px;
+
+background: #2B2118;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Heading 1 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 106.44px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 106.44px;
+height: 24px;
+
+font-family: 'Luckiest Guy';
+font-style: normal;
+font-weight: 400;
+font-size: 18px;
+line-height: 24px;
+/* identical to box height, or 133% */
+display: flex;
+align-items: center;
+letter-spacing: 0.45px;
+
+color: #2B2118;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Background+Border+Shadow */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 2px 8px;
+
+width: 59.75px;
+height: 23px;
+
+background: #9BB25A;
+border: 2px solid #2B2118;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 6px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 39.75px;
+height: 15px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 10px;
+line-height: 15px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+text-transform: uppercase;
+
+color: #2B2118;
+font-variation-settings: 'opsz' 10;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Footer - 5. Bottom Dock & Navigation Shell */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 8px 12px;
+gap: 6px;
+
+position: absolute;
+height: 117.79px;
+left: 2px;
+right: 2px;
+top: 516px;
+
+background: #F3E9D2;
+border-top: 2px solid #2B2118;
+box-shadow: 0px -4px 0px #2B2118;
+
+
+/* Button - Primary Big Tactile Action: Tutup HP (Min height 48px, active push stamp interaction) */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 332px;
+height: 48px;
+
+background: #B98A5A;
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 10px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 18.08px;
+height: 18.08px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 18.08px;
+height: 18.08px;
+
+background: #2B2118;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 81.44px;
+height: 27px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 81.44px;
+height: 27px;
+
+font-family: 'Luckiest Guy';
+font-style: normal;
+font-weight: 400;
+font-size: 18px;
+line-height: 27px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+text-align: center;
+letter-spacing: 0.45px;
+
+color: #2B2118;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* BottomNavBar (Shared Component implementation) */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-around;
+align-items: center;
+padding: 4px 0px 0px;
+gap: 19px;
+
+width: 332px;
+height: 45.79px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Button - Tab 1: Kebun */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 4px 12px;
+
+width: 58.72px;
+height: 41.79px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 16.77px;
+height: 19.79px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 16.77px;
+height: 19.79px;
+
+background: #5B4A38;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 34.72px;
+height: 14px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 34.72px;
+height: 14px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 10px;
+line-height: 14px;
+/* identical to box height, or 140% */
+display: flex;
+align-items: center;
+text-align: center;
+letter-spacing: 0.5px;
+
+color: #5B4A38;
+font-variation-settings: 'opsz' 10;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Button - Tab 2: Aplikasi (ACTIVE HOME STATE: style_active_navigation executed) */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 4px 12px;
+
+width: 73.09px;
+height: 40.62px;
+
+background: #C99A2E;
+border: 2px solid #2B2118;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 8px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 14.62px;
+height: 14.62px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 14.62px;
+height: 14.62px;
+
+background: #2B2118;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 45.09px;
+height: 14px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 45.09px;
+height: 14px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 10px;
+line-height: 14px;
+/* identical to box height, or 140% */
+display: flex;
+align-items: center;
+text-align: center;
+letter-spacing: 0.5px;
+
+color: #2B2118;
+font-variation-settings: 'opsz' 10;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Button - Tab 3: Pesan */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 4px 12px;
+
+width: 56.69px;
+height: 40.08px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 18.08px;
+height: 18.08px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 18.08px;
+height: 18.08px;
+
+background: #5B4A38;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 32.69px;
+height: 14px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 32.69px;
+height: 14px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 10px;
+line-height: 14px;
+/* identical to box height, or 140% */
+display: flex;
+align-items: center;
+text-align: center;
+letter-spacing: 0.5px;
+
+color: #5B4A38;
+font-variation-settings: 'opsz' 10;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Button - Tab 4: Juragan */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 4px 12px;
+
+width: 67.38px;
+height: 38.15px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 14.75px;
+height: 16.15px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 14.75px;
+height: 16.15px;
+
+background: #5B4A38;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 43.38px;
+height: 14px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 43.38px;
+height: 14px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 10px;
+line-height: 14px;
+/* identical to box height, or 140% */
+display: flex;
+align-items: center;
+text-align: center;
+letter-spacing: 0.5px;
+
+color: #5B4A38;
+font-variation-settings: 'opsz' 10;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* STITCH Juragan - Cat Tangan Berkontur */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 81.69px 0px 81.68px;
+
+position: relative;
+width: 390px;
+height: 895.87px;
+
+background: linear-gradient(0deg, #2B2118, #2B2118), #FFFFFF;
+
+
+/* Main - Mobile Viewport Container (Portrait 360x640 ergonomics) */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: space-between;
+align-items: flex-start;
+padding: 0px;
+
+width: 360px;
+max-width: 390px;
+height: 732.5px;
+min-height: 640px;
+
+background: radial-gradient(70.71% 70.71% at 50% 50%, #2B2118 5.75%, rgba(43, 33, 24, 0) 5.75%), radial-gradient(70.71% 70.71% at 50% 50%, #B98A5A 3.98%, #F3E9D2 3.98%);
+border: 4px solid #2B2118;
+box-shadow: 8px 8px 0px #000000;
+border-radius: 16px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Top Decorative Bamboo/Golden Header Glow Bar */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 4px 12px;
+gap: 75.9px;
+
+width: 352px;
+height: 30px;
+
+background: #C99A2E;
+border-bottom: 2px solid #2B2118;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+width: 57.35px;
+height: 14px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 9.38px;
+height: 10px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 9.38px;
+height: 10px;
+
+background: #2B2118;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 43.97px;
+height: 14px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 43.97px;
+height: 14px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 10px;
+line-height: 14px;
+/* identical to box height, or 140% */
+display: flex;
+align-items: center;
+letter-spacing: -0.25px;
+
+color: #2B2118;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Background+Border */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 2px 6px;
+
+width: 69.95px;
+height: 20px;
+
+background: #F7EDD6;
+border: 1px solid #2B2118;
+border-radius: 4px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 55.95px;
+height: 14px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 10px;
+line-height: 14px;
+/* identical to box height, or 140% */
+display: flex;
+align-items: center;
+letter-spacing: 0.55px;
+
+color: #2B2118;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+width: 40.63px;
+height: 14px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 23.3px;
+height: 14px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 23.3px;
+height: 14px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 10px;
+line-height: 14px;
+/* identical to box height, or 140% */
+display: flex;
+align-items: center;
+letter-spacing: 0.55px;
+
+color: #2B2118;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 13.33px;
+height: 6.67px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 13.33px;
+height: 6.67px;
+
+background: #2B2118;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Main Screen Content Canvas */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 12px;
+gap: 12px;
+
+width: 352px;
+height: 669.5px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Header - Top Title Bar with Online Status */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 4px 0px 0px;
+gap: 58.99px;
+
+width: 328px;
+height: 39px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 185.53px;
+height: 35px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Background+Border+Shadow */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 32px;
+height: 32px;
+
+background: #C99A2E;
+border: 2px solid #2B2118;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 8px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 12.5px;
+height: 18.33px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 12.5px;
+height: 18.33px;
+
+background: #2B2118;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 145.53px;
+height: 35px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Heading 1 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 145.53px;
+height: 23px;
+
+filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.05));
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+margin: -5px 0px;
+
+
+/* Text */
+
+width: 108.08px;
+height: 23px;
+
+font-family: 'Luckiest Guy';
+font-style: normal;
+font-weight: 400;
+font-size: 18px;
+line-height: 22px;
+/* identical to box height, or 125% */
+display: flex;
+align-items: center;
+letter-spacing: 0.5px;
+text-transform: uppercase;
+
+color: #2B2118;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 145.53px;
+height: 17px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 145.53px;
+height: 17px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 700;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+
+color: #5B4A38;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Status "ONLINE" Badge */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 4px 10px;
+gap: 6px;
+
+width: 83.48px;
+height: 28.5px;
+
+background: #9BB25A;
+border: 2px solid #2B2118;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 9999px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Background+Border */
+
+box-sizing: border-box;
+
+width: 8px;
+height: 8px;
+
+background: #FFF8EF;
+border: 1px solid #2B2118;
+border-radius: 9999px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+width: 45.48px;
+height: 16.5px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Text */
+
+position: absolute;
+width: 45.48px;
+height: 17px;
+left: 0px;
+top: -1px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+letter-spacing: 0.55px;
+
+color: #2B2118;
+
+
+
+/* Section - Status Chips Row (2px ink border, 8px radius, 44px min-touch wrapper) */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 8px;
+
+width: 328px;
+height: 58px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Chip 1: Nama Baik */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 7px 8px;
+gap: 40.16px;
+
+width: 160px;
+height: 58px;
+min-height: 44px;
+
+background: #F7EDD6;
+border: 2px solid #2B2118;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 8px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 1;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 6px;
+
+width: 80.16px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Background+Border */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 24px;
+height: 24px;
+
+background: #F6C97A;
+border: 1px solid #2B2118;
+border-radius: 4px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 12.5px;
+height: 11.88px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 12.5px;
+height: 11.88px;
+
+background: #2B2118;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 50.16px;
+height: 40px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 50.16px;
+height: 10px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 50.16px;
+height: 10px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 700;
+font-size: 10px;
+line-height: 10px;
+/* identical to box height, or 100% */
+display: flex;
+align-items: center;
+
+color: #5B4A38;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Margin */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 2px 0px 0px;
+
+width: 50.16px;
+height: 30px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 50.16px;
+height: 28px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* 120 Pts */
+
+width: 50.16px;
+height: 28px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 14px;
+line-height: 14px;
+/* or 100% */
+display: flex;
+align-items: center;
+
+color: #2B2118;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 16.5px;
+height: 15.75px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 16.5px;
+height: 15.75px;
+
+background: #9BB25A;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Chip 2: Pangkat */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 7.5px 8px;
+gap: 8.27px;
+
+width: 160px;
+height: 57px;
+min-height: 44px;
+
+background: #F7EDD6;
+border: 2px solid #2B2118;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 8px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 6px;
+
+width: 89.03px;
+height: 38px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Background+Border */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 24px;
+height: 24px;
+
+background: #C99A2E;
+border: 1px solid #2B2118;
+border-radius: 4px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 6.25px;
+height: 12.5px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 6.25px;
+height: 12.5px;
+
+background: #2B2118;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 59.03px;
+height: 38px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 59.03px;
+height: 10px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 59.03px;
+height: 10px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 700;
+font-size: 10px;
+line-height: 10px;
+/* identical to box height, or 100% */
+display: flex;
+align-items: center;
+
+color: #5B4A38;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Margin */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 2px 0px 0px;
+
+width: 59.03px;
+height: 28px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 59.03px;
+height: 26px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Juragan Kecil */
+
+width: 59.03px;
+height: 26px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 13px;
+line-height: 13px;
+/* or 100% */
+display: flex;
+align-items: center;
+
+color: #2B2118;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 12px;
+height: 15.75px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 12px;
+height: 15.75px;
+
+background: #C99A2E;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Section - Sus Meter Card (radius 14px, 2px contour, 4px hard shadow) */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 12px;
+gap: 10px;
+
+width: 328px;
+height: 147.5px;
+
+background: #FDF3DC;
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 14px;
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Sunken paper subtle border decoration */
+
+width: 300px;
+height: 48.5px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 2px;
+
+position: absolute;
+width: 217.69px;
+height: 48.5px;
+left: 0px;
+top: 0px;
+
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 4px;
+
+width: 217.69px;
+height: 16.5px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 11.53px;
+height: 12px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 11.53px;
+height: 12px;
+
+background: #A8452F;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+width: 202.16px;
+height: 16.5px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Text */
+
+position: absolute;
+width: 202.16px;
+height: 17px;
+left: 0px;
+top: -1px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+letter-spacing: 0.55px;
+
+color: #5B4A38;
+
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: baseline;
+padding: 0px;
+
+width: 217.69px;
+height: 30px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 198.31px;
+height: 30px;
+
+font-family: 'Luckiest Guy';
+font-style: normal;
+font-weight: 900;
+font-size: 20px;
+line-height: 30px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+letter-spacing: 0.5px;
+
+color: #A8452F;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Rubber Stamp: RAWAN! (Tilted Stempel) */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 6.50121px 8px 1.99879px;
+
+position: absolute;
+width: 75.61px;
+height: 32.5px;
+left: 222.9px;
+top: -7.87px;
+
+background: #FFFFFF;
+border: 2px solid #A83226;
+box-shadow: 1px 1px 0px #A83226;
+border-radius: 4px;
+transform: rotate(6deg);
+
+
+/* Text */
+
+width: 55.61px;
+height: 20px;
+
+font-family: 'Luckiest Guy';
+font-style: normal;
+font-weight: 900;
+font-size: 13px;
+line-height: 20px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+letter-spacing: 1.3px;
+text-transform: uppercase;
+
+color: #A83226;
+
+transform: rotate(6deg);
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Meter Progress Bar */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 3.5px;
+
+width: 300px;
+height: 61px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Background+Border+Shadow */
+
+box-sizing: border-box;
+
+width: 300px;
+height: 16px;
+
+background: #F3E9D2;
+border: 2px solid #2B2118;
+box-shadow: inset 0px 2px 4px 2px rgba(0, 0, 0, 0.05);
+border-radius: 9999px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Progress Fill (62%) */
+
+box-sizing: border-box;
+
+position: absolute;
+left: 1.33%;
+right: 38.32%;
+top: 4px;
+bottom: 4px;
+
+background: linear-gradient(90deg, #F6C97A 0%, #C99A2E 50%, #A8452F 100%);
+border-right: 1px solid #2B2118;
+border-radius: 9999px;
+
+
+/* Threshold marker at 80 */
+
+position: absolute;
+left: 79.6%;
+right: 19.73%;
+top: 2px;
+bottom: 2px;
+
+background: #A8452F;
+
+
+/* Threshold Flag & Warning Hint */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 0px;
+gap: 169.69px;
+
+width: 300px;
+height: 15px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 2px;
+
+width: 35.53px;
+height: 15px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Background */
+
+width: 6px;
+height: 6px;
+
+background: #9BB25A;
+border-radius: 9999px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 27.53px;
+height: 15px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 700;
+font-size: 10px;
+line-height: 15px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+
+color: #5B4A38;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 3.99px;
+
+width: 90.95px;
+height: 15px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 9.19px;
+height: 11.37px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 9.19px;
+height: 11.37px;
+
+background: #A8452F;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 77.77px;
+height: 15px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 800;
+font-size: 10px;
+line-height: 15px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+
+color: #A8452F;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Background+Border */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 4px 8px;
+gap: 6px;
+
+width: 300px;
+height: 23px;
+
+background: #FFF8EF;
+border: 1px solid rgba(43, 33, 24, 0.4);
+border-radius: 4px;
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 13.31px;
+height: 11.5px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 13.31px;
+height: 11.5px;
+
+background: #A83226;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 256.44px;
+height: 13px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 256.44px;
+height: 13px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 700;
+font-size: 10px;
+line-height: 12px;
+/* identical to box height, or 125% */
+display: flex;
+align-items: center;
+
+color: #2B2118;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Section - App Grid (4x2 chunky 64px painted tactile stickers) */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+gap: 6px;
+
+width: 328px;
+height: 177.5px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 0px 4px;
+gap: 145.4px;
+
+width: 328px;
+height: 16.5px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+width: 117.41px;
+height: 16.5px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Text */
+
+position: absolute;
+width: 117.41px;
+height: 17px;
+left: 0px;
+top: -1px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+letter-spacing: 0.55px;
+text-transform: uppercase;
+
+color: #5B4A38;
+
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 57.19px;
+height: 15px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 57.19px;
+height: 15px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 700;
+font-size: 10px;
+line-height: 15px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+
+color: #5B4A38;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+width: 328px;
+height: 155px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Button - 1. Kebun (Rice Green) */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 4px 15.25px;
+
+position: absolute;
+width: 74.5px;
+height: 72px;
+min-height: 68px;
+left: 0px;
+top: 0px;
+
+background: #F7EDD6;
+border: 2px solid #2B2118;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 14px;
+
+
+/* Background+Border+Shadow */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 40px;
+height: 40px;
+
+background: #9BB25A;
+border: 2px solid #2B2118;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 18px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 18px;
+height: 20px;
+
+background: #2B2118;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Margin */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 3px 0px 0px;
+
+width: 33.89px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 33.89px;
+height: 17px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 33.89px;
+height: 17px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #2B2118;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Button - 3. Toko Bibit (Warung Bibit) */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 4px 8.09px 4px 8.08px;
+
+position: absolute;
+width: 74.5px;
+height: 72px;
+min-height: 68px;
+left: 169px;
+top: 0px;
+
+background: #F7EDD6;
+border: 2px solid #2B2118;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 14px;
+
+
+/* Background+Border+Shadow */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 40px;
+height: 40px;
+
+background: #F6C97A;
+border: 2px solid #2B2118;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 20.09px;
+height: 18px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 20.09px;
+height: 18px;
+
+background: #2B2118;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Margin */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 3px 0px 0px;
+
+width: 54.33px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 54.33px;
+height: 17px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 54.33px;
+height: 17px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #2B2118;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Button - 4. Papan (Papan Juara / Trophy) */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 4px 15.25px;
+
+position: absolute;
+width: 74.5px;
+height: 72px;
+min-height: 68px;
+left: 253.5px;
+top: 0px;
+
+background: #F7EDD6;
+border: 2px solid #2B2118;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 14px;
+
+
+/* Background+Border+Shadow */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 40px;
+height: 40px;
+
+background: #B98A5A;
+border: 2px solid #2B2118;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 18px;
+height: 18px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 18px;
+height: 18px;
+
+background: #2B2118;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Margin */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 3px 0px 0px;
+
+width: 33.19px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 33.19px;
+height: 17px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 33.19px;
+height: 17px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #2B2118;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Button - 6. Dekorasi (Caping Hat / Saung) */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 4px 11.66px 4px 11.64px;
+gap: 0px;
+
+position: absolute;
+width: 74.5px;
+height: 72px;
+min-height: 68px;
+left: 84.5px;
+top: 82.5px;
+
+background: #F7EDD6;
+border: 2px solid #2B2118;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 14px;
+
+
+/* Background+Border+Shadow */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 40px;
+height: 40px;
+
+background: #B8D074;
+border: 2px solid #2B2118;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 20px;
+height: 16px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 20px;
+height: 16px;
+
+background: #2B2118;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Margin */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 3px 0px 0px;
+
+width: 47.2px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 47.2px;
+height: 17px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 47.2px;
+height: 17px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #2B2118;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Button - 7. BayarLater (Tile Red Wallet) */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 4px 5.77px 4px 5.75px;
+gap: 0px;
+
+position: absolute;
+width: 74.5px;
+height: 72px;
+min-height: 68px;
+left: 169px;
+top: 82.5px;
+
+background: #F7EDD6;
+border: 2px solid #2B2118;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 14px;
+
+
+/* Background+Border+Shadow */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 40px;
+height: 40px;
+
+background: #A8452F;
+border: 2px solid #2B2118;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 19px;
+height: 18px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 19px;
+height: 18px;
+
+background: #FFF8EF;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Margin */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 3px 0px 0px;
+
+width: 58.98px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 58.98px;
+height: 17px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 58.98px;
+height: 17px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #2B2118;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Button - 8. Curang (Topeng / Mata Intip Red) */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 4px 15.25px;
+gap: 0px;
+
+position: absolute;
+width: 74.5px;
+height: 72px;
+min-height: 68px;
+left: 253.5px;
+top: 82.5px;
+
+background: rgba(168, 50, 38, 0.1);
+border: 2px solid #A83226;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 14px;
+
+
+/* Background+Border+Shadow */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 40px;
+height: 40px;
+
+background: #A83226;
+border: 2px solid #2B2118;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 22px;
+height: 15px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 22px;
+height: 15px;
+
+background: #FFF8EF;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Margin */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 3px 0px 0px;
+
+width: 38.53px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 38.53px;
+height: 17px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 38.53px;
+height: 17px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #A83226;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Button - 2. Tugas (Turmeric Gold + Notification badge 2) */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 4px 15.25px;
+isolation: isolate;
+
+position: absolute;
+width: 74.5px;
+height: 72px;
+min-height: 68px;
+left: 84.5px;
+top: 0px;
+
+background: #F7EDD6;
+border: 2px solid #2B2118;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 14px;
+
+
+/* Background+Border+Shadow */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 40px;
+height: 40px;
+
+background: #C99A2E;
+border: 2px solid #2B2118;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+z-index: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 18px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 18px;
+height: 20px;
+
+background: #2B2118;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Margin */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 3px 0px 0px;
+
+width: 31.44px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+z-index: 1;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 31.44px;
+height: 17px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 31.44px;
+height: 17px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #2B2118;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Red Notification Badge 2 */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px 6px;
+
+position: absolute;
+width: 20px;
+height: 17px;
+right: 6px;
+top: 1.5px;
+
+background: #A8452F;
+border: 1px solid #2B2118;
+box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.05);
+border-radius: 9999px;
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+z-index: 2;
+
+
+/* Text */
+
+width: 6px;
+height: 15px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 10px;
+line-height: 15px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #FFF8EF;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Button - 5. Lapor (Camera + Badge 1) */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+padding: 4px 15.25px;
+gap: 0px;
+isolation: isolate;
+
+position: absolute;
+width: 74.5px;
+height: 72px;
+min-height: 68px;
+left: 0px;
+top: 82.5px;
+
+background: #F7EDD6;
+border: 2px solid #2B2118;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 14px;
+
+
+/* Overlay+Border+Shadow */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 0px;
+
+width: 40px;
+height: 40px;
+
+background: rgba(59, 79, 107, 0.4);
+border: 2px solid #2B2118;
+box-shadow: 2px 2px 0px #2B2118;
+border-radius: 12px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+z-index: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 20px;
+height: 18px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 20px;
+height: 18px;
+
+background: #2B2118;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Margin */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 3px 0px 0px;
+
+width: 30.91px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+z-index: 1;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 30.91px;
+height: 17px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 30.91px;
+height: 17px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #2B2118;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Notification Badge 1 */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px 6px;
+
+position: absolute;
+width: 20px;
+height: 17px;
+right: 6px;
+top: 1.5px;
+
+background: #A8452F;
+border: 1px solid #2B2118;
+box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.05);
+border-radius: 9999px;
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+z-index: 2;
+
+
+/* Text */
+
+width: 6px;
+height: 15px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 10px;
+line-height: 15px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+text-align: center;
+
+color: #FFF8EF;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Section - Message Card: Stamped Paper Note "PESAN TETANGGA */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 12px;
+gap: 4px;
+isolation: isolate;
+
+width: 328px;
+height: 109.5px;
+
+background: #F1E7D0;
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 14px;
+
+/* Inside auto layout */
+flex: none;
+order: 4;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* HorizontalBorder */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 0px 0px 6px;
+gap: 103.08px;
+
+width: 300px;
+height: 29px;
+
+border-bottom: 2px solid rgba(43, 33, 24, 0.2);
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+z-index: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 0px;
+gap: 6px;
+
+width: 125.67px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 13.33px;
+height: 14.67px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 13.33px;
+height: 14.67px;
+
+background: #A8452F;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Heading 2 */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 106.34px;
+height: 20px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 106.34px;
+height: 20px;
+
+font-family: 'Luckiest Guy';
+font-style: normal;
+font-weight: 400;
+font-size: 13px;
+line-height: 20px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+letter-spacing: 0.325px;
+text-transform: uppercase;
+
+color: #2B2118;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Background+Border */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 2px 6px;
+
+width: 68.58px;
+height: 21px;
+
+background: #F3E9D2;
+border: 1px solid rgba(43, 33, 24, 0.4);
+border-radius: 4px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 54.58px;
+height: 15px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 800;
+font-size: 10px;
+line-height: 15px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+
+color: #5B4A38;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 1px 0px 0px;
+
+width: 300px;
+height: 23px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+align-self: stretch;
+flex-grow: 0;
+z-index: 1;
+
+
+/* “Curang itu cepat, tapi tetangga bisa ngerekam.” */
+
+width: 300px;
+height: 22px;
+
+font-family: 'Nunito Sans';
+font-style: italic;
+font-weight: 700;
+font-size: 13px;
+line-height: 21px;
+/* identical to box height, or 163% */
+display: flex;
+align-items: center;
+
+color: #2B2118;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* HorizontalBorder */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+align-items: center;
+padding: 4px 0px 0px;
+gap: 46.96px;
+
+width: 300px;
+height: 21.5px;
+
+border-top: 1px solid rgba(43, 33, 24, 0.1);
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+align-self: stretch;
+flex-grow: 0;
+z-index: 2;
+
+
+/* Container */
+
+width: 136.52px;
+height: 16.5px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Text */
+
+position: absolute;
+width: 136.52px;
+height: 17px;
+left: 0px;
+top: -1px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 900;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+
+color: #5B4A38;
+
+
+
+/* Overlay */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px 4px;
+
+width: 116.52px;
+height: 15px;
+
+background: rgba(168, 69, 47, 0.1);
+border-radius: 4px;
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 108.52px;
+height: 15px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 800;
+font-size: 10px;
+line-height: 15px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+
+color: #A8452F;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Top Pin/Tape Illusion */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 48px;
+height: 12px;
+left: calc(50% - 48px/2 - 0.1px);
+top: -6.42px;
+
+background: rgba(246, 201, 122, 0.8);
+border: 1px solid rgba(43, 33, 24, 0.6);
+border-radius: 2px;
+transform: rotate(-1deg);
+
+/* Inside auto layout */
+flex: none;
+order: 3;
+flex-grow: 0;
+z-index: 3;
+
+
+/* Bottom Action Button: TUTUP HP (Radius 10px, Min-Touch 44px, 4px hard shadow) */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 4px 0px;
+
+width: 328px;
+height: 54px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 5;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Button */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 9px 0px;
+gap: 8px;
+
+width: 328px;
+height: 46px;
+min-height: 46px;
+
+background: #C99A2E;
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 10px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 18.33px;
+height: 18.33px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Icon */
+
+width: 18.33px;
+height: 18.33px;
+
+background: #2B2118;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px;
+
+width: 93.64px;
+height: 24px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 93.64px;
+height: 24px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 600;
+font-size: 18px;
+line-height: 24px;
+/* identical to box height, or 133% */
+display: flex;
+align-items: center;
+text-align: center;
+letter-spacing: 0.45px;
+
+color: #2B2118;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Fixed Bottom Safe-Zone Micro Bar */
+
+box-sizing: border-box;
+
+/* Auto layout */
+display: flex;
+flex-direction: row;
+align-items: center;
+padding: 4px 16px;
+
+width: 352px;
+height: 25px;
+
+background: #F3E9D2;
+border-top: 2px solid #2B2118;
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+align-self: stretch;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 105.09px;
+height: 15px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 105.09px;
+height: 15px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 700;
+font-size: 10px;
+line-height: 15px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+
+color: #5B4A38;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Margin */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 0px 36.6406px;
+
+width: 121.28px;
+min-width: 48px;
+height: 4px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 1;
+flex-grow: 1;
+
+
+/* Overlay */
+
+width: 48px;
+height: 4px;
+
+background: rgba(43, 33, 24, 0.3);
+border-radius: 9999px;
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* Container */
+
+/* Auto layout */
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding: 0px;
+
+width: 93.63px;
+height: 15px;
+
+
+/* Inside auto layout */
+flex: none;
+order: 2;
+flex-grow: 0;
+
+
+/* Text */
+
+width: 93.63px;
+height: 15px;
+
+font-family: 'Nunito Sans';
+font-style: normal;
+font-weight: 700;
+font-size: 10px;
+line-height: 15px;
+/* identical to box height, or 150% */
+display: flex;
+align-items: center;
+
+color: #5B4A38;
+
+
+/* Inside auto layout */
+flex: none;
+order: 0;
+flex-grow: 0;
+
+
+/* FIGMA - HP Juragan — Cat tangan berkontur */
+
+position: relative;
+width: 360px;
+height: 640px;
+
+background: url(.jpg);
+
+
+/* Kepala HP */
+
+position: absolute;
+width: 328px;
+height: 52px;
+left: 16px;
+top: 16px;
+
+
+
+/* JURAGAN DESA */
+
+position: absolute;
+width: 250px;
+height: 16px;
+left: 0px;
+top: 0px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 145% */
+
+color: #5B4A38;
+
+
+
+/* HP JURAGAN */
+
+position: absolute;
+width: 280px;
+height: 32px;
+left: 0px;
+top: 19px;
+
+font-family: 'Luckiest Guy';
+font-style: normal;
+font-weight: 400;
+font-size: 28px;
+line-height: 32px;
+/* identical to box height, or 114% */
+
+color: #2B2118;
+
+
+
+/* Sinyal desa */
+
+position: absolute;
+width: 5px;
+height: 8px;
+left: 296px;
+top: 33px;
+
+background: #2B2118;
+border-radius: 1px;
+
+
+/* Sinyal desa */
+
+position: absolute;
+width: 5px;
+height: 14px;
+left: 305px;
+top: 27px;
+
+background: #2B2118;
+border-radius: 1px;
+
+
+/* Sinyal desa */
+
+position: absolute;
+width: 5px;
+height: 20px;
+left: 314px;
+top: 21px;
+
+background: #2B2118;
+border-radius: 1px;
+
+
+/* Status juragan */
+
+position: absolute;
+width: 328px;
+height: 152px;
+left: 16px;
+top: 80px;
+
+
+
+/* Meter kecurigaan */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 324px;
+height: 96px;
+left: 0px;
+top: 0px;
+
+background: url(.jpg), #F3E9D2;
+background-blend-mode: multiply, normal;
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 14px;
+
+
+/* / 100 */
+
+position: absolute;
+width: 58px;
+height: 16px;
+left: 189px;
+top: 14px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 145% */
+
+color: #5B4A38;
+
+
+
+/* Skala Sus */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 300px;
+height: 16px;
+left: 12px;
+top: 39px;
+
+background: url(.jpg), #F3E9D2;
+background-blend-mode: multiply, normal;
+border: 2px solid #2B2118;
+border-radius: 8px;
+
+
+/* Sus 62 persen */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 183px;
+height: 12px;
+left: 2px;
+top: 2px;
+
+background: url(.jpg), #A83226;
+background-blend-mode: multiply, normal;
+border: 2px solid #2B2118;
+border-radius: 6px;
+
+
+/* Ambang razia 80 */
+
+position: absolute;
+width: 2px;
+height: 25px;
+left: 251px;
+top: 34px;
+
+background: #2B2118;
+
+
+/* 80 */
+
+position: absolute;
+width: 26px;
+height: 16px;
+left: 242px;
+top: 19px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 145% */
+
+color: #2B2118;
+
+
+
+/* Sampai 80, Polisi Desa datang razia */
+
+position: absolute;
+width: 300px;
+height: 16px;
+left: 12px;
+top: 66px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 145% */
+
+color: #5B4A38;
+
+
+
+/* Stempel Sus */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 104px;
+height: 28px;
+left: 11.02px;
+top: 7px;
+
+border: 2px solid #A83226;
+border-radius: 4px;
+transform: rotate(2deg);
+
+
+/* Sus 62 */
+
+position: absolute;
+width: 88px;
+height: 22px;
+left: 8.03px;
+top: 5.28px;
+
+font-family: 'Luckiest Guy';
+font-style: normal;
+font-weight: 400;
+font-size: 18px;
+line-height: 22px;
+/* identical to box height, or 122% */
+
+color: #A83226;
+
+transform: rotate(2deg);
+
+
+/* Nama baik */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 164px;
+height: 44px;
+left: 0px;
+top: 108px;
+
+background: url(.jpg), #F6C97A;
+background-blend-mode: multiply, normal;
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 8px;
+
+
+/* Nama Baik 120 */
+
+position: absolute;
+width: 120px;
+height: 18px;
+left: 38px;
+top: 13px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* identical to box height, or 138% */
+
+color: #2B2118;
+
+
+
+/* Star */
+
+position: absolute;
+left: 5.49%;
+right: 79.88%;
+top: 23.15%;
+bottom: 23.15%;
+
+
+
+/* Vector */
+
+position: absolute;
+left: 5.49%;
+right: 79.88%;
+top: 23.15%;
+bottom: 23.15%;
+
+background: #F6C97A;
+border: 1.5px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 8.92%;
+right: 80.56%;
+top: 44.46%;
+bottom: 26.56%;
+
+background: #F6C97A;
+
+
+/* Pangkat juragan */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 148px;
+height: 44px;
+left: 176px;
+top: 108px;
+
+background: url(.jpg), #6F8A3F;
+background-blend-mode: multiply, normal;
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 8px;
+
+
+/* Juragan Kecil */
+
+position: absolute;
+width: 108px;
+height: 18px;
+left: 36px;
+top: 13px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* identical to box height, or 138% */
+
+color: #F3E9D2;
+
+
+
+/* Crown */
+
+position: absolute;
+left: 6.08%;
+right: 77.7%;
+top: 24.93%;
+bottom: 24.93%;
+
+
+
+/* Vector */
+
+position: absolute;
+left: 6.08%;
+right: 77.7%;
+top: 24.93%;
+bottom: 24.93%;
+
+background: #F6C97A;
+border: 1.54839px solid #2B2118;
+
+
+/* Vector */
+
+position: absolute;
+left: 16.28%;
+right: 78.49%;
+top: 39%;
+bottom: 26.69%;
+
+background: #F6C97A;
+
+
+/* Vector */
+
+position: absolute;
+left: 7.91%;
+right: 79.53%;
+top: 64.52%;
+bottom: 24.93%;
+
+background: #F6C97A;
+border: 1.54839px solid #2B2118;
+
+
+/* Aplikasi desa */
+
+position: absolute;
+width: 328px;
+height: 208px;
+left: 16px;
+top: 248px;
+
+
+
+/* Kebun */
+
+position: absolute;
+width: 72px;
+height: 96px;
+left: 0px;
+top: 0px;
+
+
+
+/* Ikon Kebun */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 64px;
+height: 64px;
+left: 4px;
+top: 0px;
+
+background: url(.jpg);
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 10px;
+
+
+/* Kebun */
+
+position: absolute;
+width: 80px;
+height: 18px;
+left: -4px;
+top: 74px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* identical to box height, or 138% */
+text-align: center;
+
+color: #2B2118;
+
+
+
+/* Tugas */
+
+position: absolute;
+width: 72px;
+height: 96px;
+left: 84px;
+top: 0px;
+
+
+
+/* Ikon Tugas */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 64px;
+height: 64px;
+left: 4px;
+top: 0px;
+
+background: url(.jpg);
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 10px;
+
+
+/* Tugas */
+
+position: absolute;
+width: 80px;
+height: 18px;
+left: -4px;
+top: 74px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* identical to box height, or 138% */
+text-align: center;
+
+color: #2B2118;
+
+
+
+/* Notifikasi 2 */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 24px;
+height: 24px;
+left: 51.91px;
+top: -6px;
+
+background: url(.jpg), #A83226;
+background-blend-mode: multiply, normal;
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 8px;
+transform: rotate(5deg);
+
+
+/* 2 */
+
+position: absolute;
+width: 24px;
+height: 18px;
+left: 0.26px;
+top: 2.99px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* identical to box height, or 138% */
+text-align: center;
+
+color: #F3E9D2;
+
+transform: rotate(5deg);
+
+
+/* Toko Bibit */
+
+position: absolute;
+width: 72px;
+height: 96px;
+left: 168px;
+top: 0px;
+
+
+
+/* Ikon Toko Bibit */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 64px;
+height: 64px;
+left: 4px;
+top: 0px;
+
+background: url(.jpg);
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 10px;
+
+
+/* Toko Bibit */
+
+position: absolute;
+width: 80px;
+height: 18px;
+left: -4px;
+top: 74px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* identical to box height, or 138% */
+text-align: center;
+
+color: #2B2118;
+
+
+
+/* Papan */
+
+position: absolute;
+width: 72px;
+height: 96px;
+left: 252px;
+top: 0px;
+
+
+
+/* Ikon Papan */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 64px;
+height: 64px;
+left: 4px;
+top: 0px;
+
+background: url(.jpg);
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 10px;
+
+
+/* Papan */
+
+position: absolute;
+width: 80px;
+height: 18px;
+left: -4px;
+top: 74px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* identical to box height, or 138% */
+text-align: center;
+
+color: #2B2118;
+
+
+
+/* Lapor */
+
+position: absolute;
+width: 72px;
+height: 96px;
+left: 0px;
+top: 108px;
+
+
+
+/* Ikon Lapor */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 64px;
+height: 64px;
+left: 4px;
+top: 0px;
+
+background: url(.jpg);
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 10px;
+
+
+/* Lapor */
+
+position: absolute;
+width: 80px;
+height: 18px;
+left: -4px;
+top: 74px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* identical to box height, or 138% */
+text-align: center;
+
+color: #2B2118;
+
+
+
+/* Notifikasi 1 */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 24px;
+height: 24px;
+left: 51.91px;
+top: -6px;
+
+background: url(.jpg), #A83226;
+background-blend-mode: multiply, normal;
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 8px;
+transform: rotate(5deg);
+
+
+/* 1 */
+
+position: absolute;
+width: 24px;
+height: 18px;
+left: 0.26px;
+top: 2.99px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* identical to box height, or 138% */
+text-align: center;
+
+color: #F3E9D2;
+
+transform: rotate(5deg);
+
+
+/* Dekorasi */
+
+position: absolute;
+width: 72px;
+height: 96px;
+left: 84px;
+top: 108px;
+
+
+
+/* Ikon Dekorasi */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 64px;
+height: 64px;
+left: 4px;
+top: 0px;
+
+background: url(.jpg);
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 10px;
+
+
+/* Dekorasi */
+
+position: absolute;
+width: 80px;
+height: 18px;
+left: -4px;
+top: 74px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* identical to box height, or 138% */
+text-align: center;
+
+color: #2B2118;
+
+
+
+/* BayarLater */
+
+position: absolute;
+width: 72px;
+height: 96px;
+left: 168px;
+top: 108px;
+
+
+
+/* Ikon BayarLater */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 64px;
+height: 64px;
+left: 4px;
+top: 0px;
+
+background: url(.jpg);
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 10px;
+
+
+/* BayarLater */
+
+position: absolute;
+width: 80px;
+height: 18px;
+left: -4px;
+top: 74px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* identical to box height, or 138% */
+text-align: center;
+
+color: #2B2118;
+
+
+
+/* Curang */
+
+position: absolute;
+width: 72px;
+height: 96px;
+left: 252px;
+top: 108px;
+
+
+
+/* Ikon Curang */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 64px;
+height: 64px;
+left: 4px;
+top: 0px;
+
+background: url(.jpg);
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 10px;
+
+
+/* Curang */
+
+position: absolute;
+width: 80px;
+height: 18px;
+left: -4px;
+top: 74px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* identical to box height, or 138% */
+text-align: center;
+
+color: #2B2118;
+
+
+
+/* Petuah desa */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 324px;
+height: 72px;
+left: 16px;
+top: 472px;
+
+background: url(.jpg), #F3E9D2;
+background-blend-mode: multiply, normal;
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 14px;
+
+
+/* PETUAH TETANGGA */
+
+position: absolute;
+width: 296px;
+height: 16px;
+left: 12px;
+top: 8px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 11px;
+line-height: 16px;
+/* identical to box height, or 145% */
+letter-spacing: 0.5px;
+
+color: #A83226;
+
+
+
+/* Curang itu cepat, tapi tetangga bisa ngerekam. */
+
+position: absolute;
+width: 284px;
+height: 36px;
+left: 12px;
+top: 28px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 13px;
+line-height: 18px;
+/* or 138% */
+
+color: #2B2118;
+
+
+
+/* Tutup HP */
+
+position: absolute;
+width: 328px;
+height: 56px;
+left: 16px;
+top: 568px;
+
+
+
+/* Tombol Tutup HP */
+
+box-sizing: border-box;
+
+position: absolute;
+width: 324px;
+height: 52px;
+left: 0px;
+top: 0px;
+
+background: url(.jpg), #6F8A3F;
+background-blend-mode: multiply, normal;
+border: 2px solid #2B2118;
+box-shadow: 4px 4px 0px #2B2118;
+border-radius: 10px;
+
+
+/* Tutup HP */
+
+position: absolute;
+width: 324px;
+height: 22px;
+left: 0px;
+top: 15px;
+
+font-family: 'Nunito';
+font-style: normal;
+font-weight: 800;
+font-size: 18px;
+line-height: 22px;
+/* identical to box height, or 122% */
+text-align: center;
+
+color: #F3E9D2;
+

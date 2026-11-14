@@ -1,0 +1,320 @@
+Title: How I Do Lighting & Atmosphere in Roblox
+URL: https://www.youtube.com/watch?v=UlvSrWHESwA
+
+(0:00) Hey everyone. So, pretty recently I've had a handful of people come and ask me, "Hey, how do you do your lighting and atmosphere?" So, I decided, why not make a video on it?
+(0:11) [music] First off, hi, I'm Fives. I strive to create detailed 3D immersive environments [music] and experiences
+(0:19) that I resonate with because I find it fun and relaxing and that I'm kind of good at.
+(0:25) I've been using studio for [music] like at least 8 years, give or take, and I've learned that lighting and
+(0:33) atmosphere are key puzzle [music] pieces that go into the bigger picture of drawing a line between a good game and a
+(0:41) talented, gifted experience [music] that people will remember.
+(0:46) Some of you might be watching cuz you know me, or some of you might be watching to learn what I just said. I'll do my best to make sure that by the end
+(0:54) you'll step away from this video and you'll understand [music] how I think about lighting, how I build atmosphere, and how to apply it to your own games, even if you're not a lighting expert.
+(1:06) Before you even do your lighting, you got to think, what mood and emotion am I trying to portray? [music] How do I want this to feel? You can have the same
+(1:15) landscape and it can have drastically different lighting and atmosphere solely dependent on the mood and feeling you want the player to have. [music]
+(1:23) All right, so you're watching a lighting and atmosphere video. Obviously, you already got your map done. And this is a little like base plate [music] thingy
+(1:30) that I used to display stuff that I made a while ago. And uh just keep reusing it and using it for different lighting and atmosphere. So, let's say you [music]
+(1:38) want it to be a nice bright sunny day with a happy feeling like the uh picture before, or you want it to be some
+(1:47) darker, more eerie, gritty, foggy atmosphere like the picture before. Well, you're in luck, random citizen.
+(1:55) I'll show you how to do both. [music] All right, step one. Clock time controls your time of day and where your sun's
+(2:04) at. Obviously got mine set right above here. Put that at uh I'd say 14 there.
+(2:12) [music] And obviously it controls where your sun's at and where your light glare and all that sun rays are going to be,
+(2:20) but it also controls your shadows as well. So for this little trench area here, [music] I want some nice shadow coming down on the side. So that'll help
+(2:29) with that cuz you want some uh light to dark contrast.
+(2:34) Step two, play around with the lighting properties. [music] If you ever stepped foot outside, you'll notice that the sun's a bit brighter than this. So, I'd
+(2:41) recommend turning up that brightness, changing the lighting style to realistic, too, and matching that ambient to something more like with a
+(2:50) yellow undertone, more brighter and happy. I mean, it may not change much, but the little details like that count.
+(2:59) All righty. It's looking pretty good already. But if you want to go the extra mile, that's where the atmosphere comes in. When I say atmosphere, I don't just mean the actual thing called atmosphere.
+(3:09) [music] I mean, I do, but I also mean the skybox, bloom, color correction, depth of field, sun rays, and all that
+(3:16) stuff. [music] If you don't see any of the uh little features that I just said, you can always [music] hit lighting here and for
+(3:24) instance, color correction effect. You just slap that right in there. Picking a skybox is important [music] cuz you want one that looks good and compliments your
+(3:33) build. I just normally grab mine from toolbox.
+(3:41) Loom here is basically the glow or the the shine of the light from the sun and also point lights and other [music] stuff like that that you add into the game.
+(3:53) your atmosphere. You typically want it to complement the colors you've chosen to be like the main focus of your lighting, which in this case is yellow
+(4:00) and blue. I also like to give it a bit of density, haze, and glare, [music] just to like brighten it up a bit. And
+(4:09) usually I like doing this cuz the style that I'm going for with this daytime [music] is from Halo 2 Anniversary, which is one of my favorite games, like
+(4:17) kind of ever. [music] Next up, you got color correction. Here you can change the [music] brightness,
+(4:26) contrast, saturation, and tint.
+(4:33) [music]
+(4:34) I don't like uh messing around with photos on your phone. All the options that gives you just enable and disable it. Also, it's pretty nice.
+(4:44) When I'm doing color correction, I don't typically change too much with it.
+(4:49) more so if we're doing stylized builds like uh if you want something black and white or I don't know just something
+(4:57) [music] super warped out like uh I was changing it before.
+(5:01) I'll just do a little bit of minor tweaks with it just to add more warmth. Next [music] up would be depth of field.
+(5:10) I don't think I'm going to touch depth of field for this lighting tutorial very much unless maybe I do that in the rain
+(5:17) part. Uh, I have no idea cuz I'm filming this before, but yeah, you can see why.
+(5:26) Doesn't really add much to the lighting at all. More so for just distance [music] blur.
+(5:33) Then finally, we got sun rays. This one's pretty self-explanatory. You just [music] mess around with how intense you want the sunrays to be. I'm actually
+(5:42) kind of content with how it is right now, so I'm just going to let that be.
+(5:46) Also, doing this tutorial, I uh found out you can stack sunray effects, which is uh pretty neat if you want to blind
+(5:53) [music] someone. Lastly, a big part that's often overlooked is ambient sounds. And for this one, I just grabbed
+(6:02) a forest ambient sound from the toolbox and put it on loop and sound service.
+(6:08) A large part of the atmosphere and the surrounding of the game isn't just visually, but also audibly as well.
+(6:44) Well, that's it. All right. Thanks for watching, guys. See you in the next video.
+(6:54) Ah, wait. Am I missing something?
+(6:58) Oh, yeah. Wait, I got to do that uh old dark rainy part.
+(7:02) So obviously now that we're doing a darker atmosphere, we want to change time to night. And from there, I'd go
+(7:10) right into making the ambience [music] pretty dark to make it a stark contrast to our previous sunny daytime.
+(7:19) For this one, I'll be adding a light as a point for the player's eye to catch since it's also much darker.
+(7:26) As we keep going and making more tweaks, it'll get darker. And obviously a major tweak that we need to make is changing [music] that atmosphere cuz we certainly don't need that glare anymore.
+(7:42) Now you're probably thinking, "Oh, why is it so bright?" Cuz I forgot to edit in burning down the brightness.
+(7:50) There you go. Nice and dark.
+(7:54) I'd also go in that color correction, kind of reset it there because we don't need it to be that warm and change that
+(8:02) tint color to something more blue or whatever you're going for.
+(8:08) For our little light here, I don't really think it reaches enough. So, we'll go and grab Got two point lights set up here. One for closer cuz the uh
+(8:16) light does appear to be more bright closer. And then one for distance to try and make it reach farther. Going to take
+(8:24) that turn it [music] down just a little bit. And then increase that ring.
+(8:30) [music]
+(8:32) So you got your little nighttime setup here, right? Little area. Got your light and all nice and happy, but you don't want it to be happy. It's a dark,
+(8:41) creepy, eerie atmosphere. So let's actually add some atmosphere and uh put some rain in there, too.
+(8:48) But you can't have rain if you don't have clouds. So if you go over to the terrain area here and you do the little
+(8:55) click thing that I showed you before and you type in clouds, you just pop some clouds in there. Go to the properties
+(9:03) tab and you can turn up the cover and if you want to, you can also [music] mess around with the density of them as well to make it seem more darker and heavier.
+(9:11) And let's say you got more of a tinted color to your game. You can also change the color of the clouds, too. So, let's
+(9:19) say you got some [music] acid rain going on. Make a nice green or a leave it the way it is.
+(9:27) This rain that I'm adding in here is a mixture of some of my own and some that I got from Toolbox. Luckily for you, the
+(9:34) viewer, this game will be linked in the description on copy blocked, so you can have the different settings, atmospheres, [music] and the little build here from the video.
+(9:59) [music]
+(10:05) [music]
+(10:10) [music]
+(10:23) Then finally to top it all off, we got our sound effects. Put some rain sounds in there and some night forest sounds and that should tie it all together.
+(11:33) Last part of this video, but definitely not least, here's some of my friends work, Holly. She makes some amazing landscapes and atmospheres as well. The
+(11:42) place I opened up this video was actually one of her creations. Her channel will be linked in the description, and I'm sure you'll be able
+(11:49) to find some more Roblox Studio content from one of the best builders on the platform.
+(11:54) Once again, I'm Fives, and thank you all for watching.
+(12:03) [music]
+
+
+Title: How to make ANY game REALISTIC | {ULTIMATE Tutorial} | Roblox Studio
+URL: https://www.youtube.com/watch?v=3bd8b-89GUI
+
+(0:00) I see a bunch of YouTube videos where they explain how to make your game super realistic, and I think they're all fake.
+(0:07) None of them are actually doing it correctly. Like, let me let me go on YouTube. Let me go on YouTube and just look up Roblox Studio. How to make your games look a game look realistic. Okay.
+(0:19) Well, you see my videos. Okay. Well, um, ignoring my videos, which are really good. They always have freaking light sun rays. Like they always put sun rays
+(0:27) in the thumbnail and that for some reason equals realistic, but it doesn't.
+(0:31) Like this. I'm sorry. This is ugly. I'm It's not ugly. I take it back. I take it back. Like this is one of my realistic builds and I'll be showing you how to
+(0:39) make something like this, but it's just not good enough. Like realistic lighting and you just put some rays. That is not good enough. You can see my videos here,
+(0:46) which is really good. This one actually looks pretty good. This one actually looks pretty good. Again, another sun rays. Every time there's a another sun rays, but they get so many views.
+(0:56) I'm telling you, just adding sun rays does not equal realistic. It's not. I'm sorry, disobey the crab. I don't know if that's how you say your name, but this is not how you make it realistic game.
+(1:07) I'm telling you, just slapping in sun rays as your thumbnail doesn't make it realistic. But that sunrays thumbnail really gets a lot of views. You know, I'm going to have a sunray in my
+(1:15) thumbnail because it gets a lot of views. Anyways, moving on. this video.
+(1:18) In my video, I will actually break down how to make a realistic game in Roblox Studio. Okay, let's start. Now, before we do anything, first you need like a
+(1:26) plan of what you're going to make. For me, what I want to do is make a realistic forest. Not any kind of forest. I mean, this kind of forest. You
+(1:34) can see dirt ground, tall trees, and some growing trees. And I just envision this in my head for what I want to make.
+(1:41) I'm going to get like a another reference. My other reference is this video made by 1231551.
+(1:48) That's a really that's a really weird name for our YouTube channel. But anyways, you can see the video. It looks really good. You can also see they also
+(1:56) did a forest. But what's different with this one is that they have a realistic tree trunk here and a light is hitting down on it. And both of those two things
+(2:04) really sell that realism look. So I want to try and do the same. I want to try to get a realistic trunk in the middle of my forest and have light hitting down on
+(2:11) it. So, let's do a combination of my initial reference and this reference as well. And there you go. There's my plan.
+(2:18) That's step one completed. Well, now that I know what I'm doing, how do I get my assets? How do I get the trees? And how do I get the textures? Well, that's
+(2:26) step two. The two websites I go to to get realistic stuff is Sketch Fab. And then just search up for anything. So, I'm going to look up tall tree and try to find something here. Or this one.
+(2:35) Look at look at this right here. This one will work pretty good. And it's low poly, so it won't be laggy. There's also this one. This one actually looks really good. This one's pretty similar to the
+(2:43) reference I had earlier. Yeah. Yeah, I'm going to use this one. This one's pretty good. So, in order to download it is just scroll down and click on the download 3D model. And then you have to
+(2:51) make an account. So, I'm going to make an account. I'll see you a little later in a little bit after making. Okay, I logged in. So, just click on download
+(2:58) 3D. And then I recommend just downloading the GB. So, yeah, just download a GB version. So, download it.
+(3:05) Now, let's go back to Roblox Studio and just import it. So, click on this import 3D button and you just open up the SketchFab download of the tree. So, let
+(3:13) it load. And there's my tree. After you upload it, usually the texture looks weird. I'll show you how to fix that.
+(3:18) So, I'm just going to ungroup everything inside of it. And then I'm going to select the leaves cuz the leaves definitely need to be fixed. Go to its surface appearance properties and change
+(3:27) overlay to transparency. And there you go. Now, that's fixed. One more thing is select both of them and then go to properties and then make it so the render fidelity is at precise. And make
+(3:35) sure double-sided is checked on. And then you get the exactly how it look like in the website. But there you go. There's my tree. This looks pretty good.
+(3:42) I can 100% use this for my forest. Now I just do the same steps for the other things. And that is how I get my assets.
+(3:48) So let's go back to the website and get some growing trees. Okay, let's get out of here. Look up growing trees. And there you go. This one looks actually
+(3:56) perfect right away. So yeah, here's my growing trees. Now just download them right here. Remember, save it as a GB and go to home and then import 3D and
+(4:04) just open up. And after you open up, just let it load. Okay, where'd it go?
+(4:07) Oh, there it is. And again, it's not usually with trees and leaves, it it leaves this white thing. Again, just go to the surface appearance and fix it up
+(4:14) from there. Surface appearance properties, change overlay to transparency, and make it double-sided and precise. And done. And there you go.
+(4:21) Look at these. I already have assets that look similar to my reference. And lastly, I want to try and get a tree trunk, a realistic one. So, let's find that in the website. Get out of my face.
+(4:30) Get out of my face. Uh, tree trunk. Give me one. Give me one. Well, this one's really realistic. Well, this one's at 900 or not even 900. It's like almost a
+(4:39) million triangles. If it's at million triangles, I I recommend just finding a different one. This one looks really cool. It's really high in triangle count, but I don't care. It looks really
+(4:48) cool. Um, I'm hoping it will work. Let's see. Let's download it and put it in Roblox Studio. Import 3D. Okay. Let's see how it looks. Please be fine. Okay.
+(4:56) Okay. Actually, not that bad. Not that bad. There's my assets. Now, one last thing. I actually need the textures as well. Like where's my ground texture?
+(5:05) I'll show you another website. Just use this website called Polyhaven. It has good free textures. So, let's go to terrain. Uh this one this one actually.
+(5:13) Yeah, this one will work fine. It's leaves. Or I can use this one. Actually, I like this one more. Let's download this. So, in in order to get it as a PNG, click on these three lines right
+(5:21) here. And then just click on these PNG buttons right here to download it as a PNG. Anyways, we're going to need roughness, normal, and diffuse. And
+(5:28) that's it. Okay. I'm going to use my texture through the material manager thing. So, let's open this up and I'm going to actually replace the ground
+(5:36) texture. So, this ground texture, I'm going to replace it. So, let's look up ground within material manager. Select it and then click on the plus icon right here. That creates a ground variant. So,
+(5:45) this is my second ground. And now we just open up what we just saved in Polyhaven. So, color would be diffuse.
+(5:50) So, over here you can see I have my diffuse, normal, and roughness. Again, color is my diffuse. So, we're going to open up diffuse and let it wait. Oh, I got an error message. If you get an
+(5:58) error, that's because the texture size is too big. You can see right there, file is too large. So, I have to get a smaller size. So, that I download them
+(6:06) all in 4K. Let's just put it to 2K. So, download them all in 2K, I guess. Okay.
+(6:11) I redownload them as 2Ks. So, let's open up and make our color, the diffuse. It should work this time cuz it downloaded in 2K, not 4K. Please, come on. Okay.
+(6:19) Yeah, there you go. There's like a failed to whatever. I don't care about that. So, let's open up the normal and the roughness. Okay. I just imported both of them. Come on. Load. And there
+(6:27) you go. And then I'm going to check the set as override. Again, its base material is ground. So then it will actually override the ground texture.
+(6:34) Now I'm going to change it regular to organic. Lastly, I'm going to go to terrain, go to properties, expand this right here, and then change the ground
+(6:41) texture cuz that's the one that we are replacing to white. And there you go.
+(6:45) There's my actual ground texture. So now I can use this ground texture. Maybe I'll make it maybe I'll make the ground texture red. A little red and darker.
+(6:52) And now I can use my assets as well. Put my tree down. put some of these growing trees down. Just like that. And then I'm going to have to place this in later.
+(7:00) This is the key to making something super realistic, keeping in mind the small details. So, what else can I add in small details that'll make this look
+(7:08) even better? Branches, small rocks, bunch of different plants. So, let's get those. So, like these these small details of getting grass, getting branches, these little twigs and stuff.
+(7:18) And I also recolored some of the assets like and if you want to know how I recolor them, you just go within the surface appearance of them. and then click this color thing right here. And you can see this is how it was before.
+(7:28) And then I just changed up the color to make it match the ground better. Now that I have all of these, now it's time for step three, making the actual build.
+(7:37) So there's not much to like teach here. Um, I guess you just have to just do it.
+(7:43) So watch this quick speed build while I do a voice over and maybe you'll still be enjoyed of the video of me doing a voiceover in the speed build. Maybe it's
+(7:51) interesting. I don't know. But you can watch my speed build and maybe learn off of it. I heard I've getting so much comments that are people of saying like, "Oh, I watched your speed build and now
+(7:59) I know a lot more because of your speed build." And I honestly didn't think that is possible. But I guess it is. Um, but
+(8:06) you can just watch me and just pick up of anything that you learn off of what I'm doing here. But if you want to know what I'm thinking and what I'm doing
+(8:14) while building, it's honestly just looking at the reference and seeing how do they how does it look like that in real life. I look at the reference and then I recopy it and then I copy it and
+(8:22) that's it. Or sometimes it's just artistic intuition. You know, if you don't know artistic intuition, it basically just means um having a trained
+(8:29) brain knowing what to do because they've done art for so long. So that's what it means, I think. Don't Google it. Like don't Google it. That's what it means.
+(8:36) And oh, that's what it means. But anyways, um the making a forest is actually not that difficult. Anyways, it's just placing a bunch of different
+(8:43) trees next to each other. Placing a bunch of different plants next to each other. And then I'm just gonna have this tree trunk in the center and have light on it. Like how is that complicated?
+(8:52) It's really not. I feel like I already got the complicated part out of the way, which was just doing and getting all of these assets cuz it it just takes
+(8:59) forever to do. But I showed it really quickly in this video and shortened it up for you guys. So I don't know, am I
+(9:06) close to finishing the speed build cuz I don't know what else to say. Um um also I'm just going to quickly note that I am
+(9:14) doing this new thing where I have my character speaking. Like I have this character and it's there's like an animation of me speaking. Let me know if you guys like that cuz I honestly like
+(9:22) it. I think it makes my videos more entertaining. I'm also did it because I'm copying other YouTubers. I looked at theirs and I realized, oh, they're doing
+(9:30) they're using Moon Animator to like make an animation of their character as they're talking and I was like, oh, why don't I do that? I know how to use Moon Animator. I have it bought. I have it
+(9:37) downloaded. I have it as a plugin. So, let me do it the same. So, let me just copy other YouTubers so I can be a cool loop. So, I can be a cool YouTuber like
+(9:45) them. So, yeah. Let me know if you guys like me speaking to you guys through my own Roblox avatar with these animations, like being in front of a table and everything, cuz I think it's cool.
+(9:53) Anyways, I think that's it. And there you go. That's that step completed. Now, it's time for the next step, which is changing the lighting settings. But with the lighting settings, I don't usually
+(10:02) do the same thing over and over. I always do something different. So, what I'm going to do is just do whatever in the lighting settings and just tell you my thought process when doing it. So,
+(10:11) maybe you can follow along with what I'm thinking and what I'm doing with the lighting settings. So, first off, let's just change up the ambient color.
+(10:17) Usually, I always just make the ammy color a little darker. And I always use like a a light purple and I just lower it down. I'm just going to leave it like that for now cuz it's not really doing
+(10:25) anything. Now, with the brightness, I want to make it so the bright parts are even brighter. And you increase the brightness if you want to do that. So, let's just do like four for now. And
+(10:32) then now this is the part I actually really want to do is making the bright parts yellowish cuz that's how it looks like in real life when you're outside in the day. The light parts are pretty kind
+(10:41) of yellow. And you want to do that you change color shift top. So I'm going to make this slightly yellow. Go like here.
+(10:46) You can see it's really yellow but I don't want that. Just a little bit of it. There you go. You can see the before and after. This makes it so it's definitely like it's in a forest. Make it so it's warmer. So I definitely got
+(10:54) to add a little yellow to the color shift top. Now, for the lighting setting that a lot of people skip over, and it's kind of the secret in making your games
+(11:02) realistic, enhancing your shadows. And in order to do that, you got to lower these down. I always lower both of them.
+(11:09) Um, I just lower it down and see if I like it. See, this is too harsh. So, I'm going to go in between, but making it kind of dark, but then not really. I'm
+(11:16) going to make the lighting style to realistic. And whoa, that is so bright. Uh, flashbang. Let me fix that out.
+(11:23) That's actually blinding. But I'm actually going to utilize the the shadows that it makes. So you see how when I add this light point, it adds even more shadows. I'm going to use
+(11:32) that. Make it look even realistic. So yeah, make sure you enable shadow. Like look at this. Turn off the shadows and turn it back on. So use light points to add even more shadows to your outsides.
+(11:41) So there you go. Look at that. I like that so much. And you can get that if your lighting setting is on realistic.
+(11:46) So make sure that's on. Now I'm going to add a color correction cuz I feel like it's too saturated. In real life, the saturation is low. Everything looks dull
+(11:54) in real life. So, we're going to get that dullness by lowering the saturation. Again, I'm just doing whatever I think looks good with these
+(12:02) lighting settings. I'm not really doing anything that it's like by the book, a guide book, cuz there isn't any. You just do whatever looks right. So, again, like I said at the beginning, there's
+(12:11) not really teaching with these lighting settings. You just do whatever looks right. You just change the setting, look at it, and if it looks weird, go back to the settings and change it up again.
+(12:18) That's all I'm doing. Okay, not bad.
+(12:21) Now, that's completed. Now for the final final step, using scripts to make it look even better. One script I can use
+(12:29) is making it so there's wind. This is the wind script. Um I'll leave a link in the description for it. So all you have to do add the script in and then you're going to have to add in a tag within
+(12:38) what you want the wind to be. So select this plant right here. Let's go to its properties and then just click plus next to tags right here. And then add in one that's named windshake. And then you
+(12:46) just do that adding a tag within every single leaf or bush or whatever that you want to be shaking in the wind. So, let's do that. Okay. I think I added a
+(12:54) windshake tag to every single leaf and bush and whatever. So, let's test it out. Let me see if the wind is moving.
+(12:59) If the leaves are moving. Oh, there you go. Look at that. You can see all the leaves and the wind. It's so nice. I like that. One last thing you can add is
+(13:07) adding more scripts to my character. So, let me tell you a couple of scripts that I add to make my games look even cooler. So, let me just list them all out.
+(13:14) Disable footsteps, change FOV, shift to sprint, a camera offset, custom footsteps, some motion blur, sunflare,
+(13:23) character lean, a camera shake when walking, and lastly, changing the cursor to like a dot or something. So, let's play out the game and see all those changes added in all those scripts.
+(13:32) There you go. Look at that. Just a change to like make your game look even better. And that's basically it. One last optional step you can do is
+(13:40) changing it so it's not the Roblox avatar and it's a different avatar. And there you go. Look at that. Now, this definitely doesn't feel like it's in
+(13:48) Roblox Studio. Maybe it feels like Unreal Engine. Maybe feels like real life. I don't know. Here's in full screen so you can get better look of this game. See, like it looks so cool.
+(13:56) But there you go. That's how you make something realistic in Roblox Studio.
+(13:58) Follow those steps. Plan out what you're going to do like getting references.
+(14:02) Then get your assets from like Sketch Fab or another site. Then third step, make the actual build. Fourth step, changing up the lighting settings. And
+(14:10) then the last fifth step, add in scripts to add in small details like shaking trees or changing up your avatar and
+(14:17) blah blah blah blah blah, whatever. You get it right? If not, then just rewatch the video, man, until you get it. But
+(14:25) anyways, if you enjoyed this video, please consider subscribing or at least leaving a like. If you have any questions, tell me leave them in the comments and I'll try to respond. And that's it. Bye.
+
+Title: Can I Make a REALISTIC Roblox Game in 24 Hours
+URL: https://www.youtube.com/watch?v=qUMcyrkkCec
+
+(0:00) If you've ever tried playing one of Roblox's front page games, you've probably been met with a bunch of loweffort looking slop games. And I'm
+(0:07) kind of sick of it. But what if it didn't need to be this way? How hard could it actually be to make a realistic looking Roblox game? Are these front
+(0:15) page developers just lazy? Or is it just incredibly difficult to make something look good? Well, that's exactly what I'm going to find out. But being the genius
+(0:22) that I am, I'm allowing myself only 24 hours to make a complete showcase.
+(0:28) Before we begin, I have to figure out what I'm actually going to make. A lot of games fall down the pit of despair from a lack of planning, and that's not
+(0:36) going to be me. Some good methods to brainstorm ideas are playing games, finding references, watching videos, or just going outside.
+(0:47) And I ended up choosing none of them. I kind of just booted up studio and started [music] working. So, I guess we can begin with.
+(0:56) Now, let me tell you, starting up a new game with only a base plate is very daunting. The only way to start is to start. I began with the terrain, and I
+(1:05) already encountered a roadblock. For some reason, my sculpting brush was just not working. And this is easily my most used terrain tool. Hopefully, any
+(1:13) terrain artists can back me up in the comments and understand how much of an issue this was. But, the time is still counting down, so I'll have to make do
+(1:20) with what I have. My general plan for the scene was a path going through the middle surrounded by hills and trees.
+(1:26) And on one side there would be a nice little stream and on the other side there would be a nice little cabin. Now you might be thinking placing an entire
+(1:34) forest would take forever. Let me introduce you to the brush tool. Using this neat little plugin, I can create entire forests in just a couple of
+(1:42) seconds. So that's pretty cool. Also, I should let you know that I streamed the entire creation process. So you could go watch the stream bots if you wanted to.
+(1:50) But I should warn you, I do get a little too energetic sometimes. Whoa. Thanks for thanks for the donation, man. Anyways, I wonder what time it is.
+(1:59) Now, I spent a whole lot of time on the nature of the scene. So, let me teach you some nature basics. Let's start with layers. You should be thinking of the
+(2:06) objects in your scene as layers. Now, what do I mean by this? Let's begin with your largest nature asset, which will probably be trees. You'll want to place
+(2:15) these objects first because it will take up the most space. Then move on to the next layer which will probably which will probably which will probably okay
+(2:23) which will probably okay which will pro which will probably be bushes or mediumsiz foliage. You want to place
+(2:31) this in the gap so the trees don't adequately cover. Next is the grass.
+(2:35) You'll want to place this almost everywhere in the scene to make it look more full. Finally is the micro layer which is reserved for decal details and
+(2:43) really [music] small foliage. Basically, what you want to do is place trees and in the empty space place bushes and in the empty space place grass and in the
+(2:51) empty space place leaves. Each layer will add more eye candy to the player.
+(2:56) Lesson two, simple color theory. Let's talk about the 603010 rule. And before you go, ew, I have to learn something in a YouTube video and click off. I'll make
+(3:04) sure to keep this simple. The 603010 rule means your scene should be composed of 60% of one color, most likely green if it's a [music] forest, 30% of another
+(3:13) color, most likely brown for the bark and dirt, and a 10% pop of another [music] color. This will come from nice, saturated, and vibrant flowers. Now, you
+(3:21) want to avoid every asset you use being a completely different shade or saturation because this will cause your players to explode. Instead, you want to
+(3:29) make sure everything looks cohesive [music] and makes sense together. And the third lesson, well, comment below if you want a full nature video. And make sure to subscribe and like, and also
+(3:37) hype the video if you're on mobile, if you enjoyed the video, of course.
+(3:41) Anyways, what was I doing? Oh, yeah, nature. So, I make a rough little scene and add it in a stream, but it was getting late, so I decided to hit the hay and pick it up tomorrow.
+(4:03) Yeah. So, I might have slept in a little bit, but that's okay. I wonder what hour we're at now.
+(4:12) Okay. Well, that's not great. But we still have more than enough time to finish the game.
+(4:18) Hey, Doc. What time is it? H. It appears to be a 4:00 p.m.
+(4:24) Okay, so it's already been 18 hours, and I've only spent 2 hours actually working on the game. So, I need to lock the heck in and grind
+(4:33) the watercolor [music] to slightly green. I'm going to speed run this real quick. Honestly, I don't like the shape of this. It'll be like a railing going
+(4:42) [music] across windows on the wall. Like the scene's missing something. I can throw [music] this right here. Point
+(4:49) light. It'll increase this brightness downward [music] to light this up. Going to be a showcase. Now, let's just fill in these gaps. Okay. Something like
+(4:58) this. Uh, these [music] windows are meshes. You'll need to might have to model that one real quick. There's a pretty large difference between
+(5:07) realistic soft, but mainly interiors [music] and point lights. Let me let me just give an example. As you can see with realistic, you can see these
+(5:15) shadows, but if you go into soft, everything's just flat. There's no 3D shadows or anything.
+(5:23) Was that pretty cool? Hold on. Let me just uh make a door while I monologue.
+(5:27) Now, a lot of the past 2 hours was spent on making the cabin. I couldn't quite find the right size and shape I wanted.
+(5:32) So, some advice for anyone getting into building. Start by blocking out your structure and creating a simple little floor plan. And remember, the larger the
+(5:40) space, the longer you will have to spend decorating it. Next, you should add in some of the larger furniture assets and resize the build if needed. Then, add in
+(5:49) some smaller props and resize the build if it still feels empty. And once you're finally happy with the interior, you should decorate the walls and exterior.
+(5:57) You do this last to avoid having to reskill everything for every interior tweak. Also, taking time to find good PBR textures can substantially elevate a
+(6:06) build. Oh yeah, also a cool little trick I like doing is adding a spotlight pointing through a window. This creates a cool effect and helps when the sun
+(6:15) isn't adequately casting light into an interior. Well, looks like the door is about finished.
+(6:21) Now, you might have noticed that this scene takes place outside. And do you know what's outside? That's right, plants and nature. So, in the remaining
+(6:29) 3 hours I have left, I have to take my nature from average to amazing because currently anyone could create a scene just like mine in a couple of minutes.
+(6:38) So, I need to add my own special spice to the scene. Okay, I think I need to change some of these textures. Just paint this all across. Just break up
+(6:46) some of the uniformity of it. Definitely need to break up the path a little bit.
+(6:50) I think it's time [music] to paint in the grass again. Now, let's just brush this all in. And the cabin will be right there. I think what I want to do next is
+(6:58) add some some mesh [music] terrain to this path. I need to change the color of this. I think I should probably learn about photo scanning so I can [music]
+(7:06) create more assets like this. And this mesh terrain's carrying this build. And my rotate tool just broke somehow. I think I'm going to have to restart. I
+(7:14) think [music] I should finish this cabin though. Maybe something like this. And we have an hour and 30 minutes left. So I have to decide what I want to focus
+(7:22) on. This side right here is just feeling really empty. Could maybe add a lamp back there. Put it like right back
+(7:29) there. Particle emitter. It's a little too dense. This will add just some nice color, some nice variation to the grassy bits. The stream will end in about 50
+(7:38) minutes. Oh yeah, that'll look good. I think got some vines going across the surface. Yeah, we're almost out of time though. 30 minutes left. Something like
+(7:46) that might look good. Should probably test this. So, I haven't actually tested [music] it yet before. Hopefully,
+(7:53) everything's anchored. Okay, that might be a problem. Okay, my character didn't even load in. I think [music] everything's working. Change some of
+(8:00) these lighting properties. Add some bloom. Do depth of field. Increase this intensity a little bit. There we go.
+(8:06) That's beautiful. Probably should have put up some paintings [music] or something on the walls, but you know, out of time. So, I'm just going to publish this and just be happy with the results.
+(8:16) [music]
+(8:25) Well, then this is the final game. I don't think I quite captured the level of detail I wanted. There are a couple of bugs in the game. If I'd used my time
+(8:32) a little better, I probably could have reached a much more polished result. But overall, I'm content with the results.
+(8:38) Thank you to everyone who watched the streams, and thank you for 3,000 subscribers. [music] Stay tuned for more videos and join the Discord for events.
+
+Title: 5 Building Tips to Transform Your Roblox Games
+URL: https://www.youtube.com/watch?v=7kqghm8oqa8
+
+(0:00) So, you want to start making amazing Roblox builds? Well, don't worry. I have five building tips just for you. Let's begin. Okay, so I have this build here,
+(0:08) and it's not bad by any means, but there are a couple things that you can change to really elevate it a lot. And first, we're going to start with the props
+(0:16) used. Now, just by looking at it, there's really only like three to four props that are used, which is this crate, this shelf, and this flood light.
+(0:24) Nice way to add variety is just simply adding more props, different props, and scaling them, sizing them, and changing them and whatnot. Okay, so I have this
+(0:31) little asset repository that I usually just copy and paste out of. This is a quick little way. So, I'm just going to add in a couple of shelves to spice up
+(0:40) the scene a little bit. Did you know that not even 5% of people who watch are subscribed? So, if you find this video genuinely helpful, then feel free to absolutely smash that subscribe button.
+(0:50) Okay, back to the video.
+(0:52) I'm just going to do this for a couple of different props just to add some variety and such. So now I'm going to add in some crates and some boxes.
+(1:02) When I'm placing props, I usually just slightly tweak the rotation and scale so nothing looks too uniform.
+(1:14) Now, a lot of things I see in Roblox games are empty shelves. Now, what's the point of having a shelf if you know you don't put something on it? So, I would
+(1:22) just recommend if you have a shelf, at least put a couple of items on it to, you know, break up the scene and add some nice variety.
+(1:30) Now, an important thing to understand is that you don't want to spam random assets cuz that can quickly decrease performance and look messy. I would just
+(1:38) recommend creating a couple of assets that you can use across a large variety of scenes such as boxes and crates.
+(1:48) Now, you might be thinking, "These assets sure do look good." Well, you can find most of them on my Kofi store. So, if you want to save time and support the
+(1:56) channel, you can find the link in the description. Also, the shelves were made by my friend, so shout out to him.
+(2:10) Okay, I think this looks good enough.
+(2:12) The next thing we will be working on is the lighting. All these spotlights should be emitting light in a straight path like this. So, let's just fix that
+(2:21) real quick. What I'm actually going to do is I'm going to add in a part. Name this light. Find the part. Drag it down.
+(2:29) Bring it over here. Scale it down a little bit. Make it transparent. Add in a surface light to this. Do something
+(2:36) like that. And also increase the brightness of this light. Okay. But once you create a light that you're happy with, you can just copy and paste it all over.
+(2:47) Now, when I'm placing lights, one of the things I focus on are the shadows. You can create some really cool effects and build realism by having nice shadows.
+(2:58) For the next thing we're going to go over is the materials. Now, you can probably tell that there's a whole lot of the same rust material, so I would
+(3:06) recommend using a different one to just spice it up a little bit.
+(3:16) For materials and textures, if it's obvious that everything uses the same texture, then the scene begins to feel dull and repetitive. So, by simply
+(3:23) adding another type of texture, it amplifies the scene a lot.
+(3:41) Okay. Next, we're going to break up some of this [music] empty space back here, as well as changing just how the
+(3:48) environment looks. So, you can add like a wall or something to break up just so people can see it. So, people can't view the entire room immediately on entry.
+(3:56) just add some, you know, visual interest around the scene. So, just add some crates, some walls, just to break up how the room flows.
+(4:05) Okay, so I didn't like how that guy explained it, so I'll rephrase it a little. So, imagine you have a simple square room or an open hallway. That'll be very boring to look at. So, I
+(4:13) recommend adding a wall or a stack of crates, just something that will break the sidelines of the room. This way, the player can't see everything in the room at once and has to explore around a bit
+(4:22) to see what's behind a wall or something like that.
+(4:34) The next thing I see a lot in Roblox builds is an empty floor and ceiling.
+(4:39) So, I would recommend just adding little little parts, little pipes, little maybe some decals on the floor, some stains just to add some variety and some visual
+(4:47) interest to the floor because it's often overlooked, but it can really bring a scene together.
+(4:56) Yeah. So, here I'm just placing decals.
+(4:58) I'll actually link the decal pack I used in the description. Decals are a great way for breaking up materials and adding some variety.
+(5:12) Now, I'm working on the ceiling pipes.
+(5:13) And for those who don't know, a pipe is a hollow tube used to carry liquids or gases. So, yeah, I throw one on the roof and add some little extrusions to it.
+(5:36) Okay, so this is basically the finished product. I'll probably go back and change a few things, but let me know what you're thinking if you have any
+(5:44) suggestions. Okay, goodbye

@@ -121,7 +121,7 @@ MCP → outside generation cleaned up.
 | Seamless textures 512×512 (`art/TEXTURES.md`) | Poly Haven (CC0) first; own work in Blender second | Open Cloud Decal/Image | CC0, no attribution. Confirm on `polyhaven.com/license` before shipping (§7). |
 | SurfaceAppearance PBR maps | Blender bake or Poly Haven set | Open Cloud Decal/Image | Same as above; must stay ≤1024×1024 per map. |
 | Hero props, 6–8 models | Blender via MCP, procedural and stylised | Studio Importer (.fbx) | Own work. |
-| Modular building kit | Blender via MCP, pieces under 20k tris | Studio Importer (.fbx), `Import as Package` | Own work. |
+| Modular building kit | Blender via MCP, pieces about 2k tris (20k is Roblox's upload ceiling, not a budget; see `art/RESEARCH_VISUAL_TIPS.md` §3) | Studio Importer (.fbx), `Import as Package` | Own work. |
 | Background scenery | Creator Store free models, restyled | Toolbox insert, then manifest row | Creator Store terms; see §5 gate. |
 | SFX | Own recording, Kenney, or Freesound per-file | Open Cloud Audio or Importer | Kenney: commercial OK, no credit. Freesound: check each file's licence. |
 | Music | Own or licensed only | — | **No commercial music.** Roblox Licensed Music may not be exported or downloaded for use outside the Services (ToU §7.1), so it cannot be baked into a file. |

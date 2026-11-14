@@ -223,16 +223,20 @@ Only steps actually observed get `SEEN-IN-STUDIO`; everything else is `LUNE-ONLY
 | Save + rejoin | SEEN-IN-STUDIO (cash 48, `padi` 6, tilesOwned 6 after stop and replay) | Enable API services, play, leave, rejoin, compare cash. |
 | Death / reset mid-session | SEEN-IN-STUDIO 2026-11-14 (character killed from the server; respawned in 5.5 s and `CharacterAdded` returned it to the plot at 68, 4.69, 0; cash 65, `padi` 6, tilesOwned 6 unchanged; no minigame node left visible; no error in Output) | Play, take fall damage or `Humanoid.Health = 0` in the command bar, watch where you respawn. |
 | Login-reward recovery | SEEN-IN-STUDIO 2026-11-14 (`quest` with no `taskId` claimed the login reward: cash 65 → 165, then `buy` 165 → 155 with `padi` 6 → 7) | Open the phone HUD and claim the daily reward by hand. |
+| Thirty-minute soak, client half | SEEN-IN-STUDIO 2026-11-14 (1800 s, 111 cycles, summary in `docs/v2/evidence/h/2026-11-14-soak/soak.json`; no desync check and no server memory series, see §11). Ten-player half stays UNVERIFIED. | Run §11 to its deadline and read `_G.soak` back. |
 | Minigame, feel, frame rate | UNVERIFIED | Only a human can judge these; not a harness job. |
 
 Still `UNVERIFIED` after the 2026-11-14 run: §6 screenshot automation, desktop-size capture, a
-saved `output.log`, the ten-player session and the thirty-minute soak. Next step: save those,
-then run sections 2–4 again with ten players and flip the soak row.
+saved `output.log`, and the ten-player session. The thirty-minute soak (client half) ran on
+2026-11-14, see §11. Next step: save `output.log`, then run sections 2–4 again with ten players.
 
 ## 11. Soak and stamina run
 
-**Status: `UNVERIFIED` — started 2026-11-14, 1800 s, results pending.** No memory number, no cycle
-count and no failure count exists yet. Everything below is the recipe; do not read it as a result.
+**Status: soak half `SEEN-IN-STUDIO` 2026-11-14** — 1800 s run, 111 cycles, 0 stale replies. Evidence:
+`docs/v2/evidence/h/2026-11-14-soak/soak.json`. The run used a recovery-aware variant of the loop
+below (status each cycle, buy any stocked crop), so the loop text is the recipe, not the exact run.
+Not recorded: a desync check, a server memory series, and a full `output.log`. Ten-player half:
+`UNVERIFIED`.
 
 What it answers: Master Plan §0 quality bar 5, "Thirty-minute soak with the harness … with no leak,
 no desync and no stuck state". This section is the soak only. The ten-player half of that row is a

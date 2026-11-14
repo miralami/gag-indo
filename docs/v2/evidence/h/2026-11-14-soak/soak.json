@@ -1,0 +1,16 @@
+{
+  "run": "client loop, 1800 s, recovery-aware (status each cycle, buy any stocked crop, plant up to 6, ready, harvest, sell pasar)",
+  "studio": "Development-Juragan-Desa, placeId 132087524375529, Play Solo, harness memory-only",
+  "elapsedSeconds": 1801.3,
+  "cycles": 111,
+  "skippedCycles": 395,
+  "calls": { "status": 980, "buy": 98, "plant": 424, "ready": 111, "harvest": 424, "sell": 111, "enable": 1 },
+  "failures": { "plant": 104, "buy": 20 },
+  "lastFailure": { "plant": "tile 5 is not empty", "buy": "shop refused cengkeh x4 (stock, rank or cash)" },
+  "staleReplies": 0,
+  "buySucceeded": 78,
+  "cash": { "start": 2141, "end": 90378 },
+  "tilesOwned": 6,
+  "clientMemoryMb": { "first": 2231.4, "mid": 2195.3, "last": 1588.8, "min": 1421.8, "max": 2277.0, "samples": 507 },
+  "notes": "No harvest, ready or sell failures. plant failures all 'tile N is not empty' (probable perennial crops that survive harvest; not confirmed). Server console tail showed only AnalyticsService info lines; head of the console was truncated by the tool so a full-session zero-error claim is not made."
+}

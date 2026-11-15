@@ -74,3 +74,21 @@ model.kit.fence,model,polypizza,https://poly.pizza/m/e02PFKKhbr,CC0,,0,,UNVERIFI
 ```
 
 Authors: Quaternius (all except motor: AliceCassie). Triangles: stall 1548, gerobak 2659, sumur 1870, barrel 1384, crate 784, karung 912, motor 1500, hut 1724, wall 404, fence 188.
+
+### Uploaded 2026-11-15 (Open Cloud, creator user 172146044, all moderation Approved)
+
+Appended rows; the `id=0` rows above are the pre-upload history. Inserted into Workspace as `<slot>_v2`, scaled by 1/0.28 (FBX arrives at 1 m = 1 stud), anchored, laid out in a row near (-111, 0, -58). Evidence: `docs/v2/evidence/models/2026-11-15-models-in-studio.jpg` (stall, cart, well, barrel, crate, karung, motor, hut visible with colours; wall and fence not in frame).
+
+```
+slot,class,source,source_ref,licence,attribution,id,approved_by,status
+model.pasar.stall,model,polypizza,https://poly.pizza/m/DGIM5HGISb,CC0,,129607759321192,,SEEN-IN-STUDIO
+model.prop.gerobak,model,polypizza,https://poly.pizza/m/l7bDe7ak6j,CC0,,121540426548169,,SEEN-IN-STUDIO
+model.prop.sumur,model,polypizza,https://poly.pizza/m/QlqncKYxXb,CC0,,80611793347029,,SEEN-IN-STUDIO
+model.prop.barrel,model,polypizza,https://poly.pizza/m/ONdghDBByN,CC0,,97786595529501,,SEEN-IN-STUDIO
+model.prop.crate,model,polypizza,https://poly.pizza/m/3VGWnZPXmG,CC0,,70770369223840,,SEEN-IN-STUDIO
+model.prop.karung,model,polypizza,https://poly.pizza/m/gzvyAQ797z,CC0,,133136389632701,,SEEN-IN-STUDIO
+model.prop.motor,model,polypizza,https://poly.pizza/m/j20srJUjpB,CC0,,106061905410704,,SEEN-IN-STUDIO
+model.kit.hut,model,polypizza,https://poly.pizza/m/wxi3kAu5ey,CC0,,95225115736749,,SEEN-IN-STUDIO
+model.kit.wall,model,polypizza,https://poly.pizza/m/8C9NBoi9cA,CC0,,83895031629944,,UNVERIFIED
+model.kit.fence,model,polypizza,https://poly.pizza/m/e02PFKKhbr,CC0,,92903548535675,,UNVERIFIED
+```

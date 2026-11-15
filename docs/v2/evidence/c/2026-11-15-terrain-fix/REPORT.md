@@ -97,12 +97,11 @@ The character stands on the road (0.58) and walks without falling or climbing. R
 `World.Ground` top 0.500, terrain surface 0.500, `Tree_1` trunk bottom 0.500 (its 4-stud cylinder
 is vertical after the 90° roll, so `Position.Y - Size.X/2 = 0.5`).
 
-## Screenshots — BLOCKED
+## Screenshots — SEEN-IN-STUDIO
 
-`screen_capture` returns `null` with "Cannot read image (this model does not support image input)"
-and writes no file anywhere under `%TEMP%\claude`, `%TEMP%\opencode` or the place folder (checked
-immediately after each attempt, and again with a `screen_capture` subagent). No `after-*.png` in
-this folder for that reason — the evidence above is numeric, taken from the live Play session.
+`after-spawn.webp` (user-supplied, Play session, 2026-11-15): road, grass and tree trunks sit on one
+plane, no buried ground or glossy sheet. The user confirmed "it's normal now". The agent that wrote the
+numbers could not capture images itself; the numeric checks above were re-run independently and match.
 
 ## Sawah rows
 

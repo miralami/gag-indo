@@ -1,6 +1,7 @@
 --!nocheck
--- Landscape spec: the hill ring stays far from the village, the river and the sawah terraces,
--- apply clears with Air before filling, and a rebuild makes the same calls again.
+-- Landscape spec: the hill ring stays outside the playable rectangle, the river and the sawah
+-- terraces; apply clears retired footprints and current volumes with Air before filling; a rebuild
+-- makes the same calls again.
 
 return function(t, Env)
 	local expect = t.expect
@@ -12,7 +13,7 @@ return function(t, Env)
 		{ c = { 0, -4, 110 }, s = { 220, 8, 100 } },
 	}
 	for row = 0, 3 do
-		table.insert(OWNED, { c = { 0, -1.5 + row * 1.5, -100 + row * 14 }, s = { 120 - row * 22, 3, 18 } })
+		table.insert(OWNED, { c = { 0, -3.5, -100 + row * 14 }, s = { 120 - row * 22, 4, 18 } })
 	end
 
 	-- Axis-aligned bounds of a hill volume: ball = centre +/- radius, block = centre +/- size/2.
@@ -43,6 +44,36 @@ return function(t, Env)
 			return lo < centre + half and hi > centre - half
 		end
 		return hit(bx[1], bx[2], box.c[1], hx) and hit(by[1], by[2], box.c[2], hy) and hit(bz[1], bz[2], box.c[3], hz)
+	end
+
+	-- Part of a volume that rises above GROUND_Y, as an XZ footprint. Nil when fully buried.
+	local function aboveGroundFootprint(volume)
+		local p = volume.position
+		local ground = Landscape.GROUND_Y
+		if volume.shape == "ball" then
+			local top = p.Y + volume.radius
+			if top <= ground then
+				return nil
+			end
+			local cap = math.sqrt(volume.radius ^ 2 - (ground - p.Y) ^ 2)
+			return { p.X - cap, p.X + cap, p.Z - cap, p.Z + cap }
+		end
+		local top = p.Y + volume.size.Y / 2
+		if top <= ground then
+			return nil
+		end
+		return {
+			p.X - volume.size.X / 2,
+			p.X + volume.size.X / 2,
+			p.Z - volume.size.Z / 2,
+			p.Z + volume.size.Z / 2,
+		}
+	end
+
+	-- A footprint is outside the playable square when one axis clears it completely.
+	local function outsidePlayable(footprint)
+		local half = Landscape.PLAYABLE_HALF
+		return footprint[2] <= -half or footprint[1] >= half or footprint[4] <= -half or footprint[3] >= half
 	end
 
 	-- Records every terrain call in order. Each entry is a plain string so two runs can be compared.
@@ -90,7 +121,28 @@ return function(t, Env)
 			for _, volume in Landscape.hillBlocks() do
 				local top = volume.shape == "ball" and volume.position.Y + volume.radius
 					or volume.position.Y + volume.size.Y / 2
-				expect(top <= 0.5 + 22):toBe(true)
+				expect(top <= Landscape.GROUND_Y + 22):toBe(true)
+			end
+		end)
+
+		t:it("ball algebra: top is GROUND_Y + height and cap radius follows from centre and radius", function()
+			for _, volume in Landscape.hillBlocks() do
+				if volume.shape == "ball" then
+					local top = volume.position.Y + volume.radius
+					local cap = math.sqrt(volume.radius ^ 2 - (Landscape.GROUND_Y - volume.position.Y) ^ 2)
+					expect(top):toBeNear(Landscape.GROUND_Y + volume.height, 1e-9)
+					expect(cap):toBeGreaterThan(0)
+					expect(cap):toBeLessThan(volume.radius)
+				end
+			end
+		end)
+
+		t:it("keeps every above-ground footprint outside the playable square", function()
+			for _, volume in Landscape.hillBlocks() do
+				local footprint = aboveGroundFootprint(volume)
+				if footprint then
+					expect(outsidePlayable(footprint)):toBe(true)
+				end
 			end
 		end)
 
@@ -114,6 +166,32 @@ return function(t, Env)
 			expect(seen["Material.Ground"]):toBe(true)
 			expect(seen["Material.Rock"]):toBe(true)
 			expect(seen["Material.Mud"]):toBe(true)
+		end)
+
+		t:it("clears the retired above-ground footprint before filling the new hills", function()
+			local clear = Landscape.clearBlocks()
+			-- Old east hill, old north hill, old rock outcrop, old mud hollow: centre Y and height.
+			local retired = {
+				{ 190, 7.5, 0, 14 },
+				{ 0, 8, -190, 15 },
+				{ -160, 3.5, 25, 6 },
+				{ -150, 1.5, -60, 2 },
+			}
+			for _, old in retired do
+				local found = false
+				for _, volume in clear do
+					if
+						volume.shape == "block"
+						and volume.position.X == old[1]
+						and volume.position.Y == old[2]
+						and volume.position.Z == old[3]
+						and volume.size.Y == old[4]
+					then
+						found = true
+					end
+				end
+				expect(found):toBe(true)
+			end
 		end)
 
 		t:it("clears every owned volume with Air before any fill", function()

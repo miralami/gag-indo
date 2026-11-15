@@ -9,6 +9,7 @@ local Map = require(script.Parent.Map)
 local Props = require(script.Parent.Props)
 local NpcFactory = require(script.Parent.NpcFactory)
 local Decor = require(script.Parent.Decor)
+local Ground = require(script.Parent.Ground)
 local Flora = require(script.Parent.Flora)
 local Details = require(script.Parent.Details)
 local Landscape = require(script.Parent.Landscape)
@@ -16,7 +17,15 @@ local Visuals = require(game:GetService("ReplicatedStorage"):WaitForChild("Share
 
 local Greybox = {}
 
-local GROUND_Y = 0.5
+-- The top of World.Ground, plots, spawn and every hub foundation. Terrain tops out on this same
+-- plane, so the grass reads flush with the walkable ground instead of burying it.
+local GROUND_Y = Ground.Y
+-- Roblox terrain voxels are 4 studs. Measured in Studio (2026-11-15): a FillBlock's visible top
+-- face lands on regionTop + TERRAIN_VOXEL / 2, i.e. half a voxel ABOVE the requested region, not
+-- snapped up to the next whole voxel. So a 4-stud block centred on GROUND_Y - TERRAIN_VOXEL has a
+-- region top of GROUND_Y - TERRAIN_VOXEL / 2 and a face exactly on GROUND_Y.
+local TERRAIN_VOXEL = 4
+local TERRAIN_BASE_Y = GROUND_Y - TERRAIN_VOXEL
 local C = {
 	paper = Props.palette("kertas"), grass = Props.palette("padi"),
 	clay = Props.palette("genteng"), red = Props.palette("merah"),
@@ -730,30 +739,30 @@ end
 local function terrainBlocks(): { { cframe: CFrame, size: Vector3, material: Enum.Material } }
 	local blocks = {
 		-- Village ground base (allows 3D Terrain.Decoration grass to grow)
-		{ cframe = CFrame.new(0, -1.5, 0), size = Vector3.new(400, 4, 400), material = Enum.Material.Grass },
+		{ cframe = CFrame.new(0, TERRAIN_BASE_Y, 0), size = Vector3.new(400, TERRAIN_VOXEL, 400), material = Enum.Material.Grass },
 
 		-- Road corridors (Ground material suppresses 3D grass decoration along paths)
-		{ cframe = CFrame.new(0, -1.4, 0), size = Vector3.new(400, 4, 18), material = Enum.Material.Ground },
-		{ cframe = CFrame.new(0, -1.4, 0), size = Vector3.new(18, 4, 400), material = Enum.Material.Ground },
+		{ cframe = CFrame.new(0, TERRAIN_BASE_Y, 0), size = Vector3.new(400, TERRAIN_VOXEL, 18), material = Enum.Material.Ground },
+		{ cframe = CFrame.new(0, TERRAIN_BASE_Y, 0), size = Vector3.new(18, TERRAIN_VOXEL, 400), material = Enum.Material.Ground },
 
 		-- Spawn center clearing
-		{ cframe = CFrame.new(0, -1.4, 0), size = Vector3.new(32, 4, 32), material = Enum.Material.Ground },
+		{ cframe = CFrame.new(0, TERRAIN_BASE_Y, 0), size = Vector3.new(32, TERRAIN_VOXEL, 32), material = Enum.Material.Ground },
 
 		-- Hub footprints (clearing building interiors)
-		{ cframe = CFrame.new(30, -1.4, 26), size = Vector3.new(28, 4, 24), material = Enum.Material.Ground },
-		{ cframe = CFrame.new(-30, -1.4, 26), size = Vector3.new(28, 4, 24), material = Enum.Material.Ground },
-		{ cframe = CFrame.new(-30, -1.4, -26), size = Vector3.new(28, 4, 24), material = Enum.Material.Ground },
-		{ cframe = CFrame.new(30, -1.4, -26), size = Vector3.new(28, 4, 24), material = Enum.Material.Ground },
-		{ cframe = CFrame.new(0, -1.4, 26), size = Vector3.new(28, 4, 24), material = Enum.Material.Ground },
-		{ cframe = CFrame.new(0, -1.4, -16), size = Vector3.new(28, 4, 24), material = Enum.Material.Ground },
+		{ cframe = CFrame.new(30, TERRAIN_BASE_Y, 26), size = Vector3.new(28, TERRAIN_VOXEL, 24), material = Enum.Material.Ground },
+		{ cframe = CFrame.new(-30, TERRAIN_BASE_Y, 26), size = Vector3.new(28, TERRAIN_VOXEL, 24), material = Enum.Material.Ground },
+		{ cframe = CFrame.new(-30, TERRAIN_BASE_Y, -26), size = Vector3.new(28, TERRAIN_VOXEL, 24), material = Enum.Material.Ground },
+		{ cframe = CFrame.new(30, TERRAIN_BASE_Y, -26), size = Vector3.new(28, TERRAIN_VOXEL, 24), material = Enum.Material.Ground },
+		{ cframe = CFrame.new(0, TERRAIN_BASE_Y, 26), size = Vector3.new(28, TERRAIN_VOXEL, 24), material = Enum.Material.Ground },
+		{ cframe = CFrame.new(0, TERRAIN_BASE_Y, -16), size = Vector3.new(28, TERRAIN_VOXEL, 24), material = Enum.Material.Ground },
 
 		-- River
 		{ cframe = CFrame.new(0, -4, 110), size = Vector3.new(220, 8, 100), material = Enum.Material.Water },
 	}
 	for row = 0, 3 do
 		table.insert(blocks, {
-			cframe = CFrame.new(0, -1.5 + row * 1.5, -100 + row * 14),
-			size = Vector3.new(120 - row * 22, 3, 18),
+			cframe = CFrame.new(0, TERRAIN_BASE_Y, -100 + row * 14),
+			size = Vector3.new(120 - row * 22, TERRAIN_VOXEL, 18),
 			material = Enum.Material.Ground,
 		})
 	end
@@ -761,6 +770,25 @@ local function terrainBlocks(): { { cframe: CFrame, size: Vector3, material: Enu
 end
 
 Greybox.terrainBlocks = terrainBlocks
+Greybox.GROUND_Y = GROUND_Y
+Greybox.TERRAIN_VOXEL = TERRAIN_VOXEL
+
+-- Smooth Terrain is voxelized and a place can hold terrain older than the source that made it.
+-- Clear the whole historical village band (the first generator's slab reached a surface near Y=2.6,
+-- the current one sits on GROUND_Y) before refilling, so no older slab survives under the new one.
+local TERRAIN_CLEAR_BOTTOM = -8
+local TERRAIN_CLEAR_TOP = 8
+
+local function terrainClearBlocks(): { { cframe: CFrame, size: Vector3 } }
+	return {
+		{
+			cframe = CFrame.new(0, (TERRAIN_CLEAR_BOTTOM + TERRAIN_CLEAR_TOP) / 2, 0),
+			size = Vector3.new(400, TERRAIN_CLEAR_TOP - TERRAIN_CLEAR_BOTTOM, 400),
+		},
+	}
+end
+
+Greybox.terrainClearBlocks = terrainClearBlocks
 
 -- Clears every owned volume with Air, then fills them. Safe to call on every rebuild.
 function Greybox.applyTerrain(terrain: Terrain)
@@ -768,6 +796,9 @@ function Greybox.applyTerrain(terrain: Terrain)
 		terrain.Decoration = true
 	end)
 	local blocks = terrainBlocks()
+	for _, clear in terrainClearBlocks() do
+		terrain:FillBlock(clear.cframe, clear.size, Enum.Material.Air)
+	end
 	for _, block in blocks do
 		terrain:FillBlock(block.cframe, block.size, Enum.Material.Air)
 	end
@@ -791,6 +822,8 @@ function Greybox.build(): Folder
 	Map.add(world, Map.TAGS.Greybox)
 	world.Parent = workspace
 
+	-- Invisible, but the collidable plane the village is authored on: terrain tops out on GROUND_Y
+	-- too, so this part is a stable floor even where the voxel surface wobbles under a player.
 	local ground = part({
 		Name = "Ground",
 		Size = Vector3.new(512, 1, 512),
@@ -798,7 +831,7 @@ function Greybox.build(): Folder
 		Color = Props.palette("daun"),
 		Material = Enum.Material.Grass,
 		Transparency = 1,
-		CanCollide = false,
+		CanCollide = true,
 	})
 	ground.Parent = world
 	local waterColor = Props.palette("malam")

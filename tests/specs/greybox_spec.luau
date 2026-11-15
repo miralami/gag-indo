@@ -28,6 +28,7 @@ return function(t, Env)
 				end,
 			})
 			env:mock("server/World/NpcFactory", { build = function() end })
+			env:mock("server/World/Ground", { Y = 0.5 })
 			env.globals.CFrame = {
 				new = function(x, y, z)
 					return { position = Env.Vector3.new(x, y, z) }
@@ -44,6 +45,8 @@ return function(t, Env)
 			expect(#blocks):toBe(15)
 			expect(blocks[1].material):toBe("Material.Grass")
 			expect(blocks[1].size.X):toBe(400)
+			expect(blocks[1].cframe.position.Y):toBe(-3.5)
+			expect(blocks[1].size.Y):toBe(4)
 			expect(blocks[1].size.Z):toBe(400)
 			expect(blocks[11].material):toBe("Material.Water")
 			expect(blocks[11].size.X):toBe(220)
@@ -55,7 +58,35 @@ return function(t, Env)
 				expect(block.size.X):toBe(120 - row * 22)
 				expect(block.size.Z):toBe(18)
 				expect(block.cframe.position.Z):toBe(-100 + row * 14)
+				expect(block.cframe.position.Y):toBe(-3.5)
+				expect(block.size.Y):toBe(4)
 			end
+		end)
+
+		t:it("keeps generated terrain at or below the 0.5-stud gameplay ground", function()
+			-- Measured in Studio: a FillBlock's visible top face is regionTop + TERRAIN_VOXEL / 2
+			-- (half a voxel above the region), so assert that face, not the region and not a
+			-- whole-voxel snap.
+			local voxel = Greybox.TERRAIN_VOXEL
+			local ground = Greybox.GROUND_Y
+			expect(ground):toBe(0.5)
+			expect(voxel):toBe(4)
+			for _, block in Greybox.terrainBlocks() do
+				if block.material ~= "Material.Water" then
+					local regionTop = block.cframe.position.Y + block.size.Y / 2
+					local face = regionTop + voxel / 2
+					expect(face <= ground):toBe(true)
+				end
+			end
+		end)
+
+		t:it("clears the entire legacy village terrain envelope before refilling", function()
+			local clear = Greybox.terrainClearBlocks()
+			expect(#clear):toBe(1)
+			expect(clear[1].cframe.position.Y):toBe(0)
+			expect(clear[1].size.X):toBe(400)
+			expect(clear[1].size.Y):toBe(16)
+			expect(clear[1].size.Z):toBe(400)
 		end)
 
 		t:it("scatters at least 14 trees", function()
@@ -79,10 +110,14 @@ return function(t, Env)
 			Greybox.applyTerrain(terrain)
 
 			local blocks = Greybox.terrainBlocks()
-			expect(#calls):toBe(#blocks * 2)
+			expect(#calls):toBe(#blocks * 2 + 1)
+			expect(calls[1].material):toBe("Material.Air")
+			expect(calls[1].size.X):toBe(400)
+			expect(calls[1].size.Y):toBe(16)
+			expect(calls[1].size.Z):toBe(400)
 			for index, block in blocks do
-				local clear = calls[index]
-				local fill = calls[index + #blocks]
+				local clear = calls[index + 1]
+				local fill = calls[index + #blocks + 1]
 				expect(clear.material):toBe("Material.Air")
 				expect(fill.material):toBe(block.material)
 				expect(clear.size.X):toBe(fill.size.X)
@@ -328,6 +363,7 @@ return function(t, Env)
 				add = function() end,
 			})
 			env:mock("server/World/NpcFactory", { build = function() end })
+			env:mock("server/World/Ground", { Y = 0.5 })
 			Greybox = env:require("server/World/Greybox")
 			world = Greybox.build()
 		end)

@@ -685,8 +685,18 @@ local CANOPY_BALLS = {
 
 local function treeSpots(): { Vector3 }
 	local spots = {}
+	local keepOut = MapSpec.keepOutRects()
+	local roadClear = MapSpec.ROAD.halfWidth + 3
 	for _, xz in TREE_XZ do
-		table.insert(spots, Vector3.new(xz[1], GROUND_Y, xz[2]))
+		local blocked = math.abs(xz[1]) < roadClear or math.abs(xz[2]) < roadClear
+		for _, rect in keepOut do
+			if math.abs(xz[1] - rect[1]) < rect[3] + 3 and math.abs(xz[2] - rect[2]) < rect[4] + 3 then
+				blocked = true
+			end
+		end
+		if not blocked then
+			table.insert(spots, Vector3.new(xz[1], GROUND_Y, xz[2]))
+		end
 	end
 	return spots
 end

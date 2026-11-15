@@ -109,8 +109,8 @@ local function apply()
 	}):Play()
 
 	TweenService:Create(atmosphere(), TWEEN, {
-		Density = preset.atmosphereDensity,
-		Haze = preset.atmosphereHaze,
+		Density = preset.atmosphereDensity or 0.35,
+		Haze = preset.atmosphereHaze or 1,
 		Color = preset.atmosphereColor,
 		Decay = preset.atmosphereDecay,
 		Glare = preset.atmosphereGlare or 0.3,

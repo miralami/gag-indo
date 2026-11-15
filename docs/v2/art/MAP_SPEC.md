@@ -26,12 +26,12 @@ the design intent and the old half-scale numbers for history.
 | Hubs | Pasar 32x26 ... | Pasar 64x52, Warung 52x44, Polisi 48x44, Ronda 44x40, Gelap 32x28, Pak RT 48x34 |
 | Roads | 18 wide, ring r 72 | 28 wide, ring r 144 (12 wide), continuations 16 |
 | River | z = 152 + 6 sin, 16 wide | z = 304 + 12 sin(2 pi x / 320), 28 wide, bridge 10 x 56 |
-| Sawah | 3 terraces, top 12.5 | 4 terraces, tops 4.5 to 16.5, 84-wide Balai gap (live surfaces measure 0.5 lower) |
+| Sawah | 3 terraces, top 12.5 | 4 terraces, tops 4.5 to 16.5, 84-wide Balai gap |
 | Hills | 12..40 | 40..80, west sunset gap <= 24 at z 132 |
 | Spawn | (0, 14) | (0, 28), faces north |
 
 Gelap (-80,-120) sits outside the r <= 132 hub rule on purpose: the ring is broken there for its alley.
-Known gap: live terrace tops are 4.0 / 8.0 / 12.0 / 16.0, half a stud under the spec.
+Terrace tops measured live at exactly 4.5 / 8.5 / 12.5 / 16.5 (single-layer 40-wide strips).
 
 ## 1. Scale (decision)
 

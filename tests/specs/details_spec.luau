@@ -10,7 +10,7 @@ return function(t, Env)
 	local env, Details, world, instances
 
 	local PART_BUDGET = 220
-	local ROAD_HALF_WIDTH = 9
+	local ROAD_HALF_WIDTH = 14 -- MapSpec.ROAD.halfWidth (S=2)
 	local LOW_Y = 2
 	local WALKWAY = 3
 	local MIN_MATERIALS = 5

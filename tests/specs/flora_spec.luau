@@ -10,7 +10,7 @@ return function(t, Env)
 	local env, Flora, MapSpec, world, instances, tags
 
 	local PART_BUDGET = 200
-	local ROAD_HALF_WIDTH = 9
+	local ROAD_HALF_WIDTH = 14 -- MapSpec.ROAD.halfWidth (S=2)
 	-- The old half-scale ring was 8 studs; the world is now MapSpec.S times larger (set in beforeEach).
 	local HUB_RADIUS = 8
 	local TREE_CLEAR = 5

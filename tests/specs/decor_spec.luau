@@ -9,7 +9,7 @@ return function(t, Env)
 
 	local PART_BUDGET = 220
 	local LIGHT_BUDGET = 6
-	local ROAD_HALF_WIDTH = 9
+	local ROAD_HALF_WIDTH = 14 -- MapSpec.ROAD.halfWidth (S=2)
 	local LOW_Y = 2
 
 	-- Exempt by name: these may sit on the road cross on purpose (bunting over the road,

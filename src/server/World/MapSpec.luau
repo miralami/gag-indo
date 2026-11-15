@@ -328,28 +328,10 @@ function MapSpec.splitWide(blocks: { { [string]: any } }): { { [string]: any } }
 			table.insert(out, b)
 			continue
 		end
-		local layers
-		local blockBottom = b.centre[2] - b.size[2] / 2
-		-- A block built through volumeForTop() has centre + size/2 == the region top, which is the
-		-- visible face minus half a voxel. Layering has to keep that region top, so compare and cut in
-		-- region space and never run the pieces back through volumeForTop (that would drop them another
-		-- half voxel and leave every terrace surface 2 studs low).
-		local regionTop = b.centre[2] + b.size[2] / 2
-		local groundFill = b.material ~= "Air" and blockBottom <= bottom + 1e-6
-		if not groundFill or regionTop <= bottom then
-			layers = { { centre = b.centre[2], sy = b.size[2] } }
-		else
-			layers = {}
-			local count = math.max(1, math.ceil((regionTop - bottom) / thickness))
-			local from = bottom
-			for i = 0, count - 1 do
-				local to = stripTop(bottom, thickness, regionTop, i)
-				if to > from then
-					table.insert(layers, { centre = (from + to) / 2, sy = to - from })
-					from = to
-				end
-			end
-		end
+		-- One layer per strip. The 340-wide holes came from the width, not the height: a 40-wide, 12-tall
+		-- strip filled cleanly in Studio (2026-11-15) and lands on regionTop + 2. Stacking partial layers
+		-- left every terrace surface half a stud low (live 4.0/8.0/12.0/16.0 instead of 4.5/8.5/12.5/16.5).
+		local layers = { { centre = b.centre[2], sy = b.size[2] } }
 		local columns = math.ceil(b.size[1] / MapSpec.MAX_FILL_SPAN)
 		local rows = math.ceil(b.size[3] / MapSpec.MAX_FILL_SPAN)
 		local dw = b.size[1] / columns

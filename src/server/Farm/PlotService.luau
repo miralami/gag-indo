@@ -34,8 +34,8 @@ local function buildPlot(world: Instance, index: number, anchorCFrame: CFrame?):
 	if anchorCFrame then
 		cf = anchorCFrame
 	else
-		local angle = (index - 1) / GameConfig.plotCount * math.pi * 2
-		local center = Vector3.new(math.cos(angle) * GameConfig.plotRadius, 0, math.sin(angle) * GameConfig.plotRadius)
+		local x, z = GameConfig.plotCenter(index)
+		local center = Vector3.new(x, 0, z)
 		-- -Z of this CFrame faces the village center
 		cf = CFrame.lookAt(center, Vector3.new(0, 0, 0))
 	end

@@ -8,7 +8,7 @@
 
 ## Progress tracker — read first, update last
 
-**Last updated:** 2026-11-15 · branch `track/c-world-look` · `lune run tests/run.luau`: 611 passing.
+**Last updated:** 2026-11-15 · branch `track/c-world-look` · `lune run tests/run.luau`: 614 passing.
 
 **Rules for this section.** Every agent reads it before touching the repo, so nobody has to rediscover
 the state from scratch. Whoever finishes a task ticks it here **in the same commit**, adds its status
@@ -76,6 +76,7 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 - [x] Terrain tops out on the 0.5 gameplay plane instead of burying it — `SEEN-IN-STUDIO` (live raycasts: 0.500 at every grid and key point, idempotent over three runs); screenshots `BLOCKED` (this model cannot save or read viewport captures), `docs/v2/evidence/c/2026-11-15-terrain-fix/REPORT.md`.
   - Note: **a place's terrain can be older than the source that made it.** `Greybox.applyTerrain` always clears the whole 400×16×400 village band (Y −8…8) with Air before filling, so a slab from an earlier generator cannot survive under a rebuild. Smooth Terrain's visible top face is `regionTop + 2` for a 4-stud voxel, not a whole-voxel snap.
 - [x] Map spec written (layout, hubs, plots, terrain, scale): `docs/v2/art/MAP_SPEC.md`, art reference `docs/v2/art/map/` — `UNVERIFIED` until built in Studio.
+- [~] Map spec step 1: plot ring on r=96, P1 at (30,-91), clockwise from north (`Game.plotCenter`) — `LUNE-ONLY`, `tests/specs/config_spec.luau`. Hubs, river, terraces, spawn still to do (`MAP_SPEC.md` §10).
 - [ ] Terraced sawah and river; three season presets re-tuned. (The river block exists but is fully overlapped by the village base slab: `ReadVoxels` finds 0 Water cells, so no water is visible. Digging it is this item, not a regression from the terrain fix.)
 - [ ] `Greybox.luau` retired to a test fallback.
 

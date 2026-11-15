@@ -11,7 +11,14 @@ Game.tileColumns = 4
 Game.tilesBuilt = 16 -- every plot model is built for the max, pass or not
 
 Game.plotCount = 10
-Game.plotRadius = 90 -- studs from village center
+Game.plotRadius = 96 -- studs from village center (MAP_SPEC §4)
+
+-- Plot ring (MAP_SPEC §4): plots sit 36 degrees apart, clockwise from the north, so index +-1 are
+-- physical neighbours. P3 is due east (96, 0); P1 is (30, -91). Returns the X and Z of the plot centre.
+function Game.plotCenter(index: number): (number, number)
+	local angle = (index - 3) / Game.plotCount * math.pi * 2
+	return math.cos(angle) * Game.plotRadius, math.sin(angle) * Game.plotRadius
+end
 
 Game.interactDistance = 16 -- server-side distance check for tiles/NPCs
 Game.npcDistance = 18 -- Pak RT / Pos Polisi

@@ -34,6 +34,46 @@ return function(t, Env)
 			end)
 		end)
 
+		t:describe("Game.plotCenter (MAP_SPEC §4)", function()
+			local function rounded(index)
+				local x, z = Game.plotCenter(index)
+				return math.floor(x + 0.5), math.floor(z + 0.5)
+			end
+
+			t:it("puts every plot on the ring at radius 96", function()
+				expect(Game.plotRadius):toBe(96)
+				for index = 1, Game.plotCount do
+					local x, z = Game.plotCenter(index)
+					expect(math.floor(math.sqrt(x * x + z * z) + 0.5)):toBe(96)
+				end
+			end)
+
+			t:it("matches the spec table for P1, P3, P5 and P8", function()
+				local x1, z1 = rounded(1)
+				expect(x1):toBe(30)
+				expect(z1):toBe(-91)
+				local x3, z3 = rounded(3)
+				expect(x3):toBe(96)
+				expect(z3 + 0):toBe(0)
+				local x5, z5 = rounded(5)
+				expect(x5):toBe(30)
+				expect(z5):toBe(91)
+				local x8, z8 = rounded(8)
+				expect(x8):toBe(-96)
+				expect(z8 + 0):toBe(0)
+			end)
+
+			t:it("keeps neighbouring plot centres at least 40 studs apart and index +-1 adjacent", function()
+				for index = 1, Game.plotCount do
+					local nextIndex = index % Game.plotCount + 1
+					local ax, az = Game.plotCenter(index)
+					local bx, bz = Game.plotCenter(nextIndex)
+					local gap = math.sqrt((ax - bx) ^ 2 + (az - bz) ^ 2)
+					expect(gap):toBeAtLeast(59)
+				end
+			end)
+		end)
+
 		t:describe("tiles", function()
 			t:it("lets every plot model hold the pass maximum", function()
 				expect(Game.tilesBuilt):toBeAtLeast(Game.maxTilesWithPass)

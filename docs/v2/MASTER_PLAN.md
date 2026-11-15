@@ -8,7 +8,7 @@
 
 ## Progress tracker — read first, update last
 
-**Last updated:** 2026-11-15 · branch `track/c-world-look` · `lune run tests/run.luau`: 614 passing.
+**Last updated:** 2026-11-16 · branch `track/c-world-look` · `lune run tests/run.luau`: 614 passing.
 
 **Rules for this section.** Every agent reads it before touching the repo, so nobody has to rediscover
 the state from scratch. Whoever finishes a task ticks it here **in the same commit**, adds its status
@@ -77,7 +77,7 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
   - Note: **a place's terrain can be older than the source that made it.** `Greybox.applyTerrain` always clears the whole 400×16×400 village band (Y −8…8) with Air before filling, so a slab from an earlier generator cannot survive under a rebuild. Smooth Terrain's visible top face is `regionTop + 2` for a 4-stud voxel, not a whole-voxel snap.
 - [x] Map spec written (layout, hubs, plots, terrain, scale): `docs/v2/art/MAP_SPEC.md`, art reference `docs/v2/art/map/` — `UNVERIFIED` until built in Studio.
 - [x] World at S=2: Rumah Pak RT as scale reference, all hubs, plots (r 192), roads, river, 4 sawah terraces, hills, spawn from `MapSpec.luau` — `SEEN-IN-STUDIO` numerically (grid 0.5 over 1014 points, 0 holes; 10 plots, 6 hubs, spawn); `LUNE-ONLY` specs; screenshots by the designer only. Terrace tops exactly 4.5/8.5/12.5/16.5 live (0 bad of 80 samples).
-- [ ] Terraced sawah and river; three season presets re-tuned. (The river block exists but is fully overlapped by the village base slab: `ReadVoxels` finds 0 Water cells, so no water is visible. Digging it is this item, not a regression from the terrain fix.)
+- [~] Terraced sawah and river: built from `MapSpec.luau`, 4 terraces exact and river water live (`SEEN-IN-STUDIO` numerically, `evidence/c/2026-11-15-terrain-fix/` style probes); three season presets not re-tuned yet, no photo.
 - [ ] `Greybox.luau` retired to a test fallback.
 
 **D. UI**

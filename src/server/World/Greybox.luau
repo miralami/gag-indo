@@ -52,6 +52,8 @@ local function contour(model: Model, maxDistance: number?)
 	highlight.Adornee = model
 	highlight.FillTransparency = 1
 	highlight.OutlineColor = Props.palette("tinta")
+	-- Thin ink: a faint line, not a hard black edge (designer feedback 2026-11-16).
+	highlight.OutlineTransparency = if maxDistance and maxDistance <= 48 then 0.8 else 0.6
 	highlight.DepthMode = Enum.HighlightDepthMode.Occluded
 	highlight.Parent = model
 	model:SetAttribute("ContourMaxDistance", maxDistance or 60)

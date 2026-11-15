@@ -55,6 +55,7 @@ function NpcFactory.wrap(model: Model, info: { name: string?, subtitle: string?,
 		outline.Adornee = model
 		outline.FillTransparency = 1
 		outline.OutlineColor = INK
+		outline.OutlineTransparency = 0.5
 		outline.DepthMode = Enum.HighlightDepthMode.Occluded
 		outline.Parent = model
 	end

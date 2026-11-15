@@ -75,6 +75,7 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 - [x] Terrain grass decoration: `Terrain.Decoration = true`, road painted Ground material to prevent blade clipping — `SEEN-IN-STUDIO`, `docs/v2/evidence/c/2026-11-14-world-look/REPORT.md`.
 - [x] Terrain tops out on the 0.5 gameplay plane instead of burying it — `SEEN-IN-STUDIO` (live raycasts: 0.500 at every grid and key point, idempotent over three runs); screenshots `BLOCKED` (this model cannot save or read viewport captures), `docs/v2/evidence/c/2026-11-15-terrain-fix/REPORT.md`.
   - Note: **a place's terrain can be older than the source that made it.** `Greybox.applyTerrain` always clears the whole 400×16×400 village band (Y −8…8) with Air before filling, so a slab from an earlier generator cannot survive under a rebuild. Smooth Terrain's visible top face is `regionTop + 2` for a 4-stud voxel, not a whole-voxel snap.
+- [x] Map spec written (layout, hubs, plots, terrain, scale): `docs/v2/art/MAP_SPEC.md`, art reference `docs/v2/art/map/` — `UNVERIFIED` until built in Studio.
 - [ ] Terraced sawah and river; three season presets re-tuned. (The river block exists but is fully overlapped by the village base slab: `ReadVoxels` finds 0 Water cells, so no water is visible. Digging it is this item, not a regression from the terrain fix.)
 - [ ] `Greybox.luau` retired to a test fallback.
 

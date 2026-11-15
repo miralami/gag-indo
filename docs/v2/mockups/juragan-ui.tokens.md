@@ -11,6 +11,15 @@ visual language, one drawn SVG icon set, and the missing states. Source:
 `src/screens.html` (open without a hash for the gallery); re-render with `src/render.ps1`
 (headless Edge). Portrait 360×640 pt at 3× (1080×1920); landscape 844×390 pt at 2× (1688×780).
 
+**Pass 3 (v3 style, 2026-11-15):** every screen now follows `src/hp-home.html`, the combined
+Figma + Stitch home. That means a painted paper overlay (fibre noise and vignette, never flat), a
+paper status bar (DESA-4G, clock, battery), page titles in Luckiest 28 next to the painted app icon
+(`src/icons/*.png`, 56 px Figma crops; the badge remnants were painted out of `tugas` and `lapor`),
+solid `tinta` sticker shadows, cards in `#f8efda`, and the rubber `.stamp` for Sus, offers and
+verdicts (Sus 62, CAIR 1 DETIK!, DITOLAK). `phone-home` embeds `hp-home.html` directly. The HUD
+Curang and Bibit buttons and the Toko Bibit and Papan headers also use the painted icons. Item and
+crop icons are still the drawn SVG set until painted versions exist.
+
 | Screen | PNG | What it shows |
 |---|---|---|
 | HP home | `phone-home.png` | Sus meter with raid mark, Nama Baik, Pangkat, 8 apps with badges |

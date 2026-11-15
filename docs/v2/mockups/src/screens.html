@@ -33,10 +33,10 @@ section:target::before{display:none}
 .landscape{width:844px;height:390px;position:relative;overflow:hidden}
 
 /* sticker: the game's 2px ink contour + 4px hard shadow (ART.md §4) */
-.st{border:var(--outline) solid var(--tinta);box-shadow:var(--shadow) var(--shadow) 0 rgba(43,33,24,.88)}
+.st{border:var(--outline) solid var(--tinta);box-shadow:var(--shadow) var(--shadow) 0 var(--tinta)}
 /* tile: outline only, for items that live inside a panel (no nested stickers) */
 .tile{border:var(--outline) solid var(--tinta);border-radius:var(--r-chip);background:var(--kertas-3)}
-.card{background:var(--kertas);border-radius:var(--r-card);padding:var(--md)}
+.card{background:#f8efda;border-radius:var(--r-card);padding:var(--md)}
 .btn{display:flex;align-items:center;justify-content:center;gap:6px;min-height:var(--touch);padding:var(--xs) var(--sm);
   border-radius:var(--r-button);background:var(--bambu);font-size:var(--t-body);font-weight:900;text-align:center;line-height:1.1}
 .btn:has(small){flex-wrap:wrap;column-gap:6px;row-gap:0;align-content:center}
@@ -65,10 +65,24 @@ section:target::before{display:none}
 .sep{height:2px;background:var(--kertas-2);border-radius:1px}
 
 /* phone shell: status, nav, page, thumb dock */
-.status{height:24px;display:flex;justify-content:space-between;align-items:center;padding:0 var(--md);font-size:var(--t-small);background:var(--tinta);color:var(--kertas)}
-.nav{height:56px;display:flex;align-items:center;gap:var(--sm);padding:0 var(--sm);border-bottom:var(--outline) solid var(--tinta)}
-.nav .t{flex:1;text-align:center;font-size:var(--t-title)}
-.nav .sp{width:var(--touch)}
+/* v3: paper status bar from hp-home.html, title on paper with the painted app icon */
+.status{height:24px;display:flex;justify-content:space-between;align-items:center;padding:0 var(--lg);font-size:var(--t-small);color:var(--tinta-lembut)}
+.status .sig{display:flex;align-items:flex-end;gap:2px}
+.status .sig i{display:block;width:4px;background:var(--tinta);border-radius:1px}
+.status .bat{display:inline-flex;align-items:center;gap:4px}
+.status .bat b{display:block;width:22px;height:11px;border:2px solid var(--tinta);border-radius:3px;position:relative}
+.status .bat b::before{content:"";position:absolute;left:1px;top:1px;bottom:1px;width:13px;background:#6f8a3f;border-radius:1px}
+.nav{height:56px;display:flex;align-items:center;gap:var(--md);padding:0 var(--lg);border-bottom:2px dashed rgba(43,33,24,.35)}
+.nav .t{flex:1;font-size:var(--t-display);padding-top:3px}
+.ai{width:40px;height:40px;flex:none;border:var(--outline) solid var(--tinta);border-radius:var(--r-button);background:#f6ecd5 center/38px 38px no-repeat}
+/* rubber stamp (Sus, offers, verdicts): printed tight to its border on purpose */
+.stamp{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border:2px solid var(--merah);border-radius:4px;color:var(--merah);
+  transform:rotate(-2deg);box-shadow:inset 0 0 0 1px rgba(168,50,38,.25);background:transparent}
+/* painted paper over the whole screen: fibre noise, never flat (ART.md §8) */
+.portrait::after,.landscape::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:9;opacity:.5;mix-blend-mode:multiply;
+  background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' seed='7'/><feColorMatrix values='0 0 0 0 .55  0 0 0 0 .42  0 0 0 0 .27  0 0 0 .22 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.portrait::after{background:radial-gradient(120% 90% at 30% 20%,rgba(255,250,235,0) 55%,rgba(185,138,90,.22) 100%),url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' seed='7'/><feColorMatrix values='0 0 0 0 .55  0 0 0 0 .42  0 0 0 0 .27  0 0 0 .22 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+iframe.portrait::after{content:none}
 .navbtn{width:var(--touch);height:var(--touch);border-radius:var(--r-button);background:var(--kertas);display:flex;align-items:center;justify-content:center}
 .page{position:absolute;top:80px;left:0;right:0;bottom:68px;padding:var(--md);display:flex;flex-direction:column;gap:var(--md);overflow:hidden}
 .dock{position:absolute;left:0;right:0;bottom:0;height:68px;padding:var(--md);display:flex;gap:var(--md);border-top:var(--outline) solid var(--tinta);background:var(--kertas-2)}
@@ -87,6 +101,7 @@ section:target::before{display:none}
 .phead{display:flex;align-items:center;gap:var(--sm);padding:var(--sm) var(--md);border-bottom:var(--outline) solid var(--tinta)}
 /* dark razia: contour flips to paper so it stays visible on ink */
 .on-ink .st{border-color:var(--kertas);box-shadow:var(--shadow) var(--shadow) 0 var(--merah)}
+.on-ink .card .st{border-color:var(--tinta);box-shadow:var(--shadow) var(--shadow) 0 var(--tinta)}
 </style>
 </head>
 <body>
@@ -142,43 +157,13 @@ section:target::before{display:none}
 </svg>
 
 <!-- ============================ PHONE: HOME ============================ -->
-<section id="phone-home"><div class="portrait">
-  <div class="status"><span>07:30</span><span>86%</span></div>
-  <div class="nav" style="background:var(--malam);color:var(--kertas)">
-    <div class="sp"></div><div class="t h">HP Juragan</div><div class="sp"></div>
-  </div>
-  <div class="page">
-    <div class="card st col" style="gap:var(--sm)">
-      <div class="row"><div class="ico" style="background:var(--kertas-2)"><svg class="i"><use href="#i-eye"/></svg></div>
-        <div class="grow"><div class="heading">Sus 62</div><div class="small muted">Sampai 80, Polisi Desa datang razia</div></div></div>
-      <div class="bar"><i style="width:62%;background:var(--merah)"></i><span class="mark" style="left:80%"></span></div>
-      <div class="row" style="gap:var(--sm)">
-        <span class="chip tile"><svg class="i"><use href="#i-star"/></svg>Nama Baik 120</span>
-        <span class="chip tile"><svg class="i"><use href="#i-crown"/></svg>Juragan Kecil</span>
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--md) var(--sm)">
-      <div class="col" style="gap:6px;align-items:center"><div class="ico st" style="width:64px;height:64px;background:var(--daun);position:relative"><svg class="i" style="width:40px;height:40px"><use href="#i-sprout"/></svg></div><span>Kebun</span></div>
-      <div class="col" style="gap:6px;align-items:center"><div class="ico st" style="width:64px;height:64px;background:var(--kunyit);position:relative"><svg class="i" style="width:40px;height:40px"><use href="#i-list"/></svg><span class="badge">2</span></div><span>Tugas</span></div>
-      <div class="col" style="gap:6px;align-items:center"><div class="ico st" style="width:64px;height:64px;background:var(--padi)"><svg class="i" style="width:40px;height:40px"><use href="#i-stall"/></svg></div><span>Toko Bibit</span></div>
-      <div class="col" style="gap:6px;align-items:center"><div class="ico st" style="width:64px;height:64px;background:var(--senja)"><svg class="i" style="width:40px;height:40px"><use href="#i-trophy"/></svg></div><span>Papan</span></div>
-      <div class="col" style="gap:6px;align-items:center"><div class="ico st" style="width:64px;height:64px;background:var(--malam);position:relative"><svg class="i" style="width:40px;height:40px"><use href="#i-camera"/></svg><span class="badge">1</span></div><span>Lapor</span></div>
-      <div class="col" style="gap:6px;align-items:center"><div class="ico st" style="width:64px;height:64px;background:var(--indigo)"><svg class="i" style="width:40px;height:40px"><use href="#i-caping"/></svg></div><span>Dekorasi</span></div>
-      <div class="col" style="gap:6px;align-items:center"><div class="ico st" style="width:64px;height:64px;background:var(--genteng)"><svg class="i" style="width:40px;height:40px"><use href="#i-wallet"/></svg></div><span>BayarLater</span></div>
-      <div class="col" style="gap:6px;align-items:center"><div class="ico st" style="width:64px;height:64px;background:var(--merah)"><svg class="i" style="width:40px;height:40px"><use href="#i-mask"/></svg></div><span>Curang</span></div>
-    </div>
-    <div class="card st row" style="background:var(--senja);padding:var(--sm) var(--md)">
-      <svg class="i"><use href="#i-camera"/></svg><span class="grow">Curang itu cepat, tapi tetangga bisa ngerekam.</span>
-    </div>
-  </div>
-  <div class="dock"><div class="btn st ghost"><svg class="i"><use href="#i-close"/></svg>Tutup HP</div></div>
-</div></section>
+<section id="phone-home"><iframe class="portrait" src="hp-home.html" style="border:0;display:block" title="HP Juragan"></iframe></section>
 
 <!-- ============================ PHONE: KEBUN ============================ -->
 <section id="phone-kebun"><div class="portrait">
-  <div class="status"><span>07:30</span><span>86%</span></div>
-  <div class="nav" style="background:var(--daun)">
-    <div class="navbtn st"><svg class="i"><use href="#i-back"/></svg></div><div class="t h">Kebun</div><div class="sp"></div>
+  <div class="status"><span class="row" style="gap:6px"><span class="sig"><i style="height:4px"></i><i style="height:7px"></i><i style="height:10px"></i><i style="height:13px;opacity:.3"></i></span>DESA-4G</span><span>07:30</span><span class="bat">62%<b></b></span></div>
+  <div class="nav">
+    <div class="navbtn st"><svg class="i"><use href="#i-back"/></svg></div><span class="ai" style="background-image:url(icons/kebun.png)"></span><div class="t h">Kebun</div>
   </div>
   <div class="page">
     <div class="row" style="gap:var(--sm)">
@@ -205,9 +190,9 @@ section:target::before{display:none}
 
 <!-- ========================= PHONE: KEBUN / ALAT ========================= -->
 <section id="phone-kebun-alat"><div class="portrait">
-  <div class="status"><span>07:30</span><span>86%</span></div>
-  <div class="nav" style="background:var(--daun)">
-    <div class="navbtn st"><svg class="i"><use href="#i-back"/></svg></div><div class="t h">Kebun</div><div class="sp"></div>
+  <div class="status"><span class="row" style="gap:6px"><span class="sig"><i style="height:4px"></i><i style="height:7px"></i><i style="height:10px"></i><i style="height:13px;opacity:.3"></i></span>DESA-4G</span><span>07:30</span><span class="bat">62%<b></b></span></div>
+  <div class="nav">
+    <div class="navbtn st"><svg class="i"><use href="#i-back"/></svg></div><span class="ai" style="background-image:url(icons/kebun.png)"></span><div class="t h">Kebun</div>
   </div>
   <div class="page">
     <div class="row" style="gap:var(--sm)">
@@ -234,12 +219,12 @@ section:target::before{display:none}
 
 <!-- ========================== PHONE: BAYARLATER ========================== -->
 <section id="phone-pinjol"><div class="portrait">
-  <div class="status"><span>07:30</span><span>86%</span></div>
-  <div class="nav" style="background:var(--genteng);color:var(--kertas)">
-    <div class="navbtn st"><svg class="i"><use href="#i-back"/></svg></div><div class="t h">BayarLater</div><div class="sp"></div>
+  <div class="status"><span class="row" style="gap:6px"><span class="sig"><i style="height:4px"></i><i style="height:7px"></i><i style="height:10px"></i><i style="height:13px;opacity:.3"></i></span>DESA-4G</span><span>07:30</span><span class="bat">62%<b></b></span></div>
+  <div class="nav">
+    <div class="navbtn st"><svg class="i"><use href="#i-back"/></svg></div><span class="ai" style="background-image:url(icons/bayarlater.png)"></span><div class="t h">BayarLater</div>
   </div>
   <div class="page">
-    <div class="row"><span class="h heading grow">Dana Kilat Desa</span><span class="chip st" style="background:var(--kunyit);transform:rotate(-4deg)">CAIR 1 DETIK!</span></div>
+    <div class="row"><span class="h heading grow">Dana Kilat Desa</span><span class="stamp h" style="font-size:15px;transform:rotate(-5deg)">CAIR 1 DETIK!</span></div>
     <div class="card st col" style="gap:var(--sm)">
       <div class="row"><span class="grow muted">Hutang aktif</span><span class="heading">Rp 1.200</span></div>
       <div class="row"><span class="grow muted">Jatuh tempo</span><span class="row" style="gap:4px"><svg class="i" style="width:18px;height:18px"><use href="#i-clock"/></svg>2 hari</span></div>
@@ -257,9 +242,9 @@ section:target::before{display:none}
 
 <!-- ============================ PHONE: TUGAS ============================ -->
 <section id="phone-tugas"><div class="portrait">
-  <div class="status"><span>07:30</span><span>86%</span></div>
-  <div class="nav" style="background:var(--kunyit)">
-    <div class="navbtn st"><svg class="i"><use href="#i-back"/></svg></div><div class="t h">Tugas</div><div class="sp"></div>
+  <div class="status"><span class="row" style="gap:6px"><span class="sig"><i style="height:4px"></i><i style="height:7px"></i><i style="height:10px"></i><i style="height:13px;opacity:.3"></i></span>DESA-4G</span><span>07:30</span><span class="bat">62%<b></b></span></div>
+  <div class="nav">
+    <div class="navbtn st"><svg class="i"><use href="#i-back"/></svg></div><span class="ai" style="background-image:url(icons/tugas.png)"></span><div class="t h">Tugas</div>
   </div>
   <div class="page">
     <div class="card st col" style="gap:var(--sm)">
@@ -297,14 +282,14 @@ section:target::before{display:none}
 
 <!-- ============================ PHONE: CURANG ============================ -->
 <section id="phone-curang"><div class="portrait">
-  <div class="status"><span>07:30</span><span>86%</span></div>
-  <div class="nav" style="background:var(--tinta);color:var(--kertas)">
-    <div class="navbtn st" style="border-color:var(--kertas)"><svg class="i"><use href="#i-back"/></svg></div><div class="t h">Curang</div><div class="sp"></div>
+  <div class="status"><span class="row" style="gap:6px"><span class="sig"><i style="height:4px"></i><i style="height:7px"></i><i style="height:10px"></i><i style="height:13px;opacity:.3"></i></span>DESA-4G</span><span>07:30</span><span class="bat">62%<b></b></span></div>
+  <div class="nav">
+    <div class="navbtn st"><svg class="i"><use href="#i-back"/></svg></div><span class="ai" style="background-image:url(icons/curang.png)"></span><div class="t h">Curang</div>
   </div>
   <div class="page">
     <div class="card st col" style="gap:6px">
-      <div class="row"><svg class="i"><use href="#i-eye"/></svg><span class="heading grow">Sus 62</span><span class="small muted">razia di 80</span></div>
-      <div class="bar" style="height:16px"><i style="width:62%;background:var(--merah)"></i><span class="mark" style="left:80%"></span></div>
+      <div class="row"><span class="stamp"><span class="h" style="font-size:20px;letter-spacing:1px">Sus 62</span></span><span class="grow"></span><span class="muted">dari 100 · <b style="color:var(--merah)">razia di 80</b></span></div>
+      <div class="bar" style="height:16px;margin-top:4px"><i style="width:62%;background:linear-gradient(180deg,#c24a39 0%,var(--merah) 60%,#8e2a20 100%)"></i><span class="mark" style="left:80%"></span></div>
     </div>
     <div class="card st row">
       <div class="ico" style="background:var(--kertas-2)"><svg class="i"><use href="#i-flask"/></svg></div>
@@ -332,9 +317,9 @@ section:target::before{display:none}
 
 <!-- ============================ PHONE: DEKOR ============================ -->
 <section id="phone-dekor"><div class="portrait">
-  <div class="status"><span>07:30</span><span>86%</span></div>
-  <div class="nav" style="background:var(--indigo);color:var(--kertas)">
-    <div class="navbtn st"><svg class="i"><use href="#i-back"/></svg></div><div class="t h">Dekorasi</div><div class="sp"></div>
+  <div class="status"><span class="row" style="gap:6px"><span class="sig"><i style="height:4px"></i><i style="height:7px"></i><i style="height:10px"></i><i style="height:13px;opacity:.3"></i></span>DESA-4G</span><span>07:30</span><span class="bat">62%<b></b></span></div>
+  <div class="nav">
+    <div class="navbtn st"><svg class="i"><use href="#i-back"/></svg></div><span class="ai" style="background-image:url(icons/dekorasi.png)"></span><div class="t h">Dekorasi</div>
   </div>
   <div class="page" style="display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:min-content;gap:var(--md)">
     <div class="card st col" style="gap:var(--sm);padding:var(--sm)">
@@ -367,9 +352,9 @@ section:target::before{display:none}
 
 <!-- ============================ PHONE: LAPOR ============================ -->
 <section id="phone-lapor"><div class="portrait">
-  <div class="status"><span>07:30</span><span>86%</span></div>
-  <div class="nav" style="background:var(--malam);color:var(--kertas)">
-    <div class="navbtn st"><svg class="i"><use href="#i-back"/></svg></div><div class="t h">Lapor</div><div class="sp"></div>
+  <div class="status"><span class="row" style="gap:6px"><span class="sig"><i style="height:4px"></i><i style="height:7px"></i><i style="height:10px"></i><i style="height:13px;opacity:.3"></i></span>DESA-4G</span><span>07:30</span><span class="bat">62%<b></b></span></div>
+  <div class="nav">
+    <div class="navbtn st"><svg class="i"><use href="#i-back"/></svg></div><span class="ai" style="background-image:url(icons/lapor.png)"></span><div class="t h">Lapor</div>
   </div>
   <div class="page">
     <div class="card st row" style="background:var(--kertas-3)">
@@ -409,9 +394,9 @@ section:target::before{display:none}
     <div class="card col" style="width:76px;height:68px;padding:4px;align-items:center;gap:2px;background:var(--kertas-2);border:2px dashed var(--tinta-lembut)"><svg class="i" style="width:30px;height:30px"><use href="#i-lock"/></svg><span class="small muted">Pangkat Petani</span></div>
   </div>
   <div class="col" style="position:absolute;right:12px;bottom:12px;gap:10px;align-items:flex-end">
-    <div class="btn st" style="width:64px;height:44px;background:var(--merah);padding:0"><svg class="i" style="width:28px;height:28px"><use href="#i-mask"/></svg></div>
+    <div class="btn st" style="width:64px;height:48px;padding:0;background:#f6ecd5 center/44px 44px no-repeat url(icons/curang.png)"></div>
     <div style="height:14px"></div>
-    <div class="btn st" style="width:84px;height:56px;background:var(--padi)"><svg class="i"><use href="#i-stall"/></svg>Bibit</div>
+    <div class="btn st" style="width:84px;height:56px;background:var(--padi);padding:0 6px 0 2px"><span style="width:40px;height:40px;flex:none;background:center/40px 40px no-repeat url(icons/toko.png);border-radius:8px"></span>Bibit</div>
     <div class="btn st" style="width:84px;height:64px;background:var(--malam);color:var(--kertas);position:relative"><svg class="i" style="width:28px;height:28px"><use href="#i-camera"/></svg>HP<span class="badge">3</span></div>
   </div>
   <div style="position:absolute;left:28px;bottom:28px;width:96px;height:96px;border-radius:50%;border:2px dashed rgba(43,33,24,.4)"></div>
@@ -435,7 +420,7 @@ section:target::before{display:none}
   <div class="world"></div>
   <div class="card st panel" style="width:640px;height:350px">
     <div class="phead" style="background:var(--padi)">
-      <svg class="i" style="width:30px;height:30px"><use href="#i-stall"/></svg><span class="h grow" style="font-size:var(--t-title)">Toko Bibit</span>
+      <span class="ai" style="background-image:url(icons/toko.png)"></span><span class="h grow" style="font-size:var(--t-title)">Toko Bibit</span>
       <span class="row" style="gap:4px"><svg class="i" style="width:22px;height:22px"><use href="#i-coin"/></svg>Rp 160</span>
       <div class="navbtn st"><svg class="i"><use href="#i-close"/></svg></div>
     </div>
@@ -458,7 +443,7 @@ section:target::before{display:none}
   <div class="world"></div>
   <div class="card st panel" style="width:540px;height:362px">
     <div class="phead" style="background:var(--senja)">
-      <svg class="i" style="width:30px;height:30px"><use href="#i-trophy"/></svg><span class="h grow" style="font-size:var(--t-title)">Papan Juragan</span>
+      <span class="ai" style="background-image:url(icons/papan.png)"></span><span class="h grow" style="font-size:var(--t-title)">Papan Juragan</span>
       <div class="navbtn st"><svg class="i"><use href="#i-close"/></svg></div>
     </div>
     <div class="row" style="padding:var(--sm) var(--md) 0">
@@ -520,7 +505,8 @@ section:target::before{display:none}
 
 <!-- ============================ RAZIA: HASIL ============================ -->
 <section id="razia-hasil"><div class="landscape on-ink" style="background:var(--tinta);color:var(--kertas)">
-  <div class="card st col" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:560px;gap:var(--md);background:var(--kertas);color:var(--tinta)">
+  <div class="card st col" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:560px;gap:var(--md);color:var(--tinta)">
+    <span class="stamp h" style="position:absolute;right:18px;top:16px;font-size:20px;transform:rotate(-8deg);opacity:.9">DITOLAK</span>
     <div class="row"><svg class="i" style="width:44px;height:44px"><use href="#i-envelope"/></svg>
       <div class="grow"><div class="h" style="font-size:var(--t-display);color:var(--merah)">Amplop kurang tebal!</div><div class="muted">Pak Polisi menolak. Denda naik 1,5 kali.</div></div></div>
     <div class="row" style="gap:var(--md)">

@@ -14,28 +14,25 @@ Roblox walk speed is 16 studs/s. Terrain voxel is 4 studs; a FillBlock's visible
 
 ## 1. Scale (decision)
 
-The code today fills a 400 x 400 square, but only the six hubs near the middle and the ring at r=90
-are built, and the hubs are tiny (Pasar plinth 16 x 10). In Studio that reads as small. The ChatGPT map
-fills the same square and draws every building about twice as big, so it reads as open world.
+**Keep it big: the playable square stays 400 x 400 (|x|, |z| <= 200).** The code fills this square
+today but builds only a small cluster in the middle, so Studio feels small; the ChatGPT map fills the
+whole square and draws every building about twice as big. We take the big version.
 
-Decisions:
-1. **Playable square is 340 x 340 (|x|, |z| <= 170)**, down from 400. The hill ring starts at +-170.
-   Update `PLAYABLE_HALF`, the village base slab and the clear envelope to match.
-2. **Hubs are bigger than today** (footprints in §3) so they read from the spawn and on a phone.
-3. **No empty stretch longer than ~30 studs**: every gap is ground cover, props, a fence, a tree
-   cluster or a path. Dense near hubs, calm in the open between them, never bare.
-4. Edge to edge is about 20 s of walking, spawn to any hub under 4 s, spawn to any plot gate under 6 s.
-   Short on purpose: phone first, tutorial beats stay close together.
-
-If the blockout still feels too big, shrink to |x|,|z| <= 150 by moving only the river, Balai and
-sawah (§5), never the plot ring or hubs.
+1. **Hubs are bigger than today** (footprints in §3) so they read from the spawn and on a phone.
+2. **Cover the whole square with purpose.** Calm open space is allowed, but never bare: ground cover,
+   paths, fences, tree clusters, signs, ambient NPCs. Dense near hubs, sparse between.
+3. Walking at 16 studs/s: spawn to any hub under 4 s, spawn to any plot gate under 6 s, edge to edge
+   about 25 s. Long trips are fine because **traversal mechanics will come later** (sprint, ojek or
+   bicycle, fast travel, glider). Reserve their space now: wide roads, no one-stud gaps, no steps on
+   main roads, a clear ground-level line from every plot gate to the plaza.
+4. Do not shrink the map to fix emptiness. Add density and traversal.
 
 ## 2. Layout overview (north up)
 
 ```
-              hill + forest ring (outside +-170)
+              hill + forest ring (outside +-200)
    ┌──────────────────────────────────────────────┐
-   │     SAWAH TERRACES  (z -152 .. -176, climb N)│
+   │     SAWAH TERRACES  (z -156 .. -180, climb N)│
    │              BALAI DESA (future)             │
    │         P10                  P1              │
    │   P9    ┌ NW alley ┐          P2             │
@@ -100,31 +97,38 @@ lumbung. Own plot is marked by the owner sign (already built). `Game.plotRadius`
 
 Everything gameplay stays on Y = 0.5. Elevation lives in two named exceptions and in the hill ring.
 
-**River (south).** Centreline `z(x) = 140 + 5 * sin(2 pi x / 160)`. Water 16 wide, banks sloping over
+**River (south).** Centreline `z(x) = 152 + 6 * sin(2 pi x / 160)`. Water 16 wide, banks sloping over
 4 studs each side, channel bed at Y = -3.5, water surface at about Y = -0.5. It must be **carved**
 (Air through the base slab first) or it stays buried like before. Measure with `ReadVoxels`;
-target at least 1000 Water voxels. Bamboo bridge at x = 0, deck 8 x 30 (z 125..155), top Y = 1.5
-with 4-stud approach ramps and railings. South bank (z 152..170) is meadow, then hills.
+target at least 1000 Water voxels. Bamboo bridge at x = 0, deck 8 x 30 (z 137..167), top Y = 1.5
+with 4-stud approach ramps and railings. South bank (z 164..200) is meadow, then hills.
 
-**Sawah terraces (north).** Behind the Balai (0, -136, 42 x 28). Three terraces climbing north,
-each 8 deep in z and 4 studs higher: tops at Y = 4.5 / 8.5 / 12.5 over z -152..-160, -160..-168,
--168..-176, spanning x -150..150. Walkable: a 12-wide ramp at x = 0 and stairs at x = +-70.
-Paddy water is a shallow sheet; **spike first** (terrain water is a full voxel deep, a thin Part
-may be better). The terrain-never-above-0.5 test excludes this band (z < -150) and the river band.
+**Sawah terraces (north).** Behind the Balai (0, -137, 42 x 28, z -151..-123). Three terraces
+climbing north, each 8 deep in z and 4 studs higher: tops at Y = 4.5 / 8.5 / 12.5 over z -156..-164,
+-164..-172, -172..-180, spanning x -170..170, then the hill. Walkable: a 12-wide ramp at x = 0 and
+stairs at x = +-70. **Paddy water is thin geometry, not terrain water**: on each terrace a flat Part,
+about 0.2 studs thick, Glass or SmoothPlastic, `malam`-tinted, Transparency 0.35, Reflectance 0.15,
+CanCollide false, sitting 0.1 above the terrace top, inset 2 studs from the bund so a ridge of
+terrain frames it. Plant rows (padi) as repeated instanced strips over it. The terrain-never-above-0.5
+test excludes z < -150 and the river band.
 
-**Hills.** Start at +-170. Heights 12 to 40 (raise `MAX_HILL_HEIGHT` from 22). Keep one gap about
-60 wide and no higher than 12 on the sunset side (read the sun direction from Lighting at ClockTime
-17.2 before placing). Forest on the slopes. Sawit hill (future) at the NE corner, about (190, -170).
+**Hills.** Start at +-200. Heights 12 to 40 (raise `MAX_HILL_HEIGHT` from 22). **Sunset gap, decided:**
+measured in Studio at ClockTime 17.2 the sun direction is (-0.93, 0.20, 0.31), i.e. west, 18 degrees
+south of west, about 11 degrees above the horizon. Keep the west edge low where that line leaves the
+square: hills on the west edge between z = 35 and z = 100 are at most 12 high, widest gap at z = 66.
+P7 and P8 look straight into it. Forest on the slopes elsewhere. Sawit hill (future) at the NE
+corner, about (220, -180).
 
-**Future slots (reserve now, do not build yet):** Proyek mangkrak (145, 60) 34 x 30; Empang
-(125, 100) 34 x 24; Balai Desa as above. Re-check overlaps in the blockout.
+**Future slots (reserve now, do not build yet):** Proyek mangkrak (140, 65) 34 x 30; Empang
+(130, 118) 34 x 24. Re-check overlaps in the blockout.
 
 ## 6. Flow and sightlines
 
 - **Spawn** (0, 0.5, 14), size 8, **faces -Z** (north). First frame: the north road to the Balai
   and terraces at the end, Pasar roof on the left, Warung on the right. Never a tree trunk.
 - Beat sheet distances: plant at own plot gate (<= 6 s), sell at the Pasar (3 s), raid seen from the
-  plaza, rumour at the Warung (3 s), rank-up at plot.
+  plaza, rumour at the Warung (3 s), rank-up at plot. The big square makes the *rest* of the map a
+  walk; that is what the later traversal mechanics are for.
 - Three orientation landmarks: Pos Ronda tower (west), Pasar roof (north-west), terrace slope (north).
   From any plot gate at least one is visible.
 - View corridors: spawn -> north road -> Balai and sawah; south road -> bridge -> river sunset;
@@ -149,7 +153,7 @@ envelope on Pak RT's table, pinjol banner, proyek mangkrak, tall cabai-price boa
 
 1. **Blockout** in Studio on the Ground plane: plots, hubs as boxes, roads, spawn. Done = tags
    (`PlotAnchor`, `NpcSpawn`, prompts) work and the first-session harness passes.
-2. **Terrain**: base slab 340 x 340, carve river, terraces, hills. Done = measured numbers in an
+2. **Terrain**: base slab 400 x 400, carve river, terraces, hills. Done = measured numbers in an
    evidence report (grid max 0.5 inside the village band, Water voxels > 1000, terraces at 4.5/8.5/12.5).
 3. **Kit pieces** (fence, stall, roof types, bridge plank), then hubs one by one, Warung first as reference.
 4. **Plots and ring**, then dressing, then lighting and season pass.
@@ -161,12 +165,11 @@ Performance: instancing and shared textures, 60 fps on mid-range Android, instan
 ## 10. Code that must change with this spec
 
 - `src/shared/Config/Game.luau`: `plotRadius = 96`.
-- `src/server/World/Greybox.luau`: hub centres, base slab 340, river carve, terraces, spawn position and facing.
-- `src/server/World/Landscape.luau`: `PLAYABLE_HALF = 170`, `MAX_HILL_HEIGHT`, hill positions.
+- `src/server/World/Greybox.luau`: hub centres, river carve (slab stays 400), terraces, paddy water Parts, spawn position and facing.
+- `src/server/World/Landscape.luau`: `MAX_HILL_HEIGHT`, hill positions, the low sunset gap on the west edge (`PLAYABLE_HALF` stays 200).
 - Specs: `greybox_spec.luau`, `landscape_spec.luau` (surface <= 0.5 test excludes the sawah and river bands).
 
 ## 11. Open questions
 
-- Sun azimuth for the sunset gap.
-- Paddy water: terrain voxel vs thin Part.
-- Final feel of scale after the Studio blockout (fallback: +-150 square, see §1).
+- Which traversal mechanic first (sprint, ojek or bicycle, fast travel, glider); it decides road surface and width details.
+- Whether the plot ring (r = 96) feels too close to the centre once the map is dressed; the fix would be moving plots outward, not shrinking the map.

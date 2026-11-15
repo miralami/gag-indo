@@ -54,3 +54,23 @@ MCP `search_asset` (Creator Store, free filter) and each was loaded in a Play So
 - Licence terms of Creator Store audio were not read in full; confirm on the Creator Store terms
   before launch (Master Plan §6 phase 4).
 - Third-party Creator Store audio can be removed or moderated later; re-check the IDs load before each release.
+
+## 3D models (Poly Pizza CC0, via Blender MCP)
+
+FBX in `docs/v2/art/models/`: path mode Copy, Embed Textures, FBX Unit Scale, no leaf bones, no bake animation. Origin at base centre, bottom on Z=0, transforms applied. Columns follow `TOOLS.md` §6. Plain material colours only, no textures yet.
+
+```
+slot,class,source,source_ref,licence,attribution,id,approved_by,status
+model.pasar.stall,model,polypizza,https://poly.pizza/m/DGIM5HGISb,CC0,,0,,UNVERIFIED
+model.prop.gerobak,model,polypizza,https://poly.pizza/m/l7bDe7ak6j,CC0,,0,,UNVERIFIED
+model.prop.sumur,model,polypizza,https://poly.pizza/m/QlqncKYxXb,CC0,,0,,UNVERIFIED
+model.prop.barrel,model,polypizza,https://poly.pizza/m/ONdghDBByN,CC0,,0,,UNVERIFIED
+model.prop.crate,model,polypizza,https://poly.pizza/m/3VGWnZPXmG,CC0,,0,,UNVERIFIED
+model.prop.karung,model,polypizza,https://poly.pizza/m/gzvyAQ797z,CC0,,0,,UNVERIFIED
+model.prop.motor,model,polypizza,https://poly.pizza/m/j20srJUjpB,CC0,,0,,UNVERIFIED
+model.kit.hut,model,polypizza,https://poly.pizza/m/wxi3kAu5ey,CC0,,0,,UNVERIFIED
+model.kit.wall,model,polypizza,https://poly.pizza/m/8C9NBoi9cA,CC0,,0,,UNVERIFIED
+model.kit.fence,model,polypizza,https://poly.pizza/m/e02PFKKhbr,CC0,,0,,UNVERIFIED
+```
+
+Authors: Quaternius (all except motor: AliceCassie). Triangles: stall 1548, gerobak 2659, sumur 1870, barrel 1384, crate 784, karung 912, motor 1500, hut 1724, wall 404, fence 188.

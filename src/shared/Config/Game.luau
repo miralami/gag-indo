@@ -11,10 +11,14 @@ Game.tileColumns = 4
 Game.tilesBuilt = 16 -- every plot model is built for the max, pass or not
 
 Game.plotCount = 10
-Game.plotRadius = 96 -- studs from village center (MAP_SPEC §4)
+-- Studs from the village centre (MAP_SPEC §4). Doubled with the world scale: the hubs, roads and
+-- playable square all doubled (MapSpec.S = 2), so the plot ring has to stand off them by the same
+-- factor, and the plot footprint itself (4 x 4 tiles of 6 + 1.5 gap) stays as PlotService builds it.
+Game.plotRadius = 192
 
 -- Plot ring (MAP_SPEC §4): plots sit 36 degrees apart, clockwise from the north, so index +-1 are
--- physical neighbours. P3 is due east (96, 0); P1 is (30, -91). Returns the X and Z of the plot centre.
+-- physical neighbours. P3 is due east (192, 0); P1 is (60, -182). Returns the X and Z of the plot
+-- centre.
 function Game.plotCenter(index: number): (number, number)
 	local angle = (index - 3) / Game.plotCount * math.pi * 2
 	return math.cos(angle) * Game.plotRadius, math.sin(angle) * Game.plotRadius

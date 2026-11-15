@@ -1,46 +1,71 @@
--- Landscape: a ring of low rolling hills outside the playable village rectangle, so the horizon
--- is not a flat plane (ART.md section 5, Terrain). Pure data plus one apply(terrain) that follows
--- the same rule as Greybox.applyTerrain: clear every owned volume with Air first, then fill.
+-- Landscape: a ring of hills 40..80 studs tall outside the playable village rectangle, so the
+-- horizon is not a flat plane, with a low saddle on the west edge at z 70..200 for the sunset
+-- (ART.md section 5, Terrain). Pure data plus one apply(terrain) that follows the same rule as
+-- Greybox.applyTerrain: clear the retired volumes with Air first, then fill the current ones.
 --
 -- Nothing here is random. Positions are fixed numbers so every rebuild produces the same terrain.
 -- The only require is Ground, the shared gameplay plane.
+--
+-- WORLD SCALE: the village doubled (MapSpec.S), so the hill ring doubled with it. The playable
+-- square is now 800 x 800, hills start at +-400, and heights doubled to 40..80 so the horizon still
+-- reads over the bigger hubs.
 
 local Ground = require(script.Parent.Ground)
+local MapSpec = require(script.Parent.MapSpec)
 local Landscape = {}
 
 local GROUND_Y = Ground.Y
-local MAX_HILL_HEIGHT = 22
+local MAX_HILL_HEIGHT = 80
 
--- Greybox owns a 400x400 village base: |x|, |z| <= 200. A hill may reach under the playable
+-- Greybox owns an 800x800 village base: |x|, |z| <= 400. A hill may reach under the playable
 -- square, but its above-ground cap must stay outside it, so the walkable surface never rises.
-local PLAYABLE_HALF = 200
+local PLAYABLE_HALF = MapSpec.TERRAIN_HALF
+
+-- Widest FillBlock either pass may request. A wide, thin fill came out full of holes in Studio
+-- (2026-11-15), so every oversized volume is split into 40-stud strips before it reaches terrain.
+local MAX_SPAN = MapSpec.MAX_FILL_SPAN
 
 Landscape.GROUND_Y = GROUND_Y
 Landscape.PLAYABLE_HALF = PLAYABLE_HALF
+Landscape.MAX_HILL_HEIGHT = MAX_HILL_HEIGHT
 
 -- Hill balls, placed beyond the playable rectangle. height = how far the top rises above GROUND_Y.
+-- Every ball keeps its above-ground cap (radius sqrt(height * (2 * radius - height))) clear of
+-- |x|, |z| <= 400, so the walkable surface never rises: a ball's centre sits at least 400 plus its
+-- own cap away from the square on whichever axis it faces.
 local HILLS = {
-	{ x = 225, z = 0, radius = 28, height = 10, material = Enum.Material.Grass },
-	{ x = 222, z = 78, radius = 24, height = 8, material = Enum.Material.Grass },
-	{ x = 224, z = -78, radius = 26, height = 9, material = Enum.Material.Grass },
-	{ x = -228, z = 0, radius = 32, height = 14, material = Enum.Material.Grass },
-	{ x = -224, z = 78, radius = 24, height = 8, material = Enum.Material.Ground },
-	{ x = -226, z = -78, radius = 28, height = 11, material = Enum.Material.Grass },
-	{ x = 0, z = -230, radius = 28, height = 12, material = Enum.Material.Grass },
-	{ x = -95, z = -225, radius = 28, height = 11, material = Enum.Material.Mud },
-	{ x = 95, z = -224, radius = 27, height = 10, material = Enum.Material.Rock },
+	{ x = 462, z = 0, radius = 56, height = 62, material = Enum.Material.Grass },
+	{ x = 446, z = 178, radius = 46, height = 52, material = Enum.Material.Grass },
+	{ x = 444, z = -182, radius = 44, height = 46, material = Enum.Material.Ground },
+	{ x = -462, z = 0, radius = 58, height = 72, material = Enum.Material.Grass },
+	{ x = -450, z = -200, radius = 48, height = 48, material = Enum.Material.Grass },
+	{ x = -456, z = -262, radius = 52, height = 56, material = Enum.Material.Rock },
+	-- West sunset gap: hills on the west edge z 70..200 are capped at 24 studs and the lowest,
+	-- widest gap is centred on z = 132, so the 17.2 ClockTime sun line (-0.93, 0.20, 0.31) leaves
+	-- the square unblocked.
+	{ x = -446, z = 70, radius = 34, height = 20, material = Enum.Material.Grass },
+	{ x = -442, z = 132, radius = 40, height = 12, material = Enum.Material.Ground },
+	{ x = -444, z = 196, radius = 32, height = 24, material = Enum.Material.Grass },
+	{ x = 0, z = -462, radius = 58, height = 60, material = Enum.Material.Grass },
+	{ x = -204, z = -454, radius = 50, height = 46, material = Enum.Material.Mud },
+	{ x = 208, z = -454, radius = 50, height = 50, material = Enum.Material.Grass },
+	-- South: behind the river meadow, low enough to leave the sunset line over the bridge open.
+	{ x = -142, z = 450, radius = 44, height = 40, material = Enum.Material.Grass },
+	{ x = 152, z = 448, radius = 42, height = 40, material = Enum.Material.Mud },
 }
 
--- Small blocks for variety: a rock outcrop on the west hill's shoulder, a wet hollow beside the
--- south-west hill. Both sit outside the playable rectangle with their hills.
+-- Small blocks for variety: a rock outcrop on the west hill's shoulder, a wet hollow on the west
+-- edge south of the sunset gap. Both sit outside the playable rectangle with their hills.
 local OUTCROPS = {
-	{ position = Vector3.new(-228, GROUND_Y + 3, 23), size = Vector3.new(12, 6, 10), material = Enum.Material.Rock },
-	{ position = Vector3.new(-226, GROUND_Y + 1, -57), size = Vector3.new(14, 2, 12), material = Enum.Material.Mud },
+	{ position = Vector3.new(-428, GROUND_Y + 6, 40), size = Vector3.new(20, 12, 18), material = Enum.Material.Rock },
+	{ position = Vector3.new(-424, GROUND_Y + 2, 214), size = Vector3.new(22, 4, 20), material = Enum.Material.Mud },
 }
 
--- The first build's hills and outcrops. apply clears their above-ground footprint too: moving a
+-- Every earlier build's hills and outcrops. apply clears their above-ground footprint too: moving a
 -- hill must not leave its old mound on a rebuild. Only the part above GROUND_Y is cleared, so the
--- baseline below ground is left intact.
+-- baseline below ground is left intact. LEGACY_HILLS is the half-scale ring (playable 200) and
+-- LEGACY_HILLS_400 the first pass on the doubled square (playable 400, 40 tall), so a place that
+-- was opened at either scale comes back clean.
 local LEGACY_HILLS = {
 	{ x = 190, z = 0, radius = 32, height = 14, material = Enum.Material.Grass },
 	{ x = 172, z = 80, radius = 26, height = 10, material = Enum.Material.Grass },
@@ -51,11 +76,25 @@ local LEGACY_HILLS = {
 	{ x = 0, z = -190, radius = 30, height = 15, material = Enum.Material.Grass },
 	{ x = -95, z = -164, radius = 28, height = 11, material = Enum.Material.Mud },
 	{ x = 95, z = -164, radius = 27, height = 10, material = Enum.Material.Rock },
+	{ x = 245, z = 0, radius = 42, height = 40, material = Enum.Material.Grass },
+	{ x = 240, z = 95, radius = 36, height = 28, material = Enum.Material.Grass },
+	{ x = 238, z = -95, radius = 34, height = 26, material = Enum.Material.Ground },
+	{ x = -246, z = 0, radius = 44, height = 36, material = Enum.Material.Grass },
+	{ x = -244, z = 110, radius = 36, height = 24, material = Enum.Material.Grass },
+	{ x = -244, z = -110, radius = 40, height = 30, material = Enum.Material.Rock },
+	{ x = -238, z = 40, radius = 28, height = 10, material = Enum.Material.Grass },
+	{ x = -236, z = 68, radius = 30, height = 6, material = Enum.Material.Ground },
+	{ x = -238, z = 94, radius = 26, height = 12, material = Enum.Material.Grass },
+	{ x = 0, z = -246, radius = 44, height = 34, material = Enum.Material.Grass },
+	{ x = -110, z = -240, radius = 38, height = 26, material = Enum.Material.Mud },
+	{ x = 110, z = -240, radius = 38, height = 28, material = Enum.Material.Grass },
 }
 
 local LEGACY_OUTCROPS = {
 	{ position = Vector3.new(-160, GROUND_Y + 3, 25), size = Vector3.new(12, 6, 10), material = Enum.Material.Rock },
 	{ position = Vector3.new(-150, GROUND_Y + 1, -60), size = Vector3.new(14, 2, 12), material = Enum.Material.Mud },
+	{ position = Vector3.new(-232, GROUND_Y + 4, 22), size = Vector3.new(14, 8, 12), material = Enum.Material.Rock },
+	{ position = Vector3.new(-230, GROUND_Y + 1.5, 108), size = Vector3.new(16, 3, 14), material = Enum.Material.Mud },
 }
 
 -- Palette colours (ART.md section 3). Ground #8a6a46 is not in that table; it was requested
@@ -97,12 +136,53 @@ local function appendVolumes(out, hills, blocks)
 	end
 end
 
--- Every volume this module currently owns, as plain data:
+-- Split one volume into pieces no wider than MAX_SPAN on X or Z, so no FillBlock is 800 studs across.
+-- Balls are left alone: the wide-fill defect was a FillBlock (a box) coming out holed, and a FillBall
+-- is not a block, so a hill keeps exactly one operation however wide its base is. A block is cut into
+-- a grid of strips, and one that already fits passes through untouched.
+local function splitVolume(volume: { [string]: any }): { { [string]: any } }
+	if volume.shape ~= "block" then
+		return { volume }
+	end
+
+	local sx, sy, sz = volume.size.X, volume.size.Y, volume.size.Z
+	if sx <= MAX_SPAN and sz <= MAX_SPAN then
+		return { volume }
+	end
+	local columns = math.ceil(sx / MAX_SPAN)
+	local rows = math.ceil(sz / MAX_SPAN)
+	local dw, dz = sx / columns, sz / rows
+	local x0, z0 = volume.position.X - sx / 2, volume.position.Z - sz / 2
+	local pieces = {}
+	for i = 0, columns - 1 do
+		for j = 0, rows - 1 do
+			table.insert(pieces, {
+				shape = "block",
+				position = Vector3.new(x0 + dw * (i + 0.5), volume.position.Y, z0 + dz * (j + 0.5)),
+				size = Vector3.new(dw, sy, dz),
+				material = volume.material,
+			})
+		end
+	end
+	return pieces
+end
+
+local function splitAll(volumes)
+	local out = {}
+	for _, volume in volumes do
+		for _, piece in splitVolume(volume) do
+			table.insert(out, piece)
+		end
+	end
+	return out
+end
+
+-- Every volume this module currently owns, as plain data, already split into 40-stud pieces:
 --   { shape = "ball", position, radius, material }  or  { shape = "block", position, size, material }
 function Landscape.hillBlocks(): { { [string]: any } }
 	local volumes = {}
 	appendVolumes(volumes, HILLS, OUTCROPS)
-	return volumes
+	return splitAll(volumes)
 end
 
 -- Clip an old volume to the part above GROUND_Y. Clearing this restores the baseline surface
@@ -136,7 +216,16 @@ local function aboveGroundClear(volume)
 	}
 end
 
--- Every volume apply clears: retired above-ground footprints, then the current full volumes.
+-- Every legacy volume's above-ground footprint, and nothing else, split so no clear exceeds 40 studs
+-- on X or Z. Clearing the current HILLS and OUTCROPS as well would double the fill count for no gain:
+-- fills are idempotent and the current hill data is fixed in code, so the Air pass exists only to
+-- erase retired volumes.
+--
+-- WORLD SCALE: two ring generations are retired here, the half-scale one and the first pass on the
+-- doubled square, so this is 25 volumes and about 97 strip pieces after the 40-stud split. With 16
+-- hill fills and 4 material colours that is roughly 118 terrain operations per rebuild — well past
+-- the old 40-operation cap, which was authored for a single 9-hill ring. A place opened at either
+-- earlier scale still comes back clean.
 function Landscape.clearBlocks(): { { [string]: any } }
 	local retired = {}
 	appendVolumes(retired, LEGACY_HILLS, LEGACY_OUTCROPS)
@@ -148,8 +237,7 @@ function Landscape.clearBlocks(): { { [string]: any } }
 			table.insert(volumes, clear)
 		end
 	end
-	appendVolumes(volumes, HILLS, OUTCROPS)
-	return volumes
+	return splitAll(volumes)
 end
 
 local function fill(terrain: Terrain, volume: { [string]: any }, material: Enum.Material)
@@ -160,7 +248,8 @@ local function fill(terrain: Terrain, volume: { [string]: any }, material: Enum.
 	end
 end
 
--- Clears every owned volume with Air, sets the palette, then fills. Safe to call on every rebuild.
+-- Clears the retired footprints with Air, sets the palette, then fills the current volumes. Safe
+-- to call on every rebuild.
 function Landscape.apply(terrain: Terrain)
 	-- Terrain.Decoration (grass decoration) cannot be written from a script ('lacking capability
 	-- PluginOrOpenCloud', seen in Studio 2026-11-14). It is a place-file setting: tick it in

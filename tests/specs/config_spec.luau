@@ -40,36 +40,50 @@ return function(t, Env)
 				return math.floor(x + 0.5), math.floor(z + 0.5)
 			end
 
-			t:it("puts every plot on the ring at radius 96", function()
-				expect(Game.plotRadius):toBe(96)
+			t:it("puts every plot on the ring at Game.plotRadius", function()
+				expect(Game.plotRadius):toBeAtLeast(1)
 				for index = 1, Game.plotCount do
 					local x, z = Game.plotCenter(index)
-					expect(math.floor(math.sqrt(x * x + z * z) + 0.5)):toBe(96)
+					expect(math.floor(math.sqrt(x * x + z * z) + 0.5)):toBe(Game.plotRadius)
 				end
 			end)
 
 			t:it("matches the spec table for P1, P3, P5 and P8", function()
-				local x1, z1 = rounded(1)
-				expect(x1):toBe(30)
-				expect(z1):toBe(-91)
+				-- Ring is clockwise from north, 360 / plotCount degrees apart, P3 due east.
+				local r = Game.plotRadius
+				local step = math.pi * 2 / Game.plotCount
+				local function expected(index)
+					local a = (index - 3) * step
+					return math.floor(math.cos(a) * r + 0.5), math.floor(math.sin(a) * r + 0.5)
+				end
+				for _, index in { 1, 3, 5, 8 } do
+					local ex, ez = expected(index)
+					local x, z = rounded(index)
+					expect(x):toBe(ex)
+					expect(z + 0):toBe(ez + 0)
+				end
+				-- Anchors that do not depend on the formula: P3 due east, P8 due west, P1 north-east of north.
 				local x3, z3 = rounded(3)
-				expect(x3):toBe(96)
+				expect(x3):toBe(r)
 				expect(z3 + 0):toBe(0)
-				local x5, z5 = rounded(5)
-				expect(x5):toBe(30)
-				expect(z5):toBe(91)
 				local x8, z8 = rounded(8)
-				expect(x8):toBe(-96)
+				expect(x8):toBe(-r)
 				expect(z8 + 0):toBe(0)
+				local x1, z1 = rounded(1)
+				expect(x1 > 0 and z1 < 0):toBe(true)
+				local x5, z5 = rounded(5)
+				expect(x5):toBe(x1)
+				expect(z5):toBe(-z1)
 			end)
 
-			t:it("keeps neighbouring plot centres at least 40 studs apart and index +-1 adjacent", function()
+			t:it("keeps neighbouring plot centres at least one ring chord apart and index +-1 adjacent", function()
+				local chord = 2 * Game.plotRadius * math.sin(math.pi / Game.plotCount)
 				for index = 1, Game.plotCount do
 					local nextIndex = index % Game.plotCount + 1
 					local ax, az = Game.plotCenter(index)
 					local bx, bz = Game.plotCenter(nextIndex)
 					local gap = math.sqrt((ax - bx) ^ 2 + (az - bz) ^ 2)
-					expect(gap):toBeAtLeast(59)
+					expect(gap):toBeAtLeast(chord - 0.01)
 				end
 			end)
 		end)

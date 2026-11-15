@@ -7,14 +7,10 @@ return function(t, Env)
 	local expect = t.expect
 	local env, Landscape
 
-	-- Volumes Greybox owns (Greybox.terrainBlocks): the river, then four terrace rows.
-	-- Copied as centre and size so this spec does not need the whole Greybox module.
-	local OWNED = {
-		{ c = { 0, -4, 110 }, s = { 220, 8, 100 } },
-	}
-	for row = 0, 3 do
-		table.insert(OWNED, { c = { 0, -3.5, -100 + row * 14 }, s = { 120 - row * 22, 4, 18 } })
-	end
+	-- Volumes Greybox owns: the river carve strips and one box per terrace lane, filled from
+	-- MapSpec in beforeEach so this spec follows the layout instead of copying numbers.
+	local OWNED = {}
+	local MapSpec
 
 	-- Axis-aligned bounds of a hill volume: ball = centre +/- radius, block = centre +/- size/2.
 	local function bounds(volume)
@@ -109,6 +105,20 @@ return function(t, Env)
 				end,
 			}
 			Landscape = env:require("server/World/Landscape")
+			MapSpec = env:require("server/World/MapSpec")
+			OWNED = {}
+			for _, carve in MapSpec.river().carves do
+				table.insert(OWNED, { c = carve.centre, s = carve.size })
+			end
+			for _, terrace in MapSpec.TERRACES do
+				for _, side in MapSpec.TERRACE_SIDES do
+					local height = terrace.top - MapSpec.TERRAIN_BASE_Y
+					table.insert(OWNED, {
+						c = { (side.x0 + side.x1) / 2, MapSpec.TERRAIN_BASE_Y + height / 2, (terrace.z0 + terrace.z1) / 2 },
+						s = { side.x1 - side.x0, height, terrace.z1 - terrace.z0 },
+					})
+				end
+			end
 		end)
 
 		t:it("keeps every hill at least 150 studs from the origin", function()
@@ -117,12 +127,16 @@ return function(t, Env)
 			end
 		end)
 
-		t:it("keeps every hill top at most 22 studs above ground (GROUND_Y 0.5)", function()
+		t:it("keeps every hill top at most MAX_HILL_HEIGHT above ground, and the ring is tall", function()
+			expect(Landscape.MAX_HILL_HEIGHT >= 40 and Landscape.MAX_HILL_HEIGHT <= 80):toBe(true)
+			local tallest = 0
 			for _, volume in Landscape.hillBlocks() do
 				local top = volume.shape == "ball" and volume.position.Y + volume.radius
 					or volume.position.Y + volume.size.Y / 2
-				expect(top <= Landscape.GROUND_Y + 22):toBe(true)
+				expect(top <= Landscape.GROUND_Y + Landscape.MAX_HILL_HEIGHT):toBe(true)
+				tallest = math.max(tallest, top - Landscape.GROUND_Y)
 			end
+			expect(tallest >= 40):toBe(true)
 		end)
 
 		t:it("ball algebra: top is GROUND_Y + height and cap radius follows from centre and radius", function()
@@ -132,7 +146,10 @@ return function(t, Env)
 					local cap = math.sqrt(volume.radius ^ 2 - (Landscape.GROUND_Y - volume.position.Y) ^ 2)
 					expect(top):toBeNear(Landscape.GROUND_Y + volume.height, 1e-9)
 					expect(cap):toBeGreaterThan(0)
-					expect(cap):toBeLessThan(volume.radius)
+					-- Cap of a ball cut at ground: h * (2r - h). Equal to the radius for a hemisphere
+					-- (height == radius), smaller when the ball bulges (height > radius).
+					expect(cap * cap):toBeNear(volume.height * (2 * volume.radius - volume.height), 1e-6)
+					expect(cap <= volume.radius + 1e-9):toBe(true)
 				end
 			end
 		end)
@@ -170,14 +187,46 @@ return function(t, Env)
 
 		t:it("clears the retired above-ground footprint before filling the new hills", function()
 			local clear = Landscape.clearBlocks()
-			-- Old east hill, old north hill, old rock outcrop, old mud hollow: centre Y and height.
-			local retired = {
-				{ 190, 7.5, 0, 14 },
-				{ 0, 8, -190, 15 },
+			local ground = Landscape.GROUND_Y
+			-- Retired hills as { x, z, radius, height }, both earlier ring generations. Each footprint is
+			-- a square of side 2 * cap (cap^2 = h * (2r - h)), height h above ground, possibly split into
+			-- 40-stud strips, so check that the strips tile the footprint rather than match one block.
+			local retiredHills = {
+				{ 190, 0, 32, 14 }, -- half-scale east hill
+				{ 0, -190, 30, 15 }, -- half-scale north hill
+				{ 245, 0, 42, 40 }, -- first doubled-square east hill
+			}
+			for _, old in retiredHills do
+				local cap = math.sqrt(old[4] * (2 * old[3] - old[4]))
+				local area, minX, maxX, minZ, maxZ = 0, math.huge, -math.huge, math.huge, -math.huge
+				for _, volume in clear do
+					local p = volume.position
+					if
+						volume.shape == "block"
+						and math.abs(p.Y - (ground + old[4] / 2)) < 1e-9
+						and volume.size.Y == old[4]
+						and math.abs(p.X - old[1]) <= cap
+						and math.abs(p.Z - old[2]) <= cap
+					then
+						area += volume.size.X * volume.size.Z
+						minX, maxX = math.min(minX, p.X - volume.size.X / 2), math.max(maxX, p.X + volume.size.X / 2)
+						minZ, maxZ = math.min(minZ, p.Z - volume.size.Z / 2), math.max(maxZ, p.Z + volume.size.Z / 2)
+					end
+				end
+				expect(area):toBeNear(4 * cap * cap, 1e-6)
+				expect(minX):toBeNear(old[1] - cap, 1e-6)
+				expect(maxX):toBeNear(old[1] + cap, 1e-6)
+				expect(minZ):toBeNear(old[2] - cap, 1e-6)
+				expect(maxZ):toBeNear(old[2] + cap, 1e-6)
+			end
+			-- Retired outcrop blocks as { x, centre Y, z, height }: cleared whole (none exceeds 40 wide).
+			local retiredBlocks = {
 				{ -160, 3.5, 25, 6 },
 				{ -150, 1.5, -60, 2 },
+				{ -232, 4.5, 22, 8 },
+				{ -230, 2, 108, 3 },
 			}
-			for _, old in retired do
+			for _, old in retiredBlocks do
 				local found = false
 				for _, volume in clear do
 					if
@@ -219,11 +268,22 @@ return function(t, Env)
 			end
 		end)
 
-		t:it("never writes Decoration from script and stays within 40 terrain operations", function()
+		t:it("never writes Decoration from script and keeps terrain operations within budget", function()
 			local terrain = recorder()
 			Landscape.apply(terrain)
 			expect(terrain.Decoration):toBe(false)
-			expect(#terrain.calls <= 40):toBe(true)
+			-- Operations are exactly: one Air clear per retired strip, one SetMaterialColor per palette
+			-- material, one fill per current hill strip or ball. The old 40-operation cap was for a single
+			-- 9-hill ring; the scaled world retires two ring generations (about 97 clear strips) and fills
+			-- 16 hills, about 113 in all. 128 leaves a little headroom without letting it double silently.
+			local colours = 0
+			for _, call in terrain.calls do
+				if string.sub(call, 1, 16) == "SetMaterialColor" then
+					colours += 1
+				end
+			end
+			expect(#terrain.calls):toBe(#Landscape.clearBlocks() + colours + #Landscape.hillBlocks())
+			expect(#terrain.calls <= 128):toBe(true)
 		end)
 
 		t:it("produces the same terrain calls when apply runs twice", function()

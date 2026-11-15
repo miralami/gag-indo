@@ -5,19 +5,20 @@
 -- no asset IDs, no Models (so no Highlights are added by the contour pass).
 --
 -- Placement rules (checked by tests/specs/details_spec.luau):
--- * Road cross (|x| < 9 or |z| < 9): only raised goods. The Pasar (0,0) stands on the cross, so its
---   counter and shelves carry goods with their bottoms above 2 studs. Nothing else sits on the cross,
---   and every ground-level piece (floor patches, sacks, hedges, walls, crate stacks) is placed with
---   |x| >= 9 and |z| >= 9. No floor patch therefore needs the y < 0.7 exemption.
--- * Walkways: no breaker (hedge, wall, crate stack) lies in a keep-out strip from the road to a prompt
---   part. The strips are 3 studs wide, as listed in the spec.
+-- * Shop goods read the counter and shelf geometry from MapSpec, so they always land on the board
+--   Greybox built, whatever the hub position or yaw. `hubPoint` turns a stall-local point into world XZ.
+-- * Road and ring: every ground-level piece keeps its whole footprint at least 9 studs off both road
+--   axes, and nothing sits on the connector ring (r 68..76).
+-- * Walkways: no breaker (hedge, wall, crate stack) lies in a keep-out strip from the road or plaza to
+--   a prompt part. The strips are 3 studs wide and listed in the spec.
 -- * Only breakers (hedges, walls, crate stacks) collide. Goods and floor detail do not.
 
+local MapSpec = require(script.Parent.MapSpec)
 local Props = require(script.Parent.Props)
 
 local Details = {}
 
-local GROUND_Y = 0.5
+local GROUND_Y = MapSpec.GROUND_Y
 
 -- Every colour name this file uses must be one of the 13 palette keys in Props (ART.md section 3).
 local PALETTE_KEYS = {
@@ -80,15 +81,15 @@ local function piece(parent: Instance, className: string, props: { [string]: any
 	return p
 end
 
--- A block. With an index, its footprint is scaled and it is yawed; without one it is exact.
-local function box(folder: Instance, name: string, centre: Vector3, size: Vector3, colourName: string, material: Enum.Material, collide: boolean, n: number?)
+-- A block. With an index, its footprint is scaled; `yaw` overrides the index's random-looking turn.
+local function box(folder: Instance, name: string, centre: Vector3, size: Vector3, colourName: string, material: Enum.Material, collide: boolean, n: number?, yaw: number?)
 	local s = if n then scaleOf(n) else 1
-	local yaw = if n then yawOf(n) else 0
+	local turn = if yaw ~= nil then yaw else (if n then yawOf(n) else 0)
 	piece(folder, "Part", {
 		Name = name,
 		Size = Vector3.new(size.X * s, size.Y, size.Z * s),
 		Position = centre,
-		Orientation = Vector3.new(0, yaw, 0),
+		Orientation = Vector3.new(0, turn, 0),
 		Color = colour(colourName),
 		Material = material,
 		CanCollide = collide,
@@ -108,16 +109,24 @@ local function ball(folder: Instance, name: string, centre: Vector3, diameter: n
 	})
 end
 
--- An upright cylinder (axis up, Size.X is the height), tilted a few degrees by its index.
-local function upright(folder: Instance, n: number, name: string, x: number, bottom: number, z: number, height: number, width: number, colourName: string, material: Enum.Material)
+-- A stall-local point in world space, at height y.
+local function at(hub, lx: number, y: number, lz: number): Vector3
+	local x, z = MapSpec.hubPoint(hub, lx, lz)
+	return Vector3.new(x, y, z)
+end
+
+-- An upright cylinder (axis up, Size.X is the height), turned with its hub and tilted a few degrees.
+local function upright(folder: Instance, hub, name: string, lx: number, bottom: number, lz: number, height: number, width: number, colourName: string, material: Enum.Material)
+	local n = nextSerial()
 	local s = scaleOf(n)
 	local h = height * s
+	local p = at(hub, lx, bottom + h / 2, lz)
 	piece(folder, "Part", {
 		Name = name,
 		Shape = Enum.PartType.Cylinder,
 		Size = Vector3.new(h, width * s, width * s),
-		Orientation = Vector3.new(0, 0, 90 + yawOf(n) * 0.5),
-		Position = Vector3.new(x, bottom + h / 2, z),
+		Orientation = Vector3.new(0, hub.yaw, 90 + yawOf(n) * 0.5),
+		Position = p,
 		Color = colour(colourName),
 		Material = material,
 	})
@@ -137,66 +146,85 @@ local function flatDisc(folder: Instance, name: string, x: number, z: number, di
 	})
 end
 
--- Produce crate: a bambu crate with four coloured balls of produce on its top face.
-local function produceCrate(folder: Instance, centre: Vector3, produce: { string })
+-- Produce crate: a bambu crate with four coloured balls of produce on its top face. The balls follow
+-- the crate's turn, so a rotated crate still carries its produce in the right corners.
+local function produceCrate(folder: Instance, centre: Vector3, produce: { string }, yaw: number)
 	local n = nextSerial()
-	box(folder, "ProduceCrate", centre, Vector3.new(2.4, 1.2, 1.6), "bambu", Enum.Material.WoodPlanks, false, n)
+	box(folder, "ProduceCrate", centre, Vector3.new(2.4, 1.2, 1.6), "bambu", Enum.Material.WoodPlanks, false, n, yaw)
 	local d = 0.9 * scaleOf(n)
 	local top = centre.Y + 0.6
-	local offsets = { { -0.6, -0.35 }, { 0.6, -0.35 }, { -0.6, 0.35 }, { 0.6, 0.35 } }
-	for i, offset in offsets do
-		ball(folder, "Produce", Vector3.new(centre.X + offset[1], top + d / 2 - 0.15, centre.Z + offset[2]), d, produce[i], Enum.Material.SmoothPlastic, false)
+	local cos, sin = math.cos(math.rad(yaw)), math.sin(math.rad(yaw))
+	for i, offset in { { -0.6, -0.35 }, { 0.6, -0.35 }, { -0.6, 0.35 }, { 0.6, 0.35 } } do
+		local dx, dz = offset[1], offset[2]
+		ball(folder, "Produce", Vector3.new(
+			centre.X + dx * cos + dz * sin,
+			top + d / 2 - 0.15,
+			centre.Z - dx * sin + dz * cos
+		), d, produce[i], Enum.Material.SmoothPlastic, false)
 	end
 end
 
--- Pasar: goods on the counter (top y = 3.5) and on two shelves against the back wall (inner face z = -4.0).
--- The Pasar stands on the road cross, so every piece here is raised above 2 studs.
+-- A shelf board against the hub's back wall. Returns the board's top face, where the stock stands.
+local function shelfBoard(folder: Instance, hub, level: number): number
+	local width = hub.shelves.width
+	local board = at(hub, 0, level, hub.shelves.lz)
+	box(folder, "ShelfBoard", board, Vector3.new(width, 0.3, 1.0), "bambu", Enum.Material.WoodPlanks, false, nil, hub.yaw)
+	return level + 0.15
+end
+
+-- Pasar: goods on the counter (top y = 3.5) and on two shelves against the back wall. The counter and
+-- shelf lines come from MapSpec, so nothing can drift off the boards Greybox built.
 local function pasarGoods(folder: Instance)
-	local counterTop = GROUND_Y + 3
-	produceCrate(folder, Vector3.new(-4.2, counterTop + 0.6, -0.6), { "merah", "kunyit", "merah", "kunyit" })
-	produceCrate(folder, Vector3.new(3.2, counterTop + 0.6, 0.6), { "padi", "daun", "padi", "daun" })
-	upright(folder, nextSerial(), "Pot", 0, counterTop, -1.6, 0.9, 1.2, "tinta", Enum.Material.Metal)
-	upright(folder, nextSerial(), "Jar", -6.4, counterTop, 1.7, 1.2, 0.9, "kertas", Enum.Material.SmoothPlastic)
-	upright(folder, nextSerial(), "Jar", 6.2, counterTop, 1.7, 1.2, 0.9, "senja", Enum.Material.SmoothPlastic)
+	local hub = MapSpec.hub("pasar")
+	local deck = GROUND_Y + hub.anchor.sy
+	produceCrate(folder, at(hub, -6, deck + 0.6, 2), { "merah", "kunyit", "merah", "kunyit" }, hub.yaw)
+	produceCrate(folder, at(hub, 6, deck + 0.6, 2), { "padi", "daun", "padi", "daun" }, hub.yaw)
+	upright(folder, hub, "Pot", -9.8, deck, 3.2, 0.9, 1.2, "tinta", Enum.Material.Metal)
+	upright(folder, hub, "Jar", 9.4, deck, 3.4, 1.2, 0.9, "kertas", Enum.Material.SmoothPlastic)
+	upright(folder, hub, "Jar", 10.8, deck, 1.2, 1.2, 0.9, "senja", Enum.Material.SmoothPlastic)
 
-	-- Shelf 1 (board centre y 4.5, top 4.65): six jars and three bottles.
-	box(folder, "ShelfBoard", Vector3.new(0, 4.5, -3.5), Vector3.new(12, 0.3, 1.0), "bambu", Enum.Material.WoodPlanks, false)
-	for i, x in { -5.0, -3.4, -1.8, -0.2, 1.4, 3.0 } do
-		upright(folder, nextSerial(), "Jar", x, 4.65, -3.5, 1.2, 0.9, if i % 2 == 0 then "kertas" else "senja", Enum.Material.SmoothPlastic)
+	-- Shelf 1 (board top 4.65): eight jars and three bottles.
+	local low = shelfBoard(folder, hub, hub.shelves.levels[1])
+	local jarX = { -12, -9.5, -7, -4.5, -2, 0.5, 3, 5.5 }
+	for i, lx in jarX do
+		upright(folder, hub, "Jar", lx, low, hub.shelves.lz, 1.2, 0.9, if i % 2 == 0 then "kertas" else "senja", Enum.Material.SmoothPlastic)
 	end
-	for _, x in { -5.8, 4.6, 5.5 } do
-		upright(folder, nextSerial(), "Bottle", x, 4.65, -3.5, 1.4, 0.5, "malam", Enum.Material.SmoothPlastic)
+	for _, lx in { -13.2, 7.4, 13.2 } do
+		upright(folder, hub, "Bottle", lx, low, hub.shelves.lz, 1.4, 0.5, "malam", Enum.Material.SmoothPlastic)
 	end
 
-	-- Shelf 2 (board centre y 6.5, top 6.65): five snack packs in Fabric.
-	box(folder, "ShelfBoard", Vector3.new(0, 6.5, -3.5), Vector3.new(12, 0.3, 1.0), "bambu", Enum.Material.WoodPlanks, false)
+	-- Shelf 2 (board top 6.65): five snack packs in Fabric.
+	local high = shelfBoard(folder, hub, hub.shelves.levels[2])
 	local packs = { "kertas", "merah", "kunyit", "padi", "kertas" }
-	for i, x in { -4.5, -2.25, 0, 2.25, 4.5 } do
-		box(folder, "SnackPack", Vector3.new(x, 7.25, -3.5), Vector3.new(0.9, 1.2, 0.35), packs[i], Enum.Material.Fabric, false, nextSerial())
+	for i, lx in { -8, -4, 0, 4, 8 } do
+		local p = at(hub, lx, high + 0.6, hub.shelves.lz)
+		box(folder, "SnackPack", p, Vector3.new(0.9, 1.2, 0.35), packs[i], Enum.Material.Fabric, false, nextSerial(), hub.yaw)
 	end
 end
 
--- Warung: a produce crate, a metal pot on the table (top y = 2.7), and two shelves on the back wall
--- (inner face z = -31.25, between the side walls at x 23.75 and 36.25).
+-- Warung: a produce crate and a metal pot on the table (top y = 2.7), plus two shelves on the back
+-- wall. The table and both shelf levels come from MapSpec.
 local function warungGoods(folder: Instance)
-	local tableTop = GROUND_Y + 2.2
-	produceCrate(folder, Vector3.new(30, tableTop + 0.6, -22.1), { "merah", "kunyit", "daun", "padi" })
-	upright(folder, nextSerial(), "Pot", 28.2, tableTop, -22.0, 0.9, 1.2, "tinta", Enum.Material.Metal)
+	local hub = MapSpec.hub("warung")
+	local deck = GROUND_Y + hub.anchor.sy
+	produceCrate(folder, at(hub, -0.4, deck + 0.6, 0), { "merah", "kunyit", "daun", "padi" }, hub.yaw)
+	upright(folder, hub, "Pot", 2.0, deck, 0.4, 0.9, 1.2, "tinta", Enum.Material.Metal)
 
-	-- Shelf 1 (board centre y 3.0, top 3.15): five jars and three bottles.
-	box(folder, "ShelfBoard", Vector3.new(30, 3.0, -30.75), Vector3.new(11.6, 0.3, 1.0), "bambu", Enum.Material.WoodPlanks, false)
-	for _, x in { 25.2, 26.7, 28.2, 33.0, 34.5 } do
-		upright(folder, nextSerial(), "Jar", x, 3.15, -30.75, 1.2, 0.9, if x < 30 then "kertas" else "senja", Enum.Material.SmoothPlastic)
+	-- Shelf 1 (board top 3.15): five jars and three bottles.
+	local low = shelfBoard(folder, hub, hub.shelves.levels[1])
+	for _, lx in { -8, -5.5, -3, 3, 5.5 } do
+		upright(folder, hub, "Jar", lx, low, hub.shelves.lz, 1.2, 0.9, if lx < 0 then "kertas" else "senja", Enum.Material.SmoothPlastic)
 	end
-	for _, x in { 29.6, 30.6, 31.6 } do
-		upright(folder, nextSerial(), "Bottle", x, 3.15, -30.75, 1.4, 0.5, "daun", Enum.Material.SmoothPlastic)
+	for _, lx in { -1, 0, 1 } do
+		upright(folder, hub, "Bottle", lx, low, hub.shelves.lz, 1.4, 0.5, "daun", Enum.Material.SmoothPlastic)
 	end
 
-	-- Shelf 2 (board centre y 4.9, top 5.05): five snack packs in Fabric.
-	box(folder, "ShelfBoard", Vector3.new(30, 4.9, -30.75), Vector3.new(11.6, 0.3, 1.0), "bambu", Enum.Material.WoodPlanks, false)
+	-- Shelf 2 (board top 5.05): five snack packs in Fabric.
+	local high = shelfBoard(folder, hub, hub.shelves.levels[2])
 	local packs = { "merah", "kertas", "padi", "kunyit", "kertas" }
-	for i, x in { 25.4, 27.0, 28.6, 30.2, 31.8 } do
-		box(folder, "SnackPack", Vector3.new(x, 5.65, -30.75), Vector3.new(0.9, 1.2, 0.35), packs[i], Enum.Material.Fabric, false, nextSerial())
+	for i, lx in { -7, -3.5, 0, 3.5, 7 } do
+		local p = at(hub, lx, high + 0.6, hub.shelves.lz)
+		box(folder, "SnackPack", p, Vector3.new(0.9, 1.2, 0.35), packs[i], Enum.Material.Fabric, false, nextSerial(), hub.yaw)
 	end
 end
 
@@ -221,59 +249,61 @@ local function breakerWall(folder: Instance, centre: Vector3, size: Vector3)
 	box(folder, "BreakerWall", centre, size, "bambu", Enum.Material.WoodPlanks, true, nextSerial())
 end
 
--- Ground-level sightline breakers, all with |x| >= 9 and |z| >= 9 (off the road cross).
+-- Ground-level sightline breakers. Every one sits in an open pocket between the hubs, at least 21
+-- studs clear of both 28-wide road arms: the lane east of the Pasar, the pocket between the Gelap and
+-- the alley mouth, and the strips beside the Lapangan and the Pak RT yard.
 local function sightlines(folder: Instance)
-	-- Behind the Warung, east of the Pasar corner, beside Pak RT, Pos Polisi and Pos Ronda.
-	hedgeRow(folder, 24, -37, 3, 0, 5)
-	hedgeRow(folder, 44, 22, 0, 3, 4)
-	hedgeRow(folder, -44, 22, 0, 3, 4)
-	hedgeRow(folder, -33, -36, 3, 0, 4)
-	hedgeRow(folder, 12, -14, 2.5, 0, 3)
+	-- East lane of the north road, screening the Warung from the road.
+	hedgeRow(folder, 36, -84, 0, 6, 5)
+	-- West lane, between the Pasar's east wall and the road.
+	breakerWall(folder, Vector3.new(24, GROUND_Y + 1.7, -78), Vector3.new(1.2, 3.4, 18))
+	breakerWall(folder, Vector3.new(-24, GROUND_Y + 1.7, -78), Vector3.new(1.2, 3.4, 18))
+	-- Between the Tengkulak Gelap and the alley mouth.
+	hedgeRow(folder, -46, -96, 0, 6, 5)
+	-- East and west strips beside the Lapangan, clear of the Pak RT and Pos Polisi footprints.
+	hedgeRow(folder, 82, 44, 0, 6, 5)
+	hedgeRow(folder, -82, 40, 0, 6, 5)
 
-	crateStack(folder, 41, -22)
-	crateStack(folder, -14, -10)
-	crateStack(folder, 13, 25)
-
-	breakerWall(folder, Vector3.new(18.5, GROUND_Y + 1.1, -27), Vector3.new(0.8, 2.2, 8))
-	breakerWall(folder, Vector3.new(-14, GROUND_Y + 1.1, 27.5), Vector3.new(7, 2.2, 0.8))
-	breakerWall(folder, Vector3.new(46.5, GROUND_Y + 1.1, 22), Vector3.new(0.8, 2.2, 7))
+	crateStack(folder, 26, -50)
+	crateStack(folder, 98, -66)
+	crateStack(folder, -100, -66)
 end
 
--- Floor details near the hubs, all off the road cross.
+-- Floor details near the hubs, all clear of the road axes.
 local function floorDetails(folder: Instance)
 	-- Mud patches (flat, tintaLembut). Top about 0.67.
-	flatDisc(folder, "MudPatch", 14, -31, 3.6, 0.15, GROUND_Y + 0.02, "tintaLembut", Enum.Material.Mud, 0)
-	flatDisc(folder, "MudPatch", -17, -30, 3.0, 0.15, GROUND_Y + 0.02, "tintaLembut", Enum.Material.Ground, 0)
-	flatDisc(folder, "MudPatch", 38, 30, 3.2, 0.15, GROUND_Y + 0.02, "tintaLembut", Enum.Material.Mud, 0)
-	flatDisc(folder, "MudPatch", -38, 30, 2.8, 0.15, GROUND_Y + 0.02, "tintaLembut", Enum.Material.Mud, 0)
-	flatDisc(folder, "MudPatch", 11, 33, 2.6, 0.15, GROUND_Y + 0.02, "tintaLembut", Enum.Material.Ground, 0)
+	flatDisc(folder, "MudPatch", 28, -92, 7, 0.15, GROUND_Y + 0.02, "tintaLembut", Enum.Material.Mud, 0)
+	flatDisc(folder, "MudPatch", -26, -80, 6, 0.15, GROUND_Y + 0.02, "tintaLembut", Enum.Material.Ground, 0)
+	flatDisc(folder, "MudPatch", -48, -98, 6.4, 0.15, GROUND_Y + 0.02, "tintaLembut", Enum.Material.Mud, 0)
+	flatDisc(folder, "MudPatch", 102, -60, 6.4, 0.15, GROUND_Y + 0.02, "tintaLembut", Enum.Material.Mud, 0)
+	flatDisc(folder, "MudPatch", 88, 40, 5.6, 0.15, GROUND_Y + 0.02, "tintaLembut", Enum.Material.Ground, 0)
 
 	-- Shallow puddles (malam, SmoothPlastic, Transparency 0.35). Top about 0.65.
-	flatDisc(folder, "Puddle", 42, -36, 2.4, 0.1, GROUND_Y + 0.05, "malam", Enum.Material.SmoothPlastic, 0.35)
-	flatDisc(folder, "Puddle", -24, -10, 2.2, 0.1, GROUND_Y + 0.05, "malam", Enum.Material.SmoothPlastic, 0.35)
-	flatDisc(folder, "Puddle", 22, 28, 2.4, 0.1, GROUND_Y + 0.05, "malam", Enum.Material.SmoothPlastic, 0.35)
-	flatDisc(folder, "Puddle", -44, -30, 2.0, 0.1, GROUND_Y + 0.05, "malam", Enum.Material.SmoothPlastic, 0.35)
+	flatDisc(folder, "Puddle", 26, -44, 4.8, 0.1, GROUND_Y + 0.05, "malam", Enum.Material.SmoothPlastic, 0.35)
+	flatDisc(folder, "Puddle", -26, -52, 4.4, 0.1, GROUND_Y + 0.05, "malam", Enum.Material.SmoothPlastic, 0.35)
+	flatDisc(folder, "Puddle", 84, -40, 4.8, 0.1, GROUND_Y + 0.05, "malam", Enum.Material.SmoothPlastic, 0.35)
 
-	-- Stepping stones leading from the road edge toward Pak RT.
-	for _, at in { { 12, 30 }, { 13.5, 32 }, { 15, 34 }, { 16.5, 36 } } do
-		box(folder, "PathStone", Vector3.new(at[1], GROUND_Y + 0.15, at[2]), Vector3.new(1.8, 0.3, 1.5), "kertas", Enum.Material.Slate, false, nextSerial())
+	-- Stepping stones from the plaza's south-west corner to the Pos Polisi yard gate, west of the
+	-- south road (|x| >= 21).
+	for _, at2 in { { -30, 30 }, { -40, 34 }, { -50, 38 }, { -60, 42 } } do
+		box(folder, "PathStone", Vector3.new(at2[1], GROUND_Y + 0.15, at2[2]), Vector3.new(3.6, 0.3, 3.0), "kertas", Enum.Material.Slate, false, nextSerial())
 	end
 
 	-- Scattered sacks (Fabric ball, as Decor's sacks).
-	for i, at in { { 24, -13 }, { -24, -14 }, { 34, -12 }, { -44, 12 } } do
+	for i, spot in { { 44, -24 }, { -44, -24 }, { 52, -96 }, { 104, 44 } } do
 		piece(folder, "Part", {
 			Name = "Sack",
 			Shape = Enum.PartType.Ball,
-			Size = Vector3.new(1.6, 1.1, 1.3),
-			Position = Vector3.new(at[1], GROUND_Y + 0.55, at[2]),
+			Size = Vector3.new(2.6, 1.8, 2.2),
+			Position = Vector3.new(spot[1], GROUND_Y + 0.9, spot[2]),
 			Color = colour(if i % 2 == 0 then "kertas" else "bambu"),
 			Material = Enum.Material.Fabric,
 		})
 	end
 
-	-- Concrete troughs by the corners of the village.
-	box(folder, "ConcreteTrough", Vector3.new(-16, GROUND_Y + 0.6, 16), Vector3.new(2.0, 1.2, 1.2), "indigo", Enum.Material.Concrete, false, nextSerial())
-	box(folder, "ConcreteTrough", Vector3.new(16, GROUND_Y + 0.6, -16), Vector3.new(2.0, 1.2, 1.2), "indigo", Enum.Material.Concrete, false, nextSerial())
+	-- Concrete troughs beside the east and west approaches.
+	box(folder, "ConcreteTrough", Vector3.new(96, GROUND_Y + 0.8, -78), Vector3.new(3.2, 1.6, 2.0), "indigo", Enum.Material.Concrete, false, nextSerial())
+	box(folder, "ConcreteTrough", Vector3.new(-100, GROUND_Y + 0.8, -60), Vector3.new(3.2, 1.6, 2.0), "indigo", Enum.Material.Concrete, false, nextSerial())
 end
 
 -- Builds the Details folder under world. Destroys a previous Details first, so calling it again

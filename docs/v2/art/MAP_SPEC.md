@@ -12,6 +12,27 @@ Reference images (`docs/v2/art/map/`):
 Conventions: studs, X = east, **-Z = north**, ground plane **Y = 0.5** (`src/server/World/Ground.luau`).
 Roblox walk speed is 16 studs/s. Terrain voxel is 4 studs; a FillBlock's visible top is `regionTop + 2`.
 
+## 0. Scale revision S=2 (2026-11-16) — supersedes the numbers below
+
+Rumah Pak RT was rebuilt to concept-art proportions (48 x 34, ridge 32.6, door 7 x 10.5, avatar 7.25 tall)
+and became the scale reference. The village is built at **S = 2**: every distance and hub footprint
+below is doubled. **`src/server/World/MapSpec.luau` is the numeric authority**; sections 1 to 11 keep
+the design intent and the old half-scale numbers for history.
+
+| Item | S=1 (below) | S=2 (built) |
+|---|---|---|
+| Playable square | 400 x 400 | 800 x 800 (hills from +-400) |
+| Plot ring | r 96, footprint 40 | r 192, footprint 56, gate r 152 |
+| Hubs | Pasar 32x26 ... | Pasar 64x52, Warung 52x44, Polisi 48x44, Ronda 44x40, Gelap 32x28, Pak RT 48x34 |
+| Roads | 18 wide, ring r 72 | 28 wide, ring r 144 (12 wide), continuations 16 |
+| River | z = 152 + 6 sin, 16 wide | z = 304 + 12 sin(2 pi x / 320), 28 wide, bridge 10 x 56 |
+| Sawah | 3 terraces, top 12.5 | 4 terraces, tops 4.5 to 16.5, 84-wide Balai gap (live surfaces measure 0.5 lower) |
+| Hills | 12..40 | 40..80, west sunset gap <= 24 at z 132 |
+| Spawn | (0, 14) | (0, 28), faces north |
+
+Gelap (-80,-120) sits outside the r <= 132 hub rule on purpose: the ring is broken there for its alley.
+Known gap: live terrace tops are 4.0 / 8.0 / 12.0 / 16.0, half a stud under the spec.
+
 ## 1. Scale (decision)
 
 **Keep it big: the playable square stays 400 x 400 (|x|, |z| <= 200).** The code fills this square

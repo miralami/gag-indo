@@ -4,7 +4,7 @@
 
 return function(t, Env)
 	local expect = t.expect
-	local env, Greybox
+	local env, Greybox, MapSpec
 
 	t:describe("Greybox terrain rebuild", function()
 		t:beforeEach(function()
@@ -38,55 +38,118 @@ return function(t, Env)
 				end,
 			}
 			Greybox = env:require("server/World/Greybox")
+			MapSpec = env:require("server/World/MapSpec")
 		end)
+
+		-- Visible face of a Greybox terrain block: regionTop + TERRAIN_VOXEL / 2.
+		local function faceOf(block)
+			return block.cframe.position.Y + block.size.Y / 2 + MapSpec.TERRAIN_VOXEL / 2
+		end
 
 		t:it("owns village ground, roads, hubs, river and terrace rows", function()
 			local blocks = Greybox.terrainBlocks()
-			expect(#blocks):toBe(15)
+			local spec = MapSpec.terrainBlocks()
+			expect(#blocks):toBe(#spec)
+			expect(#blocks > 0):toBe(true)
+			-- One-to-one with MapSpec, in order, nothing wider than MAX_FILL_SPAN.
+			for index, block in blocks do
+				local volume = spec[index]
+				expect(block.material):toBe("Material." .. volume.material)
+				expect(block.size.X):toBe(volume.size[1])
+				expect(block.size.Y):toBe(volume.size[2])
+				expect(block.size.Z):toBe(volume.size[3])
+				expect(block.cframe.position.X):toBe(volume.centre[1])
+				expect(block.cframe.position.Y):toBe(volume.centre[2])
+				expect(block.cframe.position.Z):toBe(volume.centre[3])
+				expect(block.size.X <= MapSpec.MAX_FILL_SPAN):toBe(true)
+				expect(block.size.Z <= MapSpec.MAX_FILL_SPAN):toBe(true)
+			end
+			-- The base slab is Grass, comes first and covers the whole playable square.
 			expect(blocks[1].material):toBe("Material.Grass")
-			expect(blocks[1].size.X):toBe(400)
-			expect(blocks[1].cframe.position.Y):toBe(-3.5)
-			expect(blocks[1].size.Y):toBe(4)
-			expect(blocks[1].size.Z):toBe(400)
-			expect(blocks[11].material):toBe("Material.Water")
-			expect(blocks[11].size.X):toBe(220)
-			expect(blocks[11].size.Y):toBe(8)
-			expect(blocks[11].size.Z):toBe(100)
-			for row = 0, 3 do
-				local block = blocks[row + 12]
-				expect(block.material):toBe("Material.Ground")
-				expect(block.size.X):toBe(120 - row * 22)
-				expect(block.size.Z):toBe(18)
-				expect(block.cframe.position.Z):toBe(-100 + row * 14)
-				expect(block.cframe.position.Y):toBe(-3.5)
-				expect(block.size.Y):toBe(4)
+			local side = MapSpec.TERRAIN_HALF * 2
+			local grassArea = 0
+			for _, block in blocks do
+				if block.material == "Material.Grass" then
+					grassArea += block.size.X * block.size.Z
+				end
+			end
+			expect(grassArea):toBe(side * side)
+			-- Terrace rows: the highest visible face among a terrace's Ground strips is its MapSpec top.
+			-- Lower faces (stacked 4-stud layers) are expected and not asserted away.
+			for _, terrace in MapSpec.TERRACES do
+				local top = -math.huge
+				for _, block in blocks do
+					local z = block.cframe.position.Z
+					if block.material == "Material.Ground" and z > terrace.z0 and z < terrace.z1 then
+						top = math.max(top, faceOf(block))
+					end
+				end
+				expect(top):toBe(terrace.top)
+			end
+			-- River: carve, bed, bank and water lists exist and the water surface is at -0.5.
+			local river = Greybox.riverVolumes()
+			for _, kind in { "carves", "beds", "banks", "water" } do
+				expect(#river[kind] > 0):toBe(true)
+			end
+			for _, water in river.water do
+				expect(water.material):toBe("Material.Water")
+				expect(faceOf(water)):toBe(-0.5)
 			end
 		end)
 
-		t:it("keeps generated terrain at or below the 0.5-stud gameplay ground", function()
+		t:it("keeps generated terrain at or below the 0.5-stud gameplay ground, terrace band excepted", function()
 			-- Measured in Studio: a FillBlock's visible top face is regionTop + TERRAIN_VOXEL / 2
 			-- (half a voxel above the region), so assert that face, not the region and not a
-			-- whole-voxel snap.
+			-- whole-voxel snap. The sawah terraces are the one deliberate rise: they are skipped here and
+			-- pinned to their MapSpec tops above. The river is its own list, checked at the end.
 			local voxel = Greybox.TERRAIN_VOXEL
 			local ground = Greybox.GROUND_Y
 			expect(ground):toBe(0.5)
 			expect(voxel):toBe(4)
+			local bandMin, bandMax = math.huge, -math.huge
+			for _, terrace in MapSpec.TERRACES do
+				bandMin = math.min(bandMin, terrace.z0)
+				bandMax = math.max(bandMax, terrace.z1)
+			end
+			local checked = 0
 			for _, block in Greybox.terrainBlocks() do
-				if block.material ~= "Material.Water" then
-					local regionTop = block.cframe.position.Y + block.size.Y / 2
-					local face = regionTop + voxel / 2
-					expect(face <= ground):toBe(true)
+				local z = block.cframe.position.Z
+				if block.material ~= "Material.Water" and not (z > bandMin and z < bandMax) then
+					checked += 1
+					expect(faceOf(block) <= ground):toBe(true)
+				end
+			end
+			expect(checked > 0):toBe(true)
+			local river = Greybox.riverVolumes()
+			for _, kind in { "beds", "banks" } do
+				for _, block in river[kind] do
+					expect(faceOf(block) <= ground):toBe(true)
 				end
 			end
 		end)
 
-		t:it("clears the entire legacy village terrain envelope before refilling", function()
+		t:it("clears the entire terrain envelope before refilling", function()
 			local clear = Greybox.terrainClearBlocks()
-			expect(#clear):toBe(1)
-			expect(clear[1].cframe.position.Y):toBe(0)
-			expect(clear[1].size.X):toBe(400)
-			expect(clear[1].size.Y):toBe(16)
-			expect(clear[1].size.Z):toBe(400)
+			expect(#clear):toBe(#MapSpec.terrainClear())
+			local half = MapSpec.TERRAIN_HALF
+			local area = 0
+			local lowest, highest = math.huge, -math.huge
+			for _, piece in clear do
+				expect(piece.size.X <= MapSpec.MAX_FILL_SPAN):toBe(true)
+				expect(piece.size.Z <= MapSpec.MAX_FILL_SPAN):toBe(true)
+				expect(math.abs(piece.cframe.position.X) + piece.size.X / 2 <= half + 1e-6):toBe(true)
+				expect(math.abs(piece.cframe.position.Z) + piece.size.Z / 2 <= half + 1e-6):toBe(true)
+				area += piece.size.X * piece.size.Z
+				lowest = math.min(lowest, piece.cframe.position.Y - piece.size.Y / 2)
+				highest = math.max(highest, piece.cframe.position.Y + piece.size.Y / 2)
+			end
+			-- The strips tile the whole playable square.
+			expect(area):toBe(half * 2 * (half * 2))
+			-- Vertically: under the base slab and river bed, over the highest terrace's final top.
+			local topTerrace = MapSpec.TERRACES[#MapSpec.TERRACES].top
+			expect(lowest <= MapSpec.TERRAIN_BASE_Y - MapSpec.TERRAIN_VOXEL / 2):toBe(true)
+			expect(lowest <= -8):toBe(true)
+			expect(highest + MapSpec.TERRAIN_VOXEL / 2 >= topTerrace):toBe(true)
 		end)
 
 		t:it("scatters at least 14 trees", function()
@@ -100,7 +163,7 @@ return function(t, Env)
 			end
 		end)
 
-		t:it("clears each owned volume with Air before filling it", function()
+		t:it("clears the envelope with Air before filling anything, then carves the river before its beds", function()
 			local calls = {}
 			local terrain = {
 				FillBlock = function(_, cframe, size, material)
@@ -109,23 +172,42 @@ return function(t, Env)
 			}
 			Greybox.applyTerrain(terrain)
 
+			local clears = Greybox.terrainClearBlocks()
 			local blocks = Greybox.terrainBlocks()
-			expect(#calls):toBe(#blocks * 2 + 1)
-			expect(calls[1].material):toBe("Material.Air")
-			expect(calls[1].size.X):toBe(400)
-			expect(calls[1].size.Y):toBe(16)
-			expect(calls[1].size.Z):toBe(400)
+			local river = Greybox.riverVolumes()
+			expect(#calls):toBe(#clears + #blocks + #river.carves + #river.beds + #river.banks + #river.water)
+			-- Phase 1: the Air envelope, strip for strip.
+			for index, clear in clears do
+				local call = calls[index]
+				expect(call.material):toBe("Material.Air")
+				expect(call.size.X):toBe(clear.size.X)
+				expect(call.size.Y):toBe(clear.size.Y)
+				expect(call.size.Z):toBe(clear.size.Z)
+				expect(call.cframe.position.X):toBe(clear.cframe.position.X)
+				expect(call.cframe.position.Y):toBe(clear.cframe.position.Y)
+				expect(call.cframe.position.Z):toBe(clear.cframe.position.Z)
+			end
+			-- Phase 2: every base block, in order, none of them Air.
 			for index, block in blocks do
-				local clear = calls[index + 1]
-				local fill = calls[index + #blocks + 1]
-				expect(clear.material):toBe("Material.Air")
-				expect(fill.material):toBe(block.material)
-				expect(clear.size.X):toBe(fill.size.X)
-				expect(clear.size.Y):toBe(fill.size.Y)
-				expect(clear.size.Z):toBe(fill.size.Z)
-				expect(clear.cframe.position.X):toBe(fill.cframe.position.X)
-				expect(clear.cframe.position.Y):toBe(fill.cframe.position.Y)
-				expect(clear.cframe.position.Z):toBe(fill.cframe.position.Z)
+				local call = calls[#clears + index]
+				expect(call.material):toBe(block.material)
+				expect(call.material ~= "Material.Air"):toBe(true)
+				expect(call.size.X):toBe(block.size.X)
+				expect(call.size.Z):toBe(block.size.Z)
+				expect(call.cframe.position.Y):toBe(block.cframe.position.Y)
+			end
+			-- Phase 3: river carves (Air) first, then beds, banks and water.
+			local cursor = #clears + #blocks
+			for index = 1, #river.carves do
+				expect(calls[cursor + index].material):toBe("Material.Air")
+			end
+			cursor += #river.carves
+			for index = 1, #river.beds do
+				expect(calls[cursor + index].material):toBe("Material.Mud")
+			end
+			cursor += #river.beds + #river.banks
+			for index = 1, #river.water do
+				expect(calls[cursor + index].material):toBe("Material.Water")
 			end
 		end)
 	end)
@@ -201,7 +283,7 @@ return function(t, Env)
 			PosRonda = "POS RONDA",
 			Warung = "WARUNG",
 		}
-		local env, instances, Greybox, world
+		local env, instances, Greybox, world, MapSpec
 
 		-- Stand-in for Color3:Lerp: remembers the palette colour it came from, the goal and the amount.
 		local function lerpColour(self, goal, alpha)
@@ -365,6 +447,7 @@ return function(t, Env)
 			env:mock("server/World/NpcFactory", { build = function() end })
 			env:mock("server/World/Ground", { Y = 0.5 })
 			Greybox = env:require("server/World/Greybox")
+			MapSpec = env:require("server/World/MapSpec")
 			world = Greybox.build()
 		end)
 
@@ -382,10 +465,8 @@ return function(t, Env)
 			end
 		end)
 
-		-- Headroom: the lowest point of each roof, awning, spanduk and trim must clear a player by 9.5 studs.
+		-- Headroom: the lowest point of each roof, awning, spanduk and trim must clear a player by MapSpec.HEADROOM.
 			local HEADROOM_PARTS = { Roof = true, RoofRidge = true, Awning = true, Spanduk = true, KunyitTrim = true, MalamTrim = true }
-			local GROUND = 0.5
-			local HEADROOM = 9.5
 
 			-- Lowest point of a part. A box tilted about X drops by half-height*|cos| + half-depth*|sin|.
 			local function lowestY(item)
@@ -394,13 +475,14 @@ return function(t, Env)
 				return centreY - (item.Size.Y / 2 * math.abs(math.cos(tilt)) + item.Size.Z / 2 * math.abs(math.sin(tilt)))
 			end
 
-			t:it("keeps every hub roof, awning, spanduk and trim at least 9.5 studs above the ground", function()
+			t:it("keeps every hub roof, awning, spanduk and trim at least MapSpec.HEADROOM above the ground", function()
+				local GROUND, HEADROOM = MapSpec.GROUND_Y, MapSpec.HEADROOM
 				for name in HUB_SIGNS do
 					local checked = 0
 					for _, item in hub(name):GetDescendants() do
 						if HEADROOM_PARTS[item.Name] then
 							checked += 1
-							expect(lowestY(item) >= GROUND + HEADROOM):toBe(true)
+							expect(lowestY(item) >= GROUND + HEADROOM - 1e-6):toBe(true)
 						end
 					end
 					expect(checked > 0):toBe(true)
@@ -443,9 +525,10 @@ return function(t, Env)
 			end
 			expect(spawnPart ~= nil):toBe(true)
 			expect(spawnPart.CFrame ~= nil):toBe(true)
-			expect(spawnPart.Position.X):toBe(0)
-			expect(spawnPart.Position.Z):toBe(16)
-			expect(spawnPart.CFrame.LookVector.Z < 0):toBe(true)
+			expect(spawnPart.Position.X):toBe(MapSpec.SPAWN.x)
+			expect(spawnPart.Position.Z):toBe(MapSpec.SPAWN.z)
+			expect(spawnPart.CFrame.LookVector.Z * MapSpec.SPAWN.lookZ > 0):toBe(true)
+			expect(spawnPart.CFrame.LookVector.Z < 0):toBe(true) -- north, up the road toward the Balai
 		end)
 	end)
 end

@@ -10,17 +10,26 @@
 
 local Map = require(script.Parent.Map)
 local Greybox = require(script.Parent.Greybox)
+local MapSpec = require(script.Parent.MapSpec)
 local NpcFactory = require(script.Parent.NpcFactory)
 
 local Village = {}
 
+-- Fallback hub positions, used only when a prompt/anchor is missing from the world (bindPrompts
+-- replaces each one with the real part's position). They come from the hub table, so a rescaled map
+-- never leaves a stale half-scale coordinate behind.
+local function hubPosition(key: string, y: number): Vector3
+	local hub = MapSpec.hub(key)
+	return Vector3.new(hub.x, y, hub.z)
+end
+
 Village.DEFAULT_POSITIONS = {
-	pasar = Vector3.new(0, 2, 3),
-	gelap = Vector3.new(0, 2, -14),
-	pakrt = Vector3.new(30, 3, 16),
-	polisi = Vector3.new(-30, 2, 22),
-	ronda = Vector3.new(-30, 2, -26),
-	warung = Vector3.new(30, 2, -20),
+	pasar = hubPosition("pasar", 2),
+	gelap = hubPosition("gelap", 2),
+	pakrt = hubPosition("pakrt", 3),
+	polisi = hubPosition("polisi", 2),
+	ronda = hubPosition("ronda", 2),
+	warung = hubPosition("warung", 2),
 }
 
 Village.positions = table.clone(Village.DEFAULT_POSITIONS)

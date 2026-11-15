@@ -159,13 +159,16 @@ return function(t, Env)
 			expect(#decorParts()):toBe(firstCount)
 		end)
 
-		t:it("hangs every lantern with its bottom at least HEADROOM above the ground", function()
+		-- Lanterns hang under a porch or eave, below MapSpec.HEADROOM (Rumah Pak RT's porch lantern sits
+		-- under its 11.5-stud porch). What matters is that the ball clears a 7.25-stud avatar's head.
+		t:it("hangs every lantern with its bottom clear of an avatar's head", function()
+			local AVATAR_HEIGHT, LANTERN_CLEARANCE = 7.25, 1
 			build()
 			local lanterns = 0
 			for _, part in decorParts() do
 				if part.Name == "Lantern" then
 					lanterns += 1
-					expect(part.Position.Y - part.Size.Y / 2 >= 0.5 + Decor.HEADROOM):toBe(true)
+					expect(part.Position.Y - part.Size.Y / 2 >= 0.5 + AVATAR_HEIGHT + LANTERN_CLEARANCE):toBe(true)
 				end
 			end
 			expect(lanterns):toBeAtLeast(2)

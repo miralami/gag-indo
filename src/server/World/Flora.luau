@@ -9,67 +9,93 @@
 -- with a WindSeed attribute for the client sway loop (client/World/Wind.luau).
 
 local Props = require(script.Parent.Props)
+local MapSpec = require(script.Parent.MapSpec)
 
 local Flora = {}
 
 local FOLDER_NAME = "Flora"
 local WIND_TAG = "WindShake"
-local GROUND_Y = 0.5
+local GROUND_Y = MapSpec.GROUND_Y
 local PART_BUDGET = 200
 
 -- Clearances. Each rule from the brief is checked against the whole footprint of a part, not only
 -- its centre: a part of half-size r must sit at least r plus the rule distance away.
-local ROAD_HALF_WIDTH = 9 -- rule: nothing overlaps the 18-wide road cross (|x| < 9 or |z| < 9)
+local ROAD_HALF_WIDTH = MapSpec.ROAD.halfWidth -- rule: nothing overlaps the 28-wide road cross
 local ROAD_MARGIN = 0.5 -- keeps clear of the kertas edge strips
-local HUB_RADIUS = 8 -- rule: 8 studs from a hub centre
+local HUB_RADIUS = 16 -- rule: 16 studs from a hub centre (the hub clearings)
 local TREE_CLEAR = 5 -- keeps bushes, rocks and tufts off the trunks
-local EDGE_NORTH = 56 -- rule: nothing on the river (z > 60, |x| < 110)
-local EDGE_SOUTH = -80 -- rule: nothing on the sawah terraces (z < -85)
+local EDGE_NORTH = MapSpec.BRIDGE.z0 - 20 -- rule: nothing on the river (z > 256, |x| < 220)
+local EDGE_SOUTH = -168 -- rule: nothing on the sawah terraces (z < -168)
+local EDGE_EAST = 196 -- rule: nothing past the plot ring, the forest takes over
+local EDGE_WEST = -196
 
-local HUB_CENTRES = {
-	{ 0, 0 },
-	{ 30, 26 },
-	{ 30, -26 },
-	{ -30, -26 },
-	{ -30, 26 },
-	{ 0, -16 },
-}
+-- Hub centres from the hub table, so this list can never drift from the buildings.
+local HUB_CENTRES = {}
+for _, hub in MapSpec.HUBS do
+	table.insert(HUB_CENTRES, { hub.x, hub.z })
+end
 
--- Footprints that Greybox and Decor already own (plinths, walls, roofs, signs, yard fences, the
--- set-dressing kits, stacks, beds, stones and NPC marks). Rectangles: { centreX, centreZ, halfX, halfZ }.
+-- Footprints that Greybox and Decor already own (plinths, walls, roofs, signs, the set-dressing kits,
+-- stacks, beds, stones, the well, the ford markers and NPC marks). Rectangles:
+-- { centreX, centreZ, halfX, halfZ }. Hub rectangles follow MapSpec.hubBounds.
 local KEEP_OUT_RECTS = {
-	{ 0, 0, 10, 8 }, -- Pasar
-	{ 0, -16, 8.5, 9 }, -- Tengkulak Gelap
-	{ 30, 26, 11.5, 9.5 }, -- Rumah Pak RT and its yard fence
-	{ -30, 26, 11.5, 9.5 }, -- Pos Polisi and its yard fence
-	{ -29, -27, 8.5, 9 }, -- Pos Ronda and watchtower
-	{ 30, -25, 8.5, 9 }, -- Warung and awning
+	{ MapSpec.UKUR_BOARD.x, MapSpec.UKUR_BOARD.z, MapSpec.UKUR_BOARD.boardWidth / 2 + 1, 2 },
+	{ MapSpec.RONDA_TOWER.x, MapSpec.RONDA_TOWER.z, MapSpec.RONDA_TOWER.deck / 2 + 1, MapSpec.RONDA_TOWER.deck / 2 + 1 },
 }
+for _, hub in MapSpec.HUBS do
+	local bounds = MapSpec.hubBounds(hub)
+	table.insert(KEEP_OUT_RECTS, {
+		(bounds.minX + bounds.maxX) / 2,
+		(bounds.minZ + bounds.maxZ) / 2,
+		(bounds.maxX - bounds.minX) / 2 + 4,
+		(bounds.maxZ - bounds.minZ) / 2 + 4,
+	})
+end
 
--- Discs: { centreX, centreZ, radius }.
+-- Discs: { centreX, centreZ, radius }. Every Decor and Details item that stands at ground level in
+-- the open band gets one, so a tree, bush or rock never lands on top of it.
 local KEEP_OUT_DISCS = {
-	{ 30, 30, 16 }, -- dressing kit (Rumah Pak RT side)
-	{ -30, 30, 16 }, -- dressing kit (Pos Polisi side)
-	{ 12, 12, 4 }, -- crate stack
-	{ -12, 12, 4 }, -- crate stack
-	{ 38, -14, 4 }, -- crate stack
-	{ 20, 11.5, 4 }, -- flower beds (Decor)
-	{ 11.5, 20, 4 },
-	{ -20, 11.5, 4 },
-	{ -11.5, 20, 4 },
-	{ -20, -11.5, 4 },
-	{ -11.5, -20, 4 },
-	{ 20, -11.5, 4 },
-	{ 11.5, -20, 4 },
-	{ -15, -18, 6 }, -- stepping stones (Decor)
+	-- Decor crate stacks.
+	{ 40, 40, 7 },
+	{ -40, 40, 7 },
+	{ 56, -30, 7 },
+	-- Decor Lapangan well and flagpole.
+	{ 34, 92, 8 },
+	{ 34, 106, 8 },
+	-- Decor notice board.
+	{ -32, 38, 8 },
 }
+-- Decor flower beds.
+for _, centre in {
+	{ 30, 52 }, { 52, 30 }, { -30, 52 }, { -52, 30 }, { -52, -30 }, { 52, -30 },
+} do
+	table.insert(KEEP_OUT_DISCS, { centre[1], centre[2], 8 })
+end
+-- Decor stones (north path to Pak RT) and Details stones (south-west path to Pos Polisi).
+for _, stone in { { 40, 30 }, { 44, 36 }, { 48, 42 }, { 52, 46 }, { -30, 30 }, { -40, 34 }, { -50, 38 }, { -60, 42 } } do
+	table.insert(KEEP_OUT_DISCS, { stone[1], stone[2], 6 })
+end
+-- Details mud patches, puddles, sacks and troughs.
+for _, spot in {
+	{ 28, -92, 8 }, { -26, -80, 7 }, { -48, -98, 8 }, { 102, -60, 8 }, { 88, 40, 7 },
+	{ 26, -44, 6 }, { -26, -52, 6 }, { 84, -40, 6 },
+	{ 44, -24, 4 }, { -44, -24, 4 }, { 52, -96, 4 }, { 104, 44, 4 },
+	{ 98, -78, 4 }, { -100, -60, 4 },
+} do
+	table.insert(KEEP_OUT_DISCS, { spot[1], spot[2], spot[3] })
+end
+-- Details sightline breakers (hedge rows and crate stacks).
+for _, breaker in { { 36, -84, 9 }, { 24, -78, 6 }, { -24, -78, 6 }, { -46, -96, 9 }, { 82, 44, 9 }, { -82, 40, 9 }, { 26, -50, 6 }, { 98, -66, 6 }, { -100, -66, 6 } } do
+	table.insert(KEEP_OUT_DISCS, { breaker[1], breaker[2], breaker[3] })
+end
 
--- Lattice: 15 columns by 14 rows, 10 studs apart, each point jittered by up to 2 studs.
-local STEP = 10
-local COLUMNS = 15
-local ROWS = 14
-local ORIGIN_X = -70
-local ORIGIN_Z = -80
+-- Lattice: 25 columns by 24 rows, 16 studs apart, each point jittered by up to 3 studs. It covers the
+-- village between the plaza ring and the plot ring, west of the forest.
+local STEP = 16
+local COLUMNS = 25
+local ROWS = 24
+local ORIGIN_X = -192
+local ORIGIN_Z = -184
 
 -- Cumulative chances per lattice cell: bush, then rock, then grass tuft; the rest stay empty.
 local BUSH_CHANCE = 0.08
@@ -99,11 +125,15 @@ end
 -- True when a square footprint of half-size r centred on (x, z) clears the road cross, the river,
 -- the sawah, every hub ring, every owned footprint and every trunk.
 local function fitsAt(x: number, z: number, r: number, trunks: { { number } }): boolean
-	-- Both tests must hold: a box outside the cross is clear of |x| < 9 and of |z| < 9.
+	-- Both tests must hold: a box outside the cross is clear of both road arms.
 	if math.abs(x) - r < ROAD_HALF_WIDTH + ROAD_MARGIN or math.abs(z) - r < ROAD_HALF_WIDTH + ROAD_MARGIN then
 		return false
 	end
+	-- The village band: river to the north (high z), sawah to the south (low z), forest past the ring.
 	if z + r > EDGE_NORTH or z - r < EDGE_SOUTH then
+		return false
+	end
+	if x - r < EDGE_WEST or x + r > EDGE_EAST then
 		return false
 	end
 	for _, hub in HUB_CENTRES do
@@ -301,8 +331,8 @@ function Flora.build(world: Instance): Instance
 				make = tuftParts
 			end
 			if make then
-				local x = ORIGIN_X + column * STEP + (roll(cell, 2) * 4 - 2)
-				local z = ORIGIN_Z + row * STEP + (roll(cell, 3) * 4 - 2)
+				local x = ORIGIN_X + column * STEP + (roll(cell, 2) * 6 - 3)
+				local z = ORIGIN_Z + row * STEP + (roll(cell, 3) * 6 - 3)
 				local scale = 0.85 + 0.3 * roll(cell, 4)
 				local defs = make(cell, x, z, scale)
 				if count + #defs <= PART_BUDGET and fitsAll(defs, trunks) then

@@ -7,13 +7,13 @@
 
 return function(t, Env)
 	local expect = t.expect
-	local env, Flora, world, instances, tags
+	local env, Flora, MapSpec, world, instances, tags
 
 	local PART_BUDGET = 200
 	local ROAD_HALF_WIDTH = 9
+	-- The old half-scale ring was 8 studs; the world is now MapSpec.S times larger (set in beforeEach).
 	local HUB_RADIUS = 8
 	local TREE_CLEAR = 5
-	local HUBS = { { 0, 0 }, { 30, 26 }, { 30, -26 }, { -30, -26 }, { -30, 26 }, { 0, -16 } }
 	local SEED_MAX = 6.28
 	local ROT_MAX = 3
 	local OFFSET_MAX = 0.25
@@ -178,6 +178,7 @@ return function(t, Env)
 			world.Name = "World"
 
 			Flora = env:require("server/World/Flora")
+			MapSpec = env:require("server/World/MapSpec")
 		end)
 
 		t:it("build creates one Flora folder under the world", function()
@@ -256,15 +257,16 @@ return function(t, Env)
 			expect(table.concat(offenders, ",")):toBe("")
 		end)
 
-		t:it("keeps every part outside the 8-stud ring of every hub centre, footprint included", function()
+		t:it("keeps every part outside the scaled ring of every hub centre, footprint included", function()
 			addTrees()
 			build()
+			local ring = HUB_RADIUS * MapSpec.S
 			local offenders = {}
 			for _, part in floraParts() do
 				local r = math.max(part.Size.X, part.Size.Z) / 2
-				for _, hub in HUBS do
-					local dx, dz = part.Position.X - hub[1], part.Position.Z - hub[2]
-					if math.sqrt(dx * dx + dz * dz) - r < HUB_RADIUS then
+				for _, hub in MapSpec.HUBS do
+					local dx, dz = part.Position.X - hub.x, part.Position.Z - hub.z
+					if math.sqrt(dx * dx + dz * dz) - r < ring then
 						table.insert(offenders, part.Name)
 					end
 				end
@@ -315,10 +317,25 @@ return function(t, Env)
 		t:it("keeps every part off the river and the sawah terraces", function()
 			addTrees()
 			build()
+			-- River: every carve strip (channel plus both banks) from MapSpec.river().
+			local carves = MapSpec.river().carves
+			-- Sawah: the whole terrace band, gap included.
+			local bandMin, bandMax = math.huge, -math.huge
+			for _, terrace in MapSpec.TERRACES do
+				bandMin = math.min(bandMin, terrace.z0)
+				bandMax = math.max(bandMax, terrace.z1)
+			end
 			local offenders = {}
 			for _, part in floraParts() do
-				local at = part.Position
-				if (at.Z > 60 and math.abs(at.X) < 110) or at.Z < -85 then
+				local r = math.max(part.Size.X, part.Size.Z) / 2
+				local x, z = part.Position.X, part.Position.Z
+				for _, carve in carves do
+					if math.abs(x - carve.centre[1]) < carve.size[1] / 2 + r and math.abs(z - carve.centre[3]) < carve.size[3] / 2 + r then
+						table.insert(offenders, part.Name)
+						break
+					end
+				end
+				if math.abs(x) - r < MapSpec.TERRACE_X[2] and z + r > bandMin and z - r < bandMax then
 					table.insert(offenders, part.Name)
 				end
 			end

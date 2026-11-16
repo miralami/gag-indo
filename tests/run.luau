@@ -94,6 +94,7 @@ local specs = {
 	require("./specs/strings_integrity_spec"),
 	require("./specs/config_crossref_spec"),
 	require("./specs/cutscene_sequencer_spec"),
+	require("./specs/lazy_pages_spec"),
 }
 
 local t = Test.new()

@@ -23,6 +23,7 @@ local Icons = require(script.Parent.Icons)
 local Theme = require(script.Parent.Theme)
 local Evidence = require(script.Parent.Evidence)
 local PhoneLayout = require(Shared.PhoneLayout)
+local LazyPages = require(script.Parent.LazyPages)
 
 local player = Players.LocalPlayer
 
@@ -273,6 +274,8 @@ function Phone.mount(initialLang: string?)
 		Parent = header,
 	})
 
+	local homeBarHeight = PhoneLayout.homeBarHeight
+
 	-- Content: fills the screen between the top bar and the home bar.
 	local content = Theme.new("Frame", {
 		Name = "Content",
@@ -284,7 +287,6 @@ function Phone.mount(initialLang: string?)
 	})
 
 	-- Home bar: a touch-friendly bar at the bottom. Inside an app it goes home; on home it closes the phone.
-	local homeBarHeight = PhoneLayout.homeBarHeight
 	local homeBar = Theme.new("TextButton", {
 		Name = "HomeBar",
 		AnchorPoint = Vector2.new(0, 1),
@@ -307,9 +309,12 @@ function Phone.mount(initialLang: string?)
 
 	-- Closing is always possible: the X, the home bar on home, and a tap outside the device.
 	local toggle: TextButton
+	-- App pages are built on open (LazyPages); closing the phone tears them down again.
+	local registry: any
 	local function closePhone()
 		Audio.play("ui_close")
 		root.Visible = false
+		registry:closeAll()
 		toggle.Visible = true
 	end
 
@@ -415,18 +420,6 @@ function Phone.mount(initialLang: string?)
 	workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(watchCamera)
 	watchCamera()
 
-	local pages: { [string]: ScrollingFrame } = {
-		phone = scrollPage(content, "PagePhone"),
-		kebun = scrollPage(content, "PageKebun"),
-		pinjol = scrollPage(content, "PagePinjol"),
-		tugas = scrollPage(content, "PageTugas"),
-		cheat = scrollPage(content, "PageCheat"),
-		dekor = scrollPage(content, "PageDekor"),
-	}
-	for _, page in pages do
-		page.Visible = false
-	end
-
 	-- Apps with `page` open a screen inside the phone; apps with `action` open a panel elsewhere.
 	local appDefs = {
 		{ id = "phone", icon = "phone", label = "phone_tab_phone", color = Theme.malam },
@@ -440,7 +433,6 @@ function Phone.mount(initialLang: string?)
 	}
 
 	local currentScreen = "home"
-	local refreshCurrent: () -> () = function() end
 	local appLabels: { [string]: TextLabel } = {}
 
 	local function showScreen(screen: string)
@@ -458,12 +450,8 @@ function Phone.mount(initialLang: string?)
 			titleLabel.Size = UDim2.new(1, -154, 1, 0)
 			titleLabel.Text = t("phone_tab_" .. screen)
 		end
-		for name, page in pages do
-			page.Visible = name == screen
-		end
-		if screen ~= "home" then
-			refreshCurrent()
-		end
+		-- Only the current app page exists: the others are destroyed, this one is built and filled.
+		registry:show(if screen == "home" then nil else screen)
 	end
 
 	backButton.Activated:Connect(function()
@@ -538,7 +526,7 @@ function Phone.mount(initialLang: string?)
 	}
 
 	local function refreshPhoneTab()
-		local page = pages.phone
+		local page = registry:get("phone")
 		clearChildren(page)
 		local order = 1
 
@@ -708,7 +696,7 @@ function Phone.mount(initialLang: string?)
 		end
 		cheatSignature = signature
 
-		local page = pages.cheat
+		local page = registry:get("cheat")
 		clearChildren(page)
 		local order = 1
 
@@ -829,7 +817,7 @@ function Phone.mount(initialLang: string?)
 		end
 		decorSignature = signature
 
-		local page = pages.dekor
+		local page = registry:get("dekor")
 		clearChildren(page)
 		local order = 1
 		sectionLabel(page, t("phone_tab_dekor"), order, "hat")
@@ -919,7 +907,7 @@ function Phone.mount(initialLang: string?)
 		end
 		kebunSignature = signature
 
-		local page = pages.kebun
+		local page = registry:get("kebun")
 		clearChildren(page)
 		local order = 1
 		local used = player:GetAttribute("GudangUsed") or 0
@@ -1072,7 +1060,7 @@ function Phone.mount(initialLang: string?)
 
 	---------------------------------------------------------------- pinjol tab
 	local function refreshPinjolTab()
-		local page = pages.pinjol
+		local page = registry:get("pinjol")
 		clearChildren(page)
 		local order = 1
 
@@ -1162,7 +1150,7 @@ function Phone.mount(initialLang: string?)
 
 	---------------------------------------------------------------- tugas tab
 	local function refreshTugasTab()
-		local page = pages.tugas
+		local page = registry:get("tugas")
 		clearChildren(page)
 		local order = 1
 
@@ -1253,31 +1241,64 @@ function Phone.mount(initialLang: string?)
 
 	---------------------------------------------------------------- wiring
 	local lastPhoneSignature = ""
-	refreshCurrent = function()
-		if currentScreen == "phone" then
-			local signature = ""
-			for _, entry in itemRows do
-				signature ..= tostring(player:GetAttribute("Item_" .. entry.item)) .. ","
-			end
-			signature ..= "#" .. #Evidence.getTokens()
-			for _, token in Evidence.getTokens() do
-				signature ..= token.tokenId
-			end
-			if signature ~= lastPhoneSignature then
-				lastPhoneSignature = signature
-				refreshPhoneTab()
-			end
-		elseif currentScreen == "kebun" then
-			refreshKebunTab()
-		elseif currentScreen == "pinjol" then
-			refreshPinjolTab()
-		elseif currentScreen == "tugas" then
-			refreshTugasTab()
-		elseif currentScreen == "cheat" then
-			refreshCheatTab()
-		elseif currentScreen == "dekor" then
-			refreshDecorTab()
+	local function refreshPhoneIfChanged()
+		local signature = ""
+		for _, entry in itemRows do
+			signature ..= tostring(player:GetAttribute("Item_" .. entry.item)) .. ","
 		end
+		signature ..= "#" .. #Evidence.getTokens()
+		for _, token in Evidence.getTokens() do
+			signature ..= token.tokenId
+		end
+		if signature ~= lastPhoneSignature then
+			lastPhoneSignature = signature
+			refreshPhoneTab()
+		end
+	end
+
+	-- A destroyed page must be refilled by the next build, so the change signatures are reset.
+	local function resetSignatures()
+		lastPhoneSignature = ""
+		kebunSignature = ""
+		cheatSignature = ""
+		decorSignature = ""
+	end
+
+	-- Phone app pages are built on first open (not at mount) and destroyed on leaving them.
+	-- Every page reads its state from player attributes / ClientState / Evidence when applied,
+	-- so nothing is pushed into a page that does not exist; `apply` is the refresh function.
+	local function pageDef(name: string, refresh: () -> ())
+		return {
+			build = function()
+				return scrollPage(content, name)
+			end,
+			apply = function()
+				refresh()
+			end,
+			destroy = function(instance: Instance)
+				instance:Destroy()
+				resetSignatures()
+			end,
+		}
+	end
+	registry = LazyPages.new({
+		phone = pageDef("PagePhone", refreshPhoneIfChanged),
+		kebun = pageDef("PageKebun", function()
+			refreshKebunTab()
+		end),
+		pinjol = pageDef("PagePinjol", refreshPinjolTab),
+		tugas = pageDef("PageTugas", refreshTugasTab),
+		cheat = pageDef("PageCheat", function()
+			refreshCheatTab()
+		end),
+		dekor = pageDef("PageDekor", function()
+			refreshDecorTab()
+		end),
+	})
+
+	-- Refreshes the open app page; a no-op on home or when its page is not built.
+	local function refreshCurrent()
+		registry:refresh(currentScreen)
 	end
 
 	local function setPhoneLanguage(newLang: string)
@@ -1295,10 +1316,7 @@ function Phone.mount(initialLang: string?)
 		else
 			titleLabel.Text = t("phone_tab_" .. currentScreen)
 		end
-		lastPhoneSignature = ""
-		kebunSignature = ""
-		cheatSignature = ""
-		decorSignature = ""
+		resetSignatures()
 		if root.Visible and currentScreen ~= "home" then
 			refreshCurrent()
 		end
@@ -1323,10 +1341,7 @@ function Phone.mount(initialLang: string?)
 		root.Visible = true
 		toggle.Visible = false
 		updateClock()
-		lastPhoneSignature = ""
-		kebunSignature = ""
-		cheatSignature = ""
-		decorSignature = ""
+		resetSignatures()
 		showScreen("home")
 	end
 

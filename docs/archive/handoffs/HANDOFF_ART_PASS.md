@@ -44,7 +44,7 @@ Kamu melanjutkan game Roblox "Juragan Desa" (Luau, Rojo, repo ini). Tugasmu: **m
 - **Layar lain** (`Tiles`, `Minigame`, `Minigames/*`, `Admin`): ganti `Color3` hardcoded ke token Theme.
 - Selesai bila: tidak ada `Color3.fromRGB` di luar `Theme.luau` kecuali dengan alasan tertulis.
 
-### >>> CHECKPOINT 1 — UI selesai (W1, W2). Tulis `docs/v2/ART_CHECKPOINT_1.md`, berhenti.
+### >>> CHECKPOINT 1 — UI selesai (W1, W2). Tulis `docs/archive/handoffs/ART_CHECKPOINT_1.md`, berhenti.
 
 ### W3 — Tanaman dan rarity (visual)
 - `Config/Visuals.luau`: tabel tampilan per tier sesuai ART.md §7 (bingkai, efek, warna). Tambahkan hex ungu untuk Langka ke ART.md §3 dulu.
@@ -68,7 +68,7 @@ Kamu melanjutkan game Roblox "Juragan Desa" (Luau, Rojo, repo ini). Tugasmu: **m
 - Pemain tetap R15 asli, jangan diubah.
 - Selesai bila: tiap NPC bisa dikenali dari siluet saja.
 
-### >>> CHECKPOINT 2 — tanaman, dunia, NPC (W3 sampai W5). Tulis `docs/v2/ART_CHECKPOINT_2.md`, berhenti.
+### >>> CHECKPOINT 2 — tanaman, dunia, NPC (W3 sampai W5). Tulis `docs/archive/handoffs/ART_CHECKPOINT_2.md`, berhenti.
 
 ### W6 — Tekstur dan ikon: spesifikasi untuk dibuatkan
 Kamu tidak bisa membuat gambar, jadi hasilkan dokumen siap kerja:
@@ -86,7 +86,7 @@ Kamu tidak bisa membuat gambar, jadi hasilkan dokumen siap kerja:
 - Audit checklist ART.md §11 untuk seluruh layar dan dunia, dalam tiga preset musim dan cuaca (ganti dari panel admin).
 - Laporkan fps/jumlah instance, apa yang gagal checklist, dan yang butuh keputusan desainer.
 
-### >>> CHECKPOINT 3 — selesai (W6 sampai W8). Tulis `docs/v2/ART_CHECKPOINT_3.md`, berhenti.
+### >>> CHECKPOINT 3 — selesai (W6 sampai W8). Tulis `docs/archive/handoffs/ART_CHECKPOINT_3.md`, berhenti.
 
 ## Aturan keras
 - **Jangan ubah** logika server, remote (`src/shared/Remotes.luau`), save data, ekonomi, atau tes yang sudah ada. Ini perubahan visual. Perluasan data hanya di Config visual baru.

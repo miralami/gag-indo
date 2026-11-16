@@ -39,7 +39,7 @@ Scope: verify the W3–W8 visual pass in Roblox Studio without changing gameplay
 - Every applicable case marked PASS or FAIL with evidence; BLOCKED requires a reason and owner.
 - No blocker or major defect remains open for sprint closure.
 - `lune run tests/run` passes after any code changes.
-- Update `docs/v2/ART_CHECKPOINT_3.md` with results, device details, evidence locations, and remaining Studio-only items.
+- Update `docs/archive/handoffs/ART_CHECKPOINT_3.md` with results, device details, evidence locations, and remaining Studio-only items.
 - Do not claim visual pass from code review or automated tests alone. Do not fill asset IDs without approved assets/licensing.
 
 ## Results log

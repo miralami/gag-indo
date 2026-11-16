@@ -1,6 +1,6 @@
 # audit fixes — 2026-11-14
 
-Source: `docs/improvements/SINTESIS.md`. Haiku lanes, reviewed and run by the main session. Suite: `All 581 tests passed`.
+Source: `docs/archive/2026-11-14-outside-audit/SINTESIS.md`. Haiku lanes, reviewed and run by the main session. Suite: `All 581 tests passed`.
 - BUG-008 hub signs: name painted on the board (SurfaceGui `SignFront`/`SignBack`), floating BillboardGui removed. 6/6 signs, 0 billboards; "WARUNG" readable on its board — SEEN-IN-STUDIO (`after-spawn-desktop.jpg`, desktop).
 - Next-goal card after the tutorial (`src/shared/NextGoal.luau`, `Hud.luau`): "Next Goal / Own 6 / 12 plots to reach Juragan" — SEEN-IN-STUDIO (desktop).
 - Seed bar shows only owned or selected seeds ("Rice x0", selected) — SEEN-IN-STUDIO (desktop).

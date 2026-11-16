@@ -35,4 +35,4 @@
 - [x] No source edits made during playtest.
 - [x] Automated suite green (481 tests, separate CLI run).
 
-This is a partial Studio smoke run, not a sprint verification. Full cases remain in `docs/v2/PLAYTEST_PLAN.md`, `docs/v2/PLAYTEST_CASES.md`, and `docs/testing/MANUAL_TESTS.md`.
+This is a partial Studio smoke run, not a sprint verification. Full cases remain in `docs/testing/PLAYTEST_PLAN.md`, `docs/testing/PLAYTEST_CASES.md`, and `docs/testing/MANUAL_TESTS.md`.

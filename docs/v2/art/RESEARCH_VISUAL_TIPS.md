@@ -1,6 +1,6 @@
 # Visual research and tips backlog (2026-11-14)
 
-Sources: four YouTube tutorials saved in `docs/realistic tutorials.txt`, plus a web pass over the
+Sources: four YouTube tutorials saved in `docs/archive/2026-11-14-outside-audit/realistic tutorials.txt`, plus a web pass over the
 official Roblox docs, the Blender manual and licence pages. Status words follow Master Plan §7.
 Anything not confirmed from a primary source is marked **UNCONFIRMED**.
 

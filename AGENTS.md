@@ -3,7 +3,8 @@
 Read the **Progress tracker** at the top of `docs/v2/MASTER_PLAN.md` first: it says what is done,
 what is next and where the evidence is, so you do not have to rediscover the repo. When you finish
 a task, tick it there in the same commit. Then read the rest of `docs/v2/MASTER_PLAN.md`. It governs what may be built, in what order, and how work is
-proven. These rules sit on top of it and never override it.
+proven. These rules sit on top of it and never override it. `docs/README.md` maps every other doc
+and marks which are live, dated snapshots or archive.
 
 ## Orchestration
 

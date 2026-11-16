@@ -1,7 +1,9 @@
 # Launch Readiness & Store Packaging — Juragan Desa v2
 
 Tanggal: 2026-11-12  
-Status: READY FOR PUBLISHING REVIEW
+Status: DRAFT. Ditulis 2026-11-12, sebelum Master Plan; belum diverifikasi di Studio. Gate 1 belum lulus
+dan tracker Master Plan (G4) mencatat sebagian besar aksi masih tanpa suara, jadi centang di §4 belum
+bisa dipercaya. Launch mengikuti Master Plan §6 Phase 4.
 
 ---
 

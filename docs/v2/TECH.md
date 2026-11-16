@@ -1,7 +1,7 @@
 # Juragan Desa — v2 Technical Foundation (M0–M2)
 
 > What M0, M1 and M2 changed, and the rules the rest of v2 builds on. Read this together with
-> [v1/TECH.md](../v1/TECH.md): the ground rules there still hold — the server decides
+> [v1/TECH.md](../archive/v1/TECH.md): the ground rules there still hold — the server decides
 > everything, one owner per piece of state, config lives in tables, every remote is validated
 > and rate-limited. This file only documents what v2 added.
 

@@ -20,7 +20,7 @@
 - `docs/v2/art/TEXTURES.md`
 - `docs/v2/art/ICONS.md`
 - `docs/v2/art/npcs.md`
-- `docs/v2/ART_CHECKPOINT_3.md`
+- `docs/archive/handoffs/ART_CHECKPOINT_3.md`
 
 ## Summary
 - Added elapsed-time crop stage selection (first third bibit, then tumbuh, then siap), rarity outline/glow, Sultan sparkle burst, and tier rarity chips for icon slots.

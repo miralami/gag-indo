@@ -112,6 +112,9 @@ See "Checking code" in the [README](../../README.md). Run `luau-lsp analyze` bef
 A real tester works from **written cases with a pass/fail result per version**, not from memory. That is what these files do:
 
 - [MANUAL_TESTS.md](MANUAL_TESTS.md): the catalogue. Every case has an ID, a priority (P0 smoke, P1 core, P2 polish), setup, steps and the expected result.
+- [PLAYTEST_PLAN.md](PLAYTEST_PLAN.md) and [PLAYTEST_CASES.md](PLAYTEST_CASES.md): the v2 Studio scenarios and cases. `MANUAL_TESTS.md` predates v2; where the two disagree, the v2 cases win.
+- [ART_PLAYTEST_PLAN.md](ART_PLAYTEST_PLAN.md): visual checks for the art pass.
+- [HARNESS.md](HARNESS.md): the Studio routine agents use to drive a play session; [GATE1.md](GATE1.md) is the gate it feeds and [BUGS.md](BUGS.md) the defect list.
 - [runs/TEMPLATE.md](runs/TEMPLATE.md): the run sheet. Copy it to `runs/<date>-<commit>.md`, tick off each case for that exact version, and sign it off.
 
 ### Release routine

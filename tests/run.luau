@@ -22,6 +22,7 @@ local specs = {
 	require("./specs/shop_failure_spec"),
 	require("./specs/economy_failure_spec"),
 	require("./specs/debt_failure_spec"),
+	require("./specs/debt_collector_failure_spec"),
 	require("./specs/market_spec"),
 	require("./specs/tool_spec"),
 	require("./specs/storage_spec"),

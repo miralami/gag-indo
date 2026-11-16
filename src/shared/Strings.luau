@@ -64,6 +64,15 @@ local S: { [string]: { id: string, en: string } } = {
 	admin_ready = { id = "Siap.", en = "Ready." },
 	admin_auto = { id = "Auto", en = "Auto" },
 	admin_cabai = { id = "Harga Cabai", en = "Chili prices" },
+	admin_perf = { id = "Uji performa (lokal)", en = "Perf switches (local)" },
+	admin_perf_tier = { id = "Tingkat visual: %s", en = "Fidelity tier: %s" },
+	admin_perf_highlights = { id = "Highlight", en = "Highlights" },
+	admin_perf_shadows = { id = "Bayangan", en = "Shadows" },
+	admin_perf_bloom = { id = "Bloom", en = "Bloom" },
+	admin_perf_decoration = { id = "Dekorasi terrain", en = "Terrain decoration" },
+	admin_perf_particles = { id = "Partikel", en = "Particles" },
+	admin_perf_on = { id = "Nyala", en = "On" },
+	admin_perf_off = { id = "Mati", en = "Off" },
 
 	-- cheats
 	cheat_oplosan = { id = "Pupuk Oplosan", en = "Dodgy Fertilizer" },

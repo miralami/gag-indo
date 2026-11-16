@@ -20,7 +20,7 @@ proven. These rules sit on top of it and never override it.
 ## Rules that bite
 
 - **Always commit finished work** (designer, 2026-11-14) without waiting to be asked: topical
-  commits, no attribution lines, tracker ticked in the same commit. Never push, never commit secrets.
+  commits, no attribution lines, tracker ticked in the same commit. Push only when explicitly asked; never commit secrets.
 - `lune run tests/run.luau` must pass before every commit; the current count is on the tracker's "Last updated" line.
 - The Open Cloud key is the user env var `ROBLOX_API_KEY` (never print, log or commit it). Uploads
   land in the designer's inventory; record every resulting ID in `docs/v2/art/ASSET_MANIFEST.md`.

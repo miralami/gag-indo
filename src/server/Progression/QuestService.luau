@@ -42,8 +42,10 @@ function QuestService.ensure(data): any
 		quests = blank()
 		data.quests = quests
 	end
-	quests.loginStreak = tonumber(quests.loginStreak) or 0
-	quests.lastLoginAt = tonumber(quests.lastLoginAt) or 0
+	local streak = tonumber(quests.loginStreak)
+	quests.loginStreak = if streak and streak == streak and streak >= 0 then streak else 0
+	local lastAt = tonumber(quests.lastLoginAt)
+	quests.lastLoginAt = if lastAt and lastAt == lastAt then lastAt else 0
 	if type(quests.loginClaimedToday) ~= "boolean" then
 		quests.loginClaimedToday = false
 	end
@@ -148,6 +150,9 @@ function QuestService.progress(player: Player, action: string, amount: number?, 
 	end
 	local quests = QuestService.ensure(data)
 	local delta = amount or 1
+	if type(delta) ~= "number" or delta ~= delta or delta <= 0 or delta == math.huge then
+		return
+	end
 	local changed = false
 
 	for taskId, task in quests.tasks do

@@ -30,6 +30,13 @@ local EconomyService = {}
 
 local ORDAL_SALE_BONUS = 1.1
 
+-- Explicit ceiling for any single cash grant or sale. Keeps cash finite and far from overflow.
+EconomyService.MAX_CASH = 1_000_000_000_000
+
+local function finiteCount(n: any): boolean
+	return type(n) == "number" and n == n and n > 0 and n ~= math.huge
+end
+
 local saleHook: ((Player, number) -> ())? = nil
 
 function EconomyService.onSale(hook: (Player, number) -> ())
@@ -84,8 +91,8 @@ function EconomyService.addCash(
 	if not data or not isFiniteNumber(amount) or amount <= 0 then
 		return
 	end
-	amount = math.floor(amount)
-	data.cash += amount
+	amount = math.min(math.floor(amount), EconomyService.MAX_CASH)
+	data.cash = math.min(data.cash + amount, EconomyService.MAX_CASH)
 	if earned then
 		data.lifetimeEarned += amount
 		RankService.refresh(player)
@@ -203,7 +210,7 @@ function EconomyService.sellAll(player: Player, channel: string)
 	local soldCounts = {}
 	for _, stack in data.produce or {} do
 		local crop = Crops.list[stack.crop]
-		if crop and stack.count > 0 then
+		if crop and type(stack) == "table" and finiteCount(stack.count) then
 			-- Harga Cabai Meroket and the rarity tier multiply the base price. Minigame quality
 			-- does not (M1): it nudges the rarity roll instead of the payout.
 			local unit = crop.sellPrice * CabaiEvent.multiplier(stack.crop) * Tiers.multiplier(stack.tier)
@@ -224,7 +231,11 @@ function EconomyService.sellAll(player: Player, channel: string)
 			return
 		end
 		local multiplier = Cheats.list.gelap.priceMultiplier or 1.3
-		local total = (legalValue + hotValue) * multiplier
+		local total = math.min((legalValue + hotValue) * multiplier, EconomyService.MAX_CASH)
+		if not isFiniteNumber(total) then
+			Notify.send(player, "n_nothing_to_sell")
+			return
+		end
 		local extra = total - (legalValue + hotValue)
 		data.produce = {}
 		EconomyService.addCash(player, total, true, { sku = "tengkulak_gelap" })
@@ -246,7 +257,12 @@ function EconomyService.sellAll(player: Player, channel: string)
 	local namaBaik = data.namaBaik or Law.namaBaikStart
 	local namaBaikScale = (namaBaik - Law.namaBaikStart) / Law.namaBaikStart
 	local namaBaikMultiplier = 1 + math.clamp(namaBaikScale * (MarketConfig.namaBaikMaxBonus or 0.05), -0.05, 0.05)
-	local total = marketValue * ordalMultiplier * namaBaikMultiplier
+	local total = math.min(marketValue * ordalMultiplier * namaBaikMultiplier, EconomyService.MAX_CASH)
+	-- Refuse before any produce is removed: a non-finite payout must never erase the sack.
+	if not isFiniteNumber(total) then
+		Notify.send(player, "n_nothing_to_sell")
+		return
+	end
 
 	-- Clean produce sold; only the hot (oplosan) stacks stay in the sack.
 	Produce.removeClean(data.produce or {})

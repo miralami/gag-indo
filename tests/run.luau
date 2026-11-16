@@ -59,6 +59,7 @@ local specs = {
 	require("./specs/first_session_spec"),
 	require("./specs/iconmap_spec"),
 	require("./specs/phone_layout_spec"),
+	require("./specs/npc_framework_spec"),
 }
 
 local t = Test.new()

@@ -20,6 +20,7 @@ local PlotService = require(script.Parent.Parent.Farm.PlotService)
 local Village = require(script.Parent.Parent.World.Village)
 local Analytics = require(script.Parent.Parent.Analytics.Analytics)
 local BadgeService = require(script.Parent.Parent.Progression.BadgeService)
+local CutsceneHooks = require(script.Parent.Parent.Npc.CutsceneHooks)
 
 local RaidService = {}
 
@@ -116,7 +117,8 @@ end
 
 local function resetRaid(player: Player, raid: Raid, outcome: string)
 	local data = PlayerData.get(player)
-	setState(raid, if outcome == "jail" then "jail" else "cooldown")
+	local finalState = if outcome == "jail" then "jail" else "cooldown"
+	setState(raid, finalState)
 	player:SetAttribute("InRaid", false)
 	if data then
 		data.cooldowns.raidSafeUntil = os.time() + Law.raidCooldown
@@ -127,6 +129,7 @@ local function resetRaid(player: Player, raid: Raid, outcome: string)
 	if susApi then
 		susApi.set(player, Law.raidResetSus)
 	end
+	CutsceneHooks.emitRaid({ kind = "raid", player = player, phase = finalState, isViral = raid.isViral, outcome = outcome })
 	Remotes.Raid_End:FireClient(player, outcome)
 	Notify.send(player, "n_raid_over", Law.raidResetSus)
 	if outcome ~= "jail" then
@@ -298,6 +301,7 @@ function RaidService.start(player: Player, isViral: boolean)
 		fine = fine,
 		amplop = amplop,
 	})
+	CutsceneHooks.emitRaid({ kind = "raid", player = player, phase = "incoming", isViral = isViral })
 	Notify.send(player, if isViral then "n_viral" else "n_raid_came")
 	BadgeService.award(player, "first_raid")
 
@@ -321,6 +325,7 @@ function RaidService.start(player: Player, isViral: boolean)
 			amplop = amplop,
 			timeout = Law.raidChoiceTimeout,
 		})
+		CutsceneHooks.emitRaid({ kind = "raid", player = player, phase = "choosing", isViral = isViral })
 
 		task.delay(Law.raidChoiceTimeout, function()
 			local still = raids[player]

@@ -12,6 +12,7 @@ local Strings = require(Shared.Strings)
 
 local PlotService = require(script.Parent.Parent.Farm.PlotService)
 local Props = require(script.Parent.Parent.World.Props)
+local CutsceneHooks = require(script.Parent.Parent.Npc.CutsceneHooks)
 
 local DebtCollector = {}
 
@@ -52,6 +53,7 @@ function DebtCollector.summon(player: Player)
 	label.Text = Strings.get(language(player), "debt_collector_tag")
 	part.Parent = game:GetService("Workspace")
 	parts[player] = part
+	CutsceneHooks.emitDebtCollector({ kind = "debt_collector", player = player, state = "summoned", waiting = true })
 end
 
 function DebtCollector.dismiss(player: Player)
@@ -61,6 +63,7 @@ function DebtCollector.dismiss(player: Player)
 	end
 	parts[player] = nil
 	part:Destroy()
+	CutsceneHooks.emitDebtCollector({ kind = "debt_collector", player = player, state = "dismissed", waiting = false })
 end
 
 function DebtCollector.isWaiting(player: Player): boolean

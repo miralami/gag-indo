@@ -21,7 +21,7 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 1. **G â€” icon upload (designer/Open Cloud):** first icon set upload and fill slot IDs in manifest/map (code-side slots/wiring done, `LUNE-ONLY`).
 2. **D â€” phone app polish (ongoing):** keep auditing phone pages for cut-off text/wrapping on device; touch-target/layout spec baseline in place (`LUNE-ONLY`).
 3. **C â€” world in code (partially finalised):** `MapSpec` now sources spawn, golden-hour window, three season preset ids, and 9.5-stud headroom; `greybox_spec` asserts them (`LUNE-ONLY`). Remaining C work is Studio composition/evidence and terrain/asset passes.
-4. **F â€” NPC/cutscene logic hooks:** caricature NPC framework from design cards and state/event hooks for raid and debt-collector cutscenes (logic only, no assets).
+4. **F - NPC/cutscene assets/implementation:** caricature NPC framework and raid/debt-collector state hooks are in place (`LUNE-ONLY`, logic only); visual NPCs and full cutscene presentation remain.
 5. **Bugs:** fix any code-solvable defects in `docs/testing/BUGS.md` (BUG-004 remains `BLOCKED` on D-G3).
 6. **Studio pass (separate):** run harness/playtest for `LUNE-ONLY` items, collect evidence, then Gate 1 checks.
 
@@ -98,8 +98,8 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 - [x] UI sounds, tier stings, raid sting, rain and night ambience â€” `SEEN-IN-STUDIO`, `art/ASSET_MANIFEST.md`.
 
 **F. Characters and cutscenes**
-- [ ] Caricature NPCs from design cards (Pak RT and others are box heads today).
-- [ ] Sinetron raid cutscene; debt collector scene.
+- [~] Caricature NPC framework from design cards (Pak RT/Tengkulak/Polisi archetype data and fictionality markers) — `LUNE-ONLY`, `src/shared/Config/NpcArchetypes.luau`, `tests/specs/npc_framework_spec.luau`; visual models/rigs still pending.
+- [~] Raid and debt-collector cutscene state/event hooks (logic only) — `LUNE-ONLY`, `src/server/Npc/CutsceneHooks.luau`, wired in `src/server/Law/RaidService.luau` and `src/server/Economy/DebtCollector.luau`; full sinetron presentation still pending.
 
 **G. Asset pipeline**
 - [x] Asset manifest started.

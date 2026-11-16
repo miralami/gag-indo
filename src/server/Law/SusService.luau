@@ -12,13 +12,22 @@ local FirstSession = require(script.Parent.Parent.Progression.FirstSession)
 
 local SusService = {}
 
+-- The saved Sus as a clamped whole number; a damaged (non-number or NaN) value reads as 0.
+local function current(data): number
+	local sus = data.sus
+	if type(sus) ~= "number" or sus ~= sus then
+		return 0
+	end
+	return math.clamp(math.floor(sus), 0, Law.susMax)
+end
+
 local function sync(player: Player, data)
-	player:SetAttribute("Sus", math.clamp(math.floor(data.sus or 0), 0, Law.susMax))
+	player:SetAttribute("Sus", current(data))
 end
 
 function SusService.get(player: Player): number
 	local data = PlayerData.get(player)
-	return if data then math.clamp(math.floor(data.sus or 0), 0, Law.susMax) else 0
+	return if data then current(data) else 0
 end
 
 -- Set the exact value (raid reset). Clamped and mirrored to the attribute.
@@ -27,7 +36,7 @@ function SusService.setSus(player: Player, value: number)
 	if not data or type(value) ~= "number" or value ~= value then
 		return
 	end
-	local previous = math.clamp(math.floor(data.sus or 0), 0, Law.susMax)
+	local previous = current(data)
 	local updated = math.clamp(math.floor(value), 0, Law.susMax)
 	data.sus = updated
 	sync(player, data)
@@ -40,7 +49,7 @@ function SusService.add(player: Player, amount: number, _reason: string?): numbe
 	if not data or type(amount) ~= "number" or amount ~= amount then
 		return 0
 	end
-	local previous = math.clamp(math.floor(data.sus or 0), 0, Law.susMax)
+	local previous = current(data)
 	local updated = math.clamp(previous + math.floor(amount), 0, Law.susMax)
 	data.sus = updated
 	sync(player, data)
@@ -59,7 +68,7 @@ function SusService.add(player: Player, amount: number, _reason: string?): numbe
 end
 
 function SusService.reduce(player: Player, amount: number, reason: string?): number
-	if type(amount) ~= "number" or amount <= 0 then
+	if type(amount) ~= "number" or amount ~= amount or amount <= 0 then
 		return SusService.get(player)
 	end
 	return SusService.add(player, -math.floor(amount), reason)

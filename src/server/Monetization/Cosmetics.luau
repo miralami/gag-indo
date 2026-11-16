@@ -15,6 +15,20 @@ local Cosmetics = {}
 local HAT_NAME = "CosmeticHat"
 local VEST_NAME = "CosmeticVest"
 
+-- A damaged or old save may lack these tables; never index through nil.
+local function getData(player: Player)
+	local data = PlayerData.get(player)
+	if data then
+		if type(data.cosmetics) ~= "table" then
+			data.cosmetics = {}
+		end
+		if type(data.equipped) ~= "table" then
+			data.equipped = {}
+		end
+	end
+	return data
+end
+
 local function removeVisuals(character: Model)
 	for _, name in { HAT_NAME, VEST_NAME } do
 		local existing = character:FindFirstChild(name)
@@ -38,7 +52,7 @@ local function weld(part: BasePart, parentPart: BasePart)
 end
 
 local function applyVisual(player: Player)
-	local data = PlayerData.get(player)
+	local data = getData(player)
 	local character = player.Character
 	if not data or not character then
 		return
@@ -89,7 +103,7 @@ local function applyVisual(player: Player)
 end
 
 function Cosmetics.sync(player: Player)
-	local data = PlayerData.get(player)
+	local data = getData(player)
 	if not data then
 		return
 	end
@@ -102,7 +116,7 @@ end
 
 -- Free grant for non-shop unlocks (the Almanak pages). Server-only; returns true if it is new.
 function Cosmetics.grant(player: Player, itemId: string): boolean
-	local data = PlayerData.get(player)
+	local data = getData(player)
 	if not data or not CosmeticsConfig.list[itemId] then
 		return false
 	end
@@ -123,7 +137,7 @@ local function onBuy(player: Player, itemId: any)
 		return
 	end
 	local item = CosmeticsConfig.list[itemId]
-	local data = PlayerData.get(player)
+	local data = getData(player)
 	if not item or not data then
 		return
 	end
@@ -143,7 +157,7 @@ local function onEquip(player: Player, itemId: any)
 	if not RateLimit.allow(player, "Cosmetic_Equip", 4) then
 		return
 	end
-	local data = PlayerData.get(player)
+	local data = getData(player)
 	if not data then
 		return
 	end

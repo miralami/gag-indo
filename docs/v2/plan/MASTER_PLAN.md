@@ -8,7 +8,7 @@
 
 ## Progress tracker — read first, update last
 
-**Last updated:** 2026-11-16 — branch `track/c-world-look` — `lune run tests/run.luau`: 871 passing (`LUNE-ONLY`, V0.2 perf switches, hook moments freeze the tier; Evidence/Plot/Warung/Neighbor failure paths with fixes).
+**Last updated:** 2026-11-16 — branch `track/c-world-look` — `lune run tests/run.luau`: 938 passing (`LUNE-ONLY`, save repair on load; Sus/Almanak/Season/Admin/Cosmetics/Leaderboard failure paths with fixes).
 
 **Rules for this section.** Every agent reads it before touching the repo, so nobody has to rediscover
 the state from scratch. Whoever finishes a task ticks it here **in the same commit**, adds its status
@@ -115,6 +115,8 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 - [x] Quest and Raid failure-path specs; fixed NaN progress completing quests, NaN login streak burning the daily claim, raid start/leave erroring on saves without `cooldowns`/`stats` — `LUNE-ONLY`, `tests/specs/quest_failure_spec.luau`, `tests/specs/raid_failure_spec.luau`.
 - [x] Worker, Storage and Cheat failure-path specs; fixed NaN cash letting the buruh harvest and `trySpend` succeed, fractional/infinite gudang capacity, withdraw losing items when the sack table is missing, curi_air erroring without `cooldowns` — `LUNE-ONLY`, `tests/specs/worker_failure_spec.luau`, `tests/specs/storage_failure_spec.luau`, `tests/specs/cheat_failure_spec.luau`.
 - [x] Evidence, Plot, Warung and Neighbor failure-path specs; fixed reports/cheat logs erroring without `cooldowns`/`stats`, tile prompt erroring on a save with nil `tilesOwned` or `tiles`, Nama Baik staying NaN and water erroring without `cooldowns` — `LUNE-ONLY`, `tests/specs/evidence_failure_spec.luau`, `tests/specs/plot_failure_spec.luau`, `tests/specs/warung_neighbor_failure_spec.luau`.
+- [x] Save repair on load: `src/server/Data/SaveSanitize.luau` runs after Reconcile and migration, resets wrong-typed or NaN/inf template fields (one level into known tables), keeps dynamic keys and negative cash, warns once with the count — `LUNE-ONLY`, `tests/specs/save_reconcile_spec.luau`; not seen on a real damaged profile.
+- [x] Sus, Almanak, Season, Admin, Cosmetics and Leaderboard failure-path specs; fixed NaN Sus spreading through get/add/reduce, Almanak throwing on a damaged entry or string trait list, admin `grantItem` writing unknown item ids, Cosmetics erroring without `cosmetics`/`equipped`, a failed leaderboard read blanking the last good board — `LUNE-ONLY`, `tests/specs/sus_almanak_failure_spec.luau`, `tests/specs/season_admin_failure_spec.luau`, `tests/specs/cosmetics_leaderboard_failure_spec.luau`.
 - [ ] Full-session `output.log`; fps on the phone emulator; ten-player session; published-place persistence.
 - [ ] Five real players (designer).
 

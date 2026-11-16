@@ -21,9 +21,15 @@ local State = require(script.Parent.Parent.Net.State)
 local AlmanakService = {}
 
 local function ensure(data)
-	data.almanak = data.almanak or {}
-	data.almanak.crops = data.almanak.crops or {}
-	data.almanak.pages = data.almanak.pages or {}
+	if type(data.almanak) ~= "table" then
+		data.almanak = {}
+	end
+	if type(data.almanak.crops) ~= "table" then
+		data.almanak.crops = {}
+	end
+	if type(data.almanak.pages) ~= "table" then
+		data.almanak.pages = {}
+	end
 	return data.almanak
 end
 
@@ -66,13 +72,20 @@ function AlmanakService.record(player: Player, cropId: string, tier: string?, tr
 
 	local entry = almanak.crops[cropId]
 	local first = entry == nil
-	if not entry then
-		entry = { tiers = {}, traits = {}, count = 0 }
+	if type(entry) ~= "table" then
+		entry = { tiers = {}, traits = {}, count = 0 } -- missing or damaged: rebuild
 		almanak.crops[cropId] = entry
 	else
-		entry.tiers = entry.tiers or {}
-		entry.traits = entry.traits or {}
-		entry.count = entry.count or 0
+		if type(entry.tiers) ~= "table" then
+			entry.tiers = {}
+		end
+		if type(entry.traits) ~= "table" then
+			entry.traits = {}
+		end
+		local count = entry.count
+		if type(count) ~= "number" or count ~= count or count == math.huge or count < 0 then
+			entry.count = 0
+		end
 	end
 	entry.count += 1
 
@@ -83,7 +96,7 @@ function AlmanakService.record(player: Player, cropId: string, tier: string?, tr
 	end
 
 	local newTraits = {}
-	if traitList then
+	if type(traitList) == "table" then
 		for _, traitId in traitList do
 			if Traits.exists(traitId) and not entry.traits[traitId] then
 				entry.traits[traitId] = true

@@ -17,6 +17,17 @@ local Seasons = require(Shared.Config.Seasons)
 local Remotes = require(Shared.Remotes)
 local Inventory = require(Shared.Inventory)
 local Produce = require(Shared.Produce)
+local Crops = require(Shared.Config.Crops)
+
+-- Items an admin may grant: the consumables in the save template plus one seed per real crop.
+local CONSUMABLES = { amplopPremium = true, jaminanKilat = true }
+local function isGrantableItem(itemId: string): boolean
+	if CONSUMABLES[itemId] then
+		return true
+	end
+	local cropId = string.match(itemId, "^seed_(.+)$")
+	return cropId ~= nil and Crops.list[cropId] ~= nil
+end
 
 local PlayerData = require(script.Parent.Parent.Data.PlayerData)
 local RateLimit = require(script.Parent.Parent.Net.RateLimit)
@@ -126,6 +137,10 @@ local function grantItem(player: Player, value: any)
 	end
 	if amount ~= math.floor(amount) or amount < 1 or amount > 1000 then
 		fail(player, "Amount must be 1..1000.")
+		return
+	end
+	if not isGrantableItem(itemId) then
+		fail(player, "Unknown item.")
 		return
 	end
 	Inventory.add(data, itemId, amount)

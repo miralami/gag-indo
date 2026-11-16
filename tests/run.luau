@@ -83,6 +83,10 @@ local specs = {
 	require("./specs/plot_failure_spec"),
 	require("./specs/warung_neighbor_failure_spec"),
 	require("./specs/perf_switches_spec"),
+	require("./specs/sus_almanak_failure_spec"),
+	require("./specs/season_admin_failure_spec"),
+	require("./specs/cosmetics_leaderboard_failure_spec"),
+	require("./specs/save_reconcile_spec"),
 }
 
 local t = Test.new()

@@ -57,8 +57,9 @@ when the task needs it.
 | [testing/HARNESS.md](testing/HARNESS.md) | Studio playtest routine through the harness | LIVE |
 | [testing/CODE_AUDIT.md](testing/CODE_AUDIT.md) | Per-task Lune audit log | LIVE |
 | [testing/README.md](testing/README.md) | The three test layers and how to run them | LIVE |
-| [v2/qa/PLAYTEST_PLAN.md](v2/qa/PLAYTEST_PLAN.md), [v2/qa/PLAYTEST_CASES.md](v2/qa/PLAYTEST_CASES.md) | v2 Studio scenarios and cases | SNAPSHOT, predates the Master Plan |
-| [testing/MANUAL_TESTS.md](testing/MANUAL_TESTS.md), [testing/runs/TEMPLATE.md](testing/runs/TEMPLATE.md) | v1-era case catalogue and run sheet; the v2 cases win where they differ | SNAPSHOT 2026-11-10 |
+| [v2/qa/PLAYTEST_CASES.md](v2/qa/PLAYTEST_CASES.md) | The one manual case catalogue (v1 cases merged in 2026-11-16), with the every-version set | LIVE; rows marked (v1) need a first check against config |
+| [v2/qa/PLAYTEST_PLAN.md](v2/qa/PLAYTEST_PLAN.md) | Scenarios and setup behind the cases | SNAPSHOT, predates the Master Plan |
+| [testing/runs/TEMPLATE.md](testing/runs/TEMPLATE.md) | Run sheet to copy per run | LIVE |
 | [v2/qa/SECURITY_AUDIT.md](v2/qa/SECURITY_AUDIT.md), [v2/qa/PERF_AUDIT.md](v2/qa/PERF_AUDIT.md), [v2/qa/FTUE_AUDIT.md](v2/qa/FTUE_AUDIT.md) | Static audits without runtime evidence; Master Plan Phase 4 re-runs them | SNAPSHOT 2026-11-12 |
 | `testing/runs/` | Signed run sheets | Records |
 

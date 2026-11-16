@@ -35,4 +35,4 @@
 - [x] No source edits made during playtest.
 - [x] Automated suite green (481 tests, separate CLI run).
 
-This is a partial Studio smoke run, not a sprint verification. Full cases remain in `docs/v2/qa/PLAYTEST_PLAN.md`, `docs/v2/qa/PLAYTEST_CASES.md`, and `docs/testing/MANUAL_TESTS.md`.
+This is a partial Studio smoke run, not a sprint verification. Full cases remain in `docs/v2/qa/PLAYTEST_PLAN.md`, `docs/v2/qa/PLAYTEST_CASES.md`. The IDs above follow the v1 `docs/testing/MANUAL_TESTS.md` numbering; that file was merged into `PLAYTEST_CASES.md` on 2026-11-16 and is in git history.

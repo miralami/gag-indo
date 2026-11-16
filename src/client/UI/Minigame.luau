@@ -135,7 +135,7 @@ function Minigame.mount(lang: string)
 			if current ~= attempt then
 				return
 			end
-			local action = attempt.action
+			local finishedAction = attempt.action
 			local tileIndex = attempt.tile
 			local tilePart = ActionFeel.getTilePart(tileIndex)
 			ActionFeel.setLastTile(tilePart)
@@ -149,9 +149,9 @@ function Minigame.mount(lang: string)
 			local quality = 0.8 + 0.5 * math.clamp(score, 0, 1)
 			Theme.toast(t("mg_score", string.format("%.2f", quality)), Theme.green)
 
-			if action == "plant" then
+			if finishedAction == "plant" then
 				ActionFeel.onPlant(tilePart)
-			elseif action == "harvest" then
+			elseif finishedAction == "harvest" then
 				ActionFeel.onHarvest(tilePart, "biasa")
 			end
 		end

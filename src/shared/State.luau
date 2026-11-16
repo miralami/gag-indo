@@ -29,11 +29,7 @@ State.SECTIONS = {
 }
 
 local function copyFlat(source): { [any]: any }
-	local out = {}
-	for key, value in source or {} do
-		out[key] = value
-	end
-	return out
+	return table.clone(source or {})
 end
 
 local function copyDeep(source): { [any]: any }

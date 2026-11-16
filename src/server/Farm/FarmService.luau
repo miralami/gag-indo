@@ -192,12 +192,16 @@ local function setCropVisual(tile: BasePart, cropId: string?, ready: boolean, ho
 			light.Range = if tierId == "sultan" then 9 else 5
 		else
 			local light = visual:FindFirstChild("RarityGlow")
-			if light then light:Destroy() end
+			if light then
+				light:Destroy()
+			end
 		end
 	else
 		for _, name in { "RarityOutline", "RarityGlow" } do
 			local effect = visual:FindFirstChild(name)
-			if effect then effect:Destroy() end
+			if effect then
+				effect:Destroy()
+			end
 		end
 	end
 	visual.CFrame = tile.CFrame * CFrame.new(0, tile.Size.Y / 2 + size / 2, 0)
@@ -227,7 +231,9 @@ local function setCropVisual(tile: BasePart, cropId: string?, ready: boolean, ho
 		emitter:Emit(Visuals.particles.langka)
 	elseif not ready or tierId ~= "langka" then
 		local emitter = visual:FindFirstChild("LangkaSparkles")
-		if emitter then emitter:Destroy() end
+		if emitter then
+			emitter:Destroy()
+		end
 	end
 	if ready and tierId == "sultan" and not visual:FindFirstChild("SultanSparkles") then
 		local emitter = Instance.new("ParticleEmitter")
@@ -242,7 +248,9 @@ local function setCropVisual(tile: BasePart, cropId: string?, ready: boolean, ho
 		emitter:Emit(Visuals.particles.sultan)
 	elseif not ready or tierId ~= "sultan" then
 		local emitter = visual:FindFirstChild("SultanSparkles")
-		if emitter then emitter:Destroy() end
+		if emitter then
+			emitter:Destroy()
+		end
 	end
 end
 
@@ -347,7 +355,6 @@ local function sackFull(player: Player, data): boolean
 end
 
 local function doPlant(player: Player, data, plot, index: number, cropId: string, quality: number)
-	local crop = Crops.list[cropId]
 	Inventory.takeSeed(data, cropId, 1)
 	data.tiles[tileKey(index)] = {
 		crop = cropId,
@@ -492,7 +499,7 @@ local function buyTile(player: Player, data, plot, index: number)
 	checkSeedFloor(player)
 end
 
-local function isOwnedAndNear(player: Player, data, plot, index: number): boolean
+local function isOwnedAndNear(player: Player, _data, plot, index: number): boolean
 	local tile = plot.tiles[index]
 	if not tile or index < 1 or index > GameConfig.tilesBuilt then
 		return false

@@ -19,7 +19,7 @@ local Analytics = require(script.Parent.Parent.Analytics.Analytics)
 
 local CheatService = {}
 
-local function applyOplosan(player: Player, data, tileIndex: number)
+local function applyOplosan(player: Player, _data, tileIndex: number)
 	local plot = PlotService.getPlotOf(player)
 	if not plot then
 		return

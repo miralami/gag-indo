@@ -69,11 +69,7 @@ end
 
 -- Snapshot for the replicated state module (copy, never the live table).
 function Inventory.snapshot(data): { [string]: number }
-	local out = {}
-	for itemId, count in bag(data) do
-		out[itemId] = count
-	end
-	return out
+	return table.clone(bag(data))
 end
 
 return Inventory

@@ -114,7 +114,9 @@ local function buildDressing(world: Folder)
 		local clone = dressingKit()
 		clone.Name = "DressingCluster_" .. index
 		for _, item in clone:GetChildren() do
-			if item:IsA("BasePart") then item.Position += Vector3.new(origin[1], 0, origin[2]) end
+			if item:IsA("BasePart") then
+				item.Position += Vector3.new(origin[1], 0, origin[2])
+			end
 		end
 		clone.Parent = world
 	end
@@ -1156,7 +1158,12 @@ end
 local NPC_CONFIG = {
 	pakrt = { name = "Pak RT", subtitle = "Ketua RT 01", shirt = function() return C.gold end, skin = Color3.fromRGB(200, 155, 110), mustache = true, peci = true },
 	tengkulak = { name = "Bang Jago", subtitle = "Tengkulak", shirt = function() return C.shadow end, skin = Color3.fromRGB(170, 125, 90) },
-	polisi = { name = "Polisi Desa", shirt = function() return C.blue end, skin = Color3.fromRGB(185, 140, 100), cap = function() return C.shadow end },
+	polisi = {
+		name = "Polisi Desa",
+		shirt = function() return C.blue end,
+		skin = Color3.fromRGB(185, 140, 100),
+		cap = function() return C.shadow end,
+	},
 }
 
 local function buildNpcs(world: Folder)

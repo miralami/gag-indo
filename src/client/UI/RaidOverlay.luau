@@ -61,7 +61,7 @@ function RaidOverlay.mount(lang: string)
 		Parent = banner,
 	})
 	bannerTitle.TextSize = 13
-	local bannerStripe = Theme.new("Frame", {
+	Theme.new("Frame", {
 		Name = "Stripe",
 		Position = UDim2.fromScale(0, 0.94),
 		Size = UDim2.new(1, 0, 0, 4),

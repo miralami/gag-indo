@@ -10,7 +10,6 @@ local TierScale = require(script.Parent.Parent.Feel.TierScale)
 local Wind = {}
 
 local TICK = 0.05 -- about 20 Hz
-local RANGE = 50 -- fallback only; the live range is the fidelity tier's foliageSwayRange
 local MAX_PER_TICK = 40
 local MAX_ROTATION = 3 -- degrees, about the Z axis
 local MAX_OFFSET = 0.25 -- studs, along X

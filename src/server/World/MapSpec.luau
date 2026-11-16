@@ -327,8 +327,6 @@ end
 -- wide block came out full of holes in Studio, and a 340-wide terrace came out holed).
 function MapSpec.splitWide(blocks: { { [string]: any } }): { { [string]: any } }
 	local out = {}
-	local bottom = MapSpec.TERRAIN_BASE_Y
-	local thickness = MapSpec.TERRAIN_VOXEL
 	for _, b in blocks do
 		if b.size[1] <= MapSpec.MAX_FILL_SPAN and b.size[3] <= MapSpec.MAX_FILL_SPAN then
 			table.insert(out, b)

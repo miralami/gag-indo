@@ -195,10 +195,7 @@ end
 function Seasons.skyFor(musim: string?, cuaca: string?): any
 	local base = Seasons.sky[musim or ""] or Seasons.sky.pancaroba
 	local overlay = Seasons.cuacaSky[cuaca or ""] or Seasons.cuacaSky.cerah
-	local out = {}
-	for key, value in base do
-		out[key] = value
-	end
+	local out = table.clone(base)
 	out.brightness = (base.brightness or 1) * (overlay.brightness or 1)
 	out.fogEnd = math.max(40, (base.fogEnd or 500) * (overlay.fogEnd or 1))
 	out.cloudCover = math.clamp((base.cloudCover or 0) + (overlay.cloudCover or 0), 0, 1)

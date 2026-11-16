@@ -353,7 +353,7 @@ end
 
 function Harness.start()
 	Remotes.Harness_Command.OnServerEvent:Connect(onCommand)
-	Players.PlayerRemoving:Connect(function(player)
+	Players.PlayerRemoving:Connect(function(_player)
 		-- one player's flag never leaks to the next session
 		Gate.close()
 	end)

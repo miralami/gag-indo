@@ -79,6 +79,7 @@ function Tools.next(lineId: string, ownedTierId: any): any?
 		end
 	end
 	-- An id this config no longer knows about: treat it as nothing owned.
-	return line.tiers[1]end
+	return line.tiers[1]
+end
 
 return Tools

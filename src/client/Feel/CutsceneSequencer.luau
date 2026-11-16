@@ -32,10 +32,7 @@ local function cleanShots(shots: any): { any }
 	end
 	for _, raw in shots do
 		if type(raw) == "table" then
-			local shot = {}
-			for key, value in raw do
-				shot[key] = value
-			end
+			local shot = table.clone(raw)
 			local index = #out + 1
 			if type(shot.id) ~= "string" or shot.id == "" then
 				shot.id = "shot" .. index

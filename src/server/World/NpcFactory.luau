@@ -161,7 +161,9 @@ function Npc:say(text: string, seconds: number?)
 	task.delay(seconds or 4, function()
 		if self.speechToken == token and self.speechLabel.Parent then
 			self.speechLabel.Text = ""
-			if self.mouth then self.mouth.Size = Vector3.new(0.8, 0.14, 0.1) end
+			if self.mouth then
+				self.mouth.Size = Vector3.new(0.8, 0.14, 0.1)
+			end
 		end
 	end)
 end

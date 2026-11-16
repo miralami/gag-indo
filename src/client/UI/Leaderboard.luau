@@ -3,7 +3,6 @@
 -- validated with shared/Leaderboard before anything is rendered.
 
 local CollectionService = game:GetService("CollectionService")
-local Players = game:GetService("Players")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Remotes = require(Shared.Remotes)
 local Strings = require(Shared.Strings)
@@ -11,7 +10,6 @@ local Leaderboard = require(Shared.Leaderboard)
 
 local Theme = require(script.Parent.Theme)
 
-local player = Players.LocalPlayer
 
 local LeaderboardUI = {}
 

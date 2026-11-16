@@ -83,7 +83,7 @@ local function bunting(folder: Instance)
 	local buntingZ = MapSpec.hubRoofs().pasar.halfDepth + 0.5
 	local hub = { x = pasar.x, z = pasar.z, yaw = pasar.yaw }
 	local leftX, leftZ = MapSpec.hubPoint(hub, -centre, buntingZ)
-	local rightX, rightZ = MapSpec.hubPoint(hub, centre, buntingZ)
+	local rightX, _rightZ = MapSpec.hubPoint(hub, centre, buntingZ)
 	for _, x in { leftX, rightX } do
 		piece(folder, "Part", {
 			Name = "BuntingPost",

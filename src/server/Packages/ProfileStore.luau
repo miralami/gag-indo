@@ -515,7 +515,6 @@ local function UpdateAsync(profile_store, profile_key, transform_params, is_user
 	
 	local next_in_queue = WaitInUpdateQueue(SessionToken(profile_store.Name, profile_key, is_user_mock))
 
-	local success = true
 
 	local success, error_message = pcall(function()
 		local transform_function = function(latest_data)
@@ -604,11 +603,11 @@ local function UpdateAsync(profile_store, profile_key, transform_params, is_user
 
 				if version ~= nil then
 
-					local success, error_message = pcall(function()
+					local get_success, get_error = pcall(function()
 						loaded_data, key_info = profile_store.data_store:GetVersionAsync(profile_key, version)
 					end)
 
-					if success == false and type(error_message) == "string" and string.find(error_message, "not valid") ~= nil then
+					if get_success == false and type(get_error) == "string" and string.find(get_error, "not valid") ~= nil then
 						warn(`[{script.Name}]: Passed version argument is not valid; Traceback:\n` .. debug.traceback())
 					end
 
@@ -1313,7 +1312,9 @@ function ProfileStore.New(store_name, template)
 
 		task.spawn(function()
 
-			repeat task.wait() until DataStoreState ~= "NotReady"
+			repeat
+				task.wait()
+			until DataStoreState ~= "NotReady"
 
 			if DataStoreState == "Access" then
 				self.data_store = DataStoreService:GetDataStore(store_name, nil, options)
@@ -1587,7 +1588,9 @@ function ProfileStore:StartSessionAsync(profile_key, params)
 						
 						-- Attempt to load the profile again after a delay
 						local wait_until = os.clock() + if request_force_load == true then FIRST_LOAD_REPEAT else LOAD_REPEAT_PERIOD
-						repeat task.wait() until os.clock() >= wait_until or ProfileStore.IsClosing == true
+						repeat
+							task.wait()
+						until os.clock() >= wait_until or ProfileStore.IsClosing == true
 
 					else
 						-- Another session tried to load this profile:
@@ -1995,7 +1998,7 @@ function ProfileVersionQuery:NextAsync()
 				is_finished = true
 			end)
 
-			local success, error_message = pcall(function()
+			local success = pcall(function()
 				self.query_pages:AdvanceToNextPageAsync()
 				self.query_index = 0
 			end)
@@ -2213,10 +2216,7 @@ task.spawn(function()
 		-- (Clone AutoSaveList to a new table because AutoSaveList changes when profiles are released)
 
 		local on_close_save_job_count = 0
-		local active_profiles = {}
-		for index, profile in ipairs(AutoSaveList) do
-			active_profiles[index] = profile
-		end
+		local active_profiles = table.clone(AutoSaveList)
 
 		-- Release the profiles; Releasing profiles can trigger listeners that release other profiles, so check active state:
 		for _, profile in ipairs(active_profiles) do

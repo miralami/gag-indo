@@ -5,7 +5,7 @@ local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Strings = require(Shared.Strings)
 local Remotes = require(Shared.Remotes)
 
-local Icons = require(script.Parent.Icons)
+require(script.Parent.Icons)
 local Theme = require(script.Parent.Theme)
 
 local Evidence = {}

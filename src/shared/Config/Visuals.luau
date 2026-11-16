@@ -91,7 +91,9 @@ function Visuals.applySurface(part: BasePart, slot: string, fallbackMaterial: En
 	part.Material = fallbackMaterial
 	if not textureUrl then
 		local existing = part:FindFirstChildOfClass("SurfaceAppearance")
-		if existing then existing:Destroy() end
+		if existing then
+			existing:Destroy()
+		end
 		return
 	end
 	local surface = part:FindFirstChildOfClass("SurfaceAppearance") or Instance.new("SurfaceAppearance")

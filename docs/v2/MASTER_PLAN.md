@@ -18,10 +18,12 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 
 ### Next up (recommended order)
 
-1. **A + E — game feel and sound:** plant/harvest/sell feedback; UI sounds and tier stings (all `0` today).
-2. **G — first icon set via Open Cloud** (key verified 2026-11-14): crops, currency, phone apps; unblocks G4.
-3. **D — phone app pages at phone size** and real taps.
-4. **C — spawn composition and golden-hour tuning.**
+1. **G — icon pipeline (code side):** shared icon map/slots and HUD/Phone/seed-bar wiring so IDs can drop in later; first icon set upload still via Open Cloud (key verified 2026-11-14, designer step).
+2. **D — phone app pages at phone size:** 44x44 touch targets, no cut-off text, layout spec in Lune.
+3. **C — world in code:** three season presets, spawn/golden-hour finalisation from `MapSpec`, and 9.5-stud headroom across all six hubs (spec in `greybox_spec`).
+4. **F — NPC/cutscene logic hooks:** caricature NPC framework from design cards and state/event hooks for raid and debt-collector cutscenes (logic only, no assets).
+5. **Bugs:** fix any code-solvable defects in `docs/testing/BUGS.md` (BUG-004 remains `BLOCKED` on D-G3).
+6. **Studio pass (separate):** run harness/playtest for `LUNE-ONLY` items, collect evidence, then Gate 1 checks.
 
 ### Phase 0 — repo safe for parallel work
 

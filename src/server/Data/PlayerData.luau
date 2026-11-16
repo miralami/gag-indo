@@ -16,6 +16,7 @@ local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.Game)
 local Law = require(Shared.Config.Law)
 local Produce = require(Shared.Produce)
+local SaveSanitize = require(script.Parent.SaveSanitize)
 
 local CURRENT_VERSION = 3
 local LOAD_TIMEOUT = 30 -- seconds; we supply Cancel, which disables ProfileStore's own timeout
@@ -225,6 +226,12 @@ end
 PlayerData.migrate = migrate
 PlayerData.CURRENT_VERSION = CURRENT_VERSION
 
+-- Repairs a damaged save in place against TEMPLATE (or a supplied one); returns repaired paths.
+function PlayerData.sanitize(data, template: any?): { string }
+	return SaveSanitize.sanitize(data, template or TEMPLATE)
+end
+PlayerData.TEMPLATE = TEMPLATE
+
 -- Called after a profile is loaded and ready. Must not yield for long.
 function PlayerData.onLoaded(callback: (Player, any) -> ())
 	table.insert(loadedCallbacks, callback)
@@ -296,6 +303,11 @@ local function load(player: Player)
 	profile:AddUserId(player.UserId) -- lets Roblox data-deletion requests find this profile
 	profile:Reconcile() -- fills fields added to TEMPLATE after this profile was first saved
 	migrate(profile.Data)
+	-- After migrate so migrated data is never overwritten; repairs wrong types and NaN/inf.
+	local repaired = PlayerData.sanitize(profile.Data)
+	if #repaired > 0 then
+		warn(string.format("[PlayerData] repaired %d damaged save field(s) for UserId %d", #repaired, player.UserId))
+	end
 
 	profile.OnSessionEnd:Connect(function()
 		profiles[player] = nil

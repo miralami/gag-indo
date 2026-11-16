@@ -102,6 +102,17 @@ local started = false
 local lastActionTile: BasePart? = nil
 local shakeToken = 0
 
+-- Current fidelity tier settings and the pure scale math. Both fall back safely (nil settings means
+-- Sedang defaults in TierScale), so a missing runtime never breaks a burst.
+local TierScale = require(script.Parent.TierScale)
+
+local function tierSettings(): any
+	local ok, settings = pcall(function()
+		return require(script.Parent.FidelityRuntime).settings()
+	end)
+	return if ok then settings else nil
+end
+
 local function getAudio()
 	local ok, mod = pcall(function()
 		return require(script.Parent.Parent.Audio)
@@ -296,10 +307,11 @@ function ActionFeel.onHarvest(tilePart: BasePart?, tier: string?)
 			})
 			emitter.Speed = NumberRange.new(6, 12)
 			emitter.SpreadAngle = Vector2.new(60, 60)
-			emitter.Lifetime = NumberRange.new(0.35, 0.65)
+			local settings = tierSettings()
+			emitter.Lifetime = NumberRange.new(TierScale.lifetime(0.35, 0.65, settings))
 			emitter.Rate = 0
 			emitter.Parent = attachment
-			emitter:Emit(if isSultanTier then 30 else 20)
+			emitter:Emit(TierScale.emitCount(if isSultanTier then 30 else 20, settings))
 
 			task.delay(0.8, function()
 				attachment:Destroy()

@@ -43,6 +43,8 @@ function EconomyService.onSale(hook: (Player, number) -> ())
 	saleHook = hook
 end
 
+local cheatSaleHandler: ((Player, string, number, Vector3) -> ())? = nil
+
 function EconomyService.onCheatSale(handler: (Player, string, number, Vector3) -> ())
 	cheatSaleHandler = handler
 end

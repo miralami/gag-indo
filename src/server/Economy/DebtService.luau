@@ -12,7 +12,7 @@ local Players = game:GetService("Players")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Pinjol = require(Shared.Config.Pinjol)
 local Remotes = require(Shared.Remotes)
-local _Produce = require(Shared.Produce)
+local Produce = require(Shared.Produce)
 local Crops = require(Shared.Config.Crops)
 
 local PlayerData = require(script.Parent.Parent.Data.PlayerData)
@@ -210,8 +210,8 @@ local function seizeGudang(player: Player, data, debt): number
 		if debt.owed <= 0 then
 			break
 		end
-		-- Skip corrupt entries (non-table stack, missing or non-numeric count) instead of erroring.
-		if type(stack) == "table" and type(stack.count) == "number" and stack.count > 0 then
+		-- Skip corrupt entries (non-table stack, NaN, infinite, negative or non-numeric count).
+		if type(stack) == "table" and Produce.validCount(stack.count) then
 			local crop = Crops.list[stack.crop]
 			local unitVal = (crop and crop.sellPrice or 5) * 0.5 -- forced seizure pays half base value
 			local needed = math.ceil(debt.owed / unitVal)

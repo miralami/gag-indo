@@ -85,3 +85,8 @@ Per-task audit log for the T1-T16 workhorse backlog on `track/c-world-look`. Sta
 ## T4 — Debt: persistence, clock and invariants
 - **Findings:** None. Interest, due date and the stage survive save and reload. A clock that rewinds gives zero interest. An overdue loan is escalated once on rejoin, not on every rejoin. A 60-step borrow/repay/tick chain keeps cash and owed non-negative, owed under 3x principal, and owed zero once the loan is inactive.
 - **Specs:** `tests/specs/debt_persistence_spec.luau` (save/reload via a deep-copied fixture, rewind, rejoin, invariant chain).
+
+## T4 — Produce count and gudang seizure guards
+- **Findings:** `Produce.count` only checked `type == number`, so a NaN count poisoned the total. `seizeGudang` accepted an infinite count and seized the whole debt from one corrupt stack. `removeClean` and `removeHot` could delete corrupt stacks and report them as removed.
+- **Fixes:** `Produce.validCount` accepts only finite numbers above zero. `count`, `removeClean`, `removeHot` and `seizeGudang` use it. Corrupt stacks are kept, not erased, and count or pay nothing.
+- **Specs:** `tests/specs/produce_guard_spec.luau` (NaN, infinite, negative and non-number counts in count, removal and seizure).

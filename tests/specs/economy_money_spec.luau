@@ -122,7 +122,14 @@ return function(t, Env, Fakes)
 			local cash = fx.data.cash
 			fx.Economy.sellAll(fx.player, "pasar")
 			expect(fx.data.cash):toBe(cash)
-			expect(fx.Produce.count(fx.data.produce) > 0):toBe(true)
+			-- Corrupt stack is kept as-is, not erased, and pays nothing.
+			local kept = false
+			for _, stack in fx.data.produce do
+				if stack.count == math.huge then
+					kept = true
+				end
+			end
+			expect(kept):toBe(true)
 		end)
 	end)
 end

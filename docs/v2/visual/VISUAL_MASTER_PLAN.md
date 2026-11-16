@@ -13,7 +13,7 @@
 Same rules as the master tracker: tick in the same commit as the work, with a status word
 (`SEEN-IN-STUDIO`, `LUNE-ONLY`, `UNVERIFIED`, `BLOCKED`) and an evidence path.
 
-- [ ] **V0 Foundation** — fidelity tiers, perf switches, look-dev scene, reference board
+- [~] **V0 Foundation** — fidelity tiers, perf switches, look-dev scene, reference board (V0.1 logic `LUNE-ONLY`: `src/client/Feel/FidelityTier.luau`; not wired live)
 - [ ] **V1 The frame** — one hero screenshot (spawn view) that passes the screenshot test
 - [ ] **V2 The moments** — six hook moments (§4) at clip quality
 - [ ] **V3 The living village** — ambient life, weather you can see, night

@@ -71,6 +71,9 @@ local specs = {
 	require("./specs/world_constants_spec"),
 	require("./specs/remote_audit_spec"),
 	require("./specs/farm_failure_spec"),
+	require("./specs/fidelity_tier_spec"),
+	require("./specs/raid_failure_spec"),
+	require("./specs/quest_failure_spec"),
 }
 
 local t = Test.new()

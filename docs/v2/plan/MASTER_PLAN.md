@@ -8,7 +8,7 @@
 
 ## Progress tracker — read first, update last
 
-**Last updated:** 2026-11-16 — branch `track/c-world-look` — `lune run tests/run.luau`: 688 passing (`LUNE-ONLY`, T5 Bribe failure paths: read-only price, damaged-save guard).
+**Last updated:** 2026-11-16 — branch `track/c-world-look` — `lune run tests/run.luau`: 759 passing (`LUNE-ONLY`, V0.1 FidelityTier; Quest and Raid failure paths with NaN/missing-table fixes).
 
 **Rules for this section.** Every agent reads it before touching the repo, so nobody has to rediscover
 the state from scratch. Whoever finishes a task ticks it here **in the same commit**, adds its status
@@ -56,6 +56,7 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 - [~] Crop growth stages (bibit / tumbuh / siap) exist in `FarmService`; not judged by a human.
 - [x] Plant, harvest, sell feedback: particles, tweens, camera nudge, cash-fly — `LUNE-ONLY`, `tests/specs/feel_spec.luau`.
 - [x] Rarity reveal: toast tint, Sultan/Langka shake, sting hooks, ActionFeel — `LUNE-ONLY`, `tests/specs/feel_spec.luau`.
+- [~] V0.1 `FidelityTier` tier selection (Rendah/Sedang/Tinggi, fast down, slow up, frozen in hook moments, §6 settings table) — `LUNE-ONLY`, `src/client/Feel/FidelityTier.luau`, `tests/specs/fidelity_tier_spec.luau`; not wired to Heartbeat or a settings toggle, thresholds unmeasured on a phone.
 
 **B. First session**
 - [x] Four-step tutorial (plant, harvest, sell, buy) — `SEEN-IN-STUDIO` via harness.
@@ -110,6 +111,7 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 
 **H. QA and integration**
 - [x] Thirty-minute client soak — `evidence/h/2026-11-14-soak/`.
+- [x] Quest and Raid failure-path specs; fixed NaN progress completing quests, NaN login streak burning the daily claim, raid start/leave erroring on saves without `cooldowns`/`stats` — `LUNE-ONLY`, `tests/specs/quest_failure_spec.luau`, `tests/specs/raid_failure_spec.luau`.
 - [ ] Full-session `output.log`; fps on the phone emulator; ten-player session; published-place persistence.
 - [ ] Five real players (designer).
 

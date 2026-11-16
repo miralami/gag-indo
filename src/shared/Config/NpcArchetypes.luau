@@ -3,7 +3,7 @@
 
 local NpcArchetypes = {}
 
-NpcArchetypes.palette = { "tinta", "bambu", "kunyit", "malam", "genteng", "padi", "kertas" }
+NpcArchetypes.palette = { "tinta", "bambu", "kunyit", "malam", "genteng", "padi", "kertas", "indigo" }
 
 NpcArchetypes.order = { "pakrt", "tengkulak", "polisi" }
 

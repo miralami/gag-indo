@@ -62,5 +62,19 @@ return function(t, Env)
 			expect(events[2].state):toBe("dismissed")
 			expect(events[2].waiting):toBe(false)
 		end)
+
+		t:it("a throwing listener does not break the emitter or later listeners", function()
+			Hooks._reset()
+			local got = 0
+			Hooks.onRaid(function()
+				error("boom")
+			end)
+			Hooks.onRaid(function()
+				got += 1
+			end)
+			Hooks.emitRaid({ kind = "raid", player = { Name = "T" }, phase = "incoming" })
+			expect(got):toBe(1)
+			Hooks._reset()
+		end)
 	end)
 end

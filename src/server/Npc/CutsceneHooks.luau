@@ -44,13 +44,19 @@ end
 
 function CutsceneHooks.emitRaid(event: RaidEvent)
 	for _, listener in raidListeners do
-		listener(event)
+		local ok, err = pcall(listener, event)
+		if not ok then
+			warn("CutsceneHooks listener failed: " .. tostring(err))
+		end
 	end
 end
 
 function CutsceneHooks.emitDebtCollector(event: DebtEvent)
 	for _, listener in debtListeners do
-		listener(event)
+		local ok, err = pcall(listener, event)
+		if not ok then
+			warn("CutsceneHooks listener failed: " .. tostring(err))
+		end
 	end
 end
 

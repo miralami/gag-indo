@@ -133,9 +133,9 @@ MapSpec.HUB_ORDER = { "pasar", "gelap", "warung", "ronda", "polisi", "pakrt" }
 
 -- Hub headroom and roof pitch, derived from the scale reference.
 --
--- EAVE is the underside of every roof eave, awning, trim and spanduk a player can walk under. Ref
--- (Rumah Pak RT) gives a 10.5-stud door on a 7.25-stud avatar, so headroom is taken at 10.75: half
--- again the old 9.5, which was authored for avatars half this size. A door and a walkway read the same.
+-- EAVE is the underside of every roof eave, awning, trim and spanduk a player can walk under.
+-- Track C targets 9.5 studs of clear headroom in all six hubs (greybox_spec), so doors and
+-- walkways read consistently on the blockout scale.
 --
 -- The ridge of every hub but the reference lands on its `ridge` target: rise = target - EAVE.
 -- halfDepth is the eave reach from the ridge line, three studs past the wall centre line so the roof
@@ -143,7 +143,7 @@ MapSpec.HUB_ORDER = { "pasar", "gelap", "warung", "ronda", "polisi", "pakrt" }
 --
 -- Keys follow the builder's names: the two Pos buildings are posPolisi and posRonda, the reference is
 -- pakRt. `hubRoofs()` returns exactly those keys, so Greybox and Decor index it without aliases.
-MapSpec.HEADROOM = 10.75
+MapSpec.HEADROOM = 9.5
 MapSpec.EAVE_UNDERSIDE = GROUND_Y + MapSpec.HEADROOM
 MapSpec.ROOF_OVERHANG = 3
 
@@ -198,7 +198,14 @@ MapSpec.FUTURE_SLOTS = {
 	{ key = "empang", name = "Empang", x = 260, z = 236, width = 68, depth = 48 },
 }
 
+-- Player spawn: on the plaza facing -Z (north) so the first frame reads the road to Balai/terraces.
 MapSpec.SPAWN = { x = 0, y = GROUND_Y, z = 28, size = 8, lookZ = -1 }
+
+-- Golden hour: canonical world lighting window (Config/Seasons sky presets target this range).
+MapSpec.GOLDEN_HOUR = { minClock = 16.0, maxClock = 17.0 }
+
+-- Three in-world season presets (musim ids). Config/Seasons owns the full sky/growth data.
+MapSpec.SEASON_PRESETS = { "hujan", "kemarau", "pancaroba" }
 
 -- The watchtower stands on the Pos Ronda's north-west shoulder, outside the hut roof footprint
 -- (hut roof spans z -25.2..25.2) and inside the hub clearing, so its legs never grow out of a deck.

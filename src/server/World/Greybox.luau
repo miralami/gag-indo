@@ -166,9 +166,9 @@ local PLINTH_TOP = GROUND_Y + PLINTH_HEIGHT
 local ROOF_THICK = 0.6
 
 -- Headroom. Every part a player can walk under at a hub (roof eave, awning, trim, spanduk) has its
--- underside on EAVE, which MapSpec pins HEADROOM (10.75) above GROUND_Y: a player is 7.25 studs tall
--- and the scale reference (Rumah Pak RT) gives them a 10.5-stud door. A roof is built from that eave
--- line up: its ridge sits `rise` above it, and the underside falls from the ridge to the eave.
+-- underside on EAVE, which MapSpec pins to HEADROOM above GROUND_Y (Track C: 9.5 studs across all
+-- six hubs). A roof is built from that eave line up: its ridge sits `rise` above it, and the
+-- underside falls from the ridge to the eave.
 local HUB_ROOFS = Decor.HUB_ROOFS
 local EAVE = Decor.EAVE_UNDERSIDE
 local SPANDUK_HEIGHT = 1
@@ -350,10 +350,9 @@ local function hubPrompt(anchor: Part, hub)
 end
 
 -- Hubs -----------------------------------------------------------------------
--- All six hubs are drawn to the Rumah Pak RT reference: a 10.5-stud door on a 7.25-stud avatar, an
--- eave (and so every awning, sign and spanduk) at least 10.75 studs up, and a ridge on the height
--- each hub's silhouette needs (MapSpec.HUBS[*].ridge). Walls stop at the eave; the triangle under the
--- roof is closed by a loft wall so no hub reads as an open scaffold.
+-- All six hubs keep clear walkable headroom at the eave line (MapSpec.HEADROOM, 9.5 studs) and a
+-- ridge on the height each hub's silhouette needs (MapSpec.HUBS[*].ridge). Walls stop at the eave;
+-- the triangle under the roof is closed by a loft wall so no hub reads as an open scaffold.
 
 -- A wall whose top follows the roof underside, deepest at `deepestZ`, closed off at the eave.
 local function hubClosedWall(parent: Instance, hub, name: string, lx: number, lz: number, sizeX: number, sizeZ: number, deepestZ: number, roof, color: Color3, material: Enum.Material): Part

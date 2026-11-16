@@ -530,5 +530,18 @@ return function(t, Env)
 			expect(spawnPart.CFrame.LookVector.Z * MapSpec.SPAWN.lookZ > 0):toBe(true)
 			expect(spawnPart.CFrame.LookVector.Z < 0):toBe(true) -- north, up the road toward the Balai
 		end)
+
+		t:it("finalises spawn and golden-hour season presets from MapSpec", function()
+			expect(MapSpec.SPAWN.x):toBe(0)
+			expect(MapSpec.SPAWN.z):toBe(28)
+			expect(MapSpec.SPAWN.lookZ):toBe(-1)
+			expect(MapSpec.HEADROOM):toBe(9.5)
+			expect(#MapSpec.SEASON_PRESETS):toBe(3)
+			expect(MapSpec.SEASON_PRESETS[1]):toBe("hujan")
+			expect(MapSpec.SEASON_PRESETS[2]):toBe("kemarau")
+			expect(MapSpec.SEASON_PRESETS[3]):toBe("pancaroba")
+			expect(MapSpec.GOLDEN_HOUR.minClock):toBe(16.0)
+			expect(MapSpec.GOLDEN_HOUR.maxClock):toBe(17.0)
+		end)
 	end)
 end

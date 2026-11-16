@@ -199,6 +199,81 @@ return function(t, Env, Fakes)
 			StorageService.publish(player, nil)
 		end)
 
+		t:it("Storage capacity is read-only and respects pass/base floor without deleting stored items (R1)", function()
+			local env = Env.new()
+			local notify = Fakes.notify()
+			local playerData = Fakes.playerData()
+			local rateLimit = Fakes.rateLimit(true)
+			env:mock("shared/Remotes", Fakes.remotes(env))
+			env:mock("server/Data/PlayerData", playerData)
+			env:mock("server/Net/Notify", notify)
+			env:mock("server/Net/RateLimit", rateLimit)
+			env:mock("server/Economy/EconomyService", { sync = function() end })
+			local Produce = env:require("shared/Produce")
+			local Game = env:require("shared/Config/Game")
+			local StorageService = env:require("server/Farm/StorageService")
+			local player = Fakes.player(env)
+			local data = playerData.set(player, Fakes.newData(env))
+
+			-- (a) normal save: stored capacity = base; pass on -> pass capacity, pass off -> base
+			expect(data.gudang.capacity):toBe(Game.gudangBaseCapacity)
+			player:SetAttribute("Pass_GudangBesar", true)
+			expect(StorageService.capacity(player, data)):toBe(Game.gudangPassCapacity)
+			expect(data.gudang.capacity):toBe(Game.gudangBaseCapacity)
+			player:SetAttribute("Pass_GudangBesar", false)
+			expect(StorageService.capacity(player, data)):toBe(Game.gudangBaseCapacity)
+			expect(data.gudang.capacity):toBe(Game.gudangBaseCapacity)
+
+			-- (b) repeated calls do not mutate save
+			local cap = data.gudang.capacity
+			local used = Produce.count(data.gudang.stacks)
+			StorageService.capacity(player, data)
+			StorageService.capacity(player, data)
+			StorageService.publish(player, data)
+			expect(data.gudang.capacity):toBe(cap)
+			expect(Produce.count(data.gudang.stacks)):toBe(used)
+
+			-- (c) items above base capacity remain, but new deposits are rejected when full vs base
+			for _ = 1, Game.gudangBaseCapacity do
+				Produce.add(data.gudang.stacks, "padi", 1)
+			end
+			expect(Produce.count(data.gudang.stacks)):toBe(Game.gudangBaseCapacity)
+			Produce.add(data.produce, "padi", 1)
+			expect(StorageService.depositAll(player)):toBe(0)
+			expect(Produce.count(data.gudang.stacks)):toBe(Game.gudangBaseCapacity)
+			expect(Produce.count(data.produce)):toBe(1)
+			expect(notify.keys(player)):toContain("n_gudang_full")
+		end)
+
+		t:it("Legacy save with stored capacity 120 keeps 120 and never deletes items (R1 a2)", function()
+			local env = Env.new()
+			local notify = Fakes.notify()
+			local playerData = Fakes.playerData()
+			local rateLimit = Fakes.rateLimit(true)
+			env:mock("shared/Remotes", Fakes.remotes(env))
+			env:mock("server/Data/PlayerData", playerData)
+			env:mock("server/Net/Notify", notify)
+			env:mock("server/Net/RateLimit", rateLimit)
+			env:mock("server/Economy/EconomyService", { sync = function() end })
+			local Produce = env:require("shared/Produce")
+			local Game = env:require("shared/Config/Game")
+			local StorageService = env:require("server/Farm/StorageService")
+			local player = Fakes.player(env)
+			local data = playerData.set(player, Fakes.newData(env))
+
+			-- Save written by the old code: stored capacity 120, items above base stacked.
+			data.gudang.capacity = 120
+			for _ = 1, 100 do
+				Produce.add(data.gudang.stacks, "padi", 1)
+			end
+			local used = Produce.count(data.gudang.stacks)
+
+			-- Pass off: intentionally keeps the legacy 120 (compatibility), items untouched.
+			expect(StorageService.capacity(player, data)):toBe(120)
+			expect(data.gudang.capacity):toBe(120)
+			expect(Produce.count(data.gudang.stacks)):toBe(used)
+		end)
+
 		t:it("Worker tick/hire handle missing data and inactive states", function()
 			local env = Env.new()
 			local notify = Fakes.notify()

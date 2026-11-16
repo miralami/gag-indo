@@ -8,7 +8,7 @@
 
 ## Progress tracker â€” read first, update last
 
-**Last updated:** 2026-11-16 — branch `track/c-world-look` — `lune run tests/run.luau`: 638 passing (`LUNE-ONLY`, T3 Farm failure-path specs/fixes).
+**Last updated:** 2026-11-16 — branch `track/c-world-look` — `lune run tests/run.luau`: 640 passing (`LUNE-ONLY`, R1 gudang capacity read-only + specs).
 
 **Rules for this section.** Every agent reads it before touching the repo, so nobody has to rediscover
 the state from scratch. Whoever finishes a task ticks it here **in the same commit**, adds its status

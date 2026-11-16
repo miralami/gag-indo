@@ -27,10 +27,19 @@ function StorageService.onDeposit(hook: (Player, number) -> ())
 	depositHook = hook
 end
 
--- Make sure the gudang table exists and the capacity never shrinks below the base.
+local function baseCapacity(player: Player?): number
+	return if player and player:GetAttribute("Pass_GudangBesar")
+		then GameConfig.gudangPassCapacity
+		else GameConfig.gudangBaseCapacity
+end
+
+-- Make sure the gudang table exists without changing stored capacity semantics.
 local function ensureGudang(data)
-	data.gudang = data.gudang or { capacity = GameConfig.gudangBaseCapacity, stacks = {} }
+	data.gudang = data.gudang or { stacks = {} }
 	data.gudang.stacks = data.gudang.stacks or {}
+	if data.gudang.capacity == nil then
+		data.gudang.capacity = GameConfig.gudangBaseCapacity
+	end
 	return data.gudang
 end
 
@@ -39,18 +48,15 @@ local function stacks(data): { [string]: any }
 end
 
 function StorageService.capacity(player: Player, data): number
-	local base = if player and player:GetAttribute("Pass_GudangBesar")
-		then GameConfig.gudangPassCapacity
-		else GameConfig.gudangBaseCapacity
+	local base = baseCapacity(player)
 	if not data then
 		return base
 	end
-	local stored = tonumber((data.gudang or {}).capacity) or base
-	-- A pass can raise the stored capacity; removing it never destroys stored items.
-	data.gudang = data.gudang or {}
-	data.gudang.capacity = math.max(stored, base)
-	data.gudang.stacks = data.gudang.stacks or {}
-	return data.gudang.capacity
+	local gudang = data.gudang
+	local stored = if gudang and gudang.capacity ~= nil then tonumber(gudang.capacity) else base
+	stored = stored or base
+	-- Read-only: never mutates save. Removing a pass must not destroy stored items.
+	return math.max(base, stored)
 end
 
 function StorageService.used(data): number

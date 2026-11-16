@@ -81,3 +81,7 @@ Per-task audit log for the T1-T16 workhorse backlog on `track/c-world-look`. Sta
 - **Fixes:** `EconomyService.MAX_CASH = 1e12` is an explicit ceiling, applied in `addCash` and to every Pasar and Gelap sale. Non-finite payouts are refused before produce is removed. Stacks with a non-finite or non-positive count are skipped.
 - **Specs:** `tests/specs/economy_money_spec.luau` covers two back-to-back `buySeed` calls (no overspend, cash never negative), a double sell (pays once, sack empty), integer payouts across rarity tiers, Cabai event, Ordal pass and Nama Baik, a huge stack staying under the cap, and an infinite stack keeping its produce.
 - **Note:** The sale path has no season multiplier, so the season part of the payout rule is not testable yet. Add a spec when one exists.
+
+## T4 — Debt: persistence, clock and invariants
+- **Findings:** None. Interest, due date and the stage survive save and reload. A clock that rewinds gives zero interest. An overdue loan is escalated once on rejoin, not on every rejoin. A 60-step borrow/repay/tick chain keeps cash and owed non-negative, owed under 3x principal, and owed zero once the loan is inactive.
+- **Specs:** `tests/specs/debt_persistence_spec.luau` (save/reload via a deep-copied fixture, rewind, rejoin, invariant chain).

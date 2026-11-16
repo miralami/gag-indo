@@ -274,6 +274,70 @@ return function(t, Env, Fakes)
 			expect(Produce.count(data.gudang.stacks)):toBe(used)
 		end)
 
+		t:it("R2: a prompt on a foreign plot never plants or harvests", function()
+			local fx = makeFarmEnv()
+			fx.env.globals.task.spawn = function() end
+			fx.FarmService.start()
+			local other = Fakes.player(fx.env)
+			fx.plot.owner = other
+			fx.getTilePrompt()(fx.player, 1, 1)
+			expect(fx.data.tiles.t1):toBe(nil)
+			expect(fx.data.items.seed_padi ~= nil):toBe(true)
+			-- A foreign-owned plot must also not accept a Farm_Complete for a pending attempt.
+			fx.remotes.Farm_Complete.OnServerEvent:Fire(fx.player, 1)
+			expect(fx.data.tiles.t1):toBe(nil)
+		end)
+
+		t:it("R2: double plant on the same tile is rejected and costs one seed", function()
+			local fx = makeFarmEnv()
+			local seeds = fx.data.items.seed_padi
+			expect(fx.FarmService.commitAttempt(fx.player, { tile = 1, action = "plant", cropId = "padi" }, 1)):toBe(true)
+			local afterFirst = fx.data.items.seed_padi
+			expect(afterFirst):toBe(seeds - 1)
+			expect(fx.FarmService.commitAttempt(fx.player, { tile = 1, action = "plant", cropId = "padi" }, 1)):toBe(false)
+			expect(fx.data.items.seed_padi):toBe(afterFirst)
+		end)
+
+		t:it("R2: double harvest pays out once", function()
+			local fx = makeFarmEnv()
+			fx.env.globals.task.spawn = function() end
+			expect(fx.FarmService.commitAttempt(fx.player, { tile = 1, action = "plant", cropId = "padi" }, 1)):toBe(true)
+			local entry = fx.data.tiles.t1
+			entry.plantedAt = fx.env.wallTime - entry.growSeconds
+			expect(fx.FarmService.commitAttempt(fx.player, { tile = 1, action = "harvest" }, 1)):toBe(true)
+			expect(fx.FarmService.commitAttempt(fx.player, { tile = 1, action = "harvest" }, 1)):toBe(false)
+			local harvests = 0
+			for _, rec in fx.harvested do
+				if rec.cropId ~= nil then
+					harvests += 1
+				end
+			end
+			expect(harvests):toBe(1)
+		end)
+
+		t:it("R2: clock skew (planted in the future) never ripens early", function()
+			local fx = makeFarmEnv()
+			fx.env.globals.task.spawn = function() end
+			expect(fx.FarmService.commitAttempt(fx.player, { tile = 1, action = "plant", cropId = "padi" }, 1)):toBe(true)
+			local entry = fx.data.tiles.t1
+			entry.plantedAt = fx.env.wallTime + 3600
+			expect(fx.FarmService.commitAttempt(fx.player, { tile = 1, action = "harvest" }, 1)):toBe(false)
+			expect(fx.FarmService.harvestToStorage(fx.player, 1)):toBe(false)
+			expect(fx.data.tiles.t1 ~= nil):toBe(true)
+			local ready = fx.FarmService.readyTiles(fx.player)
+			expect(#ready):toBe(0)
+		end)
+
+		t:it("R2: a pending attempt is dropped when the player leaves", function()
+			local fx = makeFarmEnv()
+			fx.env.globals.task.spawn = function() end
+			fx.FarmService.start()
+			fx.getTilePrompt()(fx.player, 1, 1) -- sets pending plant
+			fx.env.services.Players.PlayerRemoving:Fire(fx.player)
+			fx.remotes.Farm_Complete.OnServerEvent:Fire(fx.player, 1)
+			expect(fx.data.tiles.t1):toBe(nil)
+		end)
+
 		t:it("Worker tick/hire handle missing data and inactive states", function()
 			local env = Env.new()
 			local notify = Fakes.notify()

@@ -16,6 +16,8 @@ word (Â§7) and an evidence path, and bumps the "Last updated" line. `[x]` = do
 `[~]` = partly done (say what is missing), `[ ]` = not started. Never tick without evidence. The
 gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/testing/BUGS.md`.
 
+**Visual direction:** `docs/v2/VISUAL_MASTER_PLAN.md` (written 2026-11-16, D14: aim realistic, land believable) plans light, materials, models, VFX, camera and UI fidelity in phases V0–V4 with its own tracker. It sits under this file; nothing in it is built yet (`UNVERIFIED`).
+
 ### Next up (recommended order)
 
 1. **G â€” icon upload (designer/Open Cloud):** first icon set upload and fill slot IDs in manifest/map (code-side slots/wiring done, `LUNE-ONLY`).

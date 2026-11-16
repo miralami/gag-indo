@@ -8,6 +8,10 @@ Decision record: D11 in `DECISIONS.md`.
 > reference). This overrides "no default materials" in §5 and §11. Do not flatten to SmoothPlastic;
 > fight noise with composition, colour variation and density. Record in `DECISIONS.md` D11.
 
+> **2026-11-16, designer: aim realistic (D14).** `VISUAL_MASTER_PLAN.md` §2 now sets the look of the
+> 3D world (PBR materials, real proportions; the world ink contour is proposed for retirement,
+> V-D1). The palette (§3), UI (§8) and NPC caricature (§6) below still hold.
+
 ## 1. Direction in one line
 
 **Cat tangan berkontur.** Warm painted volume (moodboard A) held together by a clean ink contour and

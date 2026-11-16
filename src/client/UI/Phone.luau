@@ -22,6 +22,7 @@ local ClientState = require(script.Parent.Parent.State)
 local Icons = require(script.Parent.Icons)
 local Theme = require(script.Parent.Theme)
 local Evidence = require(script.Parent.Evidence)
+local PhoneLayout = require(Shared.PhoneLayout)
 
 local player = Players.LocalPlayer
 
@@ -275,19 +276,20 @@ function Phone.mount(initialLang: string?)
 	-- Content: fills the screen between the top bar and the home bar.
 	local content = Theme.new("Frame", {
 		Name = "Content",
-		-- Top: 66 px TopBar + 4 px gap. Bottom: 34 px HomeBar + 8 px safety margin.
+		-- Top: 66 px TopBar + 4 px gap. Bottom: home bar + 8 px safety margin.
 		Position = UDim2.new(0, 8, 0, 70),
-		Size = UDim2.new(1, -16, 1, -112),
+		Size = UDim2.new(1, -16, 1, -(70 + homeBarHeight + 8)),
 		BackgroundTransparency = 1,
 		Parent = deviceScreen,
 	})
 
-	-- Home bar: a thin pill at the bottom. Inside an app it goes home; on home it closes the phone.
+	-- Home bar: a touch-friendly bar at the bottom. Inside an app it goes home; on home it closes the phone.
+	local homeBarHeight = PhoneLayout.homeBarHeight
 	local homeBar = Theme.new("TextButton", {
 		Name = "HomeBar",
 		AnchorPoint = Vector2.new(0, 1),
 		Position = UDim2.new(0, 0, 1, 0),
-		Size = UDim2.new(1, 0, 0, 34),
+		Size = UDim2.new(1, 0, 0, homeBarHeight),
 		BackgroundTransparency = 1,
 		AutoButtonColor = false,
 		Text = "",

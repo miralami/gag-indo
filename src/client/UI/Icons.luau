@@ -1,13 +1,18 @@
 -- Icons: name -> image id, with an on-palette procedural fallback while ids are 0.
 -- ART.md §7/§8: painted icon slots, no emoji. Fill `Visuals.icons[name].id` when art lands.
+-- Shared.IconMap centralises crop/currency/tier/phone-app slots (TODO: NEEDS-ASSET IDs).
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Visuals = require(Shared.Config.Visuals)
+local IconMap = require(Shared.IconMap)
 local Theme = require(script.Parent.Theme)
+
+IconMap.apply(Visuals)
 
 local Icons = {}
 
 Icons.entries = Visuals.icons
+Icons.map = IconMap
 
 function Icons.id(name: string): number
 	local entry = Visuals.icons[name]
@@ -21,6 +26,19 @@ end
 function Icons.text(name: string): string
 	local entry = Visuals.icons[name]
 	return if entry then entry.text else "?"
+end
+
+function Icons.slot(kind: string, key: string): string
+	if kind == "crop" then
+		return IconMap.cropSlot(key)
+	elseif kind == "phone" or kind == "app" then
+		return IconMap.phoneAppSlot(key)
+	elseif kind == "tier" then
+		return IconMap.tierSlot(key)
+	elseif kind == "currency" then
+		return IconMap.currencySlot(key)
+	end
+	return key
 end
 
 -- Renders either the real image or a small palette chip with the ASCII fallback.

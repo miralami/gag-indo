@@ -57,6 +57,7 @@ local specs = {
 	require("./specs/feel_spec"),
 	require("./specs/nextgoal_spec"),
 	require("./specs/first_session_spec"),
+	require("./specs/iconmap_spec"),
 }
 
 local t = Test.new()

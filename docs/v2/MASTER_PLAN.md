@@ -8,7 +8,7 @@
 
 ## Progress tracker — read first, update last
 
-**Last updated:** 2026-11-16 · branch `track/c-world-look` · `lune run tests/run.luau`: 614 passing.
+**Last updated:** 2026-11-16 · branch `track/c-world-look` · `lune run tests/run.luau`: 617 passing.
 
 **Rules for this section.** Every agent reads it before touching the repo, so nobody has to rediscover
 the state from scratch. Whoever finishes a task ticks it here **in the same commit**, adds its status
@@ -18,7 +18,7 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 
 ### Next up (recommended order)
 
-1. **G — icon pipeline (code side):** shared icon map/slots and HUD/Phone/seed-bar wiring so IDs can drop in later; first icon set upload still via Open Cloud (key verified 2026-11-14, designer step).
+1. **G — icon upload (designer/Open Cloud):** first icon set upload and fill slot IDs in manifest/map (code-side slots/wiring done, `LUNE-ONLY`).
 2. **D — phone app pages at phone size:** 44x44 touch targets, no cut-off text, layout spec in Lune.
 3. **C — world in code:** three season presets, spawn/golden-hour finalisation from `MapSpec`, and 9.5-stud headroom across all six hubs (spec in `greybox_spec`).
 4. **F — NPC/cutscene logic hooks:** caricature NPC framework from design cards and state/event hooks for raid and debt-collector cutscenes (logic only, no assets).
@@ -104,7 +104,7 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 **G. Asset pipeline**
 - [x] Asset manifest started.
 - [x] Open Cloud key — verified by introspection 2026-11-14 (`ROBLOX_API_KEY`, never committed or printed).
-- [ ] Icon set (crops, tools, tiers, currency, phone apps); 6–8 hero textures.
+- [~] Icon set (crops, tools, tiers, currency, phone apps); 6–8 hero textures. — code-side icon slot map and HUD/Phone/seed-bar wiring done (`LUNE-ONLY`, `src/shared/IconMap.luau`, `tests/specs/iconmap_spec.luau`, slot IDs empty / `NEEDS-ASSET`); upload and filled IDs still pending.
 
 **H. QA and integration**
 - [x] Thirty-minute client soak — `evidence/h/2026-11-14-soak/`.

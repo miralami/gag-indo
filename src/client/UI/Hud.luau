@@ -321,11 +321,14 @@ function Hud.mount(initialLang: string?)
 	})
 
 	local seedButtons: { [string]: TextButton } = {}
+	local seedIcons: { [string]: GuiObject } = {}
+	local seedLabels: { [string]: TextLabel } = {}
 	for i, cropId in Crops.order do
 		local button = Theme.button({
 			Name = cropId,
 			LayoutOrder = i,
-			Size = UDim2.fromOffset(104, 44),
+			Size = UDim2.fromOffset(116, 44),
+			Text = "",
 			Parent = seedBar,
 		})
 		Theme.new("UIStroke", {
@@ -336,10 +339,34 @@ function Hud.mount(initialLang: string?)
 			Enabled = false,
 			Parent = button,
 		})
+		local icon = Icons.make(Icons.slot("crop", cropId), {
+			Name = "Icon",
+			AnchorPoint = Vector2.new(0, 0.5),
+			Position = UDim2.new(0, 6, 0.5, 0),
+			Size = UDim2.fromOffset(28, 28),
+			Parent = button,
+		})
+		local label = Theme.label({
+			Name = "Label",
+			Position = UDim2.new(0, 38, 0, 0),
+			Size = UDim2.new(1, -42, 1, 0),
+			Text = "",
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextScaled = false,
+			TextSize = 13,
+			Font = Theme.font,
+			TextColor3 = Theme.paper,
+			TextStrokeColor3 = Theme.ink,
+			TextStrokeTransparency = 0,
+			TextWrapped = true,
+			Parent = button,
+		})
 		button.Activated:Connect(function()
 			Remotes.Farm_SelectSeed:FireServer(cropId)
 		end)
 		seedButtons[cropId] = button
+		seedIcons[cropId] = icon
+		seedLabels[cropId] = label
 	end
 
 	local buySeedsButton = Theme.button({
@@ -373,9 +400,13 @@ function Hud.mount(initialLang: string?)
 			if button.Visible then
 				anyVisible = true
 			end
-			button.Text = if unlocked
-				then t("hud_seed_count", "@crop_" .. cropId, owned)
-				else t("hud_locked", "@crop_" .. cropId)
+			local label = seedLabels[cropId]
+			if label then
+				label.Text = if unlocked
+					then t("hud_seed_count", "@crop_" .. cropId, owned)
+					else t("hud_locked", "@crop_" .. cropId)
+			end
+			button.Text = ""
 			button.TextColor3 = Theme.paper
 			button.TextStrokeColor3 = Theme.ink
 			button.TextStrokeTransparency = 0

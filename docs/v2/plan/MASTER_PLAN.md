@@ -8,7 +8,7 @@
 
 ## Progress tracker — read first, update last
 
-**Last updated:** 2026-11-16 — branch `track/c-world-look` — `lune run tests/run.luau`: 938 passing (`LUNE-ONLY`, save repair on load; Sus/Almanak/Season/Admin/Cosmetics/Leaderboard failure paths with fixes).
+**Last updated:** 2026-11-16 — branch `track/c-world-look` — `lune run tests/run.luau`: 1005 passing (`LUNE-ONLY`, particles and wind read the fidelity tier; Receipts/Onboarding/Tool/Items/Cabai/Badges/Passes failure paths with fixes).
 
 **Rules for this section.** Every agent reads it before touching the repo, so nobody has to rediscover
 the state from scratch. Whoever finishes a task ticks it here **in the same commit**, adds its status
@@ -56,6 +56,7 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 - [~] Crop growth stages (bibit / tumbuh / siap) exist in `FarmService`; not judged by a human.
 - [x] Plant, harvest, sell feedback: particles, tweens, camera nudge, cash-fly — `LUNE-ONLY`, `tests/specs/feel_spec.luau`.
 - [x] Rarity reveal: toast tint, Sultan/Langka shake, sting hooks, ActionFeel — `LUNE-ONLY`, `tests/specs/feel_spec.luau`.
+- [~] First tier consumers: ActionFeel bursts scale count and lifetime (never below 1 particle), Wind sways only within the tier range with a fade — `LUNE-ONLY`, `src/client/Feel/TierScale.luau`, `tests/specs/tier_consumers_spec.luau`; not seen in Studio.
 - [~] V0.2 admin perf switches (Highlights, shadows, bloom, terrain decoration, particles; local, reversible) in the admin panel with the live tier — `LUNE-ONLY`, `src/client/Feel/PerfSwitches.luau`, `tests/specs/perf_switches_spec.luau`; panel not seen in Studio, no fps-per-switch numbers from the designer phone yet.
 - [~] V0.1 `FidelityTier` tier selection (Rendah/Sedang/Tinggi, fast down, slow up, frozen in hook moments, §6 settings table) — `LUNE-ONLY`, `src/client/Feel/FidelityTier.luau`, `tests/specs/fidelity_tier_spec.luau`; wired live by `src/client/Feel/FidelityRuntime.luau` (Heartbeat feed, `FidelityTier` player attribute, `tests/specs/fidelity_runtime_spec.luau`); no visual reads the tier yet, no settings toggle, rarity reveal and raid overlay freeze the tier via `src/client/Feel/MomentGuard.luau` (`tests/specs/hook_moment_spec.luau`), thresholds unmeasured on a phone, not seen switching in Studio.
 
@@ -117,6 +118,7 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 - [x] Evidence, Plot, Warung and Neighbor failure-path specs; fixed reports/cheat logs erroring without `cooldowns`/`stats`, tile prompt erroring on a save with nil `tilesOwned` or `tiles`, Nama Baik staying NaN and water erroring without `cooldowns` — `LUNE-ONLY`, `tests/specs/evidence_failure_spec.luau`, `tests/specs/plot_failure_spec.luau`, `tests/specs/warung_neighbor_failure_spec.luau`.
 - [x] Save repair on load: `src/server/Data/SaveSanitize.luau` runs after Reconcile and migration, resets wrong-typed or NaN/inf template fields (one level into known tables), keeps dynamic keys and negative cash, warns once with the count — `LUNE-ONLY`, `tests/specs/save_reconcile_spec.luau`; not seen on a real damaged profile.
 - [x] Sus, Almanak, Season, Admin, Cosmetics and Leaderboard failure-path specs; fixed NaN Sus spreading through get/add/reduce, Almanak throwing on a damaged entry or string trait list, admin `grantItem` writing unknown item ids, Cosmetics erroring without `cosmetics`/`equipped`, a failed leaderboard read blanking the last good board — `LUNE-ONLY`, `tests/specs/sus_almanak_failure_spec.luau`, `tests/specs/season_admin_failure_spec.luau`, `tests/specs/cosmetics_leaderboard_failure_spec.luau`.
+- [x] Receipts, Onboarding, Tool, Items, Cabai, Badges and Passes failure-path specs; fixed a receipt being acknowledged for an unknown grant type or a missing PurchaseId, ProcessReceipt erroring on a damaged `receipts` table, NaN item counts being spendable, ToolService erroring on a non-table `tools`, CabaiEvent starting twice — `LUNE-ONLY`, `tests/specs/onboarding_receipts_failure_spec.luau`, `tests/specs/tool_items_failure_spec.luau`, `tests/specs/events_badges_passes_failure_spec.luau`.
 - [ ] Full-session `output.log`; fps on the phone emulator; ten-player session; published-place persistence.
 - [ ] Five real players (designer).
 

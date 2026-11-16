@@ -21,6 +21,9 @@ local function useAmplopPremium(player: Player, data)
 		Notify.send(player, "n_item_none", "@item_amplopPremium")
 		return
 	end
+	if type(data.cooldowns) ~= "table" then
+		data.cooldowns = {}
+	end
 	if os.time() < (data.cooldowns.amplopPremiumReadyAt or 0) then
 		Notify.send(player, "n_item_cooldown", "@item_amplopPremium")
 		return

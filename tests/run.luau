@@ -87,6 +87,10 @@ local specs = {
 	require("./specs/season_admin_failure_spec"),
 	require("./specs/cosmetics_leaderboard_failure_spec"),
 	require("./specs/save_reconcile_spec"),
+	require("./specs/onboarding_receipts_failure_spec"),
+	require("./specs/tool_items_failure_spec"),
+	require("./specs/events_badges_passes_failure_spec"),
+	require("./specs/tier_consumers_spec"),
 }
 
 local t = Test.new()

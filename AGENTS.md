@@ -1,8 +1,8 @@
 # Agent rules for this repository
 
-Read the **Progress tracker** at the top of `docs/v2/MASTER_PLAN.md` first: it says what is done,
+Read the **Progress tracker** at the top of `docs/v2/plan/MASTER_PLAN.md` first: it says what is done,
 what is next and where the evidence is, so you do not have to rediscover the repo. When you finish
-a task, tick it there in the same commit. Then read the rest of `docs/v2/MASTER_PLAN.md`. It governs what may be built, in what order, and how work is
+a task, tick it there in the same commit. Then read the rest of `docs/v2/plan/MASTER_PLAN.md`. It governs what may be built, in what order, and how work is
 proven. These rules sit on top of it and never override it.
 
 ## Orchestration
@@ -23,7 +23,7 @@ proven. These rules sit on top of it and never override it.
   commits, no attribution lines, tracker ticked in the same commit, then push to the working branch. Guardrails are handled by branching; never commit secrets.
 - `lune run tests/run.luau` must pass before every commit; the current count is on the tracker's "Last updated" line.
 - The Open Cloud key is the user env var `ROBLOX_API_KEY` (never print, log or commit it). Uploads
-  land in the designer's inventory; record every resulting ID in `docs/v2/art/ASSET_MANIFEST.md`.
+  land in the designer's inventory; record every resulting ID in `docs/v2/visual/art/ASSET_MANIFEST.md`.
 - Status words are exactly `SEEN-IN-STUDIO`, `LUNE-ONLY`, `UNVERIFIED`, `BLOCKED`. A claim without a
   file under `docs/v2/evidence/` is not `SEEN-IN-STUDIO`.
 - Never invent asset IDs, product IDs, prices or UserIds. Never publish, never save

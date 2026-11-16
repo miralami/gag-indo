@@ -22,7 +22,7 @@ Status: READY FOR PUBLISHING REVIEW
 
 ### A. Game Icon (512 x 512 px PNG)
 - **Komposisi**: Close-up karakter petani tersenyum ceria memakai Caping bambu tradisional, memegang seikat padi emas berkilau.
-- **Gaya Visual (ART.md)**: Garis tepi tebal 2px tinta hitam kartun, palet warna cerah (`padi`, `senja`, `genteng`), hard drop shadow 4px, kontras tinggi tanpa gradien fotorealistik.
+- **Gaya Visual (visual/ART.md)**: Garis tepi tebal 2px tinta hitam kartun, palet warna cerah (`padi`, `senja`, `genteng`), hard drop shadow 4px, kontras tinggi tanpa gradien fotorealistik.
 - **Fokus Mobile**: Siluet terbaca jelas pada ikon kecil berukuran 64x64 px di layar smartphone.
 
 ### B. Thumbnail Showcase (1920 x 1080 px PNG — Rasio 16:9)

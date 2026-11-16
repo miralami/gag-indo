@@ -4,7 +4,7 @@
 values into `src/shared/Config/Visuals.luau` (which feeds `src/client/UI/Theme.luau`) by hand after
 Gate 1 (Master Plan §4).
 
-## Files (`docs/v2/mockups/`)
+## Files (`docs/v2/visual/mockups/`)
 
 Pass 2 (2026-11-15) rebuilt every screen in one HTML source after an audit and critique: one
 visual language, one drawn SVG icon set, and the missing states. Source:

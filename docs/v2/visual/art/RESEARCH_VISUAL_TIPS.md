@@ -10,7 +10,7 @@ Anything not confirmed from a primary source is marked **UNCONFIRMED**.
 ## 1. What the videos teach, and what we keep
 
 The videos chase photorealism (Sketchfab trees, Polyhaven PBR). Our art direction is hand-painted
-with contour lines (D11, `ART.md`), so we take the techniques, not the photoreal assets.
+with contour lines (D11, `visual/ART.md`), so we take the techniques, not the photoreal assets.
 
 | Technique | Source | Keep? |
 |---|---|---|
@@ -55,7 +55,7 @@ target is weaker than this phone.
    triggers a rebuild, so toggle properties instead. The world has 27 Highlights (contour).
 2. `BasePart.CastShadow = false` on small and distant parts; `Light.Shadows = false` where possible.
    Shadows are the main low-end cost and the engine drops them as `QualityLevel` falls.
-3. Contour only within about 60 studs (`ART.md` §5), and reuse one Highlight per group where possible.
+3. Contour only within about 60 studs (`visual/ART.md` §5), and reuse one Highlight per group where possible.
 4. Point lights cost more on weak devices; keep the 2 current lights, add none.
 5. `MeshPart.RenderFidelity = Performance` for foliage and small meshes once we have meshes.
 6. Texture sizes: 256 per about 5x5 studs, 512 per 10x10, 1024 only for 20x20; 1024 costs 4x the

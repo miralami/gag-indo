@@ -73,7 +73,7 @@ local function skyInstance(): Sky
 end
 
 -- Fixed look values. Lighting.Technology (Future) cannot be set from a script: it is saved in the
--- place file (Studio > Lighting > Technology), see docs/v2/TECH.md.
+-- place file (Studio > Lighting > Technology), see docs/v2/plan/TECH.md.
 local function configureStatic()
 	skyInstance()
 	Lighting.GlobalShadows = true

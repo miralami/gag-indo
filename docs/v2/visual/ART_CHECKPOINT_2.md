@@ -7,13 +7,13 @@
 - Tes: `lune run tests/run` — 480 lulus (sebelumnya 479).
 
 ## File berubah
-- `docs/v2/ART.md`
+- `docs/v2/visual/ART.md`
 - `src/shared/Config/Visuals.luau`
 - `tests/specs/visuals_spec.luau`
-- `docs/v2/ART_CHECKPOINT_2.md`
+- `docs/v2/visual/ART_CHECKPOINT_2.md`
 
 ## Ringkasan
-- Menetapkan aksen `ungu` `#7652a8` untuk Langka sesuai ART.md.
+- Menetapkan aksen `ungu` `#7652a8` untuk Langka sesuai visual/ART.md.
 - Menambahkan `Visuals.rarity` untuk lima tier, lengkap token palet, bingkai, dan efek.
 - Menambahkan tes bahwa setiap tier memiliki data visual valid.
 

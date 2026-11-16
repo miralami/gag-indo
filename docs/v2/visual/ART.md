@@ -1,12 +1,16 @@
 # Juragan Desa — Art Bible
 
-Status: **draft, direction chosen (A + B)**. Moodboard: `docs/v2/art/moodboard.html`.
-Decision record: D11 in `DECISIONS.md`.
+Status: **draft, direction chosen (A + B)**. Moodboard: `docs/v2/visual/art/moodboard.html`.
+Decision record: D11 in `plan/DECISIONS.md`.
 
 > **2026-11-14, designer: cartoonish realism.** Shapes, palette and warmth below still hold, but
 > Roblox textured materials are welcome on buildings, props and foliage (the Warung hub is the
 > reference). This overrides "no default materials" in §5 and §11. Do not flatten to SmoothPlastic;
-> fight noise with composition, colour variation and density. Record in `DECISIONS.md` D11.
+> fight noise with composition, colour variation and density. Record in `plan/DECISIONS.md` D11.
+
+> **2026-11-16, designer: aim realistic (D14).** `visual/VISUAL_MASTER_PLAN.md` §2 now sets the look of the
+> 3D world (PBR materials, real proportions; the world ink contour is proposed for retirement,
+> V-D1). The palette (§3), UI (§8) and NPC caricature (§6) below still hold.
 
 ## 1. Direction in one line
 

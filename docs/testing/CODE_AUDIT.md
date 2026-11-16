@@ -75,3 +75,18 @@ Per-task audit log for the T1-T16 workhorse backlog on `track/c-world-look`. Sta
   re-exports them and Seasons requires WorldConstants directly. Spec added in `world_constants_spec`.
 - Studio later: confirm the client loads Sky with no errors in Output.
 - Rule for later tasks: modules under `src/shared` must never require anything under `src/server`.
+
+## T4 — Economy: money invariants (Shop, Economy, Market)
+- **Findings:** `EconomyService.sellAll` removed the produce from the sack before `addCash` ran. A non-finite payout (`count = math.huge`) was refused by `addCash`, so the sack was erased and no cash was paid. Nothing capped a single payout or cash balance.
+- **Fixes:** `EconomyService.MAX_CASH = 1e12` is an explicit ceiling, applied in `addCash` and to every Pasar and Gelap sale. Non-finite payouts are refused before produce is removed. Stacks with a non-finite or non-positive count are skipped.
+- **Specs:** `tests/specs/economy_money_spec.luau` covers two back-to-back `buySeed` calls (no overspend, cash never negative), a double sell (pays once, sack empty), integer payouts across rarity tiers, Cabai event, Ordal pass and Nama Baik, a huge stack staying under the cap, and an infinite stack keeping its produce.
+- **Note:** The sale path has no season multiplier, so the season part of the payout rule is not testable yet. Add a spec when one exists.
+
+## T4 — Debt: persistence, clock and invariants
+- **Findings:** None. Interest, due date and the stage survive save and reload. A clock that rewinds gives zero interest. An overdue loan is escalated once on rejoin, not on every rejoin. A 60-step borrow/repay/tick chain keeps cash and owed non-negative, owed under 3x principal, and owed zero once the loan is inactive.
+- **Specs:** `tests/specs/debt_persistence_spec.luau` (save/reload via a deep-copied fixture, rewind, rejoin, invariant chain).
+
+## T4 — Produce count and gudang seizure guards
+- **Findings:** `Produce.count` only checked `type == number`, so a NaN count poisoned the total. `seizeGudang` accepted an infinite count and seized the whole debt from one corrupt stack. `removeClean` and `removeHot` could delete corrupt stacks and report them as removed.
+- **Fixes:** `Produce.validCount` accepts only finite numbers above zero. `count`, `removeClean`, `removeHot` and `seizeGudang` use it. Corrupt stacks are kept, not erased, and count or pay nothing.
+- **Specs:** `tests/specs/produce_guard_spec.luau` (NaN, infinite, negative and non-number counts in count, removal and seizure).

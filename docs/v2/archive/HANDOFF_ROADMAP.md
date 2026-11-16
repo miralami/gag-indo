@@ -1,16 +1,16 @@
 # Prompt untuk opencode: roadmap M4 sampai v2.3 (dengan checkpoint)
 
 Tempel semua isi di bawah garis ini ke opencode (jalankan dari root repo). Terpisah dari
-`HANDOFF_ART_PASS.md`; lihat "Batas file" bila keduanya dijalankan berdekatan.
+`archive/HANDOFF_ART_PASS.md`; lihat "Batas file" bila keduanya dijalankan berdekatan.
 
 ---
 
-Kamu melanjutkan game Roblox "Juragan Desa" (Luau, Rojo, repo ini). Tugasmu: **mengerjakan sisa roadmap `docs/v2/PLAN.md` secara berurutan, tanpa berhenti di tiap langkah, dan berhenti hanya di CHECKPOINT** yang ditandai di bawah. Hasilmu di-review dan diverifikasi oleh reviewer lain (Claude) pada tiap checkpoint, jadi laporan harus jujur dan bisa diperiksa.
+Kamu melanjutkan game Roblox "Juragan Desa" (Luau, Rojo, repo ini). Tugasmu: **mengerjakan sisa roadmap `docs/v2/plan/PLAN.md` secara berurutan, tanpa berhenti di tiap langkah, dan berhenti hanya di CHECKPOINT** yang ditandai di bawah. Hasilmu di-review dan diverifikasi oleh reviewer lain (Claude) pada tiap checkpoint, jadi laporan harus jujur dan bisa diperiksa.
 
 ## Baca dulu (wajib, urut)
-1. `docs/v2/PLAN.md` — seluruh dokumen, terutama §3.5 sampai §3.8, §4, §5, §6, §7, §8.
-2. `docs/v2/DECISIONS.md` — D2, D3 (launch setelah **keempat rilis** selesai), D4, D5, D6, D7, D9 (terbuka), D10.
-3. `docs/v2/TECH.md` — konvensi server, state, remote, tes.
+1. `docs/v2/plan/PLAN.md` — seluruh dokumen, terutama §3.5 sampai §3.8, §4, §5, §6, §7, §8.
+2. `docs/v2/plan/DECISIONS.md` — D2, D3 (launch setelah **keempat rilis** selesai), D4, D5, D6, D7, D9 (terbuka), D10.
+3. `docs/v2/plan/TECH.md` — konvensi server, state, remote, tes.
 4. `docs/v1/` (GDD v1) bila PLAN merujuknya (mis. §7.3 Kepala Desa).
 
 ## Kondisi sekarang
@@ -18,7 +18,7 @@ Kamu melanjutkan game Roblox "Juragan Desa" (Luau, Rojo, repo ini). Tugasmu: **m
 - `src/server/Social/LeaderboardService.luau` ada tapi belum di-commit; terhubung di `Main.server.luau`; remote `Leaderboard_Data` ada; **belum ada UI client**; `tests/specs/leaderboard_spec.luau` baru tes dasar.
 - `Config/Products.luau` dan `Config/Cosmetics.luau`: semua id `0` ("belum dikonfigurasi", UI menyembunyikan tombol). Item PLAN §3.7 yang belum ada: pass Gudang Besar, Auto-Panen; produk Restock Toko, Rupiah packs.
 - `src/server/Analytics/Analytics.luau` hanya pembungkus tipis `LogCustomEvent`.
-- Art pass dikerjakan terpisah (`HANDOFF_ART_PASS.md`). Working tree berisi pekerjaan lain yang belum di-commit.
+- Art pass dikerjakan terpisah (`archive/HANDOFF_ART_PASS.md`). Working tree berisi pekerjaan lain yang belum di-commit.
 
 ## Cara kerja (penting)
 - **Kerjakan langkah berurutan tanpa menunggu persetujuan**, sampai bertemu `CHECKPOINT`. Di checkpoint: jalankan tes, tulis laporan `docs/v2/CHECKPOINT_<n>.md`, lalu **berhenti**.
@@ -34,31 +34,31 @@ Kamu melanjutkan game Roblox "Juragan Desa" (Luau, Rojo, repo ini). Tugasmu: **m
 
 **A2 Monetisasi tanpa mengarang.** Tambahkan item §3.7 yang belum ada ke `Products.luau` (id tetap `0`). Implementasikan efek tiap item di server mengikuti pola `Receipts.luau`/Passes (`grant` berupa kunci data, bukan fungsi): Gudang Besar (kapasitas gudang), Auto-Panen (buruh tanpa upah), Restock Toko (refresh toko), Rupiah packs (lewat API publik `EconomyService`). Tes wajib: receipt yang sama dua kali memberi hadiah **sekali**, receipt gagal tidak mengembalikan `PurchaseGranted`, pemain keluar di tengah pembelian, id `0` tidak pernah memanggil Roblox. Pagar: tidak ada yang membeli kekebalan raid, tidak menghapus kasus VIRAL, tidak ada acak berbayar.
 
-**A3 Analytics.** Pakai skill `roblox-analytics` bila ada. Event: funnel onboarding per langkah, ekonomi (sumber/penggunaan uang), pinjaman diambil/dilunasi/disita, raid, pembelian, panen per tier. Satu modul, hormati rate limit, tidak ada data pribadi, tidak ganda untuk satu aksi, tidak error saat `AnalyticsService` gagal. Tulis `docs/v2/ANALYTICS.md` (event, kapan dikirim, pertanyaan yang dijawab).
+**A3 Analytics.** Pakai skill `roblox-analytics` bila ada. Event: funnel onboarding per langkah, ekonomi (sumber/penggunaan uang), pinjaman diambil/dilunasi/disita, raid, pembelian, panen per tier. Satu modul, hormati rate limit, tidak ada data pribadi, tidak ganda untuk satu aksi, tidak error saat `AnalyticsService` gagal. Tulis `docs/v2/plan/ANALYTICS.md` (event, kapan dikirim, pertanyaan yang dijawab).
 
 **A4 Tes alur pinjol penuh** (kriteria selesai M4): pinjam, telat, spam HP, kolektor di plot, pesan "kontak", penyitaan gudang sampai lunas. Periksa: bunga maksimum 3x pokok, satu pinjaman sekaligus, tidak boleh pinjam saat raid, utang tersimpan setelah rejoin. Bug kecil perbaiki; yang mengubah desain, catat sebagai keputusan.
 
 ### >>> CHECKPOINT 1 — M4 selesai
-Tulis `docs/v2/CHECKPOINT_1.md`. Berhenti.
+Tulis `docs/v2/archive/CHECKPOINT_1.md`. Berhenti.
 
 ---
 
 # FASE B — Persiapan M5 (launch readiness)
 
-**B1 Audit keamanan.** Skill `roblox-security` dan `roblox-networking` bila ada. Audit semua remote di `Remotes.luau`: tipe/rentang argumen, rate limit, otoritas server, admin hanya allowlist (`Live/Admins.luau`). Output `docs/v2/SECURITY_AUDIT.md` (temuan kritis/tinggi/sedang, file:baris, skenario eksploit, perbaikan). Perbaiki kritis dan tinggi dengan tes.
+**B1 Audit keamanan.** Skill `roblox-security` dan `roblox-networking` bila ada. Audit semua remote di `Remotes.luau`: tipe/rentang argumen, rate limit, otoritas server, admin hanya allowlist (`Live/Admins.luau`). Output `docs/v2/qa/SECURITY_AUDIT.md` (temuan kritis/tinggi/sedang, file:baris, skenario eksploit, perbaikan). Perbaiki kritis dan tinggi dengan tes.
 
-**B2 Balance pass.** Simulasi ekonomi sebagai tes/skrip Lune: pemain tipikal selama N hari (laju tumbuh, harga, pinjol, quest). Laporkan waktu menuju rank, titik macet, apakah pinjol sehat. Output `docs/v2/BALANCE.md`. **Usulkan** angka; jangan ubah angka produksi.
+**B2 Balance pass.** Simulasi ekonomi sebagai tes/skrip Lune: pemain tipikal selama N hari (laju tumbuh, harga, pinjol, quest). Laporkan waktu menuju rank, titik macet, apakah pinjol sehat. Output `docs/v2/plan/BALANCE.md`. **Usulkan** angka; jangan ubah angka produksi.
 
-**B3 Performa.** Skill `roblox-performance` bila ada. Audit loop server/klien yang berat, jumlah instance, kebocoran koneksi, beban remote, DataStore budget. Output `docs/v2/PERF_AUDIT.md` dengan temuan berperingkat; perbaiki yang aman dan tes-able.
+**B3 Performa.** Skill `roblox-performance` bila ada. Audit loop server/klien yang berat, jumlah instance, kebocoran koneksi, beban remote, DataStore budget. Output `docs/v2/qa/PERF_AUDIT.md` dengan temuan berperingkat; perbaiki yang aman dan tes-able.
 
-**B4 FTUE dan retensi.** Skill `roblox-game-design` dan `roblox-player-psychology` bila ada. Audit sesi pertama (panen berpemandu, 10 menit pertama di HP), jam login streak/quest, dan pola gelap (manipulatif). Output `docs/v2/FTUE_AUDIT.md` dengan rekomendasi; perbaiki yang kecil dan jelas.
+**B4 FTUE dan retensi.** Skill `roblox-game-design` dan `roblox-player-psychology` bila ada. Audit sesi pertama (panen berpemandu, 10 menit pertama di HP), jam login streak/quest, dan pola gelap (manipulatif). Output `docs/v2/qa/FTUE_AUDIT.md` dengan rekomendasi; perbaiki yang kecil dan jelas.
 
 **B5 Lokalisasi.** Skill `roblox-localization` bila ada. Pastikan semua teks pemain lewat `Strings.luau` (ID dan EN), tidak ada string hardcode di UI, teks EN menjelaskan referensi (bukan terjemahan harfiah), dan ada pemilih bahasa (D6). Daftar string janggal di dokumen.
 
-**B6 Dokumen launch.** `docs/v2/LAUNCH.md`: draf jawaban kuesioner maturity (semua target fiktif, D7), spesifikasi aset toko (ikon, 3 thumbnail, klip raid 30 detik), checklist §3.8 beserta statusnya, dan hasil skill `roblox-publish-checklist` bila ada. Skill `roblox-growth-design` untuk judul, deskripsi, dan strategi thumbnail.
+**B6 Dokumen launch.** `docs/v2/plan/LAUNCH.md`: draf jawaban kuesioner maturity (semua target fiktif, D7), spesifikasi aset toko (ikon, 3 thumbnail, klip raid 30 detik), checklist §3.8 beserta statusnya, dan hasil skill `roblox-publish-checklist` bila ada. Skill `roblox-growth-design` untuk judul, deskripsi, dan strategi thumbnail.
 
 ### >>> CHECKPOINT 2 — M5 siap, tinggal playtest/publish manual
-Tulis `docs/v2/CHECKPOINT_2.md`. Berhenti.
+Tulis `docs/v2/archive/CHECKPOINT_2.md`. Berhenti.
 
 ---
 

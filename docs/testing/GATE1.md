@@ -1,6 +1,6 @@
 # Gate 1 — the MVP gate, working checklist
 
-One row per criterion, taken only from `docs/v2/MASTER_PLAN.md` §4 ("Gate 1 — the MVP gate, exit
+One row per criterion, taken only from `docs/v2/plan/MASTER_PLAN.md` §4 ("Gate 1 — the MVP gate, exit
 criteria") and §0 ("The quality bar"). Nothing here is invented and no two criteria are merged.
 `G#` rows are the §4 gate bullets, `Q#` rows are the §0 quality bar in its own order.
 

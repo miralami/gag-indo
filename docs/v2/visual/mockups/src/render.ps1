@@ -1,4 +1,4 @@
-# Renders each screen in screens.html to docs/v2/mockups/<id>.png with headless Edge.
+# Renders each screen in screens.html to docs/v2/visual/mockups/<id>.png with headless Edge.
 # Portrait screens: 360x640 CSS at 3x (1080x1920). Landscape: 844x390 CSS at 2x (1688x780).
 $ErrorActionPreference = "Continue" # Edge writes harmless warnings to stderr
 $edge = @("${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe", "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe") |

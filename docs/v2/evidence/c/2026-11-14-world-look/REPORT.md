@@ -18,7 +18,7 @@
    - Sourced clean Creator Store free asset `5392132809` ("Realistic Pine Tree" by GabeQZ; meshes `739614116`, `739619496`, `2312874610`).
    - Sourced and populated 86 dense realistic pine trees in `workspace.BackgroundForest` along the outer perimeter (radius ~135–170 studs).
    - Strictly reserved West sunset corridor (azimuth 130° to 230°) free of tall trees, ensuring low golden sun rays and horizon glow directly illuminate the village.
-   - Registered in `docs/v2/art/ASSET_MANIFEST.md`.
+   - Registered in `docs/v2/visual/art/ASSET_MANIFEST.md`.
 
 4. **Testing & Stability**
    - Guarded `game:GetService("ServerStorage")` in `src/server/World/Greybox.luau` via `pcall` and added mock `ServerStorage` in `tests/lib/Env.luau`.

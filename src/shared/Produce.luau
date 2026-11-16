@@ -102,35 +102,40 @@ function Produce.isHot(stack: Stack): boolean
 	return false
 end
 
+-- A usable stack count is a finite number above zero. NaN, infinity, negatives, and non-numbers
+-- are corrupt: they count as nothing and are never removed or paid out.
+function Produce.validCount(n: any): boolean
+	return type(n) == "number" and n == n and n > 0 and n ~= math.huge
+end
+
 function Produce.count(sack: Sack): number
 	local total = 0
 	for _, stack in sack do
-		-- Corrupt entries (non-table, non-numeric count) count as nothing instead of erroring.
-		if type(stack) == "table" and type(stack.count) == "number" then
+		if type(stack) == "table" and Produce.validCount(stack.count) then
 			total += stack.count
 		end
 	end
 	return total
 end
 
--- Remove every hot stack; returns how many items were confiscated.
+-- Remove every hot stack; returns how many items were confiscated. Corrupt stacks are kept.
 function Produce.removeHot(sack: Sack): number
 	local removed = 0
 	for key, stack in sack do
-		if Produce.isHot(stack) then
-			removed += stack.count or 0
+		if type(stack) == "table" and Produce.validCount(stack.count) and Produce.isHot(stack) then
+			removed += stack.count
 			sack[key] = nil
 		end
 	end
 	return removed
 end
 
--- Remove the clean stacks, leaving hot produce behind (Pasar sale).
+-- Remove the clean stacks, leaving hot produce behind (Pasar sale). Corrupt stacks are kept.
 function Produce.removeClean(sack: Sack): number
 	local removed = 0
 	for key, stack in sack do
-		if not Produce.isHot(stack) then
-			removed += stack.count or 0
+		if type(stack) == "table" and Produce.validCount(stack.count) and not Produce.isHot(stack) then
+			removed += stack.count
 			sack[key] = nil
 		end
 	end

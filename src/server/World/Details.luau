@@ -1,4 +1,4 @@
--- Details: the 'building tips' lane (docs/v2/art/RESEARCH_VISUAL_TIPS.md, "fill shelves, break
+-- Details: the 'building tips' lane (docs/v2/visual/art/RESEARCH_VISUAL_TIPS.md, "fill shelves, break
 -- sightlines, decorate floors"). One Folder named `Details` under the world, so a rebuild is one Destroy.
 -- Positions are fixed and every variation comes from an item index (no random), so every server builds
 -- the same village. Palette colours only (ART.md section 3). Anchored, unqueryable, no lights, no particles,

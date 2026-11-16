@@ -5,7 +5,7 @@ ChatGPT map brief (`art/map/`), corrected against the code. Where this file and 
 this file wins. The images are **art-style and building-shape reference only**; their scale, road
 network and hub positions are illustrative.
 
-Reference images (`docs/v2/art/map/`):
+Reference images (`docs/v2/visual/art/map/`):
 - `map-plan-canonical.png` — the one image whose labels match the coordinates here.
 - `mood-board-2/3/4.png` — style, building silhouettes, set dressing, season mood. Layouts differ from this spec: ignore them.
 
@@ -68,7 +68,7 @@ whole square and draws every building about twice as big. We take the big versio
 
 ## 3. Hubs
 
-Door = side facing the plaza or road. Accent colours are `ART.md` §5.
+Door = side facing the plaza or road. Accent colours are `visual/ART.md` §5.
 
 | Hub | Centre (X, Z) | Footprint | Door | Accent | Landmark silhouette |
 |---|---|---|---|---|---|
@@ -165,7 +165,7 @@ and colour changes.
 
 ## 8. Dressing rules
 
-Palette only from `ART.md` §3, at most three dominant hues per view. Contour (ink outline) on hubs,
+Palette only from `visual/ART.md` §3, at most three dominant hues per view. Contour (ink outline) on hubs,
 NPCs and interactables within 60 studs, none on backdrop. Per hub 8 to 12 props: kabel, motorbike,
 jemuran, karung, galon, spanduk, kursi plastik, pot. Story gags: motor without plate behind the Warung,
 envelope on Pak RT's table, pinjol banner, proyek mangkrak, tall cabai-price board, free-roaming ayam.
@@ -181,7 +181,7 @@ envelope on Pak RT's table, pinjol banner, proyek mangkrak, tall cabai-price boa
 5. Retire `Greybox.luau` to a test fallback.
 
 Performance: instancing and shared textures, 60 fps on mid-range Android, instance count tracked in
-`PERF_AUDIT.md`.
+`qa/PERF_AUDIT.md`.
 
 ## 10. Code that must change with this spec
 

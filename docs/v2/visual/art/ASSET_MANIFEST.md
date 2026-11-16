@@ -57,7 +57,7 @@ MCP `search_asset` (Creator Store, free filter) and each was loaded in a Play So
 
 ## 3D models (Poly Pizza CC0, via Blender MCP)
 
-FBX in `docs/v2/art/models/`: path mode Copy, Embed Textures, FBX Unit Scale, no leaf bones, no bake animation. Origin at base centre, bottom on Z=0, transforms applied. Columns follow `TOOLS.md` §6. Each FBX embeds a tiny palette PNG (one swatch per original material, UVs point at the swatch) so colours survive the Roblox importer; the first import (plain material colours) came in grey.
+FBX in `docs/v2/visual/art/models/`: path mode Copy, Embed Textures, FBX Unit Scale, no leaf bones, no bake animation. Origin at base centre, bottom on Z=0, transforms applied. Columns follow `plan/TOOLS.md` §6. Each FBX embeds a tiny palette PNG (one swatch per original material, UVs point at the swatch) so colours survive the Roblox importer; the first import (plain material colours) came in grey.
 
 ```
 slot,class,source,source_ref,licence,attribution,id,approved_by,status

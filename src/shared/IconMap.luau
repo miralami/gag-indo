@@ -1,6 +1,6 @@
 -- IconMap: central icon slot map for crops, currency, tiers, and phone apps.
 -- IDs stay 0 until real art is uploaded (TODO: NEEDS-ASSET). Fill `id` per slot when
--- asset IDs are recorded in docs/v2/art/ASSET_MANIFEST.md.
+-- asset IDs are recorded in docs/v2/visual/art/ASSET_MANIFEST.md.
 
 local IconMap = {}
 

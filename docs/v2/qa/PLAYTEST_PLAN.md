@@ -100,7 +100,7 @@ Using the command bar or a local script as a client, fire each remote in `Remote
 
 ### L. Visual / presentation (from a user screenshot, desktop, fresh Studio session)
 Observed: world is still greybox (outlined, untextured blocks); HUD and Village Guide banner have a dark rectangle offset behind them; Board button has a dark backing strip; the hotbar's dark backing is wider than its slots; overlapping billboard labels ("PASAR" over "PAK RT", with a ghost duplicate); labels mix Indonesian ("Pos Polisi", "Lahan Kosong") with English UI ("Smoothholder", "Bring your harvest to the Market"); cash shows RP 999,985 (test grant?).
-- L1 Compare the HUD, Village Guide, Board and hotbar against `docs/v2/mockups/index.html`. Screenshot each at desktop, tablet and phone sizes; note the dark backing offset.
+- L1 Compare the HUD, Village Guide, Board and hotbar against `docs/v2/visual/mockups/index.html`. Screenshot each at desktop, tablet and phone sizes; note the dark backing offset.
 - L2 Check whether the stray dark rectangles are a missing/misanchored background frame or a UI stroke/shadow bug (inspect the instances in the Explorer during play; report names and sizes).
 - L3 Walk the village: list every billboard label that overlaps another or shows a duplicate ghost. Record the camera positions.
 - L4 Language: switch language if the picker exists. Confirm every visible string follows the chosen language, with no ID/EN mix (building names, tile labels, quest text, toasts).

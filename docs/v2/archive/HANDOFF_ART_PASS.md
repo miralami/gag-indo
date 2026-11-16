@@ -7,10 +7,10 @@ Tempel semua isi di bawah garis ini ke opencode (jalankan dari root repo).
 Kamu melanjutkan game Roblox "Juragan Desa" (Luau, Rojo, repo ini). Tugasmu: **menerapkan art bible ke seluruh game**, bukan hanya UI: UI kit, tanaman dan rarity, dunia 3D, NPC, VFX, dan tekstur. Hasil kerjamu di-review dan diverifikasi oleh reviewer lain (Claude) di tiap CHECKPOINT. **Kerjakan berurutan tanpa menunggu persetujuan dan berhenti hanya di checkpoint.** Bila terhalang keputusan desainer, jangan menebak dan jangan berhenti: catat di laporan checkpoint ("Keputusan dibutuhkan"), lewati bagian itu, lanjutkan yang tidak terhalang.
 
 ## Baca dulu (wajib, urut)
-1. `docs/v2/ART.md` — art bible. Sumber kebenaran: palet, garis, rarity, tipografi, lighting.
-2. `docs/v2/DECISIONS.md` — D1 (revisi UI), D5 (pinjol = "BayarLater"), D7 (NPC plesetan), D11 (arah art).
-3. `docs/v2/mockups/index.html` dan `docs/v2/art/moodboard.html` — buka di browser.
-4. `docs/v2/PLAN.md` §3.1 sampai §3.2 — gaya per permukaan, tanaman dan rarity.
+1. `docs/v2/visual/ART.md` — art bible. Sumber kebenaran: palet, garis, rarity, tipografi, lighting.
+2. `docs/v2/plan/DECISIONS.md` — D1 (revisi UI), D5 (pinjol = "BayarLater"), D7 (NPC plesetan), D11 (arah art).
+3. `docs/v2/visual/mockups/index.html` dan `docs/v2/visual/art/moodboard.html` — buka di browser.
+4. `docs/v2/plan/PLAN.md` §3.1 sampai §3.2 — gaya per permukaan, tanaman dan rarity.
 5. Kode terkait tiap workstream (disebut di bawah).
 
 ## Kondisi sekarang
@@ -23,17 +23,17 @@ Kamu melanjutkan game Roblox "Juragan Desa" (Luau, Rojo, repo ini). Tugasmu: **m
 
 ## Prinsip
 - Semua yang butuh gambar dibuat **berjalan tanpa aset** (id `0` = fallback prosedural yang sudah on-palette), lalu aset asli tinggal diisi id-nya. Jangan menunggu aset.
-- Hanya warna dari palet ART.md §3. Warna baru ditambahkan ke ART.md dulu, bukan hardcode.
+- Hanya warna dari palet visual/ART.md §3. Warna baru ditambahkan ke visual/ART.md dulu, bukan hardcode.
 - Satu sumber konfigurasi visual di `src/shared/Config/` (mis. `Visuals.luau`), bukan angka tersebar.
 - Logika murni yang baru wajib punya tes di `tests/specs/`.
 
 ## Workstream (kerjakan urut; berhenti hanya di CHECKPOINT)
 
 ### W1 — UI kit (Theme + Icons)
-- Ganti palet `Theme.luau` ke token ART.md; **jangan hapus field lama** (`panel, panelLight, accent, text, muted, green, red, blue`) dan jangan ubah signature `Theme.new/label/button/card/screenGui/toast`. Petakan ke warna baru; kontras teks minimal 4.5:1.
+- Ganti palet `Theme.luau` ke token visual/ART.md; **jangan hapus field lama** (`panel, panelLight, accent, text, muted, green, red, blue`) dan jangan ubah signature `Theme.new/label/button/card/screenGui/toast`. Petakan ke warna baru; kontras teks minimal 4.5:1.
 - Komponen stiker: outline tinta 2px + bayangan offset keras 4px kanan-bawah, tanpa blur.
 - Skala tipe 28/18/13/11 (tidak ada teks fungsional < 11), spasi 4/8/12/16/24/32, tombol >= 44px.
-- Font: uji kandidat ART.md §8 (display `LuckiestGuy`/`Bungee`, body `Merriweather`/`Nunito`); satu konstanta yang mudah diganti; catat pilihannya di laporan.
+- Font: uji kandidat visual/ART.md §8 (display `LuckiestGuy`/`Bungee`, body `Merriweather`/`Nunito`); satu konstanta yang mudah diganti; catat pilihannya di laporan.
 - `src/client/UI/Icons.luau`: nama ikon -> asset id (semua `0`), fallback tampilan teks/bentuk sederhana (bukan emoji). Ini pengganti semua emoji.
 - Selesai bila: game tetap jalan dengan semua layar lama, tidak ada emoji baru, tes lulus.
 
@@ -44,17 +44,17 @@ Kamu melanjutkan game Roblox "Juragan Desa" (Luau, Rojo, repo ini). Tugasmu: **m
 - **Layar lain** (`Tiles`, `Minigame`, `Minigames/*`, `Admin`): ganti `Color3` hardcoded ke token Theme.
 - Selesai bila: tidak ada `Color3.fromRGB` di luar `Theme.luau` kecuali dengan alasan tertulis.
 
-### >>> CHECKPOINT 1 — UI selesai (W1, W2). Tulis `docs/v2/ART_CHECKPOINT_1.md`, berhenti.
+### >>> CHECKPOINT 1 — UI selesai (W1, W2). Tulis `docs/v2/visual/ART_CHECKPOINT_1.md`, berhenti.
 
 ### W3 — Tanaman dan rarity (visual)
-- `Config/Visuals.luau`: tabel tampilan per tier sesuai ART.md §7 (bingkai, efek, warna). Tambahkan hex ungu untuk Langka ke ART.md §3 dulu.
+- `Config/Visuals.luau`: tabel tampilan per tier sesuai visual/ART.md §7 (bingkai, efek, warna). Tambahkan hex ungu untuk Langka ke visual/ART.md §3 dulu.
 - Chip/bingkai rarity sebagai komponen Theme dipakai di inventori, panen, almanak, toko.
 - **Rarity reveal** saat panen (bingkai muncul, glow, partikel, stinger memakai sound registry yang sudah ada). Biasa tanpa fanfare; Sultan paling heboh.
 - Model dunia tanaman per tahap (bibit, tumbuh, siap) dibuat **prosedural dari Part** dengan siluet jelas dan warna palet, sebagai placeholder sampai ada model asli. Titik integrasi: `FarmService`/tile client (`UI/Tiles.luau`, `World/*`).
 - Selesai bila: satu sesi panen menampilkan perbedaan tier yang jelas; tes untuk tabel Visuals (setiap tier punya entri, warna valid).
 
 ### W4 — Dunia 3D (sementara menunggu peta Studio)
-- Rework `Greybox.luau` dan `Props.luau` ke ART.md §5: palet, warna aksen per hub (Pasar merah, Balai Desa kunyit, Pos Polisi malam, Warung genteng+seng, sawah padi), siluet atap yang diekspresikan.
+- Rework `Greybox.luau` dan `Props.luau` ke visual/ART.md §5: palet, warna aksen per hub (Pasar merah, Balai Desa kunyit, Pos Polisi malam, Warung genteng+seng, sawah padi), siluet atap yang diekspresikan.
 - Kontur objek penting: `Highlight` outline atau inverted hull warna tinta, ketebalan turun menurut jarak (hanya objek dalam ±60 stud). Latar tanpa garis.
 - Set dressing di sekitar hub (kabel, motor, jemuran, karung, galon) dengan **instancing/model bersama**, bukan Part unik per instance. Ruang antar hub dibiarkan lapang.
 - Terrain: sawah terasering dan sungai memakai Terrain (`FillBlock`/`FillBall`), warna dari palet.
@@ -63,17 +63,17 @@ Kamu melanjutkan game Roblox "Juragan Desa" (Luau, Rojo, repo ini). Tugasmu: **m
 - Selesai bila: tidak ada tampilan "plastik halus" default; fps tidak turun (catat jumlah instance sebelum/sesudah).
 
 ### W5 — NPC
-- Buat kartu desain per NPC berulang di `docs/v2/art/npcs.md`: siluet, satu fitur berlebihan, satu aksesori khas, tiga warna dari palet, suara. Parodi sesuai D7 (persona akurat, nama dan wajah diubah).
+- Buat kartu desain per NPC berulang di `docs/v2/visual/art/npcs.md`: siluet, satu fitur berlebihan, satu aksesori khas, tiga warna dari palet, suara. Parodi sesuai D7 (persona akurat, nama dan wajah diubah).
 - `NpcFactory.luau`: proporsi karikatur (kepala besar via skala R15, `HeadScale`), aksesori dari Part, outline selalu aktif, 3-4 state wajah (netral, marah, sombong, panik) bila memungkinkan tanpa gambar.
 - Pemain tetap R15 asli, jangan diubah.
 - Selesai bila: tiap NPC bisa dikenali dari siluet saja.
 
-### >>> CHECKPOINT 2 — tanaman, dunia, NPC (W3 sampai W5). Tulis `docs/v2/ART_CHECKPOINT_2.md`, berhenti.
+### >>> CHECKPOINT 2 — tanaman, dunia, NPC (W3 sampai W5). Tulis `docs/v2/visual/ART_CHECKPOINT_2.md`, berhenti.
 
 ### W6 — Tekstur dan ikon: spesifikasi untuk dibuatkan
 Kamu tidak bisa membuat gambar, jadi hasilkan dokumen siap kerja:
-- `docs/v2/art/TEXTURES.md`: daftar 6-8 tekstur (bambu, genteng, seng, paving, sawah, kertas, tanah) dengan ukuran, tileable, palet, arah cahaya, dan **prompt generasi** per tekstur.
-- `docs/v2/art/ICONS.md`: daftar ikon (12 tanaman, alat, 5 tier, mata uang, ikon UI di `Icons.luau`) dengan ukuran, sudut pandang, arah cahaya (kiri-atas, hangat), kontur tinta, latar transparan, dan prompt generasi.
+- `docs/v2/visual/art/TEXTURES.md`: daftar 6-8 tekstur (bambu, genteng, seng, paving, sawah, kertas, tanah) dengan ukuran, tileable, palet, arah cahaya, dan **prompt generasi** per tekstur.
+- `docs/v2/visual/art/ICONS.md`: daftar ikon (12 tanaman, alat, 5 tier, mata uang, ikon UI di `Icons.luau`) dengan ukuran, sudut pandang, arah cahaya (kiri-atas, hangat), kontur tinta, latar transparan, dan prompt generasi.
 - Slot id kosong sudah ada di kode (W1, W4); dokumen ini memetakan nama slot ke berkas yang harus dibuat.
 
 ### W7 — VFX dan motion
@@ -83,10 +83,10 @@ Kamu tidak bisa membuat gambar, jadi hasilkan dokumen siap kerja:
 - Selesai bila: reveal, raid, dan toast terasa hidup tanpa mengganggu keterbacaan.
 
 ### W8 — QA akhir
-- Audit checklist ART.md §11 untuk seluruh layar dan dunia, dalam tiga preset musim dan cuaca (ganti dari panel admin).
+- Audit checklist visual/ART.md §11 untuk seluruh layar dan dunia, dalam tiga preset musim dan cuaca (ganti dari panel admin).
 - Laporkan fps/jumlah instance, apa yang gagal checklist, dan yang butuh keputusan desainer.
 
-### >>> CHECKPOINT 3 — selesai (W6 sampai W8). Tulis `docs/v2/ART_CHECKPOINT_3.md`, berhenti.
+### >>> CHECKPOINT 3 — selesai (W6 sampai W8). Tulis `docs/v2/visual/ART_CHECKPOINT_3.md`, berhenti.
 
 ## Aturan keras
 - **Jangan ubah** logika server, remote (`src/shared/Remotes.luau`), save data, ekonomi, atau tes yang sudah ada. Ini perubahan visual. Perluasan data hanya di Config visual baru.

@@ -1,4 +1,4 @@
--- NPC archetypes from docs/v2/art/npcs.md (caricature design cards).
+-- NPC archetypes from docs/v2/visual/art/npcs.md (caricature design cards).
 -- Logic/data only: no assets, no audio files. Palette tokens are from Config/Visuals.
 
 local NpcArchetypes = {}

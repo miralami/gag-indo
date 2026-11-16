@@ -33,19 +33,19 @@
 
 ## Ringkasan Perubahan Visual
 
-1. **Palette Terpadu (ART.md §3)**:
+1. **Palette Terpadu (visual/ART.md §3)**:
    - 12 token: `kertas` (`#f3e9d2`), `tinta` (`#2b2118`), `tinta_lembut` (`#5b4a38`), `senja` (`#f6c97a`), `padi` (`#9bb25a`), `daun` (`#6f8a3f`), `genteng` (`#a8452f`), `merah` (`#a83226`), `bambu` (`#b98a5a`), `kunyit` (`#c99a2e`), `indigo` (`#3b4f6b`), `malam` (`#1f4e6b`).
    - Seluruh pemanggilan `Color3.fromRGB` di layer client UI telah dieliminasi 100%. Sisa `Color3` di layer client hanya:
      - `Theme.luau`: konversi hex palette via `Color3.fromHex`.
      - `Icons.luau`: fallback color resolving via `Color3.fromHex`.
      - `Hud.luau`: `crop.color:Lerp(Color3.new(0, 0, 0), 0.55)` (warna benih dinamis dari Crop config).
 
-2. **Tipografi & Spacing (ART.md §8)**:
+2. **Tipografi & Spacing (visual/ART.md §8)**:
    - Display font: `LuckiestGuy` (28px title / 18px heading).
    - Body font: `Nunito` (13px body / 11px small).
    - Touch targets minimum 44px pada seluruh button interaktif (seed bar, close button, shop rows, phone apps, admin button, evidence record).
 
-3. **Sticker Outline & Hard Shadow (ART.md §4)**:
+3. **Sticker Outline & Hard Shadow (visual/ART.md §4)**:
    - `Theme.button` dan `Theme.card` menerapkan outline 2px tinta (`UIStroke`) + offset shadow 4px tanpa blur (kecuali di dalam container layout berulang `UIListLayout`/`UIGridLayout`).
 
 4. **Phone Home Grid**:
@@ -65,7 +65,7 @@
 ---
 
 ## Keputusan Dibutuhkan
-1. **Aksen Ungu Rarity Langka**: `ART.md` §12 mencatat warna ungu untuk Langka belum masuk dalam 12 token palette dasar. Perlu penetapan kode hex ungu di `ART.md` sebelum W3 (Rarity pass).
+1. **Aksen Ungu Rarity Langka**: `visual/ART.md` §12 mencatat warna ungu untuk Langka belum masuk dalam 12 token palette dasar. Perlu penetapan kode hex ungu di `visual/ART.md` sebelum W3 (Rarity pass).
 2. **Icon Asset IDs**: Saat ini seluruh 24 slot icon menggunakan ID `0` (fallback chip ASCII). Asset ID final dari designer diperlukan saat asset upload siap.
 
 ---

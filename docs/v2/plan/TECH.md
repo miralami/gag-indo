@@ -1,7 +1,7 @@
 # Juragan Desa — v2 Technical Foundation (M0–M2)
 
 > What M0, M1 and M2 changed, and the rules the rest of v2 builds on. Read this together with
-> [v1/TECH.md](../v1/TECH.md): the ground rules there still hold — the server decides
+> [v1/TECH.md](../../v1/TECH.md): the ground rules there still hold — the server decides
 > everything, one owner per piece of state, config lives in tables, every remote is validated
 > and rate-limited. This file only documents what v2 added.
 
@@ -417,7 +417,7 @@ seconds **at plant time** and stores them on the tile, so a season change never 
 already in the ground; the next regrow picks up the new season. `SeasonService` mirrors
 `Growth_<family>` onto `ReplicatedStorage` for the UI; `client/World/Sky.luau` tweens Lighting
 and Atmosphere towards the `Seasons.sky` preset merged with the weather overlay from `Cuaca`.
-It also drives ColorCorrection, Bloom and SunRays (golden-hour look, `ART.md` §5). **Manual step:**
+It also drives ColorCorrection, Bloom and SunRays (golden-hour look, `visual/ART.md` §5). **Manual step:**
 `Lighting.Technology` cannot be set from a script, so set it to `Future` once in Studio (Lighting
 properties) and save the place file; `ShadowSoftness`, exposure and the effects are set by `Sky.mount`.
 
@@ -511,7 +511,7 @@ full, or the cash cannot cover the next item. One shift at a time.
 | M2 gudang | `storage_spec`: clean-only, quality-preserving, capacity | green |
 | M2 buruh | `worker_spec`: hire, wage, pass cap, stop conditions | green |
 
-Manual checks still required in Studio (see [docs/testing](../testing/README.md)):
+Manual checks still required in Studio (see [docs/testing](../../testing/README.md)):
 
 1. Play the v1 loop; confirm cash, sack count, Pasar vs Gelap, hot-produce refusal and a raid still work.
 2. Rejoin with an existing v1/v2 save; confirm cash, rank, tiles and planted crops survive, and the
@@ -533,7 +533,7 @@ Manual checks still required in Studio (see [docs/testing](../testing/README.md)
 ## 11. Gaps and next steps
 
 - **D1 (UI direction)** is the only M0 item not code: mockups live in
-  [mockups/index.html](mockups/index.html). The v1 Theme stays until they are approved; the M2
+  [mockups/index.html](../visual/mockups/index.html). The v1 Theme stays until they are approved; the M2
   phone tab was built on it deliberately.
 - M1 leaves two seams for later milestones: `permit` is still read but not enforced (the Balai
   Desa check moved to v2.1 with the story), and `certified` is rolled but nothing sets it yet

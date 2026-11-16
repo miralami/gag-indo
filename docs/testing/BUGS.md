@@ -1,6 +1,6 @@
 # Bug List
 
-Single defect list for the Master Plan (`docs/v2/MASTER_PLAN.md` §0, §3.0.2, §3.0.3b).
+Single defect list for the Master Plan (`docs/v2/plan/MASTER_PLAN.md` §0, §3.0.2, §3.0.3b).
 Every agent reads this first and adds real findings only. No invented bugs, asset IDs or UserIds.
 
 Status words follow `MASTER_PLAN.md` §7: `SEEN-IN-STUDIO`, `LUNE-ONLY`, `UNVERIFIED`, `BLOCKED`.

@@ -20,6 +20,7 @@ local specs = {
 	require("./specs/seasons_spec"),
 	require("./specs/shop_spec"),
 	require("./specs/shop_failure_spec"),
+	require("./specs/economy_failure_spec"),
 	require("./specs/market_spec"),
 	require("./specs/tool_spec"),
 	require("./specs/storage_spec"),

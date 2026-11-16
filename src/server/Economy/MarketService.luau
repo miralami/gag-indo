@@ -32,7 +32,8 @@ end
 
 -- Selling pushes the price down. `count` is the number of items sold.
 function MarketService.recordSale(cropId: string, count: number)
-	if not Crops.list[cropId] or type(count) ~= "number" or count <= 0 then
+	-- NaN and infinity would poison the price table for the whole server run, so refuse them.
+	if not Crops.list[cropId] or type(count) ~= "number" or count ~= count or count <= 0 or count == math.huge then
 		return
 	end
 	pressure[cropId] = clampPressure((pressure[cropId] or 0) + math.floor(count) * Market.pressurePerItem)

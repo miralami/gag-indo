@@ -7,6 +7,57 @@ Per-task audit log for the T1-T16 workhorse backlog on `track/c-world-look`. Sta
 - **Fixes:** Removed literal headroom/spawn mentions from Greybox comments; made `Config/Seasons` source `musimOrder` and golden-hour max clock from `MapSpec` (robust lookup for Env/Roblox contexts); added `tests/specs/world_constants_spec.luau` asserting MapSpec owns values and target modules contain no duplicate literals.
 - **Studio checks needed:** Verify season sky/clock behavior and client season loading still work in Studio (Seasons now resolves MapSpec via ServerScriptService lookup at runtime).
 
+## T2 — Remote audit / validation / rate limits
+- **Findings:** All `RemoteEvent` names in `src/shared/Remotes.luau` accounted for. Client->server gameplay handlers already apply `RateLimit.allow`, type/range/enum checks, and player/data/ownership guards in reviewed services (`Economy/EconomyService`, `Economy/ShopService`, `Economy/DebtService`, `Farm/FarmService`, `Farm/StorageService`, `Farm/ToolService`, `Farm/WorkerService`, `Law/BribeService`, `Law/CheatService`, `Law/EvidenceService`, `Law/RaidService`, `Live/AdminService`, `Monetization/Cosmetics`, `Monetization/Items`, `Net/State`, `Progression/NeighborService`, `Progression/QuestService`). Gap: `Trade_Request`, `Trade_Respond`, `Event_Claim` existed as client->server remotes with no server handler (unowned/unused), leaving no explicit rate-limit/payload-ignore contract.
+- **Fixes:** Added `src/server/Net/RemoteGuards.luau` to rate-limit (2/s burst) and ignore payloads for unowned remotes (`Trade_Request`, `Trade_Respond`, `Event_Claim`) without mutating state; wired `RemoteGuards.start()` in `src/server/Main.server.luau`. Added `tests/specs/remote_audit_spec.luau` covering guarded payload ignoring, rate-limit behavior, and crop-id validation contract. No behavior changes to existing gameplay handlers (spec-proven gaps only).
+- **Studio checks needed:** Confirm no client flows rely on immediate responses for trade/event remotes (none implemented server-side); verify admin/quest/cosmetic/raid remotes still behave correctly in live Studio sessions.
+
+### T2 remote table
+| Remote | Direction | Handler / owner | Guards (type/range/rate/ownership) |
+| --- | --- | --- | --- |
+| `Farm_SelectSeed` | C->S | `Farm/FarmService` | rate 8/s, string crop id in `Crops.list` |
+| `Farm_Complete` | C->S | `Farm/FarmService` | rate 4/s, finite number score, pending attempt + timing window, server re-check in finish |
+| `Farm_Auto` | C->S | `Farm/FarmService` | rate `GameConfig.autoRatePerSecond`, pending/action/tile/crop match, enum action |
+| `Shop_BuySeed` | C->S | `Economy/ShopService` | rate 2/s, player data, string crop, integer amount 1..99, stock/rank/cash checks |
+| `Storage_Deposit` | C->S | `Farm/StorageService` | rate 3/s, player data, no payload; refuses hot/empty/full by state |
+| `Storage_Withdraw` | C->S | `Farm/StorageService` | rate 3/s, player data, no payload |
+| `Tool_Buy` | C->S | `Farm/ToolService` | rate 1/s, player data, string line id, config/rank/cash checks |
+| `Worker_Hire` | C->S | `Farm/WorkerService` | rate 2/s, player data, no payload, shift/cash checks |
+| `Market_Sell` | C->S | `Economy/EconomyService` | rate 1/s, player data, crop/channel enum, produce/proximity checks |
+| `Cheat_Apply` | C->S | `Law/CheatService` | rate 1/s, string cheat id, typed tile/target bounds, service/state checks |
+| `Bribe_RT` | C->S | `Law/BribeService` | rate 1/s, player data, proximity/cooldown/cash checks |
+| `Raid_Choose` | C->S | `Law/RaidService` | rate 1/s, string enum choice, choosing-state/player-data guards |
+| `Evidence_Record` | C->S | `Law/EvidenceService` | rate 2/s, string event id, offer/expiry ownership checks |
+| `Evidence_Report` | C->S | `Law/EvidenceService` | rate 1/s, string token id, owner/expiry/proximity/cooldown checks |
+| `State_Request` | C->S | `Net/State` | rate 1/s, snapshot only for loaded player |
+| `Water_Neighbor` | C->S | `Progression/NeighborService` | rate 1/s, numeric target, not-self, neighbor/proximity/data checks |
+| `Quest_ClaimDaily` | C->S | `Progression/QuestService` | rate 2/s (`CLAIM_RATE`), player data, claim-once/day checks |
+| `Quest_ClaimTask` | C->S | `Progression/QuestService` | rate 2/s, string task id, task/progress/definition checks |
+| `Debt_Borrow` | C->S | `Economy/DebtService` | rate 2/s, finite integer amount, rank/raid/active-loan checks |
+| `Debt_Repay` | C->S | `Economy/DebtService` | rate 2/s, finite integer amount, active-loan checks |
+| `Item_Use` | C->S | `Monetization/Items` | rate 1/s, string item id, inventory/cooldown/state checks |
+| `Cosmetic_Buy` | C->S | `Monetization/Cosmetics` | rate 2/s, string item id, config/ownership/cash checks |
+| `Cosmetic_Equip` | C->S | `Monetization/Cosmetics` | rate 4/s, nil/empty unequip or string owned item id |
+| `Admin_Command` | C->S | `Live/AdminService` | rate 4/s, admin allowlist, payload/action whitelist, per-action typed validation/clamps |
+| `Trade_Request` | C->S | `Net/RemoteGuards` | rate 2/s, payload ignored, no state mutation (unowned) |
+| `Trade_Respond` | C->S | `Net/RemoteGuards` | rate 2/s, payload ignored, no state mutation (unowned) |
+| `Event_Claim` | C->S | `Net/RemoteGuards` | rate 2/s, payload ignored, no state mutation (unowned) |
+| `State_Snapshot` | S->C | `Net/State` | server-owned snapshot; client request rate-limited |
+| `State_Patch` | S->C | `Net/State` | server-owned coalesced patches |
+| `Notify` | S->C | `Net/Notify` | server-owned UI notifications |
+| `Sus_Update` | S->C | `Law/SusService` | server-owned sus state |
+| `Minigame_Start` | S->C | `Farm/FarmService` | server-owned attempt start |
+| `Raid_Start` | S->C | `Law/RaidService` | server-owned raid state |
+| `Raid_End` | S->C | `Law/RaidService` | server-owned raid state |
+| `Jail_State` | S->C | `Law/RaidService` | server-owned jail timer |
+| `Evidence_Offer` | S->C | `Law/EvidenceService` | server-issued token offer |
+| `Evidence_Token` | S->C | `Law/EvidenceService` | server-issued token |
+| `Evidence_Remove` | S->C | `Law/EvidenceService` | server-issued removal |
+| `Profile_Loaded` | S->C | `Data/PlayerData` | server-owned load signal |
+| `Leaderboard_Data` | S->C | `Social/LeaderboardService` | server-owned board payload |
+| `Admin_Result` | S->C | `Live/AdminService` | reply to admin caller only |
+| `Harness_Result` | S->C | `Testing/Harness` | Studio/test harness reply |
+
 ## BLOCKED
 - `BUG-004` — broke-player recovery choice pending designer decision D-G3 (`docs/testing/BUGS.md`). No code fix applied.
 

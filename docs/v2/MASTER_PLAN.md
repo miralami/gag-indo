@@ -8,7 +8,7 @@
 
 ## Progress tracker â€” read first, update last
 
-**Last updated:** 2026-11-16 Â· branch `track/c-world-look` Â· `lune run tests/run.luau`: 626 passing (`LUNE-ONLY`, T1 world constants single-sourced).
+**Last updated:** 2026-11-16 — branch `track/c-world-look` — `lune run tests/run.luau`: 629 passing (`LUNE-ONLY`, T2 remote audit/guards).
 
 **Rules for this section.** Every agent reads it before touching the repo, so nobody has to rediscover
 the state from scratch. Whoever finishes a task ticks it here **in the same commit**, adds its status

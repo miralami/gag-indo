@@ -44,6 +44,16 @@ function RaidService.bindSus(api)
 	susApi = api
 end
 
+-- A damaged or old save may lack these tables; never index through nil.
+local function ensureTables(data)
+	if type(data.cooldowns) ~= "table" then
+		data.cooldowns = {}
+	end
+	if type(data.stats) ~= "table" then
+		data.stats = {}
+	end
+end
+
 local function isActive(raid: Raid?): boolean
 	return raid ~= nil and (raid.state == "incoming" or raid.state == "choosing" or raid.state == "resolving")
 end
@@ -121,6 +131,7 @@ local function resetRaid(player: Player, raid: Raid, outcome: string)
 	setState(raid, finalState)
 	player:SetAttribute("InRaid", false)
 	if data then
+		ensureTables(data)
 		data.cooldowns.raidSafeUntil = os.time() + Law.raidCooldown
 		data.stats.raids = (data.stats.raids or 0) + 1
 		local penalty = if raid.isViral then Law.namaBaikViral else Law.namaBaikCaught
@@ -268,6 +279,7 @@ function RaidService.start(player: Player, isViral: boolean)
 	if isActive(existing) or (existing and existing.state == "jail") then
 		return
 	end
+	ensureTables(data)
 	local skipCooldown = isViral or (data.sus or 0) >= Law.susMax
 	if not skipCooldown and os.time() < (data.cooldowns.raidSafeUntil or 0) then
 		return
@@ -362,6 +374,7 @@ function RaidService.resolveOnLeave(player: Player, data)
 	if isActive(raid) then
 		local fine = raid.fine
 		data.cash = math.max(0, (data.cash or 0) - fine)
+		ensureTables(data)
 		data.cooldowns.raidSafeUntil = os.time() + Law.raidCooldown
 		data.stats.raids = (data.stats.raids or 0) + 1
 		local penalty = if raid.isViral then Law.namaBaikViral else Law.namaBaikCaught

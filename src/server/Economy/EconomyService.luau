@@ -113,7 +113,7 @@ function EconomyService.trySpend(
 		return false
 	end
 	amount = math.floor(amount)
-	if data.cash < amount then
+	if not isFiniteNumber(data.cash) or data.cash < amount then
 		Notify.send(player, "n_not_enough_cash")
 		return false
 	end

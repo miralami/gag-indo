@@ -10,7 +10,7 @@
 - `docs/v2/visual/ART.md`
 - `src/shared/Config/Visuals.luau`
 - `tests/specs/visuals_spec.luau`
-- `docs/v2/visual/ART_CHECKPOINT_2.md`
+- `docs/v2/archive/ART_CHECKPOINT_2.md`
 
 ## Ringkasan
 - Menetapkan aksen `ungu` `#7652a8` untuk Langka sesuai visual/ART.md.

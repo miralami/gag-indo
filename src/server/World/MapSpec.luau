@@ -1,4 +1,4 @@
--- MapSpec: every layout number from docs/v2/art/MAP_SPEC.md in one place.
+-- MapSpec: every layout number from docs/v2/visual/art/MAP_SPEC.md in one place.
 --
 -- Pure data and pure functions only: no Instances, no Enum lookups at load time. Materials are plain
 -- strings ("Grass", "Ground", ...) and coordinates are numbers, so every list here can be checked

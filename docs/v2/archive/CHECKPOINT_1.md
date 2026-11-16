@@ -1,7 +1,7 @@
 # CHECKPOINT 1 — M4 selesai
 
 Tanggal: 2026-11-12
-Lingkup: FASE A (`A1`–`A4`) dari `HANDOFF_ROADMAP.md`.
+Lingkup: FASE A (`A1`–`A4`) dari `archive/HANDOFF_ROADMAP.md`.
 
 ## Daftar langkah
 
@@ -9,7 +9,7 @@ Lingkup: FASE A (`A1`–`A4`) dari `HANDOFF_ROADMAP.md`.
 |---|---|---|
 | A1 Leaderboard | selesai | Logika murni + service diperkuat + UI client baru |
 | A2 Monetisasi | selesai (id tetap `0`) | Item §3.7 ditambahkan; efek server berjalan; harga/ID menunggu D9 |
-| A3 Analytics | selesai | Satu modul, funnel + ekonomi + event kustom, `docs/v2/ANALYTICS.md` |
+| A3 Analytics | selesai | Satu modul, funnel + ekonomi + event kustom, `docs/v2/plan/ANALYTICS.md` |
 | A4 Tes alur pinjol penuh | selesai | Eskalasi berurutan, kolektor, penyitaan berulang, rejoin |
 
 Semua langkah A1–A4 selesai. Tidak ada langkah yang dilewati. Yang tidak bisa diputuskan
@@ -24,7 +24,7 @@ tanpa desainer dicatat di bagian "Keputusan dibutuhkan".
 - `tests/specs/analytics_spec.luau` — 20 tes wrapper analytics.
 - `tests/specs/leaderboard_spec.luau` — 34 tes logika + service papan.
 - `tests/specs/passes_spec.luau` — tes pass/produk baru.
-- `docs/v2/ANALYTICS.md` — kontrak event, tabel sku ekonomi, funnel, apa yang tidak dikirim.
+- `docs/v2/plan/ANALYTICS.md` — kontrak event, tabel sku ekonomi, funnel, apa yang tidak dikirim.
 
 ### Diubah
 - `src/server/Social/LeaderboardService.luau` — pcall + retry terbatas, throttle tulis, cache nama, validasi payload, tidak menerima nilai klien.
@@ -85,5 +85,5 @@ Baseline handoff: 386 tes. Sekarang 458 (+72), tidak ada tes yang dihapus atau d
 
 - `feat(leaderboard): logika papan, service, dan UI` — `src/shared/Leaderboard.luau`, `src/server/Social/`, `src/client/UI/Leaderboard.luau`, `src/client/Main.client.luau`, `tests/specs/leaderboard_spec.luau`.
 - `feat(monetization): pass gudang/auto-panen, restock, rupiah pack` — `Config/Products.luau`, `Config/Game.luau`, `Receipts.luau`, `Passes.luau`, `ShopService.luau`, `ShopStock.luau`, `WorkerService.luau`, `StorageService.luau`, `tests/specs/passes_spec.luau`, `receipts_spec.luau`, `shop_spec.luau`, `worker_spec.luau`.
-- `feat(analytics): wrapper event, ekonomi, funnel + dokumen` — `server/Analytics/Analytics.luau`, instrumentasi service, `docs/v2/ANALYTICS.md`, `tests/specs/analytics_spec.luau`, `tests/lib/*`.
+- `feat(analytics): wrapper event, ekonomi, funnel + dokumen` — `server/Analytics/Analytics.luau`, instrumentasi service, `docs/v2/plan/ANALYTICS.md`, `tests/specs/analytics_spec.luau`, `tests/lib/*`.
 - `feat(debt): alur pinjol penuh + kolektor` — `server/Economy/DebtService.luau`, `DebtCollector.luau`, `Main.server.luau`, `Strings.luau`, `tests/specs/debt_spec.luau`.

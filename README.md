@@ -1,6 +1,6 @@
 # Juragan Desa
 
-A satirical Indonesian village farming game for Roblox. v2 plan: [docs/v2/PLAN.md](docs/v2/PLAN.md) · v2 technical foundation: [docs/v2/TECH.md](docs/v2/TECH.md) · designer decisions: [docs/v2/DECISIONS.md](docs/v2/DECISIONS.md) · v1 design: [docs/v1/GDD.md](docs/v1/GDD.md) · v1 dev guide: [docs/v1/TECH.md](docs/v1/TECH.md)
+A satirical Indonesian village farming game for Roblox. v2 plan: [docs/v2/plan/PLAN.md](docs/v2/plan/PLAN.md) · v2 technical foundation: [docs/v2/plan/TECH.md](docs/v2/plan/TECH.md) · designer decisions: [docs/v2/plan/DECISIONS.md](docs/v2/plan/DECISIONS.md) · v1 design: [docs/v1/GDD.md](docs/v1/GDD.md) · v1 dev guide: [docs/v1/TECH.md](docs/v1/TECH.md)
 
 > **v2 status:** the foundation (M0), farming depth (M1) and the living world (M2) are in place.
 > Saves are schema v3 and migrate in place; the game now has 12 crops in three families,
@@ -8,8 +8,8 @@ A satirical Indonesian village farming game for Roblox. v2 plan: [docs/v2/PLAN.m
 > with page rewards, a rarity reveal toast, seasons that change growth and sky, a rotating
 > deterministic seed shop, Pasar supply and demand, permanent tools, the gudang and the hired
 > buruh tani — plus a replicated state module, a tag-driven world, admin LiveConfig and an F2 admin
-> panel. Next up is M3 (art-gated presentation). See [docs/v2/TECH.md](docs/v2/TECH.md) for the
-> contract and [docs/v2/mockups/index.html](docs/v2/mockups/index.html) for the proposed UI (D1, not
+> panel. Next up is M3 (art-gated presentation). See [docs/v2/plan/TECH.md](docs/v2/plan/TECH.md) for the
+> contract and [docs/v2/visual/mockups/index.html](docs/v2/visual/mockups/index.html) for the proposed UI (D1, not
 > wired in).
 
 ## First-time setup (once)
@@ -46,7 +46,7 @@ The in-game admin panel opens with **F2** and only for allowlisted UserIds. Put 
 `src/server/Live/Admins.luau` (`Admins.userIds`) — it is empty by default and enforced on the server.
 The panel can override season/weather, force the cabai event on or off, grant items and inspect a
 player. Changes go through `LiveConfig`, so they survive a server restart and reach every server.
-See [docs/v2/TECH.md](docs/v2/TECH.md) §4–5.
+See [docs/v2/plan/TECH.md](docs/v2/plan/TECH.md) §4–5.
 
 Admin LiveConfig stores: `LiveConfig_v1_Studio` in Studio, `LiveConfig_v1` live. Player saves keep the
 old store names (`PlayerData_v1_Studio` / `PlayerData_v1`) and migrate in place to schema v3.

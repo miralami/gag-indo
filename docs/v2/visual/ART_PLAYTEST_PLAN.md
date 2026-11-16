@@ -20,7 +20,7 @@ Scope: verify the W3–W8 visual pass in Roblox Studio without changing gameplay
 | P4 — Reveal motion/audio | Trigger a rare reveal and Sultan reveal; separately test Sultan camera shake. | Frame/glow/reveal feedback is legible; motion is brief; sting plays once; shake is limited to Sultan/raid and does not leave the camera offset. | Short recording; client Output log. |
 | P5 — Raid | Trigger a raid through approved test controls; observe warning, overlay, NPC response, end/cleanup. | Readable raid warning and motion; no stuck overlay, camera, NPC, or input state after raid ends. | Recording; before/after screenshots; Output log. |
 | P6 — NPCs | Inspect each NPC at close and normal interaction distance; trigger speech with neutral, `!`, and `?` text where available. | Silhouette/accessory and contour read clearly; mouth response is understandable; text is not clipped; no overlapping name/speech labels. | Screenshots at both distances. |
-| P7 — Hub art | Inspect Pasar, Balai Desa, Pos Polisi, Warung, sawah, dressing clusters, and contours. | Palette and landmark identity match `ART.md`; hero objects outlined, backdrop not noisy; contour does not dominate at distance; dressing does not block paths/prompts. | Hub screenshots; defect list. |
+| P7 — Hub art | Inspect Pasar, Balai Desa, Pos Polisi, Warung, sawah, dressing clusters, and contours. | Palette and landmark identity match `visual/ART.md`; hero objects outlined, backdrop not noisy; contour does not dominate at distance; dressing does not block paths/prompts. | Hub screenshots; defect list. |
 | P8 — Season/weather | In a private test session, cycle Hujan, Kemarau, Pancaroba and available weather presets using supported admin/config controls. | Each preset applies and transitions cleanly; palette remains readable; rain/storm effects do not obscure play; no persistent Lighting changes after switching. | Screenshot per preset; Output log. |
 | P9 — Rebuild lifecycle | In Studio edit/test workflow, build the generated Greybox twice; compare Terrain and tagged world. Repeat with a designer map present only if a safe test copy exists. | Rebuild does not stack terrain, delete designer content, duplicate tags, or leave stale generated objects. | Before/after screenshots; Explorer/Terrain evidence. |
 | P10 — Mobile/performance | Repeat P1, P2, P7 at target mobile resolution and mid-range Android quality; compare against baseline. | Text/touch targets readable; no clipped UI; routes/prompts usable; target 60 FPS where device supports it; record any regression and instance delta. | Device/resolution/quality, FPS samples, instance counts, screenshots. |
@@ -39,7 +39,7 @@ Scope: verify the W3–W8 visual pass in Roblox Studio without changing gameplay
 - Every applicable case marked PASS or FAIL with evidence; BLOCKED requires a reason and owner.
 - No blocker or major defect remains open for sprint closure.
 - `lune run tests/run` passes after any code changes.
-- Update `docs/v2/ART_CHECKPOINT_3.md` with results, device details, evidence locations, and remaining Studio-only items.
+- Update `docs/v2/visual/ART_CHECKPOINT_3.md` with results, device details, evidence locations, and remaining Studio-only items.
 - Do not claim visual pass from code review or automated tests alone. Do not fill asset IDs without approved assets/licensing.
 
 ## Results log

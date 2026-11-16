@@ -2,9 +2,9 @@
 
 > Written 2026-11-16. The direction for everything the player **sees**: light, atmosphere, surfaces,
 > models, vegetation, water, characters, animation, VFX, camera and UI fidelity.
-> `MASTER_PLAN.md` still governs what may be built, in what order and how work is proven; this file
-> sits under it and never overrides it. Where this file disagrees with `ART.md` on *look*, this file
-> wins (see §2, decision D14). `ART.md` keeps the palette, the UI kit and the NPC caricature rules.
+> `plan/MASTER_PLAN.md` still governs what may be built, in what order and how work is proven; this file
+> sits under it and never overrides it. Where this file disagrees with `visual/ART.md` on *look*, this file
+> wins (see §2, decision D14). `visual/ART.md` keeps the palette, the UI kit and the NPC caricature rules.
 
 ## Visual tracker — read first, update last
 
@@ -64,13 +64,13 @@ One line: **Realisme hangat — a real Indonesian village on its best afternoon.
 |---|---|
 | Real light behaviour: soft sky fill, long shadows, haze with depth, wet ground that reflects | Scanned photogrammetry, 4K textures, film grain, lens dirt |
 | Real materials: wood grain, rusted seng, cracked plaster, mud, woven bamboo, with roughness and normal maps | Flat single-colour surfaces; also noisy "realism" that hides gameplay |
-| Real proportions for buildings and props; real plant shapes | Uncanny human faces. Players stay R15, NPCs stay caricature (D7, `ART.md` §6) |
+| Real proportions for buildings and props; real plant shapes | Uncanny human faces. Players stay R15, NPCs stay caricature (D7, `visual/ART.md` §6) |
 | Things that move the way they do in a village: smoke, laundry, chickens, water, dust | Simulation for its own sake |
 | Detail density where the player stands; calm where they do not | Uniform detail everywhere (kills phones and focus) |
 
-### What changes from `ART.md`
+### What changes from `visual/ART.md`
 
-| `ART.md` says | Now | Why |
+| `visual/ART.md` says | Now | Why |
 |---|---|---|
 | "No photoreal" (§1) | Realistic is the aim; photoreal *assets* are fine if they pass budget and licence | D14 |
 | Hand-painted `SurfaceAppearance`, painted backdrop (§5) | PBR materials with real roughness and normal maps | D14 |
@@ -136,7 +136,7 @@ Target: light does the art direction. The village should look good with every te
 - **V-L1.4** Time drift (V-D2): golden hour for the first session, then a slow slide to blue hour
   and night with moon fill, and back. Server owns the clock; presets gain a time axis.
 - **V-L1.5** Replace the stock skybox with a sky that matches each season (clear amber, broken
-  monsoon cloud, heavy overcast). Asset route per `TOOLS.md`; never an invented id.
+  monsoon cloud, heavy overcast). Asset route per `plan/TOOLS.md`; never an invented id.
 - **V-L1.6** Depth cues: aerial haze tuned so far hills go two steps bluer and lighter; optional
   light shafts (Beams, additive) under trees and through the pasar roof, near camera only.
 - **V-L1.7** Depth of field only in authored shots (M1, M3, M5, photo mode), never during play.
@@ -157,7 +157,7 @@ Target: no surface is a built-in material at default. Eight to ten materials car
   ground and the buildings belong to one photograph.
 - **V-L2.4** Wear and story: decal layer for water stains under roofs, moss at wall feet, tyre
   tracks, posters and stickers, oil spots at the motor parking. This is where "Indonesian
-  specifics" (`ART.md` pillar 4) lives.
+  specifics" (`visual/ART.md` pillar 4) lives.
 - **V-L2.5** Wetness: in rain presets, roads and roofs get darker and glossier (swap to a wet
   variant), and reflective puddle surfaces appear in low spots (technique to confirm, §11).
 
@@ -265,7 +265,7 @@ The kit is right; the finish is missing. Fidelity here means material, motion an
   thermal paper with a torn edge; raid letter with letterhead and a stamp that lands off-centre.
 - **V-L9.3** Motion grammar, defined once in `Theme` and used everywhere: open (scale from the
   button that opened it), close, press (2 px sink into the hard shadow), reward (pop with
-  overshoot), number change (roll), error (short shake). Nothing over 0.3 s (`ART.md` §9).
+  overshoot), number change (roll), error (short shake). Nothing over 0.3 s (`visual/ART.md` §9).
 - **V-L9.4** Phone as an object: bezel, screen glow on the avatar's face at night, notification
   buzz with a tilt, app-open zoom from the icon.
 - **V-L9.5** Diegetic touches: prices on chalkboards in the pasar, the leaderboard on the balai
@@ -324,9 +324,9 @@ Order matters more than speed. Each phase ends with evidence in the owning track
 |---|---|---|
 | V0.1 | `FidelityTier` module with pure tier-selection logic and a spec | `LUNE-ONLY` spec; tiers switch live in Studio |
 | V0.2 | Admin-only switches for Highlights, shadows, bloom, decoration, particles (`RESEARCH_VISUAL_TIPS.md` §3.1) | Designer phone gives an fps number per switch; the cost table replaces the guesses in §6 |
-| V0.3 | Reference board: 12–20 photos (village at senja, sawah, pasar, warung at night, rain on seng) from the designer or CC0 sources, stored with sources under `docs/v2/art/reference/` | Board exists; every later review cites a photo |
+| V0.3 | Reference board: 12–20 photos (village at senja, sawah, pasar, warung at night, rain on seng) from the designer or CC0 sources, stored with sources under `docs/v2/visual/art/reference/` | Board exists; every later review cites a photo |
 | V0.4 | Look-dev scene: one 60×60 stud corner (warung, a road bend, a sawah edge) where materials, models and light are tried before touching the village; includes the prop style call V-L3.1 | Scene built in Studio, before/after captured |
-| V0.5 | Designer answers V-D1 to V-D5 (§10) | Rows in `DECISIONS.md` |
+| V0.5 | Designer answers V-D1 to V-D5 (§10) | Rows in `plan/DECISIONS.md` |
 
 **Gate V0:** we know what each effect costs on the phone, and we have a corner of the village
 that the designer says is the look.
@@ -359,7 +359,7 @@ passes §3; ten-minute soak at Sedang with no tier thrash.
 
 ### V4 — Fidelity sweep
 
-Walk every hub and every screen with the §3 tests and the `ART.md` §11 checklist (updated for
+Walk every hub and every screen with the §3 tests and the `visual/ART.md` §11 checklist (updated for
 D14). L2.4, L3.3–L3.4, L9.4–L9.6, L8.3–L8.4. Anything below the bar is fixed or removed.
 
 **Gate V4:** no capture from anywhere in the village fails the stranger test.
@@ -373,7 +373,7 @@ minutes is a placeholder.
 
 ## 8. Lanes, pipeline and proof
 
-- **Ownership follows `MASTER_PLAN.md` §5.** L1–L5 track C, L6 track F, L7–L8 track A, L9 track D,
+- **Ownership follows `plan/MASTER_PLAN.md` §5.** L1–L5 track C, L6 track F, L7–L8 track A, L9 track D,
   L10 track E, assets track G. `FidelityTier` lives in `src/client/Feel/` (track A); its settings
   toggle is track D; crop visuals in `FarmService` follow track A's "visible crop growth stages"
   deliverable. `Theme.luau` stays track D only; `JuraganDesa.rbxl` stays track C only.
@@ -404,7 +404,7 @@ minutes is a placeholder.
 
 | # | Decision | Recommendation |
 |---|---|---|
-| V-D1 | Retire the world ink contour (`ART.md` §2, §4)? Keep `Highlight` only as a focus cue. | Yes. It fights realism and is the first perf suspect. UI keeps its outline. |
+| V-D1 | Retire the world ink contour (`visual/ART.md` §2, §4)? Keep `Highlight` only as a focus cue. | Yes. It fights realism and is the first perf suspect. UI keeps its outline. |
 | V-D2 | Let the clock move (golden hour → dusk → night → morning)? | Yes, slowly, with golden hour guaranteed for the first session and for spawn. |
 | V-D3 | The ten low-poly props: re-texture and keep, or replace? | Judge per prop in the look-dev scene; expect to keep the simple ones (crate, barrel, karung, fence) and replace the stall, hut and motor. |
 | V-D4 | Pine backdrop: replace with tropical trees, or push back as a far ridge? | Replace within sight of the village; pines are the least Indonesian thing on screen. |

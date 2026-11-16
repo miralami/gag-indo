@@ -1,4 +1,4 @@
--- Greybox: generated stand-in for the real map (v2 PLAN §3.1, docs/v2/art/MAP_SPEC.md).
+-- Greybox: generated stand-in for the real map (v2 PLAN §3.1, docs/v2/visual/art/MAP_SPEC.md).
 -- It builds the blockout village and emits the same tags/attributes a designer map uses
 -- (see World/Map.luau), so the rest of the game never hardcodes layout.
 --
@@ -513,7 +513,7 @@ local function buildPosPolisi(world: Folder)
 	model.Parent = world
 end
 
--- Rumah Pak RT: the scale reference for the whole village (docs/v2/art/map concept art). A player is
+-- Rumah Pak RT: the scale reference for the whole village (docs/v2/visual/art/map concept art). A player is
 -- about 7.25 studs tall, so the door is 10.5 (1.45 avatars) and the house is two storeys: a tall front
 -- block A with a gold gable roof (ridge about 32 studs up) beside a lower block B with a zinc front, a
 -- porch awning across both, porch open to the north (local +Z, yaw 180). Footprint 48 x 34.

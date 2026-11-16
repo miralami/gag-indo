@@ -9,4 +9,4 @@ Build: 8254460  Place: JuraganDesa.rbxl (not saved)  Device: iPhone 14 (844x390)
 - Design values from config: padi `growSeconds` 60, `sellPrice` 18 (`src/shared/Config/Crops.luau:44-45`); `startCash` 50, `startSeeds` padi 5 (`src/shared/Config/Game.luau:5-6`)
 - Real-player first-ten-minutes timings: UNVERIFIED (NOT measured; no timing captured in this run)
 - Not checked: minigame feel, frame rate, desktop size, ten-player, published place, Output log
-Decisions needed: none new; D-G1, D-G2 and D-G3 stay open in `docs/v2/DECISIONS.md`
+Decisions needed: none new; D-G1, D-G2 and D-G3 stay open in `docs/v2/plan/DECISIONS.md`

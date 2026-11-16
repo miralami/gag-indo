@@ -1,6 +1,6 @@
 # Juragan Desa — v2 Plan
 
-> Builds on the v1 baseline docs: [v1/GDD.md](../v1/GDD.md) and [v1/TECH.md](../v1/TECH.md). Written 2026-11-10 from the designer's v2 answers.
+> Builds on the v1 baseline docs: [v1/GDD.md](../../v1/GDD.md) and [v1/TECH.md](../../v1/TECH.md). Written 2026-11-10 from the designer's v2 answers.
 > The v1 docs are frozen. Where this plan and they disagree, this plan wins; v2 design and tech docs are written in this folder as each milestone is built.
 
 ---

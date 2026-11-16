@@ -40,7 +40,7 @@ Audio.weather = {
 Audio.sounds = {
 	-- music
 	-- IDs below come from the Creator Store audio search, free, each loaded in Studio on 2026-11-14
-	-- (IsLoaded true). Sources and licence notes: docs/v2/art/ASSET_MANIFEST.md.
+	-- (IsLoaded true). Sources and licence notes: docs/v2/visual/art/ASSET_MANIFEST.md.
 	music_desa = { group = "music", id = 83077123902599, looped = true, volume = 0.35 }, -- Gamelan Resonance Field
 	music_pasar = { group = "music", id = 135973738646382, looped = true, volume = 0.35 }, -- Golden Gamelan
 	music_sawah = { group = "music", id = 0, looped = true, volume = 0.3 },

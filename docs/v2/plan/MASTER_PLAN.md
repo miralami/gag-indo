@@ -1,9 +1,9 @@
 ﻿# Juragan Desa â€” Master Plan
 
 > Written 2026-11-14. This is the single direction for every agent working on this repo.
-> It supersedes `HANDOFF_ROADMAP.md` and `HANDOFF_ART_PASS.md` for ordering and priorities.
-> `PLAN.md` stays the feature reference, `ART.md` the art bible, `TECH.md` the code conventions,
-> `DECISIONS.md` the designer's decisions. Where this file disagrees with them on *what comes
+> It supersedes `archive/HANDOFF_ROADMAP.md` and `archive/HANDOFF_ART_PASS.md` for ordering and priorities.
+> `plan/PLAN.md` stays the feature reference, `visual/ART.md` the art bible, `TECH.md` the code conventions,
+> `plan/DECISIONS.md` the designer's decisions. Where this file disagrees with them on *what comes
 > first* or *what counts as done*, this file wins.
 
 ## Progress tracker â€” read first, update last
@@ -16,7 +16,7 @@ word (Â§7) and an evidence path, and bumps the "Last updated" line. `[x]` = do
 `[~]` = partly done (say what is missing), `[ ]` = not started. Never tick without evidence. The
 gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/testing/BUGS.md`.
 
-**Visual direction:** `docs/v2/VISUAL_MASTER_PLAN.md` (written 2026-11-16, D14: aim realistic, land believable) plans light, materials, models, VFX, camera and UI fidelity in phases V0–V4 with its own tracker. It sits under this file; nothing in it is built yet (`UNVERIFIED`).
+**Visual direction:** `docs/v2/visual/VISUAL_MASTER_PLAN.md` (written 2026-11-16, D14: aim realistic, land believable) plans light, materials, models, VFX, camera and UI fidelity in phases V0–V4 with its own tracker. It sits under this file; nothing in it is built yet (`UNVERIFIED`).
 
 ### Next up (recommended order)
 
@@ -34,7 +34,7 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 - [x] 0.3 Playtest harness â€” `docs/testing/HARNESS.md`.
 - [x] 0.3b Bug sweep â€” `docs/testing/BUGS.md`.
 - [x] 0.4 Baseline â€” `docs/v2/evidence/baseline/`.
-- [x] 0.5 Tool pipeline â€” `TOOLS.md`, D-G1 decided; Open Cloud key exists and introspects valid 2026-11-14 (user env var `ROBLOX_API_KEY`, scopes include `asset` read/write). Shells started before it was set see it empty: read it from the User environment or restart.
+- [x] 0.5 Tool pipeline â€” `plan/TOOLS.md`, D-G1 decided; Open Cloud key exists and introspects valid 2026-11-14 (user env var `ROBLOX_API_KEY`, scopes include `asset` read/write). Shells started before it was set see it empty: read it from the User environment or restart.
 
 ### Gate 1 at a glance (detail: `docs/testing/GATE1.md`)
 
@@ -79,7 +79,7 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 - [x] Terrain grass decoration: `Terrain.Decoration = true`, road painted Ground material to prevent blade clipping â€” `SEEN-IN-STUDIO`, `docs/v2/evidence/c/2026-11-14-world-look/REPORT.md`.
 - [x] Terrain tops out on the 0.5 gameplay plane instead of burying it â€” `SEEN-IN-STUDIO` (live raycasts: 0.500 at every grid and key point, idempotent over three runs); screenshots `BLOCKED` (this model cannot save or read viewport captures), `docs/v2/evidence/c/2026-11-15-terrain-fix/REPORT.md`.
   - Note: **a place's terrain can be older than the source that made it.** `Greybox.applyTerrain` always clears the whole 400Ã—16Ã—400 village band (Y âˆ’8â€¦8) with Air before filling, so a slab from an earlier generator cannot survive under a rebuild. Smooth Terrain's visible top face is `regionTop + 2` for a 4-stud voxel, not a whole-voxel snap.
-- [x] Map spec written (layout, hubs, plots, terrain, scale): `docs/v2/art/MAP_SPEC.md`, art reference `docs/v2/art/map/` â€” `UNVERIFIED` until built in Studio.
+- [x] Map spec written (layout, hubs, plots, terrain, scale): `docs/v2/visual/art/MAP_SPEC.md`, art reference `docs/v2/visual/art/map/` â€” `UNVERIFIED` until built in Studio.
 - [x] World at S=2: Rumah Pak RT as scale reference, all hubs, plots (r 192), roads, river, 4 sawah terraces, hills, spawn from `MapSpec.luau` â€” `SEEN-IN-STUDIO` numerically (grid 0.5 over 1014 points, 0 holes; 10 plots, 6 hubs, spawn); `LUNE-ONLY` specs; screenshots by the designer only. Terrace tops exactly 4.5/8.5/12.5/16.5 live (0 bad of 80 samples).
 - [~] Terraced sawah and river: built from `MapSpec.luau`, 4 terraces exact and river water live (`SEEN-IN-STUDIO` numerically, `evidence/c/2026-11-15-terrain-fix/` style probes); three season presets not re-tuned yet, no photo.
 - [ ] `Greybox.luau` retired to a test fallback.
@@ -193,12 +193,12 @@ releases. This replaces D3.
 2. **Feel before features.** No new gameplay system is started before Gate 1 passes. Until then
    every hour goes into making what exists feel, look and sound great.
 3. **The satire is the product.** If a screen, sound or line could belong to any farming game,
-   it is not finished. Indonesian specifics, per `ART.md` pillar 4 and D7 (fictional names, real stereotypes).
+   it is not finished. Indonesian specifics, per `visual/ART.md` pillar 4 and D7 (fictional names, real stereotypes).
 4. **Phone first.** Judge every change on the mobile emulator at phone size before desktop.
 5. **Cut rather than fake.** Report a smaller thing that works instead of a bigger thing that might.
    Never invent asset IDs, product IDs, prices, UserIds or Roblox policy.
 6. **Server decides everything.** `TECH.md` ground rules and the monetization guardrails in
-   `PLAN.md` Â§3.7 do not change.
+   `plan/PLAN.md` Â§3.7 do not change.
 
 ## 3. Phase 0 â€” Make the repo safe for parallel work
 
@@ -211,7 +211,7 @@ One agent, alone, before anyone else starts. Nothing here is optional.
 | 0.3 | Build the playtest harness: a documented Studio MCP routine that starts a play session, plants, harvests, sells, buys, and captures screenshots at desktop and phone size. The 2026-11-13 run could not trigger prompts; solve that first (test-only server hooks behind a Studio-only flag are acceptable). | `docs/testing/HARNESS.md` exists and a second agent can follow it to produce screenshots of the full loop. |
 | 0.3b | Bug sweep: play every MVP flow in section 0 through the harness, including the dead-end cases in the quality bar, and open `docs/testing/BUGS.md` with everything found. Flag off any non-MVP system that fails. | The bug list exists with severities and owner tracks; flagged-off systems are listed in it. |
 | 0.4 | Record the baseline: screenshots and timings of the current first ten minutes on phone size. | Saved under `docs/v2/evidence/baseline/`. This is what "better" is measured against. |
-| 0.5 | Set up the tool pipeline (section 5, track G scouting): confirm Blender MCP export to Roblox, decide how assets get uploaded and who presses the button. | `docs/v2/TOOLS.md` lists each tool, its licence terms, and the upload route. |
+| 0.5 | Set up the tool pipeline (section 5, track G scouting): confirm Blender MCP export to Roblox, decide how assets get uploaded and who presses the button. | `docs/v2/plan/TOOLS.md` lists each tool, its licence terms, and the upload route. |
 
 ## 4. Phase 1 â€” The great ten minutes
 
@@ -232,7 +232,7 @@ in this phase serves the beat sheet below. Tracks in section 5 run in parallel.
 | 7:00 | A rumour at the warung or a whisper from the Tengkulak Gelap. Never an instruction. | Curiosity about cheating. |
 | 9:00 | Rank up to Petani with a ceremony. A slow kebun crop is planted and will be ready later; daily tasks appear. | A reason to return. |
 
-Rules for the beat sheet: the tutorial still never tells the player to cheat (`PLAN.md` Â§3.1);
+Rules for the beat sheet: the tutorial still never tells the player to cheat (`plan/PLAN.md` Â§3.1);
 guaranteed outcomes are first-session only and decided by the server; no wait longer than ten
 seconds without something to do or watch.
 
@@ -246,7 +246,7 @@ seconds without something to do or watch.
 - Time to first harvest is under 45 seconds, first rarity reveal under 5 minutes, raid witnessed under 7 minutes.
 - All text a player sees, in the world and on the HUD, is readable at phone size: no overlapping labels, no clipped text, nothing hidden under the HUD (BUG-006, BUG-008, BUG-009). Added 2026-11-14 after the designer's phone playtest; it is part of 'no placeholder visible', made explicit.
 - Measured on a real phone by the designer (Xiaomi 12 Lite, 2026-11-14, self-reported): about 30 fps at maximum graphics and 60 fps at the lowest. Recorded in `docs/v2/evidence/h/2026-11-14-perf/DESIGNER_PHONE_REPORT.md`; the 60 fps target must hold at the device's default quality.
-- Frame rate and instance count are measured on the phone emulator and recorded; the target is 60 fps on mid-range Android (`ART.md` Â§5).
+- Frame rate and instance count are measured on the phone emulator and recorded; the target is 60 fps on mid-range Android (`visual/ART.md` Â§5).
 - Five real people play ten minutes on their own phones without help. The designer runs this. Their confusion points are fixed or logged.
 
 ## 5. Tracks (parallel)
@@ -256,13 +256,13 @@ Each track is one agent, or one agent at a time, in its own worktree and branch
 
 | Track | Mission | Owns | Key deliverables |
 |---|---|---|---|
-| **A. Game feel** | Every core action feels great: plant, grow, harvest, sell, buy, reveal. | `src/client/Minigames/*`, `src/client/UI/Tiles.luau`, `src/client/UI/Minigame.luau`, new `src/client/Feel/*` | Hit feedback, tweens, particles, camera nudges, haptics, cash-fly, visible crop growth stages, rarity reveal sequence per `ART.md` Â§7 and Â§9. |
+| **A. Game feel** | Every core action feels great: plant, grow, harvest, sell, buy, reveal. | `src/client/Minigames/*`, `src/client/UI/Tiles.luau`, `src/client/UI/Minigame.luau`, new `src/client/Feel/*` | Hit feedback, tweens, particles, camera nudges, haptics, cash-fly, visible crop growth stages, rarity reveal sequence per `visual/ART.md` Â§7 and Â§9. |
 | **B. First session** | Implement the beat sheet. | `src/server/Progression/OnboardingService.luau`, new `src/server/Progression/FirstSession*.luau`, onboarding entries in `Config` | Beat-sheet script, guaranteed first-session outcomes, scripted NPC raid, rank-up ceremony, return hook. Analytics funnel step per beat. |
 | **C. World** | Replace the greybox with a real village. | `JuraganDesa.rbxl` (the only track that saves the place file), `src/server/World/*`, `src/client/World/*`, `Config/Seasons.luau` lighting values | Map built to the tag contract in `TECH.md` Â§3, terraced sawah and river in Terrain, five hubs each with a landmark and accent colour, set dressing, three season lighting presets, `Greybox.luau` retired to a test fallback. |
 | **D. UI** | Rebuild every screen on the approved kit. | `src/client/UI/*` except the files owned by A | HUD, shop (spanduk), phone (app grid, BayarLater, chat), surat (raid, fines), struk, quest calendar, per D1 redirects. Image icons everywhere. Phone size first. |
 | **E. Audio** | The village is never silent. | `src/client/Audio.luau`, `src/shared/Config/Audio.luau` | Music per area, weather ambience, UI sounds, tier stings, raid sting, collector voice barks. Sources: Roblox licensed catalogue first. Mix levels checked on phone speakers. |
-| **F. Characters and cutscenes** | NPCs with personality; the raid as a show. | `src/server/World/NpcFactory.luau`, `src/client/UI/RaidOverlay.luau`, new `src/client/Cutscene/*`, `docs/v2/art/npcs.md` | Caricature NPCs from design cards, idle and talk animations, the sinetron raid cutscene (`PLAN.md` Â§3.1), the debt collector scene at the plot. |
-| **G. Asset pipeline** | Produce and deliver every asset the other tracks ask for. | `docs/v2/art/*`, `docs/v2/TOOLS.md`, `src/shared/Config/Visuals.luau`, `src/client/UI/Icons.luau`, an `assets/` source folder | Icon set (crops, tools, tiers, currency), 6 to 8 hero textures, modular building kit and props via Blender MCP, Toolbox finds restyled to the palette. An asset manifest mapping every slot to an ID, source and licence. |
+| **F. Characters and cutscenes** | NPCs with personality; the raid as a show. | `src/server/World/NpcFactory.luau`, `src/client/UI/RaidOverlay.luau`, new `src/client/Cutscene/*`, `docs/v2/visual/art/npcs.md` | Caricature NPCs from design cards, idle and talk animations, the sinetron raid cutscene (`plan/PLAN.md` Â§3.1), the debt collector scene at the plot. |
+| **G. Asset pipeline** | Produce and deliver every asset the other tracks ask for. | `docs/v2/visual/art/*`, `docs/v2/plan/TOOLS.md`, `src/shared/Config/Visuals.luau`, `src/client/UI/Icons.luau`, an `assets/` source folder | Icon set (crops, tools, tiers, currency), 6 to 8 hero textures, modular building kit and props via Blender MCP, Toolbox finds restyled to the palette. An asset manifest mapping every slot to an ID, source and licence. |
 | **H. QA and integration** | Keep `master` green and prove things work. | `tests/*`, `docs/testing/*`, `docs/v2/evidence/*`, merges into `master` | Runs the harness on every merged track, owns the Studio queue, measures performance, files defects back to the owning track, keeps the evidence index. |
 
 ### Shared files
@@ -282,7 +282,7 @@ These are touched by many tracks. Rules instead of owners:
 
 - **Order of preference:** Roblox Toolbox and licensed catalogue, restyled â†’ made in Blender via MCP â†’ generated by an outside tool and cleaned up.
 - **Every asset has a manifest row:** slot, source, licence, who approved it. No row, no merge.
-- **Outside tools:** track G may research and propose tools (image, 3D, audio generation) in `TOOLS.md` with their commercial-use terms. Creating accounts, accepting terms, paying, or connecting a new MCP server is the designer's step, not the agent's.
+- **Outside tools:** track G may research and propose tools (image, 3D, audio generation) in `plan/TOOLS.md` with their commercial-use terms. Creating accounts, accepting terms, paying, or connecting a new MCP server is the designer's step, not the agent's.
 - **Uploads:** agents prepare files; the designer uploads or approves the upload route, then the ID goes into the manifest and config. IDs stay `0` until then and the UI must degrade cleanly.
 - **Never:** commercial music, ripped game assets, real people's faces or names (D7), real brand logos.
 
@@ -292,25 +292,25 @@ Each phase has a gate. No phase starts before the previous gate passes.
 
 ### Phase 2 â€” Depth: hours 1 to 20
 
-`BALANCE.md` only models progress up to Juragan at about one hour. This phase answers "what do I
+`plan/BALANCE.md` only models progress up to Juragan at about one hour. This phase answers "what do I
 do after that?" using systems that already exist before adding new ones.
 
 - Rebuild the balance model as a runnable Lune simulation checked against real playtest timings, then tune `Config` against it.
 - Long goals: Almanak completion rewards, kebun and perkebunan crops, the sawit permit and hill concession, tool tiers, plot expansion beyond 12 tiles.
-- Hidden cheats on the discovery model and the informant NPC (`PLAN.md` Â§4.4).
+- Hidden cheats on the discovery model and the informant NPC (`plan/PLAN.md` Â§4.4).
 - **NPC neighbours who cheat**, pulled forward from v3: a new game has near-empty servers, and the report and raid loop must work with one player online.
-- Housing and plot decoration as the visible status goal and main cosmetic surface (`PLAN.md` Â§5).
+- Housing and plot decoration as the visible status goal and main cosmetic surface (`plan/PLAN.md` Â§5).
 
 **Gate 2:** a tester plays three sessions on three days and can name their next goal each time; the simulation and observed income per minute agree within a stated margin.
 
 ### Phase 3 â€” Social drama
 
 Kepala Desa, Dana Desa, proyek mangkrak, serangan fajar, the election count, the cross-server
-viral ticker (`PLAN.md` Â§4), then trading, stealing, security and hush money (`PLAN.md` Â§5).
-Spec first, per the format in `HANDOFF_ROADMAP.md` phase C. Roblox policy on trading and paid
+viral ticker (`plan/PLAN.md` Â§4), then trading, stealing, security and hush money (`plan/PLAN.md` Â§5).
+Spec first, per the format in `archive/HANDOFF_ROADMAP.md` phase C. Roblox policy on trading and paid
 random items is verified from primary sources before any code.
 
-**Gate 3:** a ten-player test server produces an election, a corruption report and a raid without admin help, and the alt-account and spam scenarios in `SECURITY_AUDIT.md` are re-run against the new remotes.
+**Gate 3:** a ten-player test server produces an election, a corruption report and a raid without admin help, and the alt-account and spam scenarios in `qa/SECURITY_AUDIT.md` are re-run against the new remotes.
 
 ### Phase 4 â€” Launch readiness
 
@@ -321,7 +321,7 @@ small audience before going public.
 
 **Launch gate:** all earlier gates pass, DataStore persistence is verified in a published test place, purchases grant exactly once in a live test, and the designer says go.
 
-Livestock, empang, processing, seasonal events and seed crates (`PLAN.md` Â§6) come after launch, steered by player data.
+Livestock, empang, processing, seasonal events and seed crates (`plan/PLAN.md` Â§6) come after launch, steered by player data.
 
 ## 7. How work is proven and reported
 
@@ -352,7 +352,7 @@ a slot, H runs the harness on their branch and returns the evidence. If each age
 Studio, each still uses the harness and never saves the place file unless it is track C.
 
 **Decisions.** When blocked on a designer decision, do not guess and do not stop: log it in the
-report with options and a recommendation, add a row to `DECISIONS.md` as `open`, and continue
+report with options and a recommendation, add a row to `plan/DECISIONS.md` as `open`, and continue
 with unblocked work.
 
 ## 8. Hard rules
@@ -368,6 +368,6 @@ with unblocked work.
 
 1. Upload route for assets: designer uploads by hand, or an Open Cloud key the designer creates for track G.
 2. One Studio session shared through track H, or one per agent.
-3. Fonts for display and body (`ART.md` Â§12), chosen on a phone once track D has both on screen.
+3. Fonts for display and body (`visual/ART.md` Â§12), chosen on a phone once track D has both on screen.
 4. D9 product IDs and prices: needed for Phase 4, not before.
 5. Admin UserIds (D10) for the playtest place.

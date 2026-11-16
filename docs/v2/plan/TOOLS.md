@@ -14,7 +14,7 @@ spends money or connects a new MCP server; those are the designer's steps (Maste
 
 | # | Decision | Blocks | Recommendation |
 |---|---|---|---|
-| D-G1 | Upload route: designer uploads by hand, or designer creates an Open Cloud API key for track G (Master Plan §9.1) | Every non-zero ID in the manifest, so every icon, texture and mesh swap | Open Cloud key scoped to one user, `asset:read` + `asset:write`, stored outside the repo. Hand upload cannot cover the volume in `ART.md`; see §3 for why the key still cannot upload meshes. |
+| D-G1 | Upload route: designer uploads by hand, or designer creates an Open Cloud API key for track G (Master Plan §9.1) | Every non-zero ID in the manifest, so every icon, texture and mesh swap | Open Cloud key scoped to one user, `asset:read` + `asset:write`, stored outside the repo. Hand upload cannot cover the volume in `visual/ART.md`; see §3 for why the key still cannot upload meshes. |
 | D-G2 | One Studio session shared through track H, or one per agent (Master Plan §9.2) | Import testing and screenshot evidence for anything imported | Shared session. Importer state (presets, creator, package toggle) is per-machine and must match between imports. |
 
 Both are `BLOCKED` on the designer. Until they are answered, files are prepared and the
@@ -251,7 +251,7 @@ Rojo. Tools that write instances into Studio fight that. Outside tools should th
 | Layer | Candidate tools | How it enters the repo | Notes |
 |---|---|---|---|
 | UI design (source of truth) | **Figma**; importers: Figma Importer Assistant, UILint v2 (some paid), FigBloxUI (active 2026), roimport (free), MonkeyPTR Export | Tokens copied by hand into `src/client/UI/Theme.luau`; panels (9-slice), icons, ornaments exported as PNG → Open Cloud (§3) → `ASSET_MANIFEST.md`; layout stays in code | Importers build ScreenGui instances or `.rbxmx`; DevForum threads report scaling and split-element problems. If one is ever used, commit its `.rbxmx` under `src/` so Rojo owns it. |
-| UI exploration | **Google Stitch** (+ community Stitch MCP servers) | Only as mockups (`docs/v2/mockups/`) and a `design.md` token list; can export to Figma | Outputs HTML/Tailwind/React — no Roblox path. Community MCP servers, not official. |
+| UI exploration | **Google Stitch** (+ community Stitch MCP servers) | Only as mockups (`docs/v2/visual/mockups/`) and a `design.md` token list; can export to Figma | Outputs HTML/Tailwind/React — no Roblox path. Community MCP servers, not official. |
 | UI framework in code | **React-lua** (maintained by Roblox) or **Fusion** (community) via **Wally** | `wally.toml` + `Packages/` in `default.project.json` | Architecture decision; repo has no Wally yet. Post-Gate 1. |
 | Textures / PBR | **Substance Painter** (paid, named in Roblox's DCC docs), **Material Maker** (free); Studio MCP `generate_material` / `generate_texture` | PNG maps ≤1024² → Open Cloud → SurfaceAppearance | Studio generators are already available in this session. |
 | Animation | Blender rig → **Moon Animator 2** (Studio plugin); **Mixamo** (retarget needed); **Cascadeur**; Studio MCP `generate_animation` | Animation asset ID → manifest | One track per export (§2). Mixamo licence not yet read — add to §5 before use. |

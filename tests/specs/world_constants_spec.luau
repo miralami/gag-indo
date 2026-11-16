@@ -46,5 +46,18 @@ return function(t, Env)
 				expect(string.find(src, '"hujan", "kemarau", "pancaroba"', 1, true) == nil):toBe(true)
 			end
 		end)
+
+		t:it("shared modules never reach into server code (client cannot see it)", function()
+			for _, rel in { "shared/Config/Seasons.luau", "shared/Config/WorldConstants.luau" } do
+				local src = readSource(rel)
+				expect(string.find(src, "World.MapSpec", 1, true) == nil):toBe(true)
+				expect(string.find(src, "ServerScriptService", 1, true) == nil):toBe(true)
+				expect(string.find(src, "server/", 1, true) == nil):toBe(true)
+			end
+			local MapSpec = env:require("server/World/MapSpec")
+			local WC = env:require("shared/Config/WorldConstants")
+			expect(MapSpec.GOLDEN_HOUR == WC.GOLDEN_HOUR):toBe(true)
+			expect(MapSpec.SEASON_PRESETS == WC.SEASON_PRESETS):toBe(true)
+		end)
 	end)
 end

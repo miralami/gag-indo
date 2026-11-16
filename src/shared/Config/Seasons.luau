@@ -5,40 +5,11 @@
 -- Source priority: admin override -> live value -> this calendar.
 -- (The live weather API hook is a later, optional change behind the same interface.)
 
-local function findMapSpec()
-	local ok, result = pcall(function()
-		local gameRef = game
-		local sss = gameRef:GetService("ServerScriptService")
-		local server = sss:FindFirstChild("Server") or sss:FindFirstChild("server")
-		if server and server:FindFirstChild("World") and server.World:FindFirstChild("MapSpec") then
-			return require(server.World.MapSpec)
-		end
-		return nil
-	end)
-	if ok and result then
-		return result
-	end
-	-- Lune/Env fallback: walk up from shared config to src-like root
-	ok, result = pcall(function()
-		local root = script.Parent.Parent.Parent
-		local server = root:FindFirstChild("Server") or root:FindFirstChild("server")
-		if server and server:FindFirstChild("World") and server.World:FindFirstChild("MapSpec") then
-			return require(server.World.MapSpec)
-		end
-		return nil
-	end)
-	if ok and result then
-		return result
-	end
-	-- Last resort: direct relative require in plain Lune file context
-	return require("../../server/World/MapSpec")
-end
-
-local MapSpec = findMapSpec()
+local WorldConstants = require(script.Parent.WorldConstants)
 
 local Seasons = {}
 
-Seasons.musimOrder = MapSpec.SEASON_PRESETS
+Seasons.musimOrder = WorldConstants.SEASON_PRESETS
 Seasons.anomaliOrder = { "none", "elNino", "laNina" }
 Seasons.cuacaOrder = { "cerah", "hujan", "badai", "kabut" }
 
@@ -125,7 +96,7 @@ Seasons.sky = {
 		sunRays = 0.14,
 	},
 	pancaroba = {
-		clockTime = MapSpec.GOLDEN_HOUR.maxClock,
+		clockTime = WorldConstants.GOLDEN_HOUR.maxClock,
 		brightness = 2.5,
 		fogEnd = 3500,
 		fogStart = 200,

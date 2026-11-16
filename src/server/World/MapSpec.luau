@@ -15,6 +15,7 @@
 -- may hardcode a distance: it either lives here or is derived from S here.
 
 local Ground = require(script.Parent.Ground)
+local WorldConstants = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").Config.WorldConstants)
 
 local MapSpec = {}
 
@@ -201,11 +202,9 @@ MapSpec.FUTURE_SLOTS = {
 -- Player spawn: on the plaza facing -Z (north) so the first frame reads the road to Balai/terraces.
 MapSpec.SPAWN = { x = 0, y = GROUND_Y, z = 28, size = 8, lookZ = -1 }
 
--- Golden hour: canonical world lighting window (Config/Seasons sky presets target this range).
-MapSpec.GOLDEN_HOUR = { minClock = 16.0, maxClock = 17.0 }
-
--- Three in-world season presets (musim ids). Config/Seasons owns the full sky/growth data.
-MapSpec.SEASON_PRESETS = { "hujan", "kemarau", "pancaroba" }
+-- Golden hour window and season preset ids live in shared Config/WorldConstants (the client needs them too).
+MapSpec.GOLDEN_HOUR = WorldConstants.GOLDEN_HOUR
+MapSpec.SEASON_PRESETS = WorldConstants.SEASON_PRESETS
 
 -- The watchtower stands on the Pos Ronda's north-west shoulder, outside the hut roof footprint
 -- (hut roof spans z -25.2..25.2) and inside the hub clearing, so its legs never grow out of a deck.

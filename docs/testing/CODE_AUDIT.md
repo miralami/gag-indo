@@ -9,3 +9,13 @@ Per-task audit log for the T1-T16 workhorse backlog on `track/c-world-look`. Sta
 
 ## BLOCKED
 - `BUG-004` — broke-player recovery choice pending designer decision D-G3 (`docs/testing/BUGS.md`). No code fix applied.
+
+## T1 follow-up: shared config required server code (found in review)
+
+- `src/shared/Config/Seasons.luau` located `MapSpec` through ServerScriptService and a relative string
+  require. `client/World/Sky.luau` loads Seasons, and the client cannot see server code, so the client
+  would have errored at load (`LUNE-ONLY`, not run in Studio).
+- Fix: `GOLDEN_HOUR` and `SEASON_PRESETS` now live in `src/shared/Config/WorldConstants.luau`; MapSpec
+  re-exports them and Seasons requires WorldConstants directly. Spec added in `world_constants_spec`.
+- Studio later: confirm the client loads Sky with no errors in Output.
+- Rule for later tasks: modules under `src/shared` must never require anything under `src/server`.

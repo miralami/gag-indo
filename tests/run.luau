@@ -26,6 +26,7 @@ local specs = {
 	require("./specs/economy_money_spec"),
 	require("./specs/debt_persistence_spec"),
 	require("./specs/produce_guard_spec"),
+	require("./specs/bribe_failure_spec"),
 	require("./specs/market_spec"),
 	require("./specs/tool_spec"),
 	require("./specs/storage_spec"),

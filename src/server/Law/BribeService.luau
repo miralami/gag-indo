@@ -17,15 +17,18 @@ local Village = require(script.Parent.Parent.World.Village)
 
 local BribeService = {}
 
--- Rolls the 10-minute window if needed and returns the current price.
+-- Returns the current price and the bribe count inside the 10-minute window. Reading never writes:
+-- a stale window counts as zero, and the save is only touched when a bribe actually succeeds.
 local function currentPrice(data): (number, number)
-	local now = os.time()
-	local windowStart = data.cooldowns.bribeWindowStart or 0
-	if now - windowStart > Law.bribeWindow then
-		data.cooldowns.bribeWindowStart = now
-		data.cooldowns.bribeCount = 0
+	local cooldowns = data.cooldowns
+	if type(cooldowns) ~= "table" then
+		return Law.bribeBasePrice, 0
 	end
-	local count = data.cooldowns.bribeCount or 0
+	local windowStart = cooldowns.bribeWindowStart or 0
+	local count = cooldowns.bribeCount or 0
+	if os.time() - windowStart > Law.bribeWindow then
+		count = 0
+	end
 	return math.floor(Law.bribeBasePrice * Law.bribeGrowth ^ count), count
 end
 
@@ -35,7 +38,8 @@ function BribeService.syncPrice(player: Player)
 		return
 	end
 	local price = currentPrice(data)
-	local cooldownLeft = math.max(0, (data.cooldowns.bribeReadyAt or 0) - os.time())
+	local cooldowns = if type(data.cooldowns) == "table" then data.cooldowns else {}
+	local cooldownLeft = math.max(0, (cooldowns.bribeReadyAt or 0) - os.time())
 	player:SetAttribute("BribePrice", price)
 	player:SetAttribute("BribeCooldown", cooldownLeft)
 end
@@ -52,17 +56,23 @@ local function tryBribe(player: Player)
 		Notify.send(player, "n_too_far")
 		return
 	end
+	if type(data.cooldowns) ~= "table" then
+		data.cooldowns = {}
+	end
 	if os.time() < (data.cooldowns.bribeReadyAt or 0) then
 		Notify.send(player, "n_bribe_cooldown")
 		return
 	end
 
-	local price = currentPrice(data)
+	local price, count = currentPrice(data)
 	if not EconomyService.trySpend(player, price, { sku = "sogok" }) then
 		return
 	end
 
-	data.cooldowns.bribeCount = (data.cooldowns.bribeCount or 0) + 1
+	if os.time() - (data.cooldowns.bribeWindowStart or 0) > Law.bribeWindow then
+		data.cooldowns.bribeWindowStart = os.time()
+	end
+	data.cooldowns.bribeCount = count + 1
 	data.cooldowns.bribeReadyAt = os.time() + Law.bribeCooldown
 	SusService.reduce(player, Law.bribeSusReduction, "bribe")
 	Notify.send(player, "n_bribe_ok", Law.bribeSusReduction, price)

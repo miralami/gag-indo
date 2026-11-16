@@ -5,9 +5,40 @@
 -- Source priority: admin override -> live value -> this calendar.
 -- (The live weather API hook is a later, optional change behind the same interface.)
 
+local function findMapSpec()
+	local ok, result = pcall(function()
+		local gameRef = game
+		local sss = gameRef:GetService("ServerScriptService")
+		local server = sss:FindFirstChild("Server") or sss:FindFirstChild("server")
+		if server and server:FindFirstChild("World") and server.World:FindFirstChild("MapSpec") then
+			return require(server.World.MapSpec)
+		end
+		return nil
+	end)
+	if ok and result then
+		return result
+	end
+	-- Lune/Env fallback: walk up from shared config to src-like root
+	ok, result = pcall(function()
+		local root = script.Parent.Parent.Parent
+		local server = root:FindFirstChild("Server") or root:FindFirstChild("server")
+		if server and server:FindFirstChild("World") and server.World:FindFirstChild("MapSpec") then
+			return require(server.World.MapSpec)
+		end
+		return nil
+	end)
+	if ok and result then
+		return result
+	end
+	-- Last resort: direct relative require in plain Lune file context
+	return require("../../server/World/MapSpec")
+end
+
+local MapSpec = findMapSpec()
+
 local Seasons = {}
 
-Seasons.musimOrder = { "hujan", "kemarau", "pancaroba" }
+Seasons.musimOrder = MapSpec.SEASON_PRESETS
 Seasons.anomaliOrder = { "none", "elNino", "laNina" }
 Seasons.cuacaOrder = { "cerah", "hujan", "badai", "kabut" }
 
@@ -49,9 +80,9 @@ Seasons.risks = {
 
 -- Sky presets (v2 PLAN §3.3, ART.md §5). The client merges the season preset with the weather
 -- overlay and tweens Lighting towards it; nothing on the server reads these.
--- Golden-hour look: low warm sun (16.0–17.0), warm amber/golden atmosphere & haze, rich golden
--- sunlight (ColorShiftTop), indigo-brown warm ground reflection (ColorShiftBottom), warm senja haze,
--- and ambient tinted slightly warm indigo (never pure grey/black).
+-- Golden-hour look: low warm sun in the MapSpec golden-hour window, warm amber/golden atmosphere
+-- and haze, rich golden sunlight (ColorShiftTop), indigo-brown warm ground reflection
+-- (ColorShiftBottom), warm senja haze, and ambient tinted slightly warm indigo.
 Seasons.sky = {
 	hujan = {
 		clockTime = 16.2,
@@ -94,7 +125,7 @@ Seasons.sky = {
 		sunRays = 0.14,
 	},
 	pancaroba = {
-		clockTime = 17.0,
+		clockTime = MapSpec.GOLDEN_HOUR.maxClock,
 		brightness = 2.5,
 		fogEnd = 3500,
 		fogStart = 200,

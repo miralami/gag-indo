@@ -73,11 +73,16 @@ local specs = {
 	require("./specs/farm_failure_spec"),
 	require("./specs/fidelity_tier_spec"),
 	require("./specs/fidelity_runtime_spec"),
+	require("./specs/hook_moment_spec"),
 	require("./specs/raid_failure_spec"),
 	require("./specs/quest_failure_spec"),
 	require("./specs/worker_failure_spec"),
 	require("./specs/storage_failure_spec"),
 	require("./specs/cheat_failure_spec"),
+	require("./specs/evidence_failure_spec"),
+	require("./specs/plot_failure_spec"),
+	require("./specs/warung_neighbor_failure_spec"),
+	require("./specs/perf_switches_spec"),
 }
 
 local t = Test.new()

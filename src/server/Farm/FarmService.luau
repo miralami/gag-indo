@@ -517,7 +517,15 @@ local function onTilePrompt(player: Player, plotIndex: number, index: number)
 		return
 	end
 
-	if index > data.tilesOwned then
+	local owned = data.tilesOwned
+	if type(owned) ~= "number" or owned ~= owned then
+		return -- damaged save: never buy or plant against an unknown tile count
+	end
+	if type(data.tiles) ~= "table" then
+		data.tiles = {}
+	end
+
+	if index > owned then
 		buyTile(player, data, plot, index)
 		return
 	end

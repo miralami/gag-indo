@@ -145,4 +145,23 @@ function LazyPages.show(self: any, id: string?): any?
 	return LazyPages.open(self, id)
 end
 
+-- Wraps a one-time build: the first call runs `build(...)` and keeps its results; later calls
+-- return the same results without building again. A build that errors is not recorded, so
+-- the next call retries. Returns (ensure, isBuilt).
+function LazyPages.once(build: (...any) -> ...any)
+	local done = false
+	local results: { any } = {}
+	local count = 0
+	local function ensure(...: any): ...any
+		if not done then
+			local packed = table.pack(build(...))
+			results, count, done = packed, packed.n, true
+		end
+		return table.unpack(results, 1, count)
+	end
+	return ensure, function(): boolean
+		return done
+	end
+end
+
 return LazyPages

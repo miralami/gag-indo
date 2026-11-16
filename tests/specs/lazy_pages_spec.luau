@@ -155,5 +155,41 @@ return function(t, Env)
 			expect(pages:open("a") ~= nil):toBe(true)
 			expect(pages:close("a")):toBe(true)
 		end)
+
+		t:it("once builds on the first call only and returns the same results", function()
+			local calls = 0
+			local ensure, isBuilt = LazyPages.once(function(arg)
+				calls += 1
+				return arg, "second"
+			end)
+			expect(isBuilt()):toBe(false)
+			expect(calls):toBe(0)
+			local a, b = ensure("x")
+			expect(a):toBe("x")
+			expect(b):toBe("second")
+			local c, d = ensure("ignored")
+			expect(c):toBe("x")
+			expect(d):toBe("second")
+			expect(calls):toBe(1)
+			expect(isBuilt()):toBe(true)
+		end)
+
+		t:it("once keeps nil results and retries after a failed build", function()
+			local attempts = 0
+			local ensure, isBuilt = LazyPages.once(function()
+				attempts += 1
+				if attempts == 1 then
+					error("boom")
+				end
+				return nil, 5
+			end)
+			expect(pcall(ensure)):toBe(false)
+			expect(isBuilt()):toBe(false)
+			local a, b = ensure()
+			expect(a):toBe(nil)
+			expect(b):toBe(5)
+			ensure()
+			expect(attempts):toBe(2)
+		end)
 	end)
 end

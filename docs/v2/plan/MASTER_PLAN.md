@@ -96,7 +96,7 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 - [x] Stats panel as icon chips (cash first, sack, Sus, Nama Baik) — `LUNE-ONLY`, `src/client/UI/Hud.luau`.
 - [x] D6: Indonesian default plus a language picker (today only `Strings.langFor`); closes BUG-007 — `LUNE-ONLY`, `src/client/UI/Hud.luau`.
 - [x] BUG-006 world label under the HUD panel — `LUNE-ONLY`, `src/client/UI/Hud.luau`.
-- [~] Phone app pages build on open and are destroyed on leave/close (`src/client/UI/LazyPages.luau`, `tests/specs/lazy_pages_spec.luau`); BUG-011 (phone mount used `homeBarHeight` before declaring it) fixed — `LUNE-ONLY`; idle saving is only ~18 instances (estimate), the device frame and home grid (~150–170) still build at mount; nothing re-checked in Studio.
+- [~] Phone app pages build on open and are destroyed on leave/close (`src/client/UI/LazyPages.luau`, `tests/specs/lazy_pages_spec.luau`); BUG-011 (phone mount used `homeBarHeight` before declaring it) fixed — `LUNE-ONLY`; the device frame, home grid and tiles now also build on the first tap of the phone button and stay built (estimate ~150–170 instances off the idle PlayerGui, not measured); nothing re-checked in Studio.
 - [ ] Fonts chosen on a phone (§9.3).
 
 **E. Audio**

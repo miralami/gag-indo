@@ -1,0 +1,242 @@
+--!nocheck
+-- T3: Farm failure-path specs/fixes.
+
+return function(t, Env, Fakes)
+	local expect = t.expect
+
+	local function makeFarmEnv()
+		local env = Env.new()
+		local advanced, quests, harvested, notifications = {}, {}, {}, {}
+		local remotes = Fakes.remotes(env)
+		local playerData = Fakes.playerData()
+		local notify = Fakes.notify()
+		local rateLimit = Fakes.rateLimit(true)
+
+		local cf = setmetatable({}, { __mul = function() return cf end })
+		local function newPart(name)
+			local node = { Name = name, _children = {}, _attributes = {}, CFrame = cf, Size = env.Vector3.new(6, 0.5, 6), Position = env.Vector3.new(0, 0, 0) }
+			function node:SetAttribute(k, v) self._attributes[k] = v end
+			function node:GetAttribute(k) return self._attributes[k] end
+			function node:FindFirstChild(n) return self._children[n] end
+			function node:Destroy() end
+			return node
+		end
+		local tile1 = newPart("Tile_1")
+		tile1._children.Prompt = { Enabled = false }
+		local tile2 = newPart("Tile_2")
+		tile2._children.Prompt = { Enabled = false }
+		local plot = { index = 1, tiles = { [1] = tile1, [2] = tile2 }, spawnCFrame = { Position = env.Vector3.new(0, 0, 0) } }
+		local tilePrompt
+
+		env.globals.Instance = { new = function(className) return newPart(className) end }
+		env.globals.CFrame = { new = function() return cf end }
+		env.globals.Color3.fromHex = function() return {} end
+		local vectorMeta = getmetatable(env.Vector3.new(0, 0, 0))
+		vectorMeta.__mul = function(a, b) return env.Vector3.new(a.X * b, a.Y * b, a.Z * b) end
+
+		env:mock("shared/Remotes", remotes)
+		env:mock("server/Data/PlayerData", playerData)
+		env:mock("server/Net/Notify", notify)
+		env:mock("server/Net/RateLimit", rateLimit)
+		env:mock("server/Net/State", { touch = function() end })
+		env:mock("server/Live/LiveConfig", { getRuntime = function() return { musim = "kemarau", anomali = "none", cuaca = "cerah" } end })
+		env:mock("server/Analytics/Analytics", { track = function(...) table.insert(harvested, { kind = "track", args = table.pack(...) }) end, log = function() end })
+		env:mock("server/Economy/EconomyService", {
+			hasRank = function() return true end,
+			sync = function() end,
+			addHarvest = function(_, cropId, quality, options)
+				table.insert(harvested, { cropId = cropId, quality = quality, options = options })
+			end,
+			near = function() return true end,
+			refreshRank = function() end,
+			addCash = function() end,
+			trySpend = function(_, amount)
+				-- spend is tested elsewhere; default true
+				return amount ~= nil
+			end,
+		})
+		env:mock("server/Progression/AlmanakService", { record = function() return nil end })
+		env:mock("server/Progression/BadgeService", { award = function() end })
+		env:mock("server/Progression/OnboardingService", { advance = function(_, step) advanced[step] = (advanced[step] or 0) + 1 end })
+		env:mock("server/Progression/QuestService", { progress = function(_, action) quests[action] = (quests[action] or 0) + 1 end })
+		env:mock("server/Farm/PlotService", {
+			getPlotOf = function() return plot end,
+			getPlot = function() return plot end,
+			onTilePrompt = function(cb) tilePrompt = cb end,
+		})
+
+		local Produce = env:require("shared/Produce")
+		local GameConfig = env:require("shared/Config/Game")
+		local StorageService = env:require("server/Farm/StorageService")
+		local FarmService = env:require("server/Farm/FarmService")
+
+		local player = Fakes.player(env)
+		plot.owner = player
+		local data = playerData.set(player, Fakes.newData(env))
+
+		return {
+			env = env,
+			player = player,
+			data = data,
+			plot = plot,
+			remotes = remotes,
+			notify = notify,
+			rateLimit = rateLimit,
+			playerData = playerData,
+			Produce = Produce,
+			GameConfig = GameConfig,
+			StorageService = StorageService,
+			FarmService = FarmService,
+			harvested = harvested,
+			getTilePrompt = function() return tilePrompt end,
+		}
+	end
+
+	t:describe("Farm failure paths (T3)", function()
+		t:it("rejects invalid seed selection and invalid complete payloads", function()
+			local fx = makeFarmEnv()
+			fx.env.globals.task.spawn = function() end
+			fx.FarmService.start()
+			fx.remotes.Farm_SelectSeed.OnServerEvent:Fire(fx.player, 123)
+			fx.remotes.Farm_SelectSeed.OnServerEvent:Fire(fx.player, "not_a_crop")
+			expect(fx.player:GetAttribute("SelectedSeed")):toBe(nil)
+
+			-- No pending attempt: should be ignored safely.
+			fx.remotes.Farm_Complete.OnServerEvent:Fire(fx.player, 1)
+			fx.remotes.Farm_Complete.OnServerEvent:Fire(fx.player, 0 / 0)
+			fx.remotes.Farm_Complete.OnServerEvent:Fire(fx.player, math.huge)
+			fx.remotes.Farm_Complete.OnServerEvent:Fire(fx.player, "x")
+		end)
+
+		t:it("rejects commitAttempt with malformed args without mutating save", function()
+			local fx = makeFarmEnv()
+			local seeds = fx.data.items.seed_padi
+			expect(fx.FarmService.commitAttempt(fx.player, nil, 1)):toBe(false)
+			expect(fx.FarmService.commitAttempt(fx.player, { tile = "1", action = "plant" }, 1)):toBe(false)
+			expect(fx.FarmService.commitAttempt(fx.player, { tile = 1, action = "water" }, 1)):toBe(false)
+			expect(fx.FarmService.commitAttempt(fx.player, { tile = 1, action = "plant", cropId = "padi" }, 0 / 0)):toBe(false)
+			expect(fx.FarmService.commitAttempt(fx.player, { tile = 1, action = "plant", cropId = "padi" }, "1")):toBe(false)
+			expect(fx.data.items.seed_padi):toBe(seeds)
+			expect(next(fx.data.tiles or {}) == nil):toBe(true)
+		end)
+
+		t:it("does not harvest into sack past capacity and refuses when sack full", function()
+			local fx = makeFarmEnv()
+			fx.env.globals.task.spawn = function() end
+			-- Fill sack to capacity.
+			for _ = 1, fx.GameConfig.sackBaseCapacity do
+				fx.Produce.add(fx.data.produce, "jagung", 1)
+			end
+			expect(fx.FarmService.commitAttempt(fx.player, { tile = 1, action = "plant", cropId = "padi" }, 1)):toBe(true)
+			local entry = fx.data.tiles.t1
+			entry.plantedAt = fx.env.wallTime - entry.growSeconds
+			expect(fx.FarmService.commitAttempt(fx.player, { tile = 1, action = "harvest" }, 1)):toBe(false)
+			expect(fx.data.tiles.t1 ~= nil):toBe(true)
+			expect(fx.Produce.count(fx.data.produce)):toBe(fx.GameConfig.sackBaseCapacity)
+		end)
+
+		t:it("harvestToStorage refuses when missing/invalid/not ready/full", function()
+			local fx = makeFarmEnv()
+			expect(fx.FarmService.harvestToStorage(fx.player, "1")):toBe(false)
+			expect(fx.FarmService.harvestToStorage(fx.player, 99)):toBe(false)
+
+			fx.FarmService.commitAttempt(fx.player, { tile = 1, action = "plant", cropId = "padi" }, 1)
+			expect(fx.FarmService.harvestToStorage(fx.player, 1)):toBe(false) -- still growing
+
+			local entry = fx.data.tiles.t1
+			entry.plantedAt = fx.env.wallTime - entry.growSeconds
+			-- Fill gudang to current capacity (floor behavior respected).
+			local cap = fx.StorageService.capacity(fx.player, fx.data)
+			for _ = 1, cap do
+				fx.Produce.add(fx.data.gudang.stacks, "jagung", 1)
+			end
+			expect(fx.FarmService.harvestToStorage(fx.player, 1)):toBe(false)
+			expect(fx.data.tiles.t1 ~= nil):toBe(true)
+		end)
+
+		t:it("applyOplosan and confiscateHotTiles ignore invalid states", function()
+			local fx = makeFarmEnv()
+			expect(fx.FarmService.applyOplosan(fx.player, 1)):toBe(false)
+			expect(fx.FarmService.confiscateHotTiles(fx.player)):toBe(0)
+
+			fx.FarmService.commitAttempt(fx.player, { tile = 1, action = "plant", cropId = "padi" }, 1)
+			local entry = fx.data.tiles.t1
+			-- Ready crop cannot be oplosan'd.
+			entry.plantedAt = fx.env.wallTime - entry.growSeconds
+			expect(fx.FarmService.applyOplosan(fx.player, 1)):toBe(false)
+
+			-- Hot tile confiscation removes it.
+			entry.plantedAt = fx.env.wallTime
+			entry.growSeconds = 999
+			expect(fx.FarmService.applyOplosan(fx.player, 1)):toBe(true)
+			expect(fx.FarmService.applyOplosan(fx.player, 1)):toBe(false)
+			expect(fx.FarmService.confiscateHotTiles(fx.player)):toBe(1)
+			expect(fx.data.tiles.t1):toBe(nil)
+		end)
+
+		t:it("stealWater fails safely when no opposing growing tiles", function()
+			local fx = makeFarmEnv()
+			local other = Fakes.player(fx.env)
+			local otherData = fx.playerData.set(other, Fakes.newData(fx.env))
+			-- No plot for other in this mock -> should fail.
+			expect(fx.FarmService.stealWater(fx.player, other)):toBe(false)
+		end)
+	end)
+
+	t:describe("Storage/Worker/Tool failure paths (T3)", function()
+		t:it("Storage publish/deposit/withdraw handle missing data safely", function()
+			local env = Env.new()
+			local notify = Fakes.notify()
+			env:mock("shared/Remotes", Fakes.remotes(env))
+			env:mock("server/Data/PlayerData", Fakes.playerData())
+			env:mock("server/Net/Notify", notify)
+			env:mock("server/Net/RateLimit", Fakes.rateLimit(true))
+			env:mock("server/Economy/EconomyService", { sync = function() end })
+			local StorageService = env:require("server/Farm/StorageService")
+			local player = Fakes.player(env)
+			expect(StorageService.depositAll(player)):toBe(0)
+			expect(StorageService.withdrawAll(player)):toBe(0)
+			StorageService.publish(player, nil)
+		end)
+
+		t:it("Worker tick/hire handle missing data and inactive states", function()
+			local env = Env.new()
+			local notify = Fakes.notify()
+			local playerData = Fakes.playerData()
+			env:mock("shared/Remotes", Fakes.remotes(env))
+			env:mock("server/Data/PlayerData", playerData)
+			env:mock("server/Net/Notify", notify)
+			env:mock("server/Net/RateLimit", Fakes.rateLimit(true))
+			env:mock("server/Farm/FarmService", { readyTiles = function() return {} end, harvestToStorage = function() return false end })
+			env:mock("server/Farm/StorageService", { used = function() return 0 end, capacity = function() return 40 end })
+			env:mock("server/Economy/EconomyService", { trySpend = function() return true end, sync = function() end })
+			local WorkerService = env:require("server/Farm/WorkerService")
+			local player = Fakes.player(env)
+			expect(WorkerService.hire(player)):toBe(false)
+			expect(WorkerService.tick(player)):toBe(0)
+		end)
+
+		t:it("ToolService effects tolerate nil/unknown data and buy rejects missing data", function()
+			local env = Env.new()
+			local notify = Fakes.notify()
+			local playerData = Fakes.playerData()
+			local rateLimit = Fakes.rateLimit(true)
+			env:mock("shared/Remotes", Fakes.remotes(env))
+			env:mock("server/Data/PlayerData", playerData)
+			env:mock("server/Net/Notify", notify)
+			env:mock("server/Net/RateLimit", rateLimit)
+			env:mock("server/Analytics/Analytics", Fakes.analytics())
+			env:mock("server/Events/CabaiEvent", { multiplier = function() return 1 end, isActive = function() return false end, start = function() end })
+			env:mock("server/World/Village", { getPosition = function() return env.Vector3.new(0, 0, 0) end, onPasar = function() end })
+			env:mock("server/Season/SeasonService", { growSeconds = function(base) return base end, musim = function() return "hujan" end })
+			local ToolService = env:require("server/Farm/ToolService")
+			local player = Fakes.player(env)
+			expect(ToolService.growMultiplier(nil)):toBe(1)
+			expect(ToolService.plantBonus(nil)):toBe(0)
+			expect(ToolService.buy(player, "cangkul")):toBe(false)
+			rateLimit.allow = function() return false end
+			playerData.set(player, Fakes.newData(env))
+			expect(ToolService.buy(player, "cangkul")):toBe(false)
+		end)
+	end)
+end

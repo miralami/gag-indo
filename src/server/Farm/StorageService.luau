@@ -27,23 +27,38 @@ function StorageService.onDeposit(hook: (Player, number) -> ())
 	depositHook = hook
 end
 
-local function stacks(data): { [string]: any }
+-- Make sure the gudang table exists and the capacity never shrinks below the base.
+local function ensureGudang(data)
 	data.gudang = data.gudang or { capacity = GameConfig.gudangBaseCapacity, stacks = {} }
 	data.gudang.stacks = data.gudang.stacks or {}
-	return data.gudang.stacks
+	return data.gudang
+end
+
+local function stacks(data): { [string]: any }
+	return ensureGudang(data).stacks
 end
 
 function StorageService.capacity(player: Player, data): number
-	local base = if player:GetAttribute("Pass_GudangBesar")
+	local base = if player and player:GetAttribute("Pass_GudangBesar")
 		then GameConfig.gudangPassCapacity
 		else GameConfig.gudangBaseCapacity
+	if not data then
+		return base
+	end
 	local stored = tonumber((data.gudang or {}).capacity) or base
 	-- A pass can raise the stored capacity; removing it never destroys stored items.
-	return math.max(base, stored)
+	data.gudang = data.gudang or {}
+	data.gudang.capacity = math.max(stored, base)
+	data.gudang.stacks = data.gudang.stacks or {}
+	return data.gudang.capacity
 end
 
 function StorageService.used(data): number
-	return Produce.count(stacks(data))
+	local gudang = data and data.gudang
+	if not gudang or not gudang.stacks then
+		return 0
+	end
+	return Produce.count(gudang.stacks)
 end
 
 -- Move one stack amount into another sack, keeping the average quality.
@@ -80,6 +95,9 @@ local function sortedKeys(sack): { string }
 end
 
 function StorageService.publish(player: Player, data)
+	if data then
+		ensureGudang(data)
+	end
 	player:SetAttribute("GudangUsed", StorageService.used(data))
 	player:SetAttribute("GudangCapacity", StorageService.capacity(player, data))
 end

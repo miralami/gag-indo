@@ -58,6 +58,11 @@ Per-task audit log for the T1-T16 workhorse backlog on `track/c-world-look`. Sta
 | `Admin_Result` | S->C | `Live/AdminService` | reply to admin caller only |
 | `Harness_Result` | S->C | `Testing/Harness` | Studio/test harness reply |
 
+## T3 — Farm failure-path specs/fixes
+- **Findings:** Existing farm coverage (harness/storage/worker/tool/seedfloor specs) left several failure paths unpinned: invalid/malformed `Farm_*` remote payloads and `FarmService.commitAttempt` args, harvest refusals at sack/gudang capacity boundaries, `harvestToStorage` invalid/not-ready/full states, `applyOplosan`/`confiscateHotTiles` invalid-state guards, `stealWater` no-op cases, and nil-data publish/tick/buy handling. Spec run exposed a crash gap: `StorageService.publish(player, nil)`/capacity assumed `data` and called gudang setup unguarded.
+- **Fixes:** Added `tests/specs/farm_failure_spec.luau` (registered in `tests/run.luau`) covering FarmService invalid remote/attempt inputs, sack-full harvest refusal, storage harvest edge cases, oplosan/confiscation/steal-water guards, and Storage/Worker/Tool nil-data/rate-limit failure paths (modeling gudang capacity floor/pass behavior correctly). Hardened `src/server/Farm/StorageService.luau` (`publish`/`capacity`/`used` nil-safe, preserve capacity-floor semantics) so publish and capacity reads cannot crash on missing data.
+- **Studio checks needed:** In Studio, verify plant/harvest flows still refuse full sack correctly, oplosan/confiscate visuals/state clear as before, and gudang deposit/withdraw UI counts remain correct after nil-safe publish changes.
+
 ## BLOCKED
 - `BUG-004` — broke-player recovery choice pending designer decision D-G3 (`docs/testing/BUGS.md`). No code fix applied.
 

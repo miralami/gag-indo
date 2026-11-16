@@ -62,6 +62,7 @@ local specs = {
 	require("./specs/npc_framework_spec"),
 	require("./specs/world_constants_spec"),
 	require("./specs/remote_audit_spec"),
+	require("./specs/farm_failure_spec"),
 }
 
 local t = Test.new()

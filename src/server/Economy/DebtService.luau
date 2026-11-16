@@ -210,7 +210,8 @@ local function seizeGudang(player: Player, data, debt): number
 		if debt.owed <= 0 then
 			break
 		end
-		if stack and stack.count > 0 then
+		-- Skip corrupt entries (non-table stack, missing or non-numeric count) instead of erroring.
+		if type(stack) == "table" and type(stack.count) == "number" and stack.count > 0 then
 			local crop = Crops.list[stack.crop]
 			local unitVal = (crop and crop.sellPrice or 5) * 0.5 -- forced seizure pays half base value
 			local needed = math.ceil(debt.owed / unitVal)

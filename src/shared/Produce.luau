@@ -105,7 +105,10 @@ end
 function Produce.count(sack: Sack): number
 	local total = 0
 	for _, stack in sack do
-		total += stack.count or 0
+		-- Corrupt entries (non-table, non-numeric count) count as nothing instead of erroring.
+		if type(stack) == "table" and type(stack.count) == "number" then
+			total += stack.count
+		end
 	end
 	return total
 end

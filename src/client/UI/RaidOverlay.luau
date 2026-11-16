@@ -10,6 +10,7 @@ local Remotes = require(Shared.Remotes)
 local Audio = require(script.Parent.Parent.Audio)
 local Icons = require(script.Parent.Icons)
 local Theme = require(script.Parent.Theme)
+local MomentGuard = require(script.Parent.Parent.Feel.MomentGuard)
 
 local RaidOverlay = {}
 
@@ -261,7 +262,12 @@ function RaidOverlay.mount(lang: string)
 
 	local phase = "idle"
 
+	-- The raid overlay is a hook moment: the fidelity tier is frozen while it is up.
+	local raidMoment = MomentGuard.new()
+	gui.Destroying:Connect(raidMoment.finish)
+
 	local function hide()
+		raidMoment.finish()
 		phase = "idle"
 		scrim.Visible = false
 		skipButton.Visible = false
@@ -284,6 +290,7 @@ function RaidOverlay.mount(lang: string)
 		local phaseName = payload.phase
 		local isViral = payload.isViral == true
 		scrim.Visible = true
+		raidMoment.begin()
 		headline.Text = if isViral then t("raid_viral_title") else t("raid_title")
 		subtitle.Text = if isViral then t("raid_viral_subtitle") else t("raid_subtitle")
 		fineButton.Text = t("raid_fine", payload.fine or 0)

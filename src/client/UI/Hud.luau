@@ -17,6 +17,10 @@ local Audio = require(script.Parent.Parent.Audio)
 local Icons = require(script.Parent.Icons)
 local Theme = require(script.Parent.Theme)
 local ActionFeel = require(script.Parent.Parent.Feel.ActionFeel)
+local MomentGuard = require(script.Parent.Parent.Feel.MomentGuard)
+
+-- A rarity reveal holds the fidelity tier steady for about as long as its toast is on screen.
+local REVEAL_MOMENT_SECONDS = 3.6
 
 -- Register "sack" fallback in Visuals.icons if missing.
 if not Visuals.icons["sack"] then
@@ -72,6 +76,8 @@ function Hud.mount(initialLang: string?)
 		(gui :: any).ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
 	end)
 	local revealToken = 0
+	local revealMoment = MomentGuard.new()
+	gui.Destroying:Connect(revealMoment.finish)
 
 	local topInset = 0
 	pcall(function()
@@ -592,6 +598,15 @@ function Hud.mount(initialLang: string?)
 				color = tier.color
 			end
 			ActionFeel.onHarvest(nil, tierName)
+			-- begin() replaces any open reveal (one end for it); only the newest token may end it.
+			revealToken += 1
+			local token = revealToken
+			revealMoment.begin()
+			task.delay(REVEAL_MOMENT_SECONDS, function()
+				if token == revealToken then
+					revealMoment.finish()
+				end
+			end)
 		elseif key == "n_almanak_page" or key == "n_almanak_new" then
 			Audio.play("sting_almanak")
 		elseif key == "n_rank_up" then

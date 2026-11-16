@@ -91,6 +91,9 @@ local specs = {
 	require("./specs/tool_items_failure_spec"),
 	require("./specs/events_badges_passes_failure_spec"),
 	require("./specs/tier_consumers_spec"),
+	require("./specs/strings_integrity_spec"),
+	require("./specs/config_crossref_spec"),
+	require("./specs/cutscene_sequencer_spec"),
 }
 
 local t = Test.new()

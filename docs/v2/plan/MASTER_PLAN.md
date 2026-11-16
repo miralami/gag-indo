@@ -8,7 +8,7 @@
 
 ## Progress tracker — read first, update last
 
-**Last updated:** 2026-11-16 — branch `track/c-world-look` — `lune run tests/run.luau`: 1005 passing (`LUNE-ONLY`, particles and wind read the fidelity tier; Receipts/Onboarding/Tool/Items/Cabai/Badges/Passes failure paths with fixes).
+**Last updated:** 2026-11-17 — branch `track/c-world-look` — `lune run tests/run.luau`: 1637 passing (`LUNE-ONLY`, raid cutscene sequencer; Strings integrity and config cross-reference specs).
 
 **Rules for this section.** Every agent reads it before touching the repo, so nobody has to rediscover
 the state from scratch. Whoever finishes a task ticks it here **in the same commit**, adds its status
@@ -104,6 +104,7 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 
 **F. Characters and cutscenes**
 - [~] Caricature NPC framework from design cards (Pak RT/Tengkulak/Polisi archetype data and fictionality markers) — `LUNE-ONLY`, `src/shared/Config/NpcArchetypes.luau`, `tests/specs/npc_framework_spec.luau`; visual models/rigs still pending.
+- [~] Raid cutscene timeline (establish, triple zoom, police walk-in, letter; 7.0 s; skippable after the first viewing via client attribute `RaidCutsceneSeen`) — `LUNE-ONLY`, `src/client/Feel/CutsceneSequencer.luau`, `src/shared/Config/RaidCutscene.luau`, `tests/specs/cutscene_sequencer_spec.luau`; not wired into `RaidOverlay.luau` or the camera (CameraFeel owns FOV and needs a pause), no BREAKING NEWS lower third, no assets.
 - [~] Raid and debt-collector cutscene state/event hooks (logic only) — `LUNE-ONLY`, `src/server/Npc/CutsceneHooks.luau`, wired in `src/server/Law/RaidService.luau` and `src/server/Economy/DebtCollector.luau`; full sinetron presentation still pending.
 
 **G. Asset pipeline**
@@ -119,6 +120,7 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 - [x] Save repair on load: `src/server/Data/SaveSanitize.luau` runs after Reconcile and migration, resets wrong-typed or NaN/inf template fields (one level into known tables), keeps dynamic keys and negative cash, warns once with the count — `LUNE-ONLY`, `tests/specs/save_reconcile_spec.luau`; not seen on a real damaged profile.
 - [x] Sus, Almanak, Season, Admin, Cosmetics and Leaderboard failure-path specs; fixed NaN Sus spreading through get/add/reduce, Almanak throwing on a damaged entry or string trait list, admin `grantItem` writing unknown item ids, Cosmetics erroring without `cosmetics`/`equipped`, a failed leaderboard read blanking the last good board — `LUNE-ONLY`, `tests/specs/sus_almanak_failure_spec.luau`, `tests/specs/season_admin_failure_spec.luau`, `tests/specs/cosmetics_leaderboard_failure_spec.luau`.
 - [x] Receipts, Onboarding, Tool, Items, Cabai, Badges and Passes failure-path specs; fixed a receipt being acknowledged for an unknown grant type or a missing PurchaseId, ProcessReceipt erroring on a damaged `receipts` table, NaN item counts being spendable, ToolService erroring on a non-table `tools`, CabaiEvent starting twice — `LUNE-ONLY`, `tests/specs/onboarding_receipts_failure_spec.luau`, `tests/specs/tool_items_failure_spec.luau`, `tests/specs/events_badges_passes_failure_spec.luau`.
+- [x] Strings integrity (every key has id and en, matching placeholders, every referenced key and `@key` exists) and config cross-reference specs; no defects found — `LUNE-ONLY`, `tests/specs/strings_integrity_spec.luau`, `tests/specs/config_crossref_spec.luau`.
 - [ ] Full-session `output.log`; fps on the phone emulator; ten-player session; published-place persistence.
 - [ ] Five real players (designer).
 

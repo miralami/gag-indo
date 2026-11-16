@@ -3,7 +3,7 @@
 
 return function(t, Env)
 	local expect = t.expect
-	local env, Seq, RaidCutscene
+	local env, Seq, RaidCutscene, State
 
 	local function shots(...)
 		local list = {}
@@ -31,6 +31,7 @@ return function(t, Env)
 			env = Env.new()
 			Seq = env:require("client/Feel/CutsceneSequencer")
 			RaidCutscene = env:require("shared/Config/RaidCutscene")
+			State = env:require("client/Feel/CutsceneState")
 		end)
 
 		t:describe("playback", function()
@@ -412,6 +413,108 @@ return function(t, Env)
 
 			t:it("names the seen attribute", function()
 				expect(RaidCutscene.seenAttribute):toBe("RaidCutsceneSeen")
+			end)
+
+			t:describe("CutsceneState (overlay wiring decisions)", function()
+				-- Replays the raid shots through the sequencer and collects the ui flags per shot.
+				local function uiPerShot()
+					local seq = Seq.new(RaidCutscene.shots)
+					local ui = nil
+					local out = {}
+					seq.onShot(function(shot)
+						ui = State.uiFor(shot.kind, ui)
+						out[shot.id] = ui
+					end)
+					seq.play()
+					seq.step(RaidCutscene.totalDuration() + 0.01)
+					return out
+				end
+
+				t:it("shows the lower third from the first zoom until the letter", function()
+					local ui = uiPerShot()
+					expect(ui.establish.lowerThird):toBe(false)
+					expect(ui.zoom1.lowerThird):toBe(true)
+					expect(ui.zoom2.lowerThird):toBe(true)
+					expect(ui.zoom3.lowerThird):toBe(true)
+					expect(ui.walkin.lowerThird):toBe(true)
+					expect(ui.letter.lowerThird):toBe(false)
+				end)
+
+				t:it("shows the letter card only from the letter shot", function()
+					local ui = uiPerShot()
+					expect(ui.walkin.letter):toBe(false)
+					expect(ui.letter.letter):toBe(true)
+				end)
+
+				t:it("copes with a missing previous state and junk kinds", function()
+					local ui = State.uiFor("zoom", nil)
+					expect(ui.lowerThird):toBe(true)
+					expect(ui.letter):toBe(false)
+					ui = State.uiFor(42, "junk")
+					expect(ui.lowerThird):toBe(false)
+					expect(ui.letter):toBe(false)
+				end)
+
+				t:it("ended ui has no lower third and the letter card up", function()
+					local ui = State.endedUi()
+					expect(ui.lowerThird):toBe(false)
+					expect(ui.letter):toBe(true)
+				end)
+
+				t:it("counts viewings from the seen attribute", function()
+					expect(State.nextSeen(nil)):toBe(1)
+					expect(State.nextSeen(0)):toBe(1)
+					expect(State.nextSeen(1)):toBe(2)
+					expect(State.nextSeen(4.7)):toBe(5)
+					expect(State.nextSeen(true)):toBe(2)
+					expect(State.nextSeen(-3)):toBe(1)
+					expect(State.nextSeen(0 / 0)):toBe(1)
+					expect(State.nextSeen(math.huge)):toBe(1)
+					expect(State.nextSeen("2")):toBe(1)
+				end)
+
+				t:it("a completed viewing makes the next one skippable, a cancelled one does not", function()
+					local seen = nil
+					local first = Seq.new(shots(1), { skippable = Seq.skippableAfter(seen) })
+					expect(first.isSkippable()):toBe(false)
+					first.onFinished(function()
+						seen = State.nextSeen(seen)
+					end)
+					first.play()
+					first.step(0.5)
+					first.cancel()
+					expect(seen):toBeNil()
+					local second = Seq.new(shots(1))
+					second.onFinished(function()
+						seen = State.nextSeen(seen)
+					end)
+					second.play()
+					second.step(1)
+					expect(Seq.skippableAfter(seen)):toBe(true)
+				end)
+
+				t:it("camera restore keeps only the first capture until released", function()
+					local restore = State.newCameraRestore()
+					expect(restore.isCaptured()):toBe(false)
+					expect(restore.release()):toBeNil()
+					expect(restore.capture("Custom", 72)):toBe(true)
+					expect(restore.capture("Scriptable", 30)):toBe(false)
+					expect(restore.isCaptured()):toBe(true)
+					local saved = restore.release()
+					expect(saved.cameraType):toBe("Custom")
+					expect(saved.fov):toBe(72)
+					expect(restore.isCaptured()):toBe(false)
+					expect(restore.release()):toBeNil()
+					expect(restore.capture("Follow", 70)):toBe(true)
+				end)
+
+				t:it("gives each focus a yaw and unknown focus none", function()
+					expect(State.focusOffset("kades")):toBe(-18)
+					expect(State.focusOffset("police_chief")):toBe(18)
+					expect(State.focusOffset("player")):toBe(0)
+					expect(State.focusOffset(nil)):toBe(0)
+					expect(State.focusOffset("mars")):toBe(0)
+				end)
 			end)
 		end)
 	end)

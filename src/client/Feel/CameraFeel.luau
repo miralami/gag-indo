@@ -40,6 +40,8 @@ local goalFov = nil
 local activeTween = nil
 local elapsed = 0
 local bindGeneration = 0
+local pausedBy: { [any]: boolean } = {}
+local pauseCount = 0
 
 local function setTarget(fov: number)
 	if fov == goalFov then
@@ -61,6 +63,9 @@ local function setTarget(fov: number)
 end
 
 local function step(dt: number)
+	if pauseCount > 0 then
+		return
+	end
 	elapsed += dt
 	if elapsed < SAMPLE_SECONDS then
 		return
@@ -96,6 +101,51 @@ local function bind(character: Instance)
 			goalFov = nil
 		end
 	end)
+end
+
+-- Override API: while any owner has paused CameraFeel its step loop writes neither FOV nor CFrame
+-- (a cutscene owns the camera). Owners are keyed, so two systems pausing and resuming in any order
+-- never release each other's hold; pausing twice with one owner counts once. A nil owner is ignored.
+function CameraFeel.pause(owner: any)
+	if owner == nil or pausedBy[owner] then
+		return
+	end
+	pausedBy[owner] = true
+	pauseCount += 1
+	if activeTween then
+		activeTween:Cancel()
+		activeTween = nil
+	end
+	goalFov = nil
+end
+
+-- Releases one owner's hold. When the last hold is released the default FOV (rest 72) is eased back
+-- in with the normal tween, from whatever FOV the cutscene left. Resuming without a hold is a no-op.
+function CameraFeel.resume(owner: any)
+	if owner == nil or not pausedBy[owner] then
+		return
+	end
+	pausedBy[owner] = nil
+	pauseCount -= 1
+	if pauseCount > 0 then
+		return
+	end
+	goalFov = nil
+	elapsed = 0
+	local ok = pcall(function()
+		if not TweenService then
+			TweenService = game:GetService("TweenService")
+			tweenInfo = TweenInfo.new(TWEEN_SECONDS, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+		end
+		setTarget(CameraFeel.targetFov(0))
+	end)
+	if not ok then
+		goalFov = nil -- no camera or services (e.g. Lune): the next sample retargets
+	end
+end
+
+function CameraFeel.isPaused(): boolean
+	return pauseCount > 0
 end
 
 function CameraFeel.start()

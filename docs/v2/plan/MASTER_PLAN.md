@@ -8,7 +8,7 @@
 
 ## Progress tracker — read first, update last
 
-**Last updated:** 2026-11-17 — branch `track/c-world-look` — `lune run tests/run.luau`: 1637 passing (`LUNE-ONLY`, raid cutscene sequencer; Strings integrity and config cross-reference specs).
+**Last updated:** 2026-11-17 — branch `track/c-world-look` — `lune run tests/run.luau`: 1654 passing (`LUNE-ONLY`, raid cutscene wired into RaidOverlay with CameraFeel pause and BREAKING NEWS lower third).
 
 **Rules for this section.** Every agent reads it before touching the repo, so nobody has to rediscover
 the state from scratch. Whoever finishes a task ticks it here **in the same commit**, adds its status
@@ -104,7 +104,7 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 
 **F. Characters and cutscenes**
 - [~] Caricature NPC framework from design cards (Pak RT/Tengkulak/Polisi archetype data and fictionality markers) — `LUNE-ONLY`, `src/shared/Config/NpcArchetypes.luau`, `tests/specs/npc_framework_spec.luau`; visual models/rigs still pending.
-- [~] Raid cutscene timeline (establish, triple zoom, police walk-in, letter; 7.0 s; skippable after the first viewing via client attribute `RaidCutsceneSeen`) — `LUNE-ONLY`, `src/client/Feel/CutsceneSequencer.luau`, `src/shared/Config/RaidCutscene.luau`, `tests/specs/cutscene_sequencer_spec.luau`; not wired into `RaidOverlay.luau` or the camera (CameraFeel owns FOV and needs a pause), no BREAKING NEWS lower third, no assets.
+- [~] Raid cutscene timeline (establish, triple zoom, police walk-in, letter; 7.0 s; skippable after the first viewing via client attribute `RaidCutsceneSeen`) — `LUNE-ONLY`, `src/client/Feel/CutsceneSequencer.luau`, `src/shared/Config/RaidCutscene.luau`, `tests/specs/cutscene_sequencer_spec.luau`; wired into `src/client/UI/RaidOverlay.luau` (Scriptable camera restored on finish/skip/cancel/death, `CameraFeel.pause/resume`, BREAKING NEWS lower third `raid_lower_third`, decisions in `src/client/Feel/CutsceneState.luau`); server `RaidService.INCOMING_SECONDS` now matches the cutscene so the 20 s choice window is intact. Camera framing is placeholder (no world anchors for kades/police/road), no police NPC walk-in or assets, not seen in Studio.
 - [~] Raid and debt-collector cutscene state/event hooks (logic only) — `LUNE-ONLY`, `src/server/Npc/CutsceneHooks.luau`, wired in `src/server/Law/RaidService.luau` and `src/server/Economy/DebtCollector.luau`; full sinetron presentation still pending.
 
 **G. Asset pipeline**

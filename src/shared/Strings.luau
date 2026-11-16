@@ -390,6 +390,10 @@ local S: { [string]: { id: string, en: string } } = {
 	raid_outcome_amplop_fail = { id = "Amplop kurang tebal! Denda x1,5.", en = "Envelope too thin! Fine x1.5." },
 	raid_outcome_jail = { id = "Kamu digelandang ke Pos Ronda.", en = "You're dragged to the Guard Post." },
 	raid_skip = { id = "Lewati Cutscene", en = "Skip Cutscene" },
+	raid_lower_third = {
+		id = "BREAKING NEWS: Polisi Desa menuju ladangmu!",
+		en = "BREAKING NEWS: the Village Police are heading for your farm! (A wink at dramatic Indonesian TV news.)",
+	},
 
 	-- Guide card: next goal after the tutorial (Shared/NextGoal)
 	goal_card_title = { id = "Tujuan Berikutnya", en = "Next Goal" },

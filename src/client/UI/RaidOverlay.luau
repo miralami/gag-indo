@@ -3,14 +3,20 @@
 -- Refactored for W2: palette tokens from Theme, display font, Icons, no hardcoded RGB.
 
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Strings = require(Shared.Strings)
 local Remotes = require(Shared.Remotes)
+local RaidCutscene = require(Shared.Config.RaidCutscene)
 
 local Audio = require(script.Parent.Parent.Audio)
 local Icons = require(script.Parent.Icons)
 local Theme = require(script.Parent.Theme)
 local MomentGuard = require(script.Parent.Parent.Feel.MomentGuard)
+local CameraFeel = require(script.Parent.Parent.Feel.CameraFeel)
+local CutsceneSequencer = require(script.Parent.Parent.Feel.CutsceneSequencer)
+local CutsceneState = require(script.Parent.Parent.Feel.CutsceneState)
 
 local RaidOverlay = {}
 
@@ -187,40 +193,37 @@ function RaidOverlay.mount(lang: string)
 	})
 	jailTime.TextSize = 14
 
-	local camera = workspace.CurrentCamera
-	local baseFov = if camera then camera.FieldOfView else 70
-	local zoomGeneration = 0
+	-- Letter slam: the card scales down from oversize onto the screen.
+	local cardScale = Theme.new("UIScale", { Scale = 1, Parent = card })
 
-	local function sinetronZoom()
-		if not camera then
-			return
-		end
-		zoomGeneration += 1
-		local generation = zoomGeneration
-		task.spawn(function()
-			for _ = 1, 3 do
-				if generation ~= zoomGeneration or not camera then
-					return
-				end
-				local zoomIn = TweenService:Create(camera, TweenInfo.new(0.22), { FieldOfView = 42 })
-				zoomIn:Play()
-				zoomIn.Completed:Wait()
-				if generation ~= zoomGeneration then
-					return
-				end
-				local zoomOut = TweenService:Create(camera, TweenInfo.new(0.22), { FieldOfView = baseFov })
-				zoomOut:Play()
-				zoomOut.Completed:Wait()
-			end
-		end)
-	end
-
-	local function stopZoom()
-		zoomGeneration += 1
-		if camera then
-			camera.FieldOfView = baseFov
-		end
-	end
+	-- "BREAKING NEWS" lower third, shown from the first zoom shot until the letter lands. The text
+	-- is 15 px and the bar sits above the skip button, inside the device safe area.
+	local lowerThird = Theme.new("Frame", {
+		Name = "LowerThird",
+		AnchorPoint = Vector2.new(0.5, 1),
+		Position = UDim2.new(0.5, 0, 1, -72),
+		Size = UDim2.new(0.92, 0, 0, 56),
+		BackgroundColor3 = Theme.merah,
+		BorderSizePixel = 0,
+		Visible = false,
+		Parent = scrim,
+	}, {
+		Theme.new("UISizeConstraint", { MinSize = Vector2.new(260, 56), MaxSize = Vector2.new(640, 72) }),
+		Theme.new("UIStroke", { Color = Theme.kunyit, Thickness = 2 }),
+	})
+	local lowerThirdLabel = Theme.label({
+		Position = UDim2.fromOffset(10, 0),
+		Size = UDim2.new(1, -20, 1, 0),
+		Text = t("raid_lower_third"),
+		TextColor3 = Theme.paper,
+		TextWrapped = true,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Parent = lowerThird,
+	})
+	lowerThirdLabel.TextSize = 15
+	pcall(function()
+		(gui :: any).ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
+	end)
 
 	local pulseToken = 0
 	local function pulse()
@@ -262,9 +265,281 @@ function RaidOverlay.mount(lang: string)
 
 	local phase = "idle"
 
+	-- Cutscene wiring. The decisions (which UI follows which shot, camera restore bookkeeping, the
+	-- seen counter) are pure and live in Feel/CutsceneState; this block only touches Instances.
+	local CUTSCENE_OWNER = "RaidCutscene"
+	local player = Players.LocalPlayer
+	local sequence: any = nil
+	local renderConnection: RBXScriptConnection? = nil
+	local deathConnections: { RBXScriptConnection } = {}
+	local cameraRestore = CutsceneState.newCameraRestore()
+	local uiState = CutsceneState.endedUi()
+	local fovTween: Tween? = nil
+	local pendingChoosing: any = nil
+	local applyChoosing: (any) -> () = function() end
+
+	local function currentCamera(): Camera?
+		local ok, found = pcall(function()
+			return workspace.CurrentCamera
+		end)
+		if ok then
+			return found
+		end
+		return nil
+	end
+
+	local function stopFovTween()
+		local tween = fovTween
+		fovTween = nil
+		if tween then
+			pcall(function()
+				tween:Cancel()
+			end)
+		end
+	end
+
+	local function tweenFov(fov: any, seconds: number)
+		local camera = currentCamera()
+		if not camera or type(fov) ~= "number" or fov ~= fov then
+			return
+		end
+		stopFovTween()
+		pcall(function()
+			local tween = TweenService:Create(
+				camera,
+				TweenInfo.new(seconds, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
+				{ FieldOfView = math.clamp(fov, 20, 100) }
+			)
+			fovTween = tween
+			tween:Play()
+		end)
+	end
+
+	-- Takes the camera for the shots: remembers the previous CameraType/FOV once, switches to
+	-- Scriptable and tells CameraFeel to stop writing FOV.
+	local function takeCamera()
+		CameraFeel.pause(CUTSCENE_OWNER)
+		local camera = currentCamera()
+		if not camera then
+			return
+		end
+		pcall(function()
+			cameraRestore.capture(camera.CameraType, camera.FieldOfView)
+			camera.CameraType = Enum.CameraType.Scriptable
+		end)
+	end
+
+	-- Safe to call any number of times (finish, skip, cancel, hide, death).
+	local function releaseCamera()
+		stopFovTween()
+		local saved = cameraRestore.release()
+		local camera = currentCamera()
+		if saved and camera then
+			pcall(function()
+				camera.CameraType = saved.cameraType
+			end)
+		end
+		CameraFeel.resume(CUTSCENE_OWNER) -- eases FOV back to the default
+	end
+
+	local function rootPosition(): Vector3?
+		local ok, position = pcall(function()
+			local character = player and player.Character
+			local root = character and character:FindFirstChild("HumanoidRootPart")
+			if root and root:IsA("BasePart") then
+				return root.Position
+			end
+			return nil
+		end)
+		if ok then
+			return position
+		end
+		return nil
+	end
+
+	-- Per-frame camera placement. Focus targets (kades, police chief, road) have no world anchors
+	-- yet, so every shot frames the local player from a different angle and distance.
+	local function placeCamera(shot: any, progress: number)
+		local camera = currentCamera()
+		local base = rootPosition()
+		if not camera or not base or type(shot) ~= "table" then
+			return
+		end
+		pcall(function()
+			local eye, target
+			if shot.kind == "establish" then
+				local dolly = if type(shot.dolly) == "number" then shot.dolly else 0
+				eye = base + Vector3.new(0, 16, 34 + dolly * progress)
+				target = base
+			elseif shot.kind == "zoom" then
+				local yaw = CFrame.Angles(0, math.rad(CutsceneState.focusOffset(shot.focus)), 0)
+				eye = base + Vector3.new(0, 5, 0) + yaw * Vector3.new(0, 0, 18)
+				target = base + Vector3.new(0, 2.5, 0)
+			elseif shot.kind == "walkin" then
+				eye = base + Vector3.new(0, 4, 40 - 22 * progress)
+				target = base + Vector3.new(0, 3, 0)
+			else
+				return -- letter: hold the last frame
+			end
+			camera.CFrame = CFrame.lookAt(eye, target)
+		end)
+	end
+
+	local function slamLetter(slam: boolean)
+		cardScale.Scale = if slam then 1.35 else 1
+		if slam then
+			pcall(function()
+				TweenService
+					:Create(
+						cardScale,
+						TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+						{ Scale = 1 }
+					)
+					:Play()
+			end)
+		end
+	end
+
+	-- Mirrors the pure UI flags onto Instances. Before the letter lands the scrim stays clear so the
+	-- shots are visible; the banner and card belong to the letter.
+	local function applyUi(ui: any)
+		lowerThird.Visible = ui.lowerThird
+		card.Visible = ui.letter
+		banner.Visible = ui.letter
+	end
+
+	local function disconnectAll()
+		if renderConnection then
+			renderConnection:Disconnect()
+			renderConnection = nil
+		end
+		for _, connection in deathConnections do
+			connection:Disconnect()
+		end
+		table.clear(deathConnections)
+	end
+
+	-- Ends the cutscene's hold on the screen. playedOut is true for a natural end or a skip, false
+	-- for a cancel (hide, death, restart), which must not count as a viewing.
+	local function endCutscene(playedOut: boolean)
+		local running = sequence
+		sequence = nil
+		disconnectAll()
+		if running and not playedOut then
+			running.cancel()
+		end
+		releaseCamera()
+		skipButton.Visible = false
+		if playedOut then
+			local seen = nil
+			pcall(function()
+				seen = player:GetAttribute(RaidCutscene.seenAttribute)
+			end)
+			pcall(function()
+				player:SetAttribute(RaidCutscene.seenAttribute, CutsceneState.nextSeen(seen))
+			end)
+		end
+		local letterShown = uiState.letter
+		uiState = CutsceneState.endedUi()
+		applyUi(uiState)
+		if not letterShown then
+			-- skipped or cancelled before the letter: show the card without the slam
+			scrim.BackgroundTransparency = 0.45
+			slamLetter(false)
+			if scrim.Visible then
+				pulse()
+			end
+		end
+	end
+
+	local function flushPendingChoosing()
+		local payload = pendingChoosing
+		pendingChoosing = nil
+		if payload ~= nil and phase == "incoming" then
+			applyChoosing(payload)
+		end
+	end
+
+	-- Cancels a running cutscene without counting a viewing and drops any deferred choosing state.
+	local function cancelCutscene()
+		pendingChoosing = nil
+		if sequence then
+			endCutscene(false)
+		end
+	end
+
+	local function startCutscene()
+		if sequence then
+			endCutscene(false)
+		end
+		local seen = nil
+		pcall(function()
+			seen = player:GetAttribute(RaidCutscene.seenAttribute)
+		end)
+		local seq = CutsceneSequencer.new(RaidCutscene.shots, {
+			skippable = CutsceneSequencer.skippableAfter(seen),
+		})
+		sequence = seq
+		uiState = { lowerThird = false, letter = false }
+		scrim.BackgroundTransparency = 1
+		applyUi(uiState)
+		skipButton.Visible = seq.isSkippable()
+		takeCamera()
+
+		seq.onShot(function(shot: any)
+			uiState = CutsceneState.uiFor(shot.kind, uiState)
+			applyUi(uiState)
+			if shot.kind == "letter" then
+				scrim.BackgroundTransparency = 0.45
+				slamLetter(shot.slam == true)
+				pulse()
+			else
+				tweenFov(shot.fov, if shot.kind == "zoom" then 0.25 else 0.5)
+			end
+		end)
+		seq.onFinished(function()
+			if sequence == seq then
+				endCutscene(true)
+				flushPendingChoosing()
+			end
+		end)
+
+		renderConnection = RunService.RenderStepped:Connect(function(dt: number)
+			if sequence ~= seq then
+				return
+			end
+			seq.step(dt)
+			local shot, progress = seq.current()
+			if shot then
+				placeCamera(shot, progress)
+			end
+		end)
+
+		-- Character death or removal cancels the cutscene; the choices still arrive afterwards.
+		local function abort()
+			if sequence == seq then
+				endCutscene(false)
+				flushPendingChoosing()
+			end
+		end
+		pcall(function()
+			table.insert(deathConnections, player.CharacterRemoving:Connect(abort))
+			local character = player.Character
+			local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+			if humanoid then
+				table.insert(deathConnections, humanoid.Died:Connect(abort))
+			end
+		end)
+
+		seq.play()
+	end
+
 	-- The raid overlay is a hook moment: the fidelity tier is frozen while it is up.
 	local raidMoment = MomentGuard.new()
-	gui.Destroying:Connect(raidMoment.finish)
+	gui.Destroying:Connect(function()
+		cancelCutscene()
+		raidMoment.finish()
+	end)
 
 	local function hide()
 		raidMoment.finish()
@@ -273,15 +548,35 @@ function RaidOverlay.mount(lang: string)
 		skipButton.Visible = false
 		pulseToken += 1
 		countdownToken += 1
-		stopZoom()
+		cancelCutscene() -- seq.cancel(): no seen increment; restores camera type and FOV
 	end
 
 	skipButton.Activated:Connect(function()
-		if phase == "incoming" then
-			stopZoom()
-			skipButton.Visible = false
+		if phase == "incoming" and sequence and sequence.isSkippable() then
+			sequence.skip()
 		end
 	end)
+
+	applyChoosing = function(payload: any)
+		local isViral = payload.isViral == true
+		phase = "choosing"
+		skipButton.Visible = false
+		waitLabel.Visible = true
+		waitLabel.Text = t("raid_choose")
+		amplopButton.Visible = true
+		if isViral then
+			amplopButton.Text = t("raid_amplop_blocked")
+			amplopButton.Active = false
+			amplopButton.BackgroundTransparency = 0.5
+		else
+			amplopButton.Text = t("raid_amplop", payload.amplop or 0)
+			amplopButton.Active = true
+			amplopButton.BackgroundTransparency = 0
+		end
+		fineButton.Visible = true
+		fineButton.Active = true
+		runCountdown(payload.timeout or 20)
+	end
 
 	Remotes.Raid_Start.OnClientEvent:Connect(function(payload: any)
 		if type(payload) ~= "table" then
@@ -297,33 +592,21 @@ function RaidOverlay.mount(lang: string)
 
 		if phaseName == "incoming" then
 			phase = "incoming"
+			pendingChoosing = nil
 			waitLabel.Visible = true
 			waitLabel.Text = t("raid_wait")
 			countdown.Text = ""
 			fineButton.Visible = false
 			amplopButton.Visible = false
-			skipButton.Visible = true
 			Audio.play("sting_raid")
-			sinetronZoom()
-			pulse()
+			startCutscene()
 		elseif phaseName == "choosing" then
-			phase = "choosing"
-			skipButton.Visible = false
-			waitLabel.Visible = true
-			waitLabel.Text = t("raid_choose")
-			amplopButton.Visible = true
-			if isViral then
-				amplopButton.Text = t("raid_amplop_blocked")
-				amplopButton.Active = false
-				amplopButton.BackgroundTransparency = 0.5
-			else
-				amplopButton.Text = t("raid_amplop", payload.amplop or 0)
-				amplopButton.Active = true
-				amplopButton.BackgroundTransparency = 0
+			if sequence then
+				-- choices become interactive when the cutscene finishes
+				pendingChoosing = payload
+				return
 			end
-			fineButton.Visible = true
-			fineButton.Active = true
-			runCountdown(payload.timeout or 20)
+			applyChoosing(payload)
 		end
 	end)
 
@@ -349,6 +632,7 @@ function RaidOverlay.mount(lang: string)
 
 	Remotes.Raid_End.OnClientEvent:Connect(function(outcome: string)
 		phase = "resolving"
+		cancelCutscene()
 		fineButton.Visible = false
 		amplopButton.Visible = false
 		waitLabel.Visible = true

@@ -8,6 +8,11 @@
 local Players = game:GetService("Players")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Law = require(Shared.Config.Law)
+local RaidCutscene = require(Shared.Config.RaidCutscene)
+
+-- The client plays the raid cutscene during "incoming"; choosing starts when it ends so the
+-- 20 s choice window is never eaten by the cutscene. Floor of 3 s keeps the old minimum.
+local INCOMING_SECONDS = math.max(3, RaidCutscene.totalDuration())
 local Remotes = require(Shared.Remotes)
 
 local PlayerData = require(script.Parent.Parent.Data.PlayerData)
@@ -23,6 +28,7 @@ local BadgeService = require(script.Parent.Parent.Progression.BadgeService)
 local CutsceneHooks = require(script.Parent.Parent.Npc.CutsceneHooks)
 
 local RaidService = {}
+RaidService.INCOMING_SECONDS = INCOMING_SECONDS
 
 type Raid = {
 	state: string, -- incoming | choosing | resolving | jail
@@ -323,7 +329,7 @@ function RaidService.start(player: Player, isViral: boolean)
 	local target = if plot then plot.spawnCFrame.Position elseif root then root.Position else Vector3.new(0, 0, 0)
 	task.spawn(policeGoTo, target, if isViral then "VIRAL! Buka, Pak!" else "Operasi! Buka ladangnya!")
 
-	task.delay(3, function()
+	task.delay(INCOMING_SECONDS, function()
 		local current = raids[player]
 		if current ~= raid or not isState(raid, "incoming") then
 			return

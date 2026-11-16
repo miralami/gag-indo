@@ -143,10 +143,10 @@ return function(t, Env, Fakes)
 		}
 	end
 
-	-- Start a raid and advance past the 3 s police walk, so the player is choosing.
+	-- Start a raid and advance past the police walk (the client cutscene), so the player is choosing.
 	local function startChoosing(fx, isViral)
 		fx.RaidService.start(fx.player, isViral == true)
-		fx.env:advance(3)
+		fx.env:advance(fx.RaidService.INCOMING_SECONDS)
 	end
 
 	t:describe("Raid failure paths (T6)", function()
@@ -249,7 +249,7 @@ return function(t, Env, Fakes)
 			expect(started):toBe(true)
 			expect(fx.RaidService.getState(fx.player)):toBe("incoming")
 
-			fx.env:advance(3)
+			fx.env:advance(fx.RaidService.INCOMING_SECONDS)
 			fx.data.cash = 0 / 0
 			local left = pcall(fx.releaseHook, fx.player, fx.data)
 			expect(left):toBe(true)
@@ -318,6 +318,17 @@ return function(t, Env, Fakes)
 			expect(fx.RaidService.getState(fx.player)):toBe("jail")
 			expect(fx.data.cash):toBe(0)
 			expect(fx.player:GetAttribute("InJail")):toBe(true)
+		end)
+
+		t:it("choosing starts only after the client raid cutscene has had time to play", function()
+			local fx = makeRaid()
+			local RaidCutscene = fx.env:require("shared/Config/RaidCutscene")
+			expect(fx.RaidService.INCOMING_SECONDS >= RaidCutscene.totalDuration()):toBe(true)
+			fx.RaidService.start(fx.player, false)
+			fx.env:advance(fx.RaidService.INCOMING_SECONDS - 0.5)
+			expect(fx.RaidService.getState(fx.player)):toBe("incoming")
+			fx.env:advance(1)
+			expect(fx.RaidService.getState(fx.player)):toBe("choosing")
 		end)
 
 		t:it("releasing from jail is idempotent and the raid counter rises once", function()

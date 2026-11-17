@@ -19,7 +19,12 @@ function ActionFeel.cashFlyTrajectory(
 	local t = math.clamp(progress, 0, 1)
 	local oneMinusT = 1 - t
 
-	local is3D = (startPos :: any).Z ~= nil
+	-- Roblox Vector2 throws on a missing `.Z` read rather than returning nil, so probe it
+	-- safely. Plain {X, Y} tables (Lune specs) return nil and take the 2D branch.
+	local okZ, startZ = pcall(function()
+		return (startPos :: any).Z
+	end)
+	local is3D = okZ and startZ ~= nil
 	if is3D then
 		local p0 = startPos :: Vector3
 		local p2 = endPos :: Vector3

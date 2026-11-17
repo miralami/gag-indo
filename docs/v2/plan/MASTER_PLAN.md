@@ -8,7 +8,7 @@
 
 ## Progress tracker — read first, update last
 
-**Last updated:** 2026-11-17 — branch `track/c-world-look` — `lune run tests/run.luau`: 1675 passing. Studio pass: BUG-011 phone + raid cutscene now `SEEN-IN-STUDIO`. Raid: gated `raid` harness hook (`RaidTrigger.luau`, `tests/specs/raid_trigger_spec.luau`), camera hands back on finish/skip/death/Raid_End, FOV 26→72, full 20 s choice window, BREAKING NEWS bar; `docs/v2/evidence/h/2026-11-17-raid-cutscene/`. Save repair, portrait rotation, perf-switch toggles and fps table still need the designer or a throwaway profile.
+**Last updated:** 2026-11-17 — branch `track/c-world-look` — `lune run tests/run.luau`: 1676 passing. Studio pass: BUG-011 phone, raid cutscene, Gate 1 harness loop + several Q3 no-dead-end cases now `SEEN-IN-STUDIO` (`h/2026-11-17-phone-studio/`, `h/2026-11-17-raid-cutscene/`, `h/2026-11-17-gate1/`). Found + fixed BUG-012 (cash-fly `Vector2.Z` crash on every sell). Raid: gated `raid` hook (`RaidTrigger.luau`, `tests/specs/raid_trigger_spec.luau`), camera hand-back on finish/skip/death/Raid_End, FOV 26→72, full 20 s choice window. Save repair, portrait rotation, perf-switch toggles, fps and phone-width readability still need the designer or a throwaway profile.
 
 **Rules for this section.** Every agent reads it before touching the repo, so nobody has to rediscover
 the state from scratch. Whoever finishes a task ticks it here **in the same commit**, adds its status
@@ -51,7 +51,7 @@ Handoff 2026-11-17: the code-only frontier is mostly done (failure-path specs fo
 - [x] G5 first harvest < 45 s, first reveal < 5 min, raid < 7 min — tutorial padi 20s, guaranteed Bagus/Super, scripted raid at 330s (`LUNE-ONLY`, `first_session_spec.luau`).
 - [~] G6 fps and instance count — instance count saved; designer phone ~30 fps at max, 60 at lowest; no emulator fps.
 - [ ] G7 five real people, own phones (designer).
-- [~] Q3 no dead ends — 2 of 8 cases `SEEN-IN-STUDIO`.
+- [~] Q3 no dead ends — death, reset, rejoin mid-raid, full-sack sell recovery now `SEEN-IN-STUDIO` via the gated raid hook (`h/2026-11-17-gate1/`); mid-loan, mid-minigame, zero-cash+zero-seed, every-button sweep still open.
 - [~] Q5 soak — 30-min client soak done; ten-player session not run.
 - [ ] Q6 persistence in a published place.
 - [ ] Q7 touch on a real mid-range phone.

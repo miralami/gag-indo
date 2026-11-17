@@ -357,8 +357,17 @@ function RaidOverlay.mount(lang: string)
 		return nil
 	end
 
-	-- Per-frame camera placement. Focus targets (kades, police chief, road) have no world anchors
-	-- yet, so every shot frames the local player from a different angle and distance.
+	-- Per-frame camera placement. When a shot's focus has a real world anchor (Track F,
+	-- RaidCutscene.focusAnchors from MapSpec), the camera looks at that place; otherwise it falls
+	-- back to framing the local player. Framing quality is the designer's judgement (visual plan §8).
+	local function anchorFor(shot: any): Vector3?
+		local a = RaidCutscene.anchorFor(shot and shot.focus)
+		if not a then
+			return nil
+		end
+		return Vector3.new(a.x, a.y, a.z)
+	end
+
 	local function placeCamera(shot: any, progress: number)
 		local camera = currentCamera()
 		local base = rootPosition()
@@ -366,6 +375,7 @@ function RaidOverlay.mount(lang: string)
 			return
 		end
 		pcall(function()
+			local anchor = anchorFor(shot)
 			local eye, target
 			if shot.kind == "establish" then
 				local dolly = if type(shot.dolly) == "number" then shot.dolly else 0
@@ -373,11 +383,22 @@ function RaidOverlay.mount(lang: string)
 				target = base
 			elseif shot.kind == "zoom" then
 				local yaw = CFrame.Angles(0, math.rad(CutsceneState.focusOffset(shot.focus)), 0)
-				eye = base + Vector3.new(0, 5, 0) + yaw * Vector3.new(0, 0, 18)
-				target = base + Vector3.new(0, 2.5, 0)
+				if anchor then
+					-- frame the real landmark from the configured yaw and stand-off
+					target = anchor
+					eye = anchor + Vector3.new(0, 5, 0) + yaw * Vector3.new(0, 0, 18)
+				else
+					eye = base + Vector3.new(0, 5, 0) + yaw * Vector3.new(0, 0, 18)
+					target = base + Vector3.new(0, 2.5, 0)
+				end
 			elseif shot.kind == "walkin" then
-				eye = base + Vector3.new(0, 4, 40 - 22 * progress)
-				target = base + Vector3.new(0, 3, 0)
+				if anchor then
+					target = anchor
+					eye = anchor + Vector3.new(0, 4, 40 - 22 * progress)
+				else
+					eye = base + Vector3.new(0, 4, 40 - 22 * progress)
+					target = base + Vector3.new(0, 3, 0)
+				end
 			else
 				return -- letter: hold the last frame
 			end

@@ -8,12 +8,12 @@
 
 ## Visual tracker — read first, update last
 
-**Last updated:** 2026-11-16 — plan written, nothing in it built yet.
+**Last updated:** 2026-11-17 — V0.1 fidelity tiers + V0.2 admin perf switches now `SEEN-IN-STUDIO` (structure/state; `h/2026-11-17-perf-switches/`, `-phone-studio/`) with a Studio-only `FpsSampler` publishing `ClientFps`; real per-switch phone fps cost table still a designer task. V0.3 reference board, V0.4 look-dev scene and V0.5 V-D1..V-D5 answers remain `BLOCKED` on the designer. Raid cutscene focus anchors added (Track F) but framing quality `BLOCKED` on the designer (visual plan §8).
 
 Same rules as the master tracker: tick in the same commit as the work, with a status word
 (`SEEN-IN-STUDIO`, `LUNE-ONLY`, `UNVERIFIED`, `BLOCKED`) and an evidence path.
 
-- [~] **V0 Foundation** — fidelity tiers, perf switches, look-dev scene, reference board (V0.1 tier logic + runtime and V0.2 admin perf switches `LUNE-ONLY`: `src/client/Feel/FidelityTier.luau`, `FidelityRuntime.luau`, `PerfSwitches.luau`; nothing seen in Studio, no phone fps per switch)
+- [~] **V0 Foundation** — fidelity tiers, perf switches, look-dev scene, reference board. V0.1 (`FidelityTier`/`FidelityRuntime`, tier attribute live) and V0.2 (admin perf switches toggle/restore, Studio-only `FpsSampler`/`ClientFps`) now `SEEN-IN-STUDIO` (structure/state, `h/2026-11-17-perf-switches/`, `-phone-studio/`); phone fps cost table + V0.3 reference board (designer/CC0 photos), V0.4 look-dev scene and V0.5 V-D1..V-D5 answers still `BLOCKED` on designer.
 - [ ] **V1 The frame** — one hero screenshot (spawn view) that passes the screenshot test
 - [ ] **V2 The moments** — six hook moments (§4) at clip quality
 - [ ] **V3 The living village** — ambient life, weather you can see, night

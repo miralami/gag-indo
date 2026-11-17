@@ -25,6 +25,27 @@ RaidCutscene.shots = {
 
 RaidCutscene.kinds = { "establish", "zoom", "walkin", "letter" }
 
+-- Real world anchors for the cutscene's focus labels (Track F). Values are the MapSpec hub
+-- centres (src/server/World/MapSpec.luau HUBS) plus the road cross, in world studs, as plain
+-- {x, y, z} tables so this stays pure and Lune-testable (no Vector3 here). A shot's `focus` names
+-- one of these; the client looks at it instead of framing the local player. `nil` means "no real
+-- anchor yet" and the client keeps its player-relative fallback. The kades ("kepala desa") sits at
+-- Rumah Pak RT; the police chief at Pos Polisi; the "road" focus aims down the plaza road cross.
+-- Framing quality is a designer judgement (visual plan §8) — these are starting coordinates.
+RaidCutscene.focusAnchors = {
+	kades = { x = 68, y = 3.4, z = 68 }, -- Rumah Pak RT table hub (MapSpec HUBS.pakrt)
+	police_chief = { x = -68, y = 3.4, z = 68 }, -- Pos Polisi desk hub (MapSpec HUBS.polisi)
+	road = { x = 0, y = 2, z = -28 }, -- plaza road cross, just north of the UKUR board
+}
+
+-- Pure resolver: the anchor for a focus label, or nil (no anchor -> caller's fallback).
+function RaidCutscene.anchorFor(focus: any): { x: number, y: number, z: number }?
+	if type(focus) ~= "string" then
+		return nil
+	end
+	return RaidCutscene.focusAnchors[focus]
+end
+
 function RaidCutscene.totalDuration(): number
 	local total = 0
 	for _, shot in RaidCutscene.shots do

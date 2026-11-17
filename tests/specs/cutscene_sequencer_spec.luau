@@ -415,6 +415,30 @@ return function(t, Env)
 				expect(RaidCutscene.seenAttribute):toBe("RaidCutsceneSeen")
 			end)
 
+			t:it("exposes real world anchors for kades, police and road (Track F)", function()
+				local a = RaidCutscene.focusAnchors
+				for _, focus in ipairs({ "kades", "police_chief", "road" }) do
+					expect(type(a[focus])):toBe("table")
+					expect(type(a[focus].x)):toBe("number")
+					expect(type(a[focus].y)):toBe("number")
+					expect(type(a[focus].z)):toBe("number")
+				end
+				-- MapSpec hub centres (src/server/World/MapSpec.luau HUBS): Pak RT 68/68, Pos Polisi -68/68
+				expect(a.kades.x):toBe(68)
+				expect(a.kades.z):toBe(68)
+				expect(a.police_chief.x):toBe(-68)
+				expect(a.police_chief.z):toBe(68)
+			end)
+
+			t:it("anchorFor resolves known focuses and returns nil otherwise", function()
+				expect(RaidCutscene.anchorFor("kades")):toBeTruthy()
+				expect(RaidCutscene.anchorFor("road")):toBeTruthy()
+				expect(RaidCutscene.anchorFor("player")):toBeNil() -- no anchor: caller uses player-relative fallback
+				expect(RaidCutscene.anchorFor("mars")):toBeNil()
+				expect(RaidCutscene.anchorFor(nil)):toBeNil()
+				expect(RaidCutscene.anchorFor(42)):toBeNil()
+			end)
+
 			t:describe("CutsceneState (overlay wiring decisions)", function()
 				-- Replays the raid shots through the sequencer and collects the ui flags per shot.
 				local function uiPerShot()

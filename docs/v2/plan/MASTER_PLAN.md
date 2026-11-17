@@ -8,7 +8,7 @@
 
 ## Progress tracker — read first, update last
 
-**Last updated:** 2026-11-17 — branch `track/c-world-look` — `lune run tests/run.luau`: 1666 passing. Studio pass run: BUG-011 phone now `SEEN-IN-STUDIO` (mount + first-tap device build + app open + ID/EN + landscape), fidelity/admin state seen; `docs/v2/evidence/h/2026-11-17-phone-studio/`. Raid cutscene, save repair, portrait rotation and perf-switch toggles still need Studio hooks or the designer.
+**Last updated:** 2026-11-17 — branch `track/c-world-look` — `lune run tests/run.luau`: 1675 passing. Studio pass: BUG-011 phone + raid cutscene now `SEEN-IN-STUDIO`. Raid: gated `raid` harness hook (`RaidTrigger.luau`, `tests/specs/raid_trigger_spec.luau`), camera hands back on finish/skip/death/Raid_End, FOV 26→72, full 20 s choice window, BREAKING NEWS bar; `docs/v2/evidence/h/2026-11-17-raid-cutscene/`. Save repair, portrait rotation, perf-switch toggles and fps table still need the designer or a throwaway profile.
 
 **Rules for this section.** Every agent reads it before touching the repo, so nobody has to rediscover
 the state from scratch. Whoever finishes a task ticks it here **in the same commit**, adds its status
@@ -24,7 +24,7 @@ Handoff 2026-11-17: the code-only frontier is mostly done (failure-path specs fo
 
 1. **Studio pass first (main session only, needs Studio open):** BUG-011 done `SEEN-IN-STUDIO` 2026-11-17 (mount, first-tap build, app open, ID/EN, landscape; `docs/v2/evidence/h/2026-11-17-phone-studio/`). Still to do in this order —
    - ~~BUG-011: phone mounts / build / apps / rotation / ID/EN.~~ Done except portrait rotation (`LUNE-ONLY`; viewport cannot be changed via MCP).
-   - Raid cutscene: Scriptable camera hands back on finish, skip, death and Raid_End; CameraFeel FOV eases back; BREAKING NEWS bar readable at phone width; the choice window still gets its full 20 s. No harness raid trigger — needs a real raid (~5:30) or a test hook (code change).
+   - ~~Raid cutscene: camera hand-back / FOV / BREAKING NEWS / 20 s window.~~ Done `SEEN-IN-STUDIO` 2026-11-17 via a gated `raid` harness hook (`docs/v2/evidence/h/2026-11-17-raid-cutscene/`); phone-width readability of the lower third still needs the designer's device (emulator cannot be set via MCP).
    - `FidelityTier` attribute switches live; admin perf switches toggle and restore; record fps per switch on the designer phone (V0.2 cost table).
    - Save repair warns once on a damaged profile and nothing else changes.
    - Then the Gate 1 rows in `docs/testing/GATE1.md` (G3 harness at phone size, Q3 dead ends).
@@ -111,7 +111,7 @@ Handoff 2026-11-17: the code-only frontier is mostly done (failure-path specs fo
 
 **F. Characters and cutscenes**
 - [~] Caricature NPC framework from design cards (Pak RT/Tengkulak/Polisi archetype data and fictionality markers) — `LUNE-ONLY`, `src/shared/Config/NpcArchetypes.luau`, `tests/specs/npc_framework_spec.luau`; visual models/rigs still pending.
-- [~] Raid cutscene timeline (establish, triple zoom, police walk-in, letter; 7.0 s; skippable after the first viewing via client attribute `RaidCutsceneSeen`) — `LUNE-ONLY`, `src/client/Feel/CutsceneSequencer.luau`, `src/shared/Config/RaidCutscene.luau`, `tests/specs/cutscene_sequencer_spec.luau`; wired into `src/client/UI/RaidOverlay.luau` (Scriptable camera restored on finish/skip/cancel/death, `CameraFeel.pause/resume`, BREAKING NEWS lower third `raid_lower_third`, decisions in `src/client/Feel/CutsceneState.luau`); server `RaidService.INCOMING_SECONDS` now matches the cutscene so the 20 s choice window is intact. Camera framing is placeholder (no world anchors for kades/police/road), no police NPC walk-in or assets, not seen in Studio.
+- [~] Raid cutscene timeline (establish, triple zoom, police walk-in, letter; 7.0 s; skippable after the first viewing via client attribute `RaidCutsceneSeen`) — `LUNE-ONLY`, `src/client/Feel/CutsceneSequencer.luau`, `src/shared/Config/RaidCutscene.luau`, `tests/specs/cutscene_sequencer_spec.luau`; wired into `src/client/UI/RaidOverlay.luau` (Scriptable camera restored on finish/skip/cancel/death, `CameraFeel.pause/resume`, BREAKING NEWS lower third `raid_lower_third`, decisions in `src/client/Feel/CutsceneState.luau`); server `RaidService.INCOMING_SECONDS` now matches the cutscene so the 20 s choice window is intact. Camera hand-back on finish/skip/death/Raid_End, FOV ease (26→72), BREAKING NEWS bar and the full 20 s choice window now `SEEN-IN-STUDIO` 2026-11-17 via a gated `raid` harness hook (`docs/v2/evidence/h/2026-11-17-raid-cutscene/`). Camera framing still placeholder (no world anchors for kades/police/road), no police NPC walk-in or assets.
 - [~] Raid and debt-collector cutscene state/event hooks (logic only) — `LUNE-ONLY`, `src/server/Npc/CutsceneHooks.luau`, wired in `src/server/Law/RaidService.luau` and `src/server/Economy/DebtCollector.luau`; full sinetron presentation still pending.
 
 **G. Asset pipeline**

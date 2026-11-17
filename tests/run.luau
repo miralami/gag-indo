@@ -52,6 +52,7 @@ local specs = {
 	require("./specs/security_spec"),
 	require("./specs/balance_spec"),
 	require("./specs/harness_spec"),
+	require("./specs/raid_trigger_spec"),
 	require("./specs/greybox_spec"),
 	require("./specs/sky_spec"),
 	require("./specs/seedfloor_spec"),

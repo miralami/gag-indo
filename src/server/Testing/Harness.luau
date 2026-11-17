@@ -31,7 +31,9 @@ local PlotService = require(script.Parent.Parent.Farm.PlotService)
 local QuestService = require(script.Parent.Parent.Progression.QuestService)
 local OnboardingService = require(script.Parent.Parent.Progression.OnboardingService)
 local Village = require(script.Parent.Parent.World.Village)
+local RaidService = require(script.Parent.Parent.Law.RaidService)
 local Gate = require(script.Parent.Gate)
+local RaidTrigger = require(script.Parent.RaidTrigger)
 
 local Harness = {}
 
@@ -296,6 +298,43 @@ end
 local handlers = {
 	status = function(player)
 		return snapshot(player)
+	end,
+	-- Studio-only force-raid hook: starts a raid immediately so the cutscene/camera/choice
+	-- window can be observed in a playtest without waiting ~5:30. Already behind enabled()
+	-- (Studio + in-memory flag + admin); the explicit RaidTrigger gate is defense in depth.
+	raid = function(player, value)
+		if not RaidTrigger.allowed({
+			studio = RunService:IsStudio(),
+			flag = Gate.isOpen(),
+			admin = Admins.isAdmin(player.UserId),
+		}) then
+			return nil, "raid trigger refused: a Studio admin must enable the harness"
+		end
+		-- `force` clears the cooldown in memory so repeated triggers work in one session;
+		-- `viral` bypasses the cooldown inside RaidService.start anyway. Both are test-only.
+		if type(value) == "table" and value.force then
+			local data = PlayerData.get(player)
+			if data then
+				if type(data.cooldowns) ~= "table" then
+					data.cooldowns = {}
+				end
+				data.cooldowns.raidSafeUntil = 0
+			end
+		end
+		RaidService.start(player, RaidTrigger.viral(value))
+		return {
+			action = "raid",
+			state = RaidService.getState(player),
+			inRaid = player:GetAttribute("InRaid") == true,
+		}
+	end,
+	raidState = function(player)
+		return {
+			action = "raidState",
+			state = RaidService.getState(player),
+			inRaid = player:GetAttribute("InRaid") == true,
+			busy = RaidService.isBusy(player),
+		}
 	end,
 	plant = plant,
 	harvest = harvest,

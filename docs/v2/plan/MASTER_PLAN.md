@@ -8,7 +8,7 @@
 
 ## Progress tracker — read first, update last
 
-**Last updated:** 2026-11-17 — branch `track/c-world-look` — `lune run tests/run.luau`: 1664 passing (`LUNE-ONLY`, phone pages build on open; BUG-011 phone mount crash fixed).
+**Last updated:** 2026-11-17 — branch `track/c-world-look` — `lune run tests/run.luau`: 1666 passing. Studio pass run: BUG-011 phone now `SEEN-IN-STUDIO` (mount + first-tap device build + app open + ID/EN + landscape), fidelity/admin state seen; `docs/v2/evidence/h/2026-11-17-phone-studio/`. Raid cutscene, save repair, portrait rotation and perf-switch toggles still need Studio hooks or the designer.
 
 **Rules for this section.** Every agent reads it before touching the repo, so nobody has to rediscover
 the state from scratch. Whoever finishes a task ticks it here **in the same commit**, adds its status
@@ -22,9 +22,9 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 
 Handoff 2026-11-17: the code-only frontier is mostly done (failure-path specs for every server service, save repair, fidelity tiers, raid cutscene, lazy phone). The bottleneck is now Studio, which was closed all session, so the many `LUNE-ONLY` items below are untested in play.
 
-1. **Studio pass first (main session only, needs Studio open):** in this order —
-   - BUG-011: the phone mounts, first tap builds the device and home grid, every app opens, rotation and ID/EN work (`docs/testing/BUGS.md`).
-   - Raid cutscene: Scriptable camera hands back on finish, skip, death and Raid_End; CameraFeel FOV eases back; BREAKING NEWS bar readable at phone width; the choice window still gets its full 20 s.
+1. **Studio pass first (main session only, needs Studio open):** BUG-011 done `SEEN-IN-STUDIO` 2026-11-17 (mount, first-tap build, app open, ID/EN, landscape; `docs/v2/evidence/h/2026-11-17-phone-studio/`). Still to do in this order —
+   - ~~BUG-011: phone mounts / build / apps / rotation / ID/EN.~~ Done except portrait rotation (`LUNE-ONLY`; viewport cannot be changed via MCP).
+   - Raid cutscene: Scriptable camera hands back on finish, skip, death and Raid_End; CameraFeel FOV eases back; BREAKING NEWS bar readable at phone width; the choice window still gets its full 20 s. No harness raid trigger — needs a real raid (~5:30) or a test hook (code change).
    - `FidelityTier` attribute switches live; admin perf switches toggle and restore; record fps per switch on the designer phone (V0.2 cost table).
    - Save repair warns once on a damaged profile and nothing else changes.
    - Then the Gate 1 rows in `docs/testing/GATE1.md` (G3 harness at phone size, Q3 dead ends).
@@ -102,7 +102,7 @@ Handoff 2026-11-17: the code-only frontier is mostly done (failure-path specs fo
 - [x] Stats panel as icon chips (cash first, sack, Sus, Nama Baik) — `LUNE-ONLY`, `src/client/UI/Hud.luau`.
 - [x] D6: Indonesian default plus a language picker (today only `Strings.langFor`); closes BUG-007 — `LUNE-ONLY`, `src/client/UI/Hud.luau`.
 - [x] BUG-006 world label under the HUD panel — `LUNE-ONLY`, `src/client/UI/Hud.luau`.
-- [~] Phone app pages build on open and are destroyed on leave/close (`src/client/UI/LazyPages.luau`, `tests/specs/lazy_pages_spec.luau`); BUG-011 (phone mount used `homeBarHeight` before declaring it) fixed — `LUNE-ONLY`; the device frame, home grid and tiles now also build on the first tap of the phone button and stay built (estimate ~150–170 instances off the idle PlayerGui, not measured); nothing re-checked in Studio.
+- [x] Phone app pages build on open and are destroyed on leave/close (`src/client/UI/LazyPages.luau`, `tests/specs/lazy_pages_spec.luau`); BUG-011 fixed — `SEEN-IN-STUDIO` 2026-11-17: first tap builds the device frame, home grid and all 8 app tiles (lazy), `App_phone` opens `PagePhone` and hides home, ID→EN switches tile labels, landscape applies on the short viewport; Output clean except external BUG-003 (`docs/v2/evidence/h/2026-11-17-phone-studio/`). Portrait rotation and the other 7 app pages remain `LUNE-ONLY`.
 - [ ] Fonts chosen on a phone (§9.3).
 
 **E. Audio**

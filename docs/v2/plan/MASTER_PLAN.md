@@ -8,7 +8,7 @@
 
 ## Progress tracker — read first, update last
 
-**Last updated:** 2026-11-17 — branch `track/c-world-look` — `lune run tests/run.luau`: 1676 passing. Studio pass: BUG-011 phone, raid cutscene, Gate 1 harness loop + several Q3 no-dead-end cases now `SEEN-IN-STUDIO` (`h/2026-11-17-phone-studio/`, `h/2026-11-17-raid-cutscene/`, `h/2026-11-17-gate1/`). Found + fixed BUG-012 (cash-fly `Vector2.Z` crash on every sell). Raid: gated `raid` hook (`RaidTrigger.luau`, `tests/specs/raid_trigger_spec.luau`), camera hand-back on finish/skip/death/Raid_End, FOV 26→72, full 20 s choice window. Save repair, portrait rotation, perf-switch toggles, fps and phone-width readability still need the designer or a throwaway profile.
+**Last updated:** 2026-11-17 — branch `track/c-world-look` — `lune run tests/run.luau`: 1682 passing. Studio pass: BUG-011 phone, raid cutscene, Gate 1 harness/Q3 cases, perf switches + fps sampler now `SEEN-IN-STUDIO` (`h/2026-11-17-phone-studio/`, `-raid-cutscene/`, `-gate1/`, `-perf-switches/`). Found + fixed BUG-012 (cash-fly `Vector2.Z` crash on sell). Added Studio-only `FpsSampler` (`ClientFps` attribute; no-op in published place). Real fps cost table on the designer phone, save repair, portrait rotation and phone-width readability still need the designer or a throwaway profile.
 
 **Rules for this section.** Every agent reads it before touching the repo, so nobody has to rediscover
 the state from scratch. Whoever finishes a task ticks it here **in the same commit**, adds its status
@@ -49,7 +49,7 @@ Handoff 2026-11-17: the code-only frontier is mostly done (failure-path specs fo
 - [ ] G4 nothing visible is a placeholder — icons are letters, NPCs are boxes, most actions are silent.
 - [~] G4b text readable at phone size — signs on boards, HUD and phone checked at iPhone 14 (`evidence/h/2026-11-14-audit-fixes/`); app pages updated with 44x44 touch targets.
 - [x] G5 first harvest < 45 s, first reveal < 5 min, raid < 7 min — tutorial padi 20s, guaranteed Bagus/Super, scripted raid at 330s (`LUNE-ONLY`, `first_session_spec.luau`).
-- [~] G6 fps and instance count — instance count saved; designer phone ~30 fps at max, 60 at lowest; no emulator fps.
+- [~] G6 fps and instance count — instance count saved; Studio-only `ClientFps` sampler works (~60 unfocused, no per-switch delta; `h/2026-11-17-perf-switches/`); designer phone ~30 fps at max, 60 at lowest; real mid-range fps still a designer task.
 - [ ] G7 five real people, own phones (designer).
 - [~] Q3 no dead ends — death, reset, rejoin mid-raid, full-sack sell recovery now `SEEN-IN-STUDIO` via the gated raid hook (`h/2026-11-17-gate1/`); mid-loan, mid-minigame, zero-cash+zero-seed, every-button sweep still open.
 - [~] Q5 soak — 30-min client soak done; ten-player session not run.
@@ -63,7 +63,7 @@ Handoff 2026-11-17: the code-only frontier is mostly done (failure-path specs fo
 - [x] Plant, harvest, sell feedback: particles, tweens, camera nudge, cash-fly — `LUNE-ONLY`, `tests/specs/feel_spec.luau`.
 - [x] Rarity reveal: toast tint, Sultan/Langka shake, sting hooks, ActionFeel — `LUNE-ONLY`, `tests/specs/feel_spec.luau`.
 - [~] First tier consumers: ActionFeel bursts scale count and lifetime (never below 1 particle), Wind sways only within the tier range with a fade — `LUNE-ONLY`, `src/client/Feel/TierScale.luau`, `tests/specs/tier_consumers_spec.luau`; not seen in Studio.
-- [~] V0.2 admin perf switches (Highlights, shadows, bloom, terrain decoration, particles; local, reversible) in the admin panel with the live tier — `LUNE-ONLY`, `src/client/Feel/PerfSwitches.luau`, `tests/specs/perf_switches_spec.luau`; panel not seen in Studio, no fps-per-switch numbers from the designer phone yet.
+- [~] V0.2 admin perf switches (Highlights, shadows, bloom, terrain decoration, particles; local, reversible) in the admin panel with the live tier — panel structure + live tier seen in Studio; shadows/decoration toggle and restore `SEEN-IN-STUDIO` (all 5 states restore, `h/2026-11-17-perf-switches/`); `src/client/Feel/PerfSwitches.luau`, `tests/specs/perf_switches_spec.luau`. Studio-only `FpsSampler` publishes `ClientFps` (`tests/specs/fps_sampler_spec.luau`); Studio readings ~60 with no per-switch delta, real cost table still a designer-phone task.
 - [~] V0.1 `FidelityTier` tier selection (Rendah/Sedang/Tinggi, fast down, slow up, frozen in hook moments, §6 settings table) — `LUNE-ONLY`, `src/client/Feel/FidelityTier.luau`, `tests/specs/fidelity_tier_spec.luau`; wired live by `src/client/Feel/FidelityRuntime.luau` (Heartbeat feed, `FidelityTier` player attribute, `tests/specs/fidelity_runtime_spec.luau`); no visual reads the tier yet, no settings toggle, rarity reveal and raid overlay freeze the tier via `src/client/Feel/MomentGuard.luau` (`tests/specs/hook_moment_spec.luau`), thresholds unmeasured on a phone, not seen switching in Studio.
 
 **B. First session**

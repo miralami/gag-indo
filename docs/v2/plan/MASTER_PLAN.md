@@ -20,12 +20,18 @@ gate rows' full detail stays in `docs/testing/GATE1.md`; defects stay in `docs/t
 
 ### Next up (recommended order)
 
-1. **G — icon upload (designer/Open Cloud):** first icon set upload and fill slot IDs in manifest/map (code-side slots/wiring done, `LUNE-ONLY`).
-2. **D — phone app polish (ongoing):** keep auditing phone pages for cut-off text/wrapping on device; touch-target/layout spec baseline in place (`LUNE-ONLY`).
-3. **C — world in code (partially finalised):** `MapSpec` now sources spawn, golden-hour window, three season preset ids, and 9.5-stud headroom; `greybox_spec` asserts them (`LUNE-ONLY`). Remaining C work is Studio composition/evidence and terrain/asset passes.
-4. **F - NPC/cutscene assets/implementation:** caricature NPC framework and raid/debt-collector state hooks are in place (`LUNE-ONLY`, logic only); visual NPCs and full cutscene presentation remain.
-5. **Bugs:** fix any code-solvable defects in `docs/testing/BUGS.md` (BUG-004 remains `BLOCKED` on D-G3).
-6. **Studio pass (separate):** run harness/playtest for `LUNE-ONLY` items, collect evidence, then Gate 1 checks.
+Handoff 2026-11-17: the code-only frontier is mostly done (failure-path specs for every server service, save repair, fidelity tiers, raid cutscene, lazy phone). The bottleneck is now Studio, which was closed all session, so the many `LUNE-ONLY` items below are untested in play.
+
+1. **Studio pass first (main session only, needs Studio open):** in this order —
+   - BUG-011: the phone mounts, first tap builds the device and home grid, every app opens, rotation and ID/EN work (`docs/testing/BUGS.md`).
+   - Raid cutscene: Scriptable camera hands back on finish, skip, death and Raid_End; CameraFeel FOV eases back; BREAKING NEWS bar readable at phone width; the choice window still gets its full 20 s.
+   - `FidelityTier` attribute switches live; admin perf switches toggle and restore; record fps per switch on the designer phone (V0.2 cost table).
+   - Save repair warns once on a damaged profile and nothing else changes.
+   - Then the Gate 1 rows in `docs/testing/GATE1.md` (G3 harness at phone size, Q3 dead ends).
+2. **F — raid cutscene framing:** real camera anchors for kades/police/road (placeholders in `src/shared/Config/RaidCutscene.luau`), police NPC walk-in.
+3. **G — icon upload (designer/Open Cloud):** fill slot IDs in `src/shared/IconMap.luau` and `ASSET_MANIFEST.md`.
+4. **V0.3–V0.5:** reference board, look-dev corner, designer answers V-D1..V-D5.
+5. **Bugs:** BUG-004 still `BLOCKED` on D-G3.
 
 ### Phase 0 — repo safe for parallel work
 

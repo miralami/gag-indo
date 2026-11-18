@@ -42,6 +42,7 @@ when the task needs it.
 | [art/map/RECONCILIATION.md](v2/visual/art/map/RECONCILIATION.md) | Where MAP_SPEC and the outside map brief differ, and who wins | LIVE |
 | [art/ICONS.md](v2/visual/art/ICONS.md), [art/TEXTURES.md](v2/visual/art/TEXTURES.md), [art/npcs.md](v2/visual/art/npcs.md) | Production briefs | LIVE |
 | [art/RESEARCH_VISUAL_TIPS.md](v2/visual/art/RESEARCH_VISUAL_TIPS.md) | Visual tips applied and the optimise-later backlog | LIVE |
+| [improvements/AI_ROBLOX_TIPS.md](improvements/AI_ROBLOX_TIPS.md) | 28 AI-workflow tips mapped to what we already do / should adopt | SNAPSHOT 2026-11-19 |
 | `art/map/full-package/` | Outside map brief | Reference; MAP_SPEC wins |
 | [mockups/juragan-ui.tokens.md](v2/visual/mockups/juragan-ui.tokens.md), `mockups/index.html` | UI mockups and tokens, not wired in | SNAPSHOT 2026-11-15 |
 | [ART_PLAYTEST_PLAN.md](v2/visual/ART_PLAYTEST_PLAN.md) | Art-pass visual checks (W3–W8) | SNAPSHOT, predates the visual plan |

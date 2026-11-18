@@ -102,6 +102,7 @@ local specs = {
 	require("./specs/state_request_failure_spec"),
 	require("./specs/data_pass_failure_spec"),
 	require("./specs/greybox_retirement_spec"),
+	require("./specs/perf_hotpath_spec"),
 }
 
 local t = Test.new()

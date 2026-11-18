@@ -169,4 +169,19 @@ function CameraFeel.start()
 	end
 end
 
+-- Disconnects every signal this controller owns. A test/hot-reload helper; a normal client keeps
+-- them for its whole life. Safe to call even when start() was never called.
+function CameraFeel.stop()
+	for _, connection in ipairs(connections) do
+		connection:Disconnect()
+	end
+	table.clear(connections)
+	unbind()
+	started = false
+end
+
+function CameraFeel.isStarted(): boolean
+	return started
+end
+
 return CameraFeel

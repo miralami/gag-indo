@@ -17,10 +17,32 @@ local SWAY_SPEED = 0.9 -- radians per second for the main sway
 local FLUTTER_SPEED = 0.37 -- a slower second sine so the motion never looks mechanical
 local WIND_TAG = "WindShake"
 
-local function tierSettings(): any
-	local ok, settings = pcall(function()
-		return require(script.Parent.Parent.Feel.FidelityRuntime).settings()
+-- FidelityRuntime is a singleton ModuleScript, so resolve it once at start() instead of building a
+-- fresh pcall closure + require() on every 20 Hz tick. settings() is still read every tick below,
+-- so a tier change made after start (including one made before FidelityRuntime itself started)
+-- still lands on the next tick. resolveCount is a diagnostic the perf spec uses to prove the
+-- resolution happens once per start, not once per frame.
+local fidelityRuntime = nil :: any
+local resolveCount = 0
+
+local function resolveFidelityRuntime(): any
+	resolveCount += 1
+	local ok, mod = pcall(function()
+		return require(script.Parent.Parent.Feel.FidelityRuntime)
 	end)
+	return if ok then mod else nil
+end
+
+-- Diagnostic: how many times FidelityRuntime has been resolved since this module loaded.
+function Wind.resolveCount(): number
+	return resolveCount
+end
+
+local function tierSettings(): any
+	if not fidelityRuntime then
+		return nil
+	end
+	local ok, settings = pcall(fidelityRuntime.settings)
 	return if ok then settings else nil
 end
 
@@ -39,6 +61,8 @@ end
 local started = false
 local accumulator = 0
 local cursor = 0
+local heartbeatConnection = nil
+local tagRemovedConnection = nil
 -- Original CFrame per part. Weak keys, so a destroyed part does not stay in memory.
 local originals: { [BasePart]: CFrame } = setmetatable({}, { __mode = "k" })
 
@@ -79,9 +103,10 @@ function Wind.start()
 
 	local RunService = game:GetService("RunService")
 	local CollectionService = game:GetService("CollectionService")
+	fidelityRuntime = resolveFidelityRuntime()
 
 	-- A part that loses its tag stops being visited, so put it back here.
-	CollectionService:GetInstanceRemovedSignal(WIND_TAG):Connect(function(part: Instance)
+	tagRemovedConnection = CollectionService:GetInstanceRemovedSignal(WIND_TAG):Connect(function(part: Instance)
 		if part:IsA("BasePart") then
 			local original = originals[part]
 			if original and part.Parent then
@@ -91,7 +116,7 @@ function Wind.start()
 		originals[part] = nil
 	end)
 
-	RunService.Heartbeat:Connect(function(dt: number)
+	heartbeatConnection = RunService.Heartbeat:Connect(function(dt: number)
 		accumulator += dt
 		if accumulator < TICK then
 			return
@@ -121,6 +146,33 @@ function Wind.start()
 			end
 		end
 	end)
+end
+
+-- Tears the loop down: disconnects both signals, restores every swayed part and resets the cursor so
+-- a restart begins cleanly. A test/hot-reload helper; a normal client runs it for its whole life.
+function Wind.stop()
+	if tagRemovedConnection then
+		tagRemovedConnection:Disconnect()
+		tagRemovedConnection = nil
+	end
+	if heartbeatConnection then
+		heartbeatConnection:Disconnect()
+		heartbeatConnection = nil
+	end
+	for part, original in pairs(originals) do
+		if part.Parent then
+			part.CFrame = original
+		end
+	end
+	originals = setmetatable({}, { __mode = "k" })
+	started = false
+	accumulator = 0
+	cursor = 0
+	fidelityRuntime = nil
+end
+
+function Wind.isStarted(): boolean
+	return started
 end
 
 return Wind

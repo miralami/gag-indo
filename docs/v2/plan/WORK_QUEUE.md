@@ -66,9 +66,18 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   `SEEN-IN-STUDIO`, evidence `docs/v2/evidence/h/2026-11-19-greybox-retirement/`. Suite 1725.
   Note: the code path is retired; the actual place still needs the designer's real village (Track C),
   which this run does not save. Safe default to keep the fallback until then — "Decisions for designer".
-- [ ] 6. **Performance pass.** Count instances per hub, find connection leaks (Heartbeat and
+- [x] 6. **Performance pass.** Count instances per hub, find connection leaks (Heartbeat and
   RenderStepped handlers with no cleanup) and per-frame allocations in hot paths. Fix them and
   record before/after numbers.
+  Done 2026-11-19: instance counts per hub recorded (1706 parts / 3289 descendants total; no
+  regression). Two connection leaks fixed: `Wind.stop()` (heartbeat + WindShake tag-removed) and
+  `CameraFeel.stop()` (heartbeat + CharacterAdded/CharacterRemoving), both idempotent and
+  restart-safe. One hot-path allocation fixed: Wind resolved FidelityRuntime once at start instead
+  of rebuilding a pcall closure + require on every 20 Hz tick (1→0 closures/resolutions per tick),
+  while still reading settings() each tick so tier changes land. `tests/specs/perf_hotpath_spec.luau`
+  (7 cases, `LUNE-ONLY`) proves once-per-start resolution, disconnect-on-stop and restart; Studio
+  client VM confirms both modules load with `stop` present, 0 new Output errors. Evidence
+  `docs/v2/evidence/h/2026-11-19-performance/`. Suite 1732; selene 0 errors / 3 warnings.
 - [ ] 7. **Localization pass.** All player text goes through `Strings.luau` with `id` and `en`;
   nothing is hardcoded in the UI. Extend `strings_integrity_spec` to catch stragglers.
 - [ ] 8. **Code health.** Split modules over ~600 lines where the split is clean, and clear the 4

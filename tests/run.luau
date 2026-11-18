@@ -99,6 +99,7 @@ local specs = {
 	require("./specs/lazy_pages_spec"),
 	require("./specs/minigame_cancel_spec"),
 	require("./specs/multiplayer_sim_spec"),
+	require("./specs/state_request_failure_spec"),
 }
 
 local t = Test.new()

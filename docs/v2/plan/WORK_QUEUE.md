@@ -18,10 +18,15 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   across interleaved grants/buys/sells/loans, raids/choices and plant/harvest; asserts per-player
   cash/items/tiles/debt/raid isolation, no NaN/negative cash, no duplicated seeds and no stuck
   raid or minigame state. No isolation defect found, so no production fix was needed. Suite 1709.
-- [ ] 2. **Security pass.** Check every RemoteEvent/RemoteFunction handler in `src/server` for
+- [x] 2. **Security pass.** Check every RemoteEvent/RemoteFunction handler in `src/server` for
   argument type and range validation, rate limits, and server authority over cash and items.
   Write a failure-path spec for each exploit vector, then fix it. Record results in
   `docs/testing/CODE_AUDIT.md`.
+  Done 2026-11-19: re-read all 48 handler connections under `src/server`; all C->S remotes already
+  validated/rate-limited/guarded with a failure-path spec. Closed the one gap with
+  `tests/specs/state_request_failure_spec.luau` (payload ignored, unloaded player safe, flood
+  rate-limited); no production fix needed. Full re-pass recorded in `docs/testing/CODE_AUDIT.md`.
+  Suite 1712.
 - [ ] 3. **Data pass.** Check ProfileStore session locking, the migrate → SaveSanitize order, and
   DataStore errors at load and at save. Specs for each failure path, then fixes.
 - [ ] 4. **Studio checks of `LUNE-ONLY` items.** Turn each into `SEEN-IN-STUDIO` with evidence:

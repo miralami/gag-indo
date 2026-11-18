@@ -215,9 +215,19 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   payload bound. Payload bounds, rate limit, grant caps and reply isolation already covered by
   `season_admin_failure_spec`. No source bug; no game source changed. Suite 1821; selene 0/0/0.
   Evidence `docs/v2/evidence/h/2026-11-19-admin-authority/REPORT.md`.
-- [ ] 17. **Analytics audit against `ANALYTICS.md`.** Every documented event fires from the right
+- [x] 17. **Analytics audit against `ANALYTICS.md`.** Every documented event fires from the right
   trigger, funnel steps are in order and fire once, and payloads have bounded size. Spec each
   event; list any missing event in "Decisions for designer".
+  Done 2026-11-19: `tests/specs/analytics_audit_spec.luau` (24 cases, `LUNE-ONLY`). Static audit:
+  `AnalyticsService` has a single owner (`src/server/Analytics/Analytics.luau`); all 16 documented
+  §2 custom events have call sites in their owning services; economy + onboarding funnel emissions
+  exist; `ShopPurchase` is intentionally unwired and `first_harvest` is an example with no call site.
+  Behavioural: real `OnboardingService` + `Analytics` log steps 1..N in order exactly once then
+  `finished` (duplicate/out-of-order actions log nothing); real `EconomyService` logs Source/Sink
+  with the post-mutation balance and skips refused mutations. Bounded payloads already locked by
+  `analytics_spec` (3-field cap). No source bug; no game source changed. Studio dashboard check is
+  still `belum diverifikasi di Studio` (ANALYTICS.md §7). Suite 1845; selene 0/0/0. Evidence
+  `docs/v2/evidence/h/2026-11-19-analytics-audit/REPORT.md`.
 - [ ] 18. **NPC pathing robustness.** Police and debt-collector walk-to-plot for every plot: add
   stuck detection, a timeout and a teleport fallback. Specs, plus a Studio run to each plot.
 - [ ] 19. **UI fit at 749×388.** For every screen and app page, probe AbsolutePosition and
@@ -273,6 +283,14 @@ Choices the agent made with a safe, reversible default. The designer confirms or
   `:enable("police_walkin")`), then confirm, override or discard each. Both restored with
   `:disable()`. The item stays unticked until the designer chooses. Evidence
   `docs/v2/evidence/h/2026-11-19-lookdev-candidates/`.
+- Item 17 — `ANALYTICS.md` §2 lists `first_harvest` as an "(example `once`)" activation event, but
+  no gameplay service calls it (only `analytics_spec` uses the name as a sample). Safest reversible
+  default: do **not** invent a call site; leave it documented as an example and let the designer
+  decide whether to wire `Analytics.once(player, "first_harvest", 1)` after the first successful
+  harvest in `FarmService`. Related, no action taken: `ShopPurchase` is intentionally unwired in
+  M4 (§4), and `FirstSession` emits an extra undocumented `first_session` funnel (steps 5/7/8/9)
+  that the designer may want added to `ANALYTICS.md` §4 or retired. Evidence
+  `docs/v2/evidence/h/2026-11-19-analytics-audit/REPORT.md`.
 
 ## Blocked on designer
 

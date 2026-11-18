@@ -114,6 +114,7 @@ local specs = {
 	require("./specs/purchase_idempotency_spec"),
 	require("./specs/cross_server_failure_spec"),
 	require("./specs/admin_authority_spec"),
+	require("./specs/analytics_audit_spec"),
 }
 
 local t = Test.new()

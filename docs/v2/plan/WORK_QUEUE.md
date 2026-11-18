@@ -205,8 +205,16 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   in `sanitize()` + `isStale()` guard in `subscribe()` and `load()`; legacy patches without a timestamp
   still apply. Mutation-checked. Evidence
   `docs/v2/evidence/h/2026-11-19-cross-server-failures/REPORT.md`.
-- [ ] 16. **Admin and season tools.** Every admin command validates who calls it and what it
+- [x] 16. **Admin and season tools.** Every admin command validates who calls it and what it
   receives; non-admins are refused; no admin path can grant unbounded cash or items. Specs.
+  Done 2026-11-19: `tests/specs/admin_authority_spec.luau` (4 cases, `LUNE-ONLY`) wires the REAL
+  `Admins` + `LiveConfig` + `AdminService` (existing `season_admin_failure_spec` only tested them
+  mocked): non-allowlisted player refused for all 5 privileged actions on a published server;
+  forging the `IsAdmin` attribute grants nothing; allowlisted designer changes the real config and
+  grants cash with `earned=false`/`sku=admin_grant`; Studio's everyone-is-admin still enforces every
+  payload bound. Payload bounds, rate limit, grant caps and reply isolation already covered by
+  `season_admin_failure_spec`. No source bug; no game source changed. Suite 1821; selene 0/0/0.
+  Evidence `docs/v2/evidence/h/2026-11-19-admin-authority/REPORT.md`.
 - [ ] 17. **Analytics audit against `ANALYTICS.md`.** Every documented event fires from the right
   trigger, funnel steps are in order and fire once, and payloads have bounded size. Spec each
   event; list any missing event in "Decisions for designer".

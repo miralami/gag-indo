@@ -123,9 +123,19 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   both client and server Play Solo VMs, 0 probe errors, 0 new Output errors; evidence
   `docs/v2/evidence/h/2026-11-19-lookdev-candidates/`. Suite 1769; selene 0 errors / 0 warnings /
   0 parse errors. Final visual approval is the designer's "yes" — see Decisions for designer.
-- [ ] 10. **Bug hunt by reading.** Go through `src/server` one folder at a time, then `src/client`,
+- [x] 10. **Bug hunt by reading.** Go through `src/server` one folder at a time, then `src/client`,
   reading every line. Log each defect in `BUGS.md` with a severity, then fix it with a regression
   spec. Bugs found here outrank the items below.
+  Done 2026-11-19: whole-tree defect-pattern scan of `src/server`/`src/client`/`src/shared` + full
+  reads of all high-risk money/data/net/live/logic modules (subagent recon twice failed
+  `ECONNREFUSED`, so done in main session). Two defects found, fixed, mutation-proven, logged in
+  `BUGS.md`: **BUG-014 (major)** `Produce.snapshot` had no `type(stack) == "table"` guard (unlike its
+  siblings) and crashed `State_Snapshot` on a damaged dynamic-key stack — skip corrupt stacks /
+  non-table `traits`; 2 cases in `tests/specs/produce_spec.luau`. **BUG-015 (minor)** `EconomyService`
+  Nama Baik bonus read `MarketConfig.namaBaikMaxBonus` but clamped with a hardcoded ±0.05, so a tuned
+  config was silently capped — derive bounds from `maxBonus`; `tests/specs/economy_config_spec.luau`.
+  Both mutation-checked (old code fails the new spec). Suite 1772; selene 0 errors / 0 warnings /
+  0 parse errors. Evidence `docs/v2/evidence/h/2026-11-19-bug-hunt-reading/`. `LUNE-ONLY`.
 - [ ] 11. **Spec coverage gaps.** List each service and client controller that has no failure-path
   spec (nil player, a player who left, damaged data, a missing remote) and write one for each.
 - [ ] 12. **Player leaves mid-state.** For every state a player can be in (each raid state, debt

@@ -157,6 +157,32 @@ return function(t, Env)
 				table.insert(copy[Produce.key("padi", "biasa", { "oplosan" })].traits, "basah")
 				expect(#sack[Produce.key("padi", "biasa", { "oplosan" })].traits):toBe(1)
 			end)
+
+			-- BUG-014: produce/gudang.stacks are dynamic-key tables SaveSanitize never touches.
+			-- A non-table value (or a non-table `traits`) must not throw while building the
+			-- replicated State_Snapshot; corrupt stacks are skipped like every sibling function.
+			t:it("skips non-table stacks without throwing (BUG-014)", function()
+				local sack = {}
+				Produce.add(sack, "padi", 1)
+				sack["bad|biasa|"] = 42 -- indexing a number would throw in the old snapshot
+				sack["alsoBad|biasa|"] = "corrupt"
+				local ok, copy = pcall(Produce.snapshot, sack)
+				expect(ok):toBe(true)
+				expect(copy[Produce.key("padi", "biasa", {})].count):toBe(1)
+				expect(copy["bad|biasa|"]):toBeNil()
+				expect(copy["alsoBad|biasa|"]):toBeNil()
+			end)
+
+			t:it("defaults a non-table traits field to an empty list (BUG-014)", function()
+				local sack = {}
+				Produce.add(sack, "padi", 1)
+				local key = Produce.key("padi", "biasa", {})
+				sack[key].traits = "not-a-table" -- table.clone would throw in the old snapshot
+				local ok, copy = pcall(Produce.snapshot, sack)
+				expect(ok):toBe(true)
+				expect(type(copy[key].traits)):toBe("table")
+				expect(#copy[key].traits):toBe(0)
+			end)
 		end)
 
 		t:describe("clear", function()

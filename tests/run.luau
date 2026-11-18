@@ -105,6 +105,7 @@ local specs = {
 	require("./specs/perf_hotpath_spec"),
 	require("./specs/code_health_spec"),
 	require("./specs/lookdev_candidates_spec"),
+	require("./specs/economy_config_spec"),
 }
 
 local t = Test.new()

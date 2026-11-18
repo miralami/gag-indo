@@ -90,8 +90,19 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   `SEEN-IN-STUDIO` (live HUD `Rp 35,857` in the en-us client, 9 plot signs `Lahan Kosong`, all 8
   keys resolve, 0 new Output errors); evidence `docs/v2/evidence/h/2026-11-19-localization/`.
   Suite 1750; selene 0 errors / 3 warnings.
-- [ ] 8. **Code health.** Split modules over ~600 lines where the split is clean, and clear the 4
+- [x] 8. **Code health.** Split modules over ~600 lines where the split is clean, and clear the 4
   selene warnings where safe. Lock behaviour with specs before refactoring.
+  Done 2026-11-19: cleared the 3 remaining selene unused-variable warnings by deleting confirmed dead
+  code (`tryAddHudButton` in Admin — wiring it would change UI behaviour, so it was removed instead;
+  `stripTop` in MapSpec; `hubWall` in Greybox). Extracted Phone's three generic view helpers
+  (`clearChildren`, `sectionLabel`, `scrollPage`) into a new `src/client/UI/PhoneWidgets.luau` with
+  local aliases in Phone so every call site is unchanged; restored the `Icons` require Phone still
+  needs for app-grid tiles. `tests/specs/code_health_spec.luau` (5 cases) locks helper behaviour before
+  the move and asserts no inline definitions remain. No other >600-line file was split — the rest are
+  tightly coupled stateful controllers where a split adds risk without benefit; vendored ProfileStore
+  is off-limits. `SEEN-IN-STUDIO` load/no-regression (Phone + PhoneWidgets load all functions, 0 probe
+  errors, 0 new Output errors); evidence `docs/v2/evidence/h/2026-11-19-code-health/`. Suite 1754;
+  selene 0 errors / 0 warnings / 0 parse errors."
 - [ ] 9. **Look-dev candidates for designer review.** Behind an opt-in toggle that is off by
   default. No asset IDs: procedural parts and Roblox textured materials only, in the
   cartoonish-realism style. Two candidates:

@@ -312,14 +312,6 @@ local function blockForTop(x: number, z: number, sx: number, sz: number, top: nu
 	return block(x, cy, z, sx, sy, sz, "Ground")
 end
 
--- Height of a split strip of a very wide volume (the 800 x 800 base slab, the 680-wide terraces).
--- Such a fill is laid in layers of `thickness` (a whole number of voxels) from `bottom` up, so a
--- single FillBlock never asks the voxel engine for a 4-stud slab 800 studs across. Every layer whose
--- top is at or under `top` is laid solid; the topmost one stops at `top`.
-local function stripTop(bottom: number, thickness: number, top: number, index: number): number
-	return math.min(bottom + thickness * (index + 1), top)
-end
-
 -- Split any block wider than MAX_FILL_SPAN into strips no wider than MAX_FILL_SPAN on X and on Z.
 -- A ground-volume fill (one that starts at the base slab) is also laid in whole 4-stud layers up to
 -- its own top, so a wide fill is never one tall box either. Air never stacks: the clear envelope is

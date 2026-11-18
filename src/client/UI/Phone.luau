@@ -19,8 +19,9 @@ local Remotes = require(Shared.Remotes)
 local Audio = require(script.Parent.Parent.Audio)
 local ClientState = require(script.Parent.Parent.State)
 
-local Icons = require(script.Parent.Icons)
 local Theme = require(script.Parent.Theme)
+local Icons = require(script.Parent.Icons)
+local Widgets = require(script.Parent.PhoneWidgets)
 local Evidence = require(script.Parent.Evidence)
 local PhoneLayout = require(Shared.PhoneLayout)
 local LazyPages = require(script.Parent.LazyPages)
@@ -36,68 +37,11 @@ function Phone.setLanguage(lang: string)
 	end
 end
 
-local function clearChildren(frame: Instance)
-	for _, child in frame:GetChildren() do
-		if child:IsA("GuiObject") then
-			child:Destroy()
-		end
-	end
-end
-
-local function sectionLabel(parent: Instance, text: string, order: number, iconName: string?): Frame
-	local row = Theme.new("Frame", {
-		LayoutOrder = order,
-		Size = UDim2.new(1, 0, 0, 26),
-		BackgroundTransparency = 1,
-		Parent = parent,
-	})
-	local offset = 0
-	if iconName then
-		Icons.make(iconName, {
-			Position = UDim2.new(0, 0, 0, 2),
-			Size = UDim2.fromOffset(22, 22),
-			Parent = row,
-		})
-		offset = 26
-	end
-	local label = Theme.label({
-		Position = UDim2.new(0, offset, 0, 0),
-		Size = UDim2.new(1, -offset, 1, 0),
-		Text = text,
-		TextColor3 = Theme.merah,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Parent = row,
-	})
-	label.TextSize = 18
-	label.Font = Theme.displayFont
-	return row
-end
-
-local function scrollPage(parent: Instance, name: string): ScrollingFrame
-	local page = Theme.new("ScrollingFrame", {
-		Name = name,
-		Size = UDim2.fromScale(1, 1),
-		BackgroundTransparency = 1,
-		BorderSizePixel = 0,
-		ScrollBarThickness = 4,
-		ScrollingDirection = Enum.ScrollingDirection.Y,
-		CanvasSize = UDim2.new(),
-		AutomaticCanvasSize = Enum.AutomaticSize.Y,
-		Parent = parent,
-	}, {
-		Theme.new("UIListLayout", {
-			SortOrder = Enum.SortOrder.LayoutOrder,
-			Padding = UDim.new(0, 8),
-		}),
-		Theme.new("UIPadding", {
-			PaddingLeft = UDim.new(0, 4),
-			PaddingRight = UDim.new(0, 8),
-			PaddingTop = UDim.new(0, 6),
-			PaddingBottom = UDim.new(0, 24),
-		}),
-	})
-	return page
-end
+-- Generic view helpers live in PhoneWidgets (code-health split); keep the local names so every
+-- page below calls exactly the same function it did before the move.
+local clearChildren = Widgets.clearChildren
+local sectionLabel = Widgets.sectionLabel
+local scrollPage = Widgets.scrollPage
 
 -- Builds the device (frame, home grid, app tiles, wiring) on the first open, not at mount.
 -- `ctx` carries the always-present pieces made by Phone.mount: gui, toggle and the shared

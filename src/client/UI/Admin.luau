@@ -384,27 +384,6 @@ end
 function Admin.mount(langCode: string)
 	lang = langCode
 
-	local function tryAddHudButton()
-		if not player:GetAttribute("IsAdmin") then return end
-		local hudGui = player.PlayerGui:FindFirstChild("Hud")
-		if not hudGui then return end
-		if hudGui:FindFirstChild("AdminToggle") then return end
-		local btn = Instance.new("TextButton")
-		btn.Name = "AdminToggle"
-		btn.Text = t("admin_button")
-		btn.Size = UDim2.new(0, 80, 0, 44)
-		btn.Position = UDim2.new(1, -88, 0, 10)
-		btn.AnchorPoint = Vector2.new(0, 0)
-		btn.BackgroundColor3 = Theme.indigo
-		btn.TextColor3 = Theme.paper
-		btn.BorderSizePixel = 0
-		btn.TextSize = 13
-		btn.Font = Theme.font
-		btn.ZIndex = 20
-		btn.Parent = hudGui
-		btn.Activated:Connect(toggle)
-	end
-
 	Remotes.Admin_Result.OnClientEvent:Connect(function(result)
 		if type(result) ~= "table" then
 			return

@@ -254,12 +254,6 @@ local function hubPosts(parent: Instance, hub, roof: { rise: number, halfDepth: 
 	end
 end
 
--- A wall from the plinth top up to the roof underside at its deepest point.
-local function hubWall(parent: Instance, hub, name: string, lx: number, lz: number, sizeX: number, sizeZ: number, deepestZ: number, roof: { rise: number, halfDepth: number }, color: Color3, material: Enum.Material): Part
-	local top = under(roof, deepestZ)
-	return hubBlock(parent, hub, name, lx, (PLINTH_TOP + top) / 2, lz, Vector3.new(sizeX, top - PLINTH_TOP, sizeZ), color, material)
-end
-
 -- The tall cabai-price "ukur" board: a post and a board hung on it. It stands on open ground beside
 -- the Pasar, off the road cross, and it is a sign, so it is drawn thin and left uncollidable.
 local function buildUkurBoard(world: Folder)

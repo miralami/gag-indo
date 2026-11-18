@@ -65,7 +65,11 @@ function RaidCutscene.cameraFor(shot: any, progress: number?, yawDegrees: number
 	local standOff: number
 	local lift: number
 	if shot.kind == "zoom" then
-		standOff, lift = 18, 5
+		-- 14, not 18: a Studio raycast against the built world (2026-11-19) found that at standOff
+		-- 16+ the police_chief shot's eye→head line passes through Tree_12.Canopy_2 (near -68/28),
+		-- while 10/12/14 are clear. The kades shot is clear at every standoff. 14 keeps the most
+		-- distance while giving both NPC shots an unobstructed line of sight.
+		standOff, lift = 14, 5
 	elseif shot.kind == "walkin" then
 		local p = if type(progress) == "number" then progress else 0
 		if p < 0 then

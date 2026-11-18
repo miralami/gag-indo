@@ -1,0 +1,35 @@
+{
+  "session": "2026-11-19-review-fixes",
+  "datamodel": "Server",
+  "placeId": 132087524375529,
+  "universeId": 10776530981,
+  "partCount": 1706,
+  "method": "workspace:Raycast(eye, (target-eye).Unit*(target-eye).Magnitude, RaycastParams Exclude); eye = anchor + (-standOff*sin(yaw), lift, -standOff*cos(yaw)) per RaidCutscene.cameraFor",
+  "shots_standOff_14": [
+    { "id": "zoom2_kades", "anchor": [68, 5.7, 47], "standOff": 14, "yaw": -18, "eye": [72.32, 10.69, 33.68], "blocked": false, "hit": "none" },
+    { "id": "zoom3_police", "anchor": [-68, 5.7, 42], "standOff": 14, "yaw": 18, "eye": [-72.33, 10.69, 28.68], "blocked": false, "hit": "none" },
+    { "id": "walkin_road_p0", "anchor": [0, 2, -28], "standOff": 40, "yaw": 0, "eye": [0, 6, -68], "blocked": false, "hit": "none" },
+    { "id": "walkin_road_p1", "anchor": [0, 2, -28], "standOff": 18, "yaw": 0, "eye": [0, 6, -46], "blocked": false, "hit": "none" }
+  ],
+  "old_standOff_18_before_fix": [
+    { "id": "zoom2_kades", "blocked": false, "hit": "none" },
+    { "id": "zoom3_police", "blocked": true, "hit": "Workspace.World.Tree_12.Canopy_2", "distance": 3.18 }
+  ],
+  "standOff_sweep_police_yaw18": {
+    "10": "clear", "12": "clear", "14": "clear",
+    "16": "Workspace.World.Tree_12.Canopy_2",
+    "18": "Workspace.World.Tree_12.Canopy_2",
+    "20": "Workspace.World.Tree_12.Canopy_2",
+    "22": "Workspace.World.Tree_12.Canopy_2"
+  },
+  "standOff_sweep_kades_yaw-18": {
+    "10": "clear", "12": "clear", "14": "clear", "16": "clear", "18": "clear", "20": "clear", "22": "clear"
+  },
+  "console_tail": [
+    "[JuraganDesa] server started",
+    "[ProfileStore]: Roblox API services available - data will be saved",
+    "Assistant plugin version changed from ef6b1b3 to 9bb6530 (x2)",
+    "ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type (x3, BUG-003 external)"
+  ],
+  "status": "SEEN-IN-STUDIO"
+}

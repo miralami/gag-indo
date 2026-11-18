@@ -499,6 +499,22 @@ return function(t, Env)
 					expect(p.eye.z):toBeLessThan(p.target.z)
 				end)
 
+				t:it("uses a zoom stand-off <= 14 so the police shot clears Tree_12.Canopy_2", function()
+					-- Studio raycast 2026-11-19: police eye→head at standOff 16/18/20/22 is blocked by
+					-- Tree_12.Canopy_2 (near -68/28); 10/12/14 are clear. Lock the horizontal distance
+					-- at 14 so a future edit cannot reintroduce the obstruction.
+					local function horizontalDistance(f)
+						local dx, dz = f.eye.x - f.target.x, f.eye.z - f.target.z
+						return math.sqrt(dx * dx + dz * dz)
+					end
+					for _, focus in ipairs({ "kades", "police_chief" }) do
+						local shot = if focus == "kades" then shots()[3] else shots()[4]
+						local f = RaidCutscene.cameraFor(shot, 0, State.focusOffset(focus))
+						expect(horizontalDistance(f)):toBeNear(14, 1e-9)
+						expect(horizontalDistance(f)):toBeAtMost(14)
+					end
+				end)
+
 				t:it("keeps the walk-in eye on the -z side across the whole dolly", function()
 					local walkin = shots()[5]
 					for _, progress in ipairs({ 0, 0.25, 0.5, 0.75, 1 }) do

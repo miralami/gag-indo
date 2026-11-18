@@ -115,6 +115,7 @@ local specs = {
 	require("./specs/cross_server_failure_spec"),
 	require("./specs/admin_authority_spec"),
 	require("./specs/analytics_audit_spec"),
+	require("./specs/npc_pathing_robustness_spec"),
 }
 
 local t = Test.new()

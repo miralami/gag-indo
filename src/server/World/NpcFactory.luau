@@ -11,12 +11,12 @@
 
 local Map = require(script.Parent.Map)
 local Props = require(script.Parent.Props)
+local NpcWalk = require(script.Parent.NpcWalk)
 
 local NpcFactory = {}
 local Npc = {}
 Npc.__index = Npc
 
-local STEP_SECONDS = 0.05
 local INK = Props.palette("tinta")
 
 local function addPart(model: Model, name: string, size: Vector3, cf: CFrame, color: Color3, material: Enum.Material?): Part
@@ -180,34 +180,14 @@ function Npc:stop()
 	self.walkToken += 1
 end
 
--- Yields. `speed` is studs/second (default 14).
+-- Yields. `speed` is studs/second (default 14). Delegates to the shared walker, which adds stuck
+-- detection, a timeout and a teleport fallback so the NPC always reaches its goal (item 18).
 function Npc:walkTo(target: Vector3, speed: number?)
 	self.walkToken += 1
 	local token = self.walkToken
-	local pivot = self.model:GetPivot()
-	local start = pivot.Position
-	local goal = Vector3.new(target.X, start.Y, target.Z)
-	local delta = goal - start
-	local distance = delta.Magnitude
-	if distance < 0.5 then
-		return
-	end
-
-	local direction = CFrame.lookAt(Vector3.zero, Vector3.new(delta.X, 0, delta.Z))
-	local duration = distance / (speed or 14)
-	local steps = math.max(1, math.ceil(duration / STEP_SECONDS))
-
-	for i = 1, steps do
-		if self.walkToken ~= token or not self.model.Parent then
-			return
-		end
-		local alpha = i / steps
-		local position = start:Lerp(goal, alpha) + Vector3.new(0, math.abs(math.sin(i * 0.9)) * 0.18, 0)
-		self.model:PivotTo(CFrame.new(position) * direction * CFrame.Angles(0, 0, math.sin(i * 0.9) * 0.05))
-		task.wait(STEP_SECONDS)
-	end
-
-	self.model:PivotTo(CFrame.new(goal) * direction)
+	return NpcWalk.walkTo(self.model, target, speed, function()
+		return self.walkToken ~= token
+	end)
 end
 
 -- Teleport instantly (used to reset police after a raid).

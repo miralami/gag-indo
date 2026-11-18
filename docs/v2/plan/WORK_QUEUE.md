@@ -228,8 +228,21 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   `analytics_spec` (3-field cap). No source bug; no game source changed. Studio dashboard check is
   still `belum diverifikasi di Studio` (ANALYTICS.md §7). Suite 1845; selene 0/0/0. Evidence
   `docs/v2/evidence/h/2026-11-19-analytics-audit/REPORT.md`.
-- [ ] 18. **NPC pathing robustness.** Police and debt-collector walk-to-plot for every plot: add
+- [x] 18. **NPC pathing robustness.** Police and debt-collector walk-to-plot for every plot: add
   stuck detection, a timeout and a teleport fallback. Specs, plus a Studio run to each plot.
+  Done 2026-11-19: new dependency-free `src/server/World/NpcWalk.luau` walks a host toward a goal
+  with stuck detection (~0.6 s), a timeout (2× expected + 3 s floor) and a teleport fallback onto the
+  goal, while cancellation/unparenting aborts without teleport. `NpcFactory:walkTo` (police, via
+  RaidService) and `DebtCollector.summon` both delegate to it; collector now walks from its spawn
+  offset to `plot.spawnCFrame.Position` for every plot. `tests/specs/npc_pathing_robustness_spec.luau`
+  (9 cases, `LUNE-ONLY`) locks arrival/stuck/timeout/cancel/unparent/multi-plot/no-pivot and both
+  call sites; mutation-checked. Studio (`SEEN-IN-STUDIO`, Server VM): walked a real Part to all ten
+  plots with final XZ distance 0.00 each, and the stuck fallback commanded exactly the goal; no
+  game-code errors, place not saved, no `profile:Save()`. Caller-level live run limited: no
+  `Village.police` bound and the solo player had no assigned plot (wiring locked by spec instead).
+  Caught and fixed a native-`vector` type mismatch during the Studio run (`type()` is `"vector"` in
+  Studio, not `"table"`/`"userdata"`): `positionOf` now reads fields via `pcall`. Suite 1854;
+  selene 0/0/0. Evidence `docs/v2/evidence/h/2026-11-19-npc-pathing/`.
 - [ ] 19. **UI fit at 749×388.** For every screen and app page, probe AbsolutePosition and
   AbsoluteSize in Studio. Nothing may be off-screen or overlap the safe-area insets. Fix by
   layout, not by shrinking text below the minimum.

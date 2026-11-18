@@ -27,8 +27,14 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   `tests/specs/state_request_failure_spec.luau` (payload ignored, unloaded player safe, flood
   rate-limited); no production fix needed. Full re-pass recorded in `docs/testing/CODE_AUDIT.md`.
   Suite 1712.
-- [ ] 3. **Data pass.** Check ProfileStore session locking, the migrate → SaveSanitize order, and
+- [x] 3. **Data pass.** Check ProfileStore session locking, the migrate → SaveSanitize order, and
   DataStore errors at load and at save. Specs for each failure path, then fixes.
+  Done 2026-11-19: `tests/specs/data_pass_failure_spec.luau` (7 passing cases) drives the real
+  PlayerData with a fake ProfileStore (no DataStore/real profile touched): Studio store key +
+  Cancel on leave/timeout, Reconcile→migrate→sanitize order before loaded callbacks, nil-profile
+  kick, OnSessionEnd kick + profile clear, leave-mid-load EndSession, saveAndConfirm receipt/error/
+  timeout, and pcall-isolated beforeRelease callbacks. All paths correct, no production fix needed.
+  Suite 1719.
 - [ ] 4. **Studio checks of `LUNE-ONLY` items.** Turn each into `SEEN-IN-STUDIO` with evidence:
   - force each FidelityTier and read the settings it applied;
   - TierScale particle and wind consumers;

@@ -22,7 +22,7 @@ all 48 `OnServerEvent`/`OnServerInvoke` connections reviewed, every C->S remote 
 guarded with a failure-path spec; closed the sole gap with `tests/specs/state_request_failure_spec.luau`.
 No production fix needed. Results/coverage map in `docs/testing/CODE_AUDIT.md`. Suite 1712.
 
-**Rules for this section.** Every agent reads it before touching the repo, so nobody has to rediscover
+**Long-run 2026-11-19 — WORK_QUEUE item 3 (`LUNE-ONLY`):** data pass — added `tests/specs/data_pass_failure_spec.luau`\n(7 cases) driving the real PlayerData with a fake ProfileStore: Studio store key + Cancel-on-leave/\ntimeout, Reconcile→migrate→sanitize order before loaded callbacks, failed-load kick, OnSessionEnd\nkick + clear, leave-mid-load EndSession, saveAndConfirm receipt/error/timeout and pcall-isolated\nbeforeRelease. No defect found, so no production fix needed. Suite 1719.\n\n**Rules for this section.** Every agent reads it before touching the repo, so nobody has to rediscover
 the state from scratch. Whoever finishes a task ticks it here **in the same commit**, adds its status
 word (§7) and an evidence path, and bumps the "Last updated" line. `[x]` = done with evidence,
 `[~]` = partly done (say what is missing), `[ ]` = not started. Never tick without evidence. The

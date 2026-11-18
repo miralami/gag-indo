@@ -100,6 +100,7 @@ local specs = {
 	require("./specs/minigame_cancel_spec"),
 	require("./specs/multiplayer_sim_spec"),
 	require("./specs/state_request_failure_spec"),
+	require("./specs/data_pass_failure_spec"),
 }
 
 local t = Test.new()

@@ -1,0 +1,28 @@
+{
+  "track": "H",
+  "date": "2026-11-19",
+  "topic": "Q5 ten-player / multi-client attempt",
+  "branch": "track/c-world-look",
+  "head": "90b4d9c",
+  "attempted": true,
+  "toolSurfaceEnumeration": {
+    "totalTools": 39,
+    "startStopPlayOnly": true,
+    "playMode": "Play Solo",
+    "localServerTool": false,
+    "teamTestTool": false,
+    "addClientTool": false,
+    "multiClientTool": false
+  },
+  "targetedSearch": "team test / multi client / local server / player / run -> no matching tool",
+  "luauSubstitute": "none available: Team Test / Local Server is a Studio UI feature, not exposed via TestService or any scriptable API from a running place",
+  "observation": "Players:GetPlayers() returns a single client in the Play Solo instance; state reports one DataModel pair (Client, Server)",
+  "result": {
+    "tenPlayerHalf": "BLOCKED",
+    "reason": "Studio MCP surface has no local-server / team-test / multi-client tool; no scriptable substitute",
+    "needsHuman": true,
+    "manualPath": "Roblox Studio Test tab -> Local Server + several Test clients, then replay HARNESS.md 2-4 in each; or published place with real players (Q6/G7)",
+    "soakHalf": "already SEEN-IN-STUDIO 2026-11-14 (h/2026-11-14-soak/soak.json)"
+  },
+  "verdict": "BLOCKED"
+}

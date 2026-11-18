@@ -2,8 +2,8 @@
 
 Build: `track/c-world-look`, tree clean at `270fffe`, with `92ebe50` (standOff-14) and
 `270fffe` in the place. Place: cloud dev place `Development-Juragan-Desa`, placeId
-`132087524375529`, universeId `10776530981`. Throwaway profile: `GiantyFrog`, UserId
-`172146044`, baseline cash `35857`.
+`132087524375529`, universeId `10776530981`. Test profile: designer account, baseline cash
+`35857`.
 
 **The place was never saved and never published.** `profile:Save()` was never called.
 All DataModel edits were unsaved and the throwaway profile was restored before Play stopped

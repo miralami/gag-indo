@@ -75,7 +75,7 @@ model.kit.fence,model,polypizza,https://poly.pizza/m/e02PFKKhbr,CC0,,0,,UNVERIFI
 
 Authors: Quaternius (all except motor: AliceCassie). Triangles: stall 1548, gerobak 2659, sumur 1870, barrel 1384, crate 784, karung 912, motor 1500, hut 1724, wall 404, fence 188.
 
-### Uploaded 2026-11-15 (Open Cloud, creator user 172146044, all moderation Approved)
+### Uploaded 2026-11-15 (Open Cloud, creator account, all moderation Approved)
 
 Appended rows; the `id=0` rows above are the pre-upload history. Inserted into Workspace as `<slot>_v2`, scaled by 1/0.28 (FBX arrives at 1 m = 1 stud), anchored, laid out in a row near (-111, 0, -58). Evidence: `docs/v2/evidence/models/2026-11-15-models-in-studio.jpg` (stall, cart, well, barrel, crate, karung, motor, hut visible with colours; wall and fence not in frame).
 

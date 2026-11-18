@@ -37,7 +37,7 @@ Per tugas: file yang disentuh, jumlah tes, status word, path bukti, dan hal yang
 Baca diff sendiri sebelum bilang selesai; ringkasan bukan bukti.
 ```
 
-## Catatan untuk Sena
+## Catatan untuk designer
 
 - "Pull tidak berubah" karena `track/c-world-look` belum pernah di-push. Remote hanya punya `main`,
   yang tertinggal 69 commit dari branch ini.

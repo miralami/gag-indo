@@ -57,7 +57,7 @@ return function(t, Env, Fakes)
 				expect(table.find(Admins.userIds, nonAdminId) == nil):toBe(true)
 			end)
 
-			t:it("validates that Sena user ID is registered in admin allowlist", function()
+			t:it("validates that the designer account user ID is registered in admin allowlist", function()
 				expect(table.find(Admins.userIds, 172146044) ~= nil):toBe(true)
 			end)
 		end)

@@ -42,7 +42,7 @@ return function(t, Env, Fakes)
 
 		t:describe("sanitizeName", function()
 			t:it("trims surrounding whitespace", function()
-				expect(Leaderboard.sanitizeName("  Sena  ")):toBe("Sena")
+				expect(Leaderboard.sanitizeName("  Tani  ")):toBe("Tani")
 			end)
 
 			t:it("drops empty names and non-strings", function()

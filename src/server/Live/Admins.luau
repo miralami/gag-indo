@@ -8,7 +8,7 @@ local RunService = game:GetService("RunService")
 local Admins = {}
 
 Admins.userIds = {
-	172146044, -- Sena
+	172146044, -- designer account
 	
 }
 

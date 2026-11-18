@@ -1,7 +1,7 @@
 # h — phase0 — 2026-11-14
 
 Build: 125e480 + two fixes now committed as 71df11b (src/server/Analytics/Analytics.luau, tests/specs/analytics_spec.luau)  Place: JuraganDesa.rbxl (not saved)  Devices: iPhone 14 + Desktop
-- Bridge smoke check + enable: SEEN-IN-STUDIO (`Harness is off. Enable it from a Studio admin first.` → `Harness on.`, admin 172146044 isAdmin true)
+- Bridge smoke check + enable: SEEN-IN-STUDIO (`Harness is off. Enable it from a Studio admin first.` → `Harness on.`, Studio admin gate passed (isAdmin true))
 - Plant tile 1 padi: SEEN-IN-STUDIO (padi 5 → 4, tutorial plant → harvest)
 - Ready: SEEN-IN-STUDIO (shifted, no state change)
 - Harvest tile 1: SEEN-IN-STUDIO (sack 0 → 1, tutorial harvest → sell)

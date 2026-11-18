@@ -7,6 +7,8 @@
 -- * Every literal key sent via Notify.send / Notify.broadcast, read via Strings.get or the
 --   client `t(...)` helper, or passed as an "@key" argument, exists in the table.
 --   Concatenated prefixes such as "@crop_" .. id must match at least one real key.
+-- * No word-like string literal is written directly to a *Text property anywhere in src/; only
+--   documented glyphs (empty, "-", "<", "X", "[L]", the mock signal bar) are exempt.
 --
 -- Tests whose name starts with "[BUG]" are expected to fail: they reveal real defects
 -- (the message lists the exact keys). Strings.luau itself is never edited by this spec.
@@ -26,6 +28,47 @@ local function listLuau(dir: string, out: { string })
 		end
 	end
 	return out
+end
+
+-- Symbolic labels are not words: a close button "X", the "[L]" keycap hint and the mock signal bar
+-- "|||| 4G [===]". Empty strings and strings with no ASCII letters are also glyphs (e.g. "-", "<").
+-- Everything else assigned to a *Text property must come from Strings.get / the client `t(...)`.
+local ALLOWED_LITERAL_TEXT = {
+	["X"] = "close button glyph",
+	["[L]"] = "keycap hint",
+	["|||| 4G [===]"] = "signal-strength mock glyph",
+}
+
+-- Word-like string literals written directly to a *Text property in this source. gmatch returns
+-- only the captured literal, so the property name is intentionally not part of the result.
+local function hardcodedTextIn(src: string): { string }
+	local found = {}
+	for literal in string.gmatch(src, "[%w_]*Text%s*=%s*\"([^\"]*)\"") do
+		if string.find(literal, "%a") and not ALLOWED_LITERAL_TEXT[literal] then
+			table.insert(found, literal)
+		end
+	end
+	return found
+end
+
+-- Run the hardcoded-text scanner over every module except Strings.luau itself (its table entries
+-- are the source of truth, not stragglers).
+local function scanHardcodedText(): { { path: string, literal: string } }
+	local found = {}
+	for _, path in listLuau("src", {}) do
+		if not string.match(path, "shared/Strings%.luau$") then
+			for _, literal in hardcodedTextIn(fs.readFile(path)) do
+				table.insert(found, { path = path, literal = literal })
+			end
+		end
+	end
+	table.sort(found, function(a, b)
+		if a.path == b.path then
+			return a.literal < b.literal
+		end
+		return a.path < b.path
+	end)
+	return found
 end
 
 local function sortedKeys(set: { [string]: any }): { string }
@@ -180,6 +223,7 @@ return function(t, Env, Fakes)
 	end
 
 	local keyRefs, atRefs = scanReferences()
+	local hardcoded = scanHardcodedText()
 
 	t:describe("Strings integrity", function()
 		t:describe("entry format", function()
@@ -245,6 +289,28 @@ return function(t, Env, Fakes)
 					end)
 				end
 			end
+		end)
+
+		t:describe("hardcoded player text in src/", function()
+			-- One [BUG] case per straggler so a failure names the exact literal and file.
+			for _, hit in ipairs(hardcoded) do
+				t:it(`[BUG] hardcoded .Text literal "{hit.literal}" in {hit.path}`, function()
+					expect(hit.literal .. " in " .. hit.path):toBe("routed through Strings")
+				end)
+			end
+			t:it("no hardcoded word-like .Text literals outside the glyph allowlist", function()
+				expect(#hardcoded):toBe(0)
+			end)
+			-- Proves the scanner would actually catch a straggler (it scans src/, not this spec).
+			t:it("scanner catches words and ignores empty / glyph / numeric labels", function()
+				expect(#hardcodedTextIn('label.Text = "Selamat pagi"')):toBe(1)
+				expect(#hardcodedTextIn('label.PlaceholderText = "Nama"')):toBe(1)
+				expect(#hardcodedTextIn('label.Text = ""')):toBe(0)
+				expect(#hardcodedTextIn('button.Text = "X"')):toBe(0)
+				expect(#hardcodedTextIn('hint.Text = "[L]"')):toBe(0)
+				expect(#hardcodedTextIn('signal.Text = "|||| 4G [===]"')):toBe(0)
+				expect(#hardcodedTextIn('count.Text = "42"')):toBe(0)
+			end)
 		end)
 
 		t:it("finds a non-trivial number of references (scanner sanity)", function()

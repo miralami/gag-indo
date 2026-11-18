@@ -429,6 +429,17 @@ local S: { [string]: { id: string, en: string } } = {
 		id = "Selamat! Kamu naik kelas jadi Petani Desa. Terus kembangkan lahanmu!",
 		en = "Congratulations! You've ranked up to Village Farmer. Keep expanding your plot!",
 	},
+
+	-- item 7 localization pass: player-facing labels that were hardcoded in client UI / world signs.
+	-- Templates take the number (formatted with separators by Strings.get) or a display name.
+	cash_label = { id = "Rp %s", en = "Rp %s" },
+	gain_label = { id = "+Rp %s", en = "+Rp %s" },
+	price_label = { id = "Rp %s", en = "Rp %s" },
+	admin_button = { id = "Admin", en = "Admin" },
+	tag_juragan = { id = "Juragan", en = "Juragan" },
+	tag_ordal = { id = "Ordal", en = "Ordal" },
+	plot_empty = { id = "Lahan Kosong", en = "Empty Plot" },
+	plot_owned = { id = "Lahan %s", en = "%s's Plot" },
 }
 
 local Strings = {}

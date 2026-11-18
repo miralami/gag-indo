@@ -78,8 +78,18 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   (7 cases, `LUNE-ONLY`) proves once-per-start resolution, disconnect-on-stop and restart; Studio
   client VM confirms both modules load with `stop` present, 0 new Output errors. Evidence
   `docs/v2/evidence/h/2026-11-19-performance/`. Suite 1732; selene 0 errors / 3 warnings.
-- [ ] 7. **Localization pass.** All player text goes through `Strings.luau` with `id` and `en`;
+- [x] 7. **Localization pass.** All player text goes through `Strings.luau` with `id` and `en`;
   nothing is hardcoded in the UI. Extend `strings_integrity_spec` to catch stragglers.
+  Done 2026-11-19: appended 8 keys (cash/gain/price labels, Admin button, Juragan/Ordal chat tags,
+  plot empty/owned signs) and routed every hardcoded player-facing literal through Strings: Hud,
+  Tiles, Admin, ActionFeel, Tags and the PlotService world sign. `ActionFeel.start(lang)` /
+  `Tags.mount(lang)` now receive the locale resolved once in Main.client; plot signs follow the
+  owner's LocaleId like DebtCollector. `strings_integrity_spec` gained a src-wide scanner that flags
+  word-like literals assigned to `*Text` (glyphs allowlisted), a self-test proving it catches
+  stragglers, and currently reports zero. `plot_failure_spec` asserts the key-derived sign text.
+  `SEEN-IN-STUDIO` (live HUD `Rp 35,857` in the en-us client, 9 plot signs `Lahan Kosong`, all 8
+  keys resolve, 0 new Output errors); evidence `docs/v2/evidence/h/2026-11-19-localization/`.
+  Suite 1750; selene 0 errors / 3 warnings.
 - [ ] 8. **Code health.** Split modules over ~600 lines where the split is clean, and clear the 4
   selene warnings where safe. Lock behaviour with specs before refactoring.
 - [ ] 9. **Look-dev candidates for designer review.** Behind an opt-in toggle that is off by

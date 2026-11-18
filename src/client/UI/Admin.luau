@@ -391,7 +391,7 @@ function Admin.mount(langCode: string)
 		if hudGui:FindFirstChild("AdminToggle") then return end
 		local btn = Instance.new("TextButton")
 		btn.Name = "AdminToggle"
-		btn.Text = "Admin"
+		btn.Text = t("admin_button")
 		btn.Size = UDim2.new(0, 80, 0, 44)
 		btn.Position = UDim2.new(1, -88, 0, 10)
 		btn.AnchorPoint = Vector2.new(0, 0)

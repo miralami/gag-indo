@@ -10,6 +10,7 @@
 
 return function(t, Env, Fakes)
 	local expect = t.expect
+	local Strings = Env.new():require("shared/Strings")
 
 	-- Fakes.player has no DisplayName; the real Player always does (PlotService.claim reads it).
 	local function mkPlayer(env, name)
@@ -202,12 +203,12 @@ return function(t, Env, Fakes)
 			local fx = makeWorld()
 			local player = mkPlayer(fx.env, "Pak Tani")
 			local plot = fx.PlotService.claim(player)
-			expect(plot.sign.Text):toBe("Lahan " .. player.DisplayName)
+			expect(plot.sign.Text):toBe(Strings.get("id", "plot_owned", player.DisplayName))
 			plot.tiles[1]:SetAttribute("State", "ready")
 			fx.env.services.Players.PlayerRemoving:Fire(player)
 			expect(plot.owner):toBe(nil)
 			expect(plot.model:GetAttribute("OwnerUserId")):toBe(0)
-			expect(plot.sign.Text):toBe("Lahan Kosong")
+			expect(plot.sign.Text):toBe(Strings.get("id", "plot_empty"))
 			expect(plot.tiles[1]:GetAttribute("State")):toBe("noowner")
 			expect(fx.PlotService.getPlotOf(player)):toBe(nil)
 			-- Leaving twice (duplicate PlayerRemoving) is harmless.

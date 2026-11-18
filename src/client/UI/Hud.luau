@@ -228,7 +228,7 @@ function Hud.mount(initialLang: string?)
 	refreshEvent()
 
 	local function refreshStats()
-		cashLabel.Text = "Rp " .. Strings.formatNumber(player:GetAttribute("Cash") or 0, activeLang)
+		cashLabel.Text = t("cash_label", player:GetAttribute("Cash") or 0)
 		sackLabel.Text = string.format("%d/%d",
 			player:GetAttribute("HarvestCount") or 0,
 			player:GetAttribute("SackCapacity") or GameConfig.sackBaseCapacity

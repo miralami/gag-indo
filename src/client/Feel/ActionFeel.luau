@@ -2,7 +2,14 @@
 -- Handles plant, harvest, sell, and rarity reveal visual and audio punch.
 -- Pure functions for testability; runtime bindings for client interaction.
 
+local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local Strings = require(Shared.Strings)
+
 local ActionFeel = {}
+
+-- The client locale, supplied by Main.client at start(). Kept module-local so the pure functions
+-- above stay free of Roblox state; defaults to Indonesian when start() is not called (Lune specs).
+local lang = "id"
 
 -- -----------------------------------------------------------------------------
 -- Pure functions
@@ -390,7 +397,7 @@ function ActionFeel.onSell(earnedAmount: number, originPosition: any?)
 		label.Position = UDim2.fromOffset(startPos.X, startPos.Y)
 		label.Size = UDim2.fromOffset(140, 32)
 		label.BackgroundTransparency = 1
-		label.Text = "+Rp " .. tostring(math.floor(earnedAmount or 0))
+		label.Text = Strings.get(lang, "gain_label", math.floor(earnedAmount or 0))
 		label.TextColor3 = Color3.fromRGB(255, 215, 0)
 		label.TextSize = 18
 		label.Font = Enum.Font.GothamBold
@@ -443,11 +450,12 @@ function ActionFeel.onSell(earnedAmount: number, originPosition: any?)
 end
 
 -- Binds to relevant attribute changes / remotes / events.
-function ActionFeel.start()
+function ActionFeel.start(langCode: string?)
 	if started then
 		return
 	end
 	started = true
+	lang = Strings.langFor(langCode or "id")
 
 	local remotes = getRemotes()
 	if remotes and remotes.Notify then

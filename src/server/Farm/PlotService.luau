@@ -6,6 +6,7 @@ local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.Game)
+local Strings = require(Shared.Strings)
 
 local Props = require(script.Parent.Parent.World.Props)
 local Map = require(script.Parent.Parent.World.Map)
@@ -24,6 +25,16 @@ export type Plot = {
 }
 
 local PlotService = {}
+
+-- World labels follow the owner's Roblox locale, matching DebtCollector.language(). An unclaimed
+-- sign has no owner, so it uses the game's Indonesian default.
+local function language(player: Player): string
+	local locale = (player :: any).LocaleId
+	if type(locale) == "string" and string.sub(locale, 1, 2) == "en" then
+		return "en"
+	end
+	return "id"
+end
 
 local plots: { Plot } = {}
 local plotOf: { [Player]: Plot } = {}
@@ -100,7 +111,7 @@ local function buildPlot(world: Instance, index: number, anchorCFrame: CFrame?):
 	})
 	signPost.Parent = model
 	local sign = Props.billboard(signPost, 3, Vector2.new(220, 50), { maxDistance = 60 })
-	sign.Text = "Lahan Kosong"
+	sign.Text = Strings.get("id", "plot_empty")
 
 	model.Parent = world
 
@@ -166,7 +177,7 @@ function PlotService.claim(player: Player): Plot?
 			plot.owner = player
 			plotOf[player] = plot
 			plot.model:SetAttribute("OwnerUserId", player.UserId)
-			plot.sign.Text = "Lahan " .. player.DisplayName
+			plot.sign.Text = Strings.get(language(player), "plot_owned", player.DisplayName)
 			return plot
 		end
 	end
@@ -181,7 +192,7 @@ function PlotService.release(player: Player)
 	plotOf[player] = nil
 	plot.owner = nil
 	plot.model:SetAttribute("OwnerUserId", 0)
-	plot.sign.Text = "Lahan Kosong"
+	plot.sign.Text = Strings.get("id", "plot_empty")
 	for _, tile in plot.tiles do
 		local crop = tile:FindFirstChild("Crop")
 		if crop then

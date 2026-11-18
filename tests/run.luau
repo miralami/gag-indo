@@ -112,6 +112,7 @@ local specs = {
 	require("./specs/player_leave_cleanup_spec"),
 	require("./specs/respawn_rejoin_spec"),
 	require("./specs/purchase_idempotency_spec"),
+	require("./specs/cross_server_failure_spec"),
 }
 
 local t = Test.new()

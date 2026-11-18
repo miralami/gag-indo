@@ -192,8 +192,19 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   failed save followed by a retry could acknowledge a purchase that was never durably saved. Fix:
   re-run `saveAndConfirm` on the dedup path before acknowledging; no re-grant/re-notify.
   Mutation-checked. Evidence `docs/v2/evidence/h/2026-11-19-purchases/REPORT.md`.
-- [ ] 15. **Cross-server and leaderboard failures.** Cover OrderedDataStore, MessagingService and
+- [x] 15. **Cross-server and leaderboard failures.** Cover OrderedDataStore, MessagingService and
   MemoryStore errors with backoff and last-good fallback, plus budget-limit handling. Specs.
+  Done 2026-11-19: `tests/specs/cross_server_failure_spec.luau` (9 cases, `LUNE-ONLY`). LiveConfig
+  DataStore/MessagingService failure paths (read/write/publish/subscribe errors never throw, malformed
+  messages sanitized, local changes survive failed writes); OrderedDataStore retry cap/backoff/throttle
+  under a failed burst; Analytics budget already covered by `analytics_spec`. **MemoryStore N/A** —
+  no usage in `src/`, none invented. Suite 1817; selene 0/0/0. Found and fixed **BUG-017** (major):
+  `LiveConfig` trusted `updatedAt` but never ordered by it, so a stale MessagingService message or
+  eventually-consistent DataStore read rolled newer live config back across all servers, and a corrupt
+  `updatedAt` (NaN/±inf/negative) could freeze all future updates. Fix: finite non-negative `updatedAt`
+  in `sanitize()` + `isStale()` guard in `subscribe()` and `load()`; legacy patches without a timestamp
+  still apply. Mutation-checked. Evidence
+  `docs/v2/evidence/h/2026-11-19-cross-server-failures/REPORT.md`.
 - [ ] 16. **Admin and season tools.** Every admin command validates who calls it and what it
   receives; non-admins are refused; no admin path can grant unbounded cash or items. Specs.
 - [ ] 17. **Analytics audit against `ANALYTICS.md`.** Every documented event fires from the right

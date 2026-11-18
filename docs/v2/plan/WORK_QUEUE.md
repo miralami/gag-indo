@@ -46,8 +46,66 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   - a police NPC walk-in prototype that uses the existing police model and pathing, timed to the
     walkin shot.
   Record each as "candidate, awaiting designer yes". Never tick these as done.
-- [ ] 10. **Refill.** Read every `[ ]` and `[~]` item in `MASTER_PLAN.md`. Append each one an
-  agent can do without the designer here, and continue.
+- [ ] 10. **Bug hunt by reading.** Go through `src/server` one folder at a time, then `src/client`,
+  reading every line. Log each defect in `BUGS.md` with a severity, then fix it with a regression
+  spec. Bugs found here outrank the items below.
+- [ ] 11. **Spec coverage gaps.** List each service and client controller that has no failure-path
+  spec (nil player, a player who left, damaged data, a missing remote) and write one for each.
+- [ ] 12. **Player leaves mid-state.** For every state a player can be in (each raid state, debt
+  collector, minigame, phone open, cutscene, selling), check that the server cleans up on
+  PlayerRemoving: no orphan tasks, NPCs, attributes or locks. Specs first, then a Studio check.
+- [ ] 13. **Respawn and rejoin.** Audit CharacterAdded and respawn handlers for duplicate
+  connections, and check that UI is rebuilt correctly after a reset. Specs, plus a Studio reset
+  loop of 10 resets with no growth in connection count.
+- [ ] 14. **Purchases.** Check receipt handling (no product IDs invented): a duplicate
+  PurchaseId, the player leaving mid-grant, a failed save after grant, unknown products, game pass
+  checks that error. Each case gets a spec that proves idempotency.
+- [ ] 15. **Cross-server and leaderboard failures.** Cover OrderedDataStore, MessagingService and
+  MemoryStore errors with backoff and last-good fallback, plus budget-limit handling. Specs.
+- [ ] 16. **Admin and season tools.** Every admin command validates who calls it and what it
+  receives; non-admins are refused; no admin path can grant unbounded cash or items. Specs.
+- [ ] 17. **Analytics audit against `ANALYTICS.md`.** Every documented event fires from the right
+  trigger, funnel steps are in order and fire once, and payloads have bounded size. Spec each
+  event; list any missing event in "Decisions for designer".
+- [ ] 18. **NPC pathing robustness.** Police and debt-collector walk-to-plot for every plot: add
+  stuck detection, a timeout and a teleport fallback. Specs, plus a Studio run to each plot.
+- [ ] 19. **UI fit at 749×388.** For every screen and app page, probe AbsolutePosition and
+  AbsoluteSize in Studio. Nothing may be off-screen or overlap the safe-area insets. Fix by
+  layout, not by shrinking text below the minimum.
+- [ ] 20. **Touch target and text size audit.** A spec walks every UI builder: buttons at least
+  44×44 and text at the minimum size or above. Fix the stragglers.
+- [ ] 21. **Gamepad and keyboard.** Every screen can be closed with B or Escape, selection never
+  gets stuck in a hidden frame, and there is a default selection on open. Specs where the logic
+  is pure, plus a Studio pass with `GuiService.SelectedObject`.
+- [ ] 22. **Audio hygiene.** Every Sound is in a SoundGroup with a set volume, is cleaned up after
+  play, and no loop leaks after a state change. Specs plus a Studio count of Sounds before and
+  after a full beat-sheet run.
+- [ ] 23. **Lighting × FidelityTier per hub.** In Studio, force each tier in each of the six hubs
+  and record the applied settings and instance counts. Check that no tier switch leaves an effect
+  stuck on.
+- [ ] 24. **Strict types.** Migrate the pure modules (`src/shared/Config/*`, `Feel/*` pure logic,
+  `Testing/*` policy) to `--!strict` where it is clean. Fix the type errors and don't change
+  behaviour.
+- [ ] 25. **Dead code and dead strings.** Remove unused modules, functions and `Strings` keys,
+  and leave Rojo mappings for files that no longer exist out of `default.project.json`. Prove it
+  with specs and a clean Studio play.
+- [ ] 26. **Test-suite health.** Run the suite 3 times and fix any flaky spec. Add per-spec timing
+  output and speed up anything over 2 s.
+- [ ] 27. **CI.** If none exists, add a GitHub Actions workflow that runs `lune run
+  tests/run.luau` and `selene src` on push to `track/*` and `main`, pinned via rokit or aftman.
+- [ ] 28. **Docs refresh.** Bring `TECH.md` (new modules: FidelityTier, CutsceneSequencer,
+  LazyPages, RaidTrigger, FpsSampler, SaveSanitize), `HARNESS.md` (new hooks) and the
+  `docs/README.md` map up to date. Regenerate the `BALANCE.md` and `LOCALIZATION.md` snapshots
+  from the current code and date them.
+- [ ] 29. **Regression replay after all changes.** On synced code in Studio, redo the G3
+  beat sheet, the G5 timings (3 runs), a full-session `output.log` for Q2, and a 30-minute Q5
+  soak with the memory series. All must still pass. File every regression as a bug and fix it.
+- [ ] 30. **Gate 1 status sheet.** Rewrite the evidence column of every GATE1.md row so it is
+  current, and list exactly what the designer must do to close each row that is still open.
+- [ ] 31. **Refill.** Read every `[ ]` and `[~]` item in `MASTER_PLAN.md`, `GATE1.md` and
+  `BUGS.md`. Append each one an agent can do without the designer here, plus a second
+  bug-hunt-by-reading round over files changed since item 10, and continue. Repeat the refill
+  until a full round adds nothing.
 
 ## Decisions for designer
 

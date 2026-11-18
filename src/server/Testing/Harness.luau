@@ -310,18 +310,17 @@ local handlers = {
 		}) then
 			return nil, "raid trigger refused: a Studio admin must enable the harness"
 		end
-		-- `force` clears the cooldown in memory so repeated triggers work in one session;
-		-- `viral` bypasses the cooldown inside RaidService.start anyway. Both are test-only.
-		if type(value) == "table" and value.force then
-			local data = PlayerData.get(player)
-			if data then
-				if type(data.cooldowns) ~= "table" then
-					data.cooldowns = {}
-				end
-				data.cooldowns.raidSafeUntil = 0
-			end
+		-- `force` clears the cooldown only for the duration of RaidService.start and restores the
+		-- saved value afterwards, so repeated test triggers never write `raidSafeUntil = 0` into real
+		-- save data. `viral` bypasses the cooldown inside RaidService.start anyway. Both are test-only.
+		local isViral = RaidTrigger.viral(value)
+		if RaidTrigger.force(value) then
+			RaidTrigger.withTemporaryCooldown(PlayerData.get(player), function()
+				RaidService.start(player, isViral)
+			end)
+		else
+			RaidService.start(player, isViral)
 		end
-		RaidService.start(player, RaidTrigger.viral(value))
 		return {
 			action = "raid",
 			state = RaidService.getState(player),

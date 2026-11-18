@@ -3,7 +3,7 @@
 
 return function(t, Env)
 	local expect = t.expect
-	local env, Seq, RaidCutscene, State
+	local env, Seq, RaidCutscene, State, MapSpec
 
 	local function shots(...)
 		local list = {}
@@ -32,6 +32,7 @@ return function(t, Env)
 			Seq = env:require("client/Feel/CutsceneSequencer")
 			RaidCutscene = env:require("shared/Config/RaidCutscene")
 			State = env:require("client/Feel/CutsceneState")
+			MapSpec = env:require("server/World/MapSpec")
 		end)
 
 		t:describe("playback", function()
@@ -423,11 +424,29 @@ return function(t, Env)
 					expect(type(a[focus].y)):toBe("number")
 					expect(type(a[focus].z)):toBe("number")
 				end
-				-- MapSpec hub centres (src/server/World/MapSpec.luau HUBS): Pak RT 68/68, Pos Polisi -68/68
+				-- The anchors sit on the NPC front spots (MapSpec.NPC_SPOTS), NOT the building
+				-- centres: the reviewer found the old hub-centre anchors filmed the back of the
+				-- buildings. Pak RT NPC (68,47), Polisi NPC (-68,42), at head height (~5.7).
 				expect(a.kades.x):toBe(68)
-				expect(a.kades.z):toBe(68)
+				expect(a.kades.z):toBe(47)
 				expect(a.police_chief.x):toBe(-68)
-				expect(a.police_chief.z):toBe(68)
+				expect(a.police_chief.z):toBe(42)
+				expect(a.kades.y):toBeAtLeast(5)
+				expect(a.police_chief.y):toBeAtLeast(5)
+			end)
+
+			t:it("anchors match the MapSpec NPC front spots the buildings are fronted by", function()
+				local spots = {}
+				for _, spot in MapSpec.NPC_SPOTS do
+					spots[spot.npc] = spot
+				end
+				expect(RaidCutscene.focusAnchors.kades.x):toBe(spots.pakrt.x)
+				expect(RaidCutscene.focusAnchors.kades.z):toBe(spots.pakrt.z)
+				expect(RaidCutscene.focusAnchors.police_chief.x):toBe(spots.polisi.x)
+				expect(RaidCutscene.focusAnchors.police_chief.z):toBe(spots.polisi.z)
+				-- The NPC spots must actually be on the -z side of their hub centres.
+				expect(spots.pakrt.z):toBeLessThan(MapSpec.hub("pakrt").z)
+				expect(spots.polisi.z):toBeLessThan(MapSpec.hub("polisi").z)
 			end)
 
 			t:it("anchorFor resolves known focuses and returns nil otherwise", function()
@@ -437,6 +456,84 @@ return function(t, Env)
 				expect(RaidCutscene.anchorFor("mars")):toBeNil()
 				expect(RaidCutscene.anchorFor(nil)):toBeNil()
 				expect(RaidCutscene.anchorFor(42)):toBeNil()
+			end)
+
+			-- Pure camera framing (review finding: anchored shots filmed the wrong side of the
+			-- buildings). Every anchored eye must sit on the -z front where the NPC stands and
+			-- outside all six hub footprints, so no building blocks the shot.
+			t:describe("cameraFor (front-side framing)", function()
+				-- Axis-aligned footprint of a hub; yaw 90/270 swaps width and depth.
+				local function insideHub(hub, p)
+					local halfX, halfZ = hub.width / 2, hub.depth / 2
+					if hub.yaw == 90 or hub.yaw == 270 then
+						halfX, halfZ = halfZ, halfX
+					end
+					return math.abs(p.x - hub.x) <= halfX and math.abs(p.z - hub.z) <= halfZ
+				end
+
+				local function shots()
+					return RaidCutscene.shots
+				end
+
+				t:it("returns nil for unanchored focuses, letter/establish kinds and junk", function()
+					expect(RaidCutscene.cameraFor({ kind = "zoom", focus = "player" }, 0, 0)):toBeNil()
+					expect(RaidCutscene.cameraFor({ kind = "establish", focus = "plot" }, 0, 0)):toBeNil()
+					expect(RaidCutscene.cameraFor({ kind = "letter" }, 0, 0)):toBeNil()
+					expect(RaidCutscene.cameraFor(nil, 0, 0)):toBeNil()
+				end)
+
+				t:it("frames kades and police from the -z front, targeting the NPC head", function()
+					local zoom2 = shots()[3] -- kades, yaw -18
+					local k = RaidCutscene.cameraFor(zoom2, 0, State.focusOffset("kades"))
+					expect(k):toBeTruthy()
+					expect(k.target.x):toBe(68)
+					expect(k.target.z):toBe(47)
+					expect(k.target.y):toBeNear(RaidCutscene.focusAnchors.kades.y, 1e-9)
+					expect(k.eye.z):toBeLessThan(k.target.z) -- front side
+					expect(k.eye.y):toBeGreaterThan(k.target.y)
+					local zoom3 = shots()[4] -- police_chief, yaw 18
+					local p = RaidCutscene.cameraFor(zoom3, 0, State.focusOffset("police_chief"))
+					expect(p):toBeTruthy()
+					expect(p.target.x):toBe(-68)
+					expect(p.target.z):toBe(42)
+					expect(p.eye.z):toBeLessThan(p.target.z)
+				end)
+
+				t:it("keeps the walk-in eye on the -z side across the whole dolly", function()
+					local walkin = shots()[5]
+					for _, progress in ipairs({ 0, 0.25, 0.5, 0.75, 1 }) do
+						local f = RaidCutscene.cameraFor(walkin, progress, State.focusOffset("road"))
+						expect(f):toBeTruthy()
+						expect(f.eye.z):toBeLessThan(f.target.z)
+						expect(f.target.z):toBe(-28)
+					end
+				end)
+
+				t:it("clamps junk/out-of-range walk-in progress to the 0..1 dolly", function()
+					local walkin = shots()[5]
+					local before = RaidCutscene.cameraFor(walkin, 0, 0)
+					local junk = RaidCutscene.cameraFor(walkin, "x", 0)
+					local over = RaidCutscene.cameraFor(walkin, 5, 0)
+					expect(junk.eye.z):toBeNear(before.eye.z, 1e-9)
+					expect(over.eye.z):toBeGreaterThan(before.eye.z) -- smaller stand-off, still -z
+					expect(over.eye.z):toBeLessThan(over.target.z)
+				end)
+
+				t:it("puts every anchored shot's eye outside all six hub footprints at every progress", function()
+					local anchored = 0
+					for _, shot in shots() do
+						for _, progress in ipairs({ 0, 0.5, 1 }) do
+							local f = RaidCutscene.cameraFor(shot, progress, State.focusOffset(shot.focus))
+							if f then
+								anchored += 1
+								for _, hub in MapSpec.HUBS do
+									expect(insideHub(hub, f.eye)):toBe(false)
+								end
+							end
+						end
+					end
+					expect(anchored):toBeAtLeast(9) -- kades + police (zoom) + road (walkin) x 3 progresses
+				end)
 			end)
 
 			t:describe("CutsceneState (overlay wiring decisions)", function()

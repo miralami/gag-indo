@@ -25,16 +25,17 @@ RaidCutscene.shots = {
 
 RaidCutscene.kinds = { "establish", "zoom", "walkin", "letter" }
 
--- Real world anchors for the cutscene's focus labels (Track F). Values are the MapSpec hub
--- centres (src/server/World/MapSpec.luau HUBS) plus the road cross, in world studs, as plain
+-- Real world anchors for the cutscene's focus labels (Track F). Values are the NPC front spots
+-- (src/server/World/MapSpec.luau NPC_SPOTS) plus the road cross, in world studs, as plain
 -- {x, y, z} tables so this stays pure and Lune-testable (no Vector3 here). A shot's `focus` names
 -- one of these; the client looks at it instead of framing the local player. `nil` means "no real
--- anchor yet" and the client keeps its player-relative fallback. The kades ("kepala desa") sits at
--- Rumah Pak RT; the police chief at Pos Polisi; the "road" focus aims down the plaza road cross.
--- Framing quality is a designer judgement (visual plan §8) — these are starting coordinates.
+-- anchor yet" and the client keeps its player-relative fallback. The NPCs stand on the -z front of
+-- their buildings (Pak RT 68/47, Polisi -68/42); the anchor is at head height (~5.7 above the feet,
+-- NpcFactory) so the camera frames the person, not the building roof behind them. The "road" focus
+-- aims down the plaza road cross. Framing quality is a designer judgement (visual plan §8).
 RaidCutscene.focusAnchors = {
-	kades = { x = 68, y = 3.4, z = 68 }, -- Rumah Pak RT table hub (MapSpec HUBS.pakrt)
-	police_chief = { x = -68, y = 3.4, z = 68 }, -- Pos Polisi desk hub (MapSpec HUBS.polisi)
+	kades = { x = 68, y = 5.7, z = 47 }, -- Pak RT NPC front spot (MapSpec.NPC_SPOTS pakrt), head height
+	police_chief = { x = -68, y = 5.7, z = 42 }, -- Polisi NPC front spot (MapSpec.NPC_SPOTS polisi), head height
 	road = { x = 0, y = 2, z = -28 }, -- plaza road cross, just north of the UKUR board
 }
 
@@ -44,6 +45,46 @@ function RaidCutscene.anchorFor(focus: any): { x: number, y: number, z: number }
 		return nil
 	end
 	return RaidCutscene.focusAnchors[focus]
+end
+
+-- Pure camera geometry for an anchored shot: returns { eye, target } as plain {x,y,z} tables so it
+-- is Lune-testable (no Vector3/CFrame). The client converts them to Vector3 and assigns
+-- CFrame.lookAt(eye, target). The eye stands `standOff` studs toward -z from the anchor (the same
+-- side the NPC fronts) and yaws around the anchor by `yawDegrees` — matching the client's old
+-- `yaw * Vector3.new(0, 0, -standOff)`. Target is the anchor itself (head height).
+-- Returns nil when the focus has no anchor, the shot kind has no camera ("letter", "establish"),
+-- or the shot is not a table, so the caller keeps its player-relative fallback.
+function RaidCutscene.cameraFor(shot: any, progress: number?, yawDegrees: number?): { eye: { x: number, y: number, z: number }, target: { x: number, y: number, z: number } }?
+	if type(shot) ~= "table" then
+		return nil
+	end
+	local anchor = RaidCutscene.anchorFor(shot.focus)
+	if not anchor then
+		return nil
+	end
+	local standOff: number
+	local lift: number
+	if shot.kind == "zoom" then
+		standOff, lift = 18, 5
+	elseif shot.kind == "walkin" then
+		local p = if type(progress) == "number" then progress else 0
+		if p < 0 then
+			p = 0
+		elseif p > 1 then
+			p = 1
+		end
+		standOff, lift = 40 - 22 * p, 4
+	else
+		return nil
+	end
+	local yaw = math.rad(if type(yawDegrees) == "number" then yawDegrees else 0)
+	-- Roblox Y-rotation of (0, 0, -standOff): x' = -d*sin(yaw), z' = -d*cos(yaw).
+	local dx = -standOff * math.sin(yaw)
+	local dz = -standOff * math.cos(yaw)
+	return {
+		eye = { x = anchor.x + dx, y = anchor.y + lift, z = anchor.z + dz },
+		target = { x = anchor.x, y = anchor.y, z = anchor.z },
+	}
 end
 
 function RaidCutscene.totalDuration(): number

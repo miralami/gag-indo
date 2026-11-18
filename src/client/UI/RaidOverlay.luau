@@ -357,17 +357,9 @@ function RaidOverlay.mount(lang: string)
 		return nil
 	end
 
-	-- Per-frame camera placement. When a shot's focus has a real world anchor (Track F,
-	-- RaidCutscene.focusAnchors from MapSpec), the camera looks at that place; otherwise it falls
-	-- back to framing the local player. Framing quality is the designer's judgement (visual plan §8).
-	local function anchorFor(shot: any): Vector3?
-		local a = RaidCutscene.anchorFor(shot and shot.focus)
-		if not a then
-			return nil
-		end
-		return Vector3.new(a.x, a.y, a.z)
-	end
-
+	-- Per-frame camera placement. Anchored shots use the pure RaidCutscene.cameraFor geometry (eye
+	-- on the NPC's -z front side); other focuses fall back to framing the local player. Framing
+	-- quality is the designer's judgement (visual plan §8).
 	local function placeCamera(shot: any, progress: number)
 		local camera = currentCamera()
 		local base = rootPosition()
@@ -375,30 +367,25 @@ function RaidOverlay.mount(lang: string)
 			return
 		end
 		pcall(function()
-			local anchor = anchorFor(shot)
 			local eye, target
-			if shot.kind == "establish" then
+			-- Anchored shots use the pure camera geometry: the eye is placed on the -z front side
+			-- where the NPC stands, so the building never blocks the shot. Unanchored focuses keep
+			-- the player-relative fallback below.
+			local framed = RaidCutscene.cameraFor(shot, progress, CutsceneState.focusOffset(shot.focus))
+			if framed then
+				eye = Vector3.new(framed.eye.x, framed.eye.y, framed.eye.z)
+				target = Vector3.new(framed.target.x, framed.target.y, framed.target.z)
+			elseif shot.kind == "establish" then
 				local dolly = if type(shot.dolly) == "number" then shot.dolly else 0
 				eye = base + Vector3.new(0, 16, 34 + dolly * progress)
 				target = base
 			elseif shot.kind == "zoom" then
 				local yaw = CFrame.Angles(0, math.rad(CutsceneState.focusOffset(shot.focus)), 0)
-				if anchor then
-					-- frame the real landmark from the configured yaw and stand-off
-					target = anchor
-					eye = anchor + Vector3.new(0, 5, 0) + yaw * Vector3.new(0, 0, 18)
-				else
-					eye = base + Vector3.new(0, 5, 0) + yaw * Vector3.new(0, 0, 18)
-					target = base + Vector3.new(0, 2.5, 0)
-				end
+				eye = base + Vector3.new(0, 5, 0) + yaw * Vector3.new(0, 0, 18)
+				target = base + Vector3.new(0, 2.5, 0)
 			elseif shot.kind == "walkin" then
-				if anchor then
-					target = anchor
-					eye = anchor + Vector3.new(0, 4, 40 - 22 * progress)
-				else
-					eye = base + Vector3.new(0, 4, 40 - 22 * progress)
-					target = base + Vector3.new(0, 3, 0)
-				end
+				eye = base + Vector3.new(0, 4, 40 - 22 * progress)
+				target = base + Vector3.new(0, 3, 0)
 			else
 				return -- letter: hold the last frame
 			end

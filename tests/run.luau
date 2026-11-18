@@ -111,6 +111,7 @@ local specs = {
 	require("./specs/rank_failure_spec"),
 	require("./specs/player_leave_cleanup_spec"),
 	require("./specs/respawn_rejoin_spec"),
+	require("./specs/purchase_idempotency_spec"),
 }
 
 local t = Test.new()

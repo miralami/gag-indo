@@ -179,9 +179,19 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   introspectable via Studio MCP (separate `require` VM, no signal API); invariants locked by specs.
   Place not saved.
 
-- [ ] 14. **Purchases.** Check receipt handling (no product IDs invented): a duplicate
+- [x] 14. **Purchases.** Check receipt handling (no product IDs invented): a duplicate
   PurchaseId, the player leaving mid-grant, a failed save after grant, unknown products, game pass
   checks that error. Each case gets a spec that proves idempotency.
+  Done 2026-11-19: `tests/specs/purchase_idempotency_spec.luau` (5 cases, `LUNE-ONLY`) drives the
+  REAL `PlayerData` + `Receipts` against a fake ProfileStore (synthetic ids 111/777, shipped config
+  stays at 0): duplicate PurchaseId grants/notifies once; leave mid-grant returns NotProcessedYet
+  and a rejoin retry grants once; failed save is re-confirmed on retry with no double grant;
+  unknown and placeholder-0 products are never acknowledged; an erroring game-pass check grants
+  nothing across retries. Suite 1808; selene 0/0/0. Found and fixed **BUG-016** (major, money bug):
+  the dedup early-return acknowledged a replayed PurchaseId without re-confirming a save, so a
+  failed save followed by a retry could acknowledge a purchase that was never durably saved. Fix:
+  re-run `saveAndConfirm` on the dedup path before acknowledging; no re-grant/re-notify.
+  Mutation-checked. Evidence `docs/v2/evidence/h/2026-11-19-purchases/REPORT.md`.
 - [ ] 15. **Cross-server and leaderboard failures.** Cover OrderedDataStore, MessagingService and
   MemoryStore errors with backoff and last-good fallback, plus budget-limit handling. Specs.
 - [ ] 16. **Admin and season tools.** Every admin command validates who calls it and what it

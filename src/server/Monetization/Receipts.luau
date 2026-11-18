@@ -59,7 +59,14 @@ function Receipts.start()
 		end
 
 		if table.find(data.receipts, receiptInfo.PurchaseId) then
-			return Enum.ProductPurchaseDecision.PurchaseGranted -- already granted earlier
+			-- Already granted in memory, but an earlier attempt may have failed to save.
+			-- Never acknowledge until a save containing this PurchaseId is confirmed, or a paid
+			-- purchase can be lost on the next crash with no retry left. Do not re-grant or
+			-- re-notify: a normal replay still grants/notifies exactly once.
+			if PlayerData.saveAndConfirm(profile, receiptInfo.PurchaseId, 15) then
+				return Enum.ProductPurchaseDecision.PurchaseGranted
+			end
+			return Enum.ProductPurchaseDecision.NotProcessedYet
 		end
 
 		local productKey = Products.productKeyForId(receiptInfo.ProductId)

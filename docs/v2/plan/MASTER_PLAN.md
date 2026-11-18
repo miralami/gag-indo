@@ -22,7 +22,23 @@ all 48 `OnServerEvent`/`OnServerInvoke` connections reviewed, every C->S remote 
 guarded with a failure-path spec; closed the sole gap with `tests/specs/state_request_failure_spec.luau`.
 No production fix needed. Results/coverage map in `docs/testing/CODE_AUDIT.md`. Suite 1712.
 
-**Long-run 2026-11-19 — WORK_QUEUE item 3 (`LUNE-ONLY`):** data pass — added `tests/specs/data_pass_failure_spec.luau`\n(7 cases) driving the real PlayerData with a fake ProfileStore: Studio store key + Cancel-on-leave/\ntimeout, Reconcile→migrate→sanitize order before loaded callbacks, failed-load kick, OnSessionEnd\nkick + clear, leave-mid-load EndSession, saveAndConfirm receipt/error/timeout and pcall-isolated\nbeforeRelease. No defect found, so no production fix needed. Suite 1719.\n\n**Rules for this section.** Every agent reads it before touching the repo, so nobody has to rediscover
+**Long-run 2026-11-19 — WORK_QUEUE item 3 (`LUNE-ONLY`):** data pass — added `tests/specs/data_pass_failure_spec.luau`
+(7 cases) driving the real PlayerData with a fake ProfileStore: Studio store key + Cancel-on-leave/
+timeout, Reconcile→migrate→sanitize order before loaded callbacks, failed-load kick, OnSessionEnd
+kick + clear, leave-mid-load EndSession, saveAndConfirm receipt/error/timeout and pcall-isolated
+beforeRelease. No defect found, so no production fix needed. Suite 1719.
+
+**Long-run 2026-11-19 — WORK_QUEUE item 4 (`SEEN-IN-STUDIO`):** all eight Studio checks of the
+LUNE-ONLY items driven on the real Rojo-synced modules via Studio MCP `execute_luau` (pure/config in
+Edit mode; CabaiEvent + headroom in a Play Solo Server VM with the built 1706-part World), place
+never saved/published, no `profile:Save()`: FidelityTier tiers forced and settings read
+(0.4/0.7/1.0 particleRate, 25/50/80 swayRange), TierScale bursts 8/14/20 + wind sway, crop
+bibit/tumbuh/siap config + selection, Cabai timed ×3 banner/300 s countdown and forced on/off,
+debt-collector hook events + unsubscribe, all NPC archetype fields, 9.5-stud headroom clear in all
+six hubs (zero offenders, raycasts pass), three season presets. No defect found, so no code fix and
+no new gated hook needed. Evidence `docs/v2/evidence/h/2026-11-19-studio-checks/`. Suite 1719.
+
+**Rules for this section.** Every agent reads it before touching the repo, so nobody has to rediscover
 the state from scratch. Whoever finishes a task ticks it here **in the same commit**, adds its status
 word (§7) and an evidence path, and bumps the "Last updated" line. `[x]` = done with evidence,
 `[~]` = partly done (say what is missing), `[ ]` = not started. Never tick without evidence. The

@@ -35,7 +35,7 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   kick, OnSessionEnd kick + profile clear, leave-mid-load EndSession, saveAndConfirm receipt/error/
   timeout, and pcall-isolated beforeRelease callbacks. All paths correct, no production fix needed.
   Suite 1719.
-- [ ] 4. **Studio checks of `LUNE-ONLY` items.** Turn each into `SEEN-IN-STUDIO` with evidence:
+- [x] 4. **Studio checks of `LUNE-ONLY` items.** Turn each into `SEEN-IN-STUDIO` with evidence:
   - force each FidelityTier and read the settings it applied;
   - TierScale particle and wind consumers;
   - crop stages bibit/tumbuh/siap;
@@ -46,6 +46,15 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   - the three season presets.
   Where a check needs a Studio-only harness hook, follow the gated `RaidTrigger` pattern and add a
   gate spec.
+  Done 2026-11-19: all eight sub-checks `SEEN-IN-STUDIO` via Studio MCP `execute_luau` on the real
+  Rojo-synced modules (pure/config in Edit mode; Cabai + headroom in a Play Solo Server VM with the
+  real built 1706-part World). FidelityTier tiers 0.4/0.7/1.0 particleRate and 25/50/80 sway;
+  TierScale bursts 8/14/20 and wind sway weights; crop bibit/tumbuh/siap config + selection; Cabai
+  timed ×3 banner with 300 s countdown, forced-on banner no countdown, forced-off clear; debt
+  collector summoned/dismissed hook events + unsubscribe; all NPC archetype fields; 9.5-stud
+  headroom clear in all six hubs (zero offenders, raycasts pass); three season presets. No defect
+  found, so no production fix and no new gated hook needed. Evidence
+  `docs/v2/evidence/h/2026-11-19-studio-checks/` (`REPORT.md`, `results.json`). Suite 1719.
 - [ ] 5. **Retire `Greybox.luau` to a test-only fallback.** Prove the live world doesn't depend on
   it: specs pass, and a Studio play shows the same hubs with no Output errors.
 - [ ] 6. **Performance pass.** Count instances per hub, find connection leaks (Heartbeat and

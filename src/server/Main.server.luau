@@ -100,4 +100,8 @@ Cosmetics.start()
 LeaderboardService.start()
 PlayerData.start() -- last: loads profiles, which fires onLoaded callbacks registered above
 
+-- Look-dev candidates (WORK_QUEUE item 9): register the OFF-BY-DEFAULT police walk-in applier.
+-- Isolated so a missing/failed candidate module can never break the server bootstrap.
+pcall(require, script.Parent.World.LookDevWalkin)
+
 print("[JuraganDesa] server started")

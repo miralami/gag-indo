@@ -41,3 +41,7 @@ Admin.mount(lang)
 Leaderboard.mount(lang)
 Tags.mount(lang)
 Tiles.mount(lang)
+
+-- Look-dev candidates (WORK_QUEUE item 9): register the OFF-BY-DEFAULT plaza lighting applier.
+-- Isolated so a missing/failed candidate module can never break the client bootstrap.
+pcall(require, script.Parent.World.LookDevPlaza)

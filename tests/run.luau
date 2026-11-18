@@ -104,6 +104,7 @@ local specs = {
 	require("./specs/greybox_retirement_spec"),
 	require("./specs/perf_hotpath_spec"),
 	require("./specs/code_health_spec"),
+	require("./specs/lookdev_candidates_spec"),
 }
 
 local t = Test.new()

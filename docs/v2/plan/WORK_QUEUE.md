@@ -110,6 +110,19 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   - a police NPC walk-in prototype that uses the existing police model and pathing, timed to the
     walkin shot.
   Record each as "candidate, awaiting designer yes". Never tick these as done.
+  **BLOCKED — both candidates prepared and awaiting designer yes (per item rule this checkbox stays
+  open; do not redo).** Done 2026-11-19: pure shared registry/gate `src/shared/LookDev.luau` with
+  both candidates and their plans; thin reversible appliers `src/client/World/LookDevPlaza.luau`
+  (built-in-material swaps + alternate midday grade on the Pasar model, remembers originals) and
+  `src/server/World/LookDevWalkin.luau` (reuses `Village.police[1]` + `walkTo()` to the cutscene
+  road anchor over the real 1.8 s walkin shot, teleports home on disable). Both registered by
+  isolated `pcall(require, ...)` in the Main bootstraps. Toggle is OFF by default, Studio-only,
+  in-memory only, one candidate active at a time, never persisted; no asset IDs (spec-enforced),
+  cartoonish-realism. `tests/specs/lookdev_candidates_spec.luau` (15 cases) locks gate/plans/no-IDs/
+  wiring. `SEEN-IN-STUDIO` load + gate + live reversible toggle (ClockTime 17.2→11.4→restored) in
+  both client and server Play Solo VMs, 0 probe errors, 0 new Output errors; evidence
+  `docs/v2/evidence/h/2026-11-19-lookdev-candidates/`. Suite 1769; selene 0 errors / 0 warnings /
+  0 parse errors. Final visual approval is the designer's "yes" — see Decisions for designer.
 - [ ] 10. **Bug hunt by reading.** Go through `src/server` one folder at a time, then `src/client`,
   reading every line. Log each defect in `BUGS.md` with a severity, then fix it with a regression
   spec. Bugs found here outrank the items below.
@@ -179,9 +192,18 @@ Choices the agent made with a safe, reversible default. The designer confirms or
   village into `JuraganDesa.rbxl` (Track C). The code path is proven Greybox-independent, but the
   current place has no designer world, so disabling the fallback now would leave an empty world.
   Reversible: flip the fallback once the designer place ships.
+- Item 9 — two look-dev candidates are prepared behind an OFF-by-default, Studio-only toggle; both
+  are "candidate, awaiting designer yes" and neither is approved or applied in normal play. Safest
+  reversible default: ship both as opt-in, let the designer view each with the command-bar toggle
+  (`require(game.ReplicatedStorage.Shared.LookDev):enable("plaza_lighting")` /
+  `:enable("police_walkin")`), then confirm, override or discard each. Both restored with
+  `:disable()`. The item stays unticked until the designer chooses. Evidence
+  `docs/v2/evidence/h/2026-11-19-lookdev-candidates/`.
 
 ## Blocked on designer
 
+- Item 9 final visual approval — both look-dev candidates ("plaza_lighting" and "police_walkin")
+  are `BLOCKED` on the designer's yes; they are opt-in only and the checkbox stays open.
 - Phone-size (iPhone 14) replays: G3, G5, G4b, BUG-008/009; fps for G6.
 - Q5 live multi-client run (Studio Test tab, Local Server).
 - G7 five real players, Q6 published-place persistence, Q7 real-device touch.

@@ -55,8 +55,17 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   headroom clear in all six hubs (zero offenders, raycasts pass); three season presets. No defect
   found, so no production fix and no new gated hook needed. Evidence
   `docs/v2/evidence/h/2026-11-19-studio-checks/` (`REPORT.md`, `results.json`). Suite 1719.
-- [ ] 5. **Retire `Greybox.luau` to a test-only fallback.** Prove the live world doesn't depend on
+- [x] 5. **Retire `Greybox.luau` to a test-only fallback.** Prove the live world doesn't depend on
   it: specs pass, and a Studio play shows the same hubs with no Output errors.
+  Done 2026-11-19: `tests/specs/greybox_retirement_spec.luau` (6 cases) proves `Map.isDesignerWorld()`
+  is true on `VillageWorld` or `PlotAnchor`, `Village.build()` calls `Greybox.build()` only with no
+  designer world, and all six hubs / 5 prompts / 3 NPCs bind from tags alone (rebind safe). Studio
+  Edit mode: injected designer world, `Village.build()` created 0 Greybox parts (279→279). Play Solo
+  Server VM: destroyed the 1706-part Greybox world, injected a designer world, rebuilt — no Greybox
+  geometry regenerated, six hubs + 5 prompts + 3 NPCs bound, console identical (0 new Output errors).
+  `SEEN-IN-STUDIO`, evidence `docs/v2/evidence/h/2026-11-19-greybox-retirement/`. Suite 1725.
+  Note: the code path is retired; the actual place still needs the designer's real village (Track C),
+  which this run does not save. Safe default to keep the fallback until then — "Decisions for designer".
 - [ ] 6. **Performance pass.** Count instances per hub, find connection leaks (Heartbeat and
   RenderStepped handlers with no cleanup) and per-frame allocations in hot paths. Fix them and
   record before/after numbers.
@@ -136,7 +145,10 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
 
 Choices the agent made with a safe, reversible default. The designer confirms or overrides them.
 
-- (none yet)
+- Item 5 — keep the `Greybox.build()` fallback enabled until the designer builds and saves the real
+  village into `JuraganDesa.rbxl` (Track C). The code path is proven Greybox-independent, but the
+  current place has no designer world, so disabling the fallback now would leave an empty world.
+  Reversible: flip the fallback once the designer place ships.
 
 ## Blocked on designer
 

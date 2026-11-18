@@ -1,0 +1,33 @@
+{
+  "build": "track/c-world-look @ a9c164d, Rojo serving localhost:34872",
+  "place": "Development-Juragan-Desa, placeId 132087524375529, universeId 10776530981",
+  "studioInstance": "447c176b-1d7b-4b9c-a794-45912fea4b63",
+  "date": "2026-11-19",
+  "contract": "Map.isDesignerWorld() = has(VillageWorld) OR has(PlotAnchor); Village.build() calls Greybox.build() only when that is false, then Village.bind() finds hubs/prompts/NPCs from tags regardless of source.",
+  "safety": "Injected designer world and all edits were unsaved and existed only inside the running process. The place file was never saved or published. Play was stopped and Studio returned to Edit. No profile:Save() called.",
+
+  "editModeCleanProof": {
+    "note": "Edit mode has no world at all (0 GreyboxWorld, 0 VillageWorld, 0 PlotAnchor, no World folder), so this isolates the code path with no pre-existing Greybox geometry.",
+    "injected": "VillageWorld-tagged Model with six hub anchors at MapSpec.hub() centres (five ProximityPrompts + RondaAnchor), three NpcSpawn Models with Npc attribute, one PlotAnchor with PlotIndex=1",
+    "before": { "designerWorld": true, "greyboxTagged": 0, "worldFolder": false, "parts": 279 },
+    "afterVillageBuild": { "greyboxTagged": 0, "worldFolder": false, "parts": 279 },
+    "greyboxSkipped": true,
+    "hubPositionsMatch": { "pasar": true, "gelap": true, "warung": true, "ronda": true, "polisi": true, "pakrt": true },
+    "promptsBound": 5,
+    "npcsBound": { "pakrt": true, "tengkulak": true, "policeCount": 1 }
+  },
+
+  "playSoloServerProof": {
+    "note": "Play Solo Server VM. The normal startup had built the 1706-part Greybox world; that world was then destroyed to simulate a designer place that never contains it, a designer world was injected, and Village.build() was called again.",
+    "startup": { "parts": 1706, "greyboxTagged": 1, "worldFolder": true, "worldChildren": 460, "designerWorld": 0, "plotAnchor": 0 },
+    "afterGreyboxDestroy": { "parts": 287, "greyboxTagged": 0 },
+    "afterDesignerWorldAndRebuild": { "parts": 297, "greyboxTagged": 0, "worldFolderRebuilt": false, "note": "part delta of +10 is exactly the injected designer world (6 hub parts + 3 NPC parts + 1 plot anchor); no Greybox geometry regenerated" },
+    "greyboxNotRebuilt": true,
+    "hubPositionsMatch": { "pasar": true, "gelap": true, "warung": true, "ronda": true, "polisi": true, "pakrt": true },
+    "promptsBound": 5,
+    "npcsBound": { "pakrt": true, "tengkulak": true, "policeCount": 1 },
+    "consoleBefore": "[JuraganDesa] server started; [ProfileStore]: Roblox API services available; Assistant plugin version warning (external)",
+    "consoleAfter": "identical to before - zero new errors or warnings from the destroy + designer-world rebuild",
+    "newOutputErrors": 0
+  }
+}

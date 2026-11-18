@@ -101,6 +101,7 @@ local specs = {
 	require("./specs/multiplayer_sim_spec"),
 	require("./specs/state_request_failure_spec"),
 	require("./specs/data_pass_failure_spec"),
+	require("./specs/greybox_retirement_spec"),
 }
 
 local t = Test.new()

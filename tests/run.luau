@@ -97,6 +97,7 @@ local specs = {
 	require("./specs/config_crossref_spec"),
 	require("./specs/cutscene_sequencer_spec"),
 	require("./specs/lazy_pages_spec"),
+	require("./specs/minigame_cancel_spec"),
 }
 
 local t = Test.new()

@@ -1,5 +1,13 @@
 # Studio pass — Gate 1 Q3 recovery + force-raid no-save + BUG-004 (Track H, 2026-11-19)
 
+> **Superseded on the join-bootstrap and mid-minigame-Cancel observations.** This pass ran
+> with Rojo *not* serving (sources injected by hand). The re-check on Rojo-synced code —
+> `h/2026-11-19-gate1-sweep/` — found join bootstrap was never broken and that
+> `Minigame_Cancel:FireClient` closes the scrim, and completed the full-sack boundary and
+> every-button sweep. Where the two differ, the `-sweep` pass is authoritative. The
+> force-raid, BUG-004 and mid-loan results below were re-confirmed there, and its
+> `output.log` remains the Q2 evidence.
+
 Build: `track/c-world-look` (standOff-14 fix @ `92ebe50`). Place: cloud dev place
 `Development-Juragan-Desa`, placeId `132087524375529`, universeId `10776530981`.
 **The place was never saved and never published.** All DataModel edits were unsaved

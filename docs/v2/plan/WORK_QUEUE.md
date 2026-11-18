@@ -136,8 +136,19 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   config was silently capped — derive bounds from `maxBonus`; `tests/specs/economy_config_spec.luau`.
   Both mutation-checked (old code fails the new spec). Suite 1772; selene 0 errors / 0 warnings /
   0 parse errors. Evidence `docs/v2/evidence/h/2026-11-19-bug-hunt-reading/`. `LUNE-ONLY`.
-- [ ] 11. **Spec coverage gaps.** List each service and client controller that has no failure-path
+- [x] 11. **Spec coverage gaps.** List each service and client controller that has no failure-path
   spec (nil player, a player who left, damaged data, a missing remote) and write one for each.
+  Done 2026-11-19: mapped every `src/server`/`src/client` module to its specs and inspected the
+  failure-case names (full list + N/A justifications in
+  `docs/v2/evidence/h/2026-11-19-spec-coverage/COVERAGE.md`). Gaps closed: **FirstSession** (only
+  happy-path specs → `first_session_failure_spec.luau`, 6 cases: nil player, player left, missing
+  story/tutorial/flags, null stats, unusable ToolService), **client/State** (never spec'd; only
+  `shared/State` was → `client_state_failure_spec.luau`, 6 cases: malformed snapshot/patch ignored,
+  valid snapshot/patch applied, idempotent listener disconnect), **RankService** (damaged-save
+  recovery → `rank_failure_spec.luau`, 4 cases: NaN/non-number Nama Baik, NaN attribute mirror,
+  damaged cooldowns table). A truthy non-table `story` crash was judged defensive-only (SaveSanitize
+  repairs it) and not logged as a bug. Suite 1788; selene 0 errors / 0 warnings / 0 parse errors.
+  `LUNE-ONLY`.
 - [ ] 12. **Player leaves mid-state.** For every state a player can be in (each raid state, debt
   collector, minigame, phone open, cutscene, selling), check that the server cleans up on
   PlayerRemoving: no orphan tasks, NPCs, attributes or locks. Specs first, then a Studio check.

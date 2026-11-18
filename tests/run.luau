@@ -98,6 +98,7 @@ local specs = {
 	require("./specs/cutscene_sequencer_spec"),
 	require("./specs/lazy_pages_spec"),
 	require("./specs/minigame_cancel_spec"),
+	require("./specs/multiplayer_sim_spec"),
 }
 
 local t = Test.new()

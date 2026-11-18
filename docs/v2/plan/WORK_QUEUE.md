@@ -8,11 +8,16 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
 
 ## Queue
 
-- [ ] 1. **Q5 ten-player half, Lune side.** Multi-player simulation spec: 10 fake players run
+- [x] 1. **Q5 ten-player half, Lune side.** Multi-player simulation spec: 10 fake players run
   plant/harvest/sell/buy/raid/debt at the same time, interleaved, on the real services with
   Fakes. Assert no shared-state leak between players, no stuck raid or minigame state, no
   negative or NaN cash, no duplicated items. Fix each bug found and add a regression spec.
   Status `LUNE-ONLY`; the live multi-client half stays `BLOCKED` on the designer.
+  Done 2026-11-19: `tests/specs/multiplayer_sim_spec.luau` (9 passing cases) drives the real
+  EconomyService/MarketService/DebtService, RaidService and FarmService with 10 Fakes players
+  across interleaved grants/buys/sells/loans, raids/choices and plant/harvest; asserts per-player
+  cash/items/tiles/debt/raid isolation, no NaN/negative cash, no duplicated seeds and no stuck
+  raid or minigame state. No isolation defect found, so no production fix was needed. Suite 1709.
 - [ ] 2. **Security pass.** Check every RemoteEvent/RemoteFunction handler in `src/server` for
   argument type and range validation, rate limits, and server authority over cash and items.
   Write a failure-path spec for each exploit vector, then fix it. Record results in

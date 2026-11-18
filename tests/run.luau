@@ -109,6 +109,7 @@ local specs = {
 	require("./specs/first_session_failure_spec"),
 	require("./specs/client_state_failure_spec"),
 	require("./specs/rank_failure_spec"),
+	require("./specs/player_leave_cleanup_spec"),
 }
 
 local t = Test.new()

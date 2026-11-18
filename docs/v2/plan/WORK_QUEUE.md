@@ -149,9 +149,20 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   damaged cooldowns table). A truthy non-table `story` crash was judged defensive-only (SaveSanitize
   repairs it) and not logged as a bug. Suite 1788; selene 0 errors / 0 warnings / 0 parse errors.
   `LUNE-ONLY`.
-- [ ] 12. **Player leaves mid-state.** For every state a player can be in (each raid state, debt
+- [x] 12. **Player leaves mid-state.** For every state a player can be in (each raid state, debt
   collector, minigame, phone open, cutscene, selling), check that the server cleans up on
   PlayerRemoving: no orphan tasks, NPCs, attributes or locks. Specs first, then a Studio check.
+  Done 2026-11-19: inventoried every `PlayerRemoving` handler (incl. `onBeforeRelease` hooks) and
+  mapped prior coverage (full table in `docs/v2/evidence/h/2026-11-19-player-leave-cleanup/REPORT.md`).
+  Six handlers had no spec → `tests/specs/player_leave_cleanup_spec.luau` (10 cases): debt collector
+  NPC dismissal, IsAdmin attribute clear, leaderboard final flush, harness gate close, evidence
+  offers/tokens drop, Net/State release hook. Raid/farm/plot/ratelimit/data-pass leave paths were
+  already spec'd and verified; no game source changes (cleanup was already correct). Suite 1798;
+  selene 0/0/0; `LUNE-ONLY` specs. Studio helper smoke `SEEN-IN-STUDIO` (clean boot, real
+  `resolveOnLeave`/`Gate.close`/`tokenCount` exercised in Server datamodel); the actual
+  leave-transition check is `BLOCKED — Studio MCP cannot fire the engine PlayerRemoving signal and
+  has no local-server/team-test tool to spawn a departing second player (Play Solo has one local
+  player).` Place not saved.
 - [ ] 13. **Respawn and rejoin.** Audit CharacterAdded and respawn handlers for duplicate
   connections, and check that UI is rebuilt correctly after a reset. Specs, plus a Studio reset
   loop of 10 resets with no growth in connection count.

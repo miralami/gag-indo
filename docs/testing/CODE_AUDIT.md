@@ -64,7 +64,7 @@ Per-task audit log for the T1-T16 workhorse backlog on `track/c-world-look`. Sta
 - **Studio checks needed:** In Studio, verify plant/harvest flows still refuse full sack correctly, oplosan/confiscate visuals/state clear as before, and gudang deposit/withdraw UI counts remain correct after nil-safe publish changes.
 
 ## BLOCKED
-- `BUG-004` — broke-player recovery choice pending designer decision D-G3 (`docs/testing/BUGS.md`). No code fix applied.
+- `BUG-004` — was pending designer decision D-G3 at the time of this audit; **resolved 2026-11-19**: D-G3 option A (free 1 `padi` seed floor) implemented in `FarmService.checkSeedFloor` and verified in Studio (`docs/v2/evidence/h/2026-11-19-gate1-studio/`), bug closed. No longer blocked.
 
 ## T1 follow-up: shared config required server code (found in review)
 

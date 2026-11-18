@@ -6,6 +6,23 @@ a task, tick it there in the same commit. Then read the rest of `docs/v2/plan/MA
 proven. These rules sit on top of it and never override it. `docs/README.md` maps every other doc
 and marks which are live, dated snapshots or archive.
 
+## Long-run mode (read this after every context compaction)
+
+If `docs/v2/plan/WORK_QUEUE.md` has an unchecked item, you are in long-run mode:
+
+- **Do not end your turn.** Do not ask the user questions or write a "what's next?" report while
+  any unchecked item is one you can do. The user is away.
+- **After a compaction**, re-read `WORK_QUEUE.md`, the tracker, `BUGS.md` and `GATE1.md`. Then
+  continue from the first unchecked item. Don't redo ticked items and don't summarize them.
+- **Each item:** do the work, run the tests and selene, then tick the item in `WORK_QUEUE.md` and
+  the tracker. Commit, push, and start the next item right away.
+- **When a choice is the designer's** (balance, look, decisions), pick the safest reversible
+  default, add it to the queue's "Decisions for designer" list, and keep going.
+- **If an item is blocked**, mark it `BLOCKED — <reason>` and move on. Blocked items never stop
+  the run.
+- **Stop only** when every item is ticked or `BLOCKED`, including the refill item. Then write one
+  final report: what was done (with commits), what is blocked, and the decisions list.
+
 ## Orchestration
 
 - Default to orchestrating: the main session plans, dispatches, reconciles, verifies and commits.

@@ -163,9 +163,22 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   leave-transition check is `BLOCKED — Studio MCP cannot fire the engine PlayerRemoving signal and
   has no local-server/team-test tool to spawn a departing second player (Play Solo has one local
   player).` Place not saved.
-- [ ] 13. **Respawn and rejoin.** Audit CharacterAdded and respawn handlers for duplicate
+- [x] 13. **Respawn and rejoin.** Audit CharacterAdded and respawn handlers for duplicate
   connections, and check that UI is rebuilt correctly after a reset. Specs, plus a Studio reset
   loop of 10 resets with no growth in connection count.
+  Done 2026-11-19: audited every `CharacterAdded`/respawn connection — each is bound once per
+  session (`PlayerData.onLoaded` or idempotent `start()`), never per respawn; `CameraFeel` uses a
+  generation counter, `RaidOverlay` clears per-cutscene death connections. No production fix needed.
+  `tests/specs/respawn_rejoin_spec.luau` (5 cases) locks: FarmService/Cosmetics connect once across
+  10 respawns with exactly one teleport/hat per reset, CameraFeel keeps one connection per signal
+  across 10 cycles, `Theme.screenGui` is `ResetOnSpawn=false` (phone page rebuild already in
+  `lazy_pages_spec`). Suite 1803; selene 0/0/0; `LUNE-ONLY` specs. Studio 10-reset loop
+  `SEEN-IN-STUDIO`: all 10 resets spawned a fresh character at the same plot position, Client
+  PlayerGui stayed at 11 ScreenGuis with none `ResetOnSpawn=true`, clean boot — evidence
+  `docs/v2/evidence/h/2026-11-19-respawn-rejoin/REPORT.md`. Exact engine connection count is not
+  introspectable via Studio MCP (separate `require` VM, no signal API); invariants locked by specs.
+  Place not saved.
+
 - [ ] 14. **Purchases.** Check receipt handling (no product IDs invented): a duplicate
   PurchaseId, the player leaving mid-grant, a failed save after grant, unknown products, game pass
   checks that error. Each case gets a spec that proves idempotency.

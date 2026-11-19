@@ -1,0 +1,30 @@
+[JuraganDesa] server started
+[ProfileStore]: Roblox API services available - data will be saved
+[Roblox][sabuiltin_Assistant.rbxm.Assistant.Src.toolInit] Assistant plugin version changed from ef6b1b3 to 9bb6530. This may cause instability when using Assistant or the MCP server. Please restart Roblox Studio to fix.
+[Roblox][sabuiltin_Assistant.rbxm.Assistant.Src.toolInit] Assistant plugin version changed from ef6b1b3 to 9bb6530. This may cause instability when using Assistant or the MCP server. Please restart Roblox Studio to fix.
+[G3] 1-enable ok=true wall=09:58:43
+[G3] 2-status ok=true wall=09:58:43
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+[G3] 3-plant ok=true wall=09:58:44
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+[G3] 4-ready ok=true wall=09:58:44
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+[G3] 5-harvest ok=true wall=09:58:45
+AnalyticsService: LogEconomyEvent event fired.
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+[G3] 6-sell ok=true wall=09:58:45
+AnalyticsService: LogEconomyEvent event fired.
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+[G3] 7-buy ok=true wall=09:58:46
+AnalyticsService: LogEconomyEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+[G3] 8-quest ok=true wall=09:58:46
+[G3] 9-status ok=true wall=09:58:46
+AnalyticsService: LogFunnelStepEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+[REG] raid ok=true wall=09:58:57
+[REG] raidState ok=true wall=09:59:00
+[REG] status ok=true wall=09:59:00
+[Roblox][sabuiltin_Assistant.rbxm.Assistant.Packages._Index.AssistantUI.AssistantUI.Actions.ExecuteLuauActions] The execute_luau changed camera type. Resetting from Enum.CameraType.Scriptable back to Enum.CameraType.Custom

@@ -368,9 +368,20 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   12 crops, 5 tiers (~1.51×), real pinjol/law/market values from `Config/*.luau`. `LOCALIZATION.md`:
   333 keys (0 empty id/en), correct spec names, dated. `LUNE-ONLY`, `lune` 1930 passed,
   `selene src` 0/0/0. Evidence `docs/v2/evidence/h/2026-11-19-docs-refresh/REPORT.md`.
-- [ ] 29. **Regression replay after all changes.** On synced code in Studio, redo the G3
+- [x] 29. **Regression replay after all changes.** On synced code in Studio, redo the G3
   beat sheet, the G5 timings (3 runs), a full-session `output.log` for Q2, and a 30-minute Q5
   soak with the memory series. All must still pass. File every regression as a bug and fix it.
+  Done 2026-11-19 (`SEEN-IN-STUDIO`, HEAD `350c48f`, placeId 132087524375529, fresh VERIFY-TEMP
+  Mock profile reverted before commit): G3 all 9 steps `ok=true`, cash 50→77→57→157, tutorialStep
+  1→5, matches baseline; forced raid `raid{viral,force}` → `incoming`/`inRaid`/`busy`, no stuck
+  state (items 21/22/23 paths); Q2 full-session Output zero game-code errors/warnings, BUG-003 did
+  not recur; G5 three fresh runs first harvest 20/20/20 s (<45 s), Super reveal 48 s (<5 min),
+  real grow timers, no `ready` shortcut; Q5 client-half soak 1801.71 s / 234 cycles / `done=true`,
+  client memory 2617.57→2586.09 MB (235 samples, flat), server 2617.5→2587.3 MB, no leak/stuck/
+  desync, graceful seed-starved refusals same class as baseline, raid gossip 310 s (<420 s). No
+  regression found, no bug filed. Evidence `docs/v2/evidence/h/2026-11-19-regression-replay/`
+  (`REPORT.md`, `results.json`, `soak.json`, `g3-g5-q2-output.log`, `soak-output.log`). Q5 ten-player
+  half stays `BLOCKED` (no multi-client tool). `lune` 1930 passed, `selene` 0/0/0.
 - [ ] 30. **Gate 1 status sheet.** Rewrite the evidence column of every GATE1.md row so it is
   current, and list exactly what the designer must do to close each row that is still open.
 - [ ] 31. **Refill.** Read every `[ ]` and `[~]` item in `MASTER_PLAN.md`, `GATE1.md` and

@@ -249,9 +249,16 @@ never publish.
   start borrows 100, loses one cycle, repays fully. Designer report with results under "Decisions for
   designer": no balance change recommended. `lune` 1989 (+3), `selene src` 0/0/0.
   Evidence `docs/v2/evidence/h/2026-11-19-economy-sim/REPORT.md`.
-- [ ] 18. **Client error boundary.** One failing UI or feel module must not kill
-  `Main.client.luau`: wrap each mount, log once, keep the others running. Spec it with a module
-  that is forced to throw.
+- [x] 18. **Client error boundary.**
+  `LUNE-ONLY` — `src/client/Main.client.luau` now wraps all 18 bootstrap mount/start calls in a
+  `guarded(name, fn)` pcall boundary with a one-time `warn`; every original call, argument and
+  order is unchanged, and the LookDev `pcall(require)` lines are untouched. New
+  `tests/specs/client_error_boundary_spec.luau` (4 cases) boots the real bootstrap under the
+  harness with forced throws from a UI module, a feel module, three simultaneous modules and a
+  clean run: all other modules still mount, each failure warned exactly once, clean boot silent.
+  Added `Env:addScript(path)` to `tests/lib/Env.luau` to load entry scripts. Mutation check:
+  removing the pcall fails the 3 failure cases. `lune` 1993 (+4), `selene src` 0/0/0.
+  Evidence `docs/v2/evidence/h/2026-11-19-client-error-boundary/REPORT.md`.
 - [ ] 19. **Bug hunt by reading, round 3.** Read every `src/` file changed in round 1
   (`8f965dc..a618f02`, 68 files) line by line. File and fix with specs.
 - [ ] 20. **Type pass, round 2.** Run luau-lsp analyze, if rokit has it, over `src/`. Fix the real

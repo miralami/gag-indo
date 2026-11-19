@@ -1,4 +1,7 @@
 -- Client bootstrap: mount the HUD, tile presentation, phone, minigame and raid overlay.
+--
+-- Every mount/start is isolated: one failing UI or feel module must never abort the rest of
+-- the bootstrap. Each failure is warned exactly once, then the next module still runs.
 
 local LocalizationService = game:GetService("LocalizationService")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -25,27 +28,77 @@ local Tags = require(script.Parent.Chat.Tags)
 
 local lang = Strings.langFor(LocalizationService.RobloxLocaleId)
 
-State.mount()
-Audio.start()
-Sky.mount()
-Wind.start()
-CameraFeel.start()
-FidelityRuntime.start()
-FpsSampler.start() -- Studio-only: publishes ClientFps; no-op in a published place
-ActionFeel.start(lang)
-local hudGui = Hud.mount(lang)
-Evidence.mount(lang, hudGui)
-Phone.mount(lang)
-Minigame.mount(lang)
-RaidOverlay.mount(lang)
-Admin.mount(lang)
-Leaderboard.mount(lang)
-Tags.mount(lang)
-Tiles.mount(lang)
+-- Per-module error boundary. `reported` makes the "log once" guarantee explicit even if a
+-- name is ever guarded twice; the failed module is skipped and the next one still mounts.
+local reported = {}
+local function guarded(name: string, fn: () -> ())
+	local ok, err = pcall(fn)
+	if not ok and not reported[name] then
+		reported[name] = true
+		warn(`[Main.client] {name} failed to start: {tostring(err)}`)
+	end
+end
+
+guarded("State.mount", function()
+	State.mount()
+end)
+guarded("Audio.start", function()
+	Audio.start()
+end)
+guarded("Sky.mount", function()
+	Sky.mount()
+end)
+guarded("Wind.start", function()
+	Wind.start()
+end)
+guarded("CameraFeel.start", function()
+	CameraFeel.start()
+end)
+guarded("FidelityRuntime.start", function()
+	FidelityRuntime.start()
+end)
+-- Studio-only: publishes ClientFps; no-op in a published place
+guarded("FpsSampler.start", function()
+	FpsSampler.start()
+end)
+guarded("ActionFeel.start", function()
+	ActionFeel.start(lang)
+end)
+
+local hudGui
+guarded("Hud.mount", function()
+	hudGui = Hud.mount(lang)
+end)
+guarded("Evidence.mount", function()
+	Evidence.mount(lang, hudGui)
+end)
+guarded("Phone.mount", function()
+	Phone.mount(lang)
+end)
+guarded("Minigame.mount", function()
+	Minigame.mount(lang)
+end)
+guarded("RaidOverlay.mount", function()
+	RaidOverlay.mount(lang)
+end)
+guarded("Admin.mount", function()
+	Admin.mount(lang)
+end)
+guarded("Leaderboard.mount", function()
+	Leaderboard.mount(lang)
+end)
+guarded("Tags.mount", function()
+	Tags.mount(lang)
+end)
+guarded("Tiles.mount", function()
+	Tiles.mount(lang)
+end)
 
 -- B/Escape + default selection + hidden-frame rescue (WORK_QUEUE item 21). Start after all
 -- screens have mounted and registered themselves with NavBridge.
-NavBridge.start()
+guarded("NavBridge.start", function()
+	NavBridge.start()
+end)
 
 -- Look-dev candidates (WORK_QUEUE item 9, round 2 item 4): register the OFF-BY-DEFAULT plaza
 -- lighting and agent-made icon appliers. Isolated so a missing/failed candidate module can never

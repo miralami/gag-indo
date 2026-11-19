@@ -402,6 +402,25 @@ function Env:mock(path: string, value)
 	return value
 end
 
+-- Mount an entry-point script (.client / .server) as a loadable node. mountDirectory skips
+-- these because they are not real ModuleScripts in Studio, but specs that exercise bootstrap
+-- error boundaries need to execute their real source. No existing module is affected.
+function Env:addScript(path: string)
+	local root, rest = string.match(path, "^(%a+)/(.+)$")
+	local node = assert(self.roots[root], `Unknown root "{tostring(root)}" in "{path}"`)
+	local name = string.match(rest, "([^/]+)$")
+	local parentPath = string.match(rest, "^(.*)/[^/]+$")
+	if parentPath then
+		for part in string.gmatch(parentPath, "[^/]+") do
+			node = assert(rawget(node, "_children")[part], `No module "{part}" while resolving "{path}"`)
+		end
+	end
+	local module = newNode(name, "ModuleScript", node)
+	rawset(module, "_path", "src/" .. path .. ".luau")
+	rawget(node, "_children")[name] = module
+	return module
+end
+
 -- ---------------------------------------------------------------------------
 -- Time
 -- ---------------------------------------------------------------------------

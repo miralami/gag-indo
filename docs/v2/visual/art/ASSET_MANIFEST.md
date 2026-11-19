@@ -8,6 +8,8 @@ MCP `search_asset` (Creator Store, free filter) and each was loaded in a Play So
 |---|---|---|---|---|---|---|---|
 | `music_desa` | 83077123902599 | Gamelan Resonance Field | DistrokidOfficial | 152.2 s | Creator Store, free | Creator Store audio for use in Roblox experiences; terms are Roblox's, not re-read here | designer to confirm |
 | `music_pasar` | 135973738646382 | Golden Gamelan | DistrokidOfficial | 178.8 s | Creator Store, free | same | designer to confirm |
+| `music_sawah` | 9042889348 | Close Your Eyes - 60 - No Melody | APMOfficial | 58.59 s | Creator Store, free | Creator Store audio for use in Roblox experiences; terms are Roblox's, not re-read here | designer to confirm |
+| `music_hutan` | 9048807207 | Cavernous Wonders 60 A | APMOfficial | 60.97 s | Creator Store, free | same (verified `IsLoaded = true`, len 60.97 s in Play VM on 2026-11-19) | designer to confirm |
 | `ambience_cerah` | 9112748018 | Birds And Cicadas 2 (SFX) | ProSoundEffects ("Courtesy of Pro Sound Effects") | 46.3 s | Creator Store, free | same | designer to confirm |
 | `ambience_hujan` | 9112853422 | Rain Heavy Rainfall Grass Wooden Roof 1 | ProSoundEffects | 46.0 s | Creator Store, free | same (verified `IsLoaded = true` on 2026-11-14) | designer to confirm |
 | `ambience_badai` | 9112853563 | Rain Heavy Rainfall Grass Wooden Roof 2 | ProSoundEffects | 63.9 s | Creator Store, free | same (verified `IsLoaded = true` on 2026-11-14) | designer to confirm |
@@ -23,6 +25,13 @@ MCP `search_asset` (Creator Store, free filter) and each was loaded in a Play So
 | `sting_rankup` | 3120909354 | Level_up | thienbao2109 | 2.38 s | Creator Store, free | same (verified `IsLoaded = true` on 2026-11-14) | designer to confirm |
 | `sting_raid` | 127714289075929 | Police Siren Sound Effect | FusionFire97 | 4.46 s | Creator Store, free | same (verified `IsLoaded = true` on 2026-11-14) | designer to confirm |
 | `sting_jail` | 127714289075929 | Police Siren Sound Effect | FusionFire97 | 4.46 s | Creator Store, free | same (verified `IsLoaded = true` on 2026-11-14) | designer to confirm |
+
+`music_sawah` and `music_hutan` were added in round 2 item 9 (2026-11-19) after a fresh Creator Store
+free-audio search. Both were verified loading in a Play VM (`IsLoaded = true`, lengths read) before
+being recorded. **Both are LookDev candidates awaiting designer yes/no** — the shipping
+`Config/Audio.sounds` slots stay `id = 0`; the IDs live in `src/shared/SoundMap.luau` and are applied
+only by the off-by-default `sounds` candidate (`src/client/World/LookDevSounds.luau`). The other 17
+audio rows above shipped in round 1. Evidence `docs/v2/evidence/h/2026-11-19-sound-candidates/`.
 
 ## Skybox (golden hour sunset)
 

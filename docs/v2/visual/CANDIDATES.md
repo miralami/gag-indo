@@ -20,6 +20,7 @@ filled by an agent. Asset IDs come from real Open Cloud operations and are recor
 | `npcs` | Procedural caricature detail parts for the box NPCs — Pak RT, Tengkulak, Polisi, debt collector (round 2 item 6) | `LookDev:enable("npcs")` | `docs/v2/visual/art/npcs/render/contact_sheet.png` | 15 temporary primitive Parts on the 3 live NPCs while enabled (6/5/4), all destroyed on disable; no asset IDs, no measurable fps cost | |
 | `crops` | Low-poly growth-stage models (bibit/tumbuh/siap) for all 12 crops (round 2 item 7) | `LookDev:enable("crops")` | `docs/v2/visual/art/crops/render/contact_sheet.png` | 36 models / 339 temporary Parts in a floating showcase while enabled, all destroyed on disable; no asset IDs, no measurable fps cost | |
 | `hubprops` | Hero-prop details on the four shop hubs — stall/counter/desk/table, lantern, accent sign (round 2 item 8) | `LookDev:enable("hubprops")` | `docs/v2/visual/art/hubprops/render/contact_sheet.png` | 43 temporary Parts (pasar 11 / warung 11 / polisi 11 / pakrt 10) on hub anchors while enabled, all destroyed on disable; within 8–12/hub budget; no asset IDs, no measurable fps cost | |
+| `sounds` | Two free Creator Store music beds for the sawah/hutan zones (round 2 item 9) | `LookDev:enable("sounds")` | `docs/v2/evidence/h/2026-11-19-sound-candidates/REPORT.md` | 2 temporary Sounds in the round-1 `JD_music` SoundGroup while enabled (1 active loop + 1 pooled, loaded), all destroyed on disable; no measurable fps cost | |
 
 ## `icons` — per-asset renders and IDs
 
@@ -141,3 +142,16 @@ the render is provided for the designer's yes/no, not claimed as agent-verified.
   adapter uses (via `docs/v2/visual/art/hubprops/src/dump_hubprops.luau`), so it cannot drift — a
   review aid, not a Studio screenshot. Evidence `docs/v2/evidence/h/2026-11-19-hubprops-candidates/`.
   No agent visually graded the art.
+- `src/shared/SoundMap.luau` holds the two free Creator Store music-bed IDs in `candidateIds`
+  (APMOfficial, "Close Your Eyes - 60 - No Melody" 58.59 s / "Cavernous Wonders 60 A" 60.97 s), each
+  verified `IsLoaded = true` in a Play VM and recorded with licence/source in
+  `docs/v2/visual/art/ASSET_MANIFEST.md`. The shipping `Config/Audio.sounds` slots stay `id = 0`;
+  `src/client/World/LookDevSounds.luau` creates the Sounds into the round-1 `JD_music` SoundGroup
+  only while the off-by-default `sounds` candidate is enabled, drives loop state through the
+  round-1 `AudioPolicy`, and destroys them on disable. Spec-locked in
+  `tests/specs/soundmap_spec.luau` and `tests/specs/lookdev_candidates_spec.luau`.
+- Live Play-VM round-trip: 2 Sounds appeared in `JD_music` with real, loaded asset IDs
+  (`music_hutan` loaded + playing as the single active loop, `music_sawah` loaded + pooled), and both
+  were destroyed on disable. There is no image render for audio; the review artifact is the
+  in-Studio enable/disable proof. Evidence `docs/v2/evidence/h/2026-11-19-sound-candidates/`. No agent
+  graded the sound aesthetically — audition and yes/no belong to the designer.

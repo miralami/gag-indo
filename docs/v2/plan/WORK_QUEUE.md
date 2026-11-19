@@ -123,11 +123,24 @@ never publish.
   graded the art — CANDIDATES awaiting designer yes/no. Evidence
   `docs/v2/evidence/h/2026-11-19-hubprops-candidates/`; gallery `docs/v2/visual/CANDIDATES.md`.
   `lune` 1956 / `selene` 0/0/0.
-- [ ] 9. **Sound candidates.**
+- [x] 9. **Sound candidates.**
   - For each action in the audio event list, search the Creator Store (Studio MCP `search_asset`)
     for free sounds whose licence allows use.
   - Record each existing ID, its licence and its source in `ASSET_MANIFEST.md`.
   - Wire them behind `LookDev` through SoundGroups, following the round-1 audio policy.
+  `SEEN-IN-STUDIO` — searched free Creator Store Audio for the audio event list (`Config/Audio.sounds`);
+  round 1 had 17 licensed IDs, the only empty slots were the sawah/hutan music beds. Two free beds
+  chosen and verified loading in a Play VM (`IsLoaded=true`, lengths read): `music_sawah` 9042889348
+  ("Close Your Eyes - 60 - No Melody", APMOfficial, 58.59 s) and `music_hutan` 9048807207
+  ("Cavernous Wonders 60 A", APMOfficial, 60.97 s). Both recorded with licence/source in
+  `docs/v2/visual/art/ASSET_MANIFEST.md`. IDs live only in `src/shared/SoundMap.luau` (pure data +
+  `assetUrl`/`playable` helpers); the ID-free `src/client/World/LookDevSounds.luau` creates Sounds
+  into the round-1 `JD_music` SoundGroup and drives loop state through `AudioPolicy` only while the
+  off-by-default eighth `sounds` candidate is enabled, destroying them on disable; shipping config
+  slots stay `id=0`. Live Play-VM round-trip: 2 loaded Sounds in `JD_music` (1 active loop via policy,
+  1 pooled), all destroyed on disable. No agent graded the sound — CANDIDATES awaiting designer
+  yes/no. Evidence `docs/v2/evidence/h/2026-11-19-sound-candidates/`; gallery
+  `docs/v2/visual/CANDIDATES.md`. `lune` 1964 / `selene` 0/0/0.
 - [ ] 10. **Candidate gallery.** `docs/v2/visual/CANDIDATES.md` gets one row per candidate: a
   render or screenshot, the toggle to view it, its cost (instances and fps), and a yes/no column
   for the designer.

@@ -10,6 +10,7 @@
 --   src/client/World/LookDevNpcs.luau     -- candidate "npcs" (procedural caricature detail CANDIDATES)
 --   src/client/World/LookDevCrops.luau    -- candidate "crops" (low-poly crop growth-stage CANDIDATES)
 --   src/client/World/LookDevHubProps.luau -- candidate "hubprops" (hub counter/desk/stall detail CANDIDATES)
+--   src/client/World/LookDevSounds.luau   -- candidate "sounds" (free Creator Store music CANDIDATES)
 -- Each registers itself with LookDev.register() at boot. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("plaza_lighting")
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("police_walkin")
@@ -18,6 +19,7 @@
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("npcs")
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("crops")
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("hubprops")
+--   require(game.ReplicatedStorage.Shared.LookDev):enable("sounds")
 --   require(game.ReplicatedStorage.Shared.LookDev):disable()   -- restores the original look
 --
 -- The gate needs an explicit Studio-only opt-in, is never persisted, and can never be on in a
@@ -35,7 +37,7 @@ local LookDev = {}
 
 LookDev.STATUS = "candidate, awaiting designer yes"
 LookDev.STYLE = "cartoonish-realism"
-LookDev.IDS = { "plaza_lighting", "police_walkin", "icons", "textures", "npcs", "crops", "hubprops" }
+LookDev.IDS = { "plaza_lighting", "police_walkin", "icons", "textures", "npcs", "crops", "hubprops", "sounds" }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
 -- list is rejected because it could be an asset-backed or otherwise non-procedural material.
@@ -162,6 +164,19 @@ LookDev.candidates = {
 		render = "docs/v2/visual/art/hubprops/render/contact_sheet.png",
 		hubCount = 4,
 	},
+
+	sounds = {
+		id = "sounds",
+		title = "Free Creator Store music beds for the sawah and hutan zones",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- IDs deliberately NOT here: they live in Shared.SoundMap.candidateIds (assetUrl builds the
+		-- Roblox asset URL string). The adapter creates Sounds into the round-1 JD_<group> SoundGroups
+		-- only while enabled and destroys them on disable; Config/Audio id slots stay 0.
+		idsSource = "Shared.SoundMap.candidateIds",
+		render = "docs/v2/evidence/h/2026-11-19-sound-candidates/REPORT.md",
+		soundCount = 2,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -238,6 +253,14 @@ function LookDev.plan(id: string): any
 			idsSource = c.idsSource,
 			render = c.render,
 			hubCount = c.hubCount,
+		}
+	elseif id == "sounds" then
+		local c = LookDev.candidates.sounds
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			soundCount = c.soundCount,
 		}
 	end
 	return nil

@@ -1,0 +1,83 @@
+{
+  "date": "2026-11-19",
+  "item": 9,
+  "round": 2,
+  "branch": "track/c-world-look",
+  "placeId": 132087524375529,
+  "universeId": 10776530981,
+  "studioId": "447c176b-1d7b-4b9c-a794-45912fea4b63",
+  "rojo": "localhost:34872",
+  "status": "SEEN-IN-STUDIO",
+  "target": "For each action in the audio event list, search the Creator Store for free sounds whose licence allows use; record each existing ID, licence and source in ASSET_MANIFEST.md; wire them behind LookDev through SoundGroups following the round-1 audio policy",
+  "candidateRule": "all agent-selected assets CANDIDATES awaiting designer yes/no; not approved, not shipped on by default",
+  "statusWords": ["SEEN-IN-STUDIO", "LUNE-ONLY", "UNVERIFIED", "BLOCKED"],
+  "search": {
+    "tool": "Studio MCP search_asset",
+    "scope": "creator_store",
+    "assetType": "Audio",
+    "priceFilter": "free",
+    "note": "The audio event list is Config/Audio.sounds (groups music/ambience/ui/sting). Round 1 had already recorded 17 free Creator Store audio IDs with licence/source in ASSET_MANIFEST.md; the only two empty slots were the sawah/hutan music beds. Multiple free music searches were run; two beds were chosen and verified loading in a Play VM before being recorded."
+  },
+  "candidates": [
+    {
+      "key": "music_sawah",
+      "assetId": 9042889348,
+      "name": "Close Your Eyes - 60 - No Melody",
+      "creator": "APMOfficial",
+      "free": true,
+      "durationSec": 58.59,
+      "source": "Creator Store, free",
+      "licenceNote": "Creator Store audio for use in Roblox experiences; terms are Roblox's, not re-read here",
+      "isLoadedInPlayVm": true
+    },
+    {
+      "key": "music_hutan",
+      "assetId": 9048807207,
+      "name": "Cavernous Wonders 60 A",
+      "creator": "APMOfficial",
+      "free": true,
+      "durationSec": 60.97,
+      "source": "Creator Store, free",
+      "licenceNote": "Creator Store audio for use in Roblox experiences; terms are Roblox's, not re-read here",
+      "isLoadedInPlayVm": true
+    }
+  ],
+  "implementation": {
+    "idSource": "src/shared/SoundMap.luau (pure data: candidateIds + candidateOrder + assetUrl/playable helpers, no IDs in LookDev or adapters)",
+    "applier": "src/client/World/LookDevSounds.luau",
+    "bootstrap": "src/client/Main.client.luau pcall(require, ...) at boot",
+    "lookDevCandidate": "sounds (8th candidate, idsSource pointer, soundCount=2, no numeric IDs)",
+    "soundGroups": "reuses round-1 JD_<group> SoundGroups (JD_music/JD_ambience/JD_ui/JD_sting) via find-or-create",
+    "loopPolicy": "round-1 AudioPolicy.new(SoundMap.playable()) + :transition(group,key); at most one active loop per music/ambience role",
+    "default": "off - shipping Config/Audio music_sawah/music_hutan slots stay id=0",
+    "restore": "stops and destroys every created Sound and the LookDevSoundCandidates folder on disable"
+  },
+  "studioRoundTrip": {
+    "method": "Play Solo, fresh Client VM; require Shared.LookDev + Shared.SoundMap + the LookDevSounds adapter from LocalPlayer.PlayerScripts, then LookDev.enable('sounds')/disable()",
+    "ids": "plaza_lighting,police_walkin,icons,textures,npcs,crops,hubprops,sounds",
+    "hasApplier": true,
+    "enableOk": true,
+    "enableWarning": null,
+    "currentOn": "sounds",
+    "beforeSounds": "0",
+    "enabledSounds": "2",
+    "createdSounds": [
+      "music_sawah|rbxassetid://9042889348|JD_music|loop=true|vol=0.3|loaded=true|len=58.59|playing=false",
+      "music_hutan|rbxassetid://9048807207|JD_music|loop=true|vol=0.3|loaded=true|len=60.97|playing=true"
+    ],
+    "activeLoops": "music_hutan",
+    "soundGroupsPresent": "JD_ambience,JD_music,JD_sting,JD_ui",
+    "usingCandidates": "false -> true -> false",
+    "restoredSounds": "0",
+    "disableOk": true,
+    "note": "Both candidate Sounds parent into the round-1 JD_music SoundGroup with real, loaded asset IDs. Per the round-1 AudioPolicy exactly one looping role is active (music_hutan playing; music_sawah pooled and loaded but not playing). Both are destroyed on disable."
+  },
+  "validation": {
+    "lune": "All 1964 tests passed (up from 1956; new soundmap_spec + eight-candidate LookDev/sound-applier spec updates)",
+    "selene": "0 errors / 0 warnings / 0 parse errors",
+    "gallery": "docs/v2/visual/CANDIDATES.md",
+    "manifest": "docs/v2/visual/art/ASSET_MANIFEST.md",
+    "specs": ["tests/specs/soundmap_spec.luau", "tests/specs/lookdev_candidates_spec.luau"]
+  },
+  "savedOrPublished": false
+}

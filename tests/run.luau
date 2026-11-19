@@ -70,6 +70,7 @@ local specs = {
 	require("./specs/first_session_spec"),
 	require("./specs/iconmap_spec"),
 	require("./specs/texturemap_spec"),
+	require("./specs/soundmap_spec"),
 	require("./specs/npc_model_candidates_spec"),
 	require("./specs/crop_model_candidates_spec"),
 	require("./specs/hub_prop_candidates_spec"),

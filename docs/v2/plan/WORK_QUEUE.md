@@ -290,9 +290,13 @@ never publish.
 
 ### E. Get the designer through Gate 1 fast (docs and scripts only)
 
-- [ ] 21. **`docs/testing/DESIGNER_GATE1.md`.** One page, one numbered checklist per open row
-  (G4b, G6, G7, Q5, Q6, Q7): exact clicks, what to look at, and where to drop the evidence. Keep
-  it short and in plain words.
+- [x] 21. **`docs/testing/DESIGNER_GATE1.md`.** `BLOCKED` for execution (each row needs the
+  designer, a real device, five humans or a published place) but **the doc is delivered**: one
+  short plain-language page with a numbered checklist for the six open rows G4b, G6, G7, Q5, Q6,
+  Q7 — exact Studio clicks, what to look at, and the evidence folder for each. Shared setup block
+  (Rojo connect, API services, iPhone 14 before F5, status words). G4 tracked separately as an
+  art block; G1 closes last. `Stats.FrameTime` usage checked against the current Roblox docs.
+  No code change; `lune` 1996, `selene src` 0/0/0.
 - [ ] 22. **Q5 multi-client script.** A gated harness script that, once the designer starts Local
   Server with N players, runs the §2–§4 loop on every client, collects desync and stuck-state
   checks, and writes one results table. Lune-test the parts that can be tested.

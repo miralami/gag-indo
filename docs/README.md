@@ -28,8 +28,8 @@ when the task needs it.
 | [TOOLS.md](v2/plan/TOOLS.md) | Asset pipeline, upload routes, licences | LIVE |
 | [ANALYTICS.md](v2/plan/ANALYTICS.md) | Events, triggers, the questions they answer | LIVE |
 | [DELEGATION_PROMPT.md](v2/plan/DELEGATION_PROMPT.md) | Prompt to paste into a second agent | LIVE |
-| [WORK_QUEUE.md](v2/plan/WORK_QUEUE.md) | Long-run agent queue, round 2; read after every compaction (`AGENTS.md`) | LIVE |
-| [WORK_QUEUE_ROUND1.md](v2/plan/WORK_QUEUE_ROUND1.md) | Round 1 queue, closed 2026-11-19 | ARCHIVE |
+| [WORK_QUEUE.md](v2/plan/WORK_QUEUE.md) | Long-run agent queue, round 3 (visual first); read after every compaction (`AGENTS.md`) | LIVE |
+| [WORK_QUEUE_ROUND1.md](v2/plan/WORK_QUEUE_ROUND1.md), [WORK_QUEUE_ROUND2.md](v2/plan/WORK_QUEUE_ROUND2.md) | Rounds 1 and 2, closed 2026-11-19 | ARCHIVE |
 | [BALANCE.md](v2/plan/BALANCE.md), [LOCALIZATION.md](v2/plan/LOCALIZATION.md) | Static reports regenerated from current `Config/*.luau` / `Strings.luau` (333 keys, 1930 tests) | SNAPSHOT 2026-11-19 |
 | [LAUNCH.md](v2/plan/LAUNCH.md) | Store copy, rating questionnaire, launch checklist | SNAPSHOT 2026-11-12, draft |
 

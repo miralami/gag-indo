@@ -259,8 +259,20 @@ never publish.
   Added `Env:addScript(path)` to `tests/lib/Env.luau` to load entry scripts. Mutation check:
   removing the pcall fails the 3 failure cases. `lune` 1993 (+4), `selene src` 0/0/0.
   Evidence `docs/v2/evidence/h/2026-11-19-client-error-boundary/REPORT.md`.
-- [ ] 19. **Bug hunt by reading, round 3.** Read every `src/` file changed in round 1
-  (`8f965dc..a618f02`, 68 files) line by line. File and fix with specs.
+- [x] 19. **Bug hunt by reading, round 3.**
+  `LUNE-ONLY` — read all 68 round-1 changed `src/` files (`8f965dc..a618f02`). Filed and fixed
+  `BUG-019`: `FarmService` did raw arithmetic on numeric fields under the dynamic-key `tiles`
+  table that `SaveSanitize` deliberately skips, so a damaged tile (string/table/NaN/±inf/
+  boolean) threw during join/refresh/harvest. Added `finiteOr(value, fallback)` and
+  `tileReadyAt(entry)` that repair tile numerics in place at the read site (0 timestamp repair
+  self-heals the crop); all 8 ready-time reads plus `quality`/`harvests` in `doHarvest` now use
+  them. Finite negatives preserved. 3 cases appended to `tests/specs/farm_failure_spec.luau`
+  over 7 bad values; mutation check (old direct reads) fails all 3. `lune` 1996 (+3),
+  `selene src` 0/0/0. Evidence `docs/v2/evidence/h/2026-11-19-tile-damage/REPORT.md`.
+
+  `BLOCKED — no further bugs found by reading`: LSP diagnostics were missing-definitions/
+  narrowing noise, and targeted reads of the money/data/networking files found nothing else
+  reachable. Re-run when Studio definitions are wired into luau-lsp.
 - [ ] 20. **Type pass, round 2.** Run luau-lsp analyze, if rokit has it, over `src/`. Fix the real
   errors and move more pure modules to `--!strict` without changing behaviour.
 

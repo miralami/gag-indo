@@ -106,6 +106,26 @@ local function roundQuality(q: number): number
 	return math.floor(q * 1000 + 0.5) / 1000
 end
 
+-- `tiles` has dynamic string keys, so SaveSanitize deliberately leaves it alone (a partially
+-- written save can hold a string/table/NaN/inf where a number belongs). Repair the numeric
+-- fields IN PLACE at the read site: a damaged tile must never throw during join/refresh/harvest,
+-- and a 0 repair timestamp makes the crop immediately harvestable so the tile self-heals.
+local function finiteOr(value: any, fallback: number): number
+	if type(value) ~= "number" or value ~= value or value == math.huge or value == -math.huge then
+		return fallback
+	end
+	return value
+end
+
+-- Returns the (now finite) ready timestamp for a planted tile.
+local function tileReadyAt(entry): number
+	local planted = finiteOr(entry.plantedAt, 0)
+	local grow = finiteOr(entry.growSeconds, 0)
+	entry.plantedAt = planted
+	entry.growSeconds = grow
+	return planted + grow
+end
+
 local function maxTilesFor(player: Player): number
 	if player:GetAttribute("Pass_ExtraPlot") then
 		return GameConfig.maxTilesWithPass
@@ -304,7 +324,7 @@ local function refreshTile(player: Player, data, plot, index: number)
 		return
 	end
 
-	local readyAt = entry.plantedAt + entry.growSeconds
+	local readyAt = tileReadyAt(entry)
 	tile:SetAttribute("PlantedAt", entry.plantedAt)
 	tile:SetAttribute("GrowSeconds", entry.growSeconds)
 	local ready = os.time() >= readyAt
@@ -406,7 +426,10 @@ local function doHarvest(
 	end
 
 	-- Planting and harvesting each set a quality; the crop's final quality is their average.
-	local quality = (entry.quality + harvestQuality) / 2
+	-- `entry.quality` lives under the unsanitised dynamic `tiles` table; repair it before use.
+	local plantedQuality = finiteOr(entry.quality, 0.5)
+	entry.quality = plantedQuality
+	local quality = (plantedQuality + harvestQuality) / 2
 	local runtime = LiveConfig.getRuntime()
 
 	-- Check seasonal risk events (PLAN §3.3)
@@ -461,7 +484,7 @@ local function doHarvest(
 	local discovery = AlmanakService.record(player, entry.crop, tier, traits)
 
 	-- Kebun and perkebunan re-harvest from the same plant until it is spent.
-	local harvests = (entry.harvests or 0) + 1
+	local harvests = finiteOr(entry.harvests, 0) + 1
 	if crop.regrowSeconds and harvests < (crop.maxHarvests or 1) then
 		entry.harvests = harvests
 		entry.plantedAt = os.time()
@@ -545,7 +568,7 @@ local function onTilePrompt(player: Player, plotIndex: number, index: number)
 		end
 		pending[player] = { tile = index, action = "plant", cropId = cropId, startedAt = os.clock() }
 		Remotes.Minigame_Start:FireClient(player, "plant", index, cropId)
-	elseif os.time() >= entry.plantedAt + entry.growSeconds then
+	elseif os.time() >= tileReadyAt(entry) then
 		if sackFull(player, data) then
 			return
 		end
@@ -588,7 +611,7 @@ local function finish(player: Player, quality: number): boolean
 		return true
 	elseif attempt.action == "harvest" then
 		local entry = data.tiles[tileKey(index)]
-		if not entry or os.time() < entry.plantedAt + entry.growSeconds then
+		if not entry or os.time() < tileReadyAt(entry) then
 			pending[player] = nil
 			return false
 		end
@@ -685,7 +708,7 @@ function FarmService.applyOplosan(player: Player, index: number): boolean
 		return false
 	end
 	local now = os.time()
-	local readyAt = entry.plantedAt + entry.growSeconds
+	local readyAt = tileReadyAt(entry)
 	local remaining = readyAt - now
 	if remaining <= 0 then
 		return false
@@ -714,14 +737,14 @@ function FarmService.stealWater(attacker: Player, victim: Player): boolean
 	local victimAffected = 0
 
 	for index, entry in attackerData.tiles do
-		if now < entry.plantedAt + entry.growSeconds then
+		if now < tileReadyAt(entry) then
 			entry.plantedAt -= shift
 			attackerAffected += 1
 			refreshTile(attacker, attackerData, attackerPlot, tonumber(string.sub(index, 2)) or 0)
 		end
 	end
 	for index, entry in victimData.tiles do
-		if now < entry.plantedAt + entry.growSeconds then
+		if now < tileReadyAt(entry) then
 			entry.plantedAt += shift
 			victimAffected += 1
 			refreshTile(victim, victimData, victimPlot, tonumber(string.sub(index, 2)) or 0)
@@ -766,7 +789,7 @@ function FarmService.readyTiles(player: Player): { number }
 	local now = os.time()
 	local ready = {}
 	for key, entry in data.tiles do
-		if Crops.list[entry.crop] and now >= entry.plantedAt + entry.growSeconds then
+		if Crops.list[entry.crop] and now >= tileReadyAt(entry) then
 			table.insert(ready, tonumber(string.sub(key, 2)) or 0)
 		end
 	end
@@ -789,7 +812,7 @@ function FarmService.harvestToStorage(player: Player, index: number): boolean
 	if not entry or not Crops.list[entry.crop] then
 		return false
 	end
-	if os.time() < entry.plantedAt + entry.growSeconds then
+	if os.time() < tileReadyAt(entry) then
 		return false
 	end
 	if StorageService.used(data) >= StorageService.capacity(player, data) then

@@ -181,6 +181,59 @@ return function(t, Env, Fakes)
 			-- No plot for other in this mock -> should fail.
 			expect(fx.FarmService.stealWater(fx.player, other)):toBe(false)
 		end)
+
+		-- item 19: `tiles` has dynamic keys, so SaveSanitize deliberately skips it. A damaged
+		-- numeric field in a planted tile must never throw at a read site; FarmService repairs it
+		-- to a finite value in place before arithmetic. -3 is finite and intentionally preserved.
+		local BAD = { "oops", {}, 0 / 0, math.huge, -math.huge, true, -3 }
+		local function isFinite(n)
+			return type(n) == "number" and n == n and n ~= math.huge and n ~= -math.huge
+		end
+
+		t:it("refresh survives damaged plantedAt/growSeconds and repairs them in place", function()
+			for _, bad in ipairs(BAD) do
+				local fx = makeFarmEnv()
+				fx.FarmService.commitAttempt(fx.player, { tile = 1, action = "plant", cropId = "padi" }, 1)
+				local entry = fx.data.tiles.t1
+				entry.plantedAt = bad
+				entry.growSeconds = bad
+				-- Must not throw; refreshTile reads the ready timestamp.
+				fx.FarmService.refresh(fx.player)
+				expect(isFinite(entry.plantedAt)):toBe(true)
+				expect(isFinite(entry.growSeconds)):toBe(true)
+			end
+		end)
+
+		t:it("readyTiles and harvestToStorage survive damaged growSeconds", function()
+			for _, bad in ipairs(BAD) do
+				local fx = makeFarmEnv()
+				fx.FarmService.commitAttempt(fx.player, { tile = 1, action = "plant", cropId = "padi" }, 1)
+				local entry = fx.data.tiles.t1
+				entry.growSeconds = bad
+				local ready = fx.FarmService.readyTiles(fx.player)
+				expect(type(ready)):toBe("table")
+				expect(isFinite(entry.growSeconds)):toBe(true)
+				-- harvestToStorage also reads the ready timestamp in its guard.
+				fx.FarmService.harvestToStorage(fx.player, 1)
+				expect(isFinite(entry.growSeconds)):toBe(true)
+			end
+		end)
+
+		t:it("harvest commit survives damaged quality/plantedAt and records a finite quality", function()
+			for _, bad in ipairs(BAD) do
+				local fx = makeFarmEnv()
+				fx.FarmService.commitAttempt(fx.player, { tile = 1, action = "plant", cropId = "padi" }, 1)
+				local entry = fx.data.tiles.t1
+				entry.quality = bad
+				entry.plantedAt = bad
+				entry.growSeconds = 0
+				local ok = fx.FarmService.commitAttempt(fx.player, { tile = 1, action = "harvest" }, 1)
+				expect(ok):toBe(true)
+				-- No NaN/inf may leak into the economy's harvest quality.
+				local last = fx.harvested[#fx.harvested]
+				expect(isFinite(last.quality)):toBe(true)
+			end
+		end)
 	end)
 
 	t:describe("Storage/Worker/Tool failure paths (T3)", function()

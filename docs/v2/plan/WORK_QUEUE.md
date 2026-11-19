@@ -141,9 +141,18 @@ never publish.
   1 pooled), all destroyed on disable. No agent graded the sound — CANDIDATES awaiting designer
   yes/no. Evidence `docs/v2/evidence/h/2026-11-19-sound-candidates/`; gallery
   `docs/v2/visual/CANDIDATES.md`. `lune` 1964 / `selene` 0/0/0.
-- [ ] 10. **Candidate gallery.** `docs/v2/visual/CANDIDATES.md` gets one row per candidate: a
+- [x] 10. **Candidate gallery.** `docs/v2/visual/CANDIDATES.md` gets one row per candidate: a
   render or screenshot, the toggle to view it, its cost (instances and fps), and a yes/no column
   for the designer.
+  `LUNE-ONLY` — gallery maintained across all eight candidates (plaza_lighting, police_walkin,
+  icons, textures, npcs, crops, hubprops, sounds); one row each with the six required columns,
+  a matching `LookDev:enable("<id>")` toggle, an on-disk render/screenshot path, an fps cost cell,
+  and a blank designer yes/no cell. Per-asset tables for the 27 icons and 7 textures also have
+  blank yes/no. Added `tests/specs/candidate_gallery_spec.luau` (4 cases, registered in
+  `tests/run.luau`) locking one-row-per-candidate, required columns, existing render paths and
+  blank designer cells; mutation-checked (filled cell and deleted row each fail a case, restore
+  passes). Evidence `docs/v2/evidence/h/2026-11-19-candidate-gallery/`. `lune` 1968 / `selene`
+  0/0/0. Designers fill the yes/no column; no agent graded any art.
 
 ### C. Performance with candidates on
 

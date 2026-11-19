@@ -158,7 +158,20 @@ return function(t, Env)
 		t:it("declares at least one $path mapping (scanner sanity)", function()
 			expect(#mappings):toBeAtLeast(1)
 		end)
+		-- Generated dirs (Wally's Packages/) are gitignored and absent on a fresh CI checkout.
+		local gitignore = if fs.isFile(".gitignore") then fs.readFile(".gitignore") else ""
+		local function ignored(path: string): boolean
+			for line in string.gmatch(gitignore, "[^\r\n]+") do
+				if line == path or line == path .. "/" then
+					return true
+				end
+			end
+			return false
+		end
 		for _, path in mappings do
+			if ignored(path) then
+				continue
+			end
 			t:it(`$path "{path}" exists on disk`, function()
 				expect(fs.isDir(path) or fs.isFile(path)):toBeTruthy()
 			end)

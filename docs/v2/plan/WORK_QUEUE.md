@@ -74,22 +74,28 @@ Also in force:
   no ID invented, no model ingested, no visual verdict claimed.
 
 ### B. Asset sourcing, ladder order
-- [ ] 4. **Buildings:** rumah panggung, warung, pos polisi, rumah Pak RT, pasar stalls, gubuk
-  sawah. Ladder per building; replace boxes behind `LookDev`.
-- [ ] 5. **Vegetation (V-D4):** kelapa, pisang, bambu clumps, shrubs, padi at three stages, and a
-  dense grass layer (Terrain decoration plus cards). Remove the pines within sight of the
-  village.
-- [ ] 6. **Props:** fences (bambu), lanterns (oil lamp, petromax), crates, karung, sepeda, gerobak,
-  jemuran, signs, motor. Prefer set dressing that tells the story.
-- [ ] 7. **Ground and surface textures (D18):** cobblestone and dirt paths, tanah sawah, pematang
-  edges, river banks, bambu, genteng, seng, wood. Download CC0 PBR texture sets (ambientCG, Poly
-  Haven) and turn them into MaterialVariants on Terrain and parts. Upload the maps through Open
-  Cloud and record source and licence. The round-2 agent-drawn textures are rejected.
-- [ ] 8. **NPCs and characters:** caricature NPC bodies and accessories (peci, caping, seragam
-  polisi) from the ladder. Keep R15 compatibility.
-- [ ] 9. **Animations (V-D6):** Creator Store walk/idle for NPCs; list the authored ones
-  (cangkul, panen) under "Designer builds" or generate them with Studio MCP
-  `generate_animation`.
+- [ ] 4. **BLOCKED — buildings:** rumah panggung, warung, pos polisi, rumah Pak RT, pasar stalls,
+  gubuk sawah. Verified CC BY / CC0 ladder candidates (with exact licence, author, decimate notes and
+  fallbacks) are recorded in `docs/v2/visual/art/SOURCING_BUILDINGS_VEG.md`. Ingestion needs real
+  Open Cloud IDs, the shared Studio Importer session (D-G2) and a designer/vision verdict; no agent
+  grades these as "good" from a text summary. No model downloaded or ID invented.
+- [ ] 5. **BLOCKED — vegetation (V-D4):** kelapa, pisang, bambu clumps, shrubs, padi at three stages,
+  dense grass. Candidates in `SOURCING_BUILDINGS_VEG.md` (Poly Haven CC0 + CC BY Sketchfab; padi
+  three-stage needs step-2 generation). Same visual/session gate as item 4.
+- [ ] 6. **BLOCKED — props:** fences (bambu), lanterns, crates, karung, sepeda, gerobak, jemuran,
+  signs, motor. The ten already-imported props were audited under item 3 (`PROP_AUDIT.md`, replace
+  verdict + ladder candidates); the wider set dressing still needs the visual verdict and Studio
+  Importer session. No visual result claimed.
+- [ ] 7. **BLOCKED — textures (D18):** nine CC0 PBR sets (cobblestone, dirt, tanah sawah, pematang,
+  river, bambu, genteng, seng, wood) with exact Poly Haven codes and authors are recorded in
+  `docs/v2/visual/art/SOURCING_TEXTURES_NPC_ANIM.md`. Download → MaterialVariant → Open Cloud upload
+  → designer verdict still outstanding; round-2 agent-drawn textures remain rejected.
+- [ ] 8. **BLOCKED — NPCs/characters:** CC0 rigged base (Quaternius `Farmer`, `SWAT`), peci hat, and
+  Creator Store routes for caping recorded in `SOURCING_TEXTURES_NPC_ANIM.md`. Needs real IDs, R15
+  validation, Studio Importer and the visual verdict. No model inserted.
+- [ ] 9. **BLOCKED — animations (V-D6):** Creator Store search terms for R15 walk/idle and authored /
+  `generate_animation` routes for cangkul and panen are recorded in `SOURCING_TEXTURES_NPC_ANIM.md`
+  (Quaternius QAL-v1.0 licence conflict flagged). Needs the shared Studio session / designer builds.
 
 - [ ] 9b. **Icons, improve (D18).** Keep the round-2 set as the base; redraw `tier_biasa` (it's an
   empty box) and `debt` (unclear). Polish the rest for more depth and readability at 48 px. Make

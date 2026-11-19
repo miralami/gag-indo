@@ -110,7 +110,7 @@ Also in force:
   candidate if it was approved.
 
 ### E2. Text
-- [ ] 19. **Indonesian text review** (moved from round 2 item 24). Read every `id` string for
+- [x] 19. **Indonesian text review** (moved from round 2 item 24). Read every `id` string for
   natural, non-translated-sounding Indonesian, in the `humanizer-indonesia` style. Put the
   proposed edits in a table under "Decisions for designer" and don't change `Strings.luau`.
 
@@ -128,4 +128,27 @@ Models the ladder couldn't supply, each with a brief and a reference.
 
 ## Decisions for designer
 
-- (none yet)
+### Round 3 item 19 — Indonesian copy review (2026-11-20)
+
+Reviewed every `id` entry in `src/shared/Strings.luau` in the `humanizer-indonesia` style. The
+strongest lines (the warung rumours, the oplosan/sus notices, most toasts) already sound spoken and
+should stay. `Strings.luau` was **not** changed; these are proposals only.
+
+| Key | Current `id` | Proposed `id` | Why |
+| --- | --- | --- | --- |
+| `shop_restock_in` | `Restock %s` | `Restok %s` | English word in an otherwise Indonesian HUD label; `restok` is the form players actually say. |
+| `n_shop_restocked` | `Toko Bibit di-restock!` | `Stok Toko Bibit sudah diisi ulang!` | `di-restock` is mixed affixation and reads translated; an explicit subject sounds natural. |
+| `n_shop_sold_out` | `Stok %s habis. Tunggu restock.` | `Stok %s habis. Tunggu restok.` | Same mixed word in a short toast. |
+| `admin_perf_decoration` | `Dekorasi terrain` | `Dekorasi medan` | `terrain` is English; the admin panel is internal but the `id` field is still Indonesian. |
+| `n_crop_gagal` | `Gagal panen akibat kekeringan El Nino pada %s!` | `Tanaman %s gagal panen karena kekeringan El Niño!` | `%s` is a crop name (`FarmService.luau:460`), so "pada Padi" is awkward; `karena` is more conversational than `akibat`. |
+| `n_gudang_deposit` | `%s hasil masuk gudang.` | `%s hasil disimpan di gudang.` | Pairs with `n_gudang_withdraw` (`diambil dari gudang`) instead of a bare "masuk gudang". |
+| `n_worker_hired` | `Buruh tani bekerja %s menit. Upah Rp %s + Rp %s/hasil.` | `Buruh tani bekerja %s menit. Upah Rp %s + Rp %s per hasil.` | `/hasil` reads like a code token; `per hasil` is how the rate is said out loud. |
+| `n_viral_case` | `Kasusmu viral, amplop tidak bisa.` | `Kasusmu viral, amplop nggak bakal membantu.` | `tidak bisa` is vague and formal; matches the register already used in `n_viral`. |
+| `sus_explain` | `Tingkat 'Sus' (kecurigaan warga & polisi desa) naik! Hati-hati dirazia.` | `Tingkat 'Sus' (kecurigaan warga dan polisi desa) naik! Hati-hati kena razia.` | `dirazia` has no actor and sounds like a translation; `dan` reads better in prose than `&`. |
+| `bayarlater_offer` | `BayarLater: Butuh modal kilat tanpa jaminan? Buka app BayarLater di HP!` | `BayarLater: Butuh modal kilat tanpa jaminan? Buka aplikasi BayarLater di HP!` | `app` drops the otherwise conversational register. Low-confidence: may be intentional pinjol marketing voice. |
+| `n_debt_seized`, `n_debt_shamed` | `Debt collector ...` | `Penagih utang ...` | English term inside otherwise Indonesian satire; `Kolektor` is already used in `debt_collector_tag`. Low-confidence: "debt collector" is widely understood locally. |
+
+One non-`id` finding from the same read: `raid_lower_third.en` ends with the translator note
+`(A wink at dramatic Indonesian TV news.)`, which would be shown to English players. Proposed `en`:
+`BREAKING NEWS: Village Police are heading for your farm!` (drop the note). No other `id` edit is
+recommended at this time.

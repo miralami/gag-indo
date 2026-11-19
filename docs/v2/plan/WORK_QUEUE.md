@@ -170,7 +170,21 @@ never publish.
   Play stopped, place not saved or published. Evidence
   `docs/v2/evidence/h/2026-11-19-budget-check/` (`REPORT.md`, `results.json`). No lune count change.
   Low-tier showcase trim parked under "Decisions for designer"; no delivered art was changed.
-- [ ] 12. **30-minute soak with all candidates on**: memory series, connection count, no growth.
+- [x] 12. **30-minute soak with all candidates on**: memory series, connection count, no growth.
+  `SEEN-IN-STUDIO` — 1800 s soak with all eight LookDev candidates applied additively (six client
+  adapters via `.apply`, `plaza_lighting` on Client + `police_walkin` on Server via `LookDev.enable`,
+  all reported `ok`), fresh in-memory mock profile, harness paced at 2 commands/s. Ran to deadline:
+  **1801.83 s, 234 cycles, `done=true`**. No memory leak: client 2750.97→2635.36 MB (net −115.6;
+  one GC compaction −120.4 at sample 54, then +11.4 MB over 180 cycles decelerating to +3.06 over
+  the final 40), server 2760.76→2636.04 MB (net −124.7). No growth/stuck connections: pending
+  harness queue always 0, whole-DataModel census 6735→6898 instances / 1706→1840 parts over the
+  soak then +2 instances / +0 parts over ~993 s post-soak (plateau), zero crop parts persisted on
+  tiles. No desync symptom: cash 50→754, padi 5→0, tilesOwned 6, rank gurem→petani,
+  lifetimeEarned 0→1324, tutorialStep 5. Graceful plant/harvest/sell/buy refusals are by design
+  (probe buys 1 padi but plants 6), not defects. Zero game-code errors, BUG-003 did not recur.
+  Probe cleaned, Play stopped, VERIFY-TEMP edit reverted, place not saved or published, git clean.
+  Evidence `docs/v2/evidence/h/2026-11-19-soak-all-candidates/` (`REPORT.md`, `soak.json`,
+  `soak-output.log`). No lune count change. Ten-player half remains BLOCKED (no team-test tool).
 - [ ] 13. **StreamingEnabled readiness audit.** Find client paths that assume parts exist
   (`WaitForChild` without a timeout, direct indexing). Fix them with specs. Don't flip the
   setting; propose it under "Decisions for designer".

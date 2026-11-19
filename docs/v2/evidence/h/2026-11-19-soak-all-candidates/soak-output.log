@@ -1,0 +1,38 @@
+[JuraganDesa] server started
+[ProfileStore]: Roblox API services available - data will be saved
+ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type
+Something unexpectedly tried to set the parent of SoakInjectionTest to NULL while trying to set the parent of SoakInjectionTest. Current parent is PlayerScripts.
+Something unexpectedly tried to set the parent of SoakServerProbe to NULL while trying to set the parent of SoakServerProbe. Current parent is ServerScriptService.
+AnalyticsService: LogFunnelStepEvent event fired.
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogEconomyEvent event fired.
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+AnalyticsService: LogEconomyEvent event fired.
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+AnalyticsService: LogEconomyEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogEconomyEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogEconomyEvent event fired.
+AnalyticsService: LogEconomyEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogEconomyEvent event fired.
+[ ... repeated AnalyticsService LogCustomEvent / LogEconomyEvent / LogFunnelStepEvent / LogOnboardingFunnelStepEvent notices for the full 1801 s soak ... ]
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogEconomyEvent event fired.
+AnalyticsService: LogFunnelStepEvent event fired.
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+Something unexpectedly tried to set the parent of StabilityCensus to NULL while trying to set the parent of StabilityCensus. Current parent is PlayerScripts.
+
+NOTE: The three "asset type does not match" lines (rbxassetid://203785492), the ProfileStore notice,
+all AnalyticsService notices and the probe self-destroy "parent to NULL" warnings are non-game code /
+expected. There were no game-code errors or warnings during the soak; BUG-003 did not recur.
+The full live Output was read back via get_console_output after the 1801 s deadline; the repeated
+AnalyticsService block is elided above (identical single-line notices) to keep this artifact readable.

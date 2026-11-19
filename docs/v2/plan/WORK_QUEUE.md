@@ -306,9 +306,24 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   No `MusicZone` parts exist (Track C world not built), so the identical path was driven via the
   real `Cuaca` signal; place not saved/published, no `profile:Save()`, returned to Edit. Evidence
   `docs/v2/evidence/h/2026-11-19-audio-hygiene/` (`REPORT.md`, `results.json`).
-- [ ] 23. **Lighting × FidelityTier per hub.** In Studio, force each tier in each of the six hubs
+- [x] 23. **Lighting × FidelityTier per hub.** In Studio, force each tier in each of the six hubs
   and record the applied settings and instance counts. Check that no tier switch leaves an effect
   stuck on.
+  Done 2026-11-19 (`SEEN-IN-STUDIO`): drove the **live** `FidelityRuntime` singleton (via a temporary
+  injected LocalScript, because the Studio MCP `execute_luau` tool has a separate ModuleScript cache)
+  through all 6 hubs × 3 tiers = 18 combinations, moving the character to each hub centre. Every row
+  reported the forced tier via `get()` and the player `FidelityTier` attribute, with the settings
+  advancing correctly (Rendah none/off/false/minimal, Sedang key/near/false/half, Tinggi
+  all/on/true/full). Lighting descendant census was identical in all 18 rows and after a
+  `Rendah→Tinggi→Rendah→Sedang→Tinggi→Rendah` cycle plus clear: 6 effects
+  (Atmosphere, BloomEffect, ColorCorrectionEffect, ColorGradingEffect, Sky, SunRaysEffect),
+  `DepthOfFieldEffect` count 0; hub-local light counts unchanged across tiers. No tier switch
+  creates or destroys a Lighting effect, so none sticks. Finding (designer decision, not a defect):
+  the four lighting-related tier settings are reported but have no consumer — Sky alone owns
+  Lighting effects from seasons/weather; wiring tier→lighting is V0.4 / designer-blocked. No
+  production code changed (verification-only). Place not saved/published, no `profile:Save()`,
+  returned to Edit, probe instances destroyed. Evidence
+  `docs/v2/evidence/h/2026-11-19-lighting-fidelity/` (`REPORT.md`, `results.json`).
 - [ ] 24. **Strict types.** Migrate the pure modules (`src/shared/Config/*`, `Feel/*` pure logic,
   `Testing/*` policy) to `--!strict` where it is clean. Fix the type errors and don't change
   behaviour.
@@ -369,6 +384,16 @@ Choices the agent made with a safe, reversible default. The designer confirms or
   on phase changes so selection never sits on a hidden button. Reversible by flipping `closable`
   if the designer wants Escape to abort a raid. Evidence
   `docs/v2/evidence/h/2026-11-19-gamepad-nav/REPORT.md`.
+- Item 23 — the four lighting-related fidelity settings (`localLights`, `smallPartShadows`,
+  `cameraDoF`, `ambientLife`) are declared in `FidelityTier.SETTINGS`, returned by
+  `FidelityRuntime.settings()` and mirrored to the player attribute, but no consumer applies them:
+  `Sky.luau` alone owns Lighting post effects and is driven by seasons/weather, not tier. Studio
+  proved `cameraDoF = true` on Tinggi creates no `DepthOfFieldEffect` and no hub-local light count
+  changes across tiers. Safest reversible default: leave them unwired — tier→lighting is a look
+  decision and VISUAL_MASTER_PLAN V0.4 is still designer-blocked; adding an applier now could fight
+  Sky's season tweens. Reversible: wire a tier→lighting applier once the designer picks per-tier
+  values and approves the look. No production code changed. Evidence
+  `docs/v2/evidence/h/2026-11-19-lighting-fidelity/REPORT.md`.
 
 ## Blocked on designer
 

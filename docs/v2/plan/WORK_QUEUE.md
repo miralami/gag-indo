@@ -88,8 +88,10 @@ Also in force:
 - [ ] 10. **Lighting and day cycle (V-D2, D19):** Future lighting, Atmosphere, warm
   ColorCorrection, Bloom kept low, SunRays. Build the eight phases in
   `docs/v2/visual/DAY_CYCLE.md` as a pure, Lune-tested phase table layered over the season and
-  weather presets in `Sky.luau`, with golden hour at spawn. Use the designer's answers to
-  DAY_CYCLE Q1–Q4 where they exist; otherwise use the recommended defaults. Night needs lanterns that
+  weather presets in `Sky.luau`, with golden hour at spawn. Follow the designer answers in
+  DAY_CYCLE.md: 24-minute day and readable night. Add the time-of-day sound beds (ayam, bedug,
+  kentongan, jangkrik, soft adzan) with a player setting to turn adzan on or off, muted during
+  satire moments. Night needs lanterns that
   actually emit light. Check each FidelityTier at Rendah.
 - [ ] 11. **Sky and fog:** a tropical skybox, a distant ridge silhouette, and haze depth.
 

@@ -35,7 +35,7 @@ Status values: **open** · **decided** · **changed**
 | D16 | `StreamingEnabled` | **Off for now**: revisit after G6 real-device fps. | **decided** |
 | D17 | Cap the Studio-only crops showcase on low tiers (round 2 item 11) | **Yes**: mature `siap` stage only on Rendah/Sedang, all stages on Tinggi. | **decided** |
 | D18 | Art sourcing per candidate type (round 2 review, 2026-11-19) | Icons: keep as the base, improve all (start with `tier_biasa`, `debt`). Textures: download CC0 PBR textures online (ambientCG, Poly Haven) into MaterialVariants; the agent-drawn ones are rejected. NPCs, crops: real 3D models via the D15 ladder. Hub props: case by case, mostly real 3D models; the primitive versions are rejected, the idea (goods on the counter, lanterns) is kept. | **decided** |
-| D19 | Day cycle direction | The eight phases in `docs/v2/visual/DAY_CYCLE.md` (designer's notes mapped to the game). Q1–Q4 there are open. | **decided** (phases) / open (Q1–Q4) |
+| D19 | Day cycle | The eight phases in `docs/v2/visual/DAY_CYCLE.md`. 24-minute day, server start at 16:00 golden hour, readable night, soft adzan with a player on/off setting (default on, low, muted during satire moments), time-based gameplay after Gate 1. | **decided** |
 
 ## How to change one
 

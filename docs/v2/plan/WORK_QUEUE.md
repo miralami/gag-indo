@@ -41,11 +41,12 @@ never publish.
   Bumped `actions/checkout@v4`→`@v5` (confirmed on Node 24 via its action.yml) to clear the Node 20
   deprecation warning. YAML parses; `lune` 1929 / `selene` 0/0/0. Evidence
   `docs/v2/evidence/h/2026-11-19-ci-round2/`.
-- [ ] 3. **Re-audit round-1 `SEEN-IN-STUDIO` claims.**
-  - Every evidence file must name a Rojo-synced build and its method.
-  - Downgrade any claim based on hand-injected or stale sources, or on structure alone where the
-    row needs behaviour.
-  - Record the audit in `docs/testing/CODE_AUDIT.md`.
+- [x] 3. **Re-audit round-1 `SEEN-IN-STUDIO` claims.** Audited all 48 evidence `REPORT.md` + the
+  five `SEEN-IN-STUDIO` gate rows (G3/G5/Q2/Q3/Q4). No downgrade: each has a Rojo-synced report
+  with a behaviour method; the one hand-injected pass (`gate1-studio`) was already superseded by
+  `gate1-sweep`, its two bad observations recorded non-reproduced. 15 older reports name build +
+  method but omit the literal Rojo marker — wording gap only, all backed by newer synced re-runs.
+  Recorded in `docs/testing/CODE_AUDIT.md`.
 
 ### B. G4 art candidates (opt-in, designer yes required)
 

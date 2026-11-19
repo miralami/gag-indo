@@ -98,3 +98,53 @@ Per-task audit log for the T1-T16 workhorse backlog on `track/c-world-look`. Sta
 - **Coverage map (exploit vector -> spec):** cash/item bounds `economy_money_spec`, `economy_failure_spec`, `debt_failure_spec`, `debt_persistence_spec`; shop/tool/seed args `shop_failure_spec`, `tool_items_failure_spec`; farm/minigame/tile `farm_failure_spec`, `plot_failure_spec`, `seedfloor_spec`; raid choice `raid_failure_spec`, `raid_trigger_spec`; bribe/cheat/evidence `bribe_failure_spec`, `cheat_failure_spec`, `evidence_failure_spec`; admin/season `season_admin_failure_spec`, `security_spec`; cosmetics/items/quests/neighbor/storage/worker `cosmetics_leaderboard_failure_spec`, `tool_items_failure_spec`, `quest_failure_spec`, `warung_neighbor_failure_spec`, `storage_failure_spec`, `worker_failure_spec`; unowned remotes `remote_audit_spec`.
 - **Gap found and closed:** `State_Request` had only the static rate-limit assertion in `remote_audit_spec`, no behavioural failure-path spec. Added `tests/specs/state_request_failure_spec.luau` (registered in `tests/run.luau`): a malicious oversized/NaN payload is ignored and only the caller's own snapshot is sent; an unloaded player's request sends nothing and never errors; a 20-call flood is rate-limited to one snapshot per second. No State module change needed — the handler was already correct.
 - **Verification:** `lune run tests/run.luau` 1712 passing; `selene src` 0 errors / 4 pre-existing warnings (item 8).
+
+## WORK_QUEUE round 2 item 3 — re-audit of round-1 `SEEN-IN-STUDIO` claims (2026-11-19)
+
+Method: enumerate every evidence `REPORT.md` (48 files) and every current `SEEN-IN-STUDIO` row in
+`docs/testing/GATE1.md` (G3, G5, Q2, Q3, Q4); for each, check (a) a named build + Rojo sync
+(`localhost:34872`), (b) a named method (harness / `execute_luau` / Play Solo), (c) no
+hand-injected or stale source, (d) behaviour, not structure alone, where the row asks for
+behaviour. `docs/v2/plan/MASTER_PLAN.md` tracker claims were cross-checked against the same corpus.
+
+**Result: no downgrade is warranted.** Every current `SEEN-IN-STUDIO` gate row has at least one
+report that names a build, a Rojo sync and a behaviour method:
+
+| Row | Rojo-synced report(s) | Method actually used |
+|---|---|---|
+| G3 | `h/2026-11-19-g3-phone`, `h/2026-11-19-g3-beatsheet`, `h/2026-11-19-regression-replay` | nine-step harness at 749×389, device set in Edit before Play, reply collector, `output.log` |
+| G5 | `h/2026-11-19-g5-phone`, `h/2026-11-19-g5-timings`, `h/2026-11-19-regression-replay` | three fresh-profile first sessions, real grow timers, stamped wall times |
+| Q2 | `h/2026-11-19-gate1-sweep` (and rerun `h/2026-11-19-regression-replay`) | full-session `output.log`, zero game-code errors, D-G4 external exclusion |
+| Q3 | `h/2026-11-19-gate1-sweep`, `h/2026-11-19-cancel-proof`, `h/2026-11-19-regression-replay` | real `Harness_Command` remote, `GuiService.SelectedObject` + keyboard, every-button sweep |
+| Q4 | `h/2026-11-19-gate1-sweep` (BUG-004 §3), older `h/2026-11-19-gate1-studio` | zero-cash/zero-seed profile → exactly 1 `padi`, cash 0, `n_seed_floor` |
+
+Hand-injected / stale check: the only pass that used hand-injected Edit-DataModel sources was
+`h/2026-11-19-gate1-studio`; `h/2026-11-19-gate1-sweep/REPORT.md` "Why this pass exists" says so
+outright and re-ran every 2026-11-19 claim with Rojo serving `localhost:34872`, confirming sync
+from inside Studio (`RaidCutscene.standOff = 14`, line-314 Harness comment from `270fffe`). Its two
+unreliable observations — minigame Cancel "unresponsive" and the join bootstrap "broken" — are
+recorded there as **non-reproduced environment artifacts, not defects**. So no live claim rests on
+hand-injected or stale sources. The remaining "stale" hits across the corpus are all technical
+language (stale fade identity, stale harness replies, stale cross-server config, stale replies in
+the soak count), not evidence staleness.
+
+Structure-vs-behaviour check: wiring-only facts (e.g. `Minigame_Cancel:FireClient` → `close()` in
+`Remotes`/`Hud`) are labelled `LUNE-ONLY`/spec-locked, not `SEEN-IN-STUDIO`; every `SEEN-IN-STUDIO`
+row above names an observed state change (cash/seed counts, viewport, error log, UI visibility).
+
+Documentation gap (wording only, no downgrade): 15 older reports (2026-11-14/17, plus
+`baseline/` and `docs-refresh/`) name a commit/build, place and method (Play Solo / harness bridge /
+`execute_luau`) and describe observed behaviour, but do not literally say "Rojo-synced /
+`localhost:34872`". The gate rows they support all have a newer Rojo-synced re-run in the table
+above, so the missing wording is not a source-integrity defect. Recommended for all future
+reports: state the sync explicitly (round-2 items 1 and 2 evidence do). Minor follow-up for
+item 28: the GATE1 Q4 evidence cell cites only `h/2026-11-19-gate1-studio`; add
+`h/2026-11-19-gate1-sweep/` (BUG-004 §3) so the cell points at its Rojo-synced confirmation.
+
+Evidence-path integrity: all `h/...` and `baseline/` paths cited by `GATE1.md` exist. The apparent
+misses are false positives (`h/login-reward`/`h/seeds`/`h/zero-seed` are prose fragments like
+"death/login-reward"; `docs/v2/evidence/g/`, `h/.published-persistence/` are future designer
+targets, not claimed evidence). No orphan citation in a `SEEN-IN-STUDIO` row.
+
+`lune run tests/run.luau` 1929 passed; `selene src` 0/0/0. No source file changed; no status word
+downgraded in `GATE1.md` or `MASTER_PLAN.md`.

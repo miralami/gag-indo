@@ -29,7 +29,7 @@ when the task needs it.
 | [ANALYTICS.md](v2/plan/ANALYTICS.md) | Events, triggers, the questions they answer | LIVE |
 | [DELEGATION_PROMPT.md](v2/plan/DELEGATION_PROMPT.md) | Prompt to paste into a second agent | LIVE |
 | [WORK_QUEUE.md](v2/plan/WORK_QUEUE.md) | Long-run agent queue; read after every compaction (`AGENTS.md`) | LIVE |
-| [BALANCE.md](v2/plan/BALANCE.md), [LOCALIZATION.md](v2/plan/LOCALIZATION.md) | Static reports from reading code | SNAPSHOT 2026-11-12 |
+| [BALANCE.md](v2/plan/BALANCE.md), [LOCALIZATION.md](v2/plan/LOCALIZATION.md) | Static reports regenerated from current `Config/*.luau` / `Strings.luau` (333 keys, 1930 tests) | SNAPSHOT 2026-11-19 |
 | [LAUNCH.md](v2/plan/LAUNCH.md) | Store copy, rating questionnaire, launch checklist | SNAPSHOT 2026-11-12, draft |
 
 ### Visual side — `v2/visual/`

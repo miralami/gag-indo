@@ -359,10 +359,15 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   of them). Local verification: `lune` 1930 passed, `selene src` 0/0/0, YAML parsed. Remote Actions
   run `UNVERIFIED` locally until GitHub executes it. `LUNE-ONLY`. Evidence
   `docs/v2/evidence/h/2026-11-19-ci/REPORT.md`.
-- [ ] 28. **Docs refresh.** Bring `TECH.md` (new modules: FidelityTier, CutsceneSequencer,
+- [x] 28. **Docs refresh.** Bring `TECH.md` (new modules: FidelityTier, CutsceneSequencer,
   LazyPages, RaidTrigger, FpsSampler, SaveSanitize), `HARNESS.md` (new hooks) and the
   `docs/README.md` map up to date. Regenerate the `BALANCE.md` and `LOCALIZATION.md` snapshots
-  from the current code and date them.
+  from the current code and date them. `TECH.md`: current commands/1930 count, new specs table,
+  new §12 documenting all six modules + harness hooks; §11 cutscene gap updated. `HARNESS.md`:
+  `raid`/`raidState` hooks. `README.md` map snapshot date → 2026-11-19. `BALANCE.md`: 3 ranks,
+  12 crops, 5 tiers (~1.51×), real pinjol/law/market values from `Config/*.luau`. `LOCALIZATION.md`:
+  333 keys (0 empty id/en), correct spec names, dated. `LUNE-ONLY`, `lune` 1930 passed,
+  `selene src` 0/0/0. Evidence `docs/v2/evidence/h/2026-11-19-docs-refresh/REPORT.md`.
 - [ ] 29. **Regression replay after all changes.** On synced code in Studio, redo the G3
   beat sheet, the G5 timings (3 runs), a full-session `output.log` for Q2, and a 30-minute Q5
   soak with the memory series. All must still pass. File every regression as a bug and fix it.

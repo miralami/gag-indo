@@ -10,6 +10,10 @@ and the in-Studio checks in §10). **M1 (farming depth) is implemented**: 12 cro
 families, server-rolled rarity tiers, condition-driven traits, the Almanak and the rarity reveal.
 **M2 (living world) is implemented**: seasons drive growth and sky, a rotating seed shop, Pasar
 supply and demand, permanent tools, the gudang and the hired buruh tani.
+**Track C (world look & feel) follow-ons are implemented** on `track/c-world-look`: the pure
+fidelity/cutscene/runtime modules in §12, phone-page laziness, the Studio force-raid hook, save
+sanitisation, navigation/audio policy wiring, plus a timing-instrumented test harness and a CI
+workflow. Refreshed 2026-11-19; the test count and commands below are current as of that date.
 
 ---
 
@@ -267,12 +271,20 @@ sanity check (counts, sums, ordering).
 
 ## 7. Tests
 
-Run from the repository root:
+Run from the repository root (tools pinned in `rokit.toml`; the same two commands run in CI on
+push to `main`/`track/*` and on pull requests — `.github/workflows/tests.yml`):
 
 ```bash
-lune run tests/run
-lune run tests/run -- produce     # filter by name
+lune run tests/run.luau                 # whole suite — 1930 tests
+lune run tests/run.luau -- produce      # filter by name
+lune run tests/run.luau --timing        # full per-spec timing table
+lune run tests/run.luau --timing economy  # filter + full timing
+selene src                              # static analysis — 0 diagnostics
 ```
+
+`--timing` prints registration + case time per spec and the slowest cases (a `<== SLOW` marker
+flags anything at or above 2 s). The harness records wall-clock seconds per case/suite/total in
+`tests/lib/Test.luau` without changing the PASS/FAIL log text or `Test:run`'s return values.
 
 M0, M1 and M2 added:
 
@@ -298,8 +310,26 @@ M0, M1 and M2 added:
 | `debt_spec` | limits, borrowing fee, offline/online interest, repayments, overdue escalation & gudang seizure |
 | `quest_spec` | deterministic daily task pool, login streak calendar, progress hooks, reward claiming |
 
+Track C / follow-on specs added after M2 (all pure, Lune-driven):
+
+| Spec | Covers |
+|---|---|
+| `fidelity_tier_spec`, `fidelity_runtime_spec` | auto tier down/up thresholds & cooldowns, moment freeze, bad frame times, tier→settings wiring |
+| `cutscene_sequencer_spec` | shot order, progress/step, skip vs cancel (seen flag only on completion), bad input tolerance |
+| `lazy_pages_spec` | build-on-open, state merge before build, teardown on close, `once` memoisation |
+| `raid_trigger_spec` | Studio+flag+admin gate, viral/force payload, temporary cooldown override leaves saves untouched |
+| `fps_sampler_spec` | rolling frame-time→fps, bad-frame rejection, warm-up samples, reset |
+| `save_reconcile_spec` | Reconcile + migrate + `SaveSanitize`: wrong-type/NaN repair, unknown keys preserved, sorted repair list |
+| `audio_policy_spec`, `audio_wiring_spec` | role volumes/muting, grouped one-shot loops, stale-fade cancellation on rapid music switches |
+| `navigation_spec`, `nav_wiring_spec` | app/tab routing, rescue() on raid phase changes, B/Escape cannot dismiss a non-closable overlay |
+| `strings_integrity_spec`, `ui_touch_text_audit_spec` | bilingual keys/placeholders/references, no hardcoded `.Text`, 11 px text minimum |
+| `dead_code_spec` | no references to removed `Strings` keys/functions |
+| `harness_timing_spec`, `economy_config_spec`, `fidelity_runtime_spec` | timing contract, config cross-checks, runtime wiring |
+
 The harness remains `tests/lib/Env.luau` (real modules, fake Instances, fake time). `Fakes.newData(env)`
-now returns a v3 save, so new services can be tested without hand-building one.
+now returns a v3 save, so new services can be tested without hand-building one. The static `src/`
+directory listing and module source text are memoized in `Env.luau`, which took the full suite from
+~31.7 s to ~4.8 s (item 26).
 
 Not covered automatically (needs Studio): `CollectionService` tags, `DataStore` / `MessagingService`,
 `Instance.new` world building, UI layout, and the admin panel's input handling.
@@ -498,8 +528,10 @@ full, or the cash cannot cover the next item. One shift at a time.
 
 | Check | Command | Result |
 |---|---|---|
-| Unit tests | `lune run tests/run` | 379 passed |
-| Static analysis | `luau-lsp analyze --platform roblox --defs .luau/globalTypes.d.luau --sourcemap sourcemap.json --ignore "**/Packages/**" src` | 0 diagnostics |
+| Unit tests | `lune run tests/run.luau` | 1930 passed (2026-11-19) |
+| Static analysis | `selene src` | 0 errors / 0 warnings / 0 parse errors |
+| Static analysis (types) | `luau-lsp analyze --platform roblox --defs .luau/globalTypes.d.luau --sourcemap sourcemap.json --ignore "**/Packages/**" src` | 0 diagnostics (strict on pure modules) |
+| CI | `.github/workflows/tests.yml` — lune + selene on `main`/`track/*` push and PR | configured; remote run `UNVERIFIED` locally |
 | Build | `rojo build default.project.json -o JuraganDesa.rbxlx` | builds |
 | v1 plays unchanged | Studio playtest: plant → harvest → sell both markets → raid → purchase | manual, see below |
 | Schema migration | `playerdata_spec` v1/v2 fixtures | green |
@@ -549,8 +581,77 @@ Manual checks still required in Studio (see [docs/testing](../../testing/README.
   client broadcast via `Leaderboard_Data`.
 - **Nama Baik → Pasar price ±5%** is implemented in `EconomyService.sellAll`; config in
   `Market.namaBaikMaxBonus`.
-- **Raid cutscene skip button** is implemented in `RaidOverlay.luau`; full cutscene (police
-  walk-in, establishing shot, letter overlay) still needs Studio map and NPC assets.
+- **Raid cutscene** is fully sequenced by `client/Feel/CutsceneSequencer.luau` driving the pure
+  timeline in `Config/RaidCutscene.luau` (establish → 3 zooms → police walk-in → letter, ~7 s), with
+  real-world focus anchors verified clear by Studio raycasts and a skip/replay rule in the sequencer.
+  `RaidOverlay.luau` is non-closable on raid (B/Escape must not dismiss it) and is driven through
+  `NavBridge.rescue()` on phase changes. Final framing is still a designer judgement (visual plan §8).
 - **Analytics events** added to DebtService, QuestService, BadgeService, FarmService risk events.
 - `Config/Audio.luau`, real pass/product ids and the `Mbah Dukun` / pinjol names stay open (D4–D9).
 - The `VillageWorld` tag contract needs a real map before M3; the greybox remains the fallback.
+
+---
+
+## 12. Track C follow-on modules (world look & feel)
+
+Added 2026-11-16 → 2026-11-19 on `track/c-world-look`. Every module here is **pure** — clock,
+frame times and Roblox services are injected or avoided, so the logic runs under Lune and is
+covered by a spec. The live wiring (a `RunService` heartbeat, a settings toggle, a harness command)
+is a thin caller, not part of the module.
+
+### `client/Feel/FidelityTier.luau` (strict)
+One place that picks `Rendah` / `Sedang` / `Tinggi` (auto name `Otomatis`, default start `Sedang`)
+so every visual asks it instead of deciding alone. Pure controller from `FidelityTier.new(opts)`:
+`get()`, `settings()`, `setSetting()`, `setOverride()`/`getOverride()`, `step(dt)`,
+`average()`, `onChanged()`, and `beginMoment()`/`endMoment()`/`isLocked()` to freeze changes during
+a cutscene. Down one tier when the rolling frame-time average exceeds 1/45 s (2 s cooldown); up
+only after 10 s below 1/57 s and a 30 s cooldown, never above the saved setting. Bad frame times
+(non-number, NaN, ≤0, >2 s) are ignored. Constants are exported. Specs: `fidelity_tier_spec`,
+`fidelity_runtime_spec`. See `v2/visual/VISUAL_MASTER_PLAN.md` §6 and `BALANCE.md` §5.
+
+### `client/Feel/FpsSampler.luau` (strict)
+Rolling frame-time→fps helper for the Studio-only perf readout: `FpsSampler.new(window, minSamples)`
+returns a sampler with `push(dt)`, `averageFrameTime()`, `fps()`, `count()`, `reset()`;
+`FpsSampler.start(opts)` is the thin `RenderStepped`→attribute wiring. `fps()` is nil until the
+minimum clean samples arrive; pauses/tab-outs (>2 s) are rejected. Spec: `fps_sampler_spec`.
+
+### `client/Feel/CutsceneSequencer.luau` (strict)
+Clock-injected timeline player for the raid cutscene (§11). `new(shots, { clock, skippable })`,
+`onShot()`/`onFinished()` listeners (subscribe before `play()`), advance with `update(clock())`
+or `step(dt)`, plus `cancel()`. `cancel()` is silent — it does not fire `onFinished`, so the
+session "seen" attribute is set only on a real completion; `skippableAfter(seen)` gates replay.
+Malformed shots never throw. The timeline and camera anchors live in `Config/RaidCutscene.luau`.
+Spec: `cutscene_sequencer_spec`.
+
+### `client/UI/LazyPages.luau` (strict)
+Pure bookkeeping for phone screens built on first open and torn down on close (used by `Phone.luau`).
+`LazyPages.new(defs)` where each def supplies `build(id)`, optional `apply(instance, state)` and
+`destroy(instance, id)`; methods `open`/`close`/`closeAll`, `show`, `get`/`isBuilt`/`builtCount`,
+and `setState(id, patch)` which merges state now and applies it later if the page is not built yet.
+`LazyPages.once(build)` memoises a one-shot builder. Spec: `lazy_pages_spec`.
+
+### `server/Testing/RaidTrigger.luau` (strict)
+Pure policy for the Studio-only force-raid harness hook (`raid` action in `Harness.luau`):
+`allowed(opts)` delegates to `Gate.allowed` (Studio + in-memory flag + admin, all literal true),
+`viral(value)`/`force(value)` read the payload, and `withTemporaryCooldown(data, fn)` clears the
+raid cooldown only for the duration of the trigger and restores it afterwards, so a test hook
+never writes `raidSafeUntil = 0` into saved data. A published server can never pass the gate.
+Spec: `raid_trigger_spec`. (Documented for players running playtests in `docs/testing/HARNESS.md`.)
+
+### `server/Data/SaveSanitize.luau`
+One-shot repair applied right after `PlayerData` Reconcile + migration. `sanitize(data, template)`
+returns a sorted list of repaired field paths: a top-level field whose type differs from the
+template, or a NaN/±inf number, is replaced with a deep copy of the template default; the same
+two rules apply one level down for known nested tables (`cooldowns`, `stats`, `quests`, `worker`,
+`gudang`, `debt`). Unknown/dynamic keys (`cooldowns["steal_123"]`, `nbDay_*`, `t1..tN`) are never
+touched and negative numbers are left alone (debt/wage code owns that rule). Spec:
+`save_reconcile_spec`.
+
+### Harness and tooling hooks
+`Harness.luau` gained a `raid` action (payload `{ viral = true, force = true }`) and a `raidState`
+read-back; both are behind the same Studio+flag+admin gate — see `docs/testing/HARNESS.md` §1.
+`client/UI/NavBridge.luau` gained `rescue()` for raid phase changes, `client/Audio.luau` reuses
+grouped one-shot Sounds and cancels stale music fades, and `Theme.sticker` / `PlotService.getNeighbors`
+/ `NavBridge.debugState` / `Audio.configured` are live helpers kept deliberately (recorded in the
+"Decisions for designer" list in `WORK_QUEUE.md`). The harness timing contract is characterized
+in `harness_timing_spec`; CI runs the same two commands locally in `.github/workflows/tests.yml`.

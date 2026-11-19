@@ -1,5 +1,8 @@
 # Playtest Harness — Studio routine
 
+> Refreshed 2026-11-19 (WORK_QUEUE item 28): the `raid` / `raidState` hooks are now documented in
+> §1. No harness step was re-run for this refresh; the verification claims below are unchanged.
+
 **Status: sections 2–4 and 9 ran on 2026-11-14** in Studio Play Solo, iPhone 14 device
 emulation, Rojo synced, Studio API services on. Those steps are `SEEN-IN-STUDIO` (see the
 §10 table); §6 screenshot automation, the 10-player session and the soak are still
@@ -37,6 +40,12 @@ Test-only server hooks in `src/server/Testing/`, started from one line in
 | `quest` | `{ taskId = "..." }` or omitted | Claims that daily task, or the login reward. |
 | `goto` | `{ name = "plot" }` | Stands the character somewhere worth a screenshot: `plot`, `tile`, `pasar`, `gelap`, `pakrt`, `polisi`, `ronda`, `warung`. |
 | `save` | — | `profile:Save()` now, so persistence does not depend on leaving cleanly. |
+| `raid` | omitted, or `{ viral = true, force = true }` | Starts a raid immediately so the cutscene, camera and choice window can be observed without waiting ~5:30. `viral = true` forces a VIRAL raid; `force = true` clears the cooldown only for this call (restored afterwards, so saves are untouched). Behind an extra Studio+flag+admin gate (`RaidTrigger`). |
+| `raidState` | — | Read-back of the current raid state, `InRaid` attribute and `isBusy` — use it to confirm a forced raid fired. |
+
+The two raid hooks live in `server/Testing/RaidTrigger.luau` (pure policy) and `Harness.luau`
+(handler). All three gate conditions (Studio + in-memory flag + admin) must be literally true;
+the cooldown override never writes into saved data. `raid`/`raidState` need no scripted input.
 
 Read-back is a single `Harness_Result` table; the plain scalars are already mirrored on
 player attributes (`Cash`, `Rank`, `TutorialStep`, `TilesOwned`, `Seed_<crop>`, `ShopStock_<crop>`).

@@ -393,10 +393,43 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   of the 11 open rows (G2/Q1, G3, G4, G4b, G5, G6, G7, Q5, Q6, Q7, G1-composite). Verified every
   cited evidence directory, spec file and the D-G4 citation exist. `lune` 1930 passed,
   `selene src` 0/0/0.
-- [ ] 31. **Refill.** Read every `[ ]` and `[~]` item in `MASTER_PLAN.md`, `GATE1.md` and
+- [x] 31. **Refill (round 1).** Read every `[ ]` and `[~]` item in `MASTER_PLAN.md`, `GATE1.md` and
   `BUGS.md`. Append each one an agent can do without the designer here, plus a second
   bug-hunt-by-reading round over files changed since item 10, and continue. Repeat the refill
   until a full round adds nothing.
+  Done 2026-11-19: scanned all 24 `[ ]`/`[~]` checkboxes (all in MASTER_PLAN.md — GATE1.md and
+  BUGS.md use status words, no checkboxes). Second bug-hunt-by-reading over all 53 `src/` files
+  changed since item 10 (`de8e5e1..HEAD`) found **no new concrete defects**: every diff is a strict
+  annotation, a dead-code removal, or an already-specced BUG-016/017/011/005/012 fix. Subagent
+  transport failed `ECONNREFUSED`, so the hunt ran directly in the main session. Key finding overturns
+  a stale block: `StudioDeviceSimulatorService:SetDeviceAsync("iphone_14")` in `execute_luau` yields
+  a real 749×389 viewport, harness `enable`/`status` replies there (`lastOk=true`), and
+  `screen_capture` works — so the "no device emulation" reason that kept the G3/G5 phone halves
+  `BLOCKED` is false (item 19 already used `SetDeviceAsync` at 749×388). Those halves are
+  agent-doable and are appended as items 32/33. Q5 ten-player half stays `BLOCKED` — no
+  team-test/local-server/multi-client tool exists (re-confirmed against the tool catalog). Rows
+  still needing the designer: G4 (tracks C/G/E art), G4b (visual text pass), G6 (real-device fps),
+  G7 (five humans), Q6 (published place), Q7 (real-device touch). `lune` 1930 passed,
+  `selene` 0/0/0.
+- [ ] 32. **G3 beat sheet at phone size.** With the Studio device sim set to `iphone_14`
+  (`SetDeviceAsync("iphone_14")`, real viewport 749×389) in Play Solo, run the harness through the
+  full nine-step §4 beat sheet (plant/ready/harvest/sell/buy) as in item 29. Save the phone-size
+  `output.log` via `get_console_output` plus a `REPORT.md` and `results.json` under
+  `docs/v2/evidence/h/2026-11-19-g3-phone/`, recording the viewport, per-step `ok`, cash/produce
+  deltas and zero game-code errors/warnings. Then update the GATE1.md G3 row and MASTER_PLAN G3
+  checkbox to mark the phone half `SEEN-IN-STUDIO` (criterion fully closed). Do not save the place
+  or call `profile:Save()`.
+- [ ] 33. **G5 timings at phone size (3 fresh runs).** At the `iphone_14` viewport (749×389), run
+  three fresh-profile first sessions via the VERIFY-TEMP Mock store in `PlayerData.luau` (revert the
+  line before commit), real grow timers, no `ready` shortcut. Record first-harvest (<45 s), first
+  rarity reveal (<5 min) and raid-witnessed (<7 min) timestamps from the harness replies. Save
+  `REPORT.md` + `results.json` under `docs/v2/evidence/h/2026-11-19-g5-phone/`, then update the
+  GATE1.md G5 row and MASTER_PLAN G5 checkbox to mark the phone half `SEEN-IN-STUDIO` (criterion
+  closed). Do not save the place or publish.
+- [ ] 34. **Refill (round 2).** Re-scan every `[ ]`/`[~]` item in `MASTER_PLAN.md`, `GATE1.md` and
+  `BUGS.md` after items 32/33. Append anything still agent-doable plus a third bug-hunt-by-reading
+  round over files changed since item 10. If a full round adds nothing, tick this and stop the
+  refill loop without appending another.
 
 ## Decisions for designer
 

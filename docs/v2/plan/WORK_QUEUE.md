@@ -88,14 +88,18 @@ Also in force:
   it a new candidate revision with before/after contact sheets.
 
 ### C. Light and atmosphere (L1)
-- [ ] 10. **Lighting and day cycle (V-D2, D19):** Future lighting, Atmosphere, warm
-  ColorCorrection, Bloom kept low, SunRays. Build the eight phases in
-  `docs/v2/visual/DAY_CYCLE.md` as a pure, Lune-tested phase table layered over the season and
-  weather presets in `Sky.luau`, with golden hour at spawn. Follow the designer answers in
-  DAY_CYCLE.md: 24-minute day and readable night. Add the time-of-day sound beds (ayam, bedug,
-  kentongan, jangkrik, soft adzan) with a player setting to turn adzan on or off, muted during
-  satire moments. Night needs lanterns that
-  actually emit light. Check each FidelityTier at Rendah.
+- [x] 10a. **Day-cycle phase table (V-D2, D19), pure half.** Done 2026-11-20: `src/shared/World/DayCycle.luau`
+  holds the eight `DAY_CYCLE.md` phases over a 24-minute day with golden-hour spawn, a readable night,
+  gap/midnight blending and a Rendah light budget. `clockAt`/`segmentAt`/`presetFor`/`phaseInfo`/
+  `isNight` layer a fresh grade over the season/weather preset without mutating it. 15-case
+  `day_cycle_spec`; 2050 passing, LUNE-ONLY. `Strings.luau` gained the 8 phase labels and
+  `setting_adzan`, but no sound/search code consumes them yet.
+- [ ] 10b. **Day-cycle live wiring (V-D2, D19), remaining half.** Wire `presetFor` into
+  `client/World/Sky.luau` (Future lighting, Atmosphere, warm ColorCorrection, Bloom kept low,
+  SunRays) and the 20–40 s phase tweens; add the time-of-day sound beds (ayam, bedug, kentongan,
+  jangkrik, soft adzan) with a player setting to turn adzan on or off, muted during satire moments.
+  Night needs lanterns that actually emit light. Check each FidelityTier at Rendah in Studio; this
+  half needs the vision observer / designer for any visual verdict.
 - [ ] 11. **Sky and fog:** a tropical skybox, a distant ridge silhouette, and haze depth.
 
 ### D. The frame (V1)

@@ -47,6 +47,17 @@ local S: { [string]: { id: string, en: string } } = {
 	season_kemarau = { id = "Musim Kemarau", en = "Dry season" },
 	season_pancaroba = { id = "Pancaroba", en = "Changing season" },
 
+	-- day-cycle phases (shared/World/DayCycle)
+	phase_dini_hari = { id = "Dini hari", en = "Late night" },
+	phase_subuh = { id = "Subuh", en = "Dawn" },
+	phase_pagi = { id = "Pagi", en = "Morning" },
+	phase_dhuha = { id = "Dhuha", en = "Mid-morning" },
+	phase_siang_bolong = { id = "Siang bolong", en = "High noon" },
+	phase_sore = { id = "Sore", en = "Late afternoon" },
+	phase_maghrib = { id = "Maghrib", en = "Sunset" },
+	phase_malam = { id = "Malam", en = "Night" },
+	setting_adzan = { id = "Suara adzan", en = "Adhan" },
+
 	-- admin panel (internal tool)
 	admin_title = { id = "Admin — Juragan Desa", en = "Admin — Juragan Desa" },
 	admin_season = { id = "Musim", en = "Season" },

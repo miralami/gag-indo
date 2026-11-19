@@ -269,11 +269,13 @@ Studio stale. A licence that is not CC0 / CC BY (with attribution recorded) is s
 
 Models the ladder couldn't supply, each with a brief and a reference.
 
-- Sixteen original low-poly models (house, coop, shed, palm/bamboo/banana/mango/shrubs, cart, well,
-  stall, fence, tools, four villagers) were built deterministically under section G item 23 because
-  no free CC0 source covered them at the required triangle budget. Briefs, source policy, triangle
-  counts and saved cameras are in `docs/v2/visual/art/models_r3/MANIFEST.md`; all 16 were exported to
-  GLB by `models_r3/src/obj_to_glb.py` and uploaded as real `Model` assets. Verdicts remain blank.
+- **Review 2026-11-20:** the 16 models in `models_r3/generated/` are *not* designer builds. They are
+  script-built primitives (`AGENT_GENERATED`, about 100–300 faces each), uploaded as placeholders
+  behind LookDev only. Real versions are still needed for: rumah panggung, kandang ayam, gudang,
+  pisang, mangga, shrubs, gerobak, sumur, pasar stall, pagar bambu, tools, and four villagers
+  (petani caping, pedagang, petani wanita, tukang peci). The ladder still applies: Creator Store or
+  CC0 first, then `generate_mesh` / Blender `generate_3d`, then the designer. Briefs are in
+  `models_r3/MANIFEST.md`.
 
 ## Decisions for designer
 

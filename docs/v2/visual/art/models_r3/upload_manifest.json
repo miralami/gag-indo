@@ -51,7 +51,7 @@
     "asset_type": "Model",
     "moderation_state": null,
     "operation_id": "c75c925d-64f1-413f-a35a-3d120eda2040",
-    "source_type": "DESIGNER_BUILD",
+    "source_type": "AGENT_GENERATED",
     "upload_route": "ROBLOX_API_KEY"
   },
   {
@@ -62,7 +62,7 @@
     "asset_type": "Model",
     "moderation_state": null,
     "operation_id": "6d449d01-0dd6-46ec-8dfc-5b5d6fb81321",
-    "source_type": "DESIGNER_BUILD",
+    "source_type": "AGENT_GENERATED",
     "upload_route": "ROBLOX_API_KEY"
   },
   {
@@ -73,7 +73,7 @@
     "asset_type": "Model",
     "moderation_state": null,
     "operation_id": "dde0244e-2f82-4ebd-9567-dde75104be00",
-    "source_type": "DESIGNER_BUILD",
+    "source_type": "AGENT_GENERATED",
     "upload_route": "ROBLOX_API_KEY"
   },
   {
@@ -84,7 +84,7 @@
     "asset_type": "Model",
     "moderation_state": null,
     "operation_id": "29798139-e342-40df-bf6d-64825e3f5e63",
-    "source_type": "DESIGNER_BUILD",
+    "source_type": "AGENT_GENERATED",
     "upload_route": "ROBLOX_API_KEY"
   },
   {
@@ -95,7 +95,7 @@
     "asset_type": "Model",
     "moderation_state": null,
     "operation_id": "0ba36126-c58f-4165-aea6-655df5d4395f",
-    "source_type": "DESIGNER_BUILD",
+    "source_type": "AGENT_GENERATED",
     "upload_route": "ROBLOX_API_KEY"
   },
   {
@@ -106,7 +106,7 @@
     "asset_type": "Model",
     "moderation_state": null,
     "operation_id": "bc61e92d-3f00-44a6-b78f-3e80585ce9ab",
-    "source_type": "DESIGNER_BUILD",
+    "source_type": "AGENT_GENERATED",
     "upload_route": "ROBLOX_API_KEY"
   },
   {
@@ -117,7 +117,7 @@
     "asset_type": "Model",
     "moderation_state": null,
     "operation_id": "1fe76c6f-a88c-4c45-b9f5-867c686cf845",
-    "source_type": "DESIGNER_BUILD",
+    "source_type": "AGENT_GENERATED",
     "upload_route": "ROBLOX_API_KEY"
   },
   {
@@ -128,7 +128,7 @@
     "asset_type": "Model",
     "moderation_state": null,
     "operation_id": "74b46974-f023-44ac-ba4c-a7d7ae0013d0",
-    "source_type": "DESIGNER_BUILD",
+    "source_type": "AGENT_GENERATED",
     "upload_route": "ROBLOX_API_KEY"
   },
   {
@@ -139,7 +139,7 @@
     "asset_type": "Model",
     "moderation_state": null,
     "operation_id": "0b907e3b-4e59-4ca6-976c-4d0cec919f97",
-    "source_type": "DESIGNER_BUILD",
+    "source_type": "AGENT_GENERATED",
     "upload_route": "ROBLOX_API_KEY"
   },
   {
@@ -150,7 +150,7 @@
     "asset_type": "Model",
     "moderation_state": null,
     "operation_id": "af2f4cda-6c66-4c0a-b3c9-dc08b3b08e91",
-    "source_type": "DESIGNER_BUILD",
+    "source_type": "AGENT_GENERATED",
     "upload_route": "ROBLOX_API_KEY"
   },
   {
@@ -161,7 +161,7 @@
     "asset_type": "Model",
     "moderation_state": null,
     "operation_id": "9778afdb-b56e-4698-828d-d500291394c8",
-    "source_type": "DESIGNER_BUILD",
+    "source_type": "AGENT_GENERATED",
     "upload_route": "ROBLOX_API_KEY"
   },
   {
@@ -172,7 +172,7 @@
     "asset_type": "Model",
     "moderation_state": null,
     "operation_id": "05317dcd-d068-4068-be99-f27db33dcfb2",
-    "source_type": "DESIGNER_BUILD",
+    "source_type": "AGENT_GENERATED",
     "upload_route": "ROBLOX_API_KEY"
   },
   {
@@ -183,7 +183,7 @@
     "asset_type": "Model",
     "moderation_state": null,
     "operation_id": "6f92b544-5fa1-4011-9f6b-17d9a34f6cf5",
-    "source_type": "DESIGNER_BUILD",
+    "source_type": "AGENT_GENERATED",
     "upload_route": "ROBLOX_API_KEY"
   },
   {
@@ -194,7 +194,7 @@
     "asset_type": "Model",
     "moderation_state": null,
     "operation_id": "5a7c8df7-5ae3-4951-ae82-4e44beb28575",
-    "source_type": "DESIGNER_BUILD",
+    "source_type": "AGENT_GENERATED",
     "upload_route": "ROBLOX_API_KEY"
   },
   {
@@ -205,7 +205,7 @@
     "asset_type": "Model",
     "moderation_state": null,
     "operation_id": "fb011612-e48d-4447-98a0-650322435f50",
-    "source_type": "DESIGNER_BUILD",
+    "source_type": "AGENT_GENERATED",
     "upload_route": "ROBLOX_API_KEY"
   },
   {
@@ -216,7 +216,7 @@
     "asset_type": "Model",
     "moderation_state": null,
     "operation_id": "3879391a-c9a1-433e-a4e4-f2706dc64470",
-    "source_type": "DESIGNER_BUILD",
+    "source_type": "AGENT_GENERATED",
     "upload_route": "ROBLOX_API_KEY"
   }
 ]

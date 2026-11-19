@@ -10,7 +10,7 @@ registry and review docs. **No visual verdict has been made by any agent.**
 - `MANIFEST.md` — per-asset provenance, licence, triangle count, review slot,
   one review camera per family, and the unreachable-source HTTP log.
 - `src/build_models.py` — stdlib-only deterministic generator for every
-  `DESIGNER_BUILD` OBJ (no external libraries).
+  `AGENT_GENERATED` OBJ (no external libraries).
 - `generated/<family>/*.obj` + `materials.mtl` — generated originals (16 OBJs).
 - `raw/<family>/*.glb` — real CC0 downloads, byte-for-byte as served (4 GLBs).
 

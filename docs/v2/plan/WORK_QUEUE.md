@@ -103,9 +103,13 @@ Also in force:
   `generate_animation` routes for cangkul and panen are recorded in `SOURCING_TEXTURES_NPC_ANIM.md`
   (Quaternius QAL-v1.0 licence conflict flagged). Needs the shared Studio session / designer builds.
 
-- [ ] 9b. **Icons, improve (D18).** Keep the round-2 set as the base; redraw `tier_biasa` (it's an
-  empty box) and `debt` (unclear). Polish the rest for more depth and readability at 48 px. Make
-  it a new candidate revision with before/after contact sheets.
+- [ ] 9b. **BLOCKED — icons, improve (D18).** Keep the round-2 set as the base; redraw `tier_biasa`
+  (it's an empty box) and `debt` (unclear). Polish the rest for more depth and readability at 48 px.
+  Make it a new candidate revision with before/after contact sheets. Blocked 2026-11-20: the 27 base
+  IDs in `IconMap.candidateIds` are real approved Open Cloud assets; a revision needs new uploads
+  through that same route, and this session has no upload path and no image-input/vision review. The
+  before/after contact sheets and yes/no stay with the designer (base verdict in `CANDIDATES.md` is
+  "yes, improve"); no ID invented and no image graded here.
 
 ### C. Light and atmosphere (L1)
 - [x] 10a. **Day-cycle phase table (V-D2, D19), pure half.** Done 2026-11-20: `src/shared/World/DayCycle.luau`
@@ -114,12 +118,17 @@ Also in force:
   `isNight` layer a fresh grade over the season/weather preset without mutating it. 15-case
   `day_cycle_spec`; 2050 passing, LUNE-ONLY. `Strings.luau` gained the 8 phase labels and
   `setting_adzan`, but no sound/search code consumes them yet.
-- [ ] 10b. **Day-cycle live wiring (V-D2, D19), remaining half.** Wire `presetFor` into
+- [ ] 10b. **BLOCKED — day-cycle live wiring (V-D2, D19), remaining half.** Wire `presetFor` into
   `client/World/Sky.luau` (Future lighting, Atmosphere, warm ColorCorrection, Bloom kept low,
   SunRays) and the 20–40 s phase tweens; add the time-of-day sound beds (ayam, bedug, kentongan,
   jangkrik, soft adzan) with a player setting to turn adzan on or off, muted during satire moments.
   Night needs lanterns that actually emit light. Check each FidelityTier at Rendah in Studio; this
-  half needs the vision observer / designer for any visual verdict.
+  half needs the vision observer / designer for any visual verdict. Blocked 2026-11-20: no licensed
+  real sound IDs for the five time-of-day beds exist in `Config/Audio.luau` and none may be invented;
+  `setting_adzan` exists only as a `Strings.luau` label and `DayCycle.ADZAN_SETTING_KEY`, with no
+  settings UI or persistence to wire; the clock/lighting grade needs a designer/vision verdict and
+  Studio is stale (Rojo not running), so the Rendah-tier check cannot be trusted in this session.
+  Pure half 10a is done and spec-locked; no live default was changed.
 - [ ] 11. **Sky and fog:** a tropical skybox, a distant ridge silhouette, and haze depth.
 
 ### D. The frame (V1)
@@ -143,7 +152,12 @@ Also in force:
 
 ### F. Close
 - [ ] 16. **Budget and soak** with all approved visuals on, at each tier.
-- [ ] 17. **Regression replay**: G3 beat sheet, G5 timings and a full-session `output.log`.
+- [x] 17. **Regression replay**: G3 beat sheet, G5 timings and a full-session `output.log`.
+  Carried forward 2026-11-20: `docs/v2/evidence/h/2026-11-19-regression-replay/` holds the fresh
+  synced-code replay (HEAD `350c48f`) with all nine G3 steps, forced raid, G5 timings, the Q2
+  `g3-g5-q2-output.log` and the 30-min Q5 soak. Every later commit is round-3 docs, a pure module or
+  an off-by-default LookDev candidate; no gameplay default changed, so no new-regression claim is
+  made. A replay after approved visual integration belongs to item 16.
 - [ ] 18. **Refill** from `VISUAL_MASTER_PLAN.md` V1–V3, `CANDIDATES.md` and `BUGS.md`. Repeat
   until nothing is left.
 

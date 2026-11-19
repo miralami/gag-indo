@@ -8,12 +8,14 @@
 --   src/client/UI/LookDevIcons.luau       -- candidate "icons" (agent-made icon CANDIDATES)
 --   src/client/World/LookDevTextures.luau -- candidate "textures" (seamless texture CANDIDATES)
 --   src/client/World/LookDevNpcs.luau     -- candidate "npcs" (procedural caricature detail CANDIDATES)
+--   src/client/World/LookDevCrops.luau    -- candidate "crops" (low-poly crop growth-stage CANDIDATES)
 -- Each registers itself with LookDev.register() at boot. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("plaza_lighting")
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("police_walkin")
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("icons")
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("textures")
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("npcs")
+--   require(game.ReplicatedStorage.Shared.LookDev):enable("crops")
 --   require(game.ReplicatedStorage.Shared.LookDev):disable()   -- restores the original look
 --
 -- The gate needs an explicit Studio-only opt-in, is never persisted, and can never be on in a
@@ -31,7 +33,7 @@ local LookDev = {}
 
 LookDev.STATUS = "candidate, awaiting designer yes"
 LookDev.STYLE = "cartoonish-realism"
-LookDev.IDS = { "plaza_lighting", "police_walkin", "icons", "textures", "npcs" }
+LookDev.IDS = { "plaza_lighting", "police_walkin", "icons", "textures", "npcs", "crops" }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
 -- list is rejected because it could be an asset-backed or otherwise non-procedural material.
@@ -133,6 +135,19 @@ LookDev.candidates = {
 		idsSource = "Shared.NpcModelCandidates.recipes",
 		render = "docs/v2/visual/CANDIDATES.md",
 	},
+
+	crops = {
+		id = "crops",
+		title = "Low-poly growth-stage models (bibit/tumbuh/siap) for all 12 crops",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Pure-data recipe source, no uploaded asset IDs. partsFor() is the single source used by
+		-- the Studio adapter and the gallery preview generator.
+		idsSource = "Shared.CropModelCandidates.partsFor",
+		render = "docs/v2/visual/art/crops/render/contact_sheet.png",
+		stageCount = 3,
+		cropCount = 12,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -192,6 +207,15 @@ function LookDev.plan(id: string): any
 			id = id,
 			idsSource = c.idsSource,
 			render = c.render,
+		}
+	elseif id == "crops" then
+		local c = LookDev.candidates.crops
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			stageCount = c.stageCount,
+			cropCount = c.cropCount,
 		}
 	end
 	return nil

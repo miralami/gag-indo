@@ -71,6 +71,7 @@ local specs = {
 	require("./specs/iconmap_spec"),
 	require("./specs/texturemap_spec"),
 	require("./specs/npc_model_candidates_spec"),
+	require("./specs/crop_model_candidates_spec"),
 	require("./specs/phone_layout_spec"),
 	require("./specs/npc_framework_spec"),
 	require("./specs/world_constants_spec"),

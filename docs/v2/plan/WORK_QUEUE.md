@@ -90,8 +90,21 @@ never publish.
   this session). No agent visually graded the art — CANDIDATES awaiting designer yes/no. Evidence
   `docs/v2/evidence/h/2026-11-19-npc-candidates/`; gallery `docs/v2/visual/CANDIDATES.md`.
   `lune` 1944 / `selene` 0/0/0.
-- [ ] 7. **Crop growth-stage models** (bibit / tumbuh / siap) for every crop in config, low-poly,
-  behind `LookDev`.
+- [x] 7. **Crop growth-stage models** (bibit / tumbuh / siap) for every crop in config, low-poly,
+  behind `LookDev`. `SEEN-IN-STUDIO` — 12 crop archetypes x 3 stages = 36 low-poly models in
+  `src/shared/CropModelCandidates.luau` (pure data, `partsFor(cropId, stage)`, no asset IDs), shown
+  in a floating in-world showcase by `src/client/World/LookDevCrops.luau` only while the
+  off-by-default `crops` LookDev candidate is enabled and all destroyed on disable. Uses the
+  `ART.md §3` palette; shipping `FarmService` crop visuals untouched. Approach is pure-data
+  primitives (not imported meshes): subagent transport down, place saves forbidden. `LookDev.luau`
+  gains a sixth pure-data `crops` candidate (`idsSource` pointer, `cropCount=12`, `stageCount=3`,
+  no numeric IDs). Restricted Studio MCP `execute_luau` VM cannot resolve `Enum.PartType` shapes,
+  so shape resolution is under `pcall` with a default-Block fallback (real LocalScript VM resolves
+  Cylinder/Sphere/Wedge). Live Play-VM round-trip: 36 models / 339 parts (303 recipe + 36 soil),
+  all removed on disable. Render dumped from the same `partsFor()` via Lune, so it cannot drift;
+  not a Studio screenshot. No agent visually graded the art — CANDIDATES awaiting designer yes/no.
+  Evidence `docs/v2/evidence/h/2026-11-19-crop-candidates/`; gallery `docs/v2/visual/CANDIDATES.md`.
+  `lune` 1950 / `selene` 0/0/0.
 - [ ] 8. **Hub props**: warung counter, pasar stall, pos polisi desk, Pak RT table, lanterns and
   signs. Use procedural parts with textured materials, or meshes. Keep within the per-hub
   instance budget.

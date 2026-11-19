@@ -18,6 +18,7 @@ filled by an agent. Asset IDs come from real Open Cloud operations and are recor
 | `icons` | 27 agent-made painted icons for every IconMap slot (round 2 item 4) | `LookDev:enable("icons")` | `docs/v2/visual/art/icons/render/contact_sheet.png` | 0 new instances; swaps `ImageLabel.Image` on existing icon slots only, no measurable fps cost | |
 | `textures` | 7 agent-made seamless painted textures for the Pasar surface preset (round 2 item 5) | `LookDev:enable("textures")` | `docs/v2/visual/art/textures/render/contact_sheet.png` | ≤10 temporary `SurfaceAppearance` instances on the imported v2 MeshParts while enabled, all destroyed on disable; no measurable fps cost | |
 | `npcs` | Procedural caricature detail parts for the box NPCs — Pak RT, Tengkulak, Polisi, debt collector (round 2 item 6) | `LookDev:enable("npcs")` | `docs/v2/visual/art/npcs/render/contact_sheet.png` | 15 temporary primitive Parts on the 3 live NPCs while enabled (6/5/4), all destroyed on disable; no asset IDs, no measurable fps cost | |
+| `crops` | Low-poly growth-stage models (bibit/tumbuh/siap) for all 12 crops (round 2 item 7) | `LookDev:enable("crops")` | `docs/v2/visual/art/crops/render/contact_sheet.png` | 36 models / 339 temporary Parts in a floating showcase while enabled, all destroyed on disable; no asset IDs, no measurable fps cost | |
 
 ## `icons` — per-asset renders and IDs
 
@@ -116,3 +117,13 @@ the render is provided for the designer's yes/no, not claimed as agent-verified.
   (`tengkulak=5|polisi=4|pakrt=6`) and all were removed on disable. The render is a schematic
   parsed from the recipe source, not a Studio screenshot — this session cannot save captures to
   disk. Evidence `docs/v2/evidence/h/2026-11-19-npc-candidates/`. No agent visually graded the art.
+- `src/shared/CropModelCandidates.luau` holds pure-data low-poly recipes (`partsFor(cropId, stage)`)
+  for all 12 crops x 3 growth stages, no asset IDs. `src/client/World/LookDevCrops.luau` builds a
+  floating showcase of all 36 models only while `crops` is enabled and destroys it all on disable;
+  the shipping `FarmService` crop visuals are untouched. Spec-locked in
+  `tests/specs/crop_model_candidates_spec.luau` and `tests/specs/lookdev_candidates_spec.luau`.
+- Live Play-VM round-trip: 36 models / 339 parts (303 from `partsFor()` + 36 soil bases) appeared on
+  enable and all were removed on disable. The render `docs/v2/visual/art/crops/render/contact_sheet.png`
+  is dumped from the **same** `partsFor()` the adapter uses (via
+  `docs/v2/visual/art/crops/src/dump_crops.luau`), so it cannot drift — a review aid, not a Studio
+  screenshot. Evidence `docs/v2/evidence/h/2026-11-19-crop-candidates/`. No agent visually graded the art.

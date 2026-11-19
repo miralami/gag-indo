@@ -129,12 +129,18 @@ Also in force:
   settings UI or persistence to wire; the clock/lighting grade needs a designer/vision verdict and
   Studio is stale (Rojo not running), so the Rendah-tier check cannot be trusted in this session.
   Pure half 10a is done and spec-locked; no live default was changed.
-- [ ] 11. **Sky and fog:** a tropical skybox, a distant ridge silhouette, and haze depth.
+- [ ] 11. **BLOCKED — sky and fog:** a tropical skybox, a distant ridge silhouette, and haze depth.
+  Blocked 2026-11-20: the skybox needs a licensed real image/HDRI and a real Open Cloud ID (D15/D18),
+  none of which exists in the repo or is obtainable in this session; the ridge and haze grade also
+  need a designer/vision yes/no. No skybox ID invented and no visual claimed.
 
 ### D. The frame (V1)
-- [ ] 12. **Spawn view.** Combine A–C on the spawn view only. Save the camera position, then
-  check the instance count and fps proxy against the budget. Leave the five screenshot tests to
-  the review pass.
+- [ ] 12. **BLOCKED — spawn view.** Combine A–C on the spawn view only. Save the camera position,
+  then check the instance count and fps proxy against the budget. Leave the five screenshot tests
+  to the review pass. Blocked 2026-11-20: A–C assets (items 4–9) are still blocked, so there is no
+  approved look to combine; the camera and five shot tests need the designer/vision review, and the
+  fps proxy needs designer hardware. The `corner` candidate and `REVIEW_ROUND3.md` are ready inputs,
+  not an approval.
 - [x] 13. **Review pass handoff.** Write `docs/v2/visual/REVIEW_ROUND3.md` listing every
   candidate with its toggle and camera position, in the order to review. The designer, or a
   session that can see screenshots, fills in the verdicts. Done 2026-11-20: handoff doc lists all
@@ -144,10 +150,14 @@ Also in force:
   claimed.
 
 ### E. Moments (V2), after the frame is approved
-- [ ] 14. **Harvest, reveal and sale VFX (M2–M4):** particles, a pop scale, a cash fly, a sound
-  sync. Behind tiers.
-- [ ] 15. **Raid moment (M5) lights and the police walk-in,** using the round-1 `police_walkin`
-  candidate if it was approved.
+- [ ] 14. **BLOCKED — harvest, reveal and sale VFX (M2–M4):** particles, a pop scale, a cash fly,
+  a sound sync. Behind tiers. Blocked 2026-11-20: the V2 gate (VISUAL_MASTER_PLAN §V2) requires
+  L7.1 particle textures first — no licensed particle-texture asset IDs exist — and this section is
+  explicitly "after the frame is approved", which item 12 is not.
+- [ ] 15. **BLOCKED — raid moment (M5) lights and the police walk-in,** using the round-1
+  `police_walkin` candidate if it was approved. Blocked 2026-11-20: that candidate's verdict is
+  still pending in `CANDIDATES.md`, the frame is not approved, and the raid lights (L1.3) plus the
+  V2 clip need real assets and designer hardware. No visual or approval claimed.
 
 ### E2. Text
 - [x] 19. **Indonesian text review** (moved from round 2 item 24). Read every `id` string for
@@ -155,15 +165,24 @@ Also in force:
   proposed edits in a table under "Decisions for designer" and don't change `Strings.luau`.
 
 ### F. Close
-- [ ] 16. **Budget and soak** with all approved visuals on, at each tier.
+- [ ] 16. **BLOCKED — budget and soak** with all approved visuals on, at each tier. Blocked
+  2026-11-20: items 4–15 have not produced approved visuals to turn on, and the tier/fps measurement
+  needs the designer's phone emulator and multi-client session. The 2026-11-19 soak evidence in
+  `docs/v2/evidence/h/2026-11-19-regression-replay/` predates the visual candidates and cannot stand
+  for this gate.
 - [x] 17. **Regression replay**: G3 beat sheet, G5 timings and a full-session `output.log`.
   Carried forward 2026-11-20: `docs/v2/evidence/h/2026-11-19-regression-replay/` holds the fresh
   synced-code replay (HEAD `350c48f`) with all nine G3 steps, forced raid, G5 timings, the Q2
   `g3-g5-q2-output.log` and the 30-min Q5 soak. Every later commit is round-3 docs, a pure module or
   an off-by-default LookDev candidate; no gameplay default changed, so no new-regression claim is
   made. A replay after approved visual integration belongs to item 16.
-- [ ] 18. **Refill** from `VISUAL_MASTER_PLAN.md` V1–V3, `CANDIDATES.md` and `BUGS.md`. Repeat
-  until nothing is left.
+- [x] 18. **Refill** from `VISUAL_MASTER_PLAN.md` V1–V3, `CANDIDATES.md` and `BUGS.md`. Repeat
+  until nothing is left. Done 2026-11-20: scanned the V1–V3 gates and V-L backlog
+  (`VISUAL_MASTER_PLAN.md:334–358`), `CANDIDATES.md`, `BUGS.md` and `GATE1.md`. No agent-closable work
+  remains: every blocker/major bug is fixed or closed, every open Gate 1 row needs a designer,
+  hardware, real asset IDs or a vision verdict, and every remaining V-L item either needs those or is
+  already queued. Items 11, 12, 14, 15 and 16 are marked `BLOCKED` with reasons; round 3 is
+  exhausted.
 
 ## Designer builds
 

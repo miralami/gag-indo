@@ -65,8 +65,13 @@ Also in force:
 - [ ] 2. **Look-dev corner (V0.4).** A 60×60-stud corner with a warung, a road bend and a sawah
   edge, built in a separate Studio Folder toggled by `LookDev`. Apply V-D1 (remove the world
   outline here first) and V-D2 (golden hour). Save the camera positions for three review shots.
-- [ ] 3. **Prop audit (V-D3).** List the ten low-poly props in a table with the verdict: keep +
+- [x] 3. **Prop audit (V-D3).** List the ten low-poly props in a table with the verdict: keep +
   retexture, or replace. For each one to replace, name a candidate found with the asset ladder.
+  Done 2026-11-20: `docs/v2/visual/art/PROP_AUDIT.md` lists all ten with current representation,
+  `hubprops` LookDev coverage and a **replace** verdict each, plus a verified step-(1) ladder candidate
+  (Poly Haven / explicit-CC0 Sketchfab) or a concrete step-(2)/(3) fallback where no free upgrade exists
+  (`sumur`, `hut`). Licence caveats (`gerobak`, `motor` platform field, `wall` download size) flagged;
+  no ID invented, no model ingested, no visual verdict claimed.
 
 ### B. Asset sourcing, ladder order
 - [ ] 4. **Buildings:** rumah panggung, warung, pos polisi, rumah Pak RT, pasar stalls, gubuk

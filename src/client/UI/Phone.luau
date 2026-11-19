@@ -407,7 +407,7 @@ local function buildDevice(ctx: any)
 			TextWrapped = true,
 			Parent = tile,
 		})
-		Theme.new("UITextSizeConstraint", { MaxTextSize = 14, MinTextSize = 10, Parent = label })
+		Theme.new("UITextSizeConstraint", { MaxTextSize = 14, MinTextSize = 11, Parent = label })
 		appLabels[app.id] = label
 		tile.Activated:Connect(function()
 			Audio.play("ui_click")
@@ -1343,7 +1343,7 @@ function Phone.mount(initialLang: string?)
 		TextColor3 = Theme.paper,
 		Parent = lit,
 	})
-	Theme.new("UITextSizeConstraint", { MaxTextSize = 14, MinTextSize = 9, Parent = litLabel })
+	Theme.new("UITextSizeConstraint", { MaxTextSize = 14, MinTextSize = 11, Parent = litLabel })
 
 	local ensureBuilt = LazyPages.once(buildDevice)
 	local openDevice: (() -> ())? = nil

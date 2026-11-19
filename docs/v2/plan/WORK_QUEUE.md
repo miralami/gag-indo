@@ -256,8 +256,16 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   `GuiService:GetGuiInset().Y`. In-Studio re-probe: scale 0.4435, panel bottom 324 < 330, 0 violations.
   No text size reduced; place not saved, no `profile:Save()`. Suite 1854; selene 0/0/0. Evidence
   `docs/v2/evidence/h/2026-11-19-ui-fit/` (`REPORT.md`, `results.json`).
-- [ ] 20. **Touch target and text size audit.** A spec walks every UI builder: buttons at least
+- [x] 20. **Touch target and text size audit.** A spec walks every UI builder: buttons at least
   44×44 and text at the minimum size or above. Fix the stragglers.
+  Done 2026-11-19 (`LUNE-ONLY`): `tests/specs/ui_touch_text_audit_spec.luau` (5 cases) walks all
+  UI source under `src/client/UI`, `Minigames`, `Feel` and `server/World` — no `TextSize`/
+  `MinTextSize` literal below `Visuals.type.small` (11), every interactive button meets the
+  checked-in `PhoneLayout.meetsTouch` one-axis 44 px rule, grid-sized families checked against
+  their cell sizes. Two genuine text stragglers fixed in `Phone.luau`: the app-label constraint
+  `MinTextSize` 10→11 and the phone-toggle label `MinTextSize` 9→11 (both allowed text to render
+  below the minimum under `TextScaled`). Mutation-checked: reverting either fix fails two cases.
+  No button failed the touch audit. Suite 1859; selene 0/0/0.
 - [ ] 21. **Gamepad and keyboard.** Every screen can be closed with B or Escape, selection never
   gets stuck in a hidden frame, and there is a default selection on open. Specs where the logic
   is pure, plus a Studio pass with `GuiService.SelectedObject`.
@@ -314,6 +322,12 @@ Choices the agent made with a safe, reversible default. The designer confirms or
   M4 (§4), and `FirstSession` emits an extra undocumented `first_session` funnel (steps 5/7/8/9)
   that the designer may want added to `ANALYTICS.md` §4 or retired. Evidence
   `docs/v2/evidence/h/2026-11-19-analytics-audit/REPORT.md`.
+- Item 20 — the touch-target audit uses the repo's own `PhoneLayout.meetsTouch` contract (a 44 px
+  axis), matching `phone_layout_spec`, not a new "44×44 on both axes" rule. Safest reversible
+  default: the wide, short Admin/HUD/Leaderboard buttons already pass on their width/scale axis,
+  and forcing them to 44 px tall would overflow the fixed 690 px AdminPanel and regress the fit
+  proved in item 19. If the designer wants strict 44×44, that is a follow-up with a taller panel
+  and a re-fit at 749×388. No button failed the audit; only two sub-11 text constraints were fixed.
 
 ## Blocked on designer
 

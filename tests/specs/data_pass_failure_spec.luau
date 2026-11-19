@@ -145,6 +145,25 @@ return function(t, Env, Fakes)
 			expect(w.PlayerData.saveAndConfirm(quietProfile, "R-match", 0.3)):toBe(false)
 		end)
 
+		-- WORK_QUEUE item 14 mutation S25: dropping the IsActive guard makes an inactive profile
+		-- subscribe to OnAfterSave and call Save() before the bounded wait immediately returns false.
+		t:it("saveAndConfirm on an inactive profile saves nothing and subscribes to no save event", function()
+			local w = makeWorld()
+			local profile = makeProfile(w.env, Fakes.newData(w.env))
+			profile._active = false
+			local connected = 0
+			local signal = w.env.newSignal()
+			local baseConnect = signal.Connect
+			function signal:Connect(fn)
+				connected += 1
+				return baseConnect(self, fn)
+			end
+			profile.OnAfterSave = signal
+			expect(w.PlayerData.saveAndConfirm(profile, "R-match", 1)):toBe(false)
+			expect(connected):toBe(0)
+			expect(profile.saves):toBe(0)
+		end)
+
 		t:it("release isolates a throwing beforeRelease callback, still ends the session", function()
 			local w = makeWorld()
 			local profile = makeProfile(w.env, Fakes.newData(w.env))

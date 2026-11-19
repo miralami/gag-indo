@@ -1,4 +1,6 @@
 --!nocheck
+local fs = require("@lune/fs")
+
 -- T6 (Law, RaidService): failure-path specs. A refused raid never moves money, produce or
 -- the counter; a leaving player is fined exactly once; a damaged save never errors.
 -- Tests whose name starts with "[BUG]" are expected to fail: they reveal real defects in
@@ -341,6 +343,34 @@ return function(t, Env, Fakes)
 			expect(fx.RaidService.getState(fx.player)):toBe("idle")
 			expect(fx.data.stats.raids):toBe(1)
 			expect(fx.player:GetAttribute("InJail")):toBe(false)
+		end)
+
+		-- WORK_QUEUE item 14, R15: changing `cash >= fine` to `cash > fine` sends a player who
+		-- can pay the fine exactly to the guard post instead of clearing the raid.
+		t:it("cash exactly equal to the fine pays it and clears the raid without jailing", function()
+			local fx = makeRaid()
+			startChoosing(fx)
+			local fine = fx.starts[1].fine
+			fx.data.cash = fine
+			fx.remotes.Raid_Choose.OnServerEvent:Fire(fx.player, "denda")
+			expect(fx.RaidService.getState(fx.player)):toBe("idle")
+			expect(fx.data.cash):toBe(0)
+			expect(fx.player:GetAttribute("InJail")):toBeNil()
+			expect(fx.ends[1]):toBe("denda")
+		end)
+
+		-- WORK_QUEUE item 14, R14/R16: these two guards are defence-in-depth. onChoose() already
+		-- rejects choices outside "choosing", and jailUntil is only assigned inside sendToJail()
+		-- together with the jail state, so dropping the inner guard is behaviourally equivalent
+		-- from every reachable state. Lock the invariants at source level so the mutants still fail.
+		t:it("resolveChoice keeps its own choosing-state guard even though callers guard too", function()
+			local source = fs.readFile("src/server/Law/RaidService.luau")
+			expect(string.find(source, 'if not raid or not data or raid.state ~= "choosing" then', 1, true)):toBeTruthy()
+		end)
+
+		t:it("releaseFromJail keeps its jail-state guard (jailUntil is only set in the jail branch)", function()
+			local source = fs.readFile("src/server/Law/RaidService.luau")
+			expect(string.find(source, 'if not raid or not isState(raid, "jail") or not raid.jailUntil then', 1, true)):toBeTruthy()
 		end)
 	end)
 end

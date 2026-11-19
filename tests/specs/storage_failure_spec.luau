@@ -234,5 +234,25 @@ return function(t, Env, Fakes)
 			expect(stack.crop):toBe("bogus")
 			expect(stack.count):toBe(2)
 		end)
+
+		-- WORK_QUEUE item 14 mutations I09 and I12. I09 drops `not gudang.stacks`, passing nil
+		-- to Produce.count; I12 changes `count <= 0` to `count < 0`, leaving a zero-count stack
+		-- in the source sack after the last item moves.
+		t:it("used() reports zero when gudang exists but its stacks table is missing", function()
+			local fx = makeStorage()
+			local ok, count = pcall(fx.StorageService.used, { gudang = { capacity = 40 } })
+			expect(ok):toBe(true)
+			expect(count):toBe(0)
+		end)
+
+		t:it("depositAll deletes the source stack key when its last item moves", function()
+			local fx = makeStorage()
+			local Produce = fx.Produce
+			local key = Produce.key("padi", "biasa", {})
+			addStack(fx.data.produce, "padi", 1, 1)
+			expect(fx.StorageService.depositAll(fx.player)):toBe(1)
+			expect(fx.data.produce[key]):toBeNil()
+			expect(Produce.count(fx.data.gudang.stacks)):toBe(1)
+		end)
 	end)
 end

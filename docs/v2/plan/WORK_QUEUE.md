@@ -205,9 +205,21 @@ never publish.
 
 ### D. Hardening, round 2
 
-- [ ] 14. **Mutation testing.** For 25 key service functions (economy, inventory, raid, debt,
+- [x] 14. **Mutation testing.** For 25 key service functions (economy, inventory, raid, debt,
   receipts, save), inject one fault each: flip a comparison or drop a guard. Confirm that a spec
   fails each time, and add a spec wherever none does. Revert every fault.
+  `LUNE-ONLY` — 25 one-fault mutations (`E01`–`E07`, `I08`–`I12`, `R13`–`R16`, `D17`–`D20`,
+  `P21`–`P23`, `S24`–`S25`) applied as exact single-line replacements with byte-for-byte restore
+  in `finally`. Pass 1: 15 killed, 7 survived, 3 `MANIFEST_ERROR` (non-unique search strings,
+  correctly not applied). Pass 2 with occurrence-indexed replacement: `I10` and `D17` killed,
+  `D19` survived. Pass 3: eight new killer cases added to the existing spec files (no duplicated
+  fixtures) — zero-value transfer analytics (`E07`), gudang without `stacks` (`I09`), source
+  stack key deletion (`I12`), zero-owed repay (`D19`), exact-cash raid fine (`R15`), inactive
+  `saveAndConfirm` (`S25`), plus source-invariant locks for the two defence-in-depth guards
+  (`R14`/`R16`, behaviourally equivalent through their callers). Re-ran all eight: **8/8 killed,
+  exactly one named test failing each time** — no cross-killing. Final **25/25 killed, 0 survived**;
+  all faults reverted, `git diff` on the six targets empty. `lune` 1980 (+8), `selene` 0/0/0.
+  Evidence `docs/v2/evidence/h/2026-11-19-mutation-testing/` (`REPORT.md`, `results.json`).
 - [ ] 15. **Remote fuzzing.** A Lune spec feeds every remote handler random payloads: wrong types,
   NaN and inf, huge strings, deep or cyclic tables, nil. No error may escape and no state may
   change.

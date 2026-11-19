@@ -220,9 +220,16 @@ never publish.
   exactly one named test failing each time** — no cross-killing. Final **25/25 killed, 0 survived**;
   all faults reverted, `git diff` on the six targets empty. `lune` 1980 (+8), `selene` 0/0/0.
   Evidence `docs/v2/evidence/h/2026-11-19-mutation-testing/` (`REPORT.md`, `results.json`).
-- [ ] 15. **Remote fuzzing.** A Lune spec feeds every remote handler random payloads: wrong types,
-  NaN and inf, huge strings, deep or cyclic tables, nil. No error may escape and no state may
-  change.
+- [x] 15. **Remote fuzzing.**
+  `LUNE-ONLY` — new `tests/specs/remote_fuzz_spec.luau` (3 cases) loads and starts all 29 handler-owning
+  server services under one Env world (task.spawn no-op; leaf infra mocked), then fires 19 deterministic
+  malformed payloads (nil, booleans, NaN, +-inf, huge 10k strings, 100-deep and self-referential tables,
+  empty table, mixed-arity) at every connected C->S remote. All 25 C->S handler remotes covered (0 failed
+  service starts), non-vacuous floor asserted. No error escaped any handler; no malformed payload changed
+  save data or attributes after schema normalizers were driven to a fixed point. Three apparent
+  "mutations" were traced to expected first-touch schema settlement (DebtService.ensure stage/lastInterestAt,
+  QuestService daily rollover, Cosmetic_Equip nil = legal unequip), not defects — no BUGS.md entry.
+  `lune` 1983 (+3), `selene src` 0/0/0. Evidence `docs/v2/evidence/h/2026-11-19-remote-fuzzing/REPORT.md`.
 - [ ] 16. **Save fuzzing.** Run 1000 random damaged save tables through migrate and SaveSanitize.
   Invariants: finite non-negative counts, known keys kept, no throw.
 - [ ] 17. **Long economy sim.** One player, 8 hours of sim time, optimal and idle strategies.

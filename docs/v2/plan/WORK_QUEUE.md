@@ -243,9 +243,19 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   Caught and fixed a native-`vector` type mismatch during the Studio run (`type()` is `"vector"` in
   Studio, not `"table"`/`"userdata"`): `positionOf` now reads fields via `pcall`. Suite 1854;
   selene 0/0/0. Evidence `docs/v2/evidence/h/2026-11-19-npc-pathing/`.
-- [ ] 19. **UI fit at 749×388.** For every screen and app page, probe AbsolutePosition and
+- [x] 19. **UI fit at 749×388.** For every screen and app page, probe AbsolutePosition and
   AbsoluteSize in Studio. Nothing may be off-screen or overlap the safe-area insets. Fix by
   layout, not by shrinking text below the minimum.
+  Done 2026-11-19 (`SEEN-IN-STUDIO`): Studio device sim `average_windows` at 750×388 → real GUI
+  viewport 749×388, safe rect `{0,-58,749,388}`. Probed effectively-visible `AbsolutePosition`/
+  `AbsoluteSize` of every screen and app page — HUD (50), Phone home (105), all six lazy pages
+  `phone/kebun/pinjol/tugas/cheat/dekor` (84/139/74/90/83/82), Shop and Leaderboard panels (131/60),
+  Toasts, Minigame card and RaidOverlay — all with **0 off-screen/inset violations**. Found and fixed
+  one genuine layout defect: `AdminPanel` bottom rows clipped ~17–25 px because `refit()` fitted the
+  scale to full camera height 388 while the GUI inset leaves only 330 usable; it now subtracts
+  `GuiService:GetGuiInset().Y`. In-Studio re-probe: scale 0.4435, panel bottom 324 < 330, 0 violations.
+  No text size reduced; place not saved, no `profile:Save()`. Suite 1854; selene 0/0/0. Evidence
+  `docs/v2/evidence/h/2026-11-19-ui-fit/` (`REPORT.md`, `results.json`).
 - [ ] 20. **Touch target and text size audit.** A spec walks every UI builder: buttons at least
   44×44 and text at the minimum size or above. Fix the stragglers.
 - [ ] 21. **Gamepad and keyboard.** Every screen can be closed with B or Escape, selection never

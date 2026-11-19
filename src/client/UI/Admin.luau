@@ -204,7 +204,10 @@ local function build()
 	local function refit()
 		local camera = workspace.CurrentCamera
 		local h = if camera then camera.ViewportSize.Y else 690
-		fit.Scale = math.clamp((h - 24) / 690, 0.4, 1)
+		-- The panel lives inside the GUI inset (top bar), so fit to the usable height, not the
+		-- full viewport height; otherwise the bottom rows clip on short landscape screens.
+		local inset = game:GetService("GuiService"):GetGuiInset()
+		fit.Scale = math.clamp((h - inset.Y - 24) / 690, 0.4, 1)
 	end
 	refit()
 	if workspace.CurrentCamera then

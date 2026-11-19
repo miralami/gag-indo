@@ -429,13 +429,24 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   noise. Evidence `docs/v2/evidence/h/2026-11-19-g3-phone/` (`REPORT.md`, `results.json`,
   `output.log`). GATE1.md G3 row + designer-actions row and MASTER_PLAN G3 checkbox marked closed;
   counts updated to 4 `SEEN-IN-STUDIO` / 3 `BLOCKED`. `lune` 1930 passed, `selene` 0/0/0.
-- [ ] 33. **G5 timings at phone size (3 fresh runs).** At the `iphone_14` viewport (749×389), run
+- [x] 33. **G5 timings at phone size (3 fresh runs).** At the `iphone_14` viewport (749×389), run
   three fresh-profile first sessions via the VERIFY-TEMP Mock store in `PlayerData.luau` (revert the
   line before commit), real grow timers, no `ready` shortcut. Record first-harvest (<45 s), first
   rarity reveal (<5 min) and raid-witnessed (<7 min) timestamps from the harness replies. Save
   `REPORT.md` + `results.json` under `docs/v2/evidence/h/2026-11-19-g5-phone/`, then update the
   GATE1.md G5 row and MASTER_PLAN G5 checkbox to mark the phone half `SEEN-IN-STUDIO` (criterion
   closed). Do not save the place or publish.
+  Done 2026-11-19 (`SEEN-IN-STUDIO`, HEAD `db34e01`): device set in Edit before Play (749×389),
+  fresh profile via VERIFY-TEMP Mock reverted before commit; every run restarted Play. Timings stamped
+  to Output via `print("[G5P] ... wall=...")`, no `ready` shortcut, commands paced ≥300 ms.
+  First harvest 22/20/21 s (<45 s) across 3 runs; first Bagus reveal at harvest ~20–22 s and Super
+  second harvest 70 s from t0 / 48 s from plant (<5 min); raid gossip `scripted_raid_gossip` at
+  11:23:26, 315 s from t0 (<7 min), matching `scriptedRaidDelay=330` s. Zero game-code errors/warnings
+  (only external Assistant-plugin/BUG-003/AnalyticsService noise). Evidence
+  `docs/v2/evidence/h/2026-11-19-g5-phone/` (`REPORT.md`, `results.json`, `output.log`). GATE1.md G5
+  row + designer-actions row and MASTER_PLAN G5 checkbox marked closed; counts now 5
+  `SEEN-IN-STUDIO` / 2 `BLOCKED`. Tier guarantee stays `LUNE-ONLY`. `lune` 1930 passed,
+  `selene` 0/0/0.
 - [ ] 34. **Refill (round 2).** Re-scan every `[ ]`/`[~]` item in `MASTER_PLAN.md`, `GATE1.md` and
   `BUGS.md` after items 32/33. Append anything still agent-doable plus a third bug-hunt-by-reading
   round over files changed since item 10. If a full round adds nothing, tick this and stop the

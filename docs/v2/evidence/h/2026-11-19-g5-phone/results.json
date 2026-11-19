@@ -1,0 +1,64 @@
+{
+  "date": "2026-11-19",
+  "item": 33,
+  "branch": "track/c-world-look",
+  "head": "db34e01",
+  "placeId": 132087524375529,
+  "studioId": "447c176b-1d7b-4b9c-a794-45912fea4b63",
+  "rojo": "localhost:34872",
+  "status": "SEEN-IN-STUDIO",
+  "target": "Time to first harvest < 45 s, first rarity reveal < 5 min, raid witnessed < 7 min — at phone size",
+  "deviceMethod": "StudioDeviceSimulatorService:SetDeviceAsync('iphone_14') applied in EDIT datamodel BEFORE entering Play. Real GUI viewport 749x389, GuiService inset 0,58.",
+  "viewport": "749x389",
+  "freshProfileMethod": "VERIFY-TEMP store.Mock in-memory ProfileStore in src/server/Data/PlayerData.luau; reverted before commit; every run restarted Play so each began cash 50, padi 5, tutorialStep 1, rank gurem",
+  "identityRecorded": false,
+  "statusWords": ["SEEN-IN-STUDIO", "LUNE-ONLY", "UNVERIFIED", "BLOCKED"],
+  "driverNote": "Harness plant goes through real FarmService.commitAttempt -> finish -> doPlant, so the tutorial 20 s padi grow applies (FirstSession.getGrowSeconds -> tutorialPadiGrowSeconds=20 while tutorial unfinished and stats.harvests==0). No harness 'ready' shortcut used: tile.ready from the status snapshot is computed against the real plantedAt + growSeconds. Timings stamped to Output via print with wall=os.date('%H:%M:%S', os.time()). Commands paced >=300 ms (4/s rate limit).",
+  "config": {
+    "tutorialPadiGrowSeconds": 20,
+    "scriptedRaidDelay": 330,
+    "guaranteedTiers": { "1": "bagus", "2": "super" },
+    "changeProposed": false
+  },
+  "firstHarvestRuns": [
+    { "run": 1, "t0": "11:16:17", "plantedWall": "11:16:18", "plantedElapsedS": 1, "readyWall": "11:16:39", "readyElapsedS": 22, "harvestWall": "11:16:39", "harvestElapsedS": 22, "targetS": 45, "pass": true },
+    { "run": 2, "t0": "11:17:14", "plantedWall": "11:17:14", "plantedElapsedS": 0, "readyWall": "11:17:34", "readyElapsedS": 20, "harvestWall": "11:17:34", "harvestElapsedS": 20, "targetS": 45, "pass": true },
+    { "run": 3, "t0": "11:18:11", "plantedWall": "11:18:12", "plantedElapsedS": 1, "readyWall": "11:18:32", "readyElapsedS": 21, "harvestWall": "11:18:32", "harvestElapsedS": 21, "targetS": 45, "pass": true }
+  ],
+  "firstHarvestVerdict": "PASS 3/3 runs at 20-22 s, under 45 s (SEEN-IN-STUDIO)",
+  "rarityReveal": {
+    "firstHarvestTier": "bagus",
+    "firstHarvestAtS": [22, 20, 21],
+    "firstRevealTargetS": 300,
+    "secondHarvestTier": "super",
+    "run3SecondPlantWall": "11:18:33",
+    "run3SecondHarvestWall": "11:19:21",
+    "run3SecondHarvestFromPlantS": 48,
+    "run3SecondHarvestElapsedS": 70,
+    "secondHarvestTargetS": 300,
+    "pass": true,
+    "note": "First rarity reveal coincides with first harvest at ~20-22 s (guaranteed Bagus; first_session_spec.luau LUNE-ONLY proves the tier text). Second harvest guaranteed Super at 70 s from t0 / 48 s from plant (run 3). Studio proves the timing window; tier guarantee is LUNE-ONLY."
+  },
+  "raid": {
+    "marker": "[G5P] R3 RAID-WITNESS scripted_raid_gossip wall=11:23:26",
+    "sessionStartWall": "11:18:11",
+    "elapsedS": 315,
+    "targetS": 420,
+    "pass": true,
+    "signal": "Remotes.Notify key scripted_raid_gossip",
+    "note": "Fired ~5:15 after session t0, matching scriptedRaidDelay=330 s checked on the 5 s FirstSession.tick loop. Under 7 min."
+  },
+  "q2": {
+    "gameCodeErrors": 0,
+    "gameCodeWarnings": 0,
+    "externalNotices": [
+      "Assistant plugin version changed ef6b1b3 -> 9bb6530 (x2, external plugin)",
+      "ContentId rbxassetid://203785492 failed: Asset type does not match requested type (x3, BUG-003, accepted exclusion D-G4)",
+      "AnalyticsService LogOnboardingFunnelStepEvent / LogCustomEvent / LogFunnelStepEvent notices"
+    ],
+    "bug003Recurred": false
+  },
+  "verdict": "SEEN-IN-STUDIO",
+  "scope": "phone-size G5 timing pass; combined with desktop h/2026-11-19-g5-timings/ this closes the G5 criterion",
+  "outputLog": "output.log"
+}

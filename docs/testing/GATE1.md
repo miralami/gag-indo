@@ -21,11 +21,11 @@ repo today. Principal sources:
 - `docs/v2/evidence/h/2026-11-14-phase0/`, `h/2026-11-14-soak/`, `h/2026-11-14-perf/`,
   `h/2026-11-14-audit-fixes/`, `baseline/` and `h/2026-11-19-q5-multiclient/`
 
-A status records what the saved evidence says today, not what the code should do. 4 rows are
-`SEEN-IN-STUDIO` at criterion level (G3, Q2, Q3, Q4), 1 `LUNE-ONLY` (Q8), 3 `BLOCKED` (G4, G5, Q5)
+A status records what the saved evidence says today, not what the code should do. 5 rows are
+`SEEN-IN-STUDIO` at criterion level (G3, G5, Q2, Q3, Q4), 1 `LUNE-ONLY` (Q8), 2 `BLOCKED` (G4, Q5)
 and 8 `UNVERIFIED`. The designer-only actions that remain are enumerated under
-"Designer actions to close the open rows" at the bottom of this file. G3 was closed 2026-11-19
-(item 32) after device emulation was confirmed working.
+"Designer actions to close the open rows" at the bottom of this file. G3 and G5 were closed
+2026-11-19 (items 32/33) after device emulation was confirmed working.
 
 ## Gate 1 exit criteria — MASTER_PLAN §4
 
@@ -36,7 +36,7 @@ and 8 `UNVERIFIED`. The designer-only actions that remain are enumerated under
 | G3 | "The harness plays the full beat sheet on phone size with zero Output errors or warnings." | Harness `plant`/`ready`/`harvest`/`sell`/`buy` driven through the §4 beat-sheet times at iPhone 14 size, Output copied to `output.log`. | SEEN-IN-STUDIO | **Criterion closed.** Phone-size beat sheet ran at a real 749×389 viewport (`SetDeviceAsync("iphone_14")` applied in Edit before Play): all nine §4 steps `ok=true`, 9 commands → 9 replies, cash 50→77→57→157, padi 5→4→6, tutorialStep 1→5, zero game-code errors/warnings — `h/2026-11-19-g3-phone/` (`REPORT.md`, `results.json`, `output.log`). Desktop half also proven in `h/2026-11-19-g3-beatsheet/` and reconfirmed in `h/2026-11-19-regression-replay/`. The old "no device emulation" block was false (item 31 discovery; item 19 already used `SetDeviceAsync`). Earlier loop runs remain `h/2026-11-14-phase0/`. | H |
 | G4 | "Nothing visible in the first ten minutes is a placeholder: no greybox part, no emoji, no missing icon, no silent action." | A phone-size pass over the first ten minutes, each frame checked against that list, shots saved. | BLOCKED — tracks C and G | `MASTER_PLAN.md` §1 still states the world is `World/Greybox.luau` and every icon/texture/sound/product ID is `0`, so the criterion is known to fail today. Track C owns the map (build and save the real village into `JuraganDesa.rbxl`), track G the icons/textures (Open Cloud uploads into `ASSET_MANIFEST.md`), track E "no silent action" — the audio policy/plumbing now exists (`h/2026-11-19-audio-hygiene/`) but is silent-by-design until real IDs land. No placeholder sweep is recorded in `BUGS.md`. | C + G |
 | G4b | "All text a player sees, in the world and on the HUD, is readable at phone size: no overlapping labels, no clipped text, nothing hidden under the HUD." (added to MASTER_PLAN §4, 2026-11-14) | Phone-size pass at the plot, Pasar and warung, shots saved, every label checked. | UNVERIFIED | Desktop/`LUNE-ONLY` proof accumulated: BUG-008 world signs fixed (`SEEN-IN-STUDIO` desktop, `h/2026-11-14-audit-fixes/`), BUG-009 HUD text ≥14 (`SEEN-IN-STUDIO` desktop), item 19 UI-fit probe at 749×388 with **0 off-screen/inset violations** across every screen and app page (`h/2026-11-19-ui-fit/`), item 20 audit fixed two sub-11 `MinTextSize` values (`ui_touch_text_audit_spec.luau`). **No phone-size screenshot pass at plot/Pasar/warung checking every world + HUD label has been saved**, so the row stays `UNVERIFIED`. Baseline defect shots: `baseline/phone-pasar.png`, `baseline/phone-plot.png`. | C + D |
-| G5 | "Time to first harvest is under 45 seconds, first rarity reveal under 5 minutes, raid witnessed under 7 minutes." | Stopwatch or Output timestamps through a fresh first session at phone size, three runs. | BLOCKED — designer device | **Desktop half `SEEN-IN-STUDIO`**: three fresh-profile desktop runs, first harvest 20/21/21 s (<45 s), Bagus ~20 s / Super ~110 s (<5 min), raid gossip ~5:22 (<7 min), `h/2026-11-19-g5-timings/`; **reconfirmed on synced code** — first harvest 20/20/20 s, Super reveal 48 s, raid gossip 310 s, real grow timers, no `ready` shortcut, `h/2026-11-19-regression-replay/`. Config already meets every target (`FirstSession.getGrowSeconds` 20 s, raid 330 s); no balance change proposed. **Phone-size half BLOCKED on the designer** (MCP cannot set device emulation). | B + H + designer |
+| G5 | "Time to first harvest is under 45 seconds, first rarity reveal under 5 minutes, raid witnessed under 7 minutes." | Stopwatch or Output timestamps through a fresh first session at phone size, three runs. | SEEN-IN-STUDIO | **Criterion closed.** Phone-size half ran three fresh-profile first sessions at a real 749×389 viewport (`SetDeviceAsync("iphone_14")` in Edit before Play): first harvest 22/20/21 s (<45 s), first Bagus reveal at first harvest ~20–22 s and Super second harvest 70 s (<5 min), raid gossip ~5:15 (315 s, <7 min), real grow timers, no `ready` shortcut — `h/2026-11-19-g5-phone/` (`REPORT.md`, `results.json`, `output.log`). Desktop half also proven (`h/2026-11-19-g5-timings/`, reconfirmed `h/2026-11-19-regression-replay/`). Config already meets every target (`FirstSession.getGrowSeconds` 20 s, raid 330 s); no balance change. The old "no device emulation" block was false. Tier guarantee remains `LUNE-ONLY` (`first_session_spec.luau`). | B + H |
 | G6 | "Frame rate and instance count are measured on the phone emulator and recorded; the target is 60 fps on mid-range Android (`ART.md` §5)." | MicroProfiler or `Stats` read on the iPhone 14 emulator at the plot and at the Pasar, plus a descendant count, written into a `REPORT.md`. | UNVERIFIED | Instance counts saved (`h/2026-11-14-perf/REPORT.md`: client 7897 descendants, PlayerGui 947), but the only fps reading (15.0, Studio unfocused) is unusable, so fps stays `UNVERIFIED`. Designer-reported phone play ~30 fps at max graphics / 60 fps at lowest (`h/2026-11-14-perf/DESIGNER_PHONE_REPORT.md`, no capture, device unnamed). Needs a designer-run emulator + MicroProfiler/`Stats` read at plot and Pasar and a descendant count in a `REPORT.md`. | H |
 | G7 | "Five real people play ten minutes on their own phones without help. The designer runs this. Their confusion points are fixed or logged." | Five separate humans, own phones, no coaching; confusion points logged in `BUGS.md` or fixed. | UNVERIFIED | Never run. Needs the designer plus five humans on their own phones, no coaching. No agent can produce this. `baseline/REPORT.md` records only the one Studio session. | designer |
 
@@ -53,23 +53,25 @@ and 8 `UNVERIFIED`. The designer-only actions that remain are enumerated under
 | Q7 | "Works on phone: touch only, small screen, mid-range device frame rate." | Played by touch on a real mid-range Android at its own frame rate, shots saved. | UNVERIFIED | iPhone 14 **emulator** render exists (`baseline/phone-01.png`, `baseline/phone-plot.png`), covering small screen only; item 19's 749×388 probe covers layout. Touch input on a real mid-range Android and real-device frame rate are untested; the harness bypasses prompts entirely (`HARNESS.md` §5 "prompt visibility and reach"). | H + hardware |
 | Q8 | "Every defect gets a regression test where the logic can be tested in Lune, before the fix is merged." | Each fixed defect names its spec; `lune run tests/run.luau` passes. | LUNE-ONLY | Every fixed defect names a spec: BUG-002 `greybox_spec.luau`, BUG-005 `analytics_spec.luau`, BUG-001 `sky_spec.luau`, BUG-004 `seedfloor_spec.luau`, BUG-013 `minigame_cancel_spec.luau`, BUG-014 `produce_spec.luau`, BUG-015 `economy_config_spec.luau`, BUG-016 `purchase_idempotency_spec.luau`, BUG-017 `cross_server_failure_spec.luau`. `lune run tests/run.luau`: **1930 passing**; `selene src`: 0 errors / 0 warnings / 0 parse errors. `LUNE-ONLY` because there is no published/Studio re-run of each spec, but all pass locally before every commit. | H |
 
-16 rows. 4 `SEEN-IN-STUDIO` at criterion level (G3, Q2, Q3, Q4), 3 `BLOCKED` (G4, G5, Q5), 1
+16 rows. 5 `SEEN-IN-STUDIO` at criterion level (G3, G5, Q2, Q3, Q4), 2 `BLOCKED` (G4, Q5), 1
 `LUNE-ONLY` (Q8), 8 `UNVERIFIED` (G1, G2, G4b, G6, G7, Q1, Q6, Q7). Q2/Q3 stayed closed through the
 2026-11-19 synced-code sweep and the post-change regression replay (`h/2026-11-19-regression-replay/`).
 G3 was fully closed 2026-11-19 (item 32): its phone half passed at a real 749×389 viewport
 (`h/2026-11-19-g3-phone/`) after device emulation was confirmed working — the old "no device emulation"
-block was false. G5's desktop half is proven (`h/2026-11-19-g5-timings/`) and its phone half is now
-agent-doable by the same method (queued as WORK_QUEUE item 33); the row stays `BLOCKED` until that runs.
-Q5's soak half was re-run to a clean 30 min there, ten-player half still `BLOCKED`. G4b accumulated
-strong desktop/`LUNE-ONLY` proof (items 19/20) but no phone-size screenshot pass, so it stays
-`UNVERIFIED`. G1 (the composite row) closes last, once every `Q#` row passes.
+block was false. G5 was fully closed the same day (item 33): three fresh phone-size runs at 749×389,
+first harvest 22/20/21 s, Super 70 s, raid gossip ~5:15 (`h/2026-11-19-g5-phone/`). G5's tier
+guarantee stays `LUNE-ONLY` (`first_session_spec.luau`). Q5's soak half was re-run to a clean 30 min
+there, ten-player half still `BLOCKED`. G4b accumulated strong desktop/`LUNE-ONLY` proof (items 19/20)
+but no phone-size screenshot pass, so it stays `UNVERIFIED`. G1 (the composite row) closes last,
+once every `Q#` row passes.
 
 ## Designer actions to close the open rows
 
 Everything an agent can do is done; each row below needs the designer (a real device, a human,
-tracks C/G/E art, or a published place). The Studio MCP cannot set device emulation, spawn test
-clients, or produce touch input. Evidence saved in `docs/v2/evidence/` using the paths shown closes
-the row.
+tracks C/G/E art, or a published place). Studio device emulation *is* available via
+`StudioDeviceSimulatorService:SetDeviceAsync` (set in Edit before Play), but the remaining rows need
+a physical device / real touch / multiple human clients / art / a published place that MCP cannot
+provide. Evidence saved in `docs/v2/evidence/` using the paths shown closes the row.
 
 | Row | Status now | Exact designer action to close it | Evidence to save |
 |---|---|---|---|
@@ -77,7 +79,7 @@ the row.
 | ~~G3~~ | ~~`BLOCKED — designer device`~~ **closed `SEEN-IN-STUDIO`** | Done 2026-11-19 (item 32): phone-size beat sheet passed at 749×389, all nine steps `ok=true`, zero game-code errors. No designer action remains. | `h/2026-11-19-g3-phone/`. |
 | G4 | `BLOCKED — tracks C and G` | Track C: build and **save the real village into `JuraganDesa.rbxl`**, replacing `World/Greybox.luau`. Track G: upload final icons/textures via Open Cloud and record IDs in `ASSET_MANIFEST.md`. Track E: wire real sounds so no action is silent. Then do the first-ten-minutes phone-size placeholder sweep. | Saved place, asset manifest, and phone-size sweep shots under `docs/v2/evidence/c/` + `docs/v2/evidence/g/`. |
 | G4b | `UNVERIFIED` | Phone-size pass (iPhone 14 viewport) at the plot, Pasar and warung; check every world and HUD label for overlap, clipping and HUD occlusion; fix any straggler. Desktop proof (items 19/20) already exists. | Shots + `REPORT.md` under `h/…g4b-phone/`. |
-| G5 | `BLOCKED — designer device` | At phone size, run three fresh-profile first sessions with a stopwatch/Output timestamps for first harvest (<45 s), first rarity reveal (<5 min) and raid witnessed (<7 min). Desktop timings already meet every target; no balance change needed. | Phone-size `REPORT.md` + `results.json` under `h/…g5-phone/`. |
+| ~~G5~~ | ~~`BLOCKED — designer device`~~ **closed `SEEN-IN-STUDIO`** | Done 2026-11-19 (item 33): three fresh phone-size runs at 749×389, first harvest 22/20/21 s, Super 70 s, raid gossip ~5:15, zero game-code errors. No designer action remains. | `h/2026-11-19-g5-phone/`. |
 | G6 | `UNVERIFIED` | On the phone emulator at the plot and Pasar, read fps via MicroProfiler or `Stats` and record a descendant count; target 60 fps on mid-range Android. The 15.0 Studio-unfocused reading is unusable. | `REPORT.md` with fps + instance counts under `h/…perf-phone/`. |
 | G7 | `UNVERIFIED` | Have five real people play ten minutes each on their own phones, no coaching; log or fix every confusion point. This cannot be delegated to an agent. | Notes in `BUGS.md` + session log under `docs/v2/evidence/`. |
 | Q5 | `BLOCKED — designer/Studio UI` | In Studio's **Test** tab, start a Local Server with several test clients and run the §2–§4 loop with ten players to the soak deadline; record any desync, server memory series and full multi-client `output.log`. The 30-min client soak is already clean; the Lune 10-player sim is `LUNE-ONLY`. | Multi-client `REPORT.md`, `results.json`, `output.log` under `h/…q5-multiclient-closed/`. |

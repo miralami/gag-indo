@@ -28,12 +28,14 @@ Status values: **open** · **decided** · **changed**
 | D15 | Where 3D models come from | **Ladder, in order (designer 2026-11-19):** (1) free assets: Creator Store models whose licence allows use (strip every Script on insert), CC0 sources (Poly Haven, Poly Pizza, CC0 Sketchfab); (2) auto-generated: Studio MCP `generate_mesh` / `generate_procedural_model`, Blender MCP `generate_3d`; (3) the designer builds it; (4) Roblox parts/CSG modelling in Studio. Every source and licence goes in `ASSET_MANIFEST.md`. Everything enters as a `LookDev` candidate until the designer says yes. | **decided** |
 | V-D1 | Retire the world ink outline? (`VISUAL_MASTER_PLAN.md` §10) | **Yes**: no outline on world geometry, `Highlight` only as a focus cue, UI keeps its outline. Supersedes the ink-contour half of D11; D14 governs the look. | **decided** |
 | V-D2 | Let the clock move? | **Yes, slowly**: golden hour → dusk → night → morning, golden hour guaranteed for the first session and at spawn. | **decided** |
-| V-D3 | The ten low-poly props | **Judge per prop** in the look-dev corner: keep the simple ones (crate, barrel, karung, fence) re-textured, replace the stall, hut and similar. | **decided** |
+| V-D3 | The ten low-poly props | **Replace all** with real 3D models from the D15 ladder (designer 2026-11-19, overrides the per-prop recommendation). | **decided** |
 | V-D4 | Pine backdrop | **Replace with tropical trees** (kelapa, pisang, bambu) within sight of the village. | **decided** |
 | V-D5 | Reference photos (V0.3) | **Mix**: designer gives 3–5 (the SAWAH INDO screenshots count, for mood only, never copied), agent fills the rest from CC0 sources with links. | **decided** |
 | V-D6 | Animation route | **Mix**: Creator Store for generic motion (walk, idle), authored for the tool verbs (cangkul, panen) and NPC habits. | **decided** |
 | D16 | `StreamingEnabled` | **Off for now**: revisit after G6 real-device fps. | **decided** |
 | D17 | Cap the Studio-only crops showcase on low tiers (round 2 item 11) | **Yes**: mature `siap` stage only on Rendah/Sedang, all stages on Tinggi. | **decided** |
+| D18 | Art sourcing per candidate type (round 2 review, 2026-11-19) | Icons: keep as the base, improve all (start with `tier_biasa`, `debt`). Textures: download CC0 PBR textures online (ambientCG, Poly Haven) into MaterialVariants; the agent-drawn ones are rejected. NPCs, crops: real 3D models via the D15 ladder. Hub props: case by case, mostly real 3D models; the primitive versions are rejected, the idea (goods on the counter, lanterns) is kept. | **decided** |
+| D19 | Day cycle direction | The eight phases in `docs/v2/visual/DAY_CYCLE.md` (designer's notes mapped to the game). Q1–Q4 there are open. | **decided** (phases) / open (Q1–Q4) |
 
 ## How to change one
 

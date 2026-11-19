@@ -7,7 +7,9 @@ Live since 2026-11-19 (`e6da076`). Rounds 1 and 2 are archived in `WORK_QUEUE_RO
 to comparable Indonesian village games. Visuals are now the priority. They are not a gameplay
 feature, so they may run before Gate 1 (`VISUAL_MASTER_PLAN.md`, "How this fits Gate 1").
 
-**Decisions in force** (`DECISIONS.md`):
+**Decisions in force** (`DECISIONS.md`): V-D3 is now *replace all*; D18 sets how each asset type
+is sourced; D19 is the day cycle.
+Also in force:
 - D14: aim realistic, land believable.
 - V-D1: no outline on world geometry.
 - V-D2: the clock moves slowly, with golden hour at spawn.
@@ -68,17 +70,26 @@ feature, so they may run before Gate 1 (`VISUAL_MASTER_PLAN.md`, "How this fits 
   village.
 - [ ] 6. **Props:** fences (bambu), lanterns (oil lamp, petromax), crates, karung, sepeda, gerobak,
   jemuran, signs, motor. Prefer set dressing that tells the story.
-- [ ] 7. **Ground:** cobblestone and dirt paths, tanah sawah, pematang edges, river banks. Use
-  textured Terrain materials (MaterialVariants) before meshes.
+- [ ] 7. **Ground and surface textures (D18):** cobblestone and dirt paths, tanah sawah, pematang
+  edges, river banks, bambu, genteng, seng, wood. Download CC0 PBR texture sets (ambientCG, Poly
+  Haven) and turn them into MaterialVariants on Terrain and parts. Upload the maps through Open
+  Cloud and record source and licence. The round-2 agent-drawn textures are rejected.
 - [ ] 8. **NPCs and characters:** caricature NPC bodies and accessories (peci, caping, seragam
   polisi) from the ladder. Keep R15 compatibility.
 - [ ] 9. **Animations (V-D6):** Creator Store walk/idle for NPCs; list the authored ones
   (cangkul, panen) under "Designer builds" or generate them with Studio MCP
   `generate_animation`.
 
+- [ ] 9b. **Icons, improve (D18).** Keep the round-2 set as the base; redraw `tier_biasa` (it's an
+  empty box) and `debt` (unclear). Polish the rest for more depth and readability at 48 px. Make
+  it a new candidate revision with before/after contact sheets.
+
 ### C. Light and atmosphere (L1)
-- [ ] 10. **Lighting preset:** Future lighting, Atmosphere, warm ColorCorrection, Bloom kept
-  low, SunRays. Golden hour at spawn and a slow day/night cycle (V-D2). Night needs lanterns that
+- [ ] 10. **Lighting and day cycle (V-D2, D19):** Future lighting, Atmosphere, warm
+  ColorCorrection, Bloom kept low, SunRays. Build the eight phases in
+  `docs/v2/visual/DAY_CYCLE.md` as a pure, Lune-tested phase table layered over the season and
+  weather presets in `Sky.luau`, with golden hour at spawn. Use the designer's answers to
+  DAY_CYCLE Q1–Q4 where they exist; otherwise use the recommended defaults. Night needs lanterns that
   actually emit light. Check each FidelityTier at Rendah.
 - [ ] 11. **Sky and fog:** a tropical skybox, a distant ridge silhouette, and haze depth.
 

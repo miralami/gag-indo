@@ -127,7 +127,9 @@ return function(t, Env)
 			end
 		end)
 
-		t:it("leaves every designer yes/no cell blank across all three tables", function()
+		-- A designer cell is blank (undecided), "pending — ..." or a designer verdict that starts with
+		-- **yes or **no** (recorded from the designer's own answer, 2026-11-19 round-2 review).
+		t:it("keeps every designer yes/no cell blank, pending or a designer verdict", function()
 			local tables = parseTables(src)
 			local checked = 0
 			for _, tb in tables do
@@ -135,7 +137,12 @@ return function(t, Env)
 					checked += 1
 					for _, row in tb.rows do
 						expect(#row):toBe(#tb.header)
-						expect(trim(row[#row])):toBe("")
+						local cell = trim(row[#row])
+						local ok = cell == ""
+							or string.sub(cell, 1, #"pending") == "pending"
+							or string.sub(cell, 1, 5) == "**yes"
+							or string.sub(cell, 1, 6) == "**no**"
+						expect(ok):toBe(true)
 					end
 				end
 			end

@@ -156,9 +156,20 @@ never publish.
 
 ### C. Performance with candidates on
 
-- [ ] 11. **Budget check.** Count instances, parts and triangles per hub with all candidates on
+- [x] 11. **Budget check.** Count instances, parts and triangles per hub with all candidates on
   and off, at each FidelityTier. Rendah must stay within budget; trim the candidates if it
   doesn't.
+  `SEEN-IN-STUDIO` — live FidelityRuntime forced to Rendah/Sedang/Tinggi at all six MapSpec hubs;
+  baseline and all-on instances/parts/triangles counted in a 100-stud census (all-on = baseline +
+  sum of the eight disjoint candidate deltas because LookDev is single-active). Worst all-on
+  49,208 triangles (9.8% of the ~500k Sedang budget) and 712 parts; baseline alone 230–347 parts,
+  13,232–19,780 triangles. Counts are tier-invariant. Triangles pass; the draw-call proxy exceeds
+  ~500 only in the all-on stress case and entirely because of the 339-part Studio-only crops
+  review showcase — the shipping state (all candidates off) is within budget. Lune recipe counts
+  match the live shape histogram exactly (crops 339/27,416, hubprops 43/3,648). Probe cleaned,
+  Play stopped, place not saved or published. Evidence
+  `docs/v2/evidence/h/2026-11-19-budget-check/` (`REPORT.md`, `results.json`). No lune count change.
+  Low-tier showcase trim parked under "Decisions for designer"; no delivered art was changed.
 - [ ] 12. **30-minute soak with all candidates on**: memory series, connection count, no growth.
 - [ ] 13. **StreamingEnabled readiness audit.** Find client paths that assume parts exist
   (`WaitForChild` without a timeout, direct indexing). Fix them with specs. Don't flip the
@@ -216,7 +227,13 @@ never publish.
 
 ## Decisions for designer
 
-- (none yet)
+- **Item 11 — cap the Studio-only crops showcase on low tiers.** The all-candidates-on stress view
+  exceeds the ~500 draw-call proxy (580–712 parts) solely because the crops candidate is a 339-part
+  review grid of all 36 models floating near the player. Proposal: show only the mature `siap`
+  stage on Rendah/Sedang (12 models, 144 parts, 13,088 triangles) and keep all 36 models on Tinggi
+  for full review; this brings the stress view to ~517 parts (495 at the pasar/spawn view).
+  Parked, not applied — implementation would touch `CropModelCandidates.stagesByTier`,
+  `LookDevCrops` and a locking spec. See `docs/v2/evidence/h/2026-11-19-budget-check/`.
 
 ## Blocked on designer
 

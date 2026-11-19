@@ -139,6 +139,11 @@ local specs = {
 	require("./specs/audio_policy_spec"),
 	require("./specs/audio_wiring_spec"),
 	require("./specs/day_cycle_spec"),
+	require("./specs/day_cycle_live_spec"),
+	require("./specs/texture_map_r3_spec"),
+	require("./specs/icon_map_r3_spec"),
+	require("./specs/model_map_r3_spec"),
+	require("./specs/sky_map_r3_spec"),
 }
 
 -- `--timing` prints a full per-spec table; without it only the slowest rows print. The first

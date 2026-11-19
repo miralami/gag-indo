@@ -166,3 +166,137 @@ texture_sawah,image,agent-generated,docs/v2/visual/art/textures/render/texture_s
 texture_kertas,image,agent-generated,docs/v2/visual/art/textures/render/texture_kertas.png,agent-made no third-party licence,,102834761172815,,UNVERIFIED
 texture_tanah,image,agent-generated,docs/v2/visual/art/textures/render/texture_tanah.png,agent-made no third-party licence,,95694392312399,,UNVERIFIED
 ```
+
+### Uploaded 2026-11-20 (round 3 items 20/21 — real CC0 Poly Haven PBR candidates, Open Cloud)
+
+The `ROBLOX_API_KEY` route check succeeded: the first real texture upload returned HTTP 200 and its
+completed operation yielded the first ID below. Section G uses this route. Every ID in this section
+was read from a completed `GET /assets/v1/operations/{id}`; none was invented. The key was never
+printed, logged or committed. All maps are 1024x1024; the normal maps are `nor_gl` (Roblox expects
+OpenGL tangent space). Per-file URL, author, MD5 and operation ID are in
+`docs/v2/visual/art/textures_r3/upload_manifest.json`; the review aid is
+`docs/v2/visual/art/textures_r3/render/contact_sheet.png`. **All are LookDev candidates behind
+`textures_r3`, off by default, awaiting a designer yes/no — none shipped on.**
+
+```
+slot,class,source,source_ref,licence,attribution,id,approved_by,status
+texture_r3.cobblestone_floor_01.diff,image,polyhaven,https://polyhaven.com/a/cobblestone_floor_01,CC0,Rob Tuytel,74744016196476,,UNVERIFIED
+texture_r3.cobblestone_floor_01.nor,image,polyhaven,https://polyhaven.com/a/cobblestone_floor_01,CC0,Rob Tuytel,110226485663162,,UNVERIFIED
+texture_r3.cobblestone_floor_01.rough,image,polyhaven,https://polyhaven.com/a/cobblestone_floor_01,CC0,Rob Tuytel,138531745001215,,UNVERIFIED
+texture_r3.stony_dirt_path.diff,image,polyhaven,https://polyhaven.com/a/stony_dirt_path,CC0,eye-candy.xyz,80034871262278,,UNVERIFIED
+texture_r3.stony_dirt_path.nor,image,polyhaven,https://polyhaven.com/a/stony_dirt_path,CC0,eye-candy.xyz,78151682245075,,UNVERIFIED
+texture_r3.stony_dirt_path.rough,image,polyhaven,https://polyhaven.com/a/stony_dirt_path,CC0,eye-candy.xyz,136294167944729,,UNVERIFIED
+texture_r3.brown_mud_03.diff,image,polyhaven,https://polyhaven.com/a/brown_mud_03,CC0,Rob Tuytel,118458951573479,,UNVERIFIED
+texture_r3.brown_mud_03.nor,image,polyhaven,https://polyhaven.com/a/brown_mud_03,CC0,Rob Tuytel,114355009654625,,UNVERIFIED
+texture_r3.brown_mud_03.rough,image,polyhaven,https://polyhaven.com/a/brown_mud_03,CC0,Rob Tuytel,128285016910005,,UNVERIFIED
+texture_r3.farm_furrows.diff,image,polyhaven,https://polyhaven.com/a/farm_furrows,CC0,Amal Kumar,73024027131833,,UNVERIFIED
+texture_r3.farm_furrows.nor,image,polyhaven,https://polyhaven.com/a/farm_furrows,CC0,Amal Kumar,83316497417973,,UNVERIFIED
+texture_r3.farm_furrows.rough,image,polyhaven,https://polyhaven.com/a/farm_furrows,CC0,Amal Kumar,70948754520311,,UNVERIFIED
+texture_r3.river_small_rocks.diff,image,polyhaven,https://polyhaven.com/a/river_small_rocks,CC0,Rob Tuytel; Rico Cilliers,71705724488696,,UNVERIFIED
+texture_r3.river_small_rocks.nor,image,polyhaven,https://polyhaven.com/a/river_small_rocks,CC0,Rob Tuytel; Rico Cilliers,131394824179214,,UNVERIFIED
+texture_r3.river_small_rocks.rough,image,polyhaven,https://polyhaven.com/a/river_small_rocks,CC0,Rob Tuytel; Rico Cilliers,121037425917541,,UNVERIFIED
+texture_r3.bamboo_wall.diff,image,polyhaven,https://polyhaven.com/a/bamboo_wall,CC0,Amal Kumar,129038060876960,,UNVERIFIED
+texture_r3.bamboo_wall.nor,image,polyhaven,https://polyhaven.com/a/bamboo_wall,CC0,Amal Kumar,136304309254898,,UNVERIFIED
+texture_r3.bamboo_wall.rough,image,polyhaven,https://polyhaven.com/a/bamboo_wall,CC0,Amal Kumar,138535778061241,,UNVERIFIED
+texture_r3.clay_roof_tiles_02.diff,image,polyhaven,https://polyhaven.com/a/clay_roof_tiles_02,CC0,Amal Kumar,83414482593923,,UNVERIFIED
+texture_r3.clay_roof_tiles_02.nor,image,polyhaven,https://polyhaven.com/a/clay_roof_tiles_02,CC0,Amal Kumar,109796656706355,,UNVERIFIED
+texture_r3.clay_roof_tiles_02.rough,image,polyhaven,https://polyhaven.com/a/clay_roof_tiles_02,CC0,Amal Kumar,105143056428348,,UNVERIFIED
+texture_r3.corrugated_iron.diff,image,polyhaven,https://polyhaven.com/a/corrugated_iron,CC0,Dimitrios Savva; Jenelle van Heerden,92821229855906,,UNVERIFIED
+texture_r3.corrugated_iron.nor,image,polyhaven,https://polyhaven.com/a/corrugated_iron,CC0,Dimitrios Savva; Jenelle van Heerden,126844497648318,,UNVERIFIED
+texture_r3.corrugated_iron.rough,image,polyhaven,https://polyhaven.com/a/corrugated_iron,CC0,Dimitrios Savva; Jenelle van Heerden,113205619789050,,UNVERIFIED
+texture_r3.wood_planks.diff,image,polyhaven,https://polyhaven.com/a/wood_planks,CC0,Amal Kumar,71303695104901,,UNVERIFIED
+texture_r3.wood_planks.nor,image,polyhaven,https://polyhaven.com/a/wood_planks,CC0,Amal Kumar,116521049280771,,UNVERIFIED
+texture_r3.wood_planks.rough,image,polyhaven,https://polyhaven.com/a/wood_planks,CC0,Amal Kumar,107767666486100,,UNVERIFIED
+```
+
+### Uploaded 2026-11-20 (round 3 item 22 — revised original icon CANDIDATES, Open Cloud)
+
+All 27 IDs were returned by completed `GET /assets/v1/operations/{id}` calls using the
+`ROBLOX_API_KEY` route; none was invented and the key was never printed, logged or committed.
+Renders are the deterministic Pillow output of `icons/src/generate_icons_r3.py`; before/after
+contact sheets are in `icons/render_r3/`. **All are LookDev candidates behind `icons_r3`, off
+by default, awaiting a designer yes/no — none shipped on.**
+
+```
+slot,class,source,source_ref,licence,attribution,id,approved_by,status
+icon_r3.cash,image,agent-generated,docs/v2/visual/art/icons/render_r3/cash.png,original artwork no third-party licence,,138087600730726,,UNVERIFIED
+icon_r3.cheat,image,agent-generated,docs/v2/visual/art/icons/render_r3/cheat.png,original artwork no third-party licence,,125589296242506,,UNVERIFIED
+icon_r3.crop_bawang,image,agent-generated,docs/v2/visual/art/icons/render_r3/crop_bawang.png,original artwork no third-party licence,,135178455685153,,UNVERIFIED
+icon_r3.crop_cabai,image,agent-generated,docs/v2/visual/art/icons/render_r3/crop_cabai.png,original artwork no third-party licence,,79919705592702,,UNVERIFIED
+icon_r3.crop_cengkeh,image,agent-generated,docs/v2/visual/art/icons/render_r3/crop_cengkeh.png,original artwork no third-party licence,,78132241141166,,UNVERIFIED
+icon_r3.crop_durian,image,agent-generated,docs/v2/visual/art/icons/render_r3/crop_durian.png,original artwork no third-party licence,,101370699215855,,UNVERIFIED
+icon_r3.crop_jagung,image,agent-generated,docs/v2/visual/art/icons/render_r3/crop_jagung.png,original artwork no third-party licence,,90649184401740,,UNVERIFIED
+icon_r3.crop_kakao,image,agent-generated,docs/v2/visual/art/icons/render_r3/crop_kakao.png,original artwork no third-party licence,,125498435667984,,UNVERIFIED
+icon_r3.crop_kopi,image,agent-generated,docs/v2/visual/art/icons/render_r3/crop_kopi.png,original artwork no third-party licence,,138083843465081,,UNVERIFIED
+icon_r3.crop_padi,image,agent-generated,docs/v2/visual/art/icons/render_r3/crop_padi.png,original artwork no third-party licence,,134033339407480,,UNVERIFIED
+icon_r3.crop_sawit,image,agent-generated,docs/v2/visual/art/icons/render_r3/crop_sawit.png,original artwork no third-party licence,,117040564851934,,UNVERIFIED
+icon_r3.crop_singkong,image,agent-generated,docs/v2/visual/art/icons/render_r3/crop_singkong.png,original artwork no third-party licence,,127244634432547,,UNVERIFIED
+icon_r3.crop_tebu,image,agent-generated,docs/v2/visual/art/icons/render_r3/crop_tebu.png,original artwork no third-party licence,,127292228714627,,UNVERIFIED
+icon_r3.crop_tembakau,image,agent-generated,docs/v2/visual/art/icons/render_r3/crop_tembakau.png,original artwork no third-party licence,,78677113924306,,UNVERIFIED
+icon_r3.currency_rupiah,image,agent-generated,docs/v2/visual/art/icons/render_r3/currency_rupiah.png,original artwork no third-party licence,,99150976838662,,UNVERIFIED
+icon_r3.debt,image,agent-generated,docs/v2/visual/art/icons/render_r3/debt.png,original artwork no third-party licence,,123701882589428,,UNVERIFIED
+icon_r3.garden,image,agent-generated,docs/v2/visual/art/icons/render_r3/garden.png,original artwork no third-party licence,,116123519007302,,UNVERIFIED
+icon_r3.hat,image,agent-generated,docs/v2/visual/art/icons/render_r3/hat.png,original artwork no third-party licence,,94710589109478,,UNVERIFIED
+icon_r3.phone,image,agent-generated,docs/v2/visual/art/icons/render_r3/phone.png,original artwork no third-party licence,,136621488738903,,UNVERIFIED
+icon_r3.quest,image,agent-generated,docs/v2/visual/art/icons/render_r3/quest.png,original artwork no third-party licence,,112252209152765,,UNVERIFIED
+icon_r3.shop,image,agent-generated,docs/v2/visual/art/icons/render_r3/shop.png,original artwork no third-party licence,,100422070142864,,UNVERIFIED
+icon_r3.tier_bagus,image,agent-generated,docs/v2/visual/art/icons/render_r3/tier_bagus.png,original artwork no third-party licence,,112466562604884,,UNVERIFIED
+icon_r3.tier_biasa,image,agent-generated,docs/v2/visual/art/icons/render_r3/tier_biasa.png,original artwork no third-party licence,,90695650673648,,UNVERIFIED
+icon_r3.tier_langka,image,agent-generated,docs/v2/visual/art/icons/render_r3/tier_langka.png,original artwork no third-party licence,,101704450642324,,UNVERIFIED
+icon_r3.tier_sultan,image,agent-generated,docs/v2/visual/art/icons/render_r3/tier_sultan.png,original artwork no third-party licence,,104739847459422,,UNVERIFIED
+icon_r3.tier_super,image,agent-generated,docs/v2/visual/art/icons/render_r3/tier_super.png,original artwork no third-party licence,,86600499251030,,UNVERIFIED
+icon_r3.trophy,image,agent-generated,docs/v2/visual/art/icons/render_r3/trophy.png,original artwork no third-party licence,,105377004669039,,UNVERIFIED
+```
+
+
+### Uploaded 2026-11-20 (round 3 item 23 — CC0 / designer-build model CANDIDATES, Open Cloud)
+
+All 20 IDs were returned by completed `GET /assets/v1/operations/{id}` calls using the
+`ROBLOX_API_KEY` route with `assetType=Model`; none was invented. Four are real CC0 Quaternius
+downloads via Poly Pizza; sixteen are original deterministic low-poly geometry converted to GLB
+by `models_r3/src/obj_to_glb.py`. Exact source URLs, authors, licences, triangle counts, MD5s and
+operation IDs are in `models_r3/MANIFEST.md` and `models_r3/upload_manifest.json`. **All are
+LookDev candidates behind the four family toggles, off by default, verdicts blank.**
+
+```
+slot,class,source,source_ref,licence,attribution,id,approved_by,status
+model_r3.vegetation_r3/kelapa_cc0,model,cc0_download,docs/v2/visual/art/models_r3/raw/vegetation_r3/palm_quaternius.ply.glb,CC0 1.0 (Quaternius),Quaternius via poly.pizza,110335398915554,,UNVERIFIED
+model_r3.vegetation_r3/bambu_cc0,model,cc0_download,docs/v2/visual/art/models_r3/raw/vegetation_r3/bamboo_quaternius.ply.glb,CC0 1.0 (Quaternius),Quaternius via poly.pizza,118009659509388,,UNVERIFIED
+model_r3.npcs_r3/farmer_cc0,model,cc0_download,docs/v2/visual/art/models_r3/raw/npcs_r3/farmer_quaternius.ply.glb,CC0 1.0 (Quaternius),Quaternius via poly.pizza,109551357778200,,UNVERIFIED
+model_r3.npcs_r3/polisi_cc0,model,cc0_download,docs/v2/visual/art/models_r3/raw/npcs_r3/swat_quaternius.ply.glb,CC0 1.0 (Quaternius),Quaternius via poly.pizza,95267863359958,,UNVERIFIED
+model_r3.buildings_r3/rumah,model,designer_build,docs/v2/visual/art/models_r3/export/buildings_r3/rumah_panggung.glb,original, CC0-equivalent,original deterministic generator,85063409548405,,UNVERIFIED
+model_r3.buildings_r3/kandang,model,designer_build,docs/v2/visual/art/models_r3/export/buildings_r3/kandang_ayam.glb,original, CC0-equivalent,original deterministic generator,119940478952704,,UNVERIFIED
+model_r3.buildings_r3/gudang,model,designer_build,docs/v2/visual/art/models_r3/export/buildings_r3/gudang_sawmill.glb,original, CC0-equivalent,original deterministic generator,111256303923528,,UNVERIFIED
+model_r3.vegetation_r3/kelapa_alt,model,designer_build,docs/v2/visual/art/models_r3/export/vegetation_r3/palm_tropical.glb,original, CC0-equivalent,original deterministic generator,109494105307245,,UNVERIFIED
+model_r3.vegetation_r3/pisang,model,designer_build,docs/v2/visual/art/models_r3/export/vegetation_r3/banana_tropical.glb,original, CC0-equivalent,original deterministic generator,101217327819812,,UNVERIFIED
+model_r3.vegetation_r3/mangga,model,designer_build,docs/v2/visual/art/models_r3/export/vegetation_r3/mango_tropical.glb,original, CC0-equivalent,original deterministic generator,121015860286403,,UNVERIFIED
+model_r3.vegetation_r3/shrubs,model,designer_build,docs/v2/visual/art/models_r3/export/vegetation_r3/shrubs_tropical.glb,original, CC0-equivalent,original deterministic generator,130954290306373,,UNVERIFIED
+model_r3.props_r3/cart,model,designer_build,docs/v2/visual/art/models_r3/export/props_r3/cart_gerobak.glb,original, CC0-equivalent,original deterministic generator,123070528502160,,UNVERIFIED
+model_r3.props_r3/well,model,designer_build,docs/v2/visual/art/models_r3/export/props_r3/well_sumur.glb,original, CC0-equivalent,original deterministic generator,108779169207130,,UNVERIFIED
+model_r3.props_r3/stall,model,designer_build,docs/v2/visual/art/models_r3/export/props_r3/market_stall.glb,original, CC0-equivalent,original deterministic generator,119525167329493,,UNVERIFIED
+model_r3.props_r3/fence,model,designer_build,docs/v2/visual/art/models_r3/export/props_r3/fencing_bambu.glb,original, CC0-equivalent,original deterministic generator,85094565897097,,UNVERIFIED
+model_r3.props_r3/tools,model,designer_build,docs/v2/visual/art/models_r3/export/props_r3/tools_set.glb,original, CC0-equivalent,original deterministic generator,110400413362502,,UNVERIFIED
+model_r3.npcs_r3/villager_a,model,designer_build,docs/v2/visual/art/models_r3/export/npcs_r3/npc_petani_caping.glb,original, CC0-equivalent,original deterministic generator,75743269173481,,UNVERIFIED
+model_r3.npcs_r3/villager_b,model,designer_build,docs/v2/visual/art/models_r3/export/npcs_r3/npc_pedagang.glb,original, CC0-equivalent,original deterministic generator,100304009103314,,UNVERIFIED
+model_r3.npcs_r3/villager_c,model,designer_build,docs/v2/visual/art/models_r3/export/npcs_r3/npc_petani_wanita.glb,original, CC0-equivalent,original deterministic generator,75017945133929,,UNVERIFIED
+model_r3.npcs_r3/villager_d,model,designer_build,docs/v2/visual/art/models_r3/export/npcs_r3/npc_tukang_peci.glb,original, CC0-equivalent,original deterministic generator,128549093376717,,UNVERIFIED
+```
+
+
+### Uploaded 2026-11-20 (round 3 item 24 — CC0 HDRI sky cube faces, Open Cloud)
+
+All six IDs were returned by completed `GET /assets/v1/operations/{id}` calls using the
+`ROBLOX_API_KEY` route with `assetType=Image`; none was invented. Source is the CC0 Poly Haven
+HDRI `fish_hoek_beach` (Greg Zaal, Rico Cilliers), converted to six cube faces by
+`sky_r3/src/make_cube_faces.py`. Source licence evidence and checksums are in
+`sky_r3/MANIFEST.md`. **All are LookDev candidates behind `sky_r3`, off by default.**
+
+```
+slot,class,source,source_ref,licence,attribution,id,approved_by,status
+sky_r3.SkyboxImageBack,image,polyhaven,docs/v2/visual/art/sky_r3/faces/SkyboxImageBack.png,CC0 1.0,Greg Zaal; Rico Cilliers,102550480946849,,UNVERIFIED
+sky_r3.SkyboxImageBottom,image,polyhaven,docs/v2/visual/art/sky_r3/faces/SkyboxImageBottom.png,CC0 1.0,Greg Zaal; Rico Cilliers,129220381103008,,UNVERIFIED
+sky_r3.SkyboxImageFront,image,polyhaven,docs/v2/visual/art/sky_r3/faces/SkyboxImageFront.png,CC0 1.0,Greg Zaal; Rico Cilliers,133281364333444,,UNVERIFIED
+sky_r3.SkyboxImageLeft,image,polyhaven,docs/v2/visual/art/sky_r3/faces/SkyboxImageLeft.png,CC0 1.0,Greg Zaal; Rico Cilliers,138405045926458,,UNVERIFIED
+sky_r3.SkyboxImageRight,image,polyhaven,docs/v2/visual/art/sky_r3/faces/SkyboxImageRight.png,CC0 1.0,Greg Zaal; Rico Cilliers,102997698570968,,UNVERIFIED
+sky_r3.SkyboxImageTop,image,polyhaven,docs/v2/visual/art/sky_r3/faces/SkyboxImageTop.png,CC0 1.0,Greg Zaal; Rico Cilliers,119387111356535,,UNVERIFIED
+```

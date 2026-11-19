@@ -14,9 +14,9 @@ return function(t, Env)
 	end
 
 	t:describe("LookDev candidates (candidate, awaiting designer yes)", function()
-		t:it("ships nine candidates, all unapproved and cartoonish-realism", function()
+		t:it("ships seventeen candidates, all unapproved and cartoonish-realism", function()
 			local LookDev = fresh()
-			expect(#LookDev.IDS):toBe(9)
+			expect(#LookDev.IDS):toBe(17)
 			expect(LookDev.IDS[1]):toBe("plaza_lighting")
 			expect(LookDev.IDS[2]):toBe("police_walkin")
 			expect(LookDev.IDS[3]):toBe("icons")
@@ -26,6 +26,14 @@ return function(t, Env)
 			expect(LookDev.IDS[7]):toBe("hubprops")
 			expect(LookDev.IDS[8]):toBe("sounds")
 			expect(LookDev.IDS[9]):toBe("corner")
+			expect(LookDev.IDS[10]):toBe("textures_r3")
+			expect(LookDev.IDS[11]):toBe("day_cycle")
+			expect(LookDev.IDS[12]):toBe("icons_r3")
+			expect(LookDev.IDS[13]):toBe("buildings_r3")
+			expect(LookDev.IDS[14]):toBe("vegetation_r3")
+			expect(LookDev.IDS[15]):toBe("props_r3")
+			expect(LookDev.IDS[16]):toBe("npcs_r3")
+			expect(LookDev.IDS[17]):toBe("sky_r3")
 			for _, id in LookDev.IDS do
 				local c = LookDev.candidates[id]
 				expect(c.id):toBe(id)
@@ -48,11 +56,18 @@ return function(t, Env)
 					"src/client/World/LookDevHubProps.luau",
 					"src/client/World/LookDevSounds.luau",
 					"src/client/World/LookDevCorner.luau",
+					"src/client/World/LookDevTexturesR3.luau",
+					"src/client/World/LookDevDayCycle.luau",
+					"src/client/UI/LookDevIconsR3.luau",
+					"src/server/World/LookDevModelsR3.luau",
+					"src/client/World/LookDevSkyR3.luau",
 					"src/shared/LookDevCorner.luau",
 				}
 			do
 				local src = fs.readFile(path)
-				expect(string.find(src, "rbxasset", 1, true) ~= nil):toBe(false)
+				-- The sky adapter may build "rbxassetid://" .. id at apply time; ban only an
+				-- embedded ID after the scheme, never the scheme prefix itself.
+				expect(string.find(src, "rbxassetid://%d") ~= nil):toBe(false)
 				expect(string.find(src, "assetId", 1, true) ~= nil):toBe(false)
 				-- A 7+ digit literal is the shape of a Roblox asset/product ID.
 				expect(string.find(src, "%d%d%d%d%d%d%d") ~= nil):toBe(false)
@@ -231,10 +246,63 @@ return function(t, Env)
 			expect(plan.soundCount):toBe(2)
 			expect(type(plan.render)):toBe("string")
 		end)
+
+		t:it("textures_r3 plan points at the real PBR ID map without embedding IDs", function()
+			local LookDev = fresh()
+			local plan = LookDev.plan("textures_r3")
+			expect(plan.id):toBe("textures_r3")
+			expect(plan.idsSource):toBe("Shared.TextureMapR3.ids")
+			expect(plan.variantCount):toBe(9)
+			expect(plan.mapCount):toBe(27)
+			expect(type(plan.render)):toBe("string")
+		end)
+
+		t:it("day_cycle plan points at the pure live-cycle module", function()
+			local LookDev = fresh()
+			local plan = LookDev.plan("day_cycle")
+			expect(plan.id):toBe("day_cycle")
+			expect(plan.idsSource):toBe("Shared.World.DayCycleLive")
+			expect(type(plan.render)):toBe("string")
+		end)
+
+		t:it("icons_r3 plan points at the r3 ID map without embedding IDs", function()
+			local LookDev = fresh()
+			local plan = LookDev.plan("icons_r3")
+			expect(plan.id):toBe("icons_r3")
+			expect(plan.idsSource):toBe("Shared.IconMapR3.ids")
+			expect(plan.iconCount):toBe(27)
+			expect(type(plan.render)):toBe("string")
+		end)
+
+		t:it("model family plans point at the shared model map without embedding IDs", function()
+			local LookDev = fresh()
+			local expected = {
+				buildings_r3 = 3,
+				vegetation_r3 = 6,
+				props_r3 = 5,
+				npcs_r3 = 6,
+			}
+			for id, count in expected do
+				local plan = LookDev.plan(id)
+				expect(plan.id):toBe(id)
+				expect(plan.idsSource):toBe("Shared.ModelMapR3.families." .. id)
+				expect(plan.modelCount):toBe(count)
+				expect(type(plan.render)):toBe("string")
+			end
+		end)
+
+		t:it("sky_r3 plan points at the cube-face ID map without embedding IDs", function()
+			local LookDev = fresh()
+			local plan = LookDev.plan("sky_r3")
+			expect(plan.id):toBe("sky_r3")
+			expect(plan.idsSource):toBe("Shared.SkyMapR3.ids")
+			expect(plan.faceCount):toBe(6)
+			expect(type(plan.render)):toBe("string")
+		end)
 	end)
 
 	t:describe("LookDev adapter wiring", function()
-		t:it("all eight thin adapters register with the shared toggle", function()
+		t:it("all thin adapters register with the shared toggle", function()
 			local plaza = fs.readFile("src/client/World/LookDevPlaza.luau")
 			local walkin = fs.readFile("src/server/World/LookDevWalkin.luau")
 			local icons = fs.readFile("src/client/UI/LookDevIcons.luau")
@@ -243,6 +311,11 @@ return function(t, Env)
 			local crops = fs.readFile("src/client/World/LookDevCrops.luau")
 			local hubprops = fs.readFile("src/client/World/LookDevHubProps.luau")
 			local sounds = fs.readFile("src/client/World/LookDevSounds.luau")
+			local texturesR3 = fs.readFile("src/client/World/LookDevTexturesR3.luau")
+			local dayCycle = fs.readFile("src/client/World/LookDevDayCycle.luau")
+			local iconsR3 = fs.readFile("src/client/UI/LookDevIconsR3.luau")
+			local modelsR3 = fs.readFile("src/server/World/LookDevModelsR3.luau")
+			local skyR3 = fs.readFile("src/client/World/LookDevSkyR3.luau")
 			expect(string.find(plaza, 'LookDev.register("plaza_lighting"', 1, true) ~= nil):toBe(true)
 			expect(string.find(walkin, 'LookDev.register("police_walkin"', 1, true) ~= nil):toBe(true)
 			expect(string.find(icons, 'LookDev.register("icons"', 1, true) ~= nil):toBe(true)
@@ -251,6 +324,14 @@ return function(t, Env)
 			expect(string.find(crops, 'LookDev.register("crops"', 1, true) ~= nil):toBe(true)
 			expect(string.find(hubprops, 'LookDev.register("hubprops"', 1, true) ~= nil):toBe(true)
 			expect(string.find(sounds, 'LookDev.register("sounds"', 1, true) ~= nil):toBe(true)
+			expect(string.find(texturesR3, 'LookDev.register("textures_r3"', 1, true) ~= nil):toBe(true)
+			expect(string.find(dayCycle, 'LookDev.register("day_cycle"', 1, true) ~= nil):toBe(true)
+			expect(string.find(iconsR3, 'LookDev.register("icons_r3"', 1, true) ~= nil):toBe(true)
+			expect(string.find(modelsR3, 'LookDev.register("buildings_r3"', 1, true) ~= nil):toBe(true)
+			expect(string.find(modelsR3, 'LookDev.register("vegetation_r3"', 1, true) ~= nil):toBe(true)
+			expect(string.find(modelsR3, 'LookDev.register("props_r3"', 1, true) ~= nil):toBe(true)
+			expect(string.find(modelsR3, 'LookDev.register("npcs_r3"', 1, true) ~= nil):toBe(true)
+			expect(string.find(skyR3, 'LookDev.register("sky_r3"', 1, true) ~= nil):toBe(true)
 		end)
 
 		t:it("icons applier toggles IconMap candidate ids and restores fallbacks", function()
@@ -265,6 +346,14 @@ return function(t, Env)
 			expect(string.find(textures, "TextureMap.applyCandidates(Visuals, false)", 1, true) ~= nil):toBe(true)
 			expect(string.find(textures, "Visuals.applySurface(part, slot", 1, true) ~= nil):toBe(true)
 			expect(string.find(textures, "local function restore()", 1, true) ~= nil):toBe(true)
+		end)
+
+		t:it("textures_r3 applier builds MaterialVariants and restores MeshParts", function()
+			local r3 = fs.readFile("src/client/World/LookDevTexturesR3.luau")
+			expect(string.find(r3, 'Instance.new("MaterialVariant")', 1, true) ~= nil):toBe(true)
+			expect(string.find(r3, "part.MaterialVariant = variant.name", 1, true) ~= nil):toBe(true)
+			expect(string.find(r3, "entry.part.MaterialVariant = entry.variant", 1, true) ~= nil):toBe(true)
+			expect(string.find(r3, "local function restore()", 1, true) ~= nil):toBe(true)
 		end)
 
 		t:it("npcs applier adds procedural details and removes them on restore", function()

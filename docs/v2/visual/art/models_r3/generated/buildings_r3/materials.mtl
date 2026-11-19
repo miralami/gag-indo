@@ -1,0 +1,43 @@
+# models_r3 generated palette — stdlib deterministic
+newmtl bamboo
+Kd 0.620 0.700 0.300
+
+newmtl cloth
+Kd 0.720 0.300 0.220
+
+newmtl dark_timber
+Kd 0.280 0.180 0.110
+
+newmtl hat
+Kd 0.780 0.680 0.380
+
+newmtl leaf
+Kd 0.200 0.520 0.220
+
+newmtl leaf_light
+Kd 0.340 0.640 0.280
+
+newmtl mango
+Kd 0.160 0.450 0.180
+
+newmtl metal
+Kd 0.420 0.440 0.460
+
+newmtl seng
+Kd 0.550 0.570 0.580
+
+newmtl skin
+Kd 0.780 0.580 0.400
+
+newmtl soil
+Kd 0.400 0.300 0.200
+
+newmtl stone
+Kd 0.550 0.550 0.520
+
+newmtl timber
+Kd 0.450 0.300 0.180
+
+newmtl water
+Kd 0.300 0.550 0.620
+

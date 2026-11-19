@@ -12,7 +12,13 @@
 --   src/client/World/LookDevHubProps.luau -- candidate "hubprops" (hub counter/desk/stall detail CANDIDATES)
 --   src/client/World/LookDevSounds.luau   -- candidate "sounds" (free Creator Store music CANDIDATES)
 --   src/client/World/LookDevCorner.luau   -- candidate "corner" (60x60 warung/road/sawah corner)
--- Each registers itself with LookDev.register() at boot. Enable from the Studio command bar:
+--   src/client/World/LookDevTexturesR3.luau -- candidate "textures_r3" (real CC0 PBR MaterialVariants)
+--   src/client/World/LookDevDayCycle.luau -- candidate "day_cycle" (live phase tweens, lamps, silent beds)
+--   src/client/UI/LookDevIconsR3.luau  -- candidate "icons_r3" (27 revised original icon CANDIDATES)
+--   src/server/World/LookDevModelsR3.luau -- candidates "buildings_r3", "vegetation_r3", "props_r3", "npcs_r3"
+--   src/client/World/LookDevSkyR3.luau -- candidate "sky_r3" (CC0 HDRI cube faces + ridge + haze)
+-- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
+-- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("plaza_lighting")
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("police_walkin")
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("icons")
@@ -22,6 +28,11 @@
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("hubprops")
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("sounds")
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("corner")
+--   require(game.ReplicatedStorage.Shared.LookDev):enable("textures_r3")
+--   require(game.ReplicatedStorage.Shared.LookDev):enable("day_cycle")
+--   require(game.ReplicatedStorage.Shared.LookDev):enable("icons_r3")
+--   require(game.ReplicatedStorage.Shared.LookDev):enable("sky_r3")
+--   -- from the Server datamodel: buildings_r3 / vegetation_r3 / props_r3 / npcs_r3
 --   require(game.ReplicatedStorage.Shared.LookDev):disable()   -- restores the original look
 --
 -- The gate needs an explicit Studio-only opt-in, is never persisted, and can never be on in a
@@ -39,8 +50,25 @@ local LookDev = {}
 
 LookDev.STATUS = "candidate, awaiting designer yes"
 LookDev.STYLE = "cartoonish-realism"
-LookDev.IDS =
-	{ "plaza_lighting", "police_walkin", "icons", "textures", "npcs", "crops", "hubprops", "sounds", "corner" }
+LookDev.IDS = {
+	"plaza_lighting",
+	"police_walkin",
+	"icons",
+	"textures",
+	"npcs",
+	"crops",
+	"hubprops",
+	"sounds",
+	"corner",
+	"textures_r3",
+	"day_cycle",
+	"icons_r3",
+	"buildings_r3",
+	"vegetation_r3",
+	"props_r3",
+	"npcs_r3",
+	"sky_r3",
+}
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
 -- list is rejected because it could be an asset-backed or otherwise non-procedural material.
@@ -216,6 +244,90 @@ LookDev.candidates = {
 		featureCount = 3,
 		cameraCount = 3,
 	},
+
+	textures_r3 = {
+		id = "textures_r3",
+		title = "Nine real CC0 Poly Haven PBR MaterialVariants for village surfaces",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- IDs deliberately NOT here: they live in Shared.TextureMapR3.ids. The adapter creates
+		-- temporary MaterialVariants and restores every MeshPart on disable.
+		idsSource = "Shared.TextureMapR3.ids",
+		render = "docs/v2/visual/art/textures_r3/render/contact_sheet.png",
+		variantCount = 9,
+		mapCount = 27,
+	},
+
+	day_cycle = {
+		id = "day_cycle",
+		title = "Day cycle — 20–40 s phase tweens, Rendah night lamps, five silent beds",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.World.DayCycleLive",
+		render = "docs/v2/visual/art/daycycle/README.md",
+	},
+
+	icons_r3 = {
+		id = "icons_r3",
+		title = "Revised original icon set — 27 r3 redraws behind a Studio-only toggle",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- IDs deliberately NOT here: they live in Shared.IconMapR3.ids. The adapter swaps
+		-- Visuals.icons slots and restores their previous values on disable.
+		idsSource = "Shared.IconMapR3.ids",
+		render = "docs/v2/visual/art/icons/render_r3/contact_after.png",
+		iconCount = 27,
+	},
+
+	buildings_r3 = {
+		id = "buildings_r3",
+		title = "Village buildings — stilt house, coop, sawmill shed in the 60x60 corner",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapR3.families.buildings_r3",
+		render = "docs/v2/visual/art/models_r3/INTEGRATION.md",
+		modelCount = 3,
+	},
+
+	vegetation_r3 = {
+		id = "vegetation_r3",
+		title = "Tropical vegetation — CC0 palm/bamboo plus designer-build banana, mango, shrubs",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapR3.families.vegetation_r3",
+		render = "docs/v2/visual/art/models_r3/INTEGRATION.md",
+		modelCount = 6,
+	},
+
+	props_r3 = {
+		id = "props_r3",
+		title = "Village props — gerobak, well, market stall, bamboo fence, tools",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapR3.families.props_r3",
+		render = "docs/v2/visual/art/models_r3/INTEGRATION.md",
+		modelCount = 5,
+	},
+
+	npcs_r3 = {
+		id = "npcs_r3",
+		title = "Villagers — two CC0 rigged bodies plus four distinct original silhouettes",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapR3.families.npcs_r3",
+		render = "docs/v2/visual/art/models_r3/INTEGRATION.md",
+		modelCount = 6,
+	},
+
+	sky_r3 = {
+		id = "sky_r3",
+		title = "Overcast tropical sunrise HDRI cube sky with ridge silhouette and Atmosphere haze",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.SkyMapR3.ids",
+		render = "docs/v2/visual/art/sky_r3/README.md",
+		faceCount = 6,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -300,6 +412,46 @@ function LookDev.plan(id: string): any
 			idsSource = c.idsSource,
 			render = c.render,
 			soundCount = c.soundCount,
+		}
+	elseif id == "textures_r3" then
+		local c = LookDev.candidates.textures_r3
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			variantCount = c.variantCount,
+			mapCount = c.mapCount,
+		}
+	elseif id == "day_cycle" then
+		local c = LookDev.candidates.day_cycle
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+		}
+	elseif id == "icons_r3" then
+		local c = LookDev.candidates.icons_r3
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			iconCount = c.iconCount,
+		}
+	elseif id == "buildings_r3" or id == "vegetation_r3" or id == "props_r3" or id == "npcs_r3" then
+		local c = LookDev.candidates[id]
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			modelCount = c.modelCount,
+		}
+	elseif id == "sky_r3" then
+		local c = LookDev.candidates.sky_r3
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			faceCount = c.faceCount,
 		}
 	end
 	return nil

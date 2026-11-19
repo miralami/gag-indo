@@ -100,8 +100,10 @@ Cosmetics.start()
 LeaderboardService.start()
 PlayerData.start() -- last: loads profiles, which fires onLoaded callbacks registered above
 
--- Look-dev candidates (WORK_QUEUE item 9): register the OFF-BY-DEFAULT police walk-in applier.
--- Isolated so a missing/failed candidate module can never break the server bootstrap.
+-- Look-dev candidates (WORK_QUEUE item 9, round 3 item 23): register the OFF-BY-DEFAULT police
+-- walk-in and model-family appliers. Isolated so a missing/failed candidate module can never break
+-- the server bootstrap. Model families use InsertService, which is server-only.
 pcall(require, script.Parent.World.LookDevWalkin)
+pcall(require, script.Parent.World.LookDevModelsR3)
 
 print("[JuraganDesa] server started")

@@ -62,6 +62,15 @@ Audio.sounds = {
 	ambience_badai = { group = "ambience", id = 9112853563, looped = true, volume = 0.45 },
 	ambience_kabut = { group = "ambience", id = 9112826489, looped = true, volume = 0.25 },
 
+	-- day-cycle time-of-day beds (LookDev candidate "day_cycle"). Silent until licensed IDs are
+	-- supplied: id 0 is this registry's no-audio sentinel, and no asset ID is invented here.
+	-- `adzan` is deliberately LOW and can be switched off via Shared.Settings.AdzanSetting.
+	ayam = { group = "ambience", id = 0, looped = true, volume = 0.3 },
+	bedug = { group = "ambience", id = 0, looped = true, volume = 0.3 },
+	kentongan = { group = "ambience", id = 0, looped = true, volume = 0.25 },
+	jangkrik = { group = "ambience", id = 0, looped = true, volume = 0.2 },
+	adzan = { group = "ambience", id = 0, looped = true, volume = 0.12 },
+
 	-- ui
 	ui_click = { group = "ui", id = 88442833509532, volume = 0.5 },
 	ui_open = { group = "ui", id = 17779566040, volume = 0.5 },

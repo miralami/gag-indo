@@ -80,6 +80,11 @@ Also in force:
   no ID invented, no model ingested, no visual verdict claimed.
 
 ### B. Asset sourcing, ladder order
+
+> Section G (items 21–24) supersedes the blocked classifications for items 4–9 and 11: those
+> assets are now integrated off by default with real IDs and blank verdicts. The rows below are kept
+> as the original sourcing record. Only animations (item 9) has no integrated candidate yet.
+
 - [ ] 4. **BLOCKED — buildings:** rumah panggung, warung, pos polisi, rumah Pak RT, pasar stalls,
   gubuk sawah. Verified CC BY / CC0 ladder candidates (with exact licence, author, decimate notes and
   fallbacks) are recorded in `docs/v2/visual/art/SOURCING_BUILDINGS_VEG.md`. Ingestion needs real
@@ -112,6 +117,11 @@ Also in force:
   "yes, improve"); no ID invented and no image graded here.
 
 ### C. Light and atmosphere (L1)
+
+> Section G item 25 delivered the code half of item 10b and item 24 delivered item 11's sky; both
+> rows below are kept as the original record. Their remaining half is a designer/vision verdict,
+> not an agent-closable task.
+
 - [x] 10a. **Day-cycle phase table (V-D2, D19), pure half.** Done 2026-11-20: `src/shared/World/DayCycle.luau`
   holds the eight `DAY_CYCLE.md` phases over a 24-minute day with golden-hour spawn, a readable night,
   gap/midnight blending and a Rendah light budget. `clockAt`/`segmentAt`/`presetFor`/`phaseInfo`/
@@ -137,10 +147,12 @@ Also in force:
 ### D. The frame (V1)
 - [ ] 12. **BLOCKED — spawn view.** Combine A–C on the spawn view only. Save the camera position,
   then check the instance count and fps proxy against the budget. Leave the five screenshot tests
-  to the review pass. Blocked 2026-11-20: A–C assets (items 4–9) are still blocked, so there is no
-  approved look to combine; the camera and five shot tests need the designer/vision review, and the
-  fps proxy needs designer hardware. The `corner` candidate and `REVIEW_ROUND3.md` are ready inputs,
-  not an approval.
+  to the review pass. Blocked 2026-11-20 (re-checked in item 27): section G delivered the A–C asset
+  inputs as off-by-default candidates (buildings, vegetation, props, PBR, NPCs, sky, live day cycle),
+  but every verdict is still blank, so there is no *approved* look to combine. The spawn camera and
+  five shot tests need the designer/vision review; the fps proxy needs designer hardware. The
+  `corner` candidate and `REVIEW_ROUND3.md` are ready inputs, not an approval. Animations (item 9)
+  remain outstanding.
 - [x] 13. **Review pass handoff.** Write `docs/v2/visual/REVIEW_ROUND3.md` listing every
   candidate with its toggle and camera position, in the order to review. The designer, or a
   session that can see screenshots, fills in the verdicts. Done 2026-11-20: handoff doc lists all
@@ -151,13 +163,14 @@ Also in force:
 
 ### E. Moments (V2), after the frame is approved
 - [ ] 14. **BLOCKED — harvest, reveal and sale VFX (M2–M4):** particles, a pop scale, a cash fly,
-  a sound sync. Behind tiers. Blocked 2026-11-20: the V2 gate (VISUAL_MASTER_PLAN §V2) requires
-  L7.1 particle textures first — no licensed particle-texture asset IDs exist — and this section is
-  explicitly "after the frame is approved", which item 12 is not.
+  a sound sync. Behind tiers. Blocked 2026-11-20 (re-checked in item 27): section G added no VFX or
+  particle-texture assets, the V2 gate (VISUAL_MASTER_PLAN §V2) still requires L7.1 particle
+  textures, and this section is explicitly "after the frame is approved", which item 12 is not.
 - [ ] 15. **BLOCKED — raid moment (M5) lights and the police walk-in,** using the round-1
-  `police_walkin` candidate if it was approved. Blocked 2026-11-20: that candidate's verdict is
-  still pending in `CANDIDATES.md`, the frame is not approved, and the raid lights (L1.3) plus the
-  V2 clip need real assets and designer hardware. No visual or approval claimed.
+  `police_walkin` candidate if it was approved. Blocked 2026-11-20 (re-checked in item 27): that
+  candidate's verdict is still pending in `CANDIDATES.md`, the frame is not approved, and the raid
+  lights (L1.3) plus the V2 clip need real assets and designer hardware. Section G added an off-by-
+  default `day_cycle` lamp layer, but no approved moment package and no V2 clip. No visual claimed.
 
 ### E2. Text
 - [x] 19. **Indonesian text review** (moved from round 2 item 24). Read every `id` string for
@@ -166,8 +179,9 @@ Also in force:
 
 ### F. Close
 - [ ] 16. **BLOCKED — budget and soak** with all approved visuals on, at each tier. Blocked
-  2026-11-20: items 4–15 have not produced approved visuals to turn on, and the tier/fps measurement
-  needs the designer's phone emulator and multi-client session. The 2026-11-19 soak evidence in
+  2026-11-20 (re-checked in item 27): section G added 17 candidates but all verdicts are blank, so
+  there are no approved visuals to turn on; the tier/fps measurement also needs the designer's phone
+  emulator and multi-client session. The 2026-11-19 soak evidence in
   `docs/v2/evidence/h/2026-11-19-regression-replay/` predates the visual candidates and cannot stand
   for this gate.
 - [x] 17. **Regression replay**: G3 beat sheet, G5 timings and a full-session `output.log`.
@@ -192,43 +206,74 @@ record the review camera, leave the verdict cell blank, and move on. The verdict
 pass's job, not a precondition. If Rojo is not running, start it (`rojo serve`) instead of calling
 Studio stale. A licence that is not CC0 / CC BY (with attribution recorded) is still a hard stop.
 
-- [ ] 20. **Upload route check.** Try the `ROBLOX_API_KEY` env var against Open Cloud
+- [x] 20. **Upload route check.** Try the `ROBLOX_API_KEY` env var against Open Cloud
   `POST /assets/v1/assets` with the first real texture from item 21 (not a test file). If it works,
   that is the upload route for this section. If it fails with a scope/permission error, record the
   exact HTTP status (never the key) and mark only the *upload* steps below "needs Studio
   `open_cloud_invoke` session"; do every download, packing, Luau and spec step anyway, so the
   Studio session only has to upload and paste IDs.
-- [ ] 21. **Textures (item 7).** Download the nine CC0 Poly Haven sets listed in
+  Done 2026-11-20: the first real 1K texture POST returned HTTP 200 with a real asset ID; the route
+  is recorded in `docs/v2/visual/art/textures_r3/upload_route_check.json`. Every later upload used
+  the same env-key route. The key was never printed, logged or committed.
+- [x] 21. **Textures (item 7).** Download the nine CC0 Poly Haven sets listed in
   `SOURCING_TEXTURES_NPC_ANIM.md` at 1K (Poly Haven public API), keep colour / normal / roughness,
   upload, record every ID in `ASSET_MANIFEST.md`, and wire them as `MaterialVariant`s in a new
   LookDev candidate `textures_r3`, off by default. Add its row to `CANDIDATES.md` with a contact
   sheet, verdict blank.
-- [ ] 22. **Icon revision (item 9b).** Redraw `tier_biasa` and `debt`, polish the rest, render
+  Done 2026-11-20: nine CC0 1K PBR sets (27 maps) downloaded and MD5-verified, uploaded via Open
+  Cloud, IDs in `textures_r3/upload_manifest.json`; `TextureMapR3.luau`, `LookDevTexturesR3.luau`,
+  registry/spec/CANDIDATES/camera added. Verdict blank.
+- [x] 22. **Icon revision (item 9b).** Redraw `tier_biasa` and `debt`, polish the rest, render
   before/after contact sheets, upload, record IDs, add candidate `icons_r3`. Verdict blank.
-- [ ] 23. **Models (items 4, 5, 6, 8).** CC0 first (Poly Haven, Quaternius, Kenney, Poly Pizza),
+  Done 2026-11-20: 27 deterministic r3 PNGs with before/after sheets; all 27 uploaded as Images,
+  IDs in `icons/render_r3/upload_manifest.json`; `IconMapR3.luau`, `LookDevIconsR3.luau`, spec and
+  CANDIDATES row added. Verdict blank.
+- [x] 23. **Models (items 4, 5, 6, 8).** CC0 first (Poly Haven, Quaternius, Kenney, Poly Pizza),
   CC BY only with the attribution in the manifest. Decimate to the budget in
   `SOURCING_BUILDINGS_VEG.md` (Blender MCP if available, otherwise a script), export FBX, upload as
   `Model`, record IDs, and add one LookDev candidate per family (`buildings_r3`, `vegetation_r3`,
   `props_r3`, `npcs_r3`) placed in the 60×60 `corner`. Tropical only (V-D4). Anything no free source
   covers goes to "Designer builds" with a brief.
-- [ ] 24. **Sky (item 11).** One CC0 Poly Haven tropical/overcast HDRI → six cube faces by script
+  Done 2026-11-20: four real CC0 GLBs plus 16 original low-poly GLBs (stdlib `obj_to_glb.py`, 2960
+  tris, deterministic and verified) uploaded as `Model` assets; 20 IDs in
+  `models_r3/upload_manifest.json`; four server-side family appliers (client `LoadAsset` is blocked),
+  `ModelMapR3.luau`, `INTEGRATION.md`, spec and four CANDIDATES rows added. Verdicts blank.
+- [x] 24. **Sky (item 11).** One CC0 Poly Haven tropical/overcast HDRI → six cube faces by script
   → upload → `Sky` in a LookDev candidate `sky_r3`, plus the ridge silhouette and haze values in
   `Atmosphere`. Verdict blank.
-- [ ] 25. **Day-cycle live wiring, code half (item 10b).** Wire `DayCycle.presetFor` into
+  Done 2026-11-20: CC0 Poly Haven `fish_hoek_beach` HDRI (Greg Zaal, Rico Cilliers) converted
+  deterministically to six 1024×1024 cube faces; six real Image IDs in
+  `sky_r3/upload_manifest.json`; `SkyMapR3.luau`, `LookDevSkyR3.luau`, spec, CANDIDATES row and saved
+  camera added. Verdict blank.
+- [x] 25. **Day-cycle live wiring, code half (item 10b).** Wire `DayCycle.presetFor` into
   `client/World/Sky.luau` behind LookDev `day_cycle` (off by default), with the 20–40 s tweens and
   lamps that emit light at night within the Rendah budget. Add the adzan setting as a saved player
   setting (default on, low volume) with a spec on a mock profile, and the five sound-bed slots with
   `nil` IDs, so they stay silent until the designer supplies licensed IDs. Never invent a sound ID.
-- [ ] 26. **Review handoff.** Add every new candidate from 21–25 to `REVIEW_ROUND3.md` with its
+  Done 2026-11-20 (code half): `DayCycleLive.luau`, `AdzanSetting.luau`, `LookDevDayCycle.luau`,
+  five `id = 0` silent beds, spec, README and registry/CANDIDATES wiring added. No sound ID invented.
+  The in-Studio Rendah-tier verdict remains a designer/vision action.
+- [x] 26. **Review handoff.** Add every new candidate from 21–25 to `REVIEW_ROUND3.md` with its
   toggle and camera, in review order.
-- [ ] 27. **Refill.** Re-check items 12, 14, 15 and 16 against what 20–26 produced; un-block any
+  Done 2026-11-20: section-G order, Server-datamodel rule, all seven new master-table rows, the
+  consolidated saved-camera list and updated designer actions are in `REVIEW_ROUND3.md`. Verdicts
+  blank.
+- [x] 27. **Refill.** Re-check items 12, 14, 15 and 16 against what 20–26 produced; un-block any
   that now have their inputs, and repeat until nothing agent-closable is left.
+  Done 2026-11-20: all four re-checked. None is agent-closable — item 12 needs the designer/vision
+  look and fps hardware; items 14–16 need frame approval, licensed VFX IDs and designer hardware.
+  Their BLOCKED reasons were updated to reflect the section-G inputs; no further agent-closable work
+  is left in the queue.
 
 ## Designer builds
 
 Models the ladder couldn't supply, each with a brief and a reference.
 
-- (none yet)
+- Sixteen original low-poly models (house, coop, shed, palm/bamboo/banana/mango/shrubs, cart, well,
+  stall, fence, tools, four villagers) were built deterministically under section G item 23 because
+  no free CC0 source covered them at the required triangle budget. Briefs, source policy, triangle
+  counts and saved cameras are in `docs/v2/visual/art/models_r3/MANIFEST.md`; all 16 were exported to
+  GLB by `models_r3/src/obj_to_glb.py` and uploaded as real `Model` assets. Verdicts remain blank.
 
 ## Decisions for designer
 

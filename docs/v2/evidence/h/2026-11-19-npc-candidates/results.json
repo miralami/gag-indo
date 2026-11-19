@@ -1,0 +1,57 @@
+{
+  "date": "2026-11-19",
+  "item": 6,
+  "round": 2,
+  "branch": "track/c-world-look",
+  "placeId": 132087524375529,
+  "universeId": 10776530981,
+  "studioId": "447c176b-1d7b-4b9c-a794-45912fea4b63",
+  "rojo": "localhost:34872",
+  "status": "SEEN-IN-STUDIO",
+  "target": "Caricature NPC models from npcs.md and NpcArchetypes (Pak RT, Tengkulak, Polisi, debt collector), swapped for the box NPCs behind an off-by-default LookDev candidate",
+  "candidateRule": "all details CANDIDATES awaiting designer yes/no; not approved, not shipped on by default",
+  "statusWords": ["SEEN-IN-STUDIO", "LUNE-ONLY", "UNVERIFIED", "BLOCKED"],
+  "approachChange": "The WORK_QUEUE suggested Blender/imported meshes, but subagent transport was down (ECONNREFUSED) and place saves are forbidden. Built procedural, source-controlled Roblox primitive detail parts behind the 'npcs' LookDev candidate instead: durable in Rojo, reversible, no place save, no asset IDs.",
+  "designCards": {
+    "source": "docs/v2/visual/art/npcs.md + src/shared/Config/NpcArchetypes.luau",
+    "palette": "tinta, bambu, kunyit, malam, genteng, padi, kertas, indigo",
+    "fictionalOnly": true,
+    "noRealInsignia": true
+  },
+  "implementation": {
+    "recipeSource": "src/shared/NpcModelCandidates.luau (pure data: palette + 19 detail recipes, no asset IDs)",
+    "applier": "src/client/World/LookDevNpcs.luau",
+    "bootstrap": "src/client/Main.client.luau pcall(require, ...) at boot",
+    "lookDevCandidate": "npcs (pure data only, idsSource pointer, no numeric literals)",
+    "default": "off - shipping box NPCs from NpcFactory untouched",
+    "detailCounts": { "pakrt": 6, "tengkulak": 5, "polisi": 4, "debt_collector": 4 },
+    "detailNames": ["PeciTall", "PeciBrim", "MustacheL", "MustacheR", "Clipboard", "ClipboardClip", "BrowL", "BrowR", "SlingStrap", "SlingPouch", "Hunch", "CapTall", "CapBrimDetail", "Badge", "Belt", "TopHat", "TopHatBrim", "Satchel", "ColdSash"]
+  },
+  "studioRoundTrip": {
+    "method": "Play Solo, fresh Client VM; require Shared.LookDev + Shared.NpcModelCandidates + the LookDevNpcs adapter from LocalPlayer.PlayerScripts, then LookDev.enable('npcs')/disable()",
+    "note": "The restricted Studio MCP execute_luau VM has no Enum.PartShape member ('PartShape is not a valid member of Enum'). shapeOf() resolves shapes under pcall and leaves the Part at its default Block shape on failure; the real LocalScript VM resolves cylinders/spheres/wedges. Details still attach and are proven.",
+    "ids": "plaza_lighting,police_walkin,icons,textures,npcs",
+    "hasApplier": true,
+    "enableOk": true,
+    "enableWarning": null,
+    "currentOn": "npcs",
+    "taggedNpcs": "polisi:Polisi Desa, tengkulak:Bang Jago, pakrt:Pak RT",
+    "detailsBefore": "tengkulak=0|polisi=0|pakrt=0",
+    "detailsEnabled": "tengkulak=5|polisi=4|pakrt=6",
+    "detailsRestored": "tengkulak=0|polisi=0|pakrt=0",
+    "totalDetailPartsEnabled": 15,
+    "debtCollectorsInPlace": 0
+  },
+  "render": {
+    "contactSheet": "docs/v2/visual/art/npcs/render/contact_sheet.png",
+    "generator": "docs/v2/visual/art/npcs/src/generate_npc_preview.py",
+    "note": "Front-elevation schematic parsed directly from NpcModelCandidates.luau (palette + all 19 recipes): box body, each detail at its X/Y offset, labelled legend. A review aid derived from the shipped recipe data, NOT a Studio screenshot (this session cannot save screen_capture to disk). Live proof is the Studio round-trip above. No agent visually graded the art."
+  },
+  "validation": {
+    "lune": "All 1944 tests passed (up from 1939; 5 new NPC-candidate specs)",
+    "selene": "0 errors / 0 warnings / 0 parse errors",
+    "gallery": "docs/v2/visual/CANDIDATES.md",
+    "specs": ["tests/specs/npc_model_candidates_spec.luau", "tests/specs/lookdev_candidates_spec.luau"]
+  },
+  "savedOrPublished": false
+}

@@ -77,11 +77,19 @@ never publish.
   imported v2 `prop_*`/`kit_*` MeshParts. No agent visually graded the art — CANDIDATES awaiting
   designer yes/no. Evidence `docs/v2/evidence/h/2026-11-19-textures-candidates/`; gallery
   `docs/v2/visual/CANDIDATES.md`. `lune` 1939 / `selene` 0/0/0.
-- [ ] 6. **Caricature NPC models** from `npcs.md` and `NpcArchetypes` (Pak RT, Tengkulak, Polisi,
-  debt collector).
-  - Build them in Blender (subagents have `blender`) or with the Studio MCP mesh tools, at R15
-    scale, as rigid meshes or a simple rig.
-  - Import through Studio and swap them for the box NPCs behind `LookDev`.
+- [x] 6. **Caricature NPC models** from `npcs.md` and `NpcArchetypes` (Pak RT, Tengkulak, Polisi,
+  debt collector). `SEEN-IN-STUDIO` — 19 procedural caricature detail parts (6 Pak RT, 5
+  Tengkulak, 4 Polisi, 4 debt collector) in `src/shared/NpcModelCandidates.luau` (pure data, no
+  asset IDs), attached by `src/client/World/LookDevNpcs.luau` to the live box NPCs only while the
+  off-by-default `npcs` LookDev candidate is enabled. Fictional caricatures per `npcs.md`; Polisi
+  badge is a plain fictional disc. Approach changed to procedural primitives: subagent transport
+  was down (`ECONNREFUSED`) and place saves are forbidden, so this stays source-controlled in Rojo.
+  Live Play-VM round-trip: 15 parts on the 3 tagged NPCs (`pakrt=6|tengkulak=5|polisi=4`), all
+  removed on disable; no `DebtCollector` in this place (its recipe proven by source + spec). Render
+  is a schematic parsed from the recipe source, not a Studio screenshot (captures can't be saved
+  this session). No agent visually graded the art — CANDIDATES awaiting designer yes/no. Evidence
+  `docs/v2/evidence/h/2026-11-19-npc-candidates/`; gallery `docs/v2/visual/CANDIDATES.md`.
+  `lune` 1944 / `selene` 0/0/0.
 - [ ] 7. **Crop growth-stage models** (bibit / tumbuh / siap) for every crop in config, low-poly,
   behind `LookDev`.
 - [ ] 8. **Hub props**: warung counter, pasar stall, pos polisi desk, Pak RT table, lanterns and

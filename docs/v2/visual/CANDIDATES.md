@@ -17,6 +17,7 @@ filled by an agent. Asset IDs come from real Open Cloud operations and are recor
 | `police_walkin` | Police NPC walk-in timed to the raid cutscene (round 1) | `LookDev:enable("police_walkin")` | `docs/v2/evidence/h/2026-11-19-lookdev-candidates/` | reuses 1 existing NPC, 0 new instances, no measurable fps cost | |
 | `icons` | 27 agent-made painted icons for every IconMap slot (round 2 item 4) | `LookDev:enable("icons")` | `docs/v2/visual/art/icons/render/contact_sheet.png` | 0 new instances; swaps `ImageLabel.Image` on existing icon slots only, no measurable fps cost | |
 | `textures` | 7 agent-made seamless painted textures for the Pasar surface preset (round 2 item 5) | `LookDev:enable("textures")` | `docs/v2/visual/art/textures/render/contact_sheet.png` | ≤10 temporary `SurfaceAppearance` instances on the imported v2 MeshParts while enabled, all destroyed on disable; no measurable fps cost | |
+| `npcs` | Procedural caricature detail parts for the box NPCs — Pak RT, Tengkulak, Polisi, debt collector (round 2 item 6) | `LookDev:enable("npcs")` | `docs/v2/visual/art/npcs/render/contact_sheet.png` | 15 temporary primitive Parts on the 3 live NPCs while enabled (6/5/4), all destroyed on disable; no asset IDs, no measurable fps cost | |
 
 ## `icons` — per-asset renders and IDs
 
@@ -103,3 +104,15 @@ the render is provided for the designer's yes/no, not claimed as agent-verified.
 - Live Play-mode round-trip: all 7 slots `0 → real IDs → 0`, `TextureMap.usingCandidates()`
   `false → true → false`, and 10 MeshParts received real `rbxassetid://…` `ColorMap`s on enable,
   all destroyed on disable. Evidence `docs/v2/evidence/h/2026-11-19-textures-candidates/`.
+- `src/shared/NpcModelCandidates.luau` holds the 19 procedural detail recipes (palette + recipe
+  data, no asset IDs). `src/client/World/LookDevNpcs.luau` attaches them to the live box NPCs only
+  while `npcs` is enabled and destroys them all on disable; the shipping NPCs are untouched. Follows
+  the fictional-caricature design cards in `npcs.md` (`Config/NpcArchetypes.luau`); the Polisi badge
+  is a plain fictional disc, no real insignia. Spec-locked in
+  `tests/specs/npc_model_candidates_spec.luau` and `tests/specs/lookdev_candidates_spec.luau`.
+- Built as procedural source-controlled primitives rather than imported meshes: subagent transport
+  was down and place saves are forbidden, so this is durable in Rojo and fully reversible. Live
+  Play-VM round-trip: 15 detail parts appeared on the 3 tagged NPCs
+  (`tengkulak=5|polisi=4|pakrt=6`) and all were removed on disable. The render is a schematic
+  parsed from the recipe source, not a Studio screenshot — this session cannot save captures to
+  disk. Evidence `docs/v2/evidence/h/2026-11-19-npc-candidates/`. No agent visually graded the art.

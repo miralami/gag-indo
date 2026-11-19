@@ -7,11 +7,13 @@
 --   src/server/World/LookDevWalkin.luau  -- candidate "police_walkin"
 --   src/client/UI/LookDevIcons.luau       -- candidate "icons" (agent-made icon CANDIDATES)
 --   src/client/World/LookDevTextures.luau -- candidate "textures" (seamless texture CANDIDATES)
+--   src/client/World/LookDevNpcs.luau     -- candidate "npcs" (procedural caricature detail CANDIDATES)
 -- Each registers itself with LookDev.register() at boot. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("plaza_lighting")
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("police_walkin")
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("icons")
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("textures")
+--   require(game.ReplicatedStorage.Shared.LookDev):enable("npcs")
 --   require(game.ReplicatedStorage.Shared.LookDev):disable()   -- restores the original look
 --
 -- The gate needs an explicit Studio-only opt-in, is never persisted, and can never be on in a
@@ -29,7 +31,7 @@ local LookDev = {}
 
 LookDev.STATUS = "candidate, awaiting designer yes"
 LookDev.STYLE = "cartoonish-realism"
-LookDev.IDS = { "plaza_lighting", "police_walkin", "icons", "textures" }
+LookDev.IDS = { "plaza_lighting", "police_walkin", "icons", "textures", "npcs" }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
 -- list is rejected because it could be an asset-backed or otherwise non-procedural material.
@@ -120,6 +122,17 @@ LookDev.candidates = {
 		render = "docs/v2/visual/art/textures/render/contact_sheet.png",
 		slotCount = 7,
 	},
+
+	npcs = {
+		id = "npcs",
+		title = "Caricature detail meshes for the box NPCs (Pak RT, Tengkulak, Polisi, collector)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Procedural geometry, no uploaded asset IDs. Recipe source is pure data in
+		-- Shared.NpcModelCandidates so the no-ID guard still holds.
+		idsSource = "Shared.NpcModelCandidates.recipes",
+		render = "docs/v2/visual/CANDIDATES.md",
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -172,6 +185,13 @@ function LookDev.plan(id: string): any
 			idsSource = c.idsSource,
 			render = c.render,
 			slotCount = c.slotCount,
+		}
+	elseif id == "npcs" then
+		local c = LookDev.candidates.npcs
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
 		}
 	end
 	return nil

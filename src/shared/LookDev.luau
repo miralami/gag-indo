@@ -11,6 +11,7 @@
 --   src/client/World/LookDevCrops.luau    -- candidate "crops" (low-poly crop growth-stage CANDIDATES)
 --   src/client/World/LookDevHubProps.luau -- candidate "hubprops" (hub counter/desk/stall detail CANDIDATES)
 --   src/client/World/LookDevSounds.luau   -- candidate "sounds" (free Creator Store music CANDIDATES)
+--   src/client/World/LookDevCorner.luau   -- candidate "corner" (60x60 warung/road/sawah corner)
 -- Each registers itself with LookDev.register() at boot. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("plaza_lighting")
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("police_walkin")
@@ -20,6 +21,7 @@
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("crops")
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("hubprops")
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("sounds")
+--   require(game.ReplicatedStorage.Shared.LookDev):enable("corner")
 --   require(game.ReplicatedStorage.Shared.LookDev):disable()   -- restores the original look
 --
 -- The gate needs an explicit Studio-only opt-in, is never persisted, and can never be on in a
@@ -37,17 +39,40 @@ local LookDev = {}
 
 LookDev.STATUS = "candidate, awaiting designer yes"
 LookDev.STYLE = "cartoonish-realism"
-LookDev.IDS = { "plaza_lighting", "police_walkin", "icons", "textures", "npcs", "crops", "hubprops", "sounds" }
+LookDev.IDS =
+	{ "plaza_lighting", "police_walkin", "icons", "textures", "npcs", "crops", "hubprops", "sounds", "corner" }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
 -- list is rejected because it could be an asset-backed or otherwise non-procedural material.
 local BUILTIN_MATERIALS = {
-	Grass = true, Ground = true, Sand = true, Mud = true, Rock = true, Basalt = true,
-	Sandstone = true, Limestone = true, Slate = true, Granite = true, Marble = true,
-	Cobblestone = true, Brick = true, Concrete = true, Asphalt = true,
-	WoodPlanks = true, Wood = true, Fabric = true, Paper = true,
-	SmoothPlastic = true, Plastic = true, Painted = true, Metal = true,
-	Water = true, Ice = true, Snow = true, Glacier = true, Leaf = true,
+	Grass = true,
+	Ground = true,
+	Sand = true,
+	Mud = true,
+	Rock = true,
+	Basalt = true,
+	Sandstone = true,
+	Limestone = true,
+	Slate = true,
+	Granite = true,
+	Marble = true,
+	Cobblestone = true,
+	Brick = true,
+	Concrete = true,
+	Asphalt = true,
+	WoodPlanks = true,
+	Wood = true,
+	Fabric = true,
+	Paper = true,
+	SmoothPlastic = true,
+	Plastic = true,
+	Painted = true,
+	Metal = true,
+	Water = true,
+	Ice = true,
+	Snow = true,
+	Glacier = true,
+	Leaf = true,
 }
 
 function LookDev.isBuiltinMaterial(name: any): boolean
@@ -177,6 +202,20 @@ LookDev.candidates = {
 		render = "docs/v2/evidence/h/2026-11-19-sound-candidates/REPORT.md",
 		soundCount = 2,
 	},
+
+	corner = {
+		id = "corner",
+		title = "60x60 warung / road bend / sawah edge corner at golden hour",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Pure-data recipe source, no uploaded asset IDs. The adapter builds it in its own
+		-- Workspace Folder and restores the previous Lighting.ClockTime on disable.
+		idsSource = "Shared.LookDevCorner.parts",
+		render = "docs/v2/visual/art/corner/README.md",
+		size = 60,
+		featureCount = 3,
+		cameraCount = 3,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -279,8 +318,12 @@ end
 
 -- A thin adapter registers its appliers here at boot. Unknown ids and non-tables are ignored.
 function LookDev.register(id: string, applier: any)
-	if LookDev.isCandidate(id) and type(applier) == "table"
-		and type(applier.apply) == "function" and type(applier.restore) == "function" then
+	if
+		LookDev.isCandidate(id)
+		and type(applier) == "table"
+		and type(applier.apply) == "function"
+		and type(applier.restore) == "function"
+	then
 		appliers[id] = applier
 	end
 end

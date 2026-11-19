@@ -62,9 +62,15 @@ Also in force:
   Pexels, 1 public-domain Wikimedia) with per-file source, licence and author in
   `reference/README.md`; two 429-blocked Wikimedia CC0 shots were replaced by verified Pexels images.
   Designer still adds 3–5 of their own under V-D5; no visual verdict claimed by an agent.
-- [ ] 2. **Look-dev corner (V0.4).** A 60×60-stud corner with a warung, a road bend and a sawah
+- [x] 2. **Look-dev corner (V0.4).** A 60×60-stud corner with a warung, a road bend and a sawah
   edge, built in a separate Studio Folder toggled by `LookDev`. Apply V-D1 (remove the world
   outline here first) and V-D2 (golden hour). Save the camera positions for three review shots.
+  Done 2026-11-20: `src/shared/LookDevCorner.luau` (21-part pure recipe) + thin client adapter build
+  `Workspace.LookDevCorner` behind `LookDev:enable("corner")`, off by default; V-D1 (0 Highlights)
+  and V-D2 (`Lighting.ClockTime` → 16.5) locked by a 6-case spec. Three absolute review cameras are
+  saved in `docs/v2/visual/art/corner/README.md`; live Studio verification is in
+  `docs/v2/evidence/h/2026-11-20-lookdev-corner/REPORT.md`. 2056 passing, LUNE-ONLY + toggle
+  SEEN-IN-STUDIO; `screen_capture` timed out, so the visual yes/no stays pending.
 - [x] 3. **Prop audit (V-D3).** List the ten low-poly props in a table with the verdict: keep +
   retexture, or replace. For each one to replace, name a candidate found with the asset ladder.
   Done 2026-11-20: `docs/v2/visual/art/PROP_AUDIT.md` lists all ten with current representation,

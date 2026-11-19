@@ -14,9 +14,9 @@ return function(t, Env)
 	end
 
 	t:describe("LookDev candidates (candidate, awaiting designer yes)", function()
-		t:it("ships eight candidates, all unapproved and cartoonish-realism", function()
+		t:it("ships nine candidates, all unapproved and cartoonish-realism", function()
 			local LookDev = fresh()
-			expect(#LookDev.IDS):toBe(8)
+			expect(#LookDev.IDS):toBe(9)
 			expect(LookDev.IDS[1]):toBe("plaza_lighting")
 			expect(LookDev.IDS[2]):toBe("police_walkin")
 			expect(LookDev.IDS[3]):toBe("icons")
@@ -25,6 +25,7 @@ return function(t, Env)
 			expect(LookDev.IDS[6]):toBe("crops")
 			expect(LookDev.IDS[7]):toBe("hubprops")
 			expect(LookDev.IDS[8]):toBe("sounds")
+			expect(LookDev.IDS[9]):toBe("corner")
 			for _, id in LookDev.IDS do
 				local c = LookDev.candidates[id]
 				expect(c.id):toBe(id)
@@ -35,17 +36,21 @@ return function(t, Env)
 		end)
 
 		t:it("contains no asset IDs in the registry or any adapter", function()
-			for _, path in {
-				"src/shared/LookDev.luau",
-				"src/client/World/LookDevPlaza.luau",
-				"src/server/World/LookDevWalkin.luau",
-				"src/client/UI/LookDevIcons.luau",
-				"src/client/World/LookDevTextures.luau",
-				"src/client/World/LookDevNpcs.luau",
-				"src/client/World/LookDevCrops.luau",
-				"src/client/World/LookDevHubProps.luau",
-				"src/client/World/LookDevSounds.luau",
-			} do
+			for _, path in
+				{
+					"src/shared/LookDev.luau",
+					"src/client/World/LookDevPlaza.luau",
+					"src/server/World/LookDevWalkin.luau",
+					"src/client/UI/LookDevIcons.luau",
+					"src/client/World/LookDevTextures.luau",
+					"src/client/World/LookDevNpcs.luau",
+					"src/client/World/LookDevCrops.luau",
+					"src/client/World/LookDevHubProps.luau",
+					"src/client/World/LookDevSounds.luau",
+					"src/client/World/LookDevCorner.luau",
+					"src/shared/LookDevCorner.luau",
+				}
+			do
 				local src = fs.readFile(path)
 				expect(string.find(src, "rbxasset", 1, true) ~= nil):toBe(false)
 				expect(string.find(src, "assetId", 1, true) ~= nil):toBe(false)
@@ -102,8 +107,12 @@ return function(t, Env)
 			local LookDev = fresh()
 			local applied, restored = nil, 0
 			LookDev.register("plaza_lighting", {
-				apply = function(plan) applied = plan end,
-				restore = function() restored += 1 end,
+				apply = function(plan)
+					applied = plan
+				end,
+				restore = function()
+					restored += 1
+				end,
 			})
 			expect(LookDev.hasApplier("plaza_lighting")):toBe(true)
 			expect(LookDev.enable("plaza_lighting", { studio = true })):toBe(true)
@@ -115,7 +124,9 @@ return function(t, Env)
 		t:it("a throwing applier is contained and enable reports the failure", function()
 			local LookDev = fresh()
 			LookDev.register("plaza_lighting", {
-				apply = function() error("boom") end,
+				apply = function()
+					error("boom")
+				end,
 				restore = function() end,
 			})
 			local ok, why = LookDev.enable("plaza_lighting", { studio = true })
@@ -232,14 +243,14 @@ return function(t, Env)
 			local crops = fs.readFile("src/client/World/LookDevCrops.luau")
 			local hubprops = fs.readFile("src/client/World/LookDevHubProps.luau")
 			local sounds = fs.readFile("src/client/World/LookDevSounds.luau")
-			expect(string.find(plaza, "LookDev.register(\"plaza_lighting\"", 1, true) ~= nil):toBe(true)
-			expect(string.find(walkin, "LookDev.register(\"police_walkin\"", 1, true) ~= nil):toBe(true)
-			expect(string.find(icons, "LookDev.register(\"icons\"", 1, true) ~= nil):toBe(true)
-			expect(string.find(textures, "LookDev.register(\"textures\"", 1, true) ~= nil):toBe(true)
-			expect(string.find(npcs, "LookDev.register(\"npcs\"", 1, true) ~= nil):toBe(true)
-			expect(string.find(crops, "LookDev.register(\"crops\"", 1, true) ~= nil):toBe(true)
-			expect(string.find(hubprops, "LookDev.register(\"hubprops\"", 1, true) ~= nil):toBe(true)
-			expect(string.find(sounds, "LookDev.register(\"sounds\"", 1, true) ~= nil):toBe(true)
+			expect(string.find(plaza, 'LookDev.register("plaza_lighting"', 1, true) ~= nil):toBe(true)
+			expect(string.find(walkin, 'LookDev.register("police_walkin"', 1, true) ~= nil):toBe(true)
+			expect(string.find(icons, 'LookDev.register("icons"', 1, true) ~= nil):toBe(true)
+			expect(string.find(textures, 'LookDev.register("textures"', 1, true) ~= nil):toBe(true)
+			expect(string.find(npcs, 'LookDev.register("npcs"', 1, true) ~= nil):toBe(true)
+			expect(string.find(crops, 'LookDev.register("crops"', 1, true) ~= nil):toBe(true)
+			expect(string.find(hubprops, 'LookDev.register("hubprops"', 1, true) ~= nil):toBe(true)
+			expect(string.find(sounds, 'LookDev.register("sounds"', 1, true) ~= nil):toBe(true)
 		end)
 
 		t:it("icons applier toggles IconMap candidate ids and restores fallbacks", function()
@@ -259,8 +270,10 @@ return function(t, Env)
 		t:it("npcs applier adds procedural details and removes them on restore", function()
 			local npcs = fs.readFile("src/client/World/LookDevNpcs.luau")
 			expect(string.find(npcs, "NpcModelCandidates.recipeFor", 1, true) ~= nil):toBe(true)
-			expect(string.find(npcs, "CollectionService:GetTagged(\"NpcSpawn\")", 1, true) ~= nil):toBe(true)
-			expect(string.find(npcs, "Detail", 1, true) ~= nil or string.find(npcs, "decorate", 1, true) ~= nil):toBe(true)
+			expect(string.find(npcs, 'CollectionService:GetTagged("NpcSpawn")', 1, true) ~= nil):toBe(true)
+			expect(string.find(npcs, "Detail", 1, true) ~= nil or string.find(npcs, "decorate", 1, true) ~= nil):toBe(
+				true
+			)
 			expect(string.find(npcs, ":Destroy()", 1, true) ~= nil):toBe(true)
 		end)
 
@@ -280,18 +293,21 @@ return function(t, Env)
 			expect(string.find(hubprops, ":Destroy()", 1, true) ~= nil):toBe(true)
 		end)
 
-		t:it("sounds applier uses SoundMap, round-1 SoundGroups + AudioPolicy and removes its Sounds on restore", function()
-			local sounds = fs.readFile("src/client/World/LookDevSounds.luau")
-			expect(string.find(sounds, "SoundMap.candidateOrder", 1, true) ~= nil):toBe(true)
-			expect(string.find(sounds, "SoundMap.assetUrl", 1, true) ~= nil):toBe(true)
-			expect(string.find(sounds, "SoundMap.playable", 1, true) ~= nil):toBe(true)
-			expect(string.find(sounds, "AudioPolicy.new", 1, true) ~= nil):toBe(true)
-			expect(string.find(sounds, ":transition(def.group, key)", 1, true) ~= nil):toBe(true)
-			expect(string.find(sounds, "def.group == \"music\"", 1, true) ~= nil):toBe(true)
-			expect(string.find(sounds, "\"JD_\" .. name", 1, true) ~= nil):toBe(true)
-			expect(string.find(sounds, "sound.SoundGroup = group", 1, true) ~= nil):toBe(true)
-			expect(string.find(sounds, ":Destroy()", 1, true) ~= nil):toBe(true)
-		end)
+		t:it(
+			"sounds applier uses SoundMap, round-1 SoundGroups + AudioPolicy and removes its Sounds on restore",
+			function()
+				local sounds = fs.readFile("src/client/World/LookDevSounds.luau")
+				expect(string.find(sounds, "SoundMap.candidateOrder", 1, true) ~= nil):toBe(true)
+				expect(string.find(sounds, "SoundMap.assetUrl", 1, true) ~= nil):toBe(true)
+				expect(string.find(sounds, "SoundMap.playable", 1, true) ~= nil):toBe(true)
+				expect(string.find(sounds, "AudioPolicy.new", 1, true) ~= nil):toBe(true)
+				expect(string.find(sounds, ":transition(def.group, key)", 1, true) ~= nil):toBe(true)
+				expect(string.find(sounds, 'def.group == "music"', 1, true) ~= nil):toBe(true)
+				expect(string.find(sounds, '"JD_" .. name', 1, true) ~= nil):toBe(true)
+				expect(string.find(sounds, "sound.SoundGroup = group", 1, true) ~= nil):toBe(true)
+				expect(string.find(sounds, ":Destroy()", 1, true) ~= nil):toBe(true)
+			end
+		)
 
 		t:it("plaza applier uses built-in Enum.Material only", function()
 			local plaza = fs.readFile("src/client/World/LookDevPlaza.luau")
@@ -314,10 +330,14 @@ return function(t, Env)
 			local server = fs.readFile("src/server/Main.server.luau")
 			expect(string.find(client, "pcall(require, script.Parent.World.LookDevPlaza)", 1, true) ~= nil):toBe(true)
 			expect(string.find(client, "pcall(require, script.Parent.UI.LookDevIcons)", 1, true) ~= nil):toBe(true)
-			expect(string.find(client, "pcall(require, script.Parent.World.LookDevTextures)", 1, true) ~= nil):toBe(true)
+			expect(string.find(client, "pcall(require, script.Parent.World.LookDevTextures)", 1, true) ~= nil):toBe(
+				true
+			)
 			expect(string.find(client, "pcall(require, script.Parent.World.LookDevNpcs)", 1, true) ~= nil):toBe(true)
 			expect(string.find(client, "pcall(require, script.Parent.World.LookDevCrops)", 1, true) ~= nil):toBe(true)
-			expect(string.find(client, "pcall(require, script.Parent.World.LookDevHubProps)", 1, true) ~= nil):toBe(true)
+			expect(string.find(client, "pcall(require, script.Parent.World.LookDevHubProps)", 1, true) ~= nil):toBe(
+				true
+			)
 			expect(string.find(client, "pcall(require, script.Parent.World.LookDevSounds)", 1, true) ~= nil):toBe(true)
 			expect(string.find(server, "pcall(require, script.Parent.World.LookDevWalkin)", 1, true) ~= nil):toBe(true)
 		end)

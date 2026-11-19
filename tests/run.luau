@@ -120,6 +120,7 @@ local specs = {
 	require("./specs/code_health_spec"),
 	require("./specs/dead_code_spec"),
 	require("./specs/lookdev_candidates_spec"),
+	require("./specs/lookdev_corner_spec"),
 	require("./specs/economy_config_spec"),
 	require("./specs/first_session_failure_spec"),
 	require("./specs/client_state_failure_spec"),

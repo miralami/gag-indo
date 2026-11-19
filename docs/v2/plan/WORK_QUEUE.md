@@ -44,12 +44,15 @@ Also in force:
 ## Queue
 
 ### 0. Before the visuals (small, do first)
-- [ ] 0a. **Q6 live capture for admins.** The Q6 run sheet makes the designer copy numbers by hand
+- [x] 0a. **Q6 live capture for admins.** The Q6 run sheet makes the designer copy numbers by hand
   from the HUD, because `Persistence` only works in Studio. Add an admin-only (`Admins.isAdmin`)
   server command that also works in a published place and prints the same `Q6_BEFORE_JSON` and
   `Q6_RESULT_JSON` lines to the server console (F9). Rate-limit it, make it read-only, and give it
   a gate spec. Update `Q6_PUBLISHED_PLACE.md` §C to use it. This is test tooling, not a gameplay
-  feature.
+  feature. Done 2026-11-20: admin-only, read-only, rate-limited `q6Capture`/`q6Compare` actions in
+  `AdminService`, pure `Q6AdminGate` + `Q6Admin` (UserId-keyed before, pasted-JSON override), 10-case
+  `q6_admin_spec` (published `IsStudio=false`), `Q6_PUBLISHED_PLACE.md` §C updated. LUNE-ONLY; the
+  published-place run itself stays `BLOCKED` on the designer (D-G2), but the tooling is usable there.
 
 ### A. Foundation (V0)
 - [ ] 1. **Reference board (V0.3).** Put 15–20 images under `docs/v2/visual/art/reference/`, each

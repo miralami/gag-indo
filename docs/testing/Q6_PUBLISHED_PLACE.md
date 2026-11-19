@@ -26,16 +26,42 @@ close it. It needs the designer (decision **D-G2**) and is therefore `BLOCKED` f
 ## C. Save → leave → rejoin in the published place
 
 1. Join the **published** place as a real player (not Play Solo, not a Local Server test client).
+   Your account must be allowlisted in `src/server/Live/Admins.luau` (`userIds`): Studio's
+   "everyone is an admin" convenience does **not** apply in a published place.
 2. Play long enough to own the numbers you will check: plant, harvest and sell at least once.
-3. Write down the exact "before" numbers: **cash, each seed count, tilesOwned, each planted crop,
-   gudang/sack and rank**. The harness cannot run in a published place (its Gate requires Studio),
-   so capture these by reading the HUD / a Studio command bar in the published session if possible,
-   or from the designer's own notes. Use the table in section E.
+3. From a client script in the published place, fire the **before** command:
+
+   ```lua
+   game:GetService("ReplicatedStorage").Remotes.Admin_Command:FireServer({ action = "q6Capture" })
+   ```
+
+   The server prints `Q6_BEFORE_JSON=...` to the console (F9) and keeps that snapshot in memory
+   keyed by your UserId. The command is read-only (no save, no mutation), rate limited and
+   admin-only; the Studio harness is not involved.
 4. Leave the game (Esc → **Leave**). Wait ~10 s so the DataStore write completes.
-5. **Rejoin the same place** as the same account.
-6. Write down the same numbers again into the "after" column.
-7. Every compared field must be unchanged. A reset, a double, or a missing tile is a **desync** —
+5. **Rejoin the SAME server** as the same account, then fire:
+
+   ```lua
+   game:GetService("ReplicatedStorage").Remotes.Admin_Command:FireServer({ action = "q6Compare" })
+   ```
+
+   The server prints the field-by-field verdict (`Q6 persistence: n/n fields match; PASS|FAIL`)
+   and `Q6_RESULT_JSON=...`. The reply also arrives on `Admin_Result` as
+   `{ ok = ..., message = ..., data = ... }`.
+6. Every compared field must be unchanged. A reset, a double, or a missing tile is a **desync** —
    file it in `docs/testing/BUGS.md` with the before/after numbers and stop the Gate 1 claim.
+7. In-memory `before` survives a leave/rejoin on a still-running server, but **not** a full server
+   restart. Copy the `Q6_BEFORE_JSON` line as a backup before leaving and pass its JSON back if the
+   server restarted:
+
+   ```lua
+   game:GetService("ReplicatedStorage").Remotes.Admin_Command:FireServer({
+     action = "q6Compare",
+     value = "<pasted JSON from Q6_BEFORE_JSON>",
+   })
+   ```
+
+   The table in section E remains a manual fallback if you cannot fire the command.
 
 ## D. Studio rehearsal with the gated compare script
 

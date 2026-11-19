@@ -65,7 +65,7 @@ local specs = {
 	require("./specs/details_spec"),
 	require("./specs/flora_spec"),
 	require("./specs/landscape_spec"),
-		require("./specs/enums_spec"),
+	require("./specs/enums_spec"),
 	require("./specs/camerafeel_spec"),
 	require("./specs/feel_spec"),
 	require("./specs/nextgoal_spec"),
@@ -129,6 +129,7 @@ local specs = {
 	require("./specs/purchase_idempotency_spec"),
 	require("./specs/cross_server_failure_spec"),
 	require("./specs/admin_authority_spec"),
+	require("./specs/q6_admin_spec"),
 	require("./specs/analytics_audit_spec"),
 	require("./specs/npc_pathing_robustness_spec"),
 	require("./specs/ui_touch_text_audit_spec"),
@@ -136,6 +137,7 @@ local specs = {
 	require("./specs/nav_wiring_spec"),
 	require("./specs/audio_policy_spec"),
 	require("./specs/audio_wiring_spec"),
+	require("./specs/day_cycle_spec"),
 }
 
 -- `--timing` prints a full per-spec table; without it only the slowest rows print. The first
@@ -218,7 +220,16 @@ do
 	local specLimit = showTiming and #specRows or math.min(12, #specRows)
 	for i = 1, specLimit do
 		local r = specRows[i]
-		print(string.format("  %8s  reg=%-8s cases=%-8s  %s%s", fmt(r.total), fmt(r.reg), fmt(r.exec), r.name, slowMark(r.total)))
+		print(
+			string.format(
+				"  %8s  reg=%-8s cases=%-8s  %s%s",
+				fmt(r.total),
+				fmt(r.reg),
+				fmt(r.exec),
+				r.name,
+				slowMark(r.total)
+			)
+		)
 	end
 	print("slowest cases:")
 	for i = 1, math.min(12, #caseRows) do
@@ -237,4 +248,3 @@ if failed > 0 then
 	process.exit(1)
 end
 print(`All {passed} tests passed`)
-

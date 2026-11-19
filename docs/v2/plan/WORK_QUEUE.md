@@ -297,9 +297,16 @@ never publish.
   (Rojo connect, API services, iPhone 14 before F5, status words). G4 tracked separately as an
   art block; G1 closes last. `Stats.FrameTime` usage checked against the current Roblox docs.
   No code change; `lune` 1996, `selene src` 0/0/0.
-- [ ] 22. **Q5 multi-client script.** A gated harness script that, once the designer starts Local
-  Server with N players, runs the §2–§4 loop on every client, collects desync and stuck-state
-  checks, and writes one results table. Lune-test the parts that can be tested.
+- [x] 22. **Q5 multi-client script.** `LUNE-ONLY` script delivered; the live ten-player half stays
+  `BLOCKED` (this MCP bridge cannot open a Local Server / add test clients — see
+  `h/2026-11-19-q5-multiclient/`). Added a pure comparator `MultiClientCheck.luau` (stable digest,
+  stuck + desync, formatted lines) and a Studio-gated server driver `MultiClient.luau` that runs the
+  HARNESS §2–§4 loop for every player through one new gated `Harness.dispatch` seam and writes one
+  results table (`MC.lastResults` + a `Q5_MULTICLIENT_JSON=` line). 12 cases in
+  `tests/specs/multiclient_spec.luau`; mutation check fails 4 of them, reverted. Accept list
+  excludes identity/position/UserId-seeded `shop`/hint id by design. Designer run steps in
+  `HARNESS.md` §12. `lune` 2008 (+12), `selene src` 0/0/0, LSP 474 unchanged. Evidence
+  `docs/v2/evidence/h/2026-11-19-q5-multiclient-script/REPORT.md`.
 - [ ] 23. **Q6 published-place plan.** Exact steps for a private test place, plus a gated
   save/leave/rejoin compare script for the designer to run.
 - [ ] 24. **Indonesian text review.** Read every `id` string for natural, non-translated-sounding

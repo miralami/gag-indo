@@ -371,3 +371,40 @@ growth is not attributable to the game until a capped run is done. The second ru
 grew 4.4 MB in 27 s — too short to call either way.
 
 Status of the soak criterion: still `UNVERIFIED`.
+
+## 12. Multi-client driver for Q5 (needs a human at the Test tab)
+
+The single-client soak above cannot produce the ten-player half of Q5: this MCP bridge cannot open
+a Local Server or add test clients, and Roblox has no scriptable API to create them from inside a
+place. A gated **server** script is provided so that, once a human opens the clients, the whole
+§2–§4 loop runs on every player at once and produces one results table.
+
+1. Repro root `rojo serve`; Studio connected; **Enable Studio Access to API Services** on.
+2. Test tab → **Start** with **Local Server** on. Add test clients (start with 2, then go to 10 for
+   the real Q5 run). Every client is a fresh save.
+3. In **one** client's command bar, enable the harness (§3) so the gate opens:
+   `game:GetService("ReplicatedStorage").Remotes.Harness_Command:FireServer({ action = "enable" })`.
+4. In the **server** command bar, run the driver once:
+
+   ```lua
+   local MC = require(game.ServerScriptService.Server.Testing.MultiClient)
+   MC.run()
+   ```
+
+   This runs §4 steps 1–7 (plus `save`, and a final `status`) for every player through the same
+   gated handlers a client would call, and prints a readable summary plus one
+   `Q5_MULTICLIENT_JSON=` line. Read the raw table back with `return MC.lastResults`.
+
+5. Compare the JSON against the verdicts in §11 "What counts as what". `stuck` lists players with
+   no save snapshot or a failed critical step (the action and error are named); `desync` lists
+   state fields that differ between players, with each player's value. Identity, position, the
+   UserId-seeded `shop` shelf and the onboarding hint id are excluded — check `shop` before calling
+   a cash/seeds difference a bug.
+6. A driver script cannot see client UI or a client whose network stalls. Watch the clients for the
+   "stopped replying" half of Q5 by hand; note it in the report if you see it.
+
+Evidence: `docs/v2/evidence/h/<yyyy-mm-dd>-q5-multiclient-closed/` with `REPORT.md`, the JSON as
+`results.json` and `output.log`. The comparator (`server/Testing/MultiClientCheck.luau`) is pure and
+covered by `tests/specs/multiclient_spec.luau`; the live ten-player run stays `BLOCKED` until step 2
+is done by a human. Do not save `JuraganDesa.rbxl`.
+

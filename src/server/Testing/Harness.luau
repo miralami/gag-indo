@@ -389,6 +389,22 @@ local function onCommand(player: Player, payload: any)
 	end
 end
 
+-- Server-side driver seam for the Q5 multi-client run (WORK_QUEUE item 22). The Studio driver
+-- calls this instead of firing the client RemoteEvent: the same gated handlers and the same real
+-- services run, with no client key input. It is still gated (Studio + flag + admin), so a
+-- published server cannot use it. This is the only new surface; `snapshot` and `handlers` stay
+-- private.
+function Harness.dispatch(player: Player, action: string, value: any): (any?, string?)
+	if not enabled(player) then
+		return nil, "harness driver refused: a Studio admin must enable it first"
+	end
+	local handler = handlers[action]
+	if not handler then
+		return nil, `Unknown action "{action}".`
+	end
+	return handler(player, value)
+end
+
 function Harness.start()
 	Remotes.Harness_Command.OnServerEvent:Connect(onCommand)
 	Players.PlayerRemoving:Connect(function(_player)

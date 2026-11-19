@@ -287,9 +287,25 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   pinned by `nav_wiring_spec` and the cancel policy by `navigation_spec`; needs a real keyboard/
   gamepad in a manual Studio session for the final input→Sink link. RaidOverlay decision recorded
   under "Decisions for designer".
-- [ ] 22. **Audio hygiene.** Every Sound is in a SoundGroup with a set volume, is cleaned up after
+- [x] 22. **Audio hygiene.** Every Sound is in a SoundGroup with a set volume, is cleaned up after
   play, and no loop leaks after a state change. Specs plus a Studio count of Sounds before and
   after a full beat-sheet run.
+  Done 2026-11-19 (`SEEN-IN-STUDIO`): new pure `src/client/AudioPolicy.luau` (config audit,
+  playable ids, per-role loop state, pooled one-shot invariant) + `src/client/Audio.luau` refactor
+  that owns the Sound/SoundGroup/Tween objects, creates one grouped+volumed Sound per configured id
+  at mount and never allocates again, and drives both looping roles through the policy. Fade tweens
+  are cosmetic; each outgoing Stop is authoritative on `task.delay(FADE_SECONDS)`, guarded by a
+  per-Sound token invalidated on replay. Two real defects found in validation and fixed: (1) a
+  role-generation guard skipped `Stop()` on intermediate outgoing loops and left four ambience beds
+  playing in Studio, (2) TweenService does not step at all under this Studio MCP environment
+  (Part and Sound tween neither animate nor fire `Completed` while Heartbeat runs), so cleanup could
+  not rely on a tween callback. `audio_policy_spec` (13) + `audio_wiring_spec` (12, fake audio
+  services + static); suite 1908; selene 0/0/0; both guards mutation-checked. Studio census: 4
+  groups / 17 Sounds / 0 ungrouped / 0 bad volumes both before and after a rapid 7-step `Cuaca`
+  sequence at 0.12 s gaps, with exactly one music and one ambience loop playing after settle.
+  No `MusicZone` parts exist (Track C world not built), so the identical path was driven via the
+  real `Cuaca` signal; place not saved/published, no `profile:Save()`, returned to Edit. Evidence
+  `docs/v2/evidence/h/2026-11-19-audio-hygiene/` (`REPORT.md`, `results.json`).
 - [ ] 23. **Lighting × FidelityTier per hub.** In Studio, force each tier in each of the six hubs
   and record the applied settings and instance counts. Check that no tier switch leaves an effect
   stuck on.

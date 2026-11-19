@@ -15,6 +15,7 @@ local TweenService = game:GetService("TweenService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local AudioConfig = require(Shared.Config.Audio)
+local AudioPolicy = require(script.Parent.AudioPolicy)
 
 local player = Players.LocalPlayer
 
@@ -26,8 +27,9 @@ local ZONE_POLL = 1
 local groups: { [string]: SoundGroup } = {}
 local sounds: { [string]: Sound } = {}
 local baseVolume: { [string]: number } = {}
-local musicKey: string? = nil
-local ambienceKey: string? = nil
+local policy = AudioPolicy.new({}) -- loop-state decision maker; rebuilt in start()
+local fades: { [Sound]: Tween? } = {} -- in-flight fade per Sound, cancelled before any replay/stop
+local stopTokens: { [Sound]: number } = {} -- per-Sound token: invalidates a scheduled Stop on replay
 local mounted = false
 
 local function makeGroups()
@@ -84,60 +86,77 @@ local function fadeTo(sound: Sound, target: number, duration: number)
 	return tween
 end
 
-local function stopMusic()
-	if not musicKey then
-		return
+-- Cancel a Sound's in-flight fade and invalidate any scheduled Stop. Called on both a replay
+-- (switch-back) and a newer fade, so a stale timer can never Stop the live loop (WORK_QUEUE 22).
+local function cancelFade(sound: Sound)
+	local tween = fades[sound]
+	if tween then
+		fades[sound] = nil
+		tween:Destroy()
 	end
-	local old = sounds[musicKey]
-	musicKey = nil
-	if not old then
-		return
-	end
-	local tween = fadeTo(old, 0, FADE_SECONDS)
-	tween.Completed:Once(function()
-		old:Stop()
-	end)
+	stopTokens[sound] = (stopTokens[sound] or 0) + 1
 end
 
--- Switches the looping music bed. `nil` (or a key with no asset) stops it.
-function Audio.setMusic(key: string?)
-	if not mounted or key == musicKey then
-		return
-	end
-	stopMusic()
-	if not key then
-		return
-	end
-	local sound = sounds[key]
+local function fadeOut(change: any)
+	local sound = if change.from then sounds[change.from] else nil
 	if not sound then
 		return
 	end
-	musicKey = key
+	cancelFade(sound)
+	local tween = fadeTo(sound, 0, FADE_SECONDS)
+	fades[sound] = tween
+	local token = stopTokens[sound]
+	-- The tween is cosmetic (audible fade); the Stop is authoritative on an explicit timer.
+	-- Tween.Completed is not a reliable cleanup hook - e.g. the Studio MCP environment does not
+	-- step tweens at all - and a role-generation guard would skip intermediate outgoing loops and
+	-- leak them. A per-Sound token survives both cases: cancelled on replay, otherwise Stops once.
+	task.delay(FADE_SECONDS, function()
+		if stopTokens[sound] == token then
+			fades[sound] = nil
+			sound:Stop()
+		end
+	end)
+end
+
+local function fadeIn(change: any, target: number)
+	local sound = if change.to then sounds[change.to] else nil
+	if not sound then
+		return
+	end
+	cancelFade(sound) -- a switch-back may still have a pending fade-out on this Sound
 	sound.Volume = 0
 	sound:Play()
-	fadeTo(sound, baseVolume[key] or 0.35, FADE_SECONDS)
+	local tween = fadeTo(sound, target, FADE_SECONDS)
+	fades[sound] = tween
+	tween.Completed:Once(function()
+		if fades[sound] == tween then
+			fades[sound] = nil
+		end
+	end)
+end
+
+-- Switches the looping music bed. `nil` (or a key with no asset) stops it. The pure policy decides
+-- the transition; the bridge owns the fades so a state change never leaks a stale loop.
+function Audio.setMusic(key: string?)
+	if not mounted then
+		return
+	end
+	local change = policy:transition("music", key)
+	if not change then
+		return
+	end
+	fadeOut(change)
+	fadeIn(change, baseVolume[change.to] or 0.35)
 end
 
 function Audio.setWeather(cuaca: string?)
 	local key = if type(cuaca) == "string" then AudioConfig.weather[cuaca] else nil
-	if key == ambienceKey then
+	local change = policy:transition("ambience", key)
+	if not change then
 		return
 	end
-	if ambienceKey and sounds[ambienceKey] then
-		local old = sounds[ambienceKey]
-		local tween = fadeTo(old, 0, FADE_SECONDS)
-		tween.Completed:Once(function()
-			old:Stop()
-		end)
-	end
-	ambienceKey = key
-	local sound = if key then sounds[key] else nil
-	if not sound then
-		return
-	end
-	sound.Volume = 0
-	sound:Play()
-	fadeTo(sound, baseVolume[key] or 0.25, FADE_SECONDS)
+	fadeOut(change)
+	fadeIn(change, baseVolume[change.to] or 0.25)
 end
 
 -- The innermost MusicZone the character stands in, or the town theme.
@@ -190,6 +209,7 @@ function Audio.start()
 	mounted = true
 	makeGroups()
 	makeSounds()
+	policy = AudioPolicy.new(AudioPolicy.playable(AudioConfig.sounds))
 
 	Audio.setWeather(ReplicatedStorage:GetAttribute("Cuaca"))
 	ReplicatedStorage.AttributeChanged:Connect(function(name)

@@ -1,0 +1,75 @@
+{
+  "item": 22,
+  "date": "2026-11-19",
+  "status": "SEEN-IN-STUDIO",
+  "studio": {
+    "place": "Development-Juragan-Desa",
+    "placeId": 132087524375529,
+    "universeId": 10776530981,
+    "mode_during_test": "Play Solo",
+    "datamodel": "Client",
+    "rojo": "localhost:34872",
+    "place_saved": false,
+    "published": false,
+    "profile_save_called": false,
+    "returned_to_edit_mode": true
+  },
+  "baseline": {
+    "soundCount": 17,
+    "groupCount": 4,
+    "groups": ["JD_ambience:0.5", "JD_music:0.45", "JD_sting:0.85", "JD_ui:0.7"],
+    "ungrouped": 0,
+    "badVol": 0,
+    "loopsPlaying": ["ambience_hujan", "music_desa"],
+    "ambienceLoops": 1,
+    "musicLoops": 1
+  },
+  "stress": {
+    "signal": "ReplicatedStorage.Cuaca attribute (real SeasonService signal)",
+    "sequence": ["cerah", "badai", "kabut", "hujan", "cerah", "badai", "hujan"],
+    "gapSeconds": 0.12,
+    "settleSeconds": 1.2,
+    "pass": true
+  },
+  "after": {
+    "soundCount": 17,
+    "grouped": 17,
+    "ungrouped": 0,
+    "badVol": 0,
+    "loopsPlaying": ["ambience_hujan", "music_desa"],
+    "ambienceLoops": 1,
+    "musicLoops": 1
+  },
+  "midTransitionOverlap": [
+    "cerah => ambience_cerah,ambience_hujan,music_desa",
+    "badai => ambience_badai,ambience_cerah,ambience_hujan,music_desa",
+    "kabut => ambience_badai,ambience_cerah,ambience_hujan,ambience_kabut,music_desa",
+    "hujan => ambience_badai,ambience_cerah,ambience_hujan,ambience_kabut,music_desa",
+    "cerah => ambience_badai,ambience_cerah,ambience_hujan,ambience_kabut,music_desa",
+    "badai => ambience_badai,ambience_cerah,ambience_hujan,ambience_kabut,music_desa",
+    "hujan => ambience_hujan,music_desa"
+  ],
+  "defectsFoundAndFixed": [
+    {
+      "name": "role-generation guard leaked intermediate loops",
+      "studioEvidence": "first census left ambience_badai, ambience_cerah, ambience_hujan, ambience_kabut all IsPlaying=true after the rapid sequence",
+      "fix": "per-Sound fade identity (then per-Sound token) so intermediate outgoing loops are always Stopped while a replayed Sound survives"
+    },
+    {
+      "name": "TweenService does not step under Studio MCP",
+      "studioEvidence": "Part and Sound tween: Play() neither animated the property nor fired Completed while RunService.Heartbeat advanced",
+      "fix": "fade tween is cosmetic; authoritative outgoing Stop is task.delay(FADE_SECONDS) guarded by a per-Sound token; task.delay verified working in the same environment"
+    }
+  ],
+  "mutationChecks": [
+    { "change": "if stopTokens[sound] == token then -> if true then", "result": "switch-back spec fails (stale timer Stops the replayed loop)" },
+    { "change": "outgoing Stop disabled", "result": "switch-back and rapid-distinct-switch leak specs both fail" }
+  ],
+  "specs": {
+    "audio_policy_spec": 13,
+    "audio_wiring_spec": 12,
+    "suite_total": 1908,
+    "selene": "0 errors / 0 warnings / 0 parse errors"
+  },
+  "notDrivable": "No MusicZone-tagged BaseParts in the current place (Track C designer world not built); the identical fade/Stop path was exercised through the real Cuaca signal."
+}

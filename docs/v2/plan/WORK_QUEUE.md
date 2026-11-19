@@ -184,6 +184,46 @@ Also in force:
   already queued. Items 11, 12, 14, 15 and 16 are marked `BLOCKED` with reasons; round 3 is
   exhausted.
 
+### G. Unblock pass (added 2026-11-20 after the round-3 review)
+
+Most of B and C were marked blocked for reasons that don't apply. **Rule for this section: a missing
+visual verdict never blocks integration.** Integrate every asset off by default behind `LookDev`,
+record the review camera, leave the verdict cell blank, and move on. The verdict is the review
+pass's job, not a precondition. If Rojo is not running, start it (`rojo serve`) instead of calling
+Studio stale. A licence that is not CC0 / CC BY (with attribution recorded) is still a hard stop.
+
+- [ ] 20. **Upload route check.** Try the `ROBLOX_API_KEY` env var against Open Cloud
+  `POST /assets/v1/assets` with the first real texture from item 21 (not a test file). If it works,
+  that is the upload route for this section. If it fails with a scope/permission error, record the
+  exact HTTP status (never the key) and mark only the *upload* steps below "needs Studio
+  `open_cloud_invoke` session"; do every download, packing, Luau and spec step anyway, so the
+  Studio session only has to upload and paste IDs.
+- [ ] 21. **Textures (item 7).** Download the nine CC0 Poly Haven sets listed in
+  `SOURCING_TEXTURES_NPC_ANIM.md` at 1K (Poly Haven public API), keep colour / normal / roughness,
+  upload, record every ID in `ASSET_MANIFEST.md`, and wire them as `MaterialVariant`s in a new
+  LookDev candidate `textures_r3`, off by default. Add its row to `CANDIDATES.md` with a contact
+  sheet, verdict blank.
+- [ ] 22. **Icon revision (item 9b).** Redraw `tier_biasa` and `debt`, polish the rest, render
+  before/after contact sheets, upload, record IDs, add candidate `icons_r3`. Verdict blank.
+- [ ] 23. **Models (items 4, 5, 6, 8).** CC0 first (Poly Haven, Quaternius, Kenney, Poly Pizza),
+  CC BY only with the attribution in the manifest. Decimate to the budget in
+  `SOURCING_BUILDINGS_VEG.md` (Blender MCP if available, otherwise a script), export FBX, upload as
+  `Model`, record IDs, and add one LookDev candidate per family (`buildings_r3`, `vegetation_r3`,
+  `props_r3`, `npcs_r3`) placed in the 60×60 `corner`. Tropical only (V-D4). Anything no free source
+  covers goes to "Designer builds" with a brief.
+- [ ] 24. **Sky (item 11).** One CC0 Poly Haven tropical/overcast HDRI → six cube faces by script
+  → upload → `Sky` in a LookDev candidate `sky_r3`, plus the ridge silhouette and haze values in
+  `Atmosphere`. Verdict blank.
+- [ ] 25. **Day-cycle live wiring, code half (item 10b).** Wire `DayCycle.presetFor` into
+  `client/World/Sky.luau` behind LookDev `day_cycle` (off by default), with the 20–40 s tweens and
+  lamps that emit light at night within the Rendah budget. Add the adzan setting as a saved player
+  setting (default on, low volume) with a spec on a mock profile, and the five sound-bed slots with
+  `nil` IDs, so they stay silent until the designer supplies licensed IDs. Never invent a sound ID.
+- [ ] 26. **Review handoff.** Add every new candidate from 21–25 to `REVIEW_ROUND3.md` with its
+  toggle and camera, in review order.
+- [ ] 27. **Refill.** Re-check items 12, 14, 15 and 16 against what 20–26 produced; un-block any
+  that now have their inputs, and repeat until nothing agent-closable is left.
+
 ## Designer builds
 
 Models the ladder couldn't supply, each with a brief and a reference.

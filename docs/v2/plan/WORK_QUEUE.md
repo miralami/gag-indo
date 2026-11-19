@@ -135,9 +135,13 @@ Also in force:
 - [ ] 12. **Spawn view.** Combine A–C on the spawn view only. Save the camera position, then
   check the instance count and fps proxy against the budget. Leave the five screenshot tests to
   the review pass.
-- [ ] 13. **Review pass handoff.** Write `docs/v2/visual/REVIEW_ROUND3.md` listing every
+- [x] 13. **Review pass handoff.** Write `docs/v2/visual/REVIEW_ROUND3.md` listing every
   candidate with its toggle and camera position, in the order to review. The designer, or a
-  session that can see screenshots, fills in the verdicts.
+  session that can see screenshots, fills in the verdicts. Done 2026-11-20: handoff doc lists all
+  nine LookDev candidates with exact `enable`/`disable` commands, the three saved `corner` cameras,
+  the blocked asset lanes and the designer/hardware actions; verdict cells are blank and prior
+  designer verdicts are carried verbatim from `CANDIDATES.md`. No visual graded, no screenshot
+  claimed.
 
 ### E. Moments (V2), after the frame is approved
 - [ ] 14. **Harvest, reveal and sale VFX (M2–M4):** particles, a pop scale, a cash fly, a sound

@@ -33,6 +33,12 @@ If `docs/v2/plan/WORK_QUEUE.md` has an unchecked item, you are in long-run mode:
 - **Roblox Studio MCP is main-session only.** Subagents have `blender` and `github` and no Studio
   tools (verified 2026-11-14). Anything that starts a play session, runs `execute_luau` or captures a
   screenshot stays in the main session.
+- **Visual judgment needs the vision observer.** An observer subagent running Gemini 3.8 can see
+  screenshots and make visual calls; this main session cannot. For any visual yes/no (LookDev
+  candidates, review shots, whether an asset reads well), delegate the review to that vision-capable
+  observer (or the designer) — never call a visual result good from file contents or a text summary
+  alone. Integrate assets off by default behind `LookDev`, record the review camera position, and
+  let the vision pass decide.
 - Claims are not evidence: read the diff or the file a lane produced before believing its summary.
 
 ## Rules that bite

@@ -55,10 +55,13 @@ Also in force:
   published-place run itself stays `BLOCKED` on the designer (D-G2), but the tooling is usable there.
 
 ### A. Foundation (V0)
-- [ ] 1. **Reference board (V0.3).** Put 15–20 images under `docs/v2/visual/art/reference/`, each
+- [x] 1. **Reference board (V0.3).** Put 15–20 images under `docs/v2/visual/art/reference/`, each
   with a source link and licence: Indonesian village at senja, sawah terraces, pasar, warung at
   night, rain on seng, rumah panggung, kelapa and pisang, bambu fences. The designer adds 3–5.
-  Build `reference/README.md` as a grid with captions.
+  Build `reference/README.md` as a grid with captions. Done 2026-11-20: 15 real JPEGs (14 free-licence
+  Pexels, 1 public-domain Wikimedia) with per-file source, licence and author in
+  `reference/README.md`; two 429-blocked Wikimedia CC0 shots were replaced by verified Pexels images.
+  Designer still adds 3–5 of their own under V-D5; no visual verdict claimed by an agent.
 - [ ] 2. **Look-dev corner (V0.4).** A 60×60-stud corner with a warung, a road bend and a sawah
   edge, built in a separate Studio Folder toggled by `LookDev`. Apply V-D1 (remove the world
   outline here first) and V-D2 (golden hour). Save the camera positions for three review shots.

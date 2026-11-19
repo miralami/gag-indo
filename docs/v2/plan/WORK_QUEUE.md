@@ -447,10 +447,22 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   row + designer-actions row and MASTER_PLAN G5 checkbox marked closed; counts now 5
   `SEEN-IN-STUDIO` / 2 `BLOCKED`. Tier guarantee stays `LUNE-ONLY`. `lune` 1930 passed,
   `selene` 0/0/0.
-- [ ] 34. **Refill (round 2).** Re-scan every `[ ]`/`[~]` item in `MASTER_PLAN.md`, `GATE1.md` and
+- [x] 34. **Refill (round 2).** Re-scan every `[ ]`/`[~]` item in `MASTER_PLAN.md`, `GATE1.md` and
   `BUGS.md` after items 32/33. Append anything still agent-doable plus a third bug-hunt-by-reading
   round over files changed since item 10. If a full round adds nothing, tick this and stop the
   refill loop without appending another.
+  Done 2026-11-19 (**full round added nothing** — refill loop closed). Scanned all 21 remaining
+  `[ ]`/`[~]` checkboxes (all in MASTER_PLAN.md; GATE1.md/BUGS.md use status words, no checkboxes):
+  every one needs the designer, a physical device / real touch / multiple human clients / art / a
+  published place / a human look judgement — none agent-doable. Third bug-hunt-by-reading over the
+  53 `src/` files changed since item 10 (`de8e5e1..HEAD`): verified items 32/33 touched **zero**
+  source files, so the source set is byte-identical to round 2; reviewed all 568 substantive
+  +/- code lines (strict `::` casts/type aliases, dead-code removals, or already-specced fixes —
+  BUG-014/015/016/017, items 21/22 NavBridge+AudioPolicy, NpcWalk extraction, text-size and
+  GuiService-inset UI-fit tweaks, RaidTrigger cooldown typing) and found **no new concrete defect**.
+  No new item appended. With G3/G5 phone halves now closed, all remaining open GATE1 rows are
+  designer-only (G4 art, G4b visual text, G6 real-device fps, G7 five humans, Q5 ten-player,
+  Q6 published place, Q7 real touch, G1 composite). `lune` 1930 passed, `selene` 0/0/0.
 
 ## Decisions for designer
 

@@ -172,8 +172,4 @@ function Crops.exists(cropId: any): boolean
 	return type(cropId) == "string" and Crops.list[cropId] ~= nil
 end
 
-function Crops.isRegrow(crop: Crop): boolean
-	return crop.regrowSeconds ~= nil
-end
-
 return Crops

@@ -18,9 +18,6 @@ local S: { [string]: { id: string, en: string } } = {
 	crop_sawit = { id = "Sawit", en = "Oil Palm" },
 
 	-- crop families (Config/Crops, Config/Almanak)
-	family_palawija = { id = "Palawija", en = "Palawija" },
-	family_kebun = { id = "Kebun", en = "Orchard" },
-	family_perkebunan = { id = "Perkebunan", en = "Plantation" },
 	almanak_page_palawija = { id = "Palawija", en = "Palawija" },
 	almanak_page_kebun = { id = "Kebun", en = "Orchard" },
 	almanak_page_perkebunan = { id = "Perkebunan", en = "Plantation" },
@@ -53,13 +50,11 @@ local S: { [string]: { id: string, en: string } } = {
 	admin_title = { id = "Admin — Juragan Desa", en = "Admin — Juragan Desa" },
 	admin_season = { id = "Musim", en = "Season" },
 	admin_anomaly = { id = "Anomali", en = "Anomaly" },
-	admin_event = { id = "Event", en = "Event" },
 	admin_inspect = { id = "Periksa", en = "Inspect" },
 	admin_grant = { id = "Beri", en = "Grant" },
 	admin_close = { id = "Tutup", en = "Close" },
 	admin_idle = { id = "Belum ada aksi.", en = "No actions yet." },
 	admin_offline = { id = "Pemain tidak online.", en = "Player is not online." },
-	admin_no_access = { id = "Akses ditolak.", en = "Access denied." },
 	admin_failed = { id = "Gagal: %s", en = "Failed: %s" },
 	admin_ready = { id = "Siap.", en = "Ready." },
 	admin_auto = { id = "Auto", en = "Auto" },
@@ -85,21 +80,14 @@ local S: { [string]: { id: string, en: string } } = {
 	cosmetic_batik = { id = "Batik", en = "Batik Shirt" },
 
 	-- HUD
-	hud_rank = { id = "Pangkat: %s", en = "Rank: %s" },
-	hud_sus = { id = "Sus %s", en = "Sus %s" },
-	hud_namabaik = { id = "Nama Baik %s", en = "Reputation %s" },
 	hud_shop = { id = "Toko Bibit", en = "Seed Shop" },
 	hud_close = { id = "Tutup", en = "Close" },
 	hud_seed_count = { id = "%s x%s", en = "%s x%s" },
 	hud_locked = { id = "Terkunci: %s", en = "Locked: %s" },
-	hud_harvest_bag = { id = "Karung: %s/%s", en = "Sack: %s/%s" },
 	hud_phone = { id = "HP", en = "Phone" },
-	hud_cheat = { id = "Curang", en = "Cheat" },
-	hud_shop_button = { id = "Bibit", en = "Seeds" },
 	shop_buy = { id = "Beli %s (Rp %s)", en = "Buy %s (Rp %s)" },
 	shop_buy_all = { id = "Semua (Rp %s)", en = "All (Rp %s)" },
 	shop_needs_rank = { id = "Butuh pangkat %s", en = "Needs rank %s" },
-	shop_rank_badge = { id = "%s?", en = "%s?" },
 	shop_sold_out = { id = "Habis", en = "Sold out" },
 	shop_not_stocked = { id = "Tidak dijual", en = "Not stocked" },
 	shop_restock_in = { id = "Restock %s", en = "Restock %s" },
@@ -107,7 +95,6 @@ local S: { [string]: { id: string, en: string } } = {
 
 	-- leaderboard (client/UI/Leaderboard)
 	lb_title = { id = "Papan Desa", en = "Village Board" },
-	lb_button = { id = "Papan", en = "Board" },
 	lb_tab_richest = { id = "Terkaya", en = "Richest" },
 	lb_tab_sultan = { id = "Sultan", en = "Sultan" },
 	lb_tab_raids = { id = "Dirazia", en = "Raided" },
@@ -155,7 +142,6 @@ local S: { [string]: { id: string, en: string } } = {
 	prompt_warung_chat = { id = "Nongkrong", en = "Hang out" },
 
 	-- Harga Cabai Meroket (Events/CabaiEvent)
-	hud_event_cabai = { id = "Harga cabai meroket! x%s", en = "Chili prices are soaring! x%s" },
 	event_cabai_start = { id = "HARGA CABAI MEROKET! Cabai laku x%s selama 5 menit.", en = "CHILI PRICES SOAR! Chili sells at x%s for 5 minutes." },
 	event_cabai_end = { id = "Harga cabai kembali normal.", en = "Chili prices are back to normal." },
 
@@ -278,7 +264,6 @@ local S: { [string]: { id: string, en: string } } = {
 
 	-- phone
 	phone_title = { id = "HP Juragan", en = "Juragan Phone" },
-	phone_home = { id = "Beranda", en = "Home" },
 	phone_tab_phone = { id = "Lapor", en = "Report" },
 	phone_app_board = { id = "Papan", en = "Leaderboard" },
 	phone_tab_kebun = { id = "Kebun", en = "Farm" },
@@ -342,10 +327,8 @@ local S: { [string]: { id: string, en: string } } = {
 	phone_record = { id = "Rekam", en = "Record" },
 	phone_cheat_title = { id = "Akal-akalan", en = "Shortcuts" },
 	phone_oplosan = { id = "Oplos %s (Rp %s)", en = "Fertilize %s (Rp %s)" },
-	phone_steal = { id = "Curi air dari %s", en = "Steal water from %s" },
 	phone_steal_short = { id = "Curi", en = "Steal" },
 	phone_water_short = { id = "Siram", en = "Water" },
-	phone_water = { id = "Siram tanaman %s (+Nama Baik)", en = "Water %s's crops (+Reputation)" },
 	phone_no_neighbors = { id = "Belum ada tetangga online.", en = "No neighbors online yet." },
 	phone_no_growing = { id = "Tidak ada tanaman yang sedang tumbuh.", en = "No crops growing right now." },
 	phone_cosmetic_buy = { id = "Beli (Rp %s)", en = "Buy (Rp %s)" },
@@ -356,9 +339,6 @@ local S: { [string]: { id: string, en: string } } = {
 	n_cosmetic_equipped = { id = "%s dipakai.", en = "%s equipped." },
 	n_cosmetic_removed = { id = "%s dilepas.", en = "%s removed." },
 	n_water_ok = { id = "Tanaman %s disiram. +%s Nama Baik.", en = "Watered %s's crops. +%s Reputation." },
-	phone_sus = { id = "Sus", en = "Sus" },
-	phone_namabaik = { id = "Nama Baik", en = "Reputation" },
-	phone_rank = { id = "Pangkat", en = "Rank" },
 	phone_help = { id = "Tips: curang itu cepat, tapi tetangga bisa ngerekam.", en = "Tip: cheating is fast, but neighbors can record you." },
 
 	-- minigames
@@ -383,7 +363,6 @@ local S: { [string]: { id: string, en: string } } = {
 	raid_amplop = { id = "Kasih Amplop\nRp %s (75%)", en = "Slip an Envelope\nRp %s (75%)" },
 	raid_amplop_blocked = { id = "Amplop ditolak (VIRAL)", en = "Envelope refused (VIRAL)" },
 	raid_wait = { id = "Polisi Desa sedang menuju ladangmu…", en = "The Village Police are on their way…" },
-	raid_jail_btn = { id = "Tidak bisa bayar", en = "Can't pay" },
 	raid_timeout = { id = "Terlalu lama diam. Denda otomatis.", en = "You stayed silent. Automatic fine." },
 	raid_outcome_denda = { id = "Denda lunas. Sus kembali ke 30.", en = "Fine paid. Sus is back to 30." },
 	raid_outcome_amplop = { id = "Amplop berhasil. Razia bubar.", en = "Envelope worked. The raid disperses." },
@@ -435,7 +414,6 @@ local S: { [string]: { id: string, en: string } } = {
 	cash_label = { id = "Rp %s", en = "Rp %s" },
 	gain_label = { id = "+Rp %s", en = "+Rp %s" },
 	price_label = { id = "Rp %s", en = "Rp %s" },
-	admin_button = { id = "Admin", en = "Admin" },
 	tag_juragan = { id = "Juragan", en = "Juragan" },
 	tag_ordal = { id = "Ordal", en = "Ordal" },
 	plot_empty = { id = "Lahan Kosong", en = "Empty Plot" },

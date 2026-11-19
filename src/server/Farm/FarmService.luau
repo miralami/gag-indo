@@ -699,20 +699,6 @@ function FarmService.applyOplosan(player: Player, index: number): boolean
 	return true
 end
 
-function FarmService.hasGrowing(player: Player): boolean
-	local data = PlayerData.get(player)
-	if not data then
-		return false
-	end
-	local now = os.time()
-	for _, entry in data.tiles do
-		if now < entry.plantedAt + entry.growSeconds then
-			return true
-		end
-	end
-	return false
-end
-
 -- Attacker crops speed up, victim crops slow down (GDD §4, Curi Air).
 function FarmService.stealWater(attacker: Player, victim: Player): boolean
 	local attackerData = PlayerData.get(attacker)

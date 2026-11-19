@@ -172,12 +172,4 @@ function Village.getPosition(name: string): Vector3
 	return Village.positions[name] or Vector3.new(0, 0, 0)
 end
 
-function Village.getWorld(): Instance?
-	local tagged = Map.first(Map.TAGS.World)
-	if tagged then
-		return tagged
-	end
-	return workspace:FindFirstChild("World")
-end
-
 return Village

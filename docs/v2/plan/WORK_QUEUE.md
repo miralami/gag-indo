@@ -337,9 +337,12 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   `luau-lsp analyze` (fresh gitignored sourcemap): 17 distinct errors before and after, i.e. zero
   introduced; the 17 are pre-existing in engine-facing files. `lune` 1908 passed, `selene` 0/0/0.
   Evidence `docs/v2/evidence/h/2026-11-19-strict-types/REPORT.md`.
-- [ ] 25. **Dead code and dead strings.** Remove unused modules, functions and `Strings` keys,
+- [x] 25. **Dead code and dead strings.** Remove unused modules, functions and `Strings` keys,
   and leave Rojo mappings for files that no longer exist out of `default.project.json`. Prove it
-  with specs and a clean Studio play.
+  with specs and a clean Studio play. Removed 22 dead `Strings` keys and 5 dead functions; no dead
+  modules or stale Rojo mappings existed. Spec `tests/specs/dead_code_spec.luau` proves removal and
+  the no-dead-key invariant. `SEEN-IN-STUDIO` (clean Edit→Play→Edit, no game-code errors).
+  `lune` 1927 passed, `selene` 0/0/0. Evidence `docs/v2/evidence/h/2026-11-19-dead-code/REPORT.md`.
 - [ ] 26. **Test-suite health.** Run the suite 3 times and fix any flaky spec. Add per-spec timing
   output and speed up anything over 2 s.
 - [ ] 27. **CI.** If none exists, add a GitHub Actions workflow that runs `lune run
@@ -404,6 +407,13 @@ Choices the agent made with a safe, reversible default. The designer confirms or
   Sky's season tweens. Reversible: wire a tier→lighting applier once the designer picks per-tier
   values and approves the look. No production code changed. Evidence
   `docs/v2/evidence/h/2026-11-19-lighting-fidelity/REPORT.md`.
+- Item 25 — during dead-code removal, four definition-only symbols were kept rather than deleted
+  because they may serve the designer or verification: `NavBridge.debugState` (read-only Studio
+  verification hook), `PlotService.getNeighbors` (documented in `MAP_SPEC.md`) and `Theme.sticker`
+  (public helper with a live internal `addSticker`) were kept; `Audio.configured` was kept as a
+  borderline Config API. Safest reversible default: keep anything with a plausible external/designer
+  consumer; each can be removed in a later pass if the designer confirms it is unneeded. Evidence
+  `docs/v2/evidence/h/2026-11-19-dead-code/REPORT.md`.
 
 ## Blocked on designer
 

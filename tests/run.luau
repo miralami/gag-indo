@@ -104,6 +104,7 @@ local specs = {
 	require("./specs/greybox_retirement_spec"),
 	require("./specs/perf_hotpath_spec"),
 	require("./specs/code_health_spec"),
+	require("./specs/dead_code_spec"),
 	require("./specs/lookdev_candidates_spec"),
 	require("./specs/economy_config_spec"),
 	require("./specs/first_session_failure_spec"),

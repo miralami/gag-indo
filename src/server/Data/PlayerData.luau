@@ -88,6 +88,17 @@ local function count(value: any): number
 	return math.floor(n)
 end
 
+-- `migrate` runs before `SaveSanitize`. A partial/interrupted write can leave a legacy sack
+-- field as a string, table, NaN or inf; coerce to a finite number (0 fallback) so the v2-split
+-- comparisons and arithmetic below never throw before sanitize can repair the save.
+local function finiteNumber(value: any): number
+	local n = tonumber(value)
+	if n == nil or n ~= n or n == math.huge or n == -math.huge then
+		return 0
+	end
+	return n
+end
+
 -- v1/v2 harvest sack -> v3 produce stacks.
 -- v2 keeps clean and hot quality apart; v1 folded them together, so run the v2 split first.
 local function migrateProduce(data): { [string]: any }
@@ -155,15 +166,16 @@ local function migrate(data)
 		-- refuse the hot stuff while the black market buys it.
 		for _, sack in data.harvest or {} do
 			if type(sack) == "table" then
-				local hot = sack.hotCount or 0
-				if sack.hotQualitySum == nil then
-					sack.hotQualitySum = 0
-				end
+				local hot = finiteNumber(sack.hotCount)
+				local total = finiteNumber(sack.count)
+				local qualitySum = finiteNumber(sack.qualitySum)
+				local hotQualitySum = finiteNumber(sack.hotQualitySum)
+				sack.hotQualitySum = hotQualitySum
 				-- Older saves folded hot quality into qualitySum; move the average over.
-				if hot > 0 and sack.hotQualitySum == 0 and (sack.count or 0) > 0 then
-					local avg = sack.qualitySum / sack.count
-					sack.hotQualitySum = avg * hot
-					sack.qualitySum -= sack.hotQualitySum
+				if hot > 0 and hotQualitySum == 0 and total > 0 then
+					local moved = (qualitySum / total) * hot
+					sack.hotQualitySum = moved
+					sack.qualitySum = qualitySum - moved
 				end
 			end
 		end

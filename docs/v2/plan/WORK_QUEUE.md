@@ -230,8 +230,17 @@ never publish.
   "mutations" were traced to expected first-touch schema settlement (DebtService.ensure stage/lastInterestAt,
   QuestService daily rollover, Cosmetic_Equip nil = legal unequip), not defects — no BUGS.md entry.
   `lune` 1983 (+3), `selene src` 0/0/0. Evidence `docs/v2/evidence/h/2026-11-19-remote-fuzzing/REPORT.md`.
-- [ ] 16. **Save fuzzing.** Run 1000 random damaged save tables through migrate and SaveSanitize.
-  Invariants: finite non-negative counts, known keys kept, no throw.
+- [x] 16. **Save fuzzing.**
+  `LUNE-ONLY` — new `tests/specs/save_fuzz_spec.luau` (3 cases) drives 1000 seeded damaged saves through the real
+  `PlayerData.migrate`→`SaveSanitize` path and 20 through the real fake-ProfileStore load path. Invariants: no throw,
+  every template key present with correct type, every template number finite, `version == CURRENT_VERSION`, bounded
+  non-cyclic structure; non-table roots tolerated by sanitize. Negative numbers are preserved by design, so the
+  numeric invariant is finiteness + key/type preservation, not blanket non-negativity. **Found and fixed BUG-018**:
+  the v2-split legacy harvest migration threw `attempt to compare number < table|string` on non-numeric
+  `hotCount`/`count`/`qualitySum` before sanitize could repair them (15/1000 seed `0x5EED1234` cases); a new
+  `finiteNumber()` coercion fixes it with valid-save behaviour unchanged, and a targeted regression case covers
+  strings/tables/NaN/±inf/booleans/negatives. `lune` 1986 (+3), `selene src` 0/0/0.
+  Evidence `docs/v2/evidence/h/2026-11-19-save-fuzzing/REPORT.md`.
 - [ ] 17. **Long economy sim.** One player, 8 hours of sim time, optimal and idle strategies.
   Check for overflow, runaway cash and dead ends. Write a report for the designer; balance
   changes go only under "Decisions for designer".

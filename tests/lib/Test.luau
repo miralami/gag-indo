@@ -149,6 +149,12 @@ function Test.new()
 	self.suites = {} :: { Suite }
 	self._stack = {} :: { Suite }
 	self.expect = expect
+	-- Timing instrumentation (item 26). Keyed by the suite/case table itself so the runner can
+	-- attribute execution back to the spec file that registered it, without changing the
+	-- PASS/FAIL log format or the return values of run().
+	self.suiteSeconds = {} :: { [any]: number }
+	self.caseSeconds = {} :: { [any]: number }
+	self.totalSeconds = 0
 	return self
 end
 
@@ -180,12 +186,19 @@ function Test:it(name: string, fn: () -> ())
 end
 
 -- Runs everything. Returns passed, failed and the list of failure descriptions.
+-- Also records wall-clock seconds per case, per suite, and total on self for the runner's
+-- timing report. The PASS/FAIL log strings are unchanged.
 function Test:run(filter: string?, log: (string) -> ())
 	local passed, failed = 0, 0
 	local failures = {}
+	self.suiteSeconds = {}
+	self.caseSeconds = {}
+	local runStart = os.clock()
 
 	for _, suite in self.suites do
 		local printedHeader = false
+		local suiteStart = os.clock()
+		local matched = 0
 		for _, case in suite.cases do
 			local fullName = suite.name .. " > " .. case.name
 			if filter == nil or string.find(string.lower(fullName), string.lower(filter), 1, true) then
@@ -193,12 +206,15 @@ function Test:run(filter: string?, log: (string) -> ())
 					log(suite.name)
 					printedHeader = true
 				end
+				matched += 1
+				local caseStart = os.clock()
 				local ok, err = pcall(function()
 					for _, hook in suite.before do
 						hook()
 					end
 					case.fn()
 				end)
+				self.caseSeconds[case] = os.clock() - caseStart
 				if ok then
 					passed += 1
 					log("  PASS  " .. case.name)
@@ -210,8 +226,12 @@ function Test:run(filter: string?, log: (string) -> ())
 				end
 			end
 		end
+		if matched > 0 then
+			self.suiteSeconds[suite] = os.clock() - suiteStart
+		end
 	end
 
+	self.totalSeconds = os.clock() - runStart
 	return passed, failed, failures
 end
 

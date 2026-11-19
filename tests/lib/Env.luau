@@ -92,12 +92,38 @@ local function newNode(name: string, className: string, parent)
 	return node
 end
 
+-- The src/ tree is immutable for the lifetime of a test run, but Env.new() used to re-walk every
+-- directory (hundreds of fs.readDir / fs.isDir calls) on every construction. One spec builds 48
+-- Envs in a single case, so cache the listing per path; nodes are still built fresh per Env so
+-- each environment keeps its own script tree and module cache. No spec writes into src/.
+local dirEntries: { [string]: { string } } = {}
+local dirIsDir: { [string]: boolean } = {}
+local fileSource: { [string]: string } = {}
+
+local function cachedReadDir(path: string)
+	local entries = dirEntries[path]
+	if entries == nil then
+		entries = fs.readDir(path)
+		dirEntries[path] = entries
+	end
+	return entries
+end
+
+local function cachedIsDir(path: string)
+	local flag = dirIsDir[path]
+	if flag == nil then
+		flag = fs.isDir(path)
+		dirIsDir[path] = flag
+	end
+	return flag
+end
+
 -- Walk a directory of .luau files into Folder / ModuleScript nodes.
 -- Scripts (.server / .client / .spec) are not modules and are skipped.
 local function mountDirectory(path: string, node)
-	for _, entry in fs.readDir(path) do
+	for _, entry in cachedReadDir(path) do
 		local full = path .. "/" .. entry
-		if fs.isDir(full) then
+		if cachedIsDir(full) then
 			mountDirectory(full, newNode(entry, "Folder", node))
 		elseif string.match(entry, "%.luau$") and not string.match(entry, "%.server%.luau$") and not string.match(entry, "%.client%.luau$") then
 			local name = string.gsub(entry, "%.luau$", "")
@@ -353,7 +379,11 @@ function Env:_load(node)
 		return self:_load(target)
 	end
 
-	local source = fs.readFile(path)
+	local source = fileSource[path]
+	if source == nil then
+		source = fs.readFile(path)
+		fileSource[path] = source
+	end
 	local chunk = luau.load(source, { debugName = path, environment = moduleEnv, injectGlobals = false })
 	local value = chunk()
 

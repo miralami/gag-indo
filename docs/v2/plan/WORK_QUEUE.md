@@ -343,8 +343,15 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   modules or stale Rojo mappings existed. Spec `tests/specs/dead_code_spec.luau` proves removal and
   the no-dead-key invariant. `SEEN-IN-STUDIO` (clean Edit→Play→Edit, no game-code errors).
   `lune` 1927 passed, `selene` 0/0/0. Evidence `docs/v2/evidence/h/2026-11-19-dead-code/REPORT.md`.
-- [ ] 26. **Test-suite health.** Run the suite 3 times and fix any flaky spec. Add per-spec timing
-  output and speed up anything over 2 s.
+- [x] 26. **Test-suite health.** Run the suite 3 times and fix any flaky spec. Add per-spec timing
+  output and speed up anything over 2 s. Three baseline runs identical at 1927 passed — no flaky
+  spec. Added per-case/suite/total timing to `tests/lib/Test.luau` and a per-spec report to
+  `tests/run.luau` (`--timing` for the full table), plus 3 characterization cases in
+  `tests/specs/harness_timing_spec.luau`. Root-caused the slow path to `Env.new()` re-walking `src/`
+  on every construction (48× in one case); memoized the static directory listing and module source
+  in `tests/lib/Env.luau`: suite **31.7 s → 4.8 s (~6.6×)**, slowest case 1.236 s → 0.213 s, nothing
+  over 2 s. `LUNE-ONLY`, `lune` 1930 passed, `selene src` 0/0/0. Evidence
+  `docs/v2/evidence/h/2026-11-19-suite-health/REPORT.md`.
 - [ ] 27. **CI.** If none exists, add a GitHub Actions workflow that runs `lune run
   tests/run.luau` and `selene src` on push to `track/*` and `main`, pinned via rokit or aftman.
 - [ ] 28. **Docs refresh.** Bring `TECH.md` (new modules: FidelityTier, CutsceneSequencer,

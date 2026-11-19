@@ -52,6 +52,7 @@ local specs = {
 	require("./specs/security_spec"),
 	require("./specs/balance_spec"),
 	require("./specs/harness_spec"),
+	require("./specs/harness_timing_spec"),
 	require("./specs/raid_trigger_spec"),
 	require("./specs/fps_sampler_spec"),
 	require("./specs/greybox_spec"),
@@ -124,13 +125,94 @@ local specs = {
 	require("./specs/audio_wiring_spec"),
 }
 
-local t = Test.new()
-for _, register in specs do
-	register(t, Env, Fakes)
+-- `--timing` prints a full per-spec table; without it only the slowest rows print. The first
+-- non-flag argument is still the name filter, so existing `lune run tests/run -- economy` usage
+-- keeps working.
+local filter
+local showTiming = false
+for _, arg in process.args do
+	if arg == "--timing" then
+		showTiming = true
+	elseif filter == nil then
+		filter = arg
+	end
 end
 
-local filter = process.args[1]
+local SLOW_SECONDS = 2
+
+local t = Test.new()
+-- Registration is where specs that scan src/ do their file I/O, so time it separately from the
+-- case execution recorded in Test:run. Remember which suites each spec registered so the report
+-- can give a per-spec total.
+local meta = {}
+local regTotal = 0
+for _, register in specs do
+	local source = debug.info(register, "s")
+	local name = string.match(source, "([%w_]+)$") or source
+	local before = #t.suites
+	local regStart = os.clock()
+	register(t, Env, Fakes)
+	local regSeconds = os.clock() - regStart
+	regTotal += regSeconds
+	local owned = {}
+	for i = before + 1, #t.suites do
+		owned[t.suites[i]] = true
+	end
+	table.insert(meta, { name = name, reg = regSeconds, owned = owned })
+end
+
 local passed, failed, failures = t:run(filter, print)
+
+-- Timing report. Kept above the final pass/fail summary so the last line is unchanged for CI.
+do
+	local function fmt(seconds: number): string
+		return string.format("%.3fs", seconds)
+	end
+
+	local specRows = {}
+	for _, m in meta do
+		local exec = 0
+		for suite in m.owned do
+			exec += t.suiteSeconds[suite] or 0
+		end
+		table.insert(specRows, { name = m.name, reg = m.reg, exec = exec, total = m.reg + exec })
+	end
+	table.sort(specRows, function(a, b)
+		return a.total > b.total
+	end)
+
+	local caseRows = {}
+	for _, suite in t.suites do
+		for _, case in suite.cases do
+			local seconds = t.caseSeconds[case]
+			if seconds then
+				table.insert(caseRows, { name = suite.name .. " > " .. case.name, seconds = seconds })
+			end
+		end
+	end
+	table.sort(caseRows, function(a, b)
+		return a.seconds > b.seconds
+	end)
+
+	local function slowMark(seconds: number): string
+		return if seconds >= SLOW_SECONDS then "  <== SLOW" else ""
+	end
+
+	print("")
+	print(`=== Timing (threshold {SLOW_SECONDS}s; --timing for all specs) ===`)
+	print(`registration {fmt(regTotal)}  +  cases {fmt(t.totalSeconds)}  =  {fmt(regTotal + t.totalSeconds)}`)
+	print("slowest specs (total = registration + cases):")
+	local specLimit = showTiming and #specRows or math.min(12, #specRows)
+	for i = 1, specLimit do
+		local r = specRows[i]
+		print(string.format("  %8s  reg=%-8s cases=%-8s  %s%s", fmt(r.total), fmt(r.reg), fmt(r.exec), r.name, slowMark(r.total)))
+	end
+	print("slowest cases:")
+	for i = 1, math.min(12, #caseRows) do
+		local r = caseRows[i]
+		print(string.format("  %8s  %s%s", fmt(r.seconds), r.name, slowMark(r.seconds)))
+	end
+end
 
 print("")
 if failed > 0 then

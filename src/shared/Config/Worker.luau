@@ -1,3 +1,4 @@
+--!strict
 -- Buruh tani (v2 PLAN §3.4). A hired NPC harvests ready crops straight into the gudang
 -- while you are online, and takes a wage per item. He stops when the gudang is full or the
 -- cash runs out.

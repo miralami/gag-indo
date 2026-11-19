@@ -1,3 +1,4 @@
+--!strict
 -- FidelityTier (VISUAL_MASTER_PLAN section 6): one place that picks "Rendah", "Sedang" or "Tinggi"
 -- so every visual asks it instead of deciding alone. Client only.
 --
@@ -114,7 +115,7 @@ function FidelityTier.new(opts: any?)
 	local sampleSum = 0
 	local lastChange = clock()
 	local goodSince: number? = nil
-	local listeners = {}
+	local listeners: { (string, string, any) -> () } = {}
 
 	local function applySetting(setting: any)
 		if FidelityTier.isTier(setting) then
@@ -227,7 +228,7 @@ function FidelityTier.new(opts: any?)
 		table.insert(samples, clean)
 		sampleSum += clean
 		if #samples > WINDOW_SIZE then
-			sampleSum -= table.remove(samples, 1)
+			sampleSum -= (table.remove(samples, 1) :: number)
 		end
 
 		local average = self.average()

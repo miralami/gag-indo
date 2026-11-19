@@ -1,3 +1,4 @@
+--!strict
 -- Sinetron raid cutscene timeline (v2 PLAN sections 2 and 4: establishing shot, three zooms, police
 -- walk-in, a letter slapped on screen with the choices). Pure data, played by
 -- client/Feel/CutsceneSequencer. No player-facing text here: the "BREAKING NEWS" lower third and the
@@ -10,6 +11,21 @@
 
 local RaidCutscene = {}
 
+-- A timeline row. id/kind/duration exist on every shot; the rest are per-kind parameters, so they
+-- are optional to let strict mode accept the heterogeneous rows as one list type. The cursor only
+-- reads id/kind/duration, so widening the extras does not change playback.
+type Shot = {
+	id: string,
+	kind: string,
+	duration: number,
+	fov: number?,
+	focus: string?,
+	dolly: number?,
+	lights: boolean?,
+	slam: boolean?,
+	holdsChoices: boolean?,
+}
+
 -- Client attribute set on the local Player once the cutscene has finished playing to the end.
 -- The value is the number of completed viewings. Not saved: it resets each session.
 RaidCutscene.seenAttribute = "RaidCutsceneSeen"
@@ -21,7 +37,7 @@ RaidCutscene.shots = {
 	{ id = "zoom3", kind = "zoom", duration = 0.8, fov = 26, focus = "police_chief" },
 	{ id = "walkin", kind = "walkin", duration = 1.8, fov = 60, focus = "road", lights = true },
 	{ id = "letter", kind = "letter", duration = 1.2, slam = true, holdsChoices = true },
-}
+} :: { Shot }
 
 RaidCutscene.kinds = { "establish", "zoom", "walkin", "letter" }
 

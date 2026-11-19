@@ -1,3 +1,4 @@
+--!strict
 -- Toko Bibit rotating stock (v2 PLAN §3.4). Values are starting points for the balance sheet.
 --
 -- Stock is per player and deterministic per restock cycle: `ShopStock.roll(cycle, userId, musim)`

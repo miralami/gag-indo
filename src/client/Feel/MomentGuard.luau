@@ -1,3 +1,4 @@
+--!strict
 -- MomentGuard: keeps FidelityRuntime.beginMoment()/endMoment() balanced for one UI hook moment
 -- (rarity reveal, raid overlay). A guard holds at most one open moment:
 --   begin()   opens a moment; if one is already open it is replaced (one end is issued for the old
@@ -9,7 +10,7 @@ local MomentGuard = {}
 
 function MomentGuard.new(runtime: any?)
 	local rt = runtime
-	local function resolve()
+	local function resolve(): any
 		if not rt then
 			rt = require(script.Parent.FidelityRuntime)
 		end

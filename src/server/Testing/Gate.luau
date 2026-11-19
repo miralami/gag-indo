@@ -1,3 +1,4 @@
+--!strict
 -- Gate: the on/off switch for the playtest harness (MASTER_PLAN §3, task 0.3).
 --
 -- Three conditions must all hold, and the first one is impossible to fake in a published

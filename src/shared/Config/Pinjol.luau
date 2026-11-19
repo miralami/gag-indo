@@ -1,3 +1,4 @@
+--!strict
 -- Pinjol (peer-to-peer lending) config (v2 PLAN §3.5).
 --
 -- Borrow up to a limit set by rank and Nama Baik. A fixed fee is added immediately; interest

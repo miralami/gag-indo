@@ -1,3 +1,4 @@
+--!strict
 -- Tools (v2 PLAN §3.4). Permanent, bought with cash, one tier per line at a time.
 --
 --   cangkul  planting quality bonus (better rarity rolls)

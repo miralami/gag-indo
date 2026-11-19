@@ -1,3 +1,4 @@
+--!strict
 -- Global game tuning (GDD §3, §7). Shared so the client can show prices.
 
 local Game = {}

@@ -1,9 +1,21 @@
+--!strict
 -- Roblox monetization IDs (GDD §9). Replace the 0s with real IDs before publishing.
 -- Anything still at 0 is treated as "not configured": the UI hides the button and
 -- Receipts/Passes never ask Roblox about it. That keeps the game playable in Studio
 -- without a published experience.
 
 local Products = {}
+
+-- One dev-product row. Only id/grant are universal; the rest depends on the grant kind, so every
+-- optional field is marked to let strict mode accept the heterogeneous rows as one map type.
+type Product = {
+	id: number,
+	grant: string,
+	item: string?,
+	amount: number?,
+	seeds: { [string]: number }?,
+	cash: number?,
+}
 
 -- Game passes: id + the attribute the rest of the server reads.
 -- gudangBesar raises the gudang capacity (StorageService reads the attribute);
@@ -35,10 +47,10 @@ Products.products = {
 	rupiahKecil = { id = 0, grant = "cash", cash = 0 },
 	rupiahSedang = { id = 0, grant = "cash", cash = 0 },
 	rupiahBesar = { id = 0, grant = "cash", cash = 0 },
-}
+} :: { [string]: Product }
 
 -- Filled at require time so Receipts can do a single table lookup.
-Products.byProductId = {}
+Products.byProductId = {} :: { [number]: { key: string, product: Product } }
 for key, product in Products.products do
 	if product.id > 0 then
 		Products.byProductId[product.id] = { key = key, product = product }

@@ -1,3 +1,4 @@
+--!strict
 -- FpsSampler: pure rolling frame-time -> fps helper for the Studio-only perf sampling (V0.2).
 -- No Roblox APIs so tests/specs/fps_sampler_spec.luau can drive it with plain numbers. The live
 -- wiring (RenderStepped -> push(dt), publish attribute) is a thin caller in FpsSampler.start().
@@ -23,7 +24,7 @@ function FpsSampler.new(windowSize: number?, minSamples: number?)
 		samples[#samples + 1] = dt
 		sum += dt
 		if #samples > size then
-			sum -= table.remove(samples, 1)
+			sum -= (table.remove(samples, 1) :: number)
 		end
 	end
 

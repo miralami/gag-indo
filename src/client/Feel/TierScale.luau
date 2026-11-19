@@ -1,3 +1,4 @@
+--!strict
 -- TierScale: pure math that turns a FidelityTier settings table into particle counts, particle
 -- lifetimes and foliage sway weights (VISUAL_MASTER_PLAN section 6). No Roblox services, so it runs
 -- under Lune. Every function accepts nil or malformed settings and falls back to the Sedang table.

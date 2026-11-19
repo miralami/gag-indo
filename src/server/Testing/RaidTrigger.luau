@@ -1,3 +1,4 @@
+--!strict
 -- RaidTrigger: pure policy for the Studio-only force-raid test hook.
 --
 -- The hook itself lives in Harness.luau (`raid` action) and is gated by the exact same allowlist
@@ -34,13 +35,13 @@ end
 -- writes a zero cooldown into real save data. `data` is the live profile.Data table (PlayerData.get
 -- returns it by reference), which is what makes the override visible to RaidService.start's cooldown
 -- check. `start` is injected so tests can observe the value it saw and simulate an error.
-function RaidTrigger.withTemporaryCooldown(data, start)
+function RaidTrigger.withTemporaryCooldown(data: any, start)
 	if type(data) ~= "table" then
 		start()
 		return
 	end
 	local oldCooldowns = data.cooldowns -- may be nil or a non-table: restore it verbatim
-	local cooldowns = if type(oldCooldowns) == "table" then oldCooldowns else {}
+	local cooldowns: { [string]: any } = if type(oldCooldowns) == "table" then oldCooldowns else {}
 	data.cooldowns = cooldowns
 	local oldValue = cooldowns.raidSafeUntil
 	cooldowns.raidSafeUntil = 0

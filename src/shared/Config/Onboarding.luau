@@ -1,3 +1,4 @@
+--!strict
 -- Guided first session (v2 PLAN §3.1). The steps are shown in order; each one only completes
 -- when the matching action really happened on the server.
 --

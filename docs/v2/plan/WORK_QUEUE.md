@@ -324,9 +324,19 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   production code changed (verification-only). Place not saved/published, no `profile:Save()`,
   returned to Edit, probe instances destroyed. Evidence
   `docs/v2/evidence/h/2026-11-19-lighting-fidelity/` (`REPORT.md`, `results.json`).
-- [ ] 24. **Strict types.** Migrate the pure modules (`src/shared/Config/*`, `Feel/*` pure logic,
+- [x] 24. **Strict types.** Migrate the pure modules (`src/shared/Config/*`, `Feel/*` pure logic,
   `Testing/*` policy) to `--!strict` where it is clean. Fix the type errors and don't change
   behaviour.
+  Done 2026-11-19 (`LUNE-ONLY`): added `--!strict` to all 24 `Config/*` modules, 6 pure `Feel/*`
+  logic modules (`FidelityTier`, `TierScale`, `FpsSampler`, `CutsceneSequencer`, `CutsceneState`,
+  `MomentGuard`) and both `Testing/*` policy modules (`Gate`, `RaidTrigger`) — 32 files. Left the
+  engine-facing modules non-strict (`ActionFeel`, `CameraFeel`, `FidelityRuntime`, `PerfSwitches`,
+  `Harness` — they touch game services/Instances at load). Fixed the 18 surfaced errors with
+  annotation-only changes (type aliases for heterogeneous config rows, `::` casts for
+  `table.remove` results, typed callback lists/maps) — all runtime-erased, no behaviour change.
+  `luau-lsp analyze` (fresh gitignored sourcemap): 17 distinct errors before and after, i.e. zero
+  introduced; the 17 are pre-existing in engine-facing files. `lune` 1908 passed, `selene` 0/0/0.
+  Evidence `docs/v2/evidence/h/2026-11-19-strict-types/REPORT.md`.
 - [ ] 25. **Dead code and dead strings.** Remove unused modules, functions and `Strings` keys,
   and leave Rojo mappings for files that no longer exist out of `default.project.json`. Prove it
   with specs and a clean Studio play.

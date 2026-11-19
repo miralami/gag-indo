@@ -1,3 +1,4 @@
+--!strict
 -- Daily tasks and 7-day login streak calendar (v2 PLAN §3.6).
 --
 -- Tasks are rolled deterministically per UTC day from the pool.

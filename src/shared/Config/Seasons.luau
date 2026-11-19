@@ -1,3 +1,4 @@
+--!strict
 -- Seasons and weather (v2 PLAN §3.3). One global state, read by every server.
 -- M0 ships the calendar fallback and the pure helpers; growth/shop effects arrive in M2,
 -- and LiveConfig supplies the admin override.

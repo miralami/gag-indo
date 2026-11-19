@@ -1,3 +1,4 @@
+--!strict
 -- CutsceneState: the pure decisions behind the raid cutscene wiring (RaidOverlay can't load under
 -- Lune, so everything that is a decision rather than an Instance call lives here and is specced).
 --

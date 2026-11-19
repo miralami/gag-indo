@@ -1,3 +1,4 @@
+--!strict
 -- Crop balance table (GDD §3.2, v2 PLAN §3.2). Edit numbers here to rebalance.
 --
 --   family     palawija (fast, one harvest) · kebun (slow, re-harvests) · perkebunan (permit)
@@ -154,7 +155,7 @@ Crops.list = {
 } :: { [string]: Crop }
 
 -- Family membership, derived from `list` so there is one source of truth.
-Crops.families = { palawija = {}, kebun = {}, perkebunan = {} }
+Crops.families = { palawija = {}, kebun = {}, perkebunan = {} } :: { [string]: { string } }
 for cropId, crop in Crops.list do
 	local family = Crops.families[crop.family]
 	if family then

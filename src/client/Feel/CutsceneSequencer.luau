@@ -1,3 +1,4 @@
+--!strict
 -- CutsceneSequencer: a pure, clock-injected timeline player for scripted cutscenes (the sinetron raid,
 -- v2 PLAN section 4). No Roblox services: it only decides WHICH shot is current and how far into it we
 -- are; the camera/overlay wiring subscribes with onShot and reads current() each frame.

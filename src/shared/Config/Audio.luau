@@ -1,3 +1,4 @@
+--!strict
 -- Sound registry (v2 PLAN §3.1). Every id stays `0` until a licensed asset exists.
 --
 -- `client/Audio.luau` reads this table, creates a Sound for every entry with `id > 0` and
@@ -10,6 +11,15 @@
 --   volume  0..1, multiplied by the group volume
 
 local Audio = {}
+
+-- One entry per sound id. `looped` is optional because ui/sting entries play once; strict mode
+-- needs the optional marker so the heterogeneous rows all share one type.
+type SoundDef = {
+	group: string,
+	id: number,
+	looped: boolean?,
+	volume: number,
+}
 
 Audio.groups = {
 	music = 0.45,
@@ -66,7 +76,7 @@ Audio.sounds = {
 	sting_rankup = { group = "sting", id = 3120909354, volume = 0.8 },
 	sting_raid = { group = "sting", id = 127714289075929, volume = 1.0 },
 	sting_jail = { group = "sting", id = 127714289075929, volume = 0.8 },
-}
+} :: { [string]: SoundDef }
 
 function Audio.exists(key: any): boolean
 	return type(key) == "string" and Audio.sounds[key] ~= nil

@@ -1,3 +1,4 @@
+--!strict
 -- Law & order tuning (GDD §5, §6, §7.2). Edit numbers here to rebalance.
 -- Shared so the client can show prices and countdowns without a round trip.
 

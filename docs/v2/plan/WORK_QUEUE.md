@@ -352,8 +352,13 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   in `tests/lib/Env.luau`: suite **31.7 s → 4.8 s (~6.6×)**, slowest case 1.236 s → 0.213 s, nothing
   over 2 s. `LUNE-ONLY`, `lune` 1930 passed, `selene src` 0/0/0. Evidence
   `docs/v2/evidence/h/2026-11-19-suite-health/REPORT.md`.
-- [ ] 27. **CI.** If none exists, add a GitHub Actions workflow that runs `lune run
+- [x] 27. **CI.** If none exists, add a GitHub Actions workflow that runs `lune run
   tests/run.luau` and `selene src` on push to `track/*` and `main`, pinned via rokit or aftman.
+  Workflow already existed; scoped push to `main`/`track/*`, added the missing `selene src` step
+  and made the lune invocation explicit. Tools pinned via `rokit.toml` (`setup-rokit` installs all
+  of them). Local verification: `lune` 1930 passed, `selene src` 0/0/0, YAML parsed. Remote Actions
+  run `UNVERIFIED` locally until GitHub executes it. `LUNE-ONLY`. Evidence
+  `docs/v2/evidence/h/2026-11-19-ci/REPORT.md`.
 - [ ] 28. **Docs refresh.** Bring `TECH.md` (new modules: FidelityTier, CutsceneSequencer,
   LazyPages, RaidTrigger, FpsSampler, SaveSanitize), `HARNESS.md` (new hooks) and the
   `docs/README.md` map up to date. Regenerate the `BALANCE.md` and `LOCALIZATION.md` snapshots

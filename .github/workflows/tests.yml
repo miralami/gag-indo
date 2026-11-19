@@ -2,6 +2,9 @@ name: Tests
 
 on:
   push:
+    branches:
+      - main
+      - 'track/*'
   pull_request:
 
 jobs:
@@ -10,8 +13,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Installs the tools pinned in rokit.toml (rojo, luau-lsp, lune).
+      # Installs every tool pinned in rokit.toml (rojo, luau-lsp, lune, selene, stylua) onto PATH.
       - uses: CompeyDev/setup-rokit@v0.1.2
 
       - name: Run tests
-        run: lune run tests/run
+        run: lune run tests/run.luau
+
+      - name: Lint source
+        run: selene src

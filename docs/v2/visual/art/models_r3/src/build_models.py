@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic low-poly OBJ generator for models_r3 DESIGNER_BUILD candidates.
+"""Deterministic low-poly OBJ generator for models_r3 AGENT_GENERATED candidates.
 
 Stdlib only. No random: every vertex is a literal or a closed-form function of
 its arguments, so re-running produces byte-identical files. All geometry is
@@ -426,7 +426,7 @@ def write_family(fam, meshes):
         if " " in m.name:
             raise ValueError(f"{m.name}: filename contains space")
         p = os.path.join(d, m.name + ".obj")
-        lines = [f"# {m.name} — DESIGNER_BUILD, deterministic, tropical (V-D4)",
+        lines = [f"# {m.name} — AGENT_GENERATED, deterministic, tropical (V-D4)",
                  f"# kind={m.kind} tris={m.tris()} budget={budget}",
                  "mtllib materials.mtl", f"o {m.name}"]
         for x, y, z in m.v:

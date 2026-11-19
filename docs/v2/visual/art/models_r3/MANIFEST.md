@@ -22,13 +22,13 @@ landmark ≤ 8000 tris. Counts for GLB downloads are parsed from the glTF JSON
 ## `buildings_r3` — 3 designer-built models
 
 No verifiable CC0/CC BY download for rumah panggung / kandang / gudang was
-reachable this pass; all three are `DESIGNER_BUILD` with the briefs below.
+reachable this pass; all three are `AGENT_GENERATED` (script-built, ~100–300 faces; not made by the designer) with the briefs below.
 
 | Filename | Source type | Source URL | Author | Licence | Tris | Intended review slot |
 |---|---|---|---|---|---|---|
-| `generated/buildings_r3/rumah_panggung.obj` | DESIGNER_BUILD | n/a (original) | original (deterministic generator) | original, CC0-equivalent (no third-party data) | 198 | `buildings_r3` / slot `rumah` — raised stilt house, gabled seng roof, 5-step teras |
-| `generated/buildings_r3/kandang_ayam.obj` | DESIGNER_BUILD | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 270 | `buildings_r3` / slot `kandang` — small stilted coop, bamboo slats, ladder |
-| `generated/buildings_r3/gudang_sawmill.obj` | DESIGNER_BUILD | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 162 | `buildings_r3` / slot `gudang` — open-bay shed, log piles, gabled seng roof |
+| `generated/buildings_r3/rumah_panggung.obj` | AGENT_GENERATED | n/a (original) | original (deterministic generator) | original, CC0-equivalent (no third-party data) | 198 | `buildings_r3` / slot `rumah` — raised stilt house, gabled seng roof, 5-step teras |
+| `generated/buildings_r3/kandang_ayam.obj` | AGENT_GENERATED | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 270 | `buildings_r3` / slot `kandang` — small stilted coop, bamboo slats, ladder |
+| `generated/buildings_r3/gudang_sawmill.obj` | AGENT_GENERATED | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 162 | `buildings_r3` / slot `gudang` — open-bay shed, log piles, gabled seng roof |
 
 **Brief (all three):** real Indonesian village proportions, timber posts,
 overhanging gabled seng roof, no outline (V-D1), built-in-material friendly.
@@ -45,10 +45,10 @@ hosted by Poly Pizza; banana, mango and shrubs are original OBJs.
 |---|---|---|---|---|---|---|
 | `raw/vegetation_r3/palm_quaternius.ply.glb` | CC0_DOWNLOAD | page `https://poly.pizza/m/DsrrAYmucG`; direct `https://static.poly.pizza/21d44b5b-efef-4abd-96ad-fc59e4ad373b.glb` | Quaternius | CC0 1.0 (Public Domain) | 3208 | `vegetation_r3` / slot `kelapa` — hero palm backdrop; 3208 tris = landmark class, decimate if used as a kit piece |
 | `raw/vegetation_r3/bamboo_quaternius.ply.glb` | CC0_DOWNLOAD | page `https://poly.pizza/m/FUgtfvqgMx`; direct `https://static.poly.pizza/7f76e9d4-49f0-4582-8da9-8141d9756058.glb` | Quaternius | CC0 1.0 (Public Domain) | 400 | `vegetation_r3` / slot `bambu` — 400-tris bamboo clump, kit class |
-| `generated/vegetation_r3/palm_tropical.obj` | DESIGNER_BUILD | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 292 | `vegetation_r3` / slot `kelapa-alt` — low-poly drooping-frond palm alternative |
-| `generated/vegetation_r3/banana_tropical.obj` | DESIGNER_BUILD | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 76 | `vegetation_r3` / slot `pisang` — pseudostem + 8 lanceolate leaves + bunch |
-| `generated/vegetation_r3/mango_tropical.obj` | DESIGNER_BUILD | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 176 | `vegetation_r3` / slot `mangga` — branching trunk + 3 rounded canopy blobs (not conifer) |
-| `generated/vegetation_r3/shrubs_tropical.obj` | DESIGNER_BUILD | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 96 | `vegetation_r3` / slot `shrubs` — three clustered low-poly shrubs |
+| `generated/vegetation_r3/palm_tropical.obj` | AGENT_GENERATED | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 292 | `vegetation_r3` / slot `kelapa-alt` — low-poly drooping-frond palm alternative |
+| `generated/vegetation_r3/banana_tropical.obj` | AGENT_GENERATED | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 76 | `vegetation_r3` / slot `pisang` — pseudostem + 8 lanceolate leaves + bunch |
+| `generated/vegetation_r3/mango_tropical.obj` | AGENT_GENERATED | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 176 | `vegetation_r3` / slot `mangga` — branching trunk + 3 rounded canopy blobs (not conifer) |
+| `generated/vegetation_r3/shrubs_tropical.obj` | AGENT_GENERATED | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 96 | `vegetation_r3` / slot `shrubs` — three clustered low-poly shrubs |
 
 **Brief:** palm fronds droop (coconut silhouette), banana leaves are broad and
 radiating, mango canopy is rounded and broadleaf, shrubs are low clumps. No
@@ -60,15 +60,15 @@ the per-piece budget before decimation).
 ## `props_r3` — 5 designer-built models
 
 No verifiable CC0/CC BY download matched the requested gerobak / sumur / pasar
-stall / bamboo fence / tool set this pass; all five are `DESIGNER_BUILD`.
+stall / bamboo fence / tool set this pass; all five are `AGENT_GENERATED` (script-built, ~100–300 faces; not made by the designer).
 
 | Filename | Source type | Source URL | Author | Licence | Tris | Intended review slot |
 |---|---|---|---|---|---|---|
-| `generated/props_r3/cart_gerobak.obj` | DESIGNER_BUILD | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 242 | `props_r3` / slot `cart` — two-wheel gerobak bed, shafts, cloth awning |
-| `generated/props_r3/well_sumur.obj` | DESIGNER_BUILD | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 306 | `props_r3` / slot `well` — stone ring, water, seng roof, pulley, bucket |
-| `generated/props_r3/market_stall.obj` | DESIGNER_BUILD | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 162 | `props_r3` / slot `stall` — bamboo posts, counter, shelf, seng awning, goods |
-| `generated/props_r3/fencing_bambu.obj` | DESIGNER_BUILD | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 120 | `props_r3` / slot `fence` — bamboo posts + two horizontal rails |
-| `generated/props_r3/tools_set.obj` | DESIGNER_BUILD | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 108 | `props_r3` / slot `tools` — cangkul, sabit, metal pail |
+| `generated/props_r3/cart_gerobak.obj` | AGENT_GENERATED | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 242 | `props_r3` / slot `cart` — two-wheel gerobak bed, shafts, cloth awning |
+| `generated/props_r3/well_sumur.obj` | AGENT_GENERATED | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 306 | `props_r3` / slot `well` — stone ring, water, seng roof, pulley, bucket |
+| `generated/props_r3/market_stall.obj` | AGENT_GENERATED | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 162 | `props_r3` / slot `stall` — bamboo posts, counter, shelf, seng awning, goods |
+| `generated/props_r3/fencing_bambu.obj` | AGENT_GENERATED | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 120 | `props_r3` / slot `fence` — bamboo posts + two horizontal rails |
+| `generated/props_r3/tools_set.obj` | AGENT_GENERATED | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 108 | `props_r3` / slot `tools` — cangkul, sabit, metal pail |
 
 **Brief:** real village-prop proportions, bamboo/timber/seng/cloth palette,
 no text or logos, instanced-friendly low counts. Upgrade path: Poly Haven CC0
@@ -84,10 +84,10 @@ villagers with distinct silhouettes. No brand/IP marks in any model.
 |---|---|---|---|---|---|---|
 | `raw/npcs_r3/farmer_quaternius.ply.glb` | CC0_DOWNLOAD | page `https://poly.pizza/m/7pn3R6hPvE`; direct `https://static.poly.pizza/81f2f0cf-6f53-4b57-92ea-dba0928620f2.glb` | Quaternius | CC0 1.0 (Public Domain) | 5476 | `npcs_r3` / slot `farmer` — rigged animated farmer body (24 clips in glTF); near 8000 landmark cap |
 | `raw/npcs_r3/swat_quaternius.ply.glb` | CC0_DOWNLOAD | page `https://poly.pizza/m/Btfn3G5Xv4`; direct `https://static.poly.pizza/713f6535-f4f3-4367-a4c6-ced126ae0936.glb` | Quaternius | CC0 1.0 (Public Domain) | 7752 | `npcs_r3` / slot `polisi` — rigged animated uniformed body, recolour to polisi desa; at landmark cap |
-| `generated/npcs_r3/npc_petani_caping.obj` | DESIGNER_BUILD | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 172 | `npcs_r3` / slot `villager_a` — conical caping hat + shoulder hoe |
-| `generated/npcs_r3/npc_pedagang.obj` | DESIGNER_BUILD | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 152 | `npcs_r3` / slot `villager_b` — headcloth + apron, wider torso |
-| `generated/npcs_r3/npc_petani_wanita.obj` | DESIGNER_BUILD | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 236 | `npcs_r3` / slot `villager_c` — kerudung + scarf + basket |
-| `generated/npcs_r3/npc_tukang_peci.obj` | DESIGNER_BUILD | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 192 | `npcs_r3` / slot `villager_d` — peci + tool belt |
+| `generated/npcs_r3/npc_petani_caping.obj` | AGENT_GENERATED | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 172 | `npcs_r3` / slot `villager_a` — conical caping hat + shoulder hoe |
+| `generated/npcs_r3/npc_pedagang.obj` | AGENT_GENERATED | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 152 | `npcs_r3` / slot `villager_b` — headcloth + apron, wider torso |
+| `generated/npcs_r3/npc_petani_wanita.obj` | AGENT_GENERATED | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 236 | `npcs_r3` / slot `villager_c` — kerudung + scarf + basket |
+| `generated/npcs_r3/npc_tukang_peci.obj` | AGENT_GENERATED | n/a (original) | original (deterministic generator) | original, CC0-equivalent | 192 | `npcs_r3` / slot `villager_d` — peci + tool belt |
 
 **Brief:** four villagers, silhouettes distinct by hat/accessory (caping,
 headcloth+apron, kerudung+basket, peci+tool belt), caricature proportions per

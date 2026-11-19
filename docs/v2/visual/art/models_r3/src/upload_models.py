@@ -107,7 +107,7 @@ def candidate_files() -> list[tuple[str, Path, str]]:
     }
     for slot, rel in generated.items():
         glb = Path(rel).with_suffix(".glb")
-        out.append((slot, Path("export") / glb.relative_to("generated"), "DESIGNER_BUILD"))
+        out.append((slot, Path("export") / glb.relative_to("generated"), "AGENT_GENERATED"))
     return out
 
 

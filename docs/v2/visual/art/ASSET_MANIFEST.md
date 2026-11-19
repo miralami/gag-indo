@@ -249,7 +249,7 @@ icon_r3.trophy,image,agent-generated,docs/v2/visual/art/icons/render_r3/trophy.p
 ```
 
 
-### Uploaded 2026-11-20 (round 3 item 23 — CC0 / designer-build model CANDIDATES, Open Cloud)
+### Uploaded 2026-11-20 (round 3 item 23 — CC0 + agent-generated model CANDIDATES, Open Cloud)
 
 All 20 IDs were returned by completed `GET /assets/v1/operations/{id}` calls using the
 `ROBLOX_API_KEY` route with `assetType=Model`; none was invented. Four are real CC0 Quaternius
@@ -264,22 +264,22 @@ model_r3.vegetation_r3/kelapa_cc0,model,cc0_download,docs/v2/visual/art/models_r
 model_r3.vegetation_r3/bambu_cc0,model,cc0_download,docs/v2/visual/art/models_r3/raw/vegetation_r3/bamboo_quaternius.ply.glb,CC0 1.0 (Quaternius),Quaternius via poly.pizza,118009659509388,,UNVERIFIED
 model_r3.npcs_r3/farmer_cc0,model,cc0_download,docs/v2/visual/art/models_r3/raw/npcs_r3/farmer_quaternius.ply.glb,CC0 1.0 (Quaternius),Quaternius via poly.pizza,109551357778200,,UNVERIFIED
 model_r3.npcs_r3/polisi_cc0,model,cc0_download,docs/v2/visual/art/models_r3/raw/npcs_r3/swat_quaternius.ply.glb,CC0 1.0 (Quaternius),Quaternius via poly.pizza,95267863359958,,UNVERIFIED
-model_r3.buildings_r3/rumah,model,designer_build,docs/v2/visual/art/models_r3/export/buildings_r3/rumah_panggung.glb,original, CC0-equivalent,original deterministic generator,85063409548405,,UNVERIFIED
-model_r3.buildings_r3/kandang,model,designer_build,docs/v2/visual/art/models_r3/export/buildings_r3/kandang_ayam.glb,original, CC0-equivalent,original deterministic generator,119940478952704,,UNVERIFIED
-model_r3.buildings_r3/gudang,model,designer_build,docs/v2/visual/art/models_r3/export/buildings_r3/gudang_sawmill.glb,original, CC0-equivalent,original deterministic generator,111256303923528,,UNVERIFIED
-model_r3.vegetation_r3/kelapa_alt,model,designer_build,docs/v2/visual/art/models_r3/export/vegetation_r3/palm_tropical.glb,original, CC0-equivalent,original deterministic generator,109494105307245,,UNVERIFIED
-model_r3.vegetation_r3/pisang,model,designer_build,docs/v2/visual/art/models_r3/export/vegetation_r3/banana_tropical.glb,original, CC0-equivalent,original deterministic generator,101217327819812,,UNVERIFIED
-model_r3.vegetation_r3/mangga,model,designer_build,docs/v2/visual/art/models_r3/export/vegetation_r3/mango_tropical.glb,original, CC0-equivalent,original deterministic generator,121015860286403,,UNVERIFIED
-model_r3.vegetation_r3/shrubs,model,designer_build,docs/v2/visual/art/models_r3/export/vegetation_r3/shrubs_tropical.glb,original, CC0-equivalent,original deterministic generator,130954290306373,,UNVERIFIED
-model_r3.props_r3/cart,model,designer_build,docs/v2/visual/art/models_r3/export/props_r3/cart_gerobak.glb,original, CC0-equivalent,original deterministic generator,123070528502160,,UNVERIFIED
-model_r3.props_r3/well,model,designer_build,docs/v2/visual/art/models_r3/export/props_r3/well_sumur.glb,original, CC0-equivalent,original deterministic generator,108779169207130,,UNVERIFIED
-model_r3.props_r3/stall,model,designer_build,docs/v2/visual/art/models_r3/export/props_r3/market_stall.glb,original, CC0-equivalent,original deterministic generator,119525167329493,,UNVERIFIED
-model_r3.props_r3/fence,model,designer_build,docs/v2/visual/art/models_r3/export/props_r3/fencing_bambu.glb,original, CC0-equivalent,original deterministic generator,85094565897097,,UNVERIFIED
-model_r3.props_r3/tools,model,designer_build,docs/v2/visual/art/models_r3/export/props_r3/tools_set.glb,original, CC0-equivalent,original deterministic generator,110400413362502,,UNVERIFIED
-model_r3.npcs_r3/villager_a,model,designer_build,docs/v2/visual/art/models_r3/export/npcs_r3/npc_petani_caping.glb,original, CC0-equivalent,original deterministic generator,75743269173481,,UNVERIFIED
-model_r3.npcs_r3/villager_b,model,designer_build,docs/v2/visual/art/models_r3/export/npcs_r3/npc_pedagang.glb,original, CC0-equivalent,original deterministic generator,100304009103314,,UNVERIFIED
-model_r3.npcs_r3/villager_c,model,designer_build,docs/v2/visual/art/models_r3/export/npcs_r3/npc_petani_wanita.glb,original, CC0-equivalent,original deterministic generator,75017945133929,,UNVERIFIED
-model_r3.npcs_r3/villager_d,model,designer_build,docs/v2/visual/art/models_r3/export/npcs_r3/npc_tukang_peci.glb,original, CC0-equivalent,original deterministic generator,128549093376717,,UNVERIFIED
+model_r3.buildings_r3/rumah,model,agent_generated,docs/v2/visual/art/models_r3/export/buildings_r3/rumah_panggung.glb,original, CC0-equivalent,original deterministic generator,85063409548405,,UNVERIFIED
+model_r3.buildings_r3/kandang,model,agent_generated,docs/v2/visual/art/models_r3/export/buildings_r3/kandang_ayam.glb,original, CC0-equivalent,original deterministic generator,119940478952704,,UNVERIFIED
+model_r3.buildings_r3/gudang,model,agent_generated,docs/v2/visual/art/models_r3/export/buildings_r3/gudang_sawmill.glb,original, CC0-equivalent,original deterministic generator,111256303923528,,UNVERIFIED
+model_r3.vegetation_r3/kelapa_alt,model,agent_generated,docs/v2/visual/art/models_r3/export/vegetation_r3/palm_tropical.glb,original, CC0-equivalent,original deterministic generator,109494105307245,,UNVERIFIED
+model_r3.vegetation_r3/pisang,model,agent_generated,docs/v2/visual/art/models_r3/export/vegetation_r3/banana_tropical.glb,original, CC0-equivalent,original deterministic generator,101217327819812,,UNVERIFIED
+model_r3.vegetation_r3/mangga,model,agent_generated,docs/v2/visual/art/models_r3/export/vegetation_r3/mango_tropical.glb,original, CC0-equivalent,original deterministic generator,121015860286403,,UNVERIFIED
+model_r3.vegetation_r3/shrubs,model,agent_generated,docs/v2/visual/art/models_r3/export/vegetation_r3/shrubs_tropical.glb,original, CC0-equivalent,original deterministic generator,130954290306373,,UNVERIFIED
+model_r3.props_r3/cart,model,agent_generated,docs/v2/visual/art/models_r3/export/props_r3/cart_gerobak.glb,original, CC0-equivalent,original deterministic generator,123070528502160,,UNVERIFIED
+model_r3.props_r3/well,model,agent_generated,docs/v2/visual/art/models_r3/export/props_r3/well_sumur.glb,original, CC0-equivalent,original deterministic generator,108779169207130,,UNVERIFIED
+model_r3.props_r3/stall,model,agent_generated,docs/v2/visual/art/models_r3/export/props_r3/market_stall.glb,original, CC0-equivalent,original deterministic generator,119525167329493,,UNVERIFIED
+model_r3.props_r3/fence,model,agent_generated,docs/v2/visual/art/models_r3/export/props_r3/fencing_bambu.glb,original, CC0-equivalent,original deterministic generator,85094565897097,,UNVERIFIED
+model_r3.props_r3/tools,model,agent_generated,docs/v2/visual/art/models_r3/export/props_r3/tools_set.glb,original, CC0-equivalent,original deterministic generator,110400413362502,,UNVERIFIED
+model_r3.npcs_r3/villager_a,model,agent_generated,docs/v2/visual/art/models_r3/export/npcs_r3/npc_petani_caping.glb,original, CC0-equivalent,original deterministic generator,75743269173481,,UNVERIFIED
+model_r3.npcs_r3/villager_b,model,agent_generated,docs/v2/visual/art/models_r3/export/npcs_r3/npc_pedagang.glb,original, CC0-equivalent,original deterministic generator,100304009103314,,UNVERIFIED
+model_r3.npcs_r3/villager_c,model,agent_generated,docs/v2/visual/art/models_r3/export/npcs_r3/npc_petani_wanita.glb,original, CC0-equivalent,original deterministic generator,75017945133929,,UNVERIFIED
+model_r3.npcs_r3/villager_d,model,agent_generated,docs/v2/visual/art/models_r3/export/npcs_r3/npc_tukang_peci.glb,original, CC0-equivalent,original deterministic generator,128549093376717,,UNVERIFIED
 ```
 
 

@@ -24,7 +24,10 @@ never publish.
 
 ### A. Fix what round 1 got wrong
 
-- [ ] 1. **Prove the phone emulation or downgrade it.**
+- [x] 1. **Prove the phone emulation or downgrade it.** `SEEN-IN-STUDIO` — proven active; no
+  downgrade. Desktop 1365x768/touch=false vs iPhone 14 749x389/touch=true vs Galaxy A06
+  705x338/touch=true, portrait 388x761 during Play; `Game.StarterGui.ScreenOrientation` is
+  LandscapeSensor. Evidence `docs/v2/evidence/h/2026-11-19-phone-emulation/`.
   - Why: the G3 and G5 phone halves were closed at a 749×389 viewport, but that is aspect 1.93.
     iPhone 14 is 2.16 in landscape and 0.46 in portrait, and the Studio pane alone gives 749×388,
     so the device sim may never have applied.

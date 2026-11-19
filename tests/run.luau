@@ -72,6 +72,7 @@ local specs = {
 	require("./specs/texturemap_spec"),
 	require("./specs/soundmap_spec"),
 	require("./specs/candidate_gallery_spec"),
+	require("./specs/streaming_readiness_spec"),
 	require("./specs/npc_model_candidates_spec"),
 	require("./specs/crop_model_candidates_spec"),
 	require("./specs/hub_prop_candidates_spec"),

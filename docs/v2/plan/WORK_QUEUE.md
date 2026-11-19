@@ -185,9 +185,23 @@ never publish.
   Probe cleaned, Play stopped, VERIFY-TEMP edit reverted, place not saved or published, git clean.
   Evidence `docs/v2/evidence/h/2026-11-19-soak-all-candidates/` (`REPORT.md`, `soak.json`,
   `soak-output.log`). No lune count change. Ten-player half remains BLOCKED (no team-test tool).
-- [ ] 13. **StreamingEnabled readiness audit.** Find client paths that assume parts exist
+- [x] 13. **StreamingEnabled readiness audit.** Find client paths that assume parts exist
   (`WaitForChild` without a timeout, direct indexing). Fix them with specs. Don't flip the
   setting; propose it under "Decisions for designer".
+  `LUNE-ONLY` — audited all 71 `WaitForChild` calls (26 client) and every world-part path.
+  **Zero unbounded waits on streamable paths:** all client calls are `ReplicatedStorage.Shared`
+  (always replicated) or bounded (`Remotes` 30/10 s, `Terrain` 10 s, `Humanoid` 10 s, `PlayerGui`
+  is owner-replicated). World parts are discovered through CollectionService tags that travel
+  with streaming (`Tile`, `WindShake`, `NpcSpawn`, `LeaderboardBoard`, `MusicZone`), with
+  added/removed signals or re-polling. The only shipping workspace snapshot — `Phone.neighborPlayers()`
+  — is nil-guarded, attribute-validated and re-polled, with `GetTagged("Tile")` as its primary
+  source. Four LookDev review tools use one-time workspace scans (off by default, dev-only);
+  parked with the designer decision, not changed. Added `tests/specs/streaming_readiness_spec.luau`
+  (4 cases: no unbounded WFC + non-vacuous floor, classifier self-check, tag-based consumers,
+  shipping snapshots supplemental), mutation-checked (an injected unbounded WFC gave
+  `1 FAILED, 1971 passed`), probe removed. `lune` 1972 (+4), `selene` 0/0/0. Setting NOT flipped;
+  proposal under "Decisions for designer". Evidence
+  `docs/v2/evidence/h/2026-11-19-streaming-readiness/` (`REPORT.md`, `results.json`).
 
 ### D. Hardening, round 2
 
@@ -248,6 +262,14 @@ never publish.
   for full review; this brings the stress view to ~517 parts (495 at the pasar/spawn view).
   Parked, not applied — implementation would touch `CropModelCandidates.stagesByTier`,
   `LookDevCrops` and a locking spec. See `docs/v2/evidence/h/2026-11-19-budget-check/`.
+
+- **Item 13 — decide whether to enable `StreamingEnabled`.** The shipping client is already
+  streaming-safe (all waits bounded or on always-replicated containers; world parts found via
+  CollectionService tags), so the remaining question is a designer trade-off: lower initial load /
+  memory on low-tier devices versus streaming pop-in and the four LookDev review tools' one-time
+  workspace scans (off by default, dev-only). No agent flipped the setting. If enabled, run G6
+  real-device fps and the full Q5 multi-client pass before accepting; the LookDev tools may need a
+  `DescendantAdded` re-scan. See `docs/v2/evidence/h/2026-11-19-streaming-readiness/`.
 
 ## Blocked on designer
 

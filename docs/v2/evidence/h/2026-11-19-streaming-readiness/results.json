@@ -1,0 +1,66 @@
+{
+  "item": 13,
+  "status": "LUNE-ONLY",
+  "date": "2026-11-19",
+  "branch": "track/c-world-look",
+  "head_before": "0c7c015",
+  "streaming_enabled_flipped": false,
+  "studio_playtested": false,
+  "method": "Static source audit of all .luau files under src/ (grep + read) plus a new source-audit spec that locks the safe patterns. StreamingEnabled was NOT enabled in Studio; the setting and its fps/LOD trade-off are a designer decision.",
+  "audit": {
+    "waitforchild_calls_total": 71,
+    "waitforchild_client_calls": 26,
+    "waitforchild_unbounded_on_streamable_paths": 0,
+    "breakdown": {
+      "replicatedstorage_shared_no_timeout": "every client module boot-straps Shared with WaitForChild('Shared'); ReplicatedStorage is always replicated, so no streaming dependency",
+      "remotes_with_timeout": "src/shared/Remotes.luau: WaitForChild('Remotes', 30) and folder:WaitForChild(name, 10) — both bounded",
+      "terrain_with_timeout": "src/client/World/Sky.luau:29 — Workspace:WaitForChild('Terrain', 10), bounded",
+      "humanoid_with_timeout": "src/client/Feel/CameraFeel.luau:98 — character:WaitForChild('Humanoid', 10), bounded",
+      "playergui_no_timeout": "src/client/UI/Theme.luau:311 — player:WaitForChild('PlayerGui'); PlayerGui is always replicated to its owner",
+      "streamable_world_part_unbounded": "none found"
+    },
+    "world_part_discovery": {
+      "safe_collection_service_tags": [
+        {"tag": "Tile", "emitted": "src/server/Farm/PlotService.luau:92 (comment explicitly says works with streaming)", "consumers": ["src/client/UI/Tiles.luau", "src/client/UI/Phone.luau", "src/client/Feel/ActionFeel.luau"]},
+        {"tag": "WindShake", "emitted": "src/server/World/Flora.luau:300", "consumers": ["src/client/World/Wind.luau (GetTagged + GetInstanceRemovedSignal)"]},
+        {"tag": "NpcSpawn", "emitted": "src/server/World/Map.luau:34,52", "consumers": ["src/client/World/LookDevNpcs.luau (GetTagged + GetInstanceAddedSignal)"]},
+        {"tag": "LeaderboardBoard", "emitted": "place file / designer world", "consumers": ["src/client/UI/Leaderboard.luau (GetTagged + added/removed signals)"]},
+        {"tag": "MusicZone", "emitted": "place file / designer world", "consumers": ["src/client/Audio.luau"]}
+      ],
+      "why_safe": "CollectionService tags travel with the instance as it streams; added/removed signals handle late arrival and departure. Polling consumers (Audio.musicAt every ZONE_POLL, Phone.refreshCheatTab) re-evaluate, so a streamed-in instance appears on a later tick.",
+      "guarded_snapshot": {
+        "location": "src/client/UI/Phone.luau:558-586 neighborPlayers()",
+        "pattern": "workspace:FindFirstChild('World') then world:GetChildren()",
+        "verdict": "safe: nil-guarded on both world and ownerUserId, re-run on every refreshCheatTab tick, and the primary tile read is CollectionService:GetTagged('Tile')"
+      },
+      "dev_only_limitation": {
+        "modules": ["LookDevPlaza.luau", "LookDevTextures.luau", "LookDevHubProps.luau", "LookDevCrops.luau"],
+        "issue": "one-time Workspace:FindFirstChild/GetDescendants snapshot with no DescendantAdded re-scan; if a hub part is streamed out at the moment a candidate is enabled, the material/prop attachment can miss it",
+        "verdict": "acceptable: all four are LookDev review tools, off by default, never ship, and are used in a small Studio-only review area; no delivered art or shipping path affected. Parked for the designer with the StreamingEnabled decision."
+      },
+      "no_unguarded_direct_index": "No workspace.World.X dot chains or unchecked child indexing of a world part in the shipping client were found; every GetTagged result is IsA/attribute checked and every FindFirstChild on a tile/status/crop is nil-guarded."
+    }
+  },
+  "spec": {
+    "file": "tests/specs/streaming_readiness_spec.luau",
+    "registered_in": "tests/run.luau",
+    "cases": 4,
+    "cases_detail": [
+      "no client WaitForChild on a streamable path is missing its timeout",
+      "the WaitForChild classifier flags unbounded world waits and accepts bounded ones (self-check)",
+      "every world-part consumer discovers instances through CollectionService tags",
+      "shipping workspace child snapshots are only a supplement to tag discovery"
+    ],
+    "mutation_check": {
+      "mutation": "temporary src/client/StreamingMutationProbe.luau containing workspace:WaitForChild('GhostPart')",
+      "result": "1 FAILED, 1971 passed, exit 1 — error named the file and the unbounded call",
+      "probe_removed": true
+    }
+  },
+  "validation": {
+    "lune": "All 1972 tests passed (1968 before this item, +4 cases)",
+    "selene": "0 errors / 0 warnings / 0 parse errors",
+    "git_clean_after": true
+  },
+  "designer_proposal": "Do not flip StreamingEnabled from an agent. If the designer enables it to reduce initial load on low-tier devices, run G6 fps and the full Q5 multi-client pass before accepting; the four LookDev review tools may need a DescendantAdded re-scan (dev-only, off by default). Added to WORK_QUEUE 'Decisions for designer'."
+}

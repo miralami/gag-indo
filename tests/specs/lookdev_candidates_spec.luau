@@ -14,11 +14,12 @@ return function(t, Env)
 	end
 
 	t:describe("LookDev candidates (candidate, awaiting designer yes)", function()
-		t:it("ships exactly two candidates, both unapproved and cartoonish-realism", function()
+		t:it("ships three candidates, all unapproved and cartoonish-realism", function()
 			local LookDev = fresh()
-			expect(#LookDev.IDS):toBe(2)
+			expect(#LookDev.IDS):toBe(3)
 			expect(LookDev.IDS[1]):toBe("plaza_lighting")
 			expect(LookDev.IDS[2]):toBe("police_walkin")
+			expect(LookDev.IDS[3]):toBe("icons")
 			for _, id in LookDev.IDS do
 				local c = LookDev.candidates[id]
 				expect(c.id):toBe(id)
@@ -28,11 +29,12 @@ return function(t, Env)
 			end
 		end)
 
-		t:it("contains no asset IDs in the registry or either adapter", function()
+		t:it("contains no asset IDs in the registry or any adapter", function()
 			for _, path in {
 				"src/shared/LookDev.luau",
 				"src/client/World/LookDevPlaza.luau",
 				"src/server/World/LookDevWalkin.luau",
+				"src/client/UI/LookDevIcons.luau",
 			} do
 				local src = fs.readFile(path)
 				expect(string.find(src, "rbxasset", 1, true) ~= nil):toBe(false)
@@ -155,14 +157,30 @@ return function(t, Env)
 			local ox, oz = -34, -16
 			expect(math.abs(plan.speed - math.sqrt(ox * ox + oz * oz) / shotDuration)):toBeLessThan(0.0001)
 		end)
+
+		t:it("icons plan points at the IconMap data source and never embeds IDs", function()
+			local LookDev = fresh()
+			local plan = LookDev.plan("icons")
+			expect(plan.id):toBe("icons")
+			expect(plan.idsSource):toBe("Shared.IconMap.candidateIds")
+			expect(type(plan.render)):toBe("string")
+		end)
 	end)
 
 	t:describe("LookDev adapter wiring", function()
-		t:it("both thin adapters register with the shared toggle", function()
+		t:it("all three thin adapters register with the shared toggle", function()
 			local plaza = fs.readFile("src/client/World/LookDevPlaza.luau")
 			local walkin = fs.readFile("src/server/World/LookDevWalkin.luau")
+			local icons = fs.readFile("src/client/UI/LookDevIcons.luau")
 			expect(string.find(plaza, "LookDev.register(\"plaza_lighting\"", 1, true) ~= nil):toBe(true)
 			expect(string.find(walkin, "LookDev.register(\"police_walkin\"", 1, true) ~= nil):toBe(true)
+			expect(string.find(icons, "LookDev.register(\"icons\"", 1, true) ~= nil):toBe(true)
+		end)
+
+		t:it("icons applier toggles IconMap candidate ids and restores fallbacks", function()
+			local icons = fs.readFile("src/client/UI/LookDevIcons.luau")
+			expect(string.find(icons, "IconMap.applyCandidates(Visuals, true)", 1, true) ~= nil):toBe(true)
+			expect(string.find(icons, "IconMap.applyCandidates(Visuals, false)", 1, true) ~= nil):toBe(true)
 		end)
 
 		t:it("plaza applier uses built-in Enum.Material only", function()
@@ -185,6 +203,7 @@ return function(t, Env)
 			local client = fs.readFile("src/client/Main.client.luau")
 			local server = fs.readFile("src/server/Main.server.luau")
 			expect(string.find(client, "pcall(require, script.Parent.World.LookDevPlaza)", 1, true) ~= nil):toBe(true)
+			expect(string.find(client, "pcall(require, script.Parent.UI.LookDevIcons)", 1, true) ~= nil):toBe(true)
 			expect(string.find(server, "pcall(require, script.Parent.World.LookDevWalkin)", 1, true) ~= nil):toBe(true)
 		end)
 	end)

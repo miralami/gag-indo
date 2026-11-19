@@ -5,9 +5,11 @@
 -- gate and the plans. The real-world appliers live in the thin adapters:
 --   src/client/World/LookDevPlaza.luau   -- candidate "plaza_lighting"
 --   src/server/World/LookDevWalkin.luau  -- candidate "police_walkin"
--- Both register themselves with LookDev.register() at boot. Enable from the Studio command bar:
+--   src/client/UI/LookDevIcons.luau       -- candidate "icons" (agent-made icon CANDIDATES)
+-- Each registers itself with LookDev.register() at boot. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("plaza_lighting")
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("police_walkin")
+--   require(game.ReplicatedStorage.Shared.LookDev):enable("icons")
 --   require(game.ReplicatedStorage.Shared.LookDev):disable()   -- restores the original look
 --
 -- The gate needs an explicit Studio-only opt-in, is never persisted, and can never be on in a
@@ -25,7 +27,7 @@ local LookDev = {}
 
 LookDev.STATUS = "candidate, awaiting designer yes"
 LookDev.STYLE = "cartoonish-realism"
-LookDev.IDS = { "plaza_lighting", "police_walkin" }
+LookDev.IDS = { "plaza_lighting", "police_walkin", "icons" }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
 -- list is rejected because it could be an asset-backed or otherwise non-procedural material.
@@ -93,6 +95,17 @@ LookDev.candidates = {
 		focusAnchor = "road",
 		spawnOffset = { x = -34, z = -16 }, -- start, relative to the road focus anchor
 	},
+
+	icons = {
+		id = "icons",
+		title = "Agent-made painted icon set for all IconMap slots (crops, tiers, currency, phone apps)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- IDs deliberately NOT here: they live in Shared.IconMap.candidateIds so this module and
+		-- its adapters stay ID-free. The adapter swaps Visuals.icons[*].id only while enabled.
+		idsSource = "Shared.IconMap.candidateIds",
+		render = "docs/v2/visual/art/icons/render/contact_sheet.png",
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -130,6 +143,13 @@ function LookDev.plan(id: string): any
 			spawn = { x = anchor.x + ox, y = anchor.y, z = anchor.z + oz },
 			-- Match the walk-in distance to the shot so the NPC arrives as the letter slam lands.
 			speed = distance / math.max(duration, 0.1),
+		}
+	elseif id == "icons" then
+		local c = LookDev.candidates.icons
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
 		}
 	end
 	return nil

@@ -66,5 +66,38 @@ return function(t, Env)
 			expect(visuals.icons.phone.id):toBe(0)
 			expect(visuals.icons.phone.text):toBe("HP")
 		end)
+
+		t:it("candidate ids cover every IconMap slot and stay off by default", function()
+			local slots = {}
+			for _, entry in IconMap.crops do slots[#slots + 1] = entry.slot end
+			for _, entry in IconMap.currency do slots[#slots + 1] = entry.slot end
+			for _, entry in IconMap.tiers do slots[#slots + 1] = entry.slot end
+			for _, entry in IconMap.phoneApps do slots[#slots + 1] = entry.slot end
+			expect(#slots):toBe(27)
+			for _, slot in slots do
+				local id = IconMap.candidateIds[slot]
+				expect(type(id) == "number" and id > 0):toBe(true)
+			end
+			expect(IconMap.usingCandidates()):toBe(false)
+		end)
+
+		t:it("applyCandidates swaps all slots on and restores letters off", function()
+			local visuals = { icons = {} }
+			IconMap.apply(visuals)
+			IconMap.applyCandidates(visuals, true)
+			expect(IconMap.usingCandidates()):toBe(true)
+			local changed = 0
+			for slot, id in IconMap.candidateIds do
+				expect(visuals.icons[slot].id):toBe(id)
+				expect(type(visuals.icons[slot].text) == "string"):toBe(true) -- letter kept
+				changed += 1
+			end
+			expect(changed):toBe(27)
+			IconMap.applyCandidates(visuals, false)
+			expect(IconMap.usingCandidates()):toBe(false)
+			for slot in IconMap.candidateIds do
+				expect(visuals.icons[slot].id):toBe(0)
+			end
+		end)
 	end)
 end

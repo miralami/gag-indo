@@ -47,6 +47,8 @@ Tiles.mount(lang)
 -- screens have mounted and registered themselves with NavBridge.
 NavBridge.start()
 
--- Look-dev candidates (WORK_QUEUE item 9): register the OFF-BY-DEFAULT plaza lighting applier.
--- Isolated so a missing/failed candidate module can never break the client bootstrap.
+-- Look-dev candidates (WORK_QUEUE item 9, round 2 item 4): register the OFF-BY-DEFAULT plaza
+-- lighting and agent-made icon appliers. Isolated so a missing/failed candidate module can never
+-- break the client bootstrap.
 pcall(require, script.Parent.World.LookDevPlaza)
+pcall(require, script.Parent.UI.LookDevIcons)

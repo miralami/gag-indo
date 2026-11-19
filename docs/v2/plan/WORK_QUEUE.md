@@ -50,7 +50,17 @@ never publish.
 
 ### B. G4 art candidates (opt-in, designer yes required)
 
-- [ ] 4. **Icon set.**
+- [x] 4. **Icon set.** `SEEN-IN-STUDIO` — 27 agent-made 256x256 transparent icons (12 crops, 5
+  tiers, 2 currency, 8 phone apps) generated deterministically by
+  `docs/v2/visual/art/icons/src/generate_icons.py` with contact sheet, uploaded via Studio MCP
+  Open Cloud (`assetType=Image`, all `moderationState=Approved`, real IDs recorded immediately in
+  `ASSET_MANIFEST.md`), and wired behind an off-by-default `icons` LookDev candidate. `IconMap`
+  entry `id` stays 0 so letters are the default; IDs live in `IconMap.candidateIds`. Live Edit-VM
+  round-trip: crop_padi 0→114251482326552, tier_sultan 0→124401414397944, phone
+  0→135874869613602, `disable()` restored all to 0. No agent visually graded the art (no image
+  input this session) — CANDIDATES awaiting designer yes/no, never approved. Evidence
+  `docs/v2/evidence/h/2026-11-19-icons-candidates/`; gallery `docs/v2/visual/CANDIDATES.md`.
+  `lune` 1933 / `selene` 0/0/0.
   - Make every `IconMap.luau` slot (crops, tools, tiers, currency, phone apps) in the
     `ICONS.md` style.
   - Keep the sources under `docs/v2/visual/art/icons/src/` and render to PNG at the size

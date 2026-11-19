@@ -17,6 +17,7 @@ local MomentGuard = require(script.Parent.Parent.Feel.MomentGuard)
 local CameraFeel = require(script.Parent.Parent.Feel.CameraFeel)
 local CutsceneSequencer = require(script.Parent.Parent.Feel.CutsceneSequencer)
 local CutsceneState = require(script.Parent.Parent.Feel.CutsceneState)
+local NavBridge = require(script.Parent.NavBridge)
 
 local RaidOverlay = {}
 
@@ -492,6 +493,7 @@ function RaidOverlay.mount(lang: string)
 		scrim.BackgroundTransparency = 1
 		applyUi(uiState)
 		skipButton.Visible = seq.isSkippable()
+		NavBridge.rescue() -- keep selection on the visible phase button
 		takeCamera()
 
 		seq.onShot(function(shot: any)
@@ -584,6 +586,7 @@ function RaidOverlay.mount(lang: string)
 		fineButton.Visible = true
 		fineButton.Active = true
 		runCountdown(payload.timeout or 20)
+		NavBridge.rescue() -- selection follows Skip -> Fine/Amplop when choosing opens
 	end
 
 	Remotes.Raid_Start.OnClientEvent:Connect(function(payload: any)
@@ -643,6 +646,7 @@ function RaidOverlay.mount(lang: string)
 		cancelCutscene()
 		fineButton.Visible = false
 		amplopButton.Visible = false
+		NavBridge.rescue() -- choices hid: never leave selection stuck on a hidden button
 		waitLabel.Visible = true
 		countdown.Text = ""
 		local key = "raid_outcome_" .. tostring(outcome)
@@ -667,6 +671,27 @@ function RaidOverlay.mount(lang: string)
 		jailBar.Visible = true
 		jailTime.Text = t("jail_time", math.ceil(secondsLeft))
 	end)
+
+	-- WORK_QUEUE item 21: the raid overlay is a forced timed choice, so it is deliberately NOT
+	-- closable by B/Escape (its Skip follows the cutscene's own skippable rule). It still needs a
+	-- default selection that follows the live phase: Skip during the incoming cutscene, then
+	-- Fine/Amplop while choosing. The dynamic default is resolved on every open/rescue.
+	NavBridge.register("raid", {
+		root = scrim,
+		closable = false,
+		default = function()
+			if fineButton.Visible then
+				return fineButton
+			end
+			if amplopButton.Visible then
+				return amplopButton
+			end
+			if skipButton.Visible then
+				return skipButton
+			end
+			return nil
+		end,
+	})
 end
 
 return RaidOverlay

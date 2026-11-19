@@ -12,6 +12,7 @@ local Minigame = require(script.Parent.UI.Minigame)
 local RaidOverlay = require(script.Parent.UI.RaidOverlay)
 local Admin = require(script.Parent.UI.Admin)
 local Leaderboard = require(script.Parent.UI.Leaderboard)
+local NavBridge = require(script.Parent.UI.NavBridge)
 local Sky = require(script.Parent.World.Sky)
 local Wind = require(script.Parent.World.Wind)
 local CameraFeel = require(script.Parent.Feel.CameraFeel)
@@ -41,6 +42,10 @@ Admin.mount(lang)
 Leaderboard.mount(lang)
 Tags.mount(lang)
 Tiles.mount(lang)
+
+-- B/Escape + default selection + hidden-frame rescue (WORK_QUEUE item 21). Start after all
+-- screens have mounted and registered themselves with NavBridge.
+NavBridge.start()
 
 -- Look-dev candidates (WORK_QUEUE item 9): register the OFF-BY-DEFAULT plaza lighting applier.
 -- Isolated so a missing/failed candidate module can never break the client bootstrap.

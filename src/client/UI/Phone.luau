@@ -18,6 +18,7 @@ local Strings = require(Shared.Strings)
 local Remotes = require(Shared.Remotes)
 local Audio = require(script.Parent.Parent.Audio)
 local ClientState = require(script.Parent.Parent.State)
+local NavBridge = require(script.Parent.NavBridge)
 
 local Theme = require(script.Parent.Theme)
 local Icons = require(script.Parent.Icons)
@@ -1242,6 +1243,12 @@ local function buildDevice(ctx: any)
 	end
 
 	close.Activated:Connect(closePhone)
+	-- WORK_QUEUE item 21: B/Escape closes the phone; selecting it focuses the X button.
+	NavBridge.register("phone", {
+		root = root,
+		default = close,
+		onClose = closePhone,
+	})
 	homeBar.Activated:Connect(function()
 		if currentScreen == "home" then
 			closePhone()

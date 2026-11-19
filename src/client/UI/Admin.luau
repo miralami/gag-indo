@@ -13,6 +13,7 @@ local Remotes = require(Shared.Remotes)
 local Theme = require(script.Parent.Theme)
 local FidelityRuntime = require(script.Parent.Parent.Feel.FidelityRuntime)
 local PerfSwitches = require(script.Parent.Parent.Feel.PerfSwitches)
+local NavBridge = require(script.Parent.NavBridge)
 
 local player = Players.LocalPlayer
 
@@ -353,9 +354,20 @@ local function build()
 			panel.Visible = false
 		end
 	end)
+	-- WORK_QUEUE item 21: B/Escape closes the admin panel; selecting it focuses the X button.
+	NavBridge.register("admin", {
+		root = panel,
+		default = close,
+		onClose = function()
+			if panel then
+				panel.Visible = false
+			end
+		end,
+	})
 end
 
 local function destroy()
+	NavBridge.unregister("admin")
 	if gui then
 		gui:Destroy()
 	end

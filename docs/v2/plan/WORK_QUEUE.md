@@ -266,9 +266,27 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   `MinTextSize` 10→11 and the phone-toggle label `MinTextSize` 9→11 (both allowed text to render
   below the minimum under `TextScaled`). Mutation-checked: reverting either fix fails two cases.
   No button failed the touch audit. Suite 1859; selene 0/0/0.
-- [ ] 21. **Gamepad and keyboard.** Every screen can be closed with B or Escape, selection never
+- [x] 21. **Gamepad and keyboard.** Every screen can be closed with B or Escape, selection never
   gets stuck in a hidden frame, and there is a default selection on open. Specs where the logic
   is pure, plus a Studio pass with `GuiService.SelectedObject`.
+  Done 2026-11-19 (`SEEN-IN-STUDIO` for selection, `LUNE-ONLY` for the binding/cancel policy):
+  pure `src/client/UI/Navigation.luau` (LIFO stack, cancel skips forced overlays, rescue keeps a
+  visible selection or falls back to the top open default or clears; permanent `_byId` registry
+  separate from active `_stack` so close→reopen restores the default) + Studio-only
+  `src/client/UI/NavBridge.luau` binds B/Escape at High priority (Begin gate, Sink only on close,
+  else Pass) and writes/watches `GuiService.SelectedObject`. Registered in Phone, Hud Shop,
+  Leaderboard, Admin (unregister on destroy), Minigame and RaidOverlay; started in Main.client
+  after all mounts. `navigation_spec` (17 cases) + `nav_wiring_spec` (7 cases); suite 1883;
+  selene 0/0/0. Studio pass: 9/9 `GuiService.SelectedObject` checks passed (default on open for
+  Leaderboard/Shop/Minigame, newest-open default, close-top falls back, close-all clears,
+  close→reopen restores). Found and fixed a real close→reopen defect via this pass, mutation-checked.
+  Evidence `docs/v2/evidence/h/2026-11-19-gamepad-nav/` (`REPORT.md`, `results.json`).
+  **B/Escape key-press → actual close in Studio is `BLOCKED — Roblox Studio MCP input cannot produce
+  a ContextActionService Begin event`** (only `UserInputService.InputBegan` and CAS `Cancel` are
+  observable; `VirtualInputManager:SendKeyEvent` lacks capability RobloxScript). The CAS binding is
+  pinned by `nav_wiring_spec` and the cancel policy by `navigation_spec`; needs a real keyboard/
+  gamepad in a manual Studio session for the final input→Sink link. RaidOverlay decision recorded
+  under "Decisions for designer".
 - [ ] 22. **Audio hygiene.** Every Sound is in a SoundGroup with a set volume, is cleaned up after
   play, and no loop leaks after a state change. Specs plus a Studio count of Sounds before and
   after a full beat-sheet run.
@@ -328,6 +346,13 @@ Choices the agent made with a safe, reversible default. The designer confirms or
   and forcing them to 44 px tall would overflow the fixed 690 px AdminPanel and regress the fit
   proved in item 19. If the designer wants strict 44×44, that is a follow-up with a taller panel
   and a re-fit at 749×388. No button failed the audit; only two sub-11 text constraints were fixed.
+- Item 21 — RaidOverlay is registered with `closable = false`: it is a forced timed choice with its
+  own Skip rule (Skip only becomes available once the cutscene is skippable), so B/Escape must never
+  dismiss it. Safest reversible default: keep it non-dismissable but give it a phase-driven default
+  selection (Skip while incoming, Fine/Amplop while choosing) with explicit `NavBridge.rescue()`
+  on phase changes so selection never sits on a hidden button. Reversible by flipping `closable`
+  if the designer wants Escape to abort a raid. Evidence
+  `docs/v2/evidence/h/2026-11-19-gamepad-nav/REPORT.md`.
 
 ## Blocked on designer
 

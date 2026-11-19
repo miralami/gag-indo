@@ -16,6 +16,7 @@ local Visuals = require(Shared.Config.Visuals)
 local Audio = require(script.Parent.Parent.Audio)
 local Icons = require(script.Parent.Icons)
 local Theme = require(script.Parent.Theme)
+local NavBridge = require(script.Parent.NavBridge)
 local ActionFeel = require(script.Parent.Parent.Feel.ActionFeel)
 local MomentGuard = require(script.Parent.Parent.Feel.MomentGuard)
 
@@ -530,6 +531,14 @@ function Hud.mount(initialLang: string?)
 	close.Activated:Connect(function()
 		shop.Visible = false
 	end)
+	-- WORK_QUEUE item 21: B/Escape closes the seed shop; selecting it focuses the X button.
+	NavBridge.register("shop", {
+		root = shop,
+		default = close,
+		onClose = function()
+			shop.Visible = false
+		end,
+	})
 	buySeedsButton.Activated:Connect(function()
 		shop.Visible = not shop.Visible
 	end)

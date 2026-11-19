@@ -117,6 +117,8 @@ local specs = {
 	require("./specs/analytics_audit_spec"),
 	require("./specs/npc_pathing_robustness_spec"),
 	require("./specs/ui_touch_text_audit_spec"),
+	require("./specs/navigation_spec"),
+	require("./specs/nav_wiring_spec"),
 }
 
 local t = Test.new()

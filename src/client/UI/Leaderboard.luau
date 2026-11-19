@@ -9,6 +9,7 @@ local Strings = require(Shared.Strings)
 local Leaderboard = require(Shared.Leaderboard)
 
 local Theme = require(script.Parent.Theme)
+local NavBridge = require(script.Parent.NavBridge)
 
 
 local LeaderboardUI = {}
@@ -243,6 +244,15 @@ function LeaderboardUI.mount(lang: string)
 	close.Activated:Connect(function()
 		panel.Visible = false
 	end)
+
+	-- WORK_QUEUE item 21: B/Escape closes the board; selecting it focuses the X button.
+	NavBridge.register("leaderboard", {
+		root = panel,
+		default = close,
+		onClose = function()
+			panel.Visible = false
+		end,
+	})
 
 	function LeaderboardUI.open()
 		LeaderboardUI.render()

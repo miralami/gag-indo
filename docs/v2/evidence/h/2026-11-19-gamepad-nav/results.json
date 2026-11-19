@@ -1,0 +1,41 @@
+{
+  "item": 21,
+  "date": "2026-11-19",
+  "status": "SEEN-IN-STUDIO",
+  "blocked_subpart": {
+    "part": "B/Escape key-press -> actual close in Studio",
+    "status": "BLOCKED",
+    "reason": "Roblox Studio MCP input cannot produce a ContextActionService Begin event; UserInputService.InputBegan observes synthetic keys but a BindActionAtPriority probe receives only UserInputState.Cancel, and VirtualInputManager:SendKeyEvent is unavailable from the MCP thread (lacking capability RobloxScript). Needs a real keyboard/gamepad manual Studio session."
+  },
+  "studio": {
+    "place": "Development-Juragan-Desa",
+    "placeId": 132087524375529,
+    "universeId": 10776530981,
+    "mode_during_test": "Play Solo",
+    "datamodel": "Client",
+    "probe": "GuiService.SelectedObject read live after each Visible toggle (50ms settle)",
+    "place_saved": false,
+    "published": false,
+    "profile_save_called": false,
+    "returned_to_edit_mode": true
+  },
+  "selection_checks": [
+    { "step": 1, "name": "baseline_no_selection", "selected": null, "pass": true },
+    { "step": 2, "name": "leaderboard_open_default_is_close", "selected": "Players.GiantyFrog.PlayerGui.Leaderboard.Panel.Close", "pass": true },
+    { "step": 3, "name": "shop_open_default_is_close", "selected": "Players.GiantyFrog.PlayerGui.Hud.Shop.Close", "pass": true },
+    { "step": 4, "name": "minigame_open_default_is_cancel", "selected": "Players.GiantyFrog.PlayerGui.Minigame.Scrim.Card.Cancel", "pass": true },
+    { "step": 5, "name": "second_open_default_is_shop_close", "selected": "Players.GiantyFrog.PlayerGui.Hud.Shop.Close", "pass": true },
+    { "step": 6, "name": "close_top_falls_back_to_lower", "selected": "Players.GiantyFrog.PlayerGui.Leaderboard.Panel.Close", "pass": true },
+    { "step": 7, "name": "all_closed_selection_nil", "selected": null, "pass": true },
+    { "step": 8, "name": "reopen_restores_default", "selected": "Players.GiantyFrog.PlayerGui.Leaderboard.Panel.Close", "pass": true },
+    { "step": 9, "name": "final_cleanup_selection_nil", "selected": null, "pass": true }
+  ],
+  "checks_passed": "9/9",
+  "defect_found_and_fixed": "First policy removed a screen from the registry on close, so a reopened screen had no default. Split permanent _byId registry from active _stack; locked by navigation_spec close->reopen regression (mutation-checked).",
+  "specs": {
+    "navigation_spec": 17,
+    "nav_wiring_spec": 7,
+    "suite_total": 1883,
+    "selene": "0 errors / 0 warnings / 0 parse errors"
+  }
+}

@@ -82,6 +82,7 @@ local specs = {
 	require("./specs/remote_audit_spec"),
 	require("./specs/remote_fuzz_spec"),
 	require("./specs/save_fuzz_spec"),
+	require("./specs/economy_sim_spec"),
 	require("./specs/farm_failure_spec"),
 	require("./specs/fidelity_tier_spec"),
 	require("./specs/fidelity_runtime_spec"),

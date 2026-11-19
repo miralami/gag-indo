@@ -241,9 +241,14 @@ never publish.
   `finiteNumber()` coercion fixes it with valid-save behaviour unchanged, and a targeted regression case covers
   strings/tables/NaN/±inf/booleans/negatives. `lune` 1986 (+3), `selene src` 0/0/0.
   Evidence `docs/v2/evidence/h/2026-11-19-save-fuzzing/REPORT.md`.
-- [ ] 17. **Long economy sim.** One player, 8 hours of sim time, optimal and idle strategies.
-  Check for overflow, runaway cash and dead ends. Write a report for the designer; balance
-  changes go only under "Decisions for designer".
+- [x] 17. **Long economy sim.**
+  `LUNE-ONLY` — new `tests/specs/economy_sim_spec.luau` (3 cases) runs one player for 8 h of fake time
+  (480 × 60 s) against the real Economy/Market/Debt/Rank/Inventory/Produce/Pinjol code: optimal
+  4-tile loop, idle loop, and a broke (0 cash / 0 seeds) loop that must borrow and recover. No overflow,
+  no NaN/inf, cash finite within MAX_CASH, lifetime earned monotonic, 0 dead ends in every run; broke
+  start borrows 100, loses one cycle, repays fully. Designer report with results under "Decisions for
+  designer": no balance change recommended. `lune` 1989 (+3), `selene src` 0/0/0.
+  Evidence `docs/v2/evidence/h/2026-11-19-economy-sim/REPORT.md`.
 - [ ] 18. **Client error boundary.** One failing UI or feel module must not kill
   `Main.client.luau`: wrap each mount, log once, keep the others running. Spec it with a module
   that is forced to throw.
@@ -282,6 +287,11 @@ never publish.
   nothing.
 
 ## Decisions for designer
+
+- **Item 17 — economy sim: no balance change recommended.** 8 h optimal play: 30,339 gross /
+  11,239 net cash, gurem→petani, 0 dead ends; broke start borrows 100, loses one 60 s cycle,
+  repays fully and ends within ~1% of the never-broke run; idle play stays flat (50 cash / 5 seeds).
+  No config touched. See `docs/v2/evidence/h/2026-11-19-economy-sim/REPORT.md`.
 
 - **Item 11 — cap the Studio-only crops showcase on low tiers.** The all-candidates-on stress view
   exceeds the ~500 draw-call proxy (580–712 parts) solely because the crops candidate is a 339-part

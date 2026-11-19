@@ -411,7 +411,7 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   still needing the designer: G4 (tracks C/G/E art), G4b (visual text pass), G6 (real-device fps),
   G7 (five humans), Q6 (published place), Q7 (real-device touch). `lune` 1930 passed,
   `selene` 0/0/0.
-- [ ] 32. **G3 beat sheet at phone size.** With the Studio device sim set to `iphone_14`
+- [x] 32. **G3 beat sheet at phone size.** With the Studio device sim set to `iphone_14`
   (`SetDeviceAsync("iphone_14")`, real viewport 749×389) in Play Solo, run the harness through the
   full nine-step §4 beat sheet (plant/ready/harvest/sell/buy) as in item 29. Save the phone-size
   `output.log` via `get_console_output` plus a `REPORT.md` and `results.json` under
@@ -419,6 +419,16 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   deltas and zero game-code errors/warnings. Then update the GATE1.md G3 row and MASTER_PLAN G3
   checkbox to mark the phone half `SEEN-IN-STUDIO` (criterion fully closed). Do not save the place
   or call `profile:Save()`.
+  Done 2026-11-19 (`SEEN-IN-STUDIO`, HEAD `76d8d4e`): fresh profile via VERIFY-TEMP Mock reverted
+  before commit; device set in **Edit before Play** (setting it during Play left a 1×1 viewport).
+  Real viewport 749×389, inset 0,58. All nine §4 steps `ok=true`, 9 commands → 9 replies, cash
+  50→77→57→157, padi 5→4→6, tutorialStep 1→5, sack 1 at harvest — matches desktop baseline.
+  Commands spaced ≥300 ms (harness rate limit 4/s; a back-to-back first attempt had harvest
+  rate-limited and sell fail "sack is empty"); first-new reply read to avoid stale-reply race.
+  Output: zero game-code errors/warnings, only external Assistant-plugin/BUG-003/AnalyticsService
+  noise. Evidence `docs/v2/evidence/h/2026-11-19-g3-phone/` (`REPORT.md`, `results.json`,
+  `output.log`). GATE1.md G3 row + designer-actions row and MASTER_PLAN G3 checkbox marked closed;
+  counts updated to 4 `SEEN-IN-STUDIO` / 3 `BLOCKED`. `lune` 1930 passed, `selene` 0/0/0.
 - [ ] 33. **G5 timings at phone size (3 fresh runs).** At the `iphone_14` viewport (749×389), run
   three fresh-profile first sessions via the VERIFY-TEMP Mock store in `PlayerData.luau` (revert the
   line before commit), real grow timers, no `ready` shortcut. Record first-harvest (<45 s), first

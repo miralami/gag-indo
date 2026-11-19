@@ -92,6 +92,8 @@ The 30-minute single-client soak is already clean. Only the **many-clients** hal
 **Look for:** anything that resets or doubles after rejoin.
 **Evidence:** `docs/v2/evidence/h/2026-11-19-published-persistence/REPORT.md` with the before and
 after numbers, plus `output.log`. Then mark Q6 `SEEN-IN-STUDIO`.
+**Full run sheet:** `docs/testing/Q6_PUBLISHED_PLACE.md` — publish steps, the numbers table and the
+Studio compare-script rehearsal (`Persistence.capture()` / `Persistence.compare()`).
 
 ## 6. Q7 — touch only, real mid-range Android
 

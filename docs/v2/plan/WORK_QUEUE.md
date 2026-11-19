@@ -307,8 +307,16 @@ never publish.
   excludes identity/position/UserId-seeded `shop`/hint id by design. Designer run steps in
   `HARNESS.md` §12. `lune` 2008 (+12), `selene src` 0/0/0, LSP 474 unchanged. Evidence
   `docs/v2/evidence/h/2026-11-19-q5-multiclient-script/REPORT.md`.
-- [ ] 23. **Q6 published-place plan.** Exact steps for a private test place, plus a gated
-  save/leave/rejoin compare script for the designer to run.
+- [x] 23. **Q6 published-place plan.** `LUNE-ONLY` delivered; the live published-place run stays
+  `BLOCKED` on D-G2 / a real DataStore round trip. `docs/testing/Q6_PUBLISHED_PLACE.md` has the exact
+  private-place publish steps, save → leave → rejoin, a fill-in numbers table and evidence layout;
+  `DESIGNER_GATE1.md` §5 links it. Added a pure `PersistenceCheck.luau` (before/after fields, tile
+  `ready` excluded because it is time-derived, missing snapshot = failure) and a Studio-gated
+  `Persistence.luau` (`capture()` → `Q6_BEFORE_JSON=`, `compare(json)` → verdict). The script cannot
+  run in a published place by design (harness Gate is Studio-only); it is the rehearsal. 8 cases in
+  `tests/specs/persistence_check_spec.luau`; each rule mutation-checked in isolation (combined
+  mutation masked one, so isolated re-run). `lune` 2016 (+8), `selene src` 0/0/0, LSP 474 unchanged.
+  Evidence `docs/v2/evidence/h/2026-11-19-q6-published-place/REPORT.md`.
 - [ ] 24. **Indonesian text review.** Read every `id` string for natural, non-translated-sounding
   Indonesian, in the `humanizer-indonesia` style. Put the proposed edits in a table under
   "Decisions for designer" and don't change `Strings.luau`.

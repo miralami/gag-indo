@@ -9,6 +9,7 @@
 --   src/client/World/LookDevTextures.luau -- candidate "textures" (seamless texture CANDIDATES)
 --   src/client/World/LookDevNpcs.luau     -- candidate "npcs" (procedural caricature detail CANDIDATES)
 --   src/client/World/LookDevCrops.luau    -- candidate "crops" (low-poly crop growth-stage CANDIDATES)
+--   src/client/World/LookDevHubProps.luau -- candidate "hubprops" (hub counter/desk/stall detail CANDIDATES)
 -- Each registers itself with LookDev.register() at boot. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("plaza_lighting")
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("police_walkin")
@@ -16,6 +17,7 @@
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("textures")
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("npcs")
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("crops")
+--   require(game.ReplicatedStorage.Shared.LookDev):enable("hubprops")
 --   require(game.ReplicatedStorage.Shared.LookDev):disable()   -- restores the original look
 --
 -- The gate needs an explicit Studio-only opt-in, is never persisted, and can never be on in a
@@ -33,7 +35,7 @@ local LookDev = {}
 
 LookDev.STATUS = "candidate, awaiting designer yes"
 LookDev.STYLE = "cartoonish-realism"
-LookDev.IDS = { "plaza_lighting", "police_walkin", "icons", "textures", "npcs", "crops" }
+LookDev.IDS = { "plaza_lighting", "police_walkin", "icons", "textures", "npcs", "crops", "hubprops" }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
 -- list is rejected because it could be an asset-backed or otherwise non-procedural material.
@@ -148,6 +150,18 @@ LookDev.candidates = {
 		stageCount = 3,
 		cropCount = 12,
 	},
+
+	hubprops = {
+		id = "hubprops",
+		title = "Hero-prop details (counter, stall, desk, table, lantern, sign) for the four shop hubs",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Pure-data recipe source, no uploaded asset IDs. partsFor() is the single source used by
+		-- the Studio adapter and the gallery preview generator.
+		idsSource = "Shared.HubPropCandidates.partsFor",
+		render = "docs/v2/visual/art/hubprops/render/contact_sheet.png",
+		hubCount = 4,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -216,6 +230,14 @@ function LookDev.plan(id: string): any
 			render = c.render,
 			stageCount = c.stageCount,
 			cropCount = c.cropCount,
+		}
+	elseif id == "hubprops" then
+		local c = LookDev.candidates.hubprops
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			hubCount = c.hubCount,
 		}
 	end
 	return nil

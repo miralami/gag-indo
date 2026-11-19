@@ -19,6 +19,7 @@ filled by an agent. Asset IDs come from real Open Cloud operations and are recor
 | `textures` | 7 agent-made seamless painted textures for the Pasar surface preset (round 2 item 5) | `LookDev:enable("textures")` | `docs/v2/visual/art/textures/render/contact_sheet.png` | ≤10 temporary `SurfaceAppearance` instances on the imported v2 MeshParts while enabled, all destroyed on disable; no measurable fps cost | |
 | `npcs` | Procedural caricature detail parts for the box NPCs — Pak RT, Tengkulak, Polisi, debt collector (round 2 item 6) | `LookDev:enable("npcs")` | `docs/v2/visual/art/npcs/render/contact_sheet.png` | 15 temporary primitive Parts on the 3 live NPCs while enabled (6/5/4), all destroyed on disable; no asset IDs, no measurable fps cost | |
 | `crops` | Low-poly growth-stage models (bibit/tumbuh/siap) for all 12 crops (round 2 item 7) | `LookDev:enable("crops")` | `docs/v2/visual/art/crops/render/contact_sheet.png` | 36 models / 339 temporary Parts in a floating showcase while enabled, all destroyed on disable; no asset IDs, no measurable fps cost | |
+| `hubprops` | Hero-prop details on the four shop hubs — stall/counter/desk/table, lantern, accent sign (round 2 item 8) | `LookDev:enable("hubprops")` | `docs/v2/visual/art/hubprops/render/contact_sheet.png` | 43 temporary Parts (pasar 11 / warung 11 / polisi 11 / pakrt 10) on hub anchors while enabled, all destroyed on disable; within 8–12/hub budget; no asset IDs, no measurable fps cost | |
 
 ## `icons` — per-asset renders and IDs
 
@@ -127,3 +128,16 @@ the render is provided for the designer's yes/no, not claimed as agent-verified.
   is dumped from the **same** `partsFor()` the adapter uses (via
   `docs/v2/visual/art/crops/src/dump_crops.luau`), so it cannot drift — a review aid, not a Studio
   screenshot. Evidence `docs/v2/evidence/h/2026-11-19-crop-candidates/`. No agent visually graded the art.
+- `src/shared/HubPropCandidates.luau` holds pure-data hero-prop recipes (`partsFor(hubKey)`) for the
+  four shop hubs (pasar/warung/polisi/pakrt) plus a shared lantern and an accent-coloured sign, no
+  asset IDs. `src/client/World/LookDevHubProps.luau` finds each hub Model recursively under
+  `workspace.World`, parents detail parts to its anchor part (CFrame-relative so they follow hub
+  yaw), and destroys them all on disable; the shipping `Greybox` hub props are untouched. Spec-locked
+  in `tests/specs/hub_prop_candidates_spec.luau` (incl. the `<= 12`/hub budget) and
+  `tests/specs/lookdev_candidates_spec.luau`.
+- Live Play-VM round-trip: 43 parts (pasar 11 / warung 11 / polisi 11 / pakrt 10) appeared under
+  `LookDevHubPropDetails` on enable and all were removed on disable. The render
+  `docs/v2/visual/art/hubprops/render/contact_sheet.png` is dumped from the **same** `partsFor()` the
+  adapter uses (via `docs/v2/visual/art/hubprops/src/dump_hubprops.luau`), so it cannot drift — a
+  review aid, not a Studio screenshot. Evidence `docs/v2/evidence/h/2026-11-19-hubprops-candidates/`.
+  No agent visually graded the art.

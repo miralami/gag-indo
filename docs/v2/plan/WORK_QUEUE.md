@@ -105,9 +105,24 @@ never publish.
   not a Studio screenshot. No agent visually graded the art — CANDIDATES awaiting designer yes/no.
   Evidence `docs/v2/evidence/h/2026-11-19-crop-candidates/`; gallery `docs/v2/visual/CANDIDATES.md`.
   `lune` 1950 / `selene` 0/0/0.
-- [ ] 8. **Hub props**: warung counter, pasar stall, pos polisi desk, Pak RT table, lanterns and
+- [x] 8. **Hub props**: warung counter, pasar stall, pos polisi desk, Pak RT table, lanterns and
   signs. Use procedural parts with textured materials, or meshes. Keep within the per-hub
-  instance budget.
+  instance budget. `SEEN-IN-STUDIO` — pure-data primitive-part recipes in
+  `src/shared/HubPropCandidates.luau` (`partsFor(hubKey)` for pasar/warung/polisi/pakrt plus shared
+  lantern + accent sign; no asset IDs), attached to each hub's anchor part by
+  `src/client/World/LookDevHubProps.luau` only while the off-by-default `hubprops` candidate is
+  enabled and all destroyed on disable; shipping `Greybox` hub props untouched. `LookDev.luau` gains
+  a seventh pure-data `hubprops` candidate (`idsSource` pointer, `hubCount=4`, no numeric IDs).
+  Uses `ART.md §3` palette; sign board uses each hub's own accent. Within budget: 11/11/11/10 parts
+  per hub (MAP_SPEC 8–12), spec-locked at `<= 12`. Approach is source-controlled primitives (not
+  imported meshes): subagent transport down, place saves forbidden. Restricted Studio MCP
+  `execute_luau` VM cannot resolve Enum shape/material members, so those lookups are under `pcall`
+  with safe defaults (real LocalScript VM resolves them). Live Play-VM round-trip: 43 parts
+  (pakrt=10, pasar=11, polisi=11, warung=11) appeared and all were removed on disable. Render dumped
+  from the same `partsFor()` via Lune, so it cannot drift; not a Studio screenshot. No agent visually
+  graded the art — CANDIDATES awaiting designer yes/no. Evidence
+  `docs/v2/evidence/h/2026-11-19-hubprops-candidates/`; gallery `docs/v2/visual/CANDIDATES.md`.
+  `lune` 1956 / `selene` 0/0/0.
 - [ ] 9. **Sound candidates.**
   - For each action in the audio event list, search the Creator Store (Studio MCP `search_asset`)
     for free sounds whose licence allows use.

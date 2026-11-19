@@ -1,3 +1,4 @@
+--!strict
 -- HubPropCandidates: pure-data hero-prop detail recipes for the round-2 "hubprops" LookDev
 -- candidate (WORK_QUEUE item 8). Dresses the four shop/counter hubs named in the queue — warung
 -- counter, pasar stall, pos polisi desk, Pak RT table — plus a lantern and a sign per hub, with

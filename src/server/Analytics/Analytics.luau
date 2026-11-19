@@ -178,8 +178,11 @@ function Analytics.onboarding(player: Player?, step: number?, stepName: string?)
 	if not reserve() then
 		return
 	end
+	-- `finite(step)` above guarantees a number at runtime; the assertion only restores that
+	-- narrowing inside the closure for the type checker (no runtime change).
+	local stepNumber = step :: number
 	send(function()
-		AnalyticsService:LogOnboardingFunnelStepEvent(player, math.floor(step), stepName)
+		AnalyticsService:LogOnboardingFunnelStepEvent(player, math.floor(stepNumber), stepName)
 	end)
 end
 

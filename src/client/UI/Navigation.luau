@@ -1,3 +1,4 @@
+--!strict
 -- Pure navigation policy (WORK_QUEUE item 21). No Roblox services, no Instances: the tokens
 -- below are opaque values (GuiObjects in Studio, plain tables in specs). The Studio bridge in
 -- NavBridge.luau supplies the visibility predicate and applies the decisions to

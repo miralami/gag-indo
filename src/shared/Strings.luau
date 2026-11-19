@@ -1,3 +1,4 @@
+--!strict
 -- All player-facing text (Indonesian first, English second).
 -- Server sends string KEYS to clients; the client picks the language.
 -- Params starting with "@" are looked up as keys too (e.g. "@crop_padi").

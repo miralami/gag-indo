@@ -273,8 +273,20 @@ never publish.
   `BLOCKED — no further bugs found by reading`: LSP diagnostics were missing-definitions/
   narrowing noise, and targeted reads of the money/data/networking files found nothing else
   reachable. Re-run when Studio definitions are wired into luau-lsp.
-- [ ] 20. **Type pass, round 2.** Run luau-lsp analyze, if rokit has it, over `src/`. Fix the real
-  errors and move more pure modules to `--!strict` without changing behaviour.
+- [x] 20. **Type pass, round 2.**
+  `LUNE-ONLY` — rokit pins luau-lsp 1.70.1; working invocation needs the absolute
+  `.luau/globalTypes.d.luau` definitions plus `sourcemap.json` (bare analyze is all
+  missing-definitions noise). Probed all 19 no-directive pure modules with `--!strict`, kept the
+  12 that added zero diagnostics (Navigation, PhoneWidgets, SaveSanitize, Ground, WarungService,
+  CropModelCandidates, HubPropCandidates, Inventory, NextGoal, Strings, TextureMap, SoundMap);
+  6 that gained errors were reverted, Leaderboard skipped for pre-existing errors. Fixed the two
+  genuine LSP errors with compile-time-only casts: `Analytics.onboarding` step narrowing (19
+  cycle-repeated errors) and `FarmService` `GetAttribute` `any?` arithmetic (14). Diagnostics
+  507 → 474. Remaining are documented limitations (378 vendored ProfileStore, 68 intentional
+  4-module require cycle needing `export`, 7 same-cycle weak-key inference, narrowing noise in
+  Wind/Leaderboard/Cutscene, 5 Studio-generated LookDev requires) — no runtime defect and no
+  vendored file edited. `lune` 1996, `selene src` 0/0/0.
+  Evidence `docs/v2/evidence/h/2026-11-19-type-pass-round2/REPORT.md`.
 
 ### E. Get the designer through Gate 1 fast (docs and scripts only)
 

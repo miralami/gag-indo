@@ -1,3 +1,4 @@
+--!strict
 -- TextureMap: uploaded agent-made texture CANDIDATES for Visuals.textures (WORK_QUEUE round 2
 -- item 5). All 7 are LookDev candidates AWAITING DESIGNER YES/NO — none approved, none shipped on
 -- by default. The uploaded IDs live here, NOT in LookDev or its adapters, so LookDev's "no asset

@@ -1,3 +1,4 @@
+--!strict
 -- CropModelCandidates: pure-data low-poly growth-stage recipes for the round-2 "crops" LookDev
 -- candidate (WORK_QUEUE item 7). For every crop in Config/Crops there are three stages —
 -- bibit (seedling), tumbuh (growing), siap (ready) — built from Roblox primitive parts only.

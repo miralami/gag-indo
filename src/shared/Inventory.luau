@@ -1,3 +1,4 @@
+--!strict
 -- Inventory: the v3 generic item bag (v2 PLAN §7.1). `items[itemId] = count` holds
 -- consumables (amplopPremium, jaminanKilat, ...) and seeds (`seed_<crop>`), so adding an
 -- item never needs a new save field.

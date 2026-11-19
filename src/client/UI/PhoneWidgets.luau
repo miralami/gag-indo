@@ -1,3 +1,4 @@
+--!strict
 -- PhoneWidgets: the three generic view helpers used by Phone's pages. Extracted from Phone.luau
 -- (WORK_QUEUE item 8, code health) with no behaviour change: each helper takes its parent
 -- explicitly and returns exactly the same instance it did before the move.

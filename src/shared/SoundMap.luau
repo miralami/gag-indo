@@ -1,3 +1,4 @@
+--!strict
 -- SoundMap: free Creator Store music-bed CANDIDATES for the two empty music slots (WORK_QUEUE
 -- round 2 item 9). Both are LookDev candidates AWAITING DESIGNER YES/NO — none approved, none
 -- shipped on by default. The IDs live here, NOT in LookDev or its adapters, so LookDev's "no asset

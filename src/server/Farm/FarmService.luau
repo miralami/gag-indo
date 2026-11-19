@@ -156,8 +156,10 @@ local function setCropVisual(tile: BasePart, cropId: string?, ready: boolean, ho
 		p.Parent = tile
 		visual = p
 	end
-	local elapsed = math.max(0, os.time() - tile:GetAttribute("PlantedAt"))
-	local stageName = if ready then "siap" elseif elapsed < math.max(1, math.floor(tile:GetAttribute("GrowSeconds") / 3)) then "bibit" else "tumbuh"
+	-- refreshTile always writes finite numeric attributes for a planted tile; the assertions
+	-- are type-only (GetAttribute is typed `any?`) and do not change runtime behaviour.
+	local elapsed = math.max(0, os.time() - (tile:GetAttribute("PlantedAt") :: number))
+	local stageName = if ready then "siap" elseif elapsed < math.max(1, math.floor((tile:GetAttribute("GrowSeconds") :: number) / 3)) then "bibit" else "tumbuh"
 	local stage = Visuals.cropStages[stageName]
 	local size = stage.stem
 	local stem = visual:FindFirstChild("Stem") :: Part?

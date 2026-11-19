@@ -1,3 +1,4 @@
+--!strict
 -- SaveSanitize: one-shot repair of damaged saves right after Reconcile + migrate.
 -- Pure: no Roblox services, so it runs under lune. See tests/specs/save_reconcile_spec.luau.
 --

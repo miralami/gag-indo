@@ -1,3 +1,4 @@
+--!strict
 -- WarungService: the warung is the village hangout (GDD §8). Nongkrong shows a random
 -- rumor; the VIP Warung pass gets a VIP line. Pure flavor: no cash, no Sus, no saves.
 

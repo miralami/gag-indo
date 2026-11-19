@@ -16,6 +16,7 @@ filled by an agent. Asset IDs come from real Open Cloud operations and are recor
 | `plaza_lighting` | Alternative Pasar material + lighting grade (round 1) | `LookDev:enable("plaza_lighting")` | `docs/v2/evidence/h/2026-11-19-lookdev-candidates/` | ~9 material swaps, 0 new instances, no measurable fps cost | |
 | `police_walkin` | Police NPC walk-in timed to the raid cutscene (round 1) | `LookDev:enable("police_walkin")` | `docs/v2/evidence/h/2026-11-19-lookdev-candidates/` | reuses 1 existing NPC, 0 new instances, no measurable fps cost | |
 | `icons` | 27 agent-made painted icons for every IconMap slot (round 2 item 4) | `LookDev:enable("icons")` | `docs/v2/visual/art/icons/render/contact_sheet.png` | 0 new instances; swaps `ImageLabel.Image` on existing icon slots only, no measurable fps cost | |
+| `textures` | 7 agent-made seamless painted textures for the Pasar surface preset (round 2 item 5) | `LookDev:enable("textures")` | `docs/v2/visual/art/textures/render/contact_sheet.png` | ≤10 temporary `SurfaceAppearance` instances on the imported v2 MeshParts while enabled, all destroyed on disable; no measurable fps cost | |
 
 ## `icons` — per-asset renders and IDs
 
@@ -60,6 +61,29 @@ designer's yes/no, not claimed as agent-verified.
 `render/*` above is relative to `docs/v2/visual/art/icons/`. The `_upload_probe.png` disc
 (`106680734829483`) is a pipeline probe recorded in the manifest, not a candidate for review.
 
+## `textures` — per-asset renders and IDs
+
+All 7 PNGs are 512x512 tileable RGBA, deterministic output of
+`docs/v2/visual/art/textures/src/generate_textures.py`. Every ID below was returned by
+`POST /assets/v1/assets` and confirmed `moderationState=Approved` in the completed
+`GET /assets/v1/operations/{id}` (`texture_sawah` was briefly `Reviewing`, then Approved). The
+contact sheet is the single render to review first; individual tiles are listed for a closer look.
+The generator's validity and seam checks passed (opposite-edge jumps are no larger than ordinary
+interior jumps). This session had no image-input support, so no agent visually graded the tiles —
+the render is provided for the designer's yes/no, not claimed as agent-verified.
+
+| Slot | Render | Asset ID | Designer yes/no |
+|---|---|---|---|
+| `texture_bambu` | `render/texture_bambu.png` | 86020876968095 | |
+| `texture_genteng` | `render/texture_genteng.png` | 121899778984239 | |
+| `texture_seng` | `render/texture_seng.png` | 116077927961929 | |
+| `texture_paving` | `render/texture_paving.png` | 70537329110423 | |
+| `texture_sawah` | `render/texture_sawah.png` | 121312141770783 | |
+| `texture_kertas` | `render/texture_kertas.png` | 102834761172815 | |
+| `texture_tanah` | `render/texture_tanah.png` | 95694392312399 | |
+
+`render/*` above is relative to `docs/v2/visual/art/textures/`.
+
 ## Wiring / proof
 
 - `src/shared/IconMap.luau` keeps every entry `id = 0` (letter fallback is the default). Uploaded
@@ -69,3 +93,13 @@ designer's yes/no, not claimed as agent-verified.
   and `tests/specs/iconmap_spec.luau`.
 - Enable/disable round-trip and Studio-only refusal are proven by specs; an in-Studio visual check
   of the enabled icons is part of the round-2 Studio sweep (item 27) and will be recorded there.
+- `src/shared/TextureMap.luau` holds the 7 uploaded IDs in `candidateIds`; the shipping
+  `Visuals.textures` slots all stay 0 (built-in material + palette colour fallback).
+  `src/client/World/LookDevTextures.luau` applies them only while the `textures` candidate is
+  enabled and restores every slot and MeshPart on disable. `SurfaceAppearance` can only be parented
+  to `MeshPart`s (verified in Studio), so the adapter targets the imported v2 `prop_*`/`kit_*`
+  MeshParts; the greybox `Pasar` Parts are left as-is. Spec-locked in
+  `tests/specs/texturemap_spec.luau` and `tests/specs/lookdev_candidates_spec.luau`.
+- Live Play-mode round-trip: all 7 slots `0 → real IDs → 0`, `TextureMap.usingCandidates()`
+  `false → true → false`, and 10 MeshParts received real `rbxassetid://…` `ColorMap`s on enable,
+  all destroyed on disable. Evidence `docs/v2/evidence/h/2026-11-19-textures-candidates/`.

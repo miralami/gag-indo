@@ -67,8 +67,16 @@ never publish.
     `ICONS.md` asks for.
   - Upload through Open Cloud, record the IDs, then wire them into `IconMap` behind a
     `LookDev` candidate flag. Letters stay the default.
-- [ ] 5. **Hero textures (6–8)** per `TEXTURES.md`: tileable, uploaded and recorded. Apply them in
-  a `LookDev` material preset.
+- [x] 5. **Hero textures (6–8)** per `TEXTURES.md`: tileable, uploaded and recorded. Apply them in
+  a `LookDev` material preset. `SEEN-IN-STUDIO` — 7 deterministic 512x512 tileable RGBA textures
+  (`docs/v2/visual/art/textures/src/generate_textures.py` + contact sheet), uploaded via Studio MCP
+  Open Cloud (all `moderationState=Approved`, real IDs in `ASSET_MANIFEST.md`), wired behind an
+  off-by-default `textures` LookDev candidate (`TextureMap.candidateIds`, `Visuals.textures` slots
+  stay 0). Live Play-VM round-trip: 7 slots 0→IDs→0, 10 MeshParts got real `rbxassetid://`
+  ColorMaps then all removed; `SurfaceAppearance` is MeshPart-only so the adapter targets the
+  imported v2 `prop_*`/`kit_*` MeshParts. No agent visually graded the art — CANDIDATES awaiting
+  designer yes/no. Evidence `docs/v2/evidence/h/2026-11-19-textures-candidates/`; gallery
+  `docs/v2/visual/CANDIDATES.md`. `lune` 1939 / `selene` 0/0/0.
 - [ ] 6. **Caricature NPC models** from `npcs.md` and `NpcArchetypes` (Pak RT, Tengkulak, Polisi,
   debt collector).
   - Build them in Blender (subagents have `blender`) or with the Studio MCP mesh tools, at R15

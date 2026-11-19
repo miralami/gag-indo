@@ -134,3 +134,26 @@ icon.shop,image,agent-generated,docs/v2/visual/art/icons/render/shop.png,agent-m
 icon.trophy,image,agent-generated,docs/v2/visual/art/icons/render/trophy.png,agent-made no third-party licence,,130034112081024,,UNVERIFIED
 icon._upload_probe,image,agent-generated,docs/v2/visual/art/icons/render/_upload_probe.png,pipeline probe plain disc not for use,,106680734829483,,UNVERIFIED
 ```
+
+### Uploaded 2026-11-19 (round 2 item 5 — agent-made texture CANDIDATES, Open Cloud)
+
+Seven seamless 512x512 RGBA tiles, deterministic output of
+`docs/v2/visual/art/textures/src/generate_textures.py`; contact sheet
+`docs/v2/visual/art/textures/render/contact_sheet.png`. Every ID below came from
+`POST /assets/v1/assets` then `GET /assets/v1/operations/{id}` — none invented. All
+`moderationState=Approved` when last polled (`texture_sawah` was briefly `Reviewing` then
+Approved), creator User `172146044`, `assetType=Image`. **All are LookDev candidates awaiting
+designer yes/no — none approved, none shipped on by default.** Uploads used the Studio MCP
+`open_cloud_invoke` token (asset:read/asset:write), not the `ROBLOX_API_KEY` env var; no key was
+printed, logged or committed.
+
+```
+slot,class,source,source_ref,licence,attribution,id,approved_by,status
+texture_bambu,image,agent-generated,docs/v2/visual/art/textures/render/texture_bambu.png,agent-made no third-party licence,,86020876968095,,UNVERIFIED
+texture_genteng,image,agent-generated,docs/v2/visual/art/textures/render/texture_genteng.png,agent-made no third-party licence,,121899778984239,,UNVERIFIED
+texture_seng,image,agent-generated,docs/v2/visual/art/textures/render/texture_seng.png,agent-made no third-party licence,,116077927961929,,UNVERIFIED
+texture_paving,image,agent-generated,docs/v2/visual/art/textures/render/texture_paving.png,agent-made no third-party licence,,70537329110423,,UNVERIFIED
+texture_sawah,image,agent-generated,docs/v2/visual/art/textures/render/texture_sawah.png,agent-made no third-party licence,,121312141770783,,UNVERIFIED
+texture_kertas,image,agent-generated,docs/v2/visual/art/textures/render/texture_kertas.png,agent-made no third-party licence,,102834761172815,,UNVERIFIED
+texture_tanah,image,agent-generated,docs/v2/visual/art/textures/render/texture_tanah.png,agent-made no third-party licence,,95694392312399,,UNVERIFIED
+```

@@ -6,10 +6,12 @@
 --   src/client/World/LookDevPlaza.luau   -- candidate "plaza_lighting"
 --   src/server/World/LookDevWalkin.luau  -- candidate "police_walkin"
 --   src/client/UI/LookDevIcons.luau       -- candidate "icons" (agent-made icon CANDIDATES)
+--   src/client/World/LookDevTextures.luau -- candidate "textures" (seamless texture CANDIDATES)
 -- Each registers itself with LookDev.register() at boot. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("plaza_lighting")
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("police_walkin")
 --   require(game.ReplicatedStorage.Shared.LookDev):enable("icons")
+--   require(game.ReplicatedStorage.Shared.LookDev):enable("textures")
 --   require(game.ReplicatedStorage.Shared.LookDev):disable()   -- restores the original look
 --
 -- The gate needs an explicit Studio-only opt-in, is never persisted, and can never be on in a
@@ -27,7 +29,7 @@ local LookDev = {}
 
 LookDev.STATUS = "candidate, awaiting designer yes"
 LookDev.STYLE = "cartoonish-realism"
-LookDev.IDS = { "plaza_lighting", "police_walkin", "icons" }
+LookDev.IDS = { "plaza_lighting", "police_walkin", "icons", "textures" }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
 -- list is rejected because it could be an asset-backed or otherwise non-procedural material.
@@ -106,6 +108,18 @@ LookDev.candidates = {
 		idsSource = "Shared.IconMap.candidateIds",
 		render = "docs/v2/visual/art/icons/render/contact_sheet.png",
 	},
+
+	textures = {
+		id = "textures",
+		title = "Agent-made seamless painted textures for the Pasar surface preset",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- IDs deliberately NOT here: they live in Shared.TextureMap.candidateIds. The adapter
+		-- sets Visuals.textures slots only while enabled and restores them to 0 on disable.
+		idsSource = "Shared.TextureMap.candidateIds",
+		render = "docs/v2/visual/art/textures/render/contact_sheet.png",
+		slotCount = 7,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -150,6 +164,14 @@ function LookDev.plan(id: string): any
 			id = id,
 			idsSource = c.idsSource,
 			render = c.render,
+		}
+	elseif id == "textures" then
+		local c = LookDev.candidates.textures
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			slotCount = c.slotCount,
 		}
 	end
 	return nil

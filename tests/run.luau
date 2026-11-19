@@ -69,6 +69,7 @@ local specs = {
 	require("./specs/nextgoal_spec"),
 	require("./specs/first_session_spec"),
 	require("./specs/iconmap_spec"),
+	require("./specs/texturemap_spec"),
 	require("./specs/phone_layout_spec"),
 	require("./specs/npc_framework_spec"),
 	require("./specs/world_constants_spec"),

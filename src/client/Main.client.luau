@@ -52,3 +52,4 @@ NavBridge.start()
 -- break the client bootstrap.
 pcall(require, script.Parent.World.LookDevPlaza)
 pcall(require, script.Parent.UI.LookDevIcons)
+pcall(require, script.Parent.World.LookDevTextures)

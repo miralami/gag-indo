@@ -382,8 +382,17 @@ Started 2026-11-19 from `f6941be` (1700 tests passing).
   regression found, no bug filed. Evidence `docs/v2/evidence/h/2026-11-19-regression-replay/`
   (`REPORT.md`, `results.json`, `soak.json`, `g3-g5-q2-output.log`, `soak-output.log`). Q5 ten-player
   half stays `BLOCKED` (no multi-client tool). `lune` 1930 passed, `selene` 0/0/0.
-- [ ] 30. **Gate 1 status sheet.** Rewrite the evidence column of every GATE1.md row so it is
+- [x] 30. **Gate 1 status sheet.** Rewrite the evidence column of every GATE1.md row so it is
   current, and list exactly what the designer must do to close each row that is still open.
+  Done 2026-11-19 (`LUNE-ONLY`): all 16 GATE1.md rows reworked. Every evidence column refreshed to
+  cite what exists today — Q2/Q3 gained post-change regression-replay proof
+  (`h/2026-11-19-regression-replay/`), G3/G5 gained a second desktop-half confirmation, G4b gained
+  the item-19/20 desktop + `LUNE-ONLY` proof, Q8 updated to 1930 passing and all bug specs; statuses
+  unchanged (3 `SEEN-IN-STUDIO`, 4 `BLOCKED`, 1 `LUNE-ONLY`, 8 `UNVERIFIED`). Added a new
+  "Designer actions to close the open rows" table giving the exact action + evidence path for each
+  of the 11 open rows (G2/Q1, G3, G4, G4b, G5, G6, G7, Q5, Q6, Q7, G1-composite). Verified every
+  cited evidence directory, spec file and the D-G4 citation exist. `lune` 1930 passed,
+  `selene src` 0/0/0.
 - [ ] 31. **Refill.** Read every `[ ]` and `[~]` item in `MASTER_PLAN.md`, `GATE1.md` and
   `BUGS.md`. Append each one an agent can do without the designer here, plus a second
   bug-hunt-by-reading round over files changed since item 10, and continue. Repeat the refill

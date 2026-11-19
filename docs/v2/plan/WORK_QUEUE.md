@@ -522,7 +522,8 @@ Choices the agent made with a safe, reversible default. The designer confirms or
 
 - Item 9 final visual approval — both look-dev candidates ("plaza_lighting" and "police_walkin")
   are `BLOCKED` on the designer's yes; they are opt-in only and the checkbox stays open.
-- Phone-size (iPhone 14) replays: G3, G5, G4b, BUG-008/009; fps for G6.
+- Phone-size (iPhone 14) replays: G3 and G5 are now closed `SEEN-IN-STUDIO` (items 32/33, real
+  749×389 viewport); still open — G4b visual text pass, BUG-008/009 phone screenshots, fps for G6.
 - Q5 live multi-client run (Studio Test tab, Local Server).
 - G7 five real players, Q6 published-place persistence, Q7 real-device touch.
 - Final art: icons, textures and sounds (G4, track G).

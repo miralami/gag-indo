@@ -36,9 +36,11 @@ never publish.
   - Try portrait and one more device (a small Android).
   - If it can't be proven, downgrade G3 and G5 phone to `UNVERIFIED` in `GATE1.md` and
     `MASTER_PLAN.md`, and say why in the evidence.
-- [ ] 2. **CI green.** After the push, read the GitHub Actions run (`gh run list` / `gh run view`)
-  and fix it until it passes. Update the deprecated Node 20 action only to a version you confirm
-  exists.
+- [x] 2. **CI green.** `SEEN-IN-STUDIO` — `gh run list` shows prior failure `44458499132` was the
+  Packages mapping-spec test, fixed by `47c0802`; runs `44472087680` and `44473085751` are success.
+  Bumped `actions/checkout@v4`→`@v5` (confirmed on Node 24 via its action.yml) to clear the Node 20
+  deprecation warning. YAML parses; `lune` 1929 / `selene` 0/0/0. Evidence
+  `docs/v2/evidence/h/2026-11-19-ci-round2/`.
 - [ ] 3. **Re-audit round-1 `SEEN-IN-STUDIO` claims.**
   - Every evidence file must name a Rojo-synced build and its method.
   - Downgrade any claim based on hand-injected or stale sources, or on structure alone where the

@@ -85,6 +85,10 @@ LookDev.IDS = {
 	"vegetation_r4",
 	"props_r4",
 	"npcs_r4",
+	"spawn_ground_r5",
+	"vegetation_r5",
+	"sky_r5",
+	"props_r5",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -431,6 +435,47 @@ LookDev.candidates = {
 		render = "docs/v2/visual/art/models_r4/npcs/HANDOFF.md",
 		modelCount = 5,
 	},
+
+	spawn_ground_r5 = {
+		id = "spawn_ground_r5",
+		title = "Dirt tanah paths at spawn, no road kerbs (round 5, server-only review)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Pure geometry/colour data; the default Greybox road design stays untouched.
+		idsSource = "Shared.SpawnGroundMapR5",
+		render = "docs/v2/visual/SPAWN_DRESSING.md",
+	},
+
+	vegetation_r5 = {
+		id = "vegetation_r5",
+		title = "Cleaned spawn vegetation: pisang clusters, dense bamboo, no kelapa or pines (round 5)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- IDs are reused from Shared.ModelMapVegetationR4 through this module.
+		idsSource = "Shared.ModelMapVegetationR5",
+		render = "docs/v2/visual/art/vegetation_r5/MANIFEST.md",
+	},
+
+	sky_r5 = {
+		id = "sky_r5",
+		title = "Bright humid Indonesian sky, low cloud cover and no plaza ridge (round 5)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- IDs are reused from Shared.SkyMapR4; no new asset ID is invented.
+		idsSource = "Shared.SkyMapR5.sets",
+		render = "docs/v2/visual/art/sky_r5/README.md",
+		faceCount = 6,
+	},
+
+	props_r5 = {
+		id = "props_r5",
+		title = "Right-sized village props and contextual karung semen stack (round 5, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- IDs are reused from Shared.ModelMapPropsR4 and ModelMapBuildingsR4.
+		idsSource = "Shared.ModelMapPropsR5",
+		render = "docs/v2/visual/art/models_r4/props/HANDOFF.md",
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -574,13 +619,20 @@ function LookDev.plan(id: string): any
 			variantCount = c.variantCount,
 			mapCount = c.mapCount,
 		}
-	elseif id == "sky_r4_a" or id == "sky_r4_b" or id == "sky_r4_c" then
+	elseif id == "sky_r4_a" or id == "sky_r4_b" or id == "sky_r4_c" or id == "sky_r5" then
 		local c = LookDev.candidates[id]
 		return {
 			id = id,
 			idsSource = c.idsSource,
 			render = c.render,
 			faceCount = c.faceCount,
+		}
+	elseif id == "spawn_ground_r5" or id == "vegetation_r5" or id == "props_r5" then
+		local c = LookDev.candidates[id]
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
 		}
 	end
 	return nil

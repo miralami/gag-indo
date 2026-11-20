@@ -433,13 +433,24 @@ because of how they were applied, not where they came from.
   - Bring the ground back to warm, readable brown.
   - Retest with before/after pictures from the saved spawn camera. Off by default; the verdict stays
     blank.
-- [ ] 36. **Spawn ground: dirt paths, no road (candidate `spawn_ground_r5`, off by default).**
+- [x] 36. **Spawn ground: dirt paths, no road (candidate `spawn_ground_r5`, off by default).** Done
+  2026-11-20. `Shared.SpawnGroundMapR5` holds tanah colours/materials/heights and pure-XZ exclusion
+  rectangles; the server applier hides road/arm/ring/continuation/RoadEdge Parts and overlapping
+  MudPatches (exact prior Visible/CanCollide restored), then builds feathered Ground/Mud paths in a
+  dedicated Folder, skipping PlotAnchor/hub footprints to stop z-fight. The default `buildRoads`
+  stays untouched — `spawn_ground_r5` is the stored alternative behind the flag. Off by default;
+  verdict blank. `tests/specs/spawn_ground_r5_spec.luau`.
   - Replace the asphalt and road strips around spawn with dirt paths (Terrain Ground/Mud with a soft
     edge).
   - Fix every place where terrain, plots and paths overlap or z-fight.
   - Keep the current road design saved but unused: move it to a stored asset, or keep it behind a
     flag, documented for a later level. Don't delete it.
-- [ ] 37. **Vegetation cleanup (`vegetation_r5`).**
+- [x] 37. **Vegetation cleanup (`vegetation_r5`).** Done 2026-11-20. `Shared.ModelMapVegetationR5`
+  reuses the real round-4 model IDs (no invented IDs) and adds path/plot/hub exclusion rectangles
+  with margins; the server applier places pisang clusters and dense 5-stalk bamboo clumps, keeps
+  only the existing mango stand-in (Designer-build note in `art/vegetation_r5/MANIFEST.md`), and
+  places NO kelapa and NO pines at spawn. Kelapa data is retained only as a disabled "another level"
+  group. Off by default; verdict blank. `tests/specs/vegetation_r5_spec.luau`.
   - Remove the pines around spawn (V-D4).
   - Take kelapa out of spawn and keep its asset for another level.
   - Place pisang clusters.
@@ -447,7 +458,13 @@ because of how they were applied, not where they came from.
   - Replace the mango stand-in if a free source has a real one; otherwise add it to "Designer builds".
   - Placement rule: an exclusion zone around paths, plots and building footprints, so no tree overlaps
     them. Add a spec that checks the placement data against the zones.
-- [ ] 38. **`sky_r5`: an Indonesian sky.**
+- [x] 38. **`sky_r5`: an Indonesian sky.** Done 2026-11-20. `Shared.SkyMapR5` reuses the two
+  already-uploaded real CC0 HDRI sets from `SkyMapR4` (a = primary bright/humid, b = alternate); the
+  newly researched Poly Haven HDRIs are documented in `art/sky_r5/README.md` but NOT uploaded/used.
+  The client applier lowers Terrain `Clouds.Cover` to 0.4 (exact prior value restored), builds no
+  ridge slabs, and applies the cube top-face seam fix via `SkyboxUp`. Photo/HDRI links with authors
+  and licences are in the README; overcast is noted for a future season event only. Off by default;
+  verdict blank. `tests/specs/sky_map_r5_spec.luau`.
   - Gather three or four photo references of a typical Indonesian village sky: bright, humid haze,
     scattered cumulus, a high sun, a soft blue horizon. Record the links in `sky_r5/README.md`.
   - Pick two CC0 HDRIs that match (Poly Haven / ambientCG), mostly clear with light cumulus.
@@ -456,7 +473,11 @@ because of how they were applied, not where they came from.
     - Lower the Terrain `Clouds.Cover` for this candidate (about 0.3–0.5) so the skybox shows.
     - Fix the cube seam at the top face.
   - The overcast look goes in a note for a future rain or season event and is not built now.
-- [ ] 39. **Props fix (`props_r5`).**
+- [x] 39. **Props fix (`props_r5`).** Done 2026-11-20. `Shared.ModelMapPropsR5` reuses the real
+  round-4 model IDs with a per-slot scale: jemuran unchanged at 1; gerobak/sumur/lapak/alat_tani
+  resized against a 5-stud player; a 4-sack karung stack moved to the gudang front apron (context,
+  not loose at spawn). The server applier applies per-slot scale and restores/destroys exactly.
+  Off by default; verdict blank. `tests/specs/props_r5_spec.luau`.
   - Keep jemuran.
   - Rescale the tools (cangkul, sabit, gerobak, sumur, lapak) to real size against a 5-stud player,
     or replace any that stay unreadable.

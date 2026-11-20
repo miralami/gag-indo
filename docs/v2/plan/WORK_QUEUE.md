@@ -560,6 +560,122 @@ but remain gated behind a blank designer verdict; item 16's registry is 31 candi
 a human playtest, a published place or a multi-client Local Server, none of which is agent-closable.
 The single final report is at `docs/v2/evidence/h/2026-11-20-final-report/FINAL_REPORT.md`.
 
+### J. Round 6: sky pick, kampung vegetation, costumes, designer kit (added 2026-11-20 after the round-5 Studio review)
+
+**Designer verdicts and notes, 2026-11-20** (recorded in `CANDIDATES.md`; shots in
+`docs/v2/evidence/h/2026-11-20-review-round5/REVIEW_ROUND5_STUDIO.html`).
+
+- **Spawn:** still flat. **The designer will compose spawn and sculpt the terrain himself.** The village
+  is mostly flat but not perfectly flat. It should have gentle elevation like a real village (the sawah
+  a little lower, for example). Agents do not dress spawn or sculpt the spawn terrain; they supply a kit
+  instead (item 49).
+- **Sky:** `sky_r5` is better. Compare it against free Creator Store skyboxes before choosing.
+- **Ground:** fix the leftover asphalt, and stop the grass from covering the flower beds.
+- **Characters:** the base is fine. Each role needs its own textured costume, for example a real police
+  uniform for the polisi and batik for Pak RT. No more single-colour outfits.
+- **Vegetation:** much denser, using what actually grows in an Indonesian kampung.
+- **Textures:** still look strange.
+
+**Sky best practice (main-session research, 2026-11-20).** A Roblox `Sky` is six cube faces. Our own
+HDRI-to-cube conversion works, but it causes seams and the sun ends up out of place. Ready-made
+Creator Store skyboxes are the safer route. A believable tropical look comes mostly from the layers
+around the skybox:
+- `Atmosphere`: Density about 0.25–0.35, humid Haze about 1–2, Color warm white, Decay light blue.
+- Volumetric Terrain `Clouds`: Cover about 0.4–0.6 for cumulus.
+- The sun stays on (`CelestialBodiesShown`), with soft `SunRays`, low `Bloom` and a slight saturation
+  lift in `ColorCorrection`.
+
+Prefer skies with cumulus in the upper half. The mirrored lower half doesn't matter, because the
+terrain hides it.
+
+**Real free Creator Store sky IDs** (found with Studio `search_asset`, 2026-11-20; licence = Creator
+Store free model; strip any scripts on insert):
+
+| ID | Name | Creator |
+|---|---|---|
+| 4607457995 | Realistic Sky | Xeksworld08 |
+| 10256505900 | Sky-Realistic | Dev_Flowey |
+| 9589448285 | Realistic Clear Sky | HeyItzDaredevil |
+| 11219565245 | Realistic Clear Skies (SKYBOX) | TrainMaker6 |
+| 71778157196658 | Blue Sky W Scattered Clouds Daytime Skybox | Rozosere48 |
+| 79778158338852 | Sunless blue sky skybox realistic clouds | f0xz08 |
+
+- [ ] 44. **`sky_r6_a`…`sky_r6_f`, plus the `sky_r5` baseline.**
+  - Load each Creator Store sky above on the server (`InsertService:LoadAsset`) and copy its six face
+    IDs into `SkyMapR6`.
+  - Record the ID, name and creator in `ASSET_MANIFEST.md`.
+  - Apply the same atmosphere stack (above) to all of them.
+  - Add one saved camera tilted up about 20°, so the sky fills half the frame.
+  - Off by default; verdicts blank.
+- [ ] 45. **Ground fix (`spawn_ground_r6`).**
+  - Turn the remaining back road strip into dirt.
+  - Keep the grass decoration off the flower beds and plots (with a mask or a Terrain material choice).
+  - Keep the stored road design as it is.
+- [ ] 46. **Terrain look rethink (`terrain_r6`).** The `textures_r4` overrides read as a red desert
+  with straw grass, so drop the terrain-wide overrides.
+  - Try the default Terrain materials with tuned `Terrain:SetMaterialColor`: lush green Grass, warm
+    brown Ground, dark wet Mud for the sawah.
+  - Keep CC0 textures only on parts and meshes (walls, roofs, wood).
+  - Build two variants, `terrain_r6_a` and `terrain_r6_b`, with before/after shots from the spawn
+    camera.
+- [ ] 47. **Kampung vegetation research and fill (`vegetation_r6`).**
+  - Write `docs/v2/visual/KAMPUNG_VEGETATION.md`: what typically grows in a Javanese or Sundanese
+    village yard and its edges, with reference photo links. Examples:
+    - trees and crops: pisang, bambu, mangga, jambu air, rambutan, pepaya, nangka, singkong
+    - ground cover and ornamentals: talas/keladi, pandan, puring, kembang sepatu, lidah mertua in pots
+    - edges: a teh-tehan hedge (*pagar hidup*), alang-alang at the field edges
+  - Source free models through the ladder (Creator Store first, then CC0). Record the real IDs; never
+    invent one.
+  - Build dense clusters along the yard edge, hedge line, fence line and sawah edge. Respect the
+    exclusion zones and stay within the tier budgets.
+  - Stage the clusters where the saved camera actually sees them.
+- [ ] 48. **Villager costumes (`npcs_r6`).** Each of the five R15 villagers gets a role-specific,
+  textured outfit:
+
+  | Role | Outfit |
+  |---|---|
+  | polisi | real Indonesian police uniform: brown shirt and trousers, plus a cap if one is available |
+  | Pak RT | batik shirt and peci |
+  | petani | caping, faded shirt, rolled-up trousers |
+  | pedagang | apron or kaos |
+  | petani wanita | kebaya-style top or headscarf |
+
+  - **Route A:** free catalog or Creator Store clothing whose IDs come from a real search.
+  - **Route B:** original classic-clothing templates (the Shirt/Pants template layout) drawn by script,
+    uploaded as Images via Open Cloud and set as `Shirt.ShirtTemplate` / `Pants.PantsTemplate`.
+  - Fix the 0-accessory bug: the three round-5 hat IDs never attach.
+  - Turn the villagers to face the saved camera.
+- [ ] 49. **Designer kit (no spawn dressing).**
+  - Put every approved or temporary asset in one tidy folder the designer can drag from, for example
+    `ServerStorage.DesignerKit` or a Studio-only `ReplicatedStorage.DesignerKit`. Include:
+    - pisang, the jemuran and the karung semen stack
+    - `buildings_r4` (temporary)
+    - the R15 villagers
+    - the best vegetation clusters
+  - Each item is anchored, pivoted at its base, true to scale and named in Indonesian.
+  - Add a short `DESIGNER_KIT.md` on how to use the kit.
+  - Add a one-page terrain brief, `TERRAIN_BRIEF.md`, with suggested elevation bands to support the
+    designer's own sculpt. It is advice only. For example:
+    - sawah 1–2 studs lower
+    - yards at grade
+    - a slight rise toward the warung and pasar
+    - drainage ditches along the paths
+- [ ] 50. **Props: tools at real size (`props_r6`).**
+  - The round-5 tools got smaller (gerobak 3.0 studs, sumur 2.5). Scale them with `Model:ScaleTo` to
+    real targets:
+
+    | Prop | Target |
+    |---|---|
+    | gerobak | about 6 studs tall, 8 long |
+    | sumur | about 4–5 studs tall |
+    | cangkul | about 4.5 studs |
+
+  - Add a spec that reads the actual `GetBoundingBox` sizes and compares them with the targets.
+  - Move the props' saved camera out from behind the pines.
+- [ ] 51. **Review handoff.** Write `REVIEW_ROUND6.md` with the toggles, datamodels and cameras. The
+  main session takes the Studio shots.
+- [ ] 52. **Refill.**
+
 ## Designer builds
 
 Models the ladder couldn't supply, each with a brief and a reference.

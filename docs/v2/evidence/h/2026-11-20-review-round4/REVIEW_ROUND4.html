@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Review Round 4 — observer descriptions</title>
+<style>
+  body{background:#111;color:#e8e8e8;font-family:system-ui,-apple-system,sans-serif;margin:0;padding:18px;line-height:1.5}
+  h1{font-size:22px;margin:0 0 4px}h2{font-size:16px;margin:0 0 8px}
+  .lead,.note{max-width:1000px;font-size:14px;color:#bbb}
+  .note{background:#2a2410;border:1px solid #6b5a1a;border-radius:8px;padding:10px 14px;margin:14px 0}
+  .g{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:16px;margin-top:16px}
+  figure{margin:0;background:#1d1d1d;border:1px solid #333;border-radius:8px;overflow:hidden}
+  .hd{padding:10px 12px;background:#232323;border-bottom:1px solid #333;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .id{font-weight:700;font-size:15px}.n{color:#888;font-size:12px}
+  .verdict{font-size:12px;color:#ddd;border:1px dashed #777;border-radius:4px;padding:3px 8px;white-space:nowrap}
+  .meta{padding:8px 12px;font-size:12px;color:#9dc4e8;border-bottom:1px solid #2b2b2b}
+  .meta code,.cmd code{background:#000;border-radius:3px;padding:1px 4px;color:#cfe8a0}
+  .cmd{padding:8px 12px;font-size:12px;color:#ccc;border-bottom:1px solid #2b2b2b}
+  .obs{padding:10px 12px;font-size:13.5px}
+  .obs h3{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#7fb0d8;margin:0 0 6px}
+  .obs ul{margin:0 0 8px;padding-left:18px}.obs li{margin:1px 0}
+  .void{padding:8px 12px;font-size:12px;color:#888;border-top:1px solid #2b2b2b}
+  @media(max-width:480px){.g{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<h1>Review Round 4 — observer descriptions (2026-11-20)</h1>
+<p class="lead">Eight round-4 LookDev candidates, off by default. Each card lists the exact dot-syntax
+toggle, the datamodel it must be enabled from, the saved absolute review camera, and the vision
+observer's <em>factual</em> report. Verdict cells are intentionally blank — no agent grades visuals.</p>
+<p class="note"><strong>This sheet is not a screenshot claim.</strong> No screenshot pixels were
+retained by the capturing session, so no image is embedded. Each "Observation" block is the
+observer's written, factual description of what was visible from the saved camera at the moment the
+candidate was enabled. It records no yes/no verdict, no quality judgement, no comparison between
+candidates and no recommendation. The designer fills the verdicts in
+<code>docs/v2/visual/CANDIDATES.md</code>. Nothing here is approved, rejected or shipped; no place
+was saved or published.</p>
+
+<div class="g">
+
+<figure>
+  <div class="hd"><span class="id">textures_r4</span><span class="n">#1 · Client</span><span class="verdict">Verdict: ______</span></div>
+  <div class="meta">Datamodel: <code>Client</code> · Camera <code>{0,12,52}</code> → <code>{0,3,-20}</code></div>
+  <div class="cmd">Toggle: <code>require(game.ReplicatedStorage.Shared.LookDevReview).enable("textures_r4", game)</code></div>
+  <div class="obs"><h3>Observer observation (factual)</h3>
+    <ul>
+      <li><strong>Ground/terrain:</strong> brown dirt path running through the centre; green grass patches on both sides; dark soil patches near the grass edges; a flat wooden plank lying on the ground to the left.</li>
+      <li><strong>Roof and wall surfaces:</strong> left building with dark blue/grey sloped roof and wooden support beams; right building with red sloped roof and dark wall surfaces; far-left wooden tower with green roof; labels "Pasar" (left) and "Toko" (right).</li>
+      <li><strong>Silhouettes:</strong> a single character on the path; a row of coniferous trees in the background; rounded tree canopies around the buildings; a distant hill/mountain on the horizon; overcast grey sky.</li>
+      <li><strong>Props:</strong> trees with rounded green canopies and brown trunks; open-sided wooden structures; a wooden plank on the ground.</li>
+      <li><strong>UI text:</strong> "Rp RP 35,857", "K 0/40", question-mark icon "0", plus icon "0", "EN"; "NEXT GOAL — Own 6 / 12 plots to reach Juragan"; "PHONE"; inventory "Pd Rice x4", "Bw Shallot x1", "Cb Chili x2", "Kp Coffee x1", "Tb Locked Sugarcane".</li>
+    </ul>
+  </div>
+  <div class="void">No verdict · no comparison · no recommendation. Not a screenshot claim.</div>
+</figure>
+
+<figure>
+  <div class="hd"><span class="id">sky_r4_a</span><span class="n">#2 · Client</span><span class="verdict">Verdict: ______</span></div>
+  <div class="meta">Datamodel: <code>Client</code> · Camera <code>{-14,9,42}</code> → <code>{-14,16,-12}</code></div>
+  <div class="cmd">Toggle: <code>require(game.ReplicatedStorage.Shared.LookDevReview).enable("sky_r4_a", game)</code></div>
+  <div class="obs"><h3>Observer observation (factual)</h3>
+    <ul>
+      <li><strong>Sky:</strong> Roblox village scene under an overcast/cloudy sky.</li>
+      <li><strong>Silhouettes:</strong> tall black rectangular panels/walls; a left wooden tower with a green conical roof; blue and red roofs; a white-haired character.</li>
+      <li><strong>Terrain:</strong> green grass and brown dirt paths.</li>
+      <li><strong>UI text:</strong> "Rp 35,857", "K 0/40", "EN"; "NEXT GOAL: Own 6 / 12 plots to reach Juragan"; inventory "Rice x4", "Shallot x1", "Chili x2", "Coffee x1", "Locked Sugarcane"; "PHONE".</li>
+    </ul>
+  </div>
+  <div class="void">No verdict · no comparison · no recommendation. Not a screenshot claim.</div>
+</figure>
+
+<figure>
+  <div class="hd"><span class="id">sky_r4_b</span><span class="n">#3 · Client</span><span class="verdict">Verdict: ______</span></div>
+  <div class="meta">Datamodel: <code>Client</code> · Camera <code>{-6,7,40}</code> → <code>{-14,14,-12}</code></div>
+  <div class="cmd">Toggle: <code>require(game.ReplicatedStorage.Shared.LookDevReview).enable("sky_r4_b", game)</code></div>
+  <div class="obs"><h3>Observer observation (factual)</h3>
+    <ul>
+      <li><strong>Sky:</strong> overcast grey sky with uniform cloud texture; no visible sun and no blue sky patches.</li>
+      <li><strong>Silhouettes:</strong> tall dark brown/black rectangular panels; a character in a white shirt and dark pants.</li>
+      <li><strong>Props/signs:</strong> a "POS RONDA" sign and green-roofed tower on the left; a "WARUNG" sign and red roof on the right; blue and red roofs; round green objects.</li>
+      <li><strong>Terrain:</strong> brown dirt ground in the foreground with scattered green grass patches and individual grass tufts.</li>
+      <li><strong>UI text:</strong> same HUD and inventory layout as the other client captures (currency, K 0/40, EN, NEXT GOAL, PHONE, five inventory slots).</li>
+    </ul>
+  </div>
+  <div class="void">No verdict · no comparison · no recommendation. Not a screenshot claim.</div>
+</figure>
+
+<figure>
+  <div class="hd"><span class="id">sky_r4_c</span><span class="n">#4 · Client</span><span class="verdict">Verdict: ______</span></div>
+  <div class="meta">Datamodel: <code>Client</code> · Camera <code>{-22,8,40}</code> → <code>{-14,15,-12}</code></div>
+  <div class="cmd">Toggle: <code>require(game.ReplicatedStorage.Shared.LookDevReview).enable("sky_r4_c", game)</code></div>
+  <div class="obs"><h3>Observer observation (factual)</h3>
+    <ul>
+      <li><strong>Sky:</strong> overcast grey with uniform cloud cover; no visible sun; grey-white throughout with no gradient variation.</li>
+      <li><strong>Horizon:</strong> a line of trees and buildings visible in the distance.</li>
+      <li><strong>Silhouettes:</strong> several large black rectangular panels/structures standing vertically in the foreground area.</li>
+      <li><strong>Terrain:</strong> green grass in the foreground; brown dirt path/ground; patches of tilled dark soil.</li>
+      <li><strong>Props:</strong> buildings with blue and red sloped roofs; trees with round green canopies on brown trunks; small wooden structures; a green melon-like object on the ground.</li>
+      <li><strong>UI text:</strong> same HUD and five-slot inventory as the other client captures.</li>
+    </ul>
+  </div>
+  <div class="void">No verdict · no comparison · no recommendation. Not a screenshot claim.</div>
+</figure>
+
+<figure>
+  <div class="hd"><span class="id">buildings_r4</span><span class="n">#5 · Server</span><span class="verdict">Verdict: ______</span></div>
+  <div class="meta">Datamodel: <code>Server</code> · Camera <code>{0,22,84}</code> → <code>{0,7,20}</code></div>
+  <div class="cmd">Toggle: <code>require(game.ReplicatedStorage.Shared.LookDevReview).enable("buildings_r4", game)</code></div>
+  <div class="obs"><h3>Observer observation (factual)</h3>
+    <ul>
+      <li><strong>Models visible:</strong> large blue building with sloped roof (left foreground); grey/white building with grey roof elevated on stilts with stairs (centre-left), with a blue and brown structure behind it; several tall black rectangular pillars/walls (centre); small green house with red roof (centre-right); tan building with red roof (right); tall wooden tower with green roof (far-left background).</li>
+      <li><strong>Small props:</strong> wooden fences, crates, tables, benches.</li>
+      <li><strong>Terrain:</strong> green grassy ground with brown dirt patches/paths; pine trees in the background; a body of water in the distance; hills on the horizon; overcast sky.</li>
+      <li><strong>UI text:</strong> same HUD, NEXT GOAL banner and five-slot inventory as the other captures.</li>
+    </ul>
+  </div>
+  <div class="void">No verdict · no comparison · no recommendation. Not a screenshot claim.</div>
+</figure>
+
+<figure>
+  <div class="hd"><span class="id">vegetation_r4</span><span class="n">#6 · Server</span><span class="verdict">Verdict: ______</span></div>
+  <div class="meta">Datamodel: <code>Server</code> · Camera <code>{0,20,150}</code> → <code>{0,8,96}</code></div>
+  <div class="cmd">Toggle: <code>require(game.ReplicatedStorage.Shared.LookDevReview).enable("vegetation_r4", game)</code></div>
+  <div class="obs"><h3>Observer observation (factual)</h3>
+    <ul>
+      <li><strong>Plants/trees:</strong> tall palm tree on the left with curved brown trunk and green frond canopy; small banana plant centre-left with green leaves and a yellow fruit cluster (about 1–2 blocks tall); two round green trees/bushes on the left; tall thin bamboo-like plants in the centre with vertical grey stalks (about 4–5 blocks); a large irregular grey polygonal rock formation centre-right (about 3–4 blocks); two round green trees/bushes on the right; green grass on both sides; grass tufts on the dirt path.</li>
+      <li><strong>Terrain:</strong> dark brown dirt path with white edge lines; green grass on both sides; flat with slight elevation changes in the background.</li>
+      <li><strong>Structures:</strong> blue building on the left; brown building with red roof on the right; further buildings in the background.</li>
+      <li><strong>UI text:</strong> same HUD, NEXT GOAL banner and five-slot inventory as the other captures.</li>
+    </ul>
+  </div>
+  <div class="void">No verdict · no comparison · no recommendation. Not a screenshot claim.</div>
+</figure>
+
+<figure>
+  <div class="hd"><span class="id">props_r4</span><span class="n">#7 · Server</span><span class="verdict">Verdict: ______</span></div>
+  <div class="meta">Datamodel: <code>Server</code> · Camera <code>{142,9,146}</code> → <code>{142,3,122}</code></div>
+  <div class="cmd">Toggle: <code>require(game.ReplicatedStorage.Shared.LookDevReview).enable("props_r4", game)</code></div>
+  <div class="obs"><h3>Observer observation (factual)</h3>
+    <ul>
+      <li><strong>Props:</strong> clothesline with hanging garments (blue, pink, patterned) on wooden poles (right); grey rectangular block/bed object (foreground centre); red triangular marker/sign (centre); building with red roof and tan walls (left); several tall pine/conifer trees; a large brown rock formation (background right); floating text "LAHAN KOSONG".</li>
+      <li><strong>Terrain:</strong> green grassy ground with darker green rectangular patches (tilled soil plots); gentle slope; overcast grey sky.</li>
+      <li><strong>UI text:</strong> same HUD, NEXT GOAL banner and five-slot inventory as the other captures.</li>
+    </ul>
+  </div>
+  <div class="void">No verdict · no comparison · no recommendation. Not a screenshot claim.</div>
+</figure>
+
+<figure>
+  <div class="hd"><span class="id">npcs_r4</span><span class="n">#8 · Server</span><span class="verdict">Verdict: ______</span></div>
+  <div class="meta">Datamodel: <code>Server</code> · Camera <code>{0,7,28}</code> → <code>{0,2.5,8}</code></div>
+  <div class="cmd">Toggle: <code>require(game.ReplicatedStorage.Shared.LookDevReview).enable("npcs_r4", game)</code></div>
+  <div class="obs"><h3>Observer observation (factual)</h3>
+    <ul>
+      <li><strong>Figures:</strong> three humanoid figures — left: yellow hat, red shirt with blue overalls, holding a red pitchfork-like tool; left-centre: orange body with a green rectangular backpack/box on the back and dark legs; right-centre: solid bright-yellow upright humanoid shape. One grey/white blocky object on the far right resembling a vehicle or machine.</li>
+      <li><strong>Size:</strong> figures appeared about 2–3 studs tall, consistent with standard Roblox character proportions.</li>
+      <li><strong>Terrain/background:</strong> brown dirt ground with scattered green grass patches; buildings with blue and red roofs, wooden structures and green trees behind.</li>
+      <li><strong>UI text:</strong> same HUD, NEXT GOAL banner and five-slot inventory as the other captures.</li>
+    </ul>
+  </div>
+  <div class="void">No verdict · no comparison · no recommendation. Not a screenshot claim.</div>
+</figure>
+
+</div>
+
+<p class="lead">Review order and camera sources: <code>docs/v2/visual/REVIEW_ROUND4.md</code>.
+Every verdict cell here and in <code>docs/v2/visual/CANDIDATES.md</code> is blank. All eight
+candidates are off by default; nothing ships without a designer yes.</p>
+</body>
+</html>

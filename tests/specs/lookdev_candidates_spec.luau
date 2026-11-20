@@ -14,9 +14,9 @@ return function(t, Env)
 	end
 
 	t:describe("LookDev candidates (candidate, awaiting designer yes)", function()
-		t:it("ships seventeen candidates, all unapproved and cartoonish-realism", function()
+		t:it("ships twenty-five candidates, all unapproved and cartoonish-realism", function()
 			local LookDev = fresh()
-			expect(#LookDev.IDS):toBe(17)
+			expect(#LookDev.IDS):toBe(25)
 			expect(LookDev.IDS[1]):toBe("plaza_lighting")
 			expect(LookDev.IDS[2]):toBe("police_walkin")
 			expect(LookDev.IDS[3]):toBe("icons")
@@ -34,6 +34,14 @@ return function(t, Env)
 			expect(LookDev.IDS[15]):toBe("props_r3")
 			expect(LookDev.IDS[16]):toBe("npcs_r3")
 			expect(LookDev.IDS[17]):toBe("sky_r3")
+			expect(LookDev.IDS[18]):toBe("textures_r4")
+			expect(LookDev.IDS[19]):toBe("sky_r4_a")
+			expect(LookDev.IDS[20]):toBe("sky_r4_b")
+			expect(LookDev.IDS[21]):toBe("sky_r4_c")
+			expect(LookDev.IDS[22]):toBe("buildings_r4")
+			expect(LookDev.IDS[23]):toBe("vegetation_r4")
+			expect(LookDev.IDS[24]):toBe("props_r4")
+			expect(LookDev.IDS[25]):toBe("npcs_r4")
 			for _, id in LookDev.IDS do
 				local c = LookDev.candidates[id]
 				expect(c.id):toBe(id)
@@ -61,6 +69,12 @@ return function(t, Env)
 					"src/client/UI/LookDevIconsR3.luau",
 					"src/server/World/LookDevModelsR3.luau",
 					"src/client/World/LookDevSkyR3.luau",
+					"src/client/World/LookDevTexturesR4.luau",
+					"src/client/World/LookDevSkyR4.luau",
+					"src/server/World/LookDevModelsBuildingsR4.luau",
+					"src/server/World/LookDevModelsVegetationR4.luau",
+					"src/server/World/LookDevModelsPropsR4.luau",
+					"src/server/World/LookDevModelsNpcsR4.luau",
 					"src/shared/LookDevCorner.luau",
 				}
 			do

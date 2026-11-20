@@ -14,9 +14,16 @@ Rules, from `docs/v2/visual/CANDIDATES.md` and `src/shared/LookDev.luau`:
 
 - Toggle from the Studio command bar:
   `require(game.ReplicatedStorage.Shared.LookDev).enable("<id>")`
+- One-call review helper (item 28 fix for bug 7): a fresh command-bar / `execute_luau` VM has no
+  appliers registered, so prefer
+  `require(game.ReplicatedStorage.Shared.LookDevReview).enable("<id>", game)`. It `pcall(require)`s
+  the applier for that id in the same VM before calling `LookDev.enable("<id>")` (dot syntax).
+  Disable with `require(game.ReplicatedStorage.Shared.LookDevReview).disable()`.
 - The four model families (`buildings_r3`, `vegetation_r3`, `props_r3`, `npcs_r3`) MUST be enabled
   from the **Server** datamodel: `InsertService:LoadAsset` is blocked on the client. All other
   candidates can be enabled from the Client or Server datamodel.
+- All staged coordinates (corner, model slots, sky ridge) now sit on real `MapSpec.PLAZA` ground
+  centred at `{ -14, 0, -12 }`, not the old off-map `{ 500, 0, 500 }`; cameras below are updated.
 - Restore the shipping look:
   `require(game.ReplicatedStorage.Shared.LookDev).disable()`
 - Only one candidate is active at a time; enabling another restores the first.
@@ -75,7 +82,7 @@ Rules, from `docs/v2/visual/CANDIDATES.md` and `src/shared/LookDev.luau`:
       `icons/render_r3/`. No Studio camera (icon sheets are the review aid).
    3. `buildings_r3`, `vegetation_r3`, `props_r3`, `npcs_r3` — **Server datamodel**; one saved
       corner camera per family in `models_r3/MANIFEST.md` and `models_r3/INTEGRATION.md`.
-   4. `sky_r3` — the CC0 HDRI cube sky; saved camera `{500,9,554}` → `{500,16,500}`.
+   4. `sky_r3` — the CC0 HDRI cube sky; saved camera `{-14,9,42}` → `{-14,16,-12}`.
    5. `day_cycle` — live 20–40 s phase tweens, Rendah night lamps and five silent sound beds; saved
       camera `{0,12,52}` → `{0,3,-20}`. Audition the phase changes in Studio; no screenshot yet.
    None of these has an agent verdict; every verdict cell is blank.
@@ -120,11 +127,11 @@ Verdict cells stay blank. Evidence paths and "What it is" strings are from
 | `textures_r3` | Nine real CC0 Poly Haven PBR MaterialVariants (round 3 items 20/21) | `require(game.ReplicatedStorage.Shared.LookDev).enable("textures_r3")`; `require(game.ReplicatedStorage.Shared.LookDev).disable()` | `docs/v2/visual/art/textures_r3/render/contact_sheet.png` · camera `{ -70, 12, -30 }` → `{ -70, 3, -58 }` |  |
 | `day_cycle` | Live phase tweens, Rendah night lamps, five silent sound beds (round 3 item 25) | `require(game.ReplicatedStorage.Shared.LookDev).enable("day_cycle")`; `require(game.ReplicatedStorage.Shared.LookDev).disable()` | `docs/v2/visual/art/daycycle/README.md` · camera `{0,12,52}` → `{0,3,-20}` |  |
 | `icons_r3` | 27 revised original icon CANDIDATES with before/after sheets (round 3 item 22) | `require(game.ReplicatedStorage.Shared.LookDev).enable("icons_r3")`; `require(game.ReplicatedStorage.Shared.LookDev).disable()` | `docs/v2/visual/art/icons/render_r3/contact_after.png` · none saved — use contact sheets |  |
-| `buildings_r3` | Stilt house, coop, sawmill shed in the 60x60 corner (round 3 item 23) | **Server** datamodel: `require(game.ReplicatedStorage.Shared.LookDev).enable("buildings_r3")`; `.disable()` | `docs/v2/visual/art/models_r3/INTEGRATION.md` · camera `{500,16,542}` → `{500,4,490}` |  |
-| `vegetation_r3` | Tropical palm/bamboo plus banana, mango, shrubs (round 3 item 23) | **Server** datamodel: `require(game.ReplicatedStorage.Shared.LookDev).enable("vegetation_r3")`; `.disable()` | `docs/v2/visual/art/models_r3/INTEGRATION.md` · camera `{468,12,520}` → `{500,4,500}` |  |
-| `props_r3` | Gerobak, well, market stall, bamboo fence, tools (round 3 item 23) | **Server** datamodel: `require(game.ReplicatedStorage.Shared.LookDev).enable("props_r3")`; `.disable()` | `docs/v2/visual/art/models_r3/INTEGRATION.md` · camera `{532,11,500}` → `{498,2,500}` |  |
-| `npcs_r3` | Two CC0 rigged bodies plus four original villagers (round 3 item 23) | **Server** datamodel: `require(game.ReplicatedStorage.Shared.LookDev).enable("npcs_r3")`; `.disable()` | `docs/v2/visual/art/models_r3/INTEGRATION.md` · camera `{500,7,524}` → `{500,2,500}` |  |
-| `sky_r3` | CC0 overcast tropical sunrise HDRI cube sky + ridge + haze (round 3 item 24) | `require(game.ReplicatedStorage.Shared.LookDev).enable("sky_r3")`; `require(game.ReplicatedStorage.Shared.LookDev).disable()` | `docs/v2/visual/art/sky_r3/README.md` · camera `{500,9,554}` → `{500,16,500}` |  |
+| `buildings_r3` | Stilt house, coop, sawmill shed in the 60x60 corner (round 3 item 23) | **Server** datamodel: `require(game.ReplicatedStorage.Shared.LookDev).enable("buildings_r3")`; `.disable()` | `docs/v2/visual/art/models_r3/INTEGRATION.md` · camera `{-14,16,30}` → `{-14,4,-22}` |  |
+| `vegetation_r3` | Tropical palm/bamboo plus banana, mango, shrubs (round 3 item 23) | **Server** datamodel: `require(game.ReplicatedStorage.Shared.LookDev).enable("vegetation_r3")`; `.disable()` | `docs/v2/visual/art/models_r3/INTEGRATION.md` · camera `{-46,12,8}` → `{-14,4,-12}` |  |
+| `props_r3` | Gerobak, well, market stall, bamboo fence, tools (round 3 item 23) | **Server** datamodel: `require(game.ReplicatedStorage.Shared.LookDev).enable("props_r3")`; `.disable()` | `docs/v2/visual/art/models_r3/INTEGRATION.md` · camera `{18,11,-12}` → `{-16,2,-12}` |  |
+| `npcs_r3` | Two CC0 rigged bodies plus four original villagers (round 3 item 23) | **Server** datamodel: `require(game.ReplicatedStorage.Shared.LookDev).enable("npcs_r3")`; `.disable()` | `docs/v2/visual/art/models_r3/INTEGRATION.md` · camera `{-14,7,12}` → `{-14,2,-12}` |  |
+| `sky_r3` | CC0 overcast tropical sunrise HDRI cube sky + ridge + haze (round 3 item 24) | `require(game.ReplicatedStorage.Shared.LookDev).enable("sky_r3")`; `require(game.ReplicatedStorage.Shared.LookDev).disable()` | `docs/v2/visual/art/sky_r3/README.md` · camera `{-14,9,42}` → `{-14,16,-12}` |  |
 | `reference board` | 15 images; designer adds 3–5 (V-D5) | none — reference only | `docs/v2/visual/art/reference/README.md` |  |
 | `blocked: buildings` | WORK_QUEUE 4 — rumah panggung, warung, pos polisi, rumah Pak RT, pasar stalls, gubuk sawah | **SUPERSEDED** — use `buildings_r3` | `docs/v2/visual/art/SOURCING_BUILDINGS_VEG.md` · historical plan only; three real CC0 / designer-build models are now integrated above |  |
 | `blocked: vegetation` | WORK_QUEUE 5 — kelapa, pisang, bambu clumps, shrubs, padi at three stages, dense grass (V-D4) | **SUPERSEDED** — use `vegetation_r3` | `docs/v2/visual/art/SOURCING_BUILDINGS_VEG.md` · historical plan only; six real CC0 / designer-build models are now integrated above |  |
@@ -138,9 +145,9 @@ Verdict cells stay blank. Evidence paths and "What it is" strings are from
 Verbatim from `docs/v2/visual/art/corner/README.md`; paste into Studio `screen_capture` as
 `camera_position` / `look_at_position`. All three are absolute world coordinates.
 
-- `warung` — `camera_position { 480, 12, 500 }`, `look_at_position { 486, 4, 486 }`
-- `road_bend` — `camera_position { 512, 10, 522 }`, `look_at_position { 512, 1, 503 }`
-- `sawah_edge` — `camera_position { 500, 8, 528 }`, `look_at_position { 486, 1, 518 }`
+- `warung` — `camera_position { -34, 12, -12 }`, `look_at_position { -28, 4, -26 }`
+- `road_bend` — `camera_position { -2, 10, 10 }`, `look_at_position { -2, 1, -9 }`
+- `sawah_edge` — `camera_position { -14, 8, 16 }`, `look_at_position { -28, 1, 6 }`
 
 `screen_capture` timed out this session: no screenshots were produced. No visual judgement was
 made. The designer must capture the three shots above in their own Studio and record the result
@@ -153,11 +160,11 @@ Absolute world coordinates, one per candidate. Paste into Studio `screen_capture
 `camera_position` / `look_at_position`; all are already in the master table above.
 
 - `textures_r3` — `{ -70, 12, -30 }` → `{ -70, 3, -58 }` (`textures_r3/README.md`)
-- `buildings_r3` — `{500,16,542}` → `{500,4,490}` (`models_r3/INTEGRATION.md`)
-- `vegetation_r3` — `{468,12,520}` → `{500,4,500}` (`models_r3/INTEGRATION.md`)
-- `props_r3` — `{532,11,500}` → `{498,2,500}` (`models_r3/INTEGRATION.md`)
-- `npcs_r3` — `{500,7,524}` → `{500,2,500}` (`models_r3/INTEGRATION.md`)
-- `sky_r3` — `{500,9,554}` → `{500,16,500}` (`sky_r3/README.md`)
+- `buildings_r3` — `{ -14, 16, 30 }` → `{ -14, 4, -22 }` (`models_r3/INTEGRATION.md`)
+- `vegetation_r3` — `{ -46, 12, 8 }` → `{ -14, 4, -12 }` (`models_r3/INTEGRATION.md`)
+- `props_r3` — `{ 18, 11, -12 }` → `{ -16, 2, -12 }` (`models_r3/INTEGRATION.md`)
+- `npcs_r3` — `{ -14, 7, 12 }` → `{ -14, 2, -12 }` (`models_r3/INTEGRATION.md`)
+- `sky_r3` — `{ -14, 9, 42 }` → `{ -14, 16, -12 }` (`sky_r3/README.md`)
 - `day_cycle` — `{0,12,52}` → `{0,3,-20}` (`daycycle/README.md`)
 - `icons_r3` — none saved; compare the two contact sheets instead.
 

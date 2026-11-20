@@ -1,7 +1,9 @@
 # models_r3 — LookDev model families (WORK_QUEUE round 3 item 23)
 
-Provenance + review sheet for four off-by-default LookDev families placed in the
-60×60 corner (absolute origin `{ 500, 0, 500 }`, footprint X/Z 470–530).
+Provenance + review sheet for four off-by-default LookDev families staged on real PLAZA ground
+(`MapSpec.PLAZA` spans X -48..48, Z -42..42), centred at `{ -14, 0, -12 }`, footprint X -44..16 /
+Z -42..18 — away from spawn, roads and hub clearings. Item 28 re-staged them from the old
+off-map `{ 500, 0, 500 }` origin.
 
 **Verdict column: intentionally blank.** No agent has visually graded any model
 here. No screenshot was captured and no "looks good" claim is made. A
@@ -99,16 +101,16 @@ alternate high-fidelity candidates for the hero NPC slots; decimate before kit u
 ## Review cameras (absolute world coordinates)
 
 Copy into Studio `screen_capture` as `camera_position` / `look_at_position`.
-One camera per family; models should be staged in the corner footprint
-X/Z 470–530 at the matching slot before capture. These are proposed cameras,
-not yet captured or judged in Studio.
+One camera per family; models are staged at the matching slot in `ModelMapR3` on the real PLAZA
+footprint (X -44..16 / Z -42..18). These are proposed cameras, not yet captured or judged in
+Studio. All four are the old cameras shifted by the same offset (X -514, Z -512).
 
 | Family | camera_position | look_at_position |
 |---|---|---|
-| `buildings_r3` | `{ 500, 16, 542 }` | `{ 500, 4, 490 }` |
-| `vegetation_r3` | `{ 468, 12, 520 }` | `{ 500, 4, 500 }` |
-| `props_r3` | `{ 532, 11, 500 }` | `{ 498, 2, 500 }` |
-| `npcs_r3` | `{ 500, 7, 524 }` | `{ 500, 2, 500 }` |
+| `buildings_r3` | `{ -14, 16, 30 }` | `{ -14, 4, -22 }` |
+| `vegetation_r3` | `{ -46, 12, 8 }` | `{ -14, 4, -12 }` |
+| `props_r3` | `{ 18, 11, -12 }` | `{ -16, 2, -12 }` |
+| `npcs_r3` | `{ -14, 7, 12 }` | `{ -14, 2, -12 }` |
 
 ## Unreachable / not-ingested sources (HTTP status only, no key printed)
 

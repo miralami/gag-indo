@@ -1,0 +1,102 @@
+{
+  "assets": {
+    "spiaggia_di_mondello": {
+      "info_http": 200,
+      "files_http": 200,
+      "page_http": 200,
+      "hdr_http": 200,
+      "double_check_http": 200,
+      "name": "Spiaggia di Mondello",
+      "authors": {
+        "Andreas Mischok": "All"
+      },
+      "categories": [
+        "outdoor",
+        "skies",
+        "nature",
+        "morning-afternoon",
+        "clear",
+        "high contrast",
+        "natural light",
+        "collection: smugglers_cove"
+      ],
+      "description": "Free, unclipped 20K HDRI, bright afternoon sun with strong directional light, deep blue sky and high-contrast shadows across sunlit sand and coastal trees.",
+      "licence_mark_in_page": true,
+      "copyright_notice": "CC0 1.0 Universal - public domain dedication, no attribution required",
+      "licence_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "hdr_url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/spiaggia_di_mondello_2k.hdr",
+      "expected_md5": "c73bdbbb5558c6c02114764b9260dcad",
+      "md5": "c73bdbbb5558c6c02114764b9260dcad",
+      "sha256": "30421cdd4832ae3f362e9f4d4aac146fb096da5b15cdec65cba8eb44aa860dc3",
+      "expected_bytes": 6230981,
+      "bytes": 6230981,
+      "file": "docs/v2/visual/art/sky_r4/source/spiaggia_di_mondello_2k.hdr"
+    },
+    "umhlanga_sunrise": {
+      "info_http": 200,
+      "files_http": 200,
+      "page_http": 200,
+      "hdr_http": 200,
+      "double_check_http": 200,
+      "name": "Umhlanga Sunrise",
+      "authors": {
+        "Greg Zaal": "All"
+      },
+      "categories": [
+        "outdoor",
+        "skies",
+        "nature",
+        "sunrise-sunset",
+        "partly cloudy",
+        "natural light",
+        "low contrast",
+        "collection: smugglers_cove"
+      ],
+      "description": "Free 16K HDRI, unclipped, soft low-contrast sunrise over a sandy beach - warm sun near the horizon, cool blue sky fill, gentle waves and scattered clouds.",
+      "licence_mark_in_page": true,
+      "copyright_notice": "CC0 1.0 Universal - public domain dedication, no attribution required",
+      "licence_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "hdr_url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/umhlanga_sunrise_2k.hdr",
+      "expected_md5": "731aa0d670e3af149d18587d967a4fc2",
+      "md5": "731aa0d670e3af149d18587d967a4fc2",
+      "sha256": "d0e7e238728c659ba2f1deccf55e9547e7a73b5c36a86d05bddaa9d21fc7aa75",
+      "expected_bytes": 6186336,
+      "bytes": 6186336,
+      "file": "docs/v2/visual/art/sky_r4/source/umhlanga_sunrise_2k.hdr"
+    },
+    "overcast_soil_puresky": {
+      "info_http": 200,
+      "files_http": 200,
+      "page_http": 200,
+      "hdr_http": 200,
+      "double_check_http": 200,
+      "name": "Overcast Soil (Pure Sky)",
+      "authors": {
+        "Jarod Guest": "Sky Edits",
+        "Sergej Majboroda": "Original"
+      },
+      "categories": [
+        "outdoor",
+        "skies",
+        "natural light",
+        "nature",
+        "low contrast",
+        "overcast",
+        "morning-afternoon",
+        "pure skies"
+      ],
+      "description": "Free 16K unclipped HDRI: soft, low-contrast overcast sky with diffused natural morning/afternoon light and a subtle warm horizon glow, calm moody lighting.",
+      "licence_mark_in_page": true,
+      "copyright_notice": "CC0 1.0 Universal - public domain dedication, no attribution required",
+      "licence_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "hdr_url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/overcast_soil_puresky_2k.hdr",
+      "expected_md5": "877caf0680d7269037995f6567a67103",
+      "md5": "877caf0680d7269037995f6567a67103",
+      "sha256": "5414e1ac0c35e451d28595b2a2cba05e2ca301fdeb755b0a469408443093dafc",
+      "expected_bytes": 4568000,
+      "bytes": 4568000,
+      "file": "docs/v2/visual/art/sky_r4/source/overcast_soil_puresky_2k.hdr"
+    }
+  },
+  "cc0_text_url": "https://creativecommons.org/publicdomain/zero/1.0/"
+}

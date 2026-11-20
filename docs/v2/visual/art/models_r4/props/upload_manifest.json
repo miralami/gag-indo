@@ -1,0 +1,72 @@
+[
+  {
+    "slot": "gerobak",
+    "file": "docs/v2/visual/art/models_r4/props/export/gerobak.glb",
+    "family": "props_r4",
+    "asset_id": "119426685469058",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "f651b872-e57c-4ab8-9eff-5ec3afb1a32e",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "slot": "sumur",
+    "file": "docs/v2/visual/art/models_r4/props/export/sumur.glb",
+    "family": "props_r4",
+    "asset_id": "95025959179405",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "60b22273-5646-4a4b-b90a-ed6a35a72af3",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "slot": "lapak",
+    "file": "docs/v2/visual/art/models_r4/props/export/lapak.glb",
+    "family": "props_r4",
+    "asset_id": "115924626989907",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "cd2cd78f-2b2a-428e-a222-4654234fcf90",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "slot": "pagar_bambu",
+    "file": "docs/v2/visual/art/models_r4/props/export/pagar_bambu.glb",
+    "family": "props_r4",
+    "asset_id": "103341007913673",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "fb9a9077-3469-40d1-9b56-8e7b1b40b86d",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "slot": "alat_tani",
+    "file": "docs/v2/visual/art/models_r4/props/export/alat_tani.glb",
+    "family": "props_r4",
+    "asset_id": "109848917287023",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "4aacfef0-a396-4073-a99a-9b0f1fc28c9b",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "slot": "karung",
+    "file": "docs/v2/visual/art/models_r4/props/export/karung.glb",
+    "family": "props_r4",
+    "asset_id": "87487192428396",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "63e9a304-2b34-4bbb-8eb6-3d8f3a84d53a",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "slot": "jemuran",
+    "file": "docs/v2/visual/art/models_r4/props/export/jemuran.glb",
+    "family": "props_r4",
+    "asset_id": "138444489439223",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "ddf1afce-d119-484d-a9fe-5bc2680cec0c",
+    "upload_route": "ROBLOX_API_KEY"
+  }
+]

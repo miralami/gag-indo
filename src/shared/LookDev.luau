@@ -17,6 +17,12 @@
 --   src/client/UI/LookDevIconsR3.luau  -- candidate "icons_r3" (27 revised original icon CANDIDATES)
 --   src/server/World/LookDevModelsR3.luau -- candidates "buildings_r3", "vegetation_r3", "props_r3", "npcs_r3"
 --   src/client/World/LookDevSkyR3.luau -- candidate "sky_r3" (CC0 HDRI cube faces + ridge + haze)
+--   src/client/World/LookDevTexturesR4.luau -- candidate "textures_r4" (12 CC0 PBR MaterialVariants)
+--   src/client/World/LookDevSkyR4.luau -- candidates "sky_r4_a", "sky_r4_b", "sky_r4_c" (3 CC0 HDRI skies)
+--   src/server/World/LookDevModelsBuildingsR4.luau -- candidate "buildings_r4" (server-only)
+--   src/server/World/LookDevModelsVegetationR4.luau -- candidate "vegetation_r4" (server-only)
+--   src/server/World/LookDevModelsPropsR4.luau -- candidate "props_r4" (server-only)
+--   src/server/World/LookDevModelsNpcsR4.luau -- candidate "npcs_r4" (server-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -33,6 +39,9 @@
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("icons_r3")
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("sky_r3")
 --   -- from the Server datamodel: buildings_r3 / vegetation_r3 / props_r3 / npcs_r3
+--   LookDev.enable("textures_r4")
+--   LookDev.enable("sky_r4_a") -- or LookDev.enable("sky_r4_b") / LookDev.enable("sky_r4_c")
+--   -- server-only: LookDev.enable("buildings_r4") / LookDev.enable("vegetation_r4") / LookDev.enable("props_r4") / LookDev.enable("npcs_r4")
 --   require(game.ReplicatedStorage.Shared.LookDev).disable()   -- restores the original look
 --
 -- The gate needs an explicit Studio-only opt-in, is never persisted, and can never be on in a
@@ -68,6 +77,14 @@ LookDev.IDS = {
 	"props_r3",
 	"npcs_r3",
 	"sky_r3",
+	"textures_r4",
+	"sky_r4_a",
+	"sky_r4_b",
+	"sky_r4_c",
+	"buildings_r4",
+	"vegetation_r4",
+	"props_r4",
+	"npcs_r4",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -328,6 +345,92 @@ LookDev.candidates = {
 		render = "docs/v2/visual/art/sky_r3/README.md",
 		faceCount = 6,
 	},
+
+	textures_r4 = {
+		id = "textures_r4",
+		title = "Twelve real CC0 Poly Haven PBR MaterialVariants for village surfaces (round 4)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- IDs deliberately NOT here: they live in Shared.TextureMapR4.ids. The adapter creates
+		-- temporary MaterialVariants and restores every MeshPart on disable.
+		idsSource = "Shared.TextureMapR4.ids",
+		render = "docs/v2/visual/art/textures_r4/README.md",
+		variantCount = 12,
+		mapCount = 36,
+	},
+
+	sky_r4_a = {
+		id = "sky_r4_a",
+		title = "Clear coastal afternoon CC0 HDRI cube sky (round 4, option a)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- IDs deliberately NOT here: they live in Shared.SkyMapR4.sets.a.ids.
+		idsSource = "Shared.SkyMapR4.sets.a.ids",
+		render = "docs/v2/visual/art/sky_r4/README.md",
+		faceCount = 6,
+	},
+
+	sky_r4_b = {
+		id = "sky_r4_b",
+		title = "Golden hour CC0 HDRI cube sky (round 4, option b)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- IDs deliberately NOT here: they live in Shared.SkyMapR4.sets.b.ids.
+		idsSource = "Shared.SkyMapR4.sets.b.ids",
+		render = "docs/v2/visual/art/sky_r4/README.md",
+		faceCount = 6,
+	},
+
+	sky_r4_c = {
+		id = "sky_r4_c",
+		title = "Light overcast CC0 HDRI cube sky (round 4, option c)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- IDs deliberately NOT here: they live in Shared.SkyMapR4.sets.c.ids.
+		idsSource = "Shared.SkyMapR4.sets.c.ids",
+		render = "docs/v2/visual/art/sky_r4/README.md",
+		faceCount = 6,
+	},
+
+	buildings_r4 = {
+		id = "buildings_r4",
+		title = "Village buildings (round 4) — real CC0 models, server-only review",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapBuildingsR4",
+		render = "docs/v2/visual/art/models_r4/buildings/HANDOFF.md",
+		modelCount = 4,
+	},
+
+	vegetation_r4 = {
+		id = "vegetation_r4",
+		title = "Tropical vegetation (round 4) — real CC0 models, server-only review",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapVegetationR4",
+		render = "docs/v2/visual/art/models_r4/vegetation/HANDOFF.md",
+		modelCount = 5,
+	},
+
+	props_r4 = {
+		id = "props_r4",
+		title = "Village props (round 4) — real CC0 models, server-only review",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapPropsR4",
+		render = "docs/v2/visual/art/models_r4/props/HANDOFF.md",
+		modelCount = 7,
+	},
+
+	npcs_r4 = {
+		id = "npcs_r4",
+		title = "Villager models (round 4) — real CC0 models, server-only review",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapNpcsR4",
+		render = "docs/v2/visual/art/models_r4/npcs/HANDOFF.md",
+		modelCount = 5,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -437,7 +540,16 @@ function LookDev.plan(id: string): any
 			render = c.render,
 			iconCount = c.iconCount,
 		}
-	elseif id == "buildings_r3" or id == "vegetation_r3" or id == "props_r3" or id == "npcs_r3" then
+	elseif
+		id == "buildings_r3"
+		or id == "vegetation_r3"
+		or id == "props_r3"
+		or id == "npcs_r3"
+		or id == "buildings_r4"
+		or id == "vegetation_r4"
+		or id == "props_r4"
+		or id == "npcs_r4"
+	then
 		local c = LookDev.candidates[id]
 		return {
 			id = id,
@@ -447,6 +559,23 @@ function LookDev.plan(id: string): any
 		}
 	elseif id == "sky_r3" then
 		local c = LookDev.candidates.sky_r3
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			faceCount = c.faceCount,
+		}
+	elseif id == "textures_r4" then
+		local c = LookDev.candidates.textures_r4
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			variantCount = c.variantCount,
+			mapCount = c.mapCount,
+		}
+	elseif id == "sky_r4_a" or id == "sky_r4_b" or id == "sky_r4_c" then
+		local c = LookDev.candidates[id]
 		return {
 			id = id,
 			idsSource = c.idsSource,

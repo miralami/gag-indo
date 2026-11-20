@@ -147,12 +147,14 @@ Also in force:
 ### D. The frame (V1)
 - [ ] 12. **BLOCKED — spawn view.** Combine A–C on the spawn view only. Save the camera position,
   then check the instance count and fps proxy against the budget. Leave the five screenshot tests
-  to the review pass. Blocked 2026-11-20 (re-checked in item 27): section G delivered the A–C asset
-  inputs as off-by-default candidates (buildings, vegetation, props, PBR, NPCs, sky, live day cycle),
-  but every verdict is still blank, so there is no *approved* look to combine. The spawn camera and
-  five shot tests need the designer/vision review; the fps proxy needs designer hardware. The
-  `corner` candidate and `REVIEW_ROUND3.md` are ready inputs, not an approval. Animations (item 9)
-  remain outstanding.
+  to the review pass. Blocked 2026-11-20 (re-checked in item 34): round 4 added textured
+  `buildings_r4`/`vegetation_r4`/`props_r4`/`npcs_r4` (real CC0/CC BY models replacing the grey r3
+  placeholders), `textures_r4` base-material overrides and three `sky_r4_a/b/c` HDRIs, all off by
+  default with blank verdicts and factual observer descriptions in
+  `h/2026-11-20-review-round4/REVIEW_ROUND4.html`. There is still no *approved* look to combine, so
+  the spawn camera and five shot tests stay with the designer/vision review, the fps proxy needs
+  designer hardware, and animations (item 9) remain outstanding. The r3 `corner` candidate was
+  rejected by the designer; `REVIEW_ROUND3.md` / `REVIEW_ROUND4.md` are inputs, not approvals.
 - [x] 13. **Review pass handoff.** Write `docs/v2/visual/REVIEW_ROUND3.md` listing every
   candidate with its toggle and camera position, in the order to review. The designer, or a
   session that can see screenshots, fills in the verdicts. Done 2026-11-20: handoff doc lists all
@@ -163,14 +165,17 @@ Also in force:
 
 ### E. Moments (V2), after the frame is approved
 - [ ] 14. **BLOCKED — harvest, reveal and sale VFX (M2–M4):** particles, a pop scale, a cash fly,
-  a sound sync. Behind tiers. Blocked 2026-11-20 (re-checked in item 27): section G added no VFX or
-  particle-texture assets, the V2 gate (VISUAL_MASTER_PLAN §V2) still requires L7.1 particle
-  textures, and this section is explicitly "after the frame is approved", which item 12 is not.
+  a sound sync. Behind tiers. Blocked 2026-11-20 (re-checked in item 34): neither section G nor
+  round 4 added VFX or particle-texture assets (r4 covered textures, sky and models only), the V2
+  gate (VISUAL_MASTER_PLAN §V2) still requires L7.1 particle textures, and this section is
+  explicitly "after the frame is approved", which item 12 is not.
 - [ ] 15. **BLOCKED — raid moment (M5) lights and the police walk-in,** using the round-1
-  `police_walkin` candidate if it was approved. Blocked 2026-11-20 (re-checked in item 27): that
+  `police_walkin` candidate if it was approved. Blocked 2026-11-20 (re-checked in item 34): that
   candidate's verdict is still pending in `CANDIDATES.md`, the frame is not approved, and the raid
   lights (L1.3) plus the V2 clip need real assets and designer hardware. Section G added an off-by-
-  default `day_cycle` lamp layer, but no approved moment package and no V2 clip. No visual claimed.
+  default `day_cycle` lamp layer; round 4 added a police model inside `npcs_r4`, but it is an
+  anchored, unrigged review dummy with a blank verdict and no animation. Still no approved moment
+  package and no V2 clip. No visual claimed.
 
 ### E2. Text
 - [x] 19. **Indonesian text review** (moved from round 2 item 24). Read every `id` string for
@@ -179,9 +184,10 @@ Also in force:
 
 ### F. Close
 - [ ] 16. **BLOCKED — budget and soak** with all approved visuals on, at each tier. Blocked
-  2026-11-20 (re-checked in item 27): section G added 17 candidates but all verdicts are blank, so
-  there are no approved visuals to turn on; the tier/fps measurement also needs the designer's phone
-  emulator and multi-client session. The 2026-11-19 soak evidence in
+  2026-11-20 (re-checked in item 34): the registry grew from 17 to 25 off-by-default candidates in
+  round 4 (8 new r4 candidates), but every verdict is still blank, so there are no approved visuals
+  to turn on; the tier/fps measurement also needs the designer's phone emulator and multi-client
+  session. The 2026-11-19 soak evidence in
   `docs/v2/evidence/h/2026-11-19-regression-replay/` predates the visual candidates and cannot stand
   for this gate.
 - [x] 17. **Regression replay**: G3 beat sheet, G5 timings and a full-session `output.log`.
@@ -290,7 +296,7 @@ because of how they were applied, not where they came from.
 | Models | Creator Store (licence allows use), Quaternius, Kenney, Poly Pizza (check each model: some are CC BY), Poly Haven models, Sketchfab with the "downloadable + CC0/CC BY" filter | Models must be **textured** (texture or vertex colour). CC BY needs the attribution recorded. |
 | Characters | Quaternius rigged packs, Kenney characters, Creator Store R15 rigs | R15-compatible or re-rigged to R15. |
 
-- [ ] 28. **Fix the seven round-3 bugs** (`h/2026-11-20-review-round3/REPORT.md`), each with a
+- [x] 28. **Fix the seven round-3 bugs** (`h/2026-11-20-review-round3/REPORT.md`), each with a
   regression spec:
   - `sky_r3`: set the real `Sky.SkyboxBk/Dn/Ft/Lf/Rt/Up` properties and give `Atmosphere.Decay` a Color3.
   - `LookDevModelsR3`: anchor every BasePart and set `CanCollide` to a sensible value.
@@ -300,7 +306,13 @@ because of how they were applied, not where they came from.
   - Move the staging area from (500,500) onto real terrain near spawn, with the review cameras updated.
   - Review tooling: add a `LookDevReview` helper, so one `execute_luau` or command-bar call requires
     the applier modules for its datamodel before calling `LookDev.enable`.
-- [ ] 29. **`textures_r4`: coverage, not just sourcing.**
+  Done 2026-11-20: all seven fixed with regression coverage in
+  `tests/specs/review_round3_bugfix_spec.luau` — real `Sky.SkyboxBk/Dn/Ft/Lf/Rt/Up` + Color3
+  `Atmosphere.Decay`, anchored non-colliding `ScaleTo` model parts, Z→Y rotation for `farmer_cc0`/
+  `polisi_cc0`, staging moved to real `MapSpec` terrain at `{-14,0,-12}` with cameras updated, and a
+  pcall-guarded `LookDevReview` helper (incl. three throwing-root cases) so one call requires the
+  applier for either datamodel. LUNE-ONLY; one sky face verified in a fresh Play Client VM.
+- [x] 29. **`textures_r4`: coverage, not just sourcing.**
   - Apply the CC0 sets as `MaterialService` **base-material overrides** (MaterialVariants with
     `BaseMaterial` set, plus `MaterialService:SetBaseMaterialOverride`). Every Grass / Ground / Mud /
     Cobblestone / Wood / Brick / Slate / CorrugatedMetal surface, Terrain included, should change, not
@@ -309,7 +321,13 @@ because of how they were applied, not where they came from.
     dirt, woven bamboo (*bilik*), clay roof tile, weathered plaster wall, dry grass.
   - Tune `StudsPerTile` per surface.
   - Off by default. Contact sheet plus the saved spawn camera.
-- [ ] 30. **`sky_r4`: three HDRI options for an A/B/C pick.**
+  Done 2026-11-20: twelve CC0 base-material override sets (36 Image IDs) from Poly Haven and
+  ambientCG (rice-paddy mud, laterite, *bilik* bamboo, clay tile, weathered plaster, dry grass
+  included), applied via `TextureMapR4` / `LookDevTexturesR4` MaterialVariants with `BaseMaterial`
+  and `SetBaseMaterialOverride` across Grass/Ground/Mud/Cobblestone/Wood/Brick/Slate/CorrugatedMetal
+  including Terrain, per-surface `StudsPerTile`, off by default, contact sheet and saved spawn camera
+  `docs/v2/visual/art/textures_r4/`. Verdict blank.
+- [x] 30. **`sky_r4`: three HDRI options for an A/B/C pick.**
   - Take three CC0 HDRIs from Poly Haven / ambientCG: clear tropical afternoon, golden hour, light
     overcast.
   - Convert each from equirect to six faces using Roblox's face orientation (verify one face in Studio
@@ -318,7 +336,12 @@ because of how they were applied, not where they came from.
     the three side by side.
   - Keep the ridge silhouette and haze. `CelestialBodiesShown` stays on, so the day cycle still moves
     the sun.
-- [ ] 31. **`*_r4` models: real textured models from the free sources above**, one LookDev family
+  Done 2026-11-20: three CC0 HDRIs (Poly Haven) converted deterministically to 18 cube faces with
+  Roblox face orientation; one face (`sky_r4_a`) verified in a fresh Play Client VM (real
+  `Sky.Skybox*` IDs, `Atmosphere.Decay` Color3, `CelestialBodiesShown=true`, 12-part ridge). Registered
+  as `sky_r4_a/b/c`, off by default, with a contact sheet in `docs/v2/visual/art/sky_r4/`. Verdicts
+  blank; factual observer descriptions in `h/2026-11-20-review-round4/REVIEW_ROUND4.html`.
+- [x] 31. **`*_r4` models: real textured models from the free sources above**, one LookDev family
   each, replacing the round-3 placeholders.
   - Families: `buildings_r4` (rumah panggung, kandang ayam, gudang, warung), `vegetation_r4` (kelapa,
     pisang, bambu, mangga, shrubs, padi three stages), `props_r4` (gerobak, sumur, lapak, pagar bambu,
@@ -338,7 +361,14 @@ because of how they were applied, not where they came from.
   - Record the source, licence, author and ID in `ASSET_MANIFEST.md`.
   - Anything no free source covers goes to "Designer builds" with the brief. No more script-built
     primitives.
-- [ ] 32. **Spawn liveliness brief (designer note 2026-11-20).** Spawn is still plain. Later it should
+  Done 2026-11-20: 21 real textured Model IDs (buildings 4, vegetation 5, props 7, npcs 5) from
+  CC0/CC BY sources (Grab3D, Poly by Google/Poly Pizza, Poly Haven), decimated to budget, staged on
+  real terrain behind four server-side family appliers (`InsertService:LoadAsset` is client-blocked).
+  Source, licence, author and ID recorded in `ASSET_MANIFEST.md`; no-ID guard and specs added.
+  `mangga` is a Balsa stand-in and `npcs_r4` are unrigged review dummies — both noted. Gaps with no
+  compliant free source (true mango, three-stage padi, local headwear, R15 re-rig) are in
+  "Designer builds". Verdicts blank.
+- [x] 32. **Spawn liveliness brief (designer note 2026-11-20).** Spawn is still plain. Later it should
   feel as busy and lived-in as the reference village games, through props: jemuran, karung stacks,
   sepeda, ayam, gerobak, warung clutter, lanterns, potted plants, bamboo fences and *pematang* edges.
   - Write `docs/v2/visual/SPAWN_DRESSING.md`, covering:
@@ -347,11 +377,27 @@ because of how they were applied, not where they came from.
     - an instance / triangle budget per fidelity tier;
     - two or three ambient-life ideas: chickens wandering, smoke from the warung, swaying laundry.
   - Plan only: dress spawn after item 31's models pass review.
-- [ ] 33. **Review handoff.** Write `REVIEW_ROUND4.md` with every new candidate, its dot-syntax toggle,
+  Done 2026-11-20: `docs/v2/visual/SPAWN_DRESSING.md` written as planning only — prop clusters around
+  the spawn view, the r4 asset mapped to each cluster, an instance/triangle budget per fidelity tier,
+  and three ambient-life ideas (wandering ayam, warung smoke, swaying laundry). No spawn was dressed;
+  dress only after item 31 passes review.
+- [x] 33. **Review handoff.** Write `REVIEW_ROUND4.md` with every new candidate, its dot-syntax toggle,
   its datamodel and its saved camera, in review order. The main session takes the Studio shots and
   builds the HTML review sheet. No agent grades visuals.
-- [ ] 34. **Refill.** Re-check the blocked items against round 4 output; repeat until nothing
+  Done 2026-11-20: `docs/v2/visual/REVIEW_ROUND4.md` lists all eight r4 candidates in review order
+  with dot toggles, datamodels and saved cameras (verdict cells blank). Studio Play Client/Server VMs
+  captured all eight via the vision observer from those cameras; the descriptions, toggles and blank
+  verdicts are in `docs/v2/evidence/h/2026-11-20-review-round4/REVIEW_ROUND4.html`, with method and
+  commands in the same folder's `REPORT.md`. No screenshot pixels were retained, so the sheet is
+  explicitly **not a screenshot claim**; no agent graded any visual. Play stopped, nothing saved or
+  published.
+- [x] 34. **Refill.** Re-check the blocked items against round 4 output; repeat until nothing
   agent-closable is left.
+  Done 2026-11-20: re-checked items 12, 14, 15 and 16. Round-4 textured models/sky/textures do not
+  unblock any of them: every verdict is still blank, so there is no approved look to combine or soak;
+  item 14 needs L7.1 particle textures r4 did not add; item 15's r4 police model is an unrigged dummy
+  and `police_walkin` is still pending; items 12/16 still need designer hardware. Their BLOCKED
+  reasons were updated. No further agent-closable work remains.
 
 ## Designer builds
 

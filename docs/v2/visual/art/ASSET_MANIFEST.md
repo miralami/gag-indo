@@ -300,3 +300,131 @@ sky_r3.SkyboxImageLeft,image,polyhaven,docs/v2/visual/art/sky_r3/faces/SkyboxIma
 sky_r3.SkyboxImageRight,image,polyhaven,docs/v2/visual/art/sky_r3/faces/SkyboxImageRight.png,CC0 1.0,Greg Zaal; Rico Cilliers,102997698570968,,UNVERIFIED
 sky_r3.SkyboxImageTop,image,polyhaven,docs/v2/visual/art/sky_r3/faces/SkyboxImageTop.png,CC0 1.0,Greg Zaal; Rico Cilliers,119387111356535,,UNVERIFIED
 ```
+
+## Round 4 (2026-11-20)
+
+WORK_QUEUE items 29–31. Eight LookDev candidates; all are OFF BY DEFAULT and nothing here is shipped on. Every ID below was read from a completed Open Cloud upload manifest; none was invented. All sources are CC0 or CC BY 3.0 with attribution recorded in the per-family manifests. No Creator Store, QAL/Quaternius, NC/ND, Free Standard or unknown licence was used. The `ROBLOX_API_KEY` was read from the environment only; it was never printed, logged or committed. Fields absent from a source manifest are marked `not recorded in source manifest`; CC0 rows with no mandatory credit are marked `not applicable (CC0)`.
+
+Shared maps cross-checked: `src/shared/TextureMapR4.luau`, `SkyMapR4.luau`, `ModelMapBuildingsR4.luau`, `ModelMapVegetationR4.luau`, `ModelMapPropsR4.luau`, `ModelMapNpcsR4.luau`. Review order and saved cameras: `docs/v2/visual/REVIEW_ROUND4.md`. No visual verdict, screenshot, place save or publish is claimed here.
+
+### `textures_r4` — 36 Image IDs, 12 CC0 PBR sets (CLIENT datamodel)
+
+Source: `docs/v2/visual/art/textures_r4/{MANIFEST.md,upload_manifest.json,download_manifest.json}`. Licence URL per row: Poly Haven `https://polyhaven.com/license`, ambientCG `https://docs.ambientcg.com/license/`. The ambientCG API exposes no per-asset author field; the manifest records publisher `ambientCG`. Map key is the exact `TextureMapR4.ids` key.
+
+| Slot / map key | Asset ID | Source URL | Author | Licence | CC BY attribution |
+|---|---|---|---|---|---|
+| withered_grass_diff (dry_grass) | 99291006551629 | https://polyhaven.com/a/withered_grass | Charlotte Baglioni | CC0 | not applicable (CC0) |
+| withered_grass_nor (dry_grass) | 94138101324824 | https://polyhaven.com/a/withered_grass | Charlotte Baglioni | CC0 | not applicable (CC0) |
+| withered_grass_rough (dry_grass) | 99517618599796 | https://polyhaven.com/a/withered_grass | Charlotte Baglioni | CC0 | not applicable (CC0) |
+| red_laterite_soil_stones_diff (laterite) | 118381151358037 | https://polyhaven.com/a/red_laterite_soil_stones | Amal Kumar | CC0 | not applicable (CC0) |
+| red_laterite_soil_stones_nor (laterite) | 80566522516796 | https://polyhaven.com/a/red_laterite_soil_stones | Amal Kumar | CC0 | not applicable (CC0) |
+| red_laterite_soil_stones_rough (laterite) | 121928219739643 | https://polyhaven.com/a/red_laterite_soil_stones | Amal Kumar | CC0 | not applicable (CC0) |
+| stony_dirt_path_diff (sand_path) | 103913932243276 | https://polyhaven.com/a/stony_dirt_path | eye-candy.xyz | CC0 | not applicable (CC0) |
+| stony_dirt_path_nor (sand_path) | 117613154248787 | https://polyhaven.com/a/stony_dirt_path | eye-candy.xyz | CC0 | not applicable (CC0) |
+| stony_dirt_path_rough (sand_path) | 86757243435143 | https://polyhaven.com/a/stony_dirt_path | eye-candy.xyz | CC0 | not applicable (CC0) |
+| cobblestone_floor_04_diff (cobblestone) | 116548637306757 | https://polyhaven.com/a/cobblestone_floor_04 | Rob Tuytel | CC0 | not applicable (CC0) |
+| cobblestone_floor_04_nor (cobblestone) | 114728267211735 | https://polyhaven.com/a/cobblestone_floor_04 | Rob Tuytel | CC0 | not applicable (CC0) |
+| cobblestone_floor_04_rough (cobblestone) | 126631905530342 | https://polyhaven.com/a/cobblestone_floor_04 | Rob Tuytel | CC0 | not applicable (CC0) |
+| weathered_planks_diff (weathered_planks) | 86925714541020 | https://polyhaven.com/a/weathered_planks | Dimitrios Savva (photography), Dario Barresi (processing) | CC0 | not applicable (CC0) |
+| weathered_planks_nor (weathered_planks) | 139064505550988 | https://polyhaven.com/a/weathered_planks | Dimitrios Savva (photography), Dario Barresi (processing) | CC0 | not applicable (CC0) |
+| weathered_planks_rough (weathered_planks) | 79209250273792 | https://polyhaven.com/a/weathered_planks | Dimitrios Savva (photography), Dario Barresi (processing) | CC0 | not applicable (CC0) |
+| worn_brick_wall_diff (brick) | 101964656212261 | https://polyhaven.com/a/worn_brick_wall | Amal Kumar | CC0 | not applicable (CC0) |
+| worn_brick_wall_nor (brick) | 74037970278315 | https://polyhaven.com/a/worn_brick_wall | Amal Kumar | CC0 | not applicable (CC0) |
+| worn_brick_wall_rough (brick) | 79001558852046 | https://polyhaven.com/a/worn_brick_wall | Amal Kumar | CC0 | not applicable (CC0) |
+| blue_plaster_weathered_diff (plaster) | 139342078063430 | https://polyhaven.com/a/blue_plaster_weathered | Amal Kumar | CC0 | not applicable (CC0) |
+| blue_plaster_weathered_nor (plaster) | 111912632127012 | https://polyhaven.com/a/blue_plaster_weathered | Amal Kumar | CC0 | not applicable (CC0) |
+| blue_plaster_weathered_rough (plaster) | 125017038971785 | https://polyhaven.com/a/blue_plaster_weathered | Amal Kumar | CC0 | not applicable (CC0) |
+| clay_roof_tiles_03_diff (clay_tile) | 103194041286294 | https://polyhaven.com/a/clay_roof_tiles_03 | Amal Kumar | CC0 | not applicable (CC0) |
+| clay_roof_tiles_03_nor (clay_tile) | 139690368710650 | https://polyhaven.com/a/clay_roof_tiles_03 | Amal Kumar | CC0 | not applicable (CC0) |
+| clay_roof_tiles_03_rough (clay_tile) | 128237078059309 | https://polyhaven.com/a/clay_roof_tiles_03 | Amal Kumar | CC0 | not applicable (CC0) |
+| worn_corrugated_iron_diff (corrugated_metal) | 107744112435438 | https://polyhaven.com/a/worn_corrugated_iron | Dimitrios Savva (photography), Jenelle van Heerden (processing) | CC0 | not applicable (CC0) |
+| worn_corrugated_iron_nor (corrugated_metal) | 75878137977040 | https://polyhaven.com/a/worn_corrugated_iron | Dimitrios Savva (photography), Jenelle van Heerden (processing) | CC0 | not applicable (CC0) |
+| worn_corrugated_iron_rough (corrugated_metal) | 134767952365897 | https://polyhaven.com/a/worn_corrugated_iron | Dimitrios Savva (photography), Jenelle van Heerden (processing) | CC0 | not applicable (CC0) |
+| bamboo_wall_02_diff (bilik) | 104761377140093 | https://polyhaven.com/a/bamboo_wall_02 | Amal Kumar | CC0 | not applicable (CC0) |
+| bamboo_wall_02_nor (bilik) | 75163422713451 | https://polyhaven.com/a/bamboo_wall_02 | Amal Kumar | CC0 | not applicable (CC0) |
+| bamboo_wall_02_rough (bilik) | 137065390077687 | https://polyhaven.com/a/bamboo_wall_02 | Amal Kumar | CC0 | not applicable (CC0) |
+| river_small_rocks_diff (riverbank) | 71678382965592 | https://polyhaven.com/a/river_small_rocks | Rob Tuytel, Rico Cilliers | CC0 | not applicable (CC0) |
+| river_small_rocks_nor (riverbank) | 114207741022691 | https://polyhaven.com/a/river_small_rocks | Rob Tuytel, Rico Cilliers | CC0 | not applicable (CC0) |
+| river_small_rocks_rough (riverbank) | 95462609294102 | https://polyhaven.com/a/river_small_rocks | Rob Tuytel, Rico Cilliers | CC0 | not applicable (CC0) |
+| Ground026_diff (paddy_mud) | 140414409206785 | https://ambientcg.com/a/Ground026 | ambientCG | CC0 | not applicable (CC0) |
+| Ground026_nor (paddy_mud) | 134530197365596 | https://ambientcg.com/a/Ground026 | ambientCG | CC0 | not applicable (CC0) |
+| Ground026_rough (paddy_mud) | 138244821682090 | https://ambientcg.com/a/Ground026 | ambientCG | CC0 | not applicable (CC0) |
+
+
+### `sky_r4_a` / `sky_r4_b` / `sky_r4_c` — 18 Image IDs, six faces each (CLIENT datamodel)
+
+Source: `docs/v2/visual/art/sky_r4/{MANIFEST.md,upload_manifest.json}`. Source URL and author per option are from `MANIFEST.md` source tables; the six faces per option are the real Roblox `SkyboxBk/Dn/Ft/Lf/Rt/Up` properties from `SkyMapR4.sets`.
+
+| Slot / map key | Asset ID | Source URL | Author | Licence | CC BY attribution |
+|---|---|---|---|---|---|
+| sky_r4_a / SkyboxBk | 97940752286667 | https://polyhaven.com/a/spiaggia_di_mondello | Andreas Mischok (All) | CC0 1.0 (Andreas Mischok) | not applicable (CC0) |
+| sky_r4_a / SkyboxDn | 109773465243137 | https://polyhaven.com/a/spiaggia_di_mondello | Andreas Mischok (All) | CC0 1.0 (Andreas Mischok) | not applicable (CC0) |
+| sky_r4_a / SkyboxFt | 114018733428334 | https://polyhaven.com/a/spiaggia_di_mondello | Andreas Mischok (All) | CC0 1.0 (Andreas Mischok) | not applicable (CC0) |
+| sky_r4_a / SkyboxLf | 86909076207815 | https://polyhaven.com/a/spiaggia_di_mondello | Andreas Mischok (All) | CC0 1.0 (Andreas Mischok) | not applicable (CC0) |
+| sky_r4_a / SkyboxRt | 134258485393561 | https://polyhaven.com/a/spiaggia_di_mondello | Andreas Mischok (All) | CC0 1.0 (Andreas Mischok) | not applicable (CC0) |
+| sky_r4_a / SkyboxUp | 70901206015036 | https://polyhaven.com/a/spiaggia_di_mondello | Andreas Mischok (All) | CC0 1.0 (Andreas Mischok) | not applicable (CC0) |
+| sky_r4_b / SkyboxBk | 71419208335886 | https://polyhaven.com/a/umhlanga_sunrise | Greg Zaal (All) | CC0 1.0 (Greg Zaal) | not applicable (CC0) |
+| sky_r4_b / SkyboxDn | 103770664996498 | https://polyhaven.com/a/umhlanga_sunrise | Greg Zaal (All) | CC0 1.0 (Greg Zaal) | not applicable (CC0) |
+| sky_r4_b / SkyboxFt | 100700369015271 | https://polyhaven.com/a/umhlanga_sunrise | Greg Zaal (All) | CC0 1.0 (Greg Zaal) | not applicable (CC0) |
+| sky_r4_b / SkyboxLf | 130530246140479 | https://polyhaven.com/a/umhlanga_sunrise | Greg Zaal (All) | CC0 1.0 (Greg Zaal) | not applicable (CC0) |
+| sky_r4_b / SkyboxRt | 93833019968519 | https://polyhaven.com/a/umhlanga_sunrise | Greg Zaal (All) | CC0 1.0 (Greg Zaal) | not applicable (CC0) |
+| sky_r4_b / SkyboxUp | 74514704981621 | https://polyhaven.com/a/umhlanga_sunrise | Greg Zaal (All) | CC0 1.0 (Greg Zaal) | not applicable (CC0) |
+| sky_r4_c / SkyboxBk | 115782120788932 | https://polyhaven.com/a/overcast_soil_puresky | Jarod Guest (Sky Edits), Sergej Majboroda (Original) | CC0 1.0 (Jarod Guest, Sergej Majboroda) | not applicable (CC0) |
+| sky_r4_c / SkyboxDn | 115250718234620 | https://polyhaven.com/a/overcast_soil_puresky | Jarod Guest (Sky Edits), Sergej Majboroda (Original) | CC0 1.0 (Jarod Guest, Sergej Majboroda) | not applicable (CC0) |
+| sky_r4_c / SkyboxFt | 130580645341750 | https://polyhaven.com/a/overcast_soil_puresky | Jarod Guest (Sky Edits), Sergej Majboroda (Original) | CC0 1.0 (Jarod Guest, Sergej Majboroda) | not applicable (CC0) |
+| sky_r4_c / SkyboxLf | 90062986253718 | https://polyhaven.com/a/overcast_soil_puresky | Jarod Guest (Sky Edits), Sergej Majboroda (Original) | CC0 1.0 (Jarod Guest, Sergej Majboroda) | not applicable (CC0) |
+| sky_r4_c / SkyboxRt | 71301261657357 | https://polyhaven.com/a/overcast_soil_puresky | Jarod Guest (Sky Edits), Sergej Majboroda (Original) | CC0 1.0 (Jarod Guest, Sergej Majboroda) | not applicable (CC0) |
+| sky_r4_c / SkyboxUp | 124131521861721 | https://polyhaven.com/a/overcast_soil_puresky | Jarod Guest (Sky Edits), Sergej Majboroda (Original) | CC0 1.0 (Jarod Guest, Sergej Majboroda) | not applicable (CC0) |
+
+
+### `buildings_r4` — 4 Model IDs, CC0 textured buildings (SERVER datamodel)
+
+Source: `docs/v2/visual/art/models_r4/buildings/{SOURCE_LICENCES.md,upload_manifest.json}` (`MANIFEST.md` does not exist for this family). Licence and source URL per row are from `upload_manifest.json`; author is Grab3D. CC0 needs no credit; the source manifest records an optional provenance credit string, reproduced verbatim.
+
+| Slot / map key | Asset ID | Source URL | Author | Licence | CC BY attribution |
+|---|---|---|---|---|---|
+| rumah | 134692206104779 | https://grab3d.com/models/buildings/stilt-house/ | Grab3D | CC0 1.0 Universal (public-domain dedication) | not applicable (CC0); optional provenance credit: "Models from Grab3D, CC0 1.0 Universal." |
+| kandang | 102638587410748 | https://grab3d.com/models/buildings/chicken-coop/ | Grab3D | CC0 1.0 Universal (public-domain dedication) | not applicable (CC0); optional provenance credit: "Models from Grab3D, CC0 1.0 Universal." |
+| gudang | 108444766706310 | https://grab3d.com/models/buildings/garden-shed/ | Grab3D | CC0 1.0 Universal (public-domain dedication) | not applicable (CC0); optional provenance credit: "Models from Grab3D, CC0 1.0 Universal." |
+| warung | 123167704485524 | https://grab3d.com/models/buildings/market-stall/ | Grab3D | CC0 1.0 Universal (public-domain dedication) | not applicable (CC0); optional provenance credit: "Models from Grab3D, CC0 1.0 Universal." |
+
+
+### `vegetation_r4` — 5 Model IDs, CC BY 3.0 textured vegetation (SERVER datamodel)
+
+Source: `docs/v2/visual/art/models_r4/vegetation/{MANIFEST.md,upload_manifest.json}`. `mangga` is a Balsa-tree stand-in, not a verified mango tree; no ID was invented for the unavailable true-manga slot. Exact credit strings are from the upload manifest.
+
+| Slot / map key | Asset ID | Source URL | Author | Licence | CC BY attribution |
+|---|---|---|---|---|---|
+| kelapa | 95769944522207 | https://poly.pizza/m/bXUTyfiwqBb | Poly by Google | CC BY 3.0 (Creative Commons Attribution) | "Coconut palm tree" by Poly by Google, CC BY 3.0, via Poly Pizza (https://poly.pizza/m/bXUTyfiwqBb) |
+| pisang | 119293239911242 | https://poly.pizza/m/d0WJSiuOz6o | Poly by Google | CC BY 3.0 (Creative Commons Attribution) | "Banana Tree" by Poly by Google, CC BY 3.0, via Poly Pizza (https://poly.pizza/m/d0WJSiuOz6o) |
+| bambu | 130965811347980 | https://poly.pizza/m/eixDUxUDkTK | Poly by Google | CC BY 3.0 (Creative Commons Attribution) | "Bamboo" by Poly by Google, CC BY 3.0, via Poly Pizza (https://poly.pizza/m/eixDUxUDkTK) |
+| mangga | 103132734600778 | https://poly.pizza/m/ekCgu7iLrz2 | Poly by Google | CC BY 3.0 (Creative Commons Attribution) | "Balsa tree" by Poly by Google, CC BY 3.0, via Poly Pizza (https://poly.pizza/m/ekCgu7iLrz2) |
+| shrubs | 116666781655827 | https://poly.pizza/m/aMGUklRjpyo | Poly by Google | CC BY 3.0 (Creative Commons Attribution) | "Shrub" by Poly by Google, CC BY 3.0, via Poly Pizza (https://poly.pizza/m/aMGUklRjpyo) |
+
+
+### `props_r4` — 7 Model IDs, CC0 / CC BY 3.0 textured props (SERVER datamodel)
+
+Source: `docs/v2/visual/art/models_r4/props/{SOURCE_LICENSES.md,upload_manifest.json}`. The upload manifest records IDs and operation IDs only; source URL, author, licence and exact attribution strings below are from the "Per-slot source and exact attribution" table in `SOURCE_LICENSES.md`. CC0 rows carry the source manifest's recorded provenance string; no credit is mandatory for them.
+
+| Slot / map key | Asset ID | Source URL | Author | Licence | CC BY attribution |
+|---|---|---|---|---|---|
+| gerobak | 119426685469058 | https://poly.pizza/m/f_LuAcP2_Yh | Alan Zimmerman | Creative Commons Attribution (CC BY 3.0) — https://creativecommons.org/licenses/by/3.0/ | "Street Vendor Cart" by Alan Zimmerman — Poly Pizza, CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/), source https://poly.pizza/m/f_LuAcP2_Yh |
+| sumur | 95025959179405 | https://poly.pizza/m/1lK9mD0zDZw | Jarlan Perez | Creative Commons Attribution (CC BY 3.0) — https://creativecommons.org/licenses/by/3.0/ | "Well" by Jarlan Perez — Poly Pizza, CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/), source https://poly.pizza/m/1lK9mD0zDZw |
+| lapak | 115924626989907 | https://poly.pizza/m/bwgNq3z2SQs | Peter Simcoe | Creative Commons Attribution (CC BY 3.0) — https://creativecommons.org/licenses/by/3.0/ | "Small stand with Wheels" by Peter Simcoe — Poly Pizza, CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/), source https://poly.pizza/m/bwgNq3z2SQs |
+| pagar_bambu | 103341007913673 | https://poly.pizza/m/dVwByrifEmj | Jarlan Perez | Creative Commons Attribution (CC BY 3.0) — https://creativecommons.org/licenses/by/3.0/ | "Bamboo Fence Panel" by Jarlan Perez — Poly Pizza, CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/), source https://poly.pizza/m/dVwByrifEmj |
+| alat_tani | 109848917287023 | https://polyhaven.com/a/wooden_axe | Ulan Cabanilla | CC0 1.0 — https://polyhaven.com/license | "Wooden Axe" by Ulan Cabanilla — Poly Haven, CC0 1.0 (https://polyhaven.com/license), source https://polyhaven.com/a/wooden_axe |
+| karung | 87487192428396 | https://polyhaven.com/a/cement_bag | PierreB3D | CC0 1.0 — https://polyhaven.com/license | "Cement Bag" by PierreB3D — Poly Haven, CC0 1.0 (https://polyhaven.com/license), source https://polyhaven.com/a/cement_bag |
+| jemuran | 138444489439223 | https://grab3d.com/models/props/clothesline/ | Grab3D | CC0 1.0 Universal — https://creativecommons.org/publicdomain/zero/1.0/legalcode | "Clothesline" by Grab3D — CC0 1.0 Universal, no attribution required (https://creativecommons.org/publicdomain/zero/1.0/legalcode), source https://grab3d.com/models/props/clothesline/, licence text https://grab3d.com/dl/clothesline/LICENSE.txt |
+
+
+### `npcs_r4` — 5 Model IDs, CC0 / CC BY 3.0 textured villagers (SERVER datamodel)
+
+Source: `docs/v2/visual/art/models_r4/npcs/{MANIFEST.md,upload_manifest.json}`. Exact attribution strings are from the upload manifest and match `MANIFEST.md`; CC0 rows still carry the recorded provenance string but need no credit. None of these models ships an R15 rig; they are review dummies only.
+
+| Slot / map key | Asset ID | Source URL | Author | Licence | CC BY attribution |
+|---|---|---|---|---|---|
+| petani_caping | 119484467697394 | https://poly.pizza/m/f-ePrCSeNjW | Remy Tauziac | CC-BY 3.0 | "Pleasant peasant" by Remy Tauziac — CC-BY 3.0 (https://creativecommons.org/licenses/by/3.0/); source: https://poly.pizza/m/f-ePrCSeNjW |
+| pedagang | 77509780044045 | https://poly.pizza/m/kpw4fiF8St | J-Toastie | CC-BY 3.0 | "Retail Worker" by J-Toastie — CC-BY 3.0 (https://creativecommons.org/licenses/by/3.0/); source: https://poly.pizza/m/kpw4fiF8St |
+| petani_wanita | 123174857731098 | https://poly.pizza/m/usAZvwbH0Y | Polygonal Mind | CC0 1.0 | "Woman" by Polygonal Mind — CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/); source: https://poly.pizza/m/usAZvwbH0Y |
+| tukang_peci | 115389644627447 | https://poly.pizza/m/IE7rk47BHn | prathm | CC0 1.0 | "Character_Man" by prathm — CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/); source: https://poly.pizza/m/IE7rk47BHn |
+| polisi | 105455683512183 | https://poly.pizza/m/ipEgtSYI8u | J-Toastie | CC-BY 3.0 | "Male Officer" by J-Toastie — CC-BY 3.0 (https://creativecommons.org/licenses/by/3.0/); source: https://poly.pizza/m/ipEgtSYI8u |

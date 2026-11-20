@@ -1,18 +1,36 @@
 --!nocheck
--- WORK_QUEUE round 3 item 24 (sky half): the real six-face CC0 ID map, the pure
--- sky/atmosphere/ridge recipe and the client adapter. No visual verdict or Studio claim.
+-- WORK_QUEUE round 3 item 24 (sky half), item 28 bug 2: the real six-face CC0 ID map keyed by the
+-- real Roblox Sky properties, the pure sky/atmosphere/ridge recipe and the client adapter. The
+-- upload manifest still labels rows by the old face-file names, so those are mapped separately.
+-- No visual verdict or Studio claim.
 
 local fs = require("@lune/fs")
 
 return function(t, Env, Fakes)
 	local expect = t.expect
-	local FACES = {
+	local REAL_SKY_KEYS = {
+		"SkyboxBk",
+		"SkyboxDn",
+		"SkyboxFt",
+		"SkyboxLf",
+		"SkyboxRt",
+		"SkyboxUp",
+	}
+	local MANIFEST_FACES = {
 		"SkyboxImageBack",
 		"SkyboxImageBottom",
 		"SkyboxImageFront",
 		"SkyboxImageLeft",
 		"SkyboxImageRight",
 		"SkyboxImageTop",
+	}
+	local FACE_TO_SKY = {
+		SkyboxImageBack = "SkyboxBk",
+		SkyboxImageBottom = "SkyboxDn",
+		SkyboxImageFront = "SkyboxFt",
+		SkyboxImageLeft = "SkyboxLf",
+		SkyboxImageRight = "SkyboxRt",
+		SkyboxImageTop = "SkyboxUp",
 	}
 
 	t:describe("SkyMapR3 recipe", function()
@@ -23,15 +41,18 @@ return function(t, Env, Fakes)
 			Visuals = env:require("shared/Config/Visuals")
 		end)
 
-		t:it("has exactly six unique numeric IDs keyed by the six SkyboxImage names", function()
+		t:it("has exactly six unique numeric IDs keyed by the six real Sky properties", function()
 			local count, seen = 0, {}
-			for face, id in SkyMapR3.ids do
+			for key, id in SkyMapR3.ids do
 				count += 1
-				expect(table.find(FACES, face) ~= nil):toBe(true)
+				expect(table.find(REAL_SKY_KEYS, key) ~= nil):toBe(true)
 				expect(type(id)):toBe("number")
 				expect(#tostring(id) >= 12 and tostring(id):match("^%d+$") ~= nil):toBe(true)
 				expect(seen[id]):toBe(nil)
 				seen[id] = true
+			end
+			for _, old in ipairs(MANIFEST_FACES) do
+				expect(SkyMapR3.ids[old]):toBe(nil)
 			end
 			expect(count):toBe(6)
 			expect(SkyMapR3.faceCount()):toBe(6)
@@ -41,7 +62,7 @@ return function(t, Env, Fakes)
 			local atmosphere = SkyMapR3.atmosphere
 			expect(type(atmosphere)):toBe("table")
 			expect(atmosphere.Density):toBe(0.22)
-			expect(atmosphere.Decay):toBe(0.65)
+			expect(atmosphere.Decay):toEqual({ 120, 150, 160 })
 			expect(atmosphere.Offset):toBe(0.55)
 			expect(atmosphere.Glare):toBe(1.2)
 			expect(atmosphere.Haze):toBe(2.4)
@@ -61,8 +82,11 @@ return function(t, Env, Fakes)
 			expect(count):toBe(6)
 		end)
 
-		t:it("exports a 12-wedge pure ridge inside the corner footprint", function()
+		t:it("exports a 12-wedge pure ridge inside the re-staged corner footprint", function()
 			expect(#SkyMapR3.ridge):toBe(12)
+			local origin = SkyMapR3.STAGING_ORIGIN
+			expect(origin.x):toBe(-14)
+			expect(origin.z):toBe(-12)
 			local names = {}
 			for _, wedge in ipairs(SkyMapR3.ridge) do
 				expect(type(wedge.name) == "string" and #wedge.name > 0):toBe(true)
@@ -72,9 +96,9 @@ return function(t, Env, Fakes)
 				expect(Visuals.palette[wedge.color] ~= nil):toBe(true)
 				expect(#wedge.position):toBe(3)
 				expect(#wedge.size):toBe(3)
-				expect(wedge.position[1] >= 470 and wedge.position[1] <= 530):toBe(true)
+				expect(wedge.position[1] >= origin.x - 30 and wedge.position[1] <= origin.x + 30):toBe(true)
 				expect(wedge.position[2] >= 8 and wedge.position[2] <= 16):toBe(true)
-				expect(wedge.position[3] >= 470 and wedge.position[3] <= 530):toBe(true)
+				expect(wedge.position[3] >= origin.z - 30 and wedge.position[3] <= origin.z + 30):toBe(true)
 				for _, n in wedge.size do
 					expect(type(n) == "number"):toBe(true)
 				end
@@ -84,11 +108,13 @@ return function(t, Env, Fakes)
 
 		t:it("keeps the pure module free of Roblox APIs and asset URLs", function()
 			local src = fs.readFile("src/shared/SkyMapR3.luau")
-			expect(string.find(src, "game:", 1, true)):toBe(nil)
-			expect(string.find(src, "Instance.new", 1, true)):toBe(nil)
-			expect(string.find(src, "Color3", 1, true)):toBe(nil)
-			expect(string.find(src, "Vector3", 1, true)):toBe(nil)
-			expect(string.find(src, "rbxasset", 1, true)):toBe(nil)
+			-- Comments document the intended Color3 conversion; guard the executable code only.
+			local code = string.gsub(src, "%-%-[^\n]*", "")
+			expect(string.find(code, "game:", 1, true)):toBe(nil)
+			expect(string.find(code, "Instance.new", 1, true)):toBe(nil)
+			expect(string.find(code, "Color3", 1, true)):toBe(nil)
+			expect(string.find(code, "Vector3", 1, true)):toBe(nil)
+			expect(string.find(code, "rbxasset", 1, true)):toBe(nil)
 		end)
 	end)
 
@@ -173,7 +199,7 @@ return function(t, Env, Fakes)
 				local oldSky = newInstance("Sky")
 				oldSky.Name = "OriginalSky"
 				oldSky.Parent = Lighting
-				oldSky.SkyboxImageFront = "rbxassetid://original"
+				oldSky.SkyboxFt = "rbxassetid://original"
 				local oldAtmosphere = newInstance("Atmosphere")
 				oldAtmosphere.Parent = Lighting
 				oldAtmosphere.Density = 0.9
@@ -204,14 +230,15 @@ return function(t, Env, Fakes)
 			adapter.apply(nil)
 			local sky = find(Lighting, "Sky", "SkyR3")
 			expect(sky ~= nil):toBe(true)
-			for _, face in ipairs(FACES) do
-				expect(sky[face]):toBe("rbxassetid://" .. tostring(SkyMapR3.ids[face]))
+			for _, key in ipairs(REAL_SKY_KEYS) do
+				expect(sky[key]):toBe("rbxassetid://" .. tostring(SkyMapR3.ids[key]))
 			end
 			local atmosphere = find(Lighting, "Atmosphere")
 			expect(atmosphere ~= nil):toBe(true)
 			expect(atmosphere.Density):toBe(0.22)
 			expect(atmosphere.Haze):toBe(2.4)
 			expect(atmosphere.Color):toEqual({ R = 214 / 255, G = 223 / 255, B = 230 / 255 })
+			expect(atmosphere.Decay):toEqual({ R = 120 / 255, G = 150 / 255, B = 160 / 255 })
 			local folder = find(Workspace, "Folder", "SkyR3Ridge")
 			expect(folder ~= nil):toBe(true)
 			expect(countParts(folder)):toBe(#SkyMapR3.ridge)
@@ -224,7 +251,7 @@ return function(t, Env, Fakes)
 			expect(oldSky.Parent):toBe(nil)
 			adapter.restore()
 			expect(oldSky.Parent):toBe(Lighting)
-			expect(oldSky.SkyboxImageFront):toBe("rbxassetid://original")
+			expect(oldSky.SkyboxFt):toBe("rbxassetid://original")
 			expect(find(Lighting, "Sky", "SkyR3")):toBe(nil)
 			expect(find(Workspace, "Folder", "SkyR3Ridge")):toBe(nil)
 			local atmosphere = find(Lighting, "Atmosphere")
@@ -246,7 +273,7 @@ return function(t, Env, Fakes)
 		end)
 
 		t:it("warns but does not throw when a Roblox property setter fails", function()
-			thrownSkyFace = "SkyboxImageFront"
+			thrownSkyFace = "SkyboxFt"
 			local ok = pcall(function()
 				adapter.apply(nil)
 			end)
@@ -254,8 +281,8 @@ return function(t, Env, Fakes)
 			expect(#env.warnings > 0):toBe(true)
 			local sky = find(Lighting, "Sky", "SkyR3")
 			expect(sky ~= nil):toBe(true)
-			expect(sky.SkyboxImageFront):toBe(nil)
-			expect(sky.SkyboxImageBack):toBe("rbxassetid://" .. tostring(SkyMapR3.ids.SkyboxImageBack))
+			expect(sky.SkyboxFt):toBe(nil)
+			expect(sky.SkyboxBk):toBe("rbxassetid://" .. tostring(SkyMapR3.ids.SkyboxBk))
 			expect(find(Workspace, "Folder", "SkyR3Ridge") ~= nil):toBe(true)
 			expect(pcall(adapter.restore)):toBe(true)
 		end)
@@ -274,11 +301,11 @@ return function(t, Env, Fakes)
 			local SkyMapR3 = Env.new():require("shared/SkyMapR3")
 			local seen, seenCount = {}, 0
 			for face, id in string.gmatch(raw, '"face":%s*"([^"]+)".-"asset_id":%s*"([^"]+)"') do
-				expect(table.find(FACES, face) ~= nil):toBe(true)
+				expect(table.find(MANIFEST_FACES, face) ~= nil):toBe(true)
 				expect(seen[face]):toBe(nil)
 				seen[face] = true
 				seenCount += 1
-				expect(tonumber(id)):toBe(SkyMapR3.ids[face])
+				expect(tonumber(id)):toBe(SkyMapR3.ids[FACE_TO_SKY[face]])
 			end
 			expect(seenCount):toBe(6)
 		end)

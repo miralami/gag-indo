@@ -1,0 +1,112 @@
+[
+  {
+    "page": "https://poly.pizza/m/bXUTyfiwqBb",
+    "title": "Coconut palm tree - Free 3D Model By Poly by Google - Poly Pizza",
+    "creator": "Poly by Google",
+    "page_tris": 2784,
+    "licence": "?",
+    "licence_detail": "Creative Commons Attribution 0 Comments &#8203; Send Cance",
+    "licence_url": "https://creativecommons.org/licenses/by/3.0/",
+    "slot": "kelapa",
+    "glb_uuid": "8f6cf878-c10b-4d28-b38c-45e09d079031",
+    "glb_url": "https://static.poly.pizza/8f6cf878-c10b-4d28-b38c-45e09d079031.glb",
+    "glb": {
+      "bytes": 2384288,
+      "tris": 2784,
+      "images": 1,
+      "textures": 1,
+      "materials": 1,
+      "vertex_color": false,
+      "textured": true,
+      "extensions": []
+    }
+  },
+  {
+    "page": "https://poly.pizza/m/d0WJSiuOz6o",
+    "title": "Banana Tree - Free 3D Model By Poly by Google - Poly Pizza",
+    "creator": "Poly by Google",
+    "page_tris": 2138,
+    "licence": "?",
+    "licence_detail": "Creative Commons Attribution 0 Comments &#8203; Send Cance",
+    "licence_url": "https://creativecommons.org/licenses/by/3.0/",
+    "slot": "pisang",
+    "glb_uuid": "9beeeccc-55e3-46d8-8d9a-0933dc49194f",
+    "glb_url": "https://static.poly.pizza/9beeeccc-55e3-46d8-8d9a-0933dc49194f.glb",
+    "glb": {
+      "bytes": 1916228,
+      "tris": 2138,
+      "images": 1,
+      "textures": 1,
+      "materials": 1,
+      "vertex_color": false,
+      "textured": true,
+      "extensions": []
+    }
+  },
+  {
+    "page": "https://poly.pizza/m/eixDUxUDkTK",
+    "title": "Bamboo - Free 3D Model By Poly by Google - Poly Pizza",
+    "creator": "Poly by Google",
+    "page_tris": 3864,
+    "licence": "?",
+    "licence_detail": "Creative Commons Attribution 0 Comments &#8203; Send Cance",
+    "licence_url": "https://creativecommons.org/licenses/by/3.0/",
+    "slot": "bambu",
+    "glb_uuid": "6dfe1137-b696-4d9e-ac40-dbc8f51353f0",
+    "glb_url": "https://static.poly.pizza/6dfe1137-b696-4d9e-ac40-dbc8f51353f0.glb",
+    "glb": {
+      "bytes": 2345020,
+      "tris": 3864,
+      "images": 1,
+      "textures": 1,
+      "materials": 1,
+      "vertex_color": false,
+      "textured": true,
+      "extensions": []
+    }
+  },
+  {
+    "page": "https://poly.pizza/m/ekCgu7iLrz2",
+    "title": "Balsa tree - Free 3D Model By Poly by Google - Poly Pizza",
+    "creator": "Poly by Google",
+    "page_tris": 1038,
+    "licence": "?",
+    "licence_detail": "Creative Commons Attribution 0 Comments &#8203; Send Cance",
+    "licence_url": "https://creativecommons.org/licenses/by/3.0/",
+    "slot": "mangga",
+    "glb_uuid": "4c740e67-5607-4dae-889f-cbd747ca5b1b",
+    "glb_url": "https://static.poly.pizza/4c740e67-5607-4dae-889f-cbd747ca5b1b.glb",
+    "glb": {
+      "bytes": 3261188,
+      "tris": 1038,
+      "images": 1,
+      "textures": 1,
+      "materials": 1,
+      "vertex_color": false,
+      "textured": true,
+      "extensions": []
+    }
+  },
+  {
+    "page": "https://poly.pizza/m/aMGUklRjpyo",
+    "title": "Shrub - Free 3D Model By Poly by Google - Poly Pizza",
+    "creator": "Poly by Google",
+    "page_tris": 816,
+    "licence": "?",
+    "licence_detail": "Creative Commons Attribution 0 Comments &#8203; Send Cance",
+    "licence_url": "https://creativecommons.org/licenses/by/3.0/",
+    "slot": "shrubs",
+    "glb_uuid": "c6494160-b811-4990-8dac-6fda50ad3b95",
+    "glb_url": "https://static.poly.pizza/c6494160-b811-4990-8dac-6fda50ad3b95.glb",
+    "glb": {
+      "bytes": 4571680,
+      "tris": 816,
+      "images": 1,
+      "textures": 1,
+      "materials": 1,
+      "vertex_color": false,
+      "textured": true,
+      "extensions": []
+    }
+  }
+]

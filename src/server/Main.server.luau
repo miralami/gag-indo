@@ -105,5 +105,9 @@ PlayerData.start() -- last: loads profiles, which fires onLoaded callbacks regis
 -- the server bootstrap. Model families use InsertService, which is server-only.
 pcall(require, script.Parent.World.LookDevWalkin)
 pcall(require, script.Parent.World.LookDevModelsR3)
+pcall(require, script.Parent.World.LookDevModelsBuildingsR4)
+pcall(require, script.Parent.World.LookDevModelsVegetationR4)
+pcall(require, script.Parent.World.LookDevModelsPropsR4)
+pcall(require, script.Parent.World.LookDevModelsNpcsR4)
 
 print("[JuraganDesa] server started")

@@ -1,0 +1,149 @@
+--!strict
+-- LookDevReview: ONE-CALL Studio review toggles (WORK_QUEUE round 4 item 28, round-3 bug 7).
+--
+-- A `require(game.ReplicatedStorage.Shared.LookDev)` from the command bar / execute_luau VM gets a
+-- FRESH LookDev with no appliers registered, so .enable("id") silently does nothing. This helper
+-- first pcall(require)s the applier module(s) for the chosen candidate from the supplied root
+-- (ServerScriptService.Server for server candidates, PlayerScripts.Client for client ones), so
+-- the registration side effects happen in that same VM, and only then calls LookDev.enable.
+--
+-- PURE: no game API and no require at load. One line from the Studio command bar (Client or Server
+-- datamodel both work; pass `game`):
+--   require(game.ReplicatedStorage.Shared.LookDevReview).enable("sky_r3", game)
+--   require(game.ReplicatedStorage.Shared.LookDevReview).enable("buildings_r3", game)
+--   require(game.ReplicatedStorage.Shared.LookDevReview).disable()
+-- Restore with the same module instance; IDs are the existing Shared.LookDev.IDS only.
+
+local LookDevReview = {}
+
+-- Every candidate in Shared.LookDev.IDS. `datamodel` selects the container under `root`;
+-- `path` is the module path relative to that container.
+LookDevReview.paths = {
+	plaza_lighting = { datamodel = "client", path = { "World", "LookDevPlaza" } },
+	police_walkin = { datamodel = "server", path = { "World", "LookDevWalkin" } },
+	icons = { datamodel = "client", path = { "UI", "LookDevIcons" } },
+	textures = { datamodel = "client", path = { "World", "LookDevTextures" } },
+	npcs = { datamodel = "client", path = { "World", "LookDevNpcs" } },
+	crops = { datamodel = "client", path = { "World", "LookDevCrops" } },
+	hubprops = { datamodel = "client", path = { "World", "LookDevHubProps" } },
+	sounds = { datamodel = "client", path = { "World", "LookDevSounds" } },
+	corner = { datamodel = "client", path = { "World", "LookDevCorner" } },
+	textures_r3 = { datamodel = "client", path = { "World", "LookDevTexturesR3" } },
+	day_cycle = { datamodel = "client", path = { "World", "LookDevDayCycle" } },
+	icons_r3 = { datamodel = "client", path = { "UI", "LookDevIconsR3" } },
+	buildings_r3 = { datamodel = "server", path = { "World", "LookDevModelsR3" } },
+	vegetation_r3 = { datamodel = "server", path = { "World", "LookDevModelsR3" } },
+	props_r3 = { datamodel = "server", path = { "World", "LookDevModelsR3" } },
+	npcs_r3 = { datamodel = "server", path = { "World", "LookDevModelsR3" } },
+	sky_r3 = { datamodel = "client", path = { "World", "LookDevSkyR3" } },
+	textures_r4 = { datamodel = "client", path = { "World", "LookDevTexturesR4" } },
+	sky_r4_a = { datamodel = "client", path = { "World", "LookDevSkyR4" } },
+	sky_r4_b = { datamodel = "client", path = { "World", "LookDevSkyR4" } },
+	sky_r4_c = { datamodel = "client", path = { "World", "LookDevSkyR4" } },
+	buildings_r4 = { datamodel = "server", path = { "World", "LookDevModelsBuildingsR4" } },
+	vegetation_r4 = { datamodel = "server", path = { "World", "LookDevModelsVegetationR4" } },
+	props_r4 = { datamodel = "server", path = { "World", "LookDevModelsPropsR4" } },
+	npcs_r4 = { datamodel = "server", path = { "World", "LookDevModelsNpcsR4" } },
+}
+
+function LookDevReview.pathsFor(id: string): any?
+	return LookDevReview.paths[id]
+end
+
+-- Resolve the datamodel container. Direct fields make a one-call command-bar helper possible with
+-- `game` itself; the short aliases also let tests pass tiny fake roots.
+-- Member reads are individually pcall-guarded: on a real DataModel, indexing a service that is not
+-- a member throws (e.g. PlayerScripts on the Client DataModel), which must not abort resolution.
+local function get(obj: any, key: string): any?
+	if type(obj) ~= "table" and typeof(obj) ~= "Instance" then
+		return nil
+	end
+	local ok, value = pcall(function()
+		return obj[key]
+	end)
+	if ok then
+		return value
+	end
+	return nil
+end
+
+function LookDevReview.resolveContainer(datamodel: string, root: any): any?
+	if type(root) ~= "table" and typeof(root) ~= "Instance" then
+		return nil
+	end
+	if datamodel == "server" then
+		local sss = get(root, "ServerScriptService")
+		return get(sss, "Server") or get(root, "Server") or nil
+	end
+	local players = get(root, "Players")
+	local localPlayer = get(players, "LocalPlayer")
+	local playerScripts = get(localPlayer, "PlayerScripts")
+	local client = get(playerScripts, "Client")
+	if not client then
+		local directScripts = get(root, "PlayerScripts")
+		client = get(directScripts, "Client")
+	end
+	if not client then
+		local starterPlayer = get(root, "StarterPlayer")
+		local starterScripts = get(starterPlayer, "StarterPlayerScripts")
+		client = get(starterScripts, "Client")
+	end
+	if not client then
+		client = get(root, "Client")
+	end
+	return client or nil
+end
+
+local function dataModel(): any?
+	local ok, gameModel = pcall(function()
+		return game
+	end)
+	return if ok then gameModel else nil
+end
+
+local function sharedLookDev(): any
+	-- Lazy: keeps this module pure at load, and `script.Parent.LookDev` is the same shared module
+	-- instance every applier registered into at boot or during prepare().
+	return require(script.Parent.LookDev)
+end
+
+-- Require the applier module(s) for this candidate in THIS VM, before .enable() is called.
+function LookDevReview.prepare(id: string, root: any?): (boolean, string?)
+	local entry = LookDevReview.pathsFor(id)
+	if not entry then
+		return false, "unknown review candidate"
+	end
+	root = if root == nil then dataModel() else root
+	local container = LookDevReview.resolveContainer(entry.datamodel, root)
+	if not container then
+		return false, "missing " .. entry.datamodel .. " container"
+	end
+	local node = container
+	for _, segment in entry.path do
+		node = node[segment]
+		if not node then
+			return false, "missing applier module " .. table.concat(entry.path, ".")
+		end
+	end
+	local ok, result = pcall(require, node)
+	if not ok then
+		return false, "applier require failed: " .. tostring(result)
+	end
+	return true, nil
+end
+
+-- One command: prepare (register in this VM) first, then the shared dot-syntax toggle.
+function LookDevReview.enable(id: string, root: any?, opts: any?): (boolean, string?)
+	local prepared, why = LookDevReview.prepare(id, root)
+	if not prepared then
+		return false, why
+	end
+	local LookDev = sharedLookDev()
+	return LookDev.enable(id, opts)
+end
+
+function LookDevReview.disable(): boolean
+	return sharedLookDev().disable()
+end
+
+return LookDevReview

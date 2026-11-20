@@ -1,7 +1,9 @@
 -- LookDevSkyR3: client applier for the OFF-BY-DEFAULT "sky_r3" candidate (WORK_QUEUE
--- round 3 item 24). Builds the six-face CC0_hdr sky, the proposed Atmosphere haze and a
--- low ridge-silhouette ring from the pure recipe in Shared.SkyMapR3. No asset ID lives
--- here: ids and recipe data come from Shared.SkyMapR3, colours from Visuals.palette.
+-- round 3 item 24, bug fix item 28). Builds the six-face CC0_hdr sky, the proposed Atmosphere
+-- haze and a low ridge-silhouette ring from the pure recipe in Shared.SkyMapR3. The generic loop
+-- below writes the REAL Sky properties SkyboxBk/Dn/Ft/Lf/Rt/Up from SkyMapR3.ids, and resolve()
+-- turns the plain {r,g,b} arrays (including Atmosphere.Decay) into Color3 at apply time.
+-- No asset ID lives here: ids and recipe data come from Shared.SkyMapR3, colours from Visuals.palette.
 -- The previous Sky child, every touched Atmosphere value and all created Instances are
 -- restored/destroyed on disable. Every Roblox call is pcall'd; failures warn, never throw.
 -- No visual verdict is claimed here.

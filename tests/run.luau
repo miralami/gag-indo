@@ -144,6 +144,13 @@ local specs = {
 	require("./specs/icon_map_r3_spec"),
 	require("./specs/model_map_r3_spec"),
 	require("./specs/sky_map_r3_spec"),
+	require("./specs/review_round3_bugfix_spec"),
+	require("./specs/texture_map_r4_spec"),
+	require("./specs/sky_map_r4_spec"),
+	require("./specs/model_map_buildings_r4_spec"),
+	require("./specs/model_map_vegetation_r4_spec"),
+	require("./specs/model_map_props_r4_spec"),
+	require("./specs/model_map_npcs_r4_spec"),
 }
 
 -- `--timing` prints a full per-spec table; without it only the slowest rows print. The first

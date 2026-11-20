@@ -13,6 +13,27 @@ return function(t, Env)
 	local manifestPath = "docs/v2/visual/art/models_r3/upload_manifest.json"
 	local order = { "buildings_r3", "vegetation_r3", "props_r3", "npcs_r3" }
 	local slotCounts = { buildings_r3 = 3, vegetation_r3 = 6, props_r3 = 5, npcs_r3 = 6 }
+	local HALF = 30 -- 60x60 staging footprint centred on ModelMapR3.STAGING_ORIGIN
+	local expectedHeights = {
+		buildings_r3 = { rumah = 22, kandang = 12, gudang = 14 },
+		vegetation_r3 = {
+			kelapa_cc0 = 30,
+			bambu_cc0 = 20,
+			kelapa_alt = 28,
+			pisang = 12,
+			mangga = 22,
+			shrubs = 6,
+		},
+		props_r3 = { cart = 6, well = 8, stall = 10, fence = 5, tools = 3 },
+		npcs_r3 = {
+			farmer_cc0 = 5,
+			polisi_cc0 = 5,
+			villager_a = 5,
+			villager_b = 5,
+			villager_c = 5,
+			villager_d = 5,
+		},
+	}
 
 	t:describe("ModelMapR3 candidate IDs", function()
 		t:it("has 20 unique numeric real-ID-shaped values", function()
@@ -59,17 +80,35 @@ return function(t, Env)
 			expect(ModelMapR3.idsFor("not_a_family")):toBe(nil)
 		end)
 
-		t:it("keeps every slot inside the 60x60 corner and at least 4 studs apart", function()
+		t:it("keeps every slot inside the re-staged 60x60 corner and at least 4 studs apart", function()
+			local origin = ModelMapR3.STAGING_ORIGIN
+			expect(origin.x):toBe(-14)
+			expect(origin.z):toBe(-12)
 			for _, familyId in ipairs(order) do
 				local family = ModelMapR3.families[familyId]
 				for i, slot in ipairs(family.slots) do
-					expect(slot.x >= 470 and slot.x <= 530):toBe(true)
-					expect(slot.z >= 470 and slot.z <= 530):toBe(true)
+					expect(slot.x >= origin.x - HALF and slot.x <= origin.x + HALF):toBe(true)
+					expect(slot.z >= origin.z - HALF and slot.z <= origin.z + HALF):toBe(true)
 					expect(type(slot.ry)):toBe("number")
 					for j = i + 1, #family.slots do
 						local other = family.slots[j]
 						local dx, dz = slot.x - other.x, slot.z - other.z
 						expect(math.sqrt(dx * dx + dz * dz) >= 4):toBe(true)
+					end
+				end
+			end
+		end)
+
+		t:it("gives every slot its targetHeight and stands the two CC0 imports upright", function()
+			for _, familyId in ipairs(order) do
+				for _, slot in ipairs(ModelMapR3.families[familyId].slots) do
+					expect(type(slot.targetHeight)):toBe("number")
+					expect(slot.targetHeight):toBe(expectedHeights[familyId][slot.slot])
+					local wantsRotX = familyId == "npcs_r3" and (slot.slot == "farmer_cc0" or slot.slot == "polisi_cc0")
+					if wantsRotX then
+						expect(math.abs(slot.rotX - math.pi / 2) < 0.0001):toBe(true)
+					else
+						expect(slot.rotX):toBe(nil)
 					end
 				end
 			end

@@ -1,12 +1,19 @@
 -- LookDevModelsR3: SERVER-ONLY appliers for the four OFF-BY-DEFAULT round-3 model
--- candidates (WORK_QUEUE item 23). InsertService:LoadAsset works in the Server datamodel
--- but is blocked on the client, so these appliers MUST be required from Main.server.luau
+-- candidates (WORK_QUEUE item 23, bug fixes item 28). InsertService:LoadAsset works in the Server
+-- datamodel but is blocked on the client, so these appliers MUST be required from Main.server.luau
 -- and toggled from the Studio command bar with the Server datamodel selected.
 -- See docs/v2/visual/art/models_r3/INTEGRATION.md for the four toggles and cameras.
 --
 -- Eligibility is handled by Shared.LookDev: every candidate is off until .enable() is called
 -- from Studio, and .disable() restores the previous look. No asset ID literals live here;
 -- they all come from Shared.ModelMapR3 (which is also what the spec audits).
+--
+-- ROUND-3 BUGS 3/4/5: after every LoadAsset the model is rotated (rotX for the Z-up CC0 imports),
+-- normalised to the slot's targetHeight with Model:ScaleTo, then EVERY BasePart descendant is
+-- anchored (so it cannot fall through the ground) with CanCollide=false — this staging sits on
+-- real PLAZA ground near spawn, so a colliding display model would be an invisible player blocker.
+-- Anchored + non-colliding is the safe staging combination; no shipping collision is changed.
+-- Every Roblox call below is pcall'd: a bad asset warns and is skipped, never throws.
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local LookDev = require(Shared.LookDev)
@@ -33,8 +40,21 @@ local function clearActive(family: string)
 	active[family] = nil
 end
 
--- Put the model's own bounding-box bottom on y=0. Fall back to the raw pivot if the loaded
--- asset is not a Model (or has no descendants to measure); never let this throw.
+-- Rotate about the model's own pivot BEFORE measuring it: a Z-up import needs rotX = pi/2 first,
+-- otherwise ScaleTo would normalise its depth instead of its upright height.
+local function orient(model: any, slot: any): boolean
+	local ok, pivot = pcall(function()
+		return model:GetPivot()
+	end)
+	if not ok or not pivot then
+		return false
+	end
+	return pcall(function()
+		model:PivotTo(CFrame.new(pivot.Position) * CFrame.Angles(slot.rotX or 0, slot.ry, 0))
+	end)
+end
+
+-- Put the model's own bounding-box bottom on y=0 at the slot, keeping rotX + ry in the target.
 local function placeAtGround(model: any, slot: any)
 	local y = 0
 	local ok, boxCFrame, boxSize = pcall(function()
@@ -48,7 +68,7 @@ local function placeAtGround(model: any, slot: any)
 			y = pivot.Y - boxCFrame.Y + boxSize.Y * 0.5
 		end
 	end
-	local target = CFrame.new(slot.x, y, slot.z) * CFrame.Angles(0, slot.ry, 0)
+	local target = CFrame.new(slot.x, y, slot.z) * CFrame.Angles(slot.rotX or 0, slot.ry, 0)
 	if pcall(function()
 		model:PivotTo(target)
 	end) then
@@ -57,6 +77,48 @@ local function placeAtGround(model: any, slot: any)
 	pcall(function()
 		model:SetPrimaryPartCFrame(target)
 	end)
+end
+
+-- Scale every loaded model to its slot's targetHeight. Guard tiny/zero/NaN sizes so a broken
+-- asset can never produce an infinite or negative scale.
+local function normaliseScale(model: any, slot: any): boolean
+	local ok, _, size = pcall(function()
+		return model:GetBoundingBox()
+	end)
+	if not ok or not size or size.Y <= 0.01 or size.Y ~= size.Y then
+		return false
+	end
+	return pcall(function()
+		model:ScaleTo(slot.targetHeight / size.Y)
+	end)
+end
+
+-- Review staging near spawn must be visible but inert: anchored so parts stay put on the plaza,
+-- CanCollide=false so players can walk through them. Documented above; never a shipping change.
+local function anchorAndDisableCollision(model: any)
+	local ok, descendants = pcall(function()
+		return model:GetDescendants()
+	end)
+	if not ok or not descendants then
+		return
+	end
+	for _, descendant in descendants do
+		pcall(function()
+			if descendant:IsA("BasePart") then
+				descendant.Anchored = true
+				descendant.CanCollide = false
+			end
+		end)
+	end
+end
+
+local function stage(model: any, slot: any)
+	orient(model, slot)
+	if not normaliseScale(model, slot) then
+		warn("[LookDevModelsR3] could not scale " .. slot.slot .. ": invalid bounding box")
+	end
+	anchorAndDisableCollision(model)
+	placeAtGround(model, slot)
 end
 
 local function applierFor(family: string)
@@ -68,7 +130,9 @@ local function applierFor(family: string)
 			local previous = Workspace:FindFirstChild(name)
 			if previous then
 				-- Detach, not Destroy: restore() puts this exact folder back.
-				previous.Parent = nil
+				pcall(function()
+					previous.Parent = nil
+				end)
 				saved[family] = previous
 			end
 
@@ -93,9 +157,13 @@ local function applierFor(family: string)
 							.. tostring(model)
 					)
 				else
-					model.Name = "R3_" .. slot.slot
-					placeAtGround(model, slot)
-					model.Parent = folder
+					pcall(function()
+						model.Name = "R3_" .. slot.slot
+					end)
+					stage(model, slot)
+					pcall(function()
+						model.Parent = folder
+					end)
 				end
 			end
 			if failures > 0 then

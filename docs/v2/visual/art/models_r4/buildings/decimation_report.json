@@ -1,0 +1,164 @@
+{
+  "tool": "@gltf-transform/cli@4.5.1",
+  "budget": 8000,
+  "working_target": 7800,
+  "door_scale_y": 1.12,
+  "models": [
+    {
+      "slot": "rumah",
+      "source": "raw/buildings_r4/stilt-house-light.glb",
+      "export": "export/buildings_r4/rumah_r4.glb",
+      "raw_triangles": 20400,
+      "attempts": [
+        {
+          "ratio": 0.38,
+          "triangles": 8518
+        },
+        {
+          "ratio": 0.33,
+          "triangles": 8136
+        },
+        {
+          "ratio": 0.28,
+          "triangles": 7848
+        },
+        {
+          "ratio": 0.23,
+          "triangles": 7569
+        }
+      ],
+      "final_triangles": 7569,
+      "images": 2,
+      "textures": 2,
+      "textured_materials": 1,
+      "bounds_min": [
+        -5.1971,
+        0.0,
+        -6.4
+      ],
+      "bounds_max": [
+        5.1971,
+        7.0915,
+        6.4
+      ],
+      "door_height": 2.3386,
+      "bytes": 629392,
+      "sha256": "1c0cedb2e7c11541ce2516f169c627fb1049da4de37d70a11a8085bac4271773"
+    },
+    {
+      "slot": "kandang",
+      "source": "raw/buildings_r4/chicken-coop.glb",
+      "export": "export/buildings_r4/kandang_r4.glb",
+      "raw_triangles": 18576,
+      "attempts": [
+        {
+          "ratio": 0.42,
+          "triangles": 9034
+        },
+        {
+          "ratio": 0.37,
+          "triangles": 8586
+        },
+        {
+          "ratio": 0.32,
+          "triangles": 8200
+        },
+        {
+          "ratio": 0.27,
+          "triangles": 7906
+        },
+        {
+          "ratio": 0.22,
+          "triangles": 7616
+        }
+      ],
+      "final_triangles": 7616,
+      "images": 3,
+      "textures": 3,
+      "textured_materials": 1,
+      "bounds_min": [
+        -1.8125,
+        0.0,
+        -0.755
+      ],
+      "bounds_max": [
+        1.8125,
+        1.9869,
+        0.755
+      ],
+      "door_height": 0.624,
+      "bytes": 654276,
+      "sha256": "4c5d14893777e1dc70c7bfd59169a9c0c8c1785a8e852597700fafa15edd433c"
+    },
+    {
+      "slot": "gudang",
+      "source": "raw/buildings_r4/garden-shed.glb",
+      "export": "export/buildings_r4/gudang_r4.glb",
+      "raw_triangles": 11860,
+      "attempts": [
+        {
+          "ratio": 0.66,
+          "triangles": 8402
+        },
+        {
+          "ratio": 0.61,
+          "triangles": 7956
+        },
+        {
+          "ratio": 0.56,
+          "triangles": 7560
+        }
+      ],
+      "final_triangles": 7560,
+      "images": 3,
+      "textures": 3,
+      "textured_materials": 1,
+      "bounds_min": [
+        -1.7064,
+        0.0,
+        -1.7343
+      ],
+      "bounds_max": [
+        1.7064,
+        3.6438,
+        1.741
+      ],
+      "door_height": 1.81,
+      "bytes": 669776,
+      "sha256": "347158e0cf76ec8dbcee8683a5ee79eecbe992bf82bf4cff1cd364ce092b7d31"
+    },
+    {
+      "slot": "warung",
+      "source": "raw/buildings_r4/market-stall-light.glb",
+      "export": "export/buildings_r4/warung_r4.glb",
+      "raw_triangles": 15744,
+      "attempts": [
+        {
+          "ratio": 0.5,
+          "triangles": 8170
+        },
+        {
+          "ratio": 0.45,
+          "triangles": 7460
+        }
+      ],
+      "final_triangles": 7460,
+      "images": 2,
+      "textures": 2,
+      "textured_materials": 1,
+      "bounds_min": [
+        -1.821,
+        0.0,
+        -1.3291
+      ],
+      "bounds_max": [
+        1.8182,
+        2.6509,
+        1.332
+      ],
+      "door_height": null,
+      "bytes": 608676,
+      "sha256": "0f1f4daec83ec21528e12b70a87e2e48c1d252e133320cf0edf16693f7bb543e"
+    }
+  ]
+}

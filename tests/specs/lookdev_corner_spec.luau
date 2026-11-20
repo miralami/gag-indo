@@ -1,7 +1,8 @@
 --!nocheck
--- LookDevCorner spec (WORK_QUEUE round 3 item 2): pure recipe + thin adapter for the 60x60
--- warung / road bend / sawah edge corner. Locks the golden-hour clock, the footprint, the
--- palette/material allowlists, and V-D1 (no outlines) / no-asset-ID rules. No visual verdict here.
+-- LookDevCorner spec (WORK_QUEUE round 3 item 2, item 28 bug 6): pure recipe + thin adapter for the
+-- 60x60 warung / road bend / sawah edge corner staged on real PLAZA ground. Locks the new origin,
+-- the three saved review cameras, the golden-hour clock, the palette/material allowlists, and V-D1
+-- (no outlines) / no-asset-ID rules. No visual verdict here.
 
 local fs = require("@lune/fs")
 
@@ -9,6 +10,11 @@ return function(t, Env)
 	local expect = t.expect
 	local RECIPE = "src/shared/LookDevCorner.luau"
 	local ADAPTER = "src/client/World/LookDevCorner.luau"
+	local EXPECTED_CAMERAS = {
+		warung = { position = { -34, 12, -12 }, lookAt = { -28, 4, -26 } },
+		road_bend = { position = { -2, 10, 10 }, lookAt = { -2, 1, -9 } },
+		sawah_edge = { position = { -14, 8, 16 }, lookAt = { -28, 1, 6 } },
+	}
 
 	t:describe("LookDevCorner recipe", function()
 		local Corner, LookDev, WorldConstants, Visuals
@@ -20,12 +26,12 @@ return function(t, Env)
 			Visuals = env:require("shared/Config/Visuals")
 		end)
 
-		t:it("is a 60-stud corner placed away from the runtime world", function()
+		t:it("is a 60-stud corner staged on real MapSpec.PLAZA ground", function()
 			expect(Corner.SIZE):toBe(60)
 			expect(#Corner.ORIGIN):toBe(3)
-			expect(Corner.ORIGIN[1]):toBe(500)
+			expect(Corner.ORIGIN[1]):toBe(-14)
 			expect(Corner.ORIGIN[2]):toBe(0)
-			expect(Corner.ORIGIN[3]):toBe(500)
+			expect(Corner.ORIGIN[3]):toBe(-12)
 		end)
 
 		t:it("shows the golden-hour midpoint from WorldConstants", function()
@@ -67,6 +73,12 @@ return function(t, Env)
 			expect(ids.warung):toBe(true)
 			expect(ids.road_bend):toBe(true)
 			expect(ids.sawah_edge):toBe(true)
+			for _, cam in Corner.cameras do
+				local expected = EXPECTED_CAMERAS[cam.id]
+				expect(expected ~= nil):toBe(true)
+				expect(cam.position):toEqual(expected.position)
+				expect(cam.lookAt):toEqual(expected.lookAt)
+			end
 		end)
 
 		t:it("keeps every part in-bounds with a valid group, material and palette token", function()

@@ -46,28 +46,25 @@ Cubemap direction is `normal + sx*right + sy*up`, with `sx,sy` pixel centres in
 `compress_level=9, optimize=False` and no timestamp metadata. Rerunning the
 generator produces byte-identical PNGs (verified twice; hashes in `MANIFEST.md`).
 
-## Proposed Roblox `Sky` properties
+## Roblox `Sky` properties (round-3 bug 2 fixed)
 
-`<PENDING_UPLOAD:file>` means the main session uploads that PNG and pastes the
-returned `rbxassetid://…` here. Nothing below is an invented ID.
+The six faces use the **real** Roblox `Sky` properties, not the old invented `SkyboxImage*`
+names. The six real asset IDs live in `src/shared/SkyMapR3.ids` and are recorded per face in
+`upload_manifest.json`; no ID is invented here. The adapter loops the map and sets each property
+to `"rbxassetid://" .. id`.
 
-| Property | Proposed value |
-| --- | --- |
-| `SkyboxImageBack` | `<PENDING_UPLOAD:SkyboxImageBack.png>` |
-| `SkyboxImageBottom` | `<PENDING_UPLOAD:SkyboxImageBottom.png>` |
-| `SkyboxImageFront` | `<PENDING_UPLOAD:SkyboxImageFront.png>` |
-| `SkyboxImageLeft` | `<PENDING_UPLOAD:SkyboxImageLeft.png>` |
-| `SkyboxImageRight` | `<PENDING_UPLOAD:SkyboxImageRight.png>` |
-| `SkyboxImageTop` | `<PENDING_UPLOAD:SkyboxImageTop.png>` |
-| `SkyboxIntensity` | `1.0` |
-| `SunAngularSize` | `0.5` |
-| `MoonAngularSize` | `0.5` |
-| `StarCount` | `0` (overcast sunrise) |
-| `SunTextureId` | `""` (avoid a second sun over the baked HDRI glow) |
-| `MoonTextureId` | `""` |
+| Real property | Old face file | ID source |
+| --- | --- | --- |
+| `SkyboxBk` | `SkyboxImageBack.png` | `SkyMapR3.ids.SkyboxBk` |
+| `SkyboxDn` | `SkyboxImageBottom.png` | `SkyMapR3.ids.SkyboxDn` |
+| `SkyboxFt` | `SkyboxImageFront.png` | `SkyMapR3.ids.SkyboxFt` |
+| `SkyboxLf` | `SkyboxImageLeft.png` | `SkyMapR3.ids.SkyboxLf` |
+| `SkyboxRt` | `SkyboxImageRight.png` | `SkyMapR3.ids.SkyboxRt` |
+| `SkyboxUp` | `SkyboxImageTop.png` | `SkyMapR3.ids.SkyboxUp` |
 
 Apply only behind LookDev `sky_r3`, off by default; save and restore any
-pre-existing `Sky` property values on disable.
+pre-existing `Sky` property values on disable. One-call review form:
+`require(game.ReplicatedStorage.Shared.LookDevReview).enable("sky_r3", game)`.
 
 ## Proposed `Atmosphere` haze
 
@@ -77,30 +74,30 @@ Starting values only. Nothing here has been viewed in Studio.
 | --- | --- |
 | `Density` | `0.22` |
 | `Color` | `Color3.fromRGB(214, 223, 230)` |
-| `Decay` | `0.65` |
+| `Decay` | `Color3.fromRGB(120, 150, 160)` — a COLOUR, never a bare number (bug 2) |
 | `Offset` | `0.55` |
 | `Glare` | `1.2` |
 | `Haze` | `2.4` |
 
+The pure recipe stores each colour as a plain `{r,g,b}` array; the applier's `resolve()` makes the
+`Color3` at apply time.
+
 ## Ridge silhouette
 
-Proposal, not built here: create a `Folder` named `SkyR3Ridge` **inside**
-`Workspace.LookDevCorner` so the existing corner adapter destroys it on
-`LookDev.disable()`; if a folder of that name already exists, save and restore it.
-Populate it with 24 dark wedge `Part`s (or one `MeshPart` ring) centred on
-`(500, *, 500)`, radius ~27 studs, each wedge ~6 studs wide, `y` centres 10–14 and
-heights 8–20 studs (varied to make a low ridge). Suggested look:
-`Color3.fromRGB(24, 28, 32)`, `Material=Enum.Material.Plastic`, `CastShadow=false`.
-Radius 27 + half-width 3 keeps the ring inside the X/Z 470–530 footprint.
-No silhouette geometry or ID is fabricated in this package.
+The `sky_r3` applier builds a `Workspace.SkyR3Ridge` folder with twelve dark wedge `Part`s
+centred on `(-14, *, -12)` — the same staged origin as the corner and model families on real PLAZA
+ground. Radius ~27 studs, each wedge ~6 studs wide, `y` centres 10–14 and heights 8–20 studs.
+`Material=Enum.Material.Plastic`, `CastShadow=false`, `Anchored=true`, `CanCollide=false`, colour
+from the `tinta` palette token. Radius 27 + half-width 3 keeps the ring inside X -44..16 /
+Z -42..18, i.e. inside `MapSpec.PLAZA`. No silhouette ID is fabricated in this package.
 
 ## Saved review camera (absolute world coordinates)
 
-Proposed camera for the 60×60 corner footprint (X/Z 470–530), not yet captured:
+Camera for the re-staged corner (old values shifted by X -514, Z -512), not yet captured:
 
 | Shot id | `camera_position` | `look_at_position` |
 | --- | --- | --- |
-| `sky_horizon` | `{ 500, 9, 554 }` | `{ 500, 16, 500 }` |
+| `sky_horizon` | `{ -14, 9, 42 }` | `{ -14, 16, -12 }` |
 
 It looks north across the corner centre with a slight upward tilt, so the ridge
 band sits low and the overcast sky fills the upper frame. Use the existing

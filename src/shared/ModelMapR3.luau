@@ -1,20 +1,24 @@
 --!strict
--- ModelMapR3: real round-3 Model asset IDs and corner staging for the four OFF-BY-DEFAULT
+-- ModelMapR3: real round-3 Model asset IDs and staged corner slots for the four OFF-BY-DEFAULT
 -- "buildings_r3", "vegetation_r3", "props_r3" and "npcs_r3" LookDev candidates
--- (WORK_QUEUE round 3 item 23). All 20 IDs came back from completed ROBLOX_API_KEY -> Open
--- Cloud uploads and are recorded in docs/v2/visual/art/models_r3/upload_manifest.json.
--- The IDs live here, not in the server adapter, so the "no asset IDs in LookDev/adapters" guard
--- still holds. Pure data: no game APIs at load time, so specs can require this under Lune.
+-- (WORK_QUEUE round 3 item 23, bug fixes item 28). All 20 IDs came back from completed
+-- ROBLOX_API_KEY -> Open Cloud uploads and are recorded in
+-- docs/v2/visual/art/models_r3/upload_manifest.json. The IDs live here, not in the server adapter,
+-- so the "no asset IDs in LookDev/adapters" guard still holds. Pure data: no game APIs at load.
 --
--- Positions are absolute, inside the 60x60 corner (origin { 500, 0, 500 }, X/Z 470-530).
--- Each family is a single tidy row facing its saved review camera in MANIFEST.md, with at
--- least 4 studs between neighbouring slots. `ry` is a Y rotation in radians.
+-- ROUND-3 BUGS 3-6: staging is on REAL PLAZA ground (MapSpec.PLAZA spans X -48..48, Z -42..42),
+-- centred at STAGING_ORIGIN, off the spawn/road/hub clearings. Every slot has a targetHeight in
+-- studs (the server adapter calls Model:ScaleTo(targetHeight / loaded Y size)); farmer_cc0 and
+-- polisi_cc0 carry rotX = math.pi/2 to fix the Z-up/Y-up import error. `ry` is the Y rotation in
+-- radians and is applied together with rotX in one target CFrame.
 
 export type Slot = {
 	slot: string,
 	x: number,
 	z: number,
 	ry: number,
+	targetHeight: number,
+	rotX: number?,
 }
 
 export type Family = {
@@ -26,6 +30,10 @@ export type Family = {
 
 local ModelMapR3 = {}
 
+-- Data seam: the same centre is used by LookDevCorner and SkyMapR3; the regression spec asserts
+-- all three agree and that every coordinate stays inside the real MapSpec ground footprint.
+ModelMapR3.STAGING_ORIGIN = { x = -14, z = -12 }
+
 ModelMapR3.families = {
 	buildings_r3 = {
 		id = "buildings_r3",
@@ -35,11 +43,11 @@ ModelMapR3.families = {
 			kandang = 119940478952704,
 			gudang = 111256303923528,
 		},
-		-- Camera { 500, 16, 542 } -> { 500, 4, 490 }: row across X, fronts toward +Z.
+		-- Camera { -14, 16, 30 } -> { -14, 4, -22 }: row across X, fronts toward +Z.
 		slots = {
-			{ slot = "rumah", x = 484, z = 502, ry = math.pi },
-			{ slot = "kandang", x = 500, z = 502, ry = math.pi },
-			{ slot = "gudang", x = 516, z = 502, ry = math.pi },
+			{ slot = "rumah", x = -30, z = -10, ry = math.pi, targetHeight = 22 },
+			{ slot = "kandang", x = -14, z = -10, ry = math.pi, targetHeight = 12 },
+			{ slot = "gudang", x = 2, z = -10, ry = math.pi, targetHeight = 14 },
 		},
 	},
 
@@ -54,14 +62,14 @@ ModelMapR3.families = {
 			mangga = 121015860286403,
 			shrubs = 130954290306373,
 		},
-		-- Camera { 468, 12, 520 } -> { 500, 4, 500 }: row perpendicular to that view.
+		-- Camera { -46, 12, 8 } -> { -14, 4, -12 }: row perpendicular to that view.
 		slots = {
-			{ slot = "kelapa_cc0", x = 487, z = 479, ry = -1.0 },
-			{ slot = "bambu_cc0", x = 492, z = 487, ry = -1.0 },
-			{ slot = "kelapa_alt", x = 497, z = 496, ry = -1.0 },
-			{ slot = "pisang", x = 503, z = 504, ry = -1.0 },
-			{ slot = "mangga", x = 508, z = 513, ry = -1.0 },
-			{ slot = "shrubs", x = 513, z = 521, ry = -1.0 },
+			{ slot = "kelapa_cc0", x = -27, z = -33, ry = -1.0, targetHeight = 30 },
+			{ slot = "bambu_cc0", x = -22, z = -25, ry = -1.0, targetHeight = 20 },
+			{ slot = "kelapa_alt", x = -17, z = -16, ry = -1.0, targetHeight = 28 },
+			{ slot = "pisang", x = -11, z = -8, ry = -1.0, targetHeight = 12 },
+			{ slot = "mangga", x = -6, z = 1, ry = -1.0, targetHeight = 22 },
+			{ slot = "shrubs", x = -1, z = 9, ry = -1.0, targetHeight = 6 },
 		},
 	},
 
@@ -75,13 +83,13 @@ ModelMapR3.families = {
 			fence = 85094565897097,
 			tools = 110400413362502,
 		},
-		-- Camera { 532, 11, 500 } -> { 498, 2, 500 }: row across Z, fronts toward +X.
+		-- Camera { 18, 11, -12 } -> { -16, 2, -12 }: row across Z, fronts toward +X.
 		slots = {
-			{ slot = "cart", x = 500, z = 480, ry = -math.pi / 2 },
-			{ slot = "well", x = 500, z = 490, ry = -math.pi / 2 },
-			{ slot = "stall", x = 500, z = 500, ry = -math.pi / 2 },
-			{ slot = "fence", x = 500, z = 510, ry = -math.pi / 2 },
-			{ slot = "tools", x = 500, z = 520, ry = -math.pi / 2 },
+			{ slot = "cart", x = -14, z = -32, ry = -math.pi / 2, targetHeight = 6 },
+			{ slot = "well", x = -14, z = -22, ry = -math.pi / 2, targetHeight = 8 },
+			{ slot = "stall", x = -14, z = -12, ry = -math.pi / 2, targetHeight = 10 },
+			{ slot = "fence", x = -14, z = -2, ry = -math.pi / 2, targetHeight = 5 },
+			{ slot = "tools", x = -14, z = 8, ry = -math.pi / 2, targetHeight = 3 },
 		},
 	},
 
@@ -96,14 +104,15 @@ ModelMapR3.families = {
 			villager_c = 75017945133929,
 			villager_d = 128549093376717,
 		},
-		-- Camera { 500, 7, 524 } -> { 500, 2, 500 }: row across X, fronts toward +Z.
+		-- Camera { -14, 7, 12 } -> { -14, 2, -12 }: row across X, fronts toward +Z.
+		-- rotX = pi/2 stands the two CC0 Z-up imports upright (round-3 bug 5).
 		slots = {
-			{ slot = "farmer_cc0", x = 480, z = 500, ry = math.pi },
-			{ slot = "polisi_cc0", x = 488, z = 500, ry = math.pi },
-			{ slot = "villager_a", x = 496, z = 500, ry = math.pi },
-			{ slot = "villager_b", x = 504, z = 500, ry = math.pi },
-			{ slot = "villager_c", x = 512, z = 500, ry = math.pi },
-			{ slot = "villager_d", x = 520, z = 500, ry = math.pi },
+			{ slot = "farmer_cc0", x = -34, z = -12, ry = math.pi, rotX = math.pi / 2, targetHeight = 5 },
+			{ slot = "polisi_cc0", x = -26, z = -12, ry = math.pi, rotX = math.pi / 2, targetHeight = 5 },
+			{ slot = "villager_a", x = -18, z = -12, ry = math.pi, targetHeight = 5 },
+			{ slot = "villager_b", x = -10, z = -12, ry = math.pi, targetHeight = 5 },
+			{ slot = "villager_c", x = -2, z = -12, ry = math.pi, targetHeight = 5 },
+			{ slot = "villager_d", x = 6, z = -12, ry = math.pi, targetHeight = 5 },
 		},
 	},
 } :: { [string]: Family }

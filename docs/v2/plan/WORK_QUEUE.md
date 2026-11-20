@@ -399,6 +399,76 @@ because of how they were applied, not where they came from.
   and `police_walkin` is still pending; items 12/16 still need designer hardware. Their BLOCKED
   reasons were updated. No further agent-closable work remains.
 
+### I. Round 5 — spawn ground, sky and characters (added 2026-11-20 after the round-4 Studio review)
+
+**Designer verdicts and notes, 2026-11-20** (recorded in `CANDIDATES.md`; shots in
+`docs/v2/evidence/h/2026-11-20-review-round4/REVIEW_ROUND4_STUDIO.html` and `STUDIO_REVIEW.md`).
+
+- **Overall:** spawn still feels thin. The textures look wrong. The vegetation is messy and sometimes
+  overlaps the ground and the road.
+- **Ground:** spawn doesn't need a road. Turn the paths into dirt (*tanah*). Save the road design for
+  later, for a level that really has a road.
+- **Sky:** look for Indonesian sky references and HDRIs; ours looks different from a real
+  Indonesian sky. The default must not be this cloudy. Overcast belongs to a later rain or season
+  event, which is not in this round.
+- **Buildings:** `buildings_r4` is fine as a temporary placeholder; the designer will refine the final
+  models later.
+- **Vegetation:** pisang is good. Kelapa is kept for another level, so take it out of spawn. Bambu and
+  mangga still need work.
+- **Props:** jemuran is good. Keep the karung semen, but put it somewhere it makes sense (by the
+  gudang, a toko bangunan or a small renovation spot). The other tools are too small.
+- **Characters:** not solid enough. Roblox R15 characters are fine; what matters is that they look
+  solid.
+
+- [ ] 35. **Fix the `textures_r4` darkening.**
+  - Find out why the Ground/Laterite (and other) overrides turn spawn almost black. Check Terrain
+    `MaterialColors`, the colour-map brightness and the base-material choice.
+  - Bring the ground back to warm, readable brown.
+  - Retest with before/after pictures from the saved spawn camera. Off by default; the verdict stays
+    blank.
+- [ ] 36. **Spawn ground: dirt paths, no road (candidate `spawn_ground_r5`, off by default).**
+  - Replace the asphalt and road strips around spawn with dirt paths (Terrain Ground/Mud with a soft
+    edge).
+  - Fix every place where terrain, plots and paths overlap or z-fight.
+  - Keep the current road design saved but unused: move it to a stored asset, or keep it behind a
+    flag, documented for a later level. Don't delete it.
+- [ ] 37. **Vegetation cleanup (`vegetation_r5`).**
+  - Remove the pines around spawn (V-D4).
+  - Take kelapa out of spawn and keep its asset for another level.
+  - Place pisang clusters.
+  - Make the bamboo clumps dense, not thin poles.
+  - Replace the mango stand-in if a free source has a real one; otherwise add it to "Designer builds".
+  - Placement rule: an exclusion zone around paths, plots and building footprints, so no tree overlaps
+    them. Add a spec that checks the placement data against the zones.
+- [ ] 38. **`sky_r5`: an Indonesian sky.**
+  - Gather three or four photo references of a typical Indonesian village sky: bright, humid haze,
+    scattered cumulus, a high sun, a soft blue horizon. Record the links in `sky_r5/README.md`.
+  - Pick two CC0 HDRIs that match (Poly Haven / ambientCG), mostly clear with light cumulus.
+  - Fix these sky bugs:
+    - Remove the ridge "slabs" from the plaza, or move them out to the real horizon.
+    - Lower the Terrain `Clouds.Cover` for this candidate (about 0.3–0.5) so the skybox shows.
+    - Fix the cube seam at the top face.
+  - The overcast look goes in a note for a future rain or season event and is not built now.
+- [ ] 39. **Props fix (`props_r5`).**
+  - Keep jemuran.
+  - Rescale the tools (cangkul, sabit, gerobak, sumur, lapak) to real size against a 5-stud player,
+    or replace any that stay unreadable.
+  - Place the karung semen in a fitting context: stacked by the gudang or a small renovation spot.
+- [ ] 40. **Characters (`npcs_r5`): solid Roblox R15 villagers.**
+  - Build them from the standard R15 rig with `HumanoidDescription`: body colours, plus clothing and
+    accessories (caping, peci, sarung or batik shirt if available).
+  - Use free Creator Store or catalog items whose IDs come from a real search. Never invent an ID.
+  - Upright and grounded, with an idle pose and no lying-down imports.
+  - Five roles: petani, pedagang, petani wanita, tukang peci, polisi.
+- [ ] 41. **Spawn dressing pass (`spawn_r5`, off by default).** Apply `SPAWN_DRESSING.md` using only
+  approved or temporary assets: `buildings_r4` (temporary), pisang, jemuran, karung semen in context,
+  and the fixed props and characters from 39–40. Make spawn feel lived-in within the tier budgets.
+  Save the review camera.
+- [ ] 42. **Review handoff.** Write `REVIEW_ROUND5.md` with the toggles (dot syntax), datamodels and
+  saved cameras. Check that every saved camera actually sees its subject (not hidden by trees or
+  grass). The main session takes the Studio shots.
+- [ ] 43. **Refill.** Re-check the blocked items; repeat until nothing agent-closable is left.
+
 ## Designer builds
 
 Models the ladder couldn't supply, each with a brief and a reference.

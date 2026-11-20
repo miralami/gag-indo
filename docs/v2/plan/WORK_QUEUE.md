@@ -495,7 +495,17 @@ because of how they were applied, not where they came from.
   - Use free Creator Store or catalog items whose IDs come from a real search. Never invent an ID.
   - Upright and grounded, with an idle pose and no lying-down imports.
   - Five roles: petani, pedagang, petani wanita, tukang peci, polisi.
-- [ ] 41. **Spawn dressing pass (`spawn_r5`, off by default).** Apply `SPAWN_DRESSING.md` using only
+- [x] 41. **Spawn dressing pass (`spawn_r5`, off by default).** Done 2026-11-20. `Shared.SpawnDressingMapR5`
+  is pure data that composes only approved/temporary assets from the R4/R5 source maps — temporary
+  buildings_r4 gudang + warung, jemuran, the contextual gudang karung stack, rescaled gerobak/sumur/
+  lapak/pagar/alat_tani, approved pisang + dense bamboo, and all 5 R15 villagers. No kelapa, pine or
+  mangga stand-in; every tree outside the 28-wide north-road corridor (data assertion + spec). Tier
+  budgets 50/100/150 instances and 50k/100k/150k tris (Sedang default ~23 instances / 58k est.,
+  well within budget). Saved review camera `{0,20,72}->{0,5,14}` in `SPAWN_DRESSING_R5.md` (captures
+  buildings row z=20, NPC row z=8, plaza apron). Server applier reuses the proven PropsR5 model path
+  and NpcsR5 R15 rig path, with `setTier()` and exact folder detach/restore. Off by default; verdict
+  blank; visual shot check deferred to item 42. `tests/specs/spawn_dressing_r5_spec.luau`.
+  - Apply `SPAWN_DRESSING.md` using only
   approved or temporary assets: `buildings_r4` (temporary), pisang, jemuran, karung semen in context,
   and the fixed props and characters from 39–40. Make spawn feel lived-in within the tier budgets.
   Save the review camera.

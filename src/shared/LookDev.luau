@@ -90,6 +90,7 @@ LookDev.IDS = {
 	"sky_r5",
 	"props_r5",
 	"npcs_r5",
+	"spawn_r5",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -487,6 +488,16 @@ LookDev.candidates = {
 		idsSource = "Shared.ModelMapNpcsR5.accessories",
 		render = "docs/v2/visual/art/models_r5/npcs/MANIFEST.md",
 	},
+
+	spawn_r5 = {
+		id = "spawn_r5",
+		title = "Spawn dressing pass — temporary buildings, pisang/bambu, contextual props and R15 villagers (round 5, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- All IDs/positions are composed from the approved R4/R5 source maps.
+		idsSource = "Shared.SpawnDressingMapR5",
+		render = "docs/v2/visual/SPAWN_DRESSING_R5.md",
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -638,7 +649,13 @@ function LookDev.plan(id: string): any
 			render = c.render,
 			faceCount = c.faceCount,
 		}
-	elseif id == "spawn_ground_r5" or id == "vegetation_r5" or id == "props_r5" or id == "npcs_r5" then
+	elseif
+		id == "spawn_ground_r5"
+		or id == "vegetation_r5"
+		or id == "props_r5"
+		or id == "npcs_r5"
+		or id == "spawn_r5"
+	then
 		local c = LookDev.candidates[id]
 		return {
 			id = id,

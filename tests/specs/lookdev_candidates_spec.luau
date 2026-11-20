@@ -14,9 +14,9 @@ return function(t, Env)
 	end
 
 	t:describe("LookDev candidates (candidate, awaiting designer yes)", function()
-		t:it("ships thirty candidates, all unapproved and cartoonish-realism", function()
+		t:it("ships thirty-one candidates, all unapproved and cartoonish-realism", function()
 			local LookDev = fresh()
-			expect(#LookDev.IDS):toBe(30)
+			expect(#LookDev.IDS):toBe(31)
 			expect(LookDev.IDS[1]):toBe("plaza_lighting")
 			expect(LookDev.IDS[2]):toBe("police_walkin")
 			expect(LookDev.IDS[3]):toBe("icons")
@@ -47,6 +47,7 @@ return function(t, Env)
 			expect(LookDev.IDS[28]):toBe("sky_r5")
 			expect(LookDev.IDS[29]):toBe("props_r5")
 			expect(LookDev.IDS[30]):toBe("npcs_r5")
+			expect(LookDev.IDS[31]):toBe("spawn_r5")
 			for _, id in LookDev.IDS do
 				local c = LookDev.candidates[id]
 				expect(c.id):toBe(id)
@@ -85,6 +86,7 @@ return function(t, Env)
 					"src/client/World/LookDevSkyR5.luau",
 					"src/server/World/LookDevModelsPropsR5.luau",
 					"src/server/World/LookDevModelsNpcsR5.luau",
+					"src/server/World/LookDevSpawnDressingR5.luau",
 					"src/shared/LookDevCorner.luau",
 				}
 			do

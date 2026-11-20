@@ -170,6 +170,7 @@ local specs = {
 	require("./specs/veg_near_spec"),
 	require("./specs/props_r8_ids_spec"),
 	require("./specs/hubveg_r8_spec"),
+	require("./specs/plots_r8_spec"),
 }
 
 -- `--timing` prints a full per-spec table; without it only the slowest rows print. The first

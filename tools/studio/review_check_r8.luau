@@ -8,7 +8,8 @@
 --   VEG_COUNT, VEG_SPECIES, BED_FLUSH, VEG_NEAR, PROP_SIZE, LOOKDEV_LEAK.
 -- It also emits the r8 hub-vegetation family (WORK_QUEUE item 70): VEG_HUB_<hub> (one per
 -- MapSpec.HUB_ORDER key), VEG_SPECIES_HUB and VEG_OVERLAP. All three FAIL at measured 0 when the
--- hubveg_r8 candidate is not staged.
+-- hubveg_r8 candidate is not staged. It also emits the r8 plots family (WORK_QUEUE item 71):
+-- PLOT_FENCE and GATE_CLEAR. Both FAIL when the plots_r8 candidate is not staged.
 -- Client datamodel: same lines plus CLOUD_COVER (the client LocalScript owns Terrain.Clouds.Cover);
 -- the Server datamodel cannot observe that tween. Run client-owned candidates (water, grade,
 -- sounds, clouds) in the Client datamodel.
@@ -40,6 +41,8 @@ local ORDER = {
 	"VEG_HUB_pakrt",
 	"VEG_SPECIES_HUB",
 	"VEG_OVERLAP",
+	"PLOT_FENCE",
+	"GATE_CLEAR",
 	"VEG_NEAR",
 	"PROP_SIZE",
 	"CLOUD_COVER",
@@ -1054,6 +1057,174 @@ emit(
 	overlapCount,
 	0,
 	{ zones = #zones, staged = #staged, unreadable = unreadable, offenders = offenders, reason = dataReason }
+)
+
+-- 9c. r8 plots family (WORK_QUEUE item 71). Two CHECK families over the staged
+-- LookDevPlotsR8_plots_r8 folder. PLOT_FENCE counts fence segments per plot (min decides, never
+-- an average); GATE_CLEAR casts a 6x8x1 overlap box at every gate marker and requires zero
+-- CanCollide=true hits. Every game API is pcall-guarded; a missing folder, marker or API is a
+-- FAIL, never a skip.
+local PLOTS_FOLDER = "LookDevPlotsR8_plots_r8"
+local PLOT_COUNT = 10
+local FENCE_MIN = 6
+local GATE_WIDTH, GATE_HEIGHT, GATE_DEPTH = 6, 8, 1
+-- Ground-contact tolerance: a box whose bottom sits exactly on the ground surface still reports
+-- the collidable ground slab, so lift the opening box by this much. Target stays 6x8, zero hits.
+local GROUND_CONTACT_EPS = 0.05
+
+local plotsFolder = folderNamed(PLOTS_FOLDER)
+local plotParts = {}
+local okPlotParts, plotDescendants = pcall(function()
+	if not plotsFolder then
+		return {}
+	end
+	return plotsFolder:GetDescendants()
+end)
+if okPlotParts and type(plotDescendants) == "table" then
+	for _, part in ipairs(plotDescendants) do
+		if attr(part, "LookDevPlotsR8") == "plots_r8" then
+			plotParts[#plotParts + 1] = part
+		end
+	end
+end
+
+-- PLOT_FENCE: the weakest plot decides. Count only Kind=="fence" with an in-range numeric
+-- PlotIndex; a missing folder gives every plot 0, hence min=0 and a FAIL.
+local fenceCounts = {}
+for i = 1, PLOT_COUNT do
+	fenceCounts[i] = 0
+end
+for _, part in ipairs(plotParts) do
+	if attr(part, "Kind") == "fence" then
+		local index = attr(part, "PlotIndex")
+		if type(index) == "number" and fenceCounts[index] ~= nil then
+			fenceCounts[index] = fenceCounts[index] + 1
+		end
+	end
+end
+local fenceMin = math.huge
+local fenceParts = {}
+for i = 1, PLOT_COUNT do
+	fenceParts[#fenceParts + 1] = "P" .. i .. ":" .. fenceCounts[i]
+	if fenceCounts[i] < fenceMin then
+		fenceMin = fenceCounts[i]
+	end
+end
+if fenceMin == math.huge then
+	fenceMin = 0
+end
+emit(
+	"PLOT_FENCE",
+	plotsFolder ~= nil and #plotParts > 0 and fenceMin >= FENCE_MIN,
+	string.format("min=%d (%s)", fenceMin, table.concat(fenceParts, " ")),
+	">=" .. FENCE_MIN .. " each",
+	{ counts = fenceCounts, folderPresent = plotsFolder ~= nil, staged = #plotParts }
+)
+
+-- GATE_CLEAR: one 6x8x1 overlap box per Kind=="gate_marker", lifted into the opening above ground
+-- and oriented by the marker's own CFrame. PASS only with all ten markers present exactly once,
+-- no API error and zero CanCollide=true hits. Missing markers, duplicate markers and bad PlotIndex
+-- values all become offenders.
+local markers = {}
+for _, part in ipairs(plotParts) do
+	if attr(part, "Kind") == "gate_marker" then
+		local index = attr(part, "PlotIndex")
+		local okName, name = pcall(function()
+			return part.Name
+		end)
+		markers[#markers + 1] = {
+			part = part,
+			index = type(index) == "number" and index or nil,
+			name = okName and tostring(name) or "?",
+		}
+	end
+end
+local gateOffenders = {}
+local gateErrors = {}
+local gateHits = 0
+for _, marker in ipairs(markers) do
+	local label = marker.index and ("P" .. marker.index) or ("marker:" .. marker.name)
+	-- Measure the opening in the marker's OWN frame: its CFrame carries the plot yaw, so the
+	-- 6-wide axis spans the gate and the 1-deep axis points through it. CFrame.new(position) would
+	-- be world-aligned and reach back into the rotated plot's Base/SignPost. A missing marker
+	-- CFrame throws inside the pcall and is recorded as a FAIL for that gate.
+	local okCF, cf = pcall(function()
+		return marker.part.CFrame * CFrame.new(0, GATE_HEIGHT / 2 + GROUND_CONTACT_EPS, 0)
+	end)
+	local okParams, params = pcall(function()
+		local p = OverlapParams.new()
+		p.CollisionGroup = "Default"
+		return p
+	end)
+	local okSize, size = pcall(function()
+		return Vector3.new(GATE_WIDTH, GATE_HEIGHT, GATE_DEPTH)
+	end)
+	local okBox, hits = false, nil
+	if okCF and okParams and okSize then
+		okBox, hits = pcall(function()
+			return workspace:GetPartBoundsInBox(cf, size, params)
+		end)
+	end
+	if not okBox or type(hits) ~= "table" then
+		gateErrors[#gateErrors + 1] = label
+	else
+		for _, hit in ipairs(hits) do
+			local okCollide, collide = pcall(function()
+				return hit.CanCollide
+			end)
+			if okCollide and collide == true then
+				gateHits += 1
+				local okName, hitName = pcall(function()
+					return hit.Name
+				end)
+				gateOffenders[#gateOffenders + 1] = label .. ":" .. (okName and tostring(hitName) or "?")
+			end
+		end
+	end
+end
+local gateIndexCounts = {}
+for i = 1, PLOT_COUNT do
+	gateIndexCounts[i] = 0
+end
+for _, marker in ipairs(markers) do
+	if marker.index and gateIndexCounts[marker.index] ~= nil then
+		gateIndexCounts[marker.index] += 1
+	else
+		gateOffenders[#gateOffenders + 1] = "marker:" .. marker.name .. ":bad-index"
+	end
+end
+local missingGates = {}
+for i = 1, PLOT_COUNT do
+	if gateIndexCounts[i] == 0 then
+		missingGates[#missingGates + 1] = "P" .. i
+		gateOffenders[#gateOffenders + 1] = "P" .. i .. ":missing-marker"
+	elseif gateIndexCounts[i] > 1 then
+		gateOffenders[#gateOffenders + 1] = "P" .. i .. ":duplicate-marker"
+	end
+end
+local gateDetail = {
+	markers = #markers,
+	hits = gateHits,
+	box = { GATE_WIDTH, GATE_HEIGHT, GATE_DEPTH },
+	offenders = gateOffenders,
+	missing = missingGates,
+	errors = gateErrors,
+	folderPresent = plotsFolder ~= nil,
+}
+if #gateErrors > 0 then
+	gateDetail.reason = "GetPartBoundsInBox/OverlapParams unavailable: " .. table.concat(gateErrors, ",")
+end
+emit(
+	"GATE_CLEAR",
+	plotsFolder ~= nil
+		and #plotParts > 0
+		and #markers == PLOT_COUNT
+		and #missingGates == 0
+		and #gateErrors == 0
+		and gateHits == 0,
+	string.format("%d hits/%d gates", gateHits, #markers),
+	"0",
+	gateDetail
 )
 
 -- 10. VEG_NEAR: dense near layer at the saved camera (45 studs, 70-degree cone). A model only

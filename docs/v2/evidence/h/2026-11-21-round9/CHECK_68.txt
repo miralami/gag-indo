@@ -1,0 +1,15 @@
+# CHECK 68 — r8 check harness + LOOKDEV_LEAK (WORK_QUEUE section M item 68)
+# Studio: Development-Juragan-Desa (placeId 132087524375529), real Play, Server datamodel.
+# Fresh Play, NO candidate staged (LookDev.current() = nil), Edit-mode bake present
+# (ServerStorage.LookDevAssets = 34 folders), LookDev.IDS = 46. Harness:
+# tools/studio/review_check_r8.luau, pasted whole into execute_luau. Raw console line verbatim:
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+# Detail: candidateCount=46, leaks=[], errors=[], prior state restored.
+# The harness emits the 13 CHECK lines in order (LOAD_FAILURES, SKY_DEFAULT, GRASS_ON_BEDS,
+# HATS, PROPS_VISIBLE, PROPS_ON_GRASS, VEG_COUNT, VEG_SPECIES, BED_FLUSH, VEG_NEAR, PROP_SIZE,
+# CAMERA_CLEAR, LOOKDEV_LEAK) plus CLOUD_COVER on the Client. Scene checks that need staged
+# candidates (HATS/PROPS/VEG) correctly FAIL in this clean Play with no candidates staged;
+# they are not item-68 evidence and still PASS in the round-8 staged session.
+# First attempt (contaminated by direct apply() staging from the round-8 session) reported
+# 2 false leaks; the leak sweep must run in a fresh Play with no pre-staged candidates, which
+# is now documented in REVIEW_ROUND9.md. The check itself was not weakened.

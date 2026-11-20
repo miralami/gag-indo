@@ -509,7 +509,20 @@ because of how they were applied, not where they came from.
   approved or temporary assets: `buildings_r4` (temporary), pisang, jemuran, karung semen in context,
   and the fixed props and characters from 39–40. Make spawn feel lived-in within the tier budgets.
   Save the review camera.
-- [ ] 42. **Review handoff.** Write `REVIEW_ROUND5.md` with the toggles (dot syntax), datamodels and
+- [x] 42. **Review handoff.** Done 2026-11-20. `docs/v2/evidence/h/2026-11-20-review-round5/REVIEW_ROUND5.md`
+  (plus `REVIEW_ROUND5.html` and `docs/v2/visual/REVIEW_ROUND5.md`) lists all eight round-5 candidates
+  with the exact dot-syntax one-call toggle, datamodel and saved camera, blank verdict cells throughout.
+  Live Play sweep confirmed all 8 candidates enable and build their content folders (123/104/46/1405/
+  1529/116 descendants for the six server appliers; the two client appliers override Terrain/sky).
+  Every saved camera was checked in the VM with a centre-line `Workspace:Raycast` plus a scan of all
+  vegetation-named objects within 12 studs of the sightline: centre lines clear; `props_r5` honestly
+  flagged as partially screened by pines (~11.3 studs off-axis, the round-4 caveat), `sky_r5` looks up
+  so off-axis grass does not block it. Screenshot pixels could not be retained this session
+  (`screen_capture` returned `null`; a video probe showed HUD over a flat dark world and the game camera
+  script overrides an injected `Scriptable` camera), so no visual claim or grade is made and any visual
+  claim stays `UNVERIFIED` until a retained-screenshot/designer pass. Restores were run; nothing saved
+  or published.
+  - Write `REVIEW_ROUND5.md` with the toggles (dot syntax), datamodels and
   saved cameras. Check that every saved camera actually sees its subject (not hidden by trees or
   grass). The main session takes the Studio shots.
 - [ ] 43. **Refill.** Re-check the blocked items; repeat until nothing agent-closable is left.

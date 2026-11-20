@@ -693,6 +693,19 @@ Models the ladder couldn't supply, each with a brief and a reference.
 
 ## Decisions for designer
 
+### Round 6 items 44–51 — LookDev verdicts and reversible defaults (2026-11-20)
+
+Twelve off-by-default round-6 candidates ship with **blank verdict cells** in
+`docs/v2/visual/CANDIDATES.md` and the exact toggles / datamodels / cameras in
+`docs/v2/evidence/h/2026-11-20-review-round6/REVIEW_ROUND6.md`. No agent graded a visual. The
+designer's look decisions are which (if any) of `sky_r6_a`..`sky_r6_f` and `terrain_r6_a`/`b` should
+become the baseline, and whether the vegetation, villager and prop changes read well in Studio. All
+are reversible one-call toggles and none affect shipping state. Safest reversible defaults chosen
+while building: Route B Shirt/Pants sibling Image IDs for costumes (Open Cloud cannot create
+Shirt/Pants assets), a manually invoked `DesignerKitBuilder.build()/clear()` with no spawn dressing,
+`ScaleTo` targets of gerobak ~6 tall/8 long, sumur 4.5 and cangkul 4.5, and the props review camera
+moved +12 in X clear of the pine row. No place was saved or published.
+
 ### Round 3 item 19 — Indonesian copy review (2026-11-20)
 
 Reviewed every `id` entry in `src/shared/Strings.luau` in the `humanizer-indonesia` style. The

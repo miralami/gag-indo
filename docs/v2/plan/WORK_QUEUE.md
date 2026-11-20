@@ -1,5 +1,13 @@
 # Work queue round 3: visual first (long-run mode)
 
+> **START HERE (standing prompt, so the designer doesn't need to retype it).** If you were only told to "continue" or "read the work queue", this block is your whole instruction:
+>
+> 1. Read `AGENTS.md`, the tracker at the top of `docs/v2/plan/MASTER_PLAN.md`, `docs/testing/BUGS.md` and `docs/testing/GATE1.md`.
+> 2. You are in long-run mode. Take the **first unchecked item** in this file (sections L and M are the live ones) and work down. Don't ask questions, don't stop to report.
+> 3. Section K's hard rules apply to every scene-affecting item: a tick needs real Studio PASS output saved under `docs/v2/evidence/h/<date>-round<N>/CHECK_<item>.txt`; two failed attempts mean `BLOCKED — <FAIL line>`; never weaken a check; never save the place; never touch NPC outfits, the terrain sculpt or the chosen sky/ground.
+> 4. Per item: `lune run tests/run.luau` passes (check the exit code), `selene src` is 0/0/0, stylua only on files you changed, then a topical commit with no attribution lines, the tracker "Last updated" line updated in the same commit, and push to `track/c-world-look`. Stage files by name, never `git add -A`.
+> 5. The main session (Claude, with Studio screenshots) does the visual review afterwards. Stop only when every item is ticked or `BLOCKED`, then write the final report: commits, blocked items, decisions list.
+
 Live since 2026-11-19 (`e6da076`). Rounds 1 and 2 are archived in `WORK_QUEUE_ROUND1.md` and
 `WORK_QUEUE_ROUND2.md`.
 

@@ -482,7 +482,14 @@ because of how they were applied, not where they came from.
   - Rescale the tools (cangkul, sabit, gerobak, sumur, lapak) to real size against a 5-stud player,
     or replace any that stay unreadable.
   - Place the karung semen in a fitting context: stacked by the gudang or a small renovation spot.
-- [ ] 40. **Characters (`npcs_r5`): solid Roblox R15 villagers.**
+- [x] 40. **Characters (`npcs_r5`): solid Roblox R15 villagers.** Done 2026-11-20. Five roles built
+  from `Instance.new("HumanoidDescription")` + `Players:CreateHumanoidModelFromDescription(..., R15)`
+  with warm/navy body colours — solid, upright, grounded (bbox-bottom), Y-rotation only, no
+  lying-down imports or animation. Three REAL free Creator Store hat Models loaded from data (caping
+  71002247087415/Zephban5961, caping backup 14769019514/RZKU, police cap 126970096704856/Mukamato101),
+  each with creator + store URL in `art/models_r5/npcs/MANIFEST.md`. peci/batik/sarong had no reliable
+  free source → Designer-build note, body colours only; no ID invented. Off by default; verdict blank.
+  `tests/specs/npcs_r5_spec.luau`.
   - Build them from the standard R15 rig with `HumanoidDescription`: body colours, plus clothing and
     accessories (caping, peci, sarung or batik shirt if available).
   - Use free Creator Store or catalog items whose IDs come from a real search. Never invent an ID.

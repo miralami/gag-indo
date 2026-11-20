@@ -89,6 +89,7 @@ LookDev.IDS = {
 	"vegetation_r5",
 	"sky_r5",
 	"props_r5",
+	"npcs_r5",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -476,6 +477,16 @@ LookDev.candidates = {
 		idsSource = "Shared.ModelMapPropsR5",
 		render = "docs/v2/visual/art/models_r4/props/HANDOFF.md",
 	},
+
+	npcs_r5 = {
+		id = "npcs_r5",
+		title = "Solid upright Roblox R15 villagers from HumanoidDescription (round 5, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Only the three real Creator Store hat Model IDs live in Shared.ModelMapNpcsR5.
+		idsSource = "Shared.ModelMapNpcsR5.accessories",
+		render = "docs/v2/visual/art/models_r5/npcs/MANIFEST.md",
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -627,7 +638,7 @@ function LookDev.plan(id: string): any
 			render = c.render,
 			faceCount = c.faceCount,
 		}
-	elseif id == "spawn_ground_r5" or id == "vegetation_r5" or id == "props_r5" then
+	elseif id == "spawn_ground_r5" or id == "vegetation_r5" or id == "props_r5" or id == "npcs_r5" then
 		local c = LookDev.candidates[id]
 		return {
 			id = id,

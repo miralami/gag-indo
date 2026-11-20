@@ -155,6 +155,7 @@ local specs = {
 	require("./specs/vegetation_r5_spec"),
 	require("./specs/sky_map_r5_spec"),
 	require("./specs/props_r5_spec"),
+	require("./specs/npcs_r5_spec"),
 }
 
 -- `--timing` prints a full per-spec table; without it only the slowest rows print. The first

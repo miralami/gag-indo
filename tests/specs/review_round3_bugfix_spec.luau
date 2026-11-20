@@ -287,7 +287,7 @@ return function(t, Env)
 			}
 		end
 
-		t:it("covers exactly the 50 existing candidates and their datamodel", function()
+		t:it("covers exactly the 51 existing candidates and their datamodel", function()
 			local env = Env.new()
 			local LookDev = env:require("shared/LookDev")
 			local Review = env:require("shared/LookDevReview")
@@ -296,7 +296,7 @@ return function(t, Env)
 				count += 1
 			end
 			expect(count):toBe(#LookDev.IDS)
-			expect(count):toBe(50)
+			expect(count):toBe(51)
 			for _, id in ipairs(LookDev.IDS) do
 				local entry = Review.pathsFor(id)
 				expect(entry ~= nil):toBe(true)

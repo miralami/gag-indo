@@ -15,6 +15,8 @@
 -- It also emits the r8 river family (WORK_QUEUE item 73): RIVER_BANK_VEG, BRIDGE_RAILS and
 -- BRIDGE_WALKABLE. All three FAIL at measured 0 when the river_r8 candidate is not staged or
 -- MapSpec.BRIDGE cannot be read (the Client VM cannot read MapSpec).
+-- It also emits the r8 path-edge family (WORK_QUEUE item 75): PATH_EDGE and PATH_CLEAR. Both FAIL
+-- when the pathedge_r8 candidate is not staged or MapSpec's road geometry cannot be read.
 -- Client datamodel: same lines plus CLOUD_COVER (the client LocalScript owns Terrain.Clouds.Cover);
 -- the Server datamodel cannot observe that tween. Run client-owned candidates (water, grade,
 -- sounds, clouds) in the Client datamodel.
@@ -55,6 +57,8 @@ local ORDER = {
 	"RIVER_BANK_VEG",
 	"BRIDGE_RAILS",
 	"BRIDGE_WALKABLE",
+	"PATH_EDGE",
+	"PATH_CLEAR",
 	"VEG_NEAR",
 	"PROP_SIZE",
 	"CLOUD_COVER",
@@ -1795,6 +1799,240 @@ if not riverMapReady then
 	walkDetail.reason = riverMapReason
 end
 emit("BRIDGE_WALKABLE", walkPass, math.floor(walkableWidth * 100) / 100, ">=" .. WALK_WIDTH_MIN, walkDetail)
+
+-- 9f. r8 path-edge family (WORK_QUEUE item 75). Two CHECK families over the staged
+-- LookDevPathEdgeR8_pathedge_r8 folder: PATH_EDGE (part count) and PATH_CLEAR (no staged part sits
+-- in the central 6 studs of any real MapSpec road arm, continuation or ring segment). MapSpec lives
+-- under ServerScriptService.Server.World; the require is pcall-guarded and the Client VM cannot read
+-- it. A missing folder / MapSpec / failed read is a FAIL, never a vacuous pass.
+local PATH_EDGE_FOLDER = "LookDevPathEdgeR8_pathedge_r8"
+local PATH_EDGE_KEY = "pathedge_r8"
+local PATH_EDGE_MIN = 120
+local CENTRAL_HALF = 3
+
+local pathEdgeFolder = folderNamed(PATH_EDGE_FOLDER)
+local pathEdgeParts = {}
+local okPathEdgeParts, pathEdgeDescendants = pcall(function()
+	if not pathEdgeFolder then
+		return {}
+	end
+	return pathEdgeFolder:GetDescendants()
+end)
+if okPathEdgeParts and type(pathEdgeDescendants) == "table" then
+	for _, inst in ipairs(pathEdgeDescendants) do
+		local okPart, isPart = pcall(function()
+			return inst:IsA("BasePart")
+		end)
+		-- The folder and its path subfolders carry the same tag; only real Parts are candidates.
+		if okPart and isPart and attr(inst, "LookDevPathEdgeR8") == PATH_EDGE_KEY then
+			pathEdgeParts[#pathEdgeParts + 1] = inst
+		end
+	end
+end
+
+-- PATH_EDGE: count staged Parts, with Kind and Path breakdowns for a failing run. A missing folder
+-- gives 0 and a FAIL, never a skip.
+local pathEdgeByKind = { grass_tuft = 0, pebble = 0, puddle = 0 }
+local pathEdgeByPath = {}
+for _, part in ipairs(pathEdgeParts) do
+	local kind = attr(part, "Kind")
+	if pathEdgeByKind[kind] ~= nil then
+		pathEdgeByKind[kind] += 1
+	end
+	local key = attr(part, "Path")
+	key = type(key) == "string" and key or "?"
+	pathEdgeByPath[key] = (pathEdgeByPath[key] or 0) + 1
+end
+emit("PATH_EDGE", #pathEdgeParts >= PATH_EDGE_MIN, #pathEdgeParts, ">=" .. PATH_EDGE_MIN, {
+	total = #pathEdgeParts,
+	perKind = pathEdgeByKind,
+	perPath = pathEdgeByPath,
+	folderPresent = pathEdgeFolder ~= nil,
+})
+
+-- PATH_CLEAR: build every real path from MapSpec. Rectangles cover the four arms and two
+-- continuations; rotated chords cover the 56 ring segments. Ring convention matches
+-- ModelMapPathEdgeR8.ringPieces: local tangent = (cos(yaw), -sin(yaw)), local normal =
+-- (sin(yaw), cos(yaw)); a world offset inverts by dotting with those two axes. The central
+-- corridor is |perpendicular| < 3 and |tangent| < length/2 on a ring chord.
+local function addPathRect(list, item)
+	if type(item) ~= "table" then
+		return false
+	end
+	local name, x, z, sx, sz = item.name, item.x, item.z, item.sx, item.sz
+	if
+		type(name) ~= "string"
+		or type(x) ~= "number"
+		or type(z) ~= "number"
+		or type(sx) ~= "number"
+		or type(sz) ~= "number"
+		or sx <= 0
+		or sz <= 0
+	then
+		return false
+	end
+	list[#list + 1] = { name = name, x = x, z = z, halfX = sx / 2, halfZ = sz / 2, horizontal = sx > sz }
+	return true
+end
+local function addPathSegment(list, item)
+	if
+		type(item) ~= "table"
+		or type(item.x) ~= "number"
+		or type(item.z) ~= "number"
+		or type(item.yaw) ~= "number"
+		or type(item.length) ~= "number"
+	then
+		return false
+	end
+	local a = math.rad(item.yaw)
+	list[#list + 1] = {
+		x = item.x,
+		z = item.z,
+		tx = math.cos(a),
+		tz = -math.sin(a),
+		nx = math.sin(a),
+		nz = math.cos(a),
+		halfLen = item.length / 2,
+	}
+	return true
+end
+local pathRects, pathSegments = {}, {}
+local pathMapReady = false
+local pathMapReason = nil
+local okPathMap, loadedPathMap = pcall(function()
+	local sss = game:GetService("ServerScriptService")
+	local server = sss and sss:FindFirstChild("Server")
+	if not server then
+		return nil
+	end
+	local world = server:FindFirstChild("World")
+	if not world then
+		return nil
+	end
+	local module = world:FindFirstChild("MapSpec")
+	if not module then
+		return nil
+	end
+	return require(module)
+end)
+if
+	okPathMap
+	and type(loadedPathMap) == "table"
+	and type(loadedPathMap.ROAD) == "table"
+	and type(loadedPathMap.roadArms) == "function"
+	and type(loadedPathMap.roadContinuations) == "function"
+	and type(loadedPathMap.ringSegments) == "function"
+then
+	local okArms, arms = pcall(function()
+		return loadedPathMap.roadArms()
+	end)
+	local okConts, continuations = pcall(function()
+		return loadedPathMap.roadContinuations()
+	end)
+	local okRing, ring = pcall(function()
+		return loadedPathMap.ringSegments()
+	end)
+	if not okArms or type(arms) ~= "table" then
+		pathMapReason = "roadArms not readable"
+	elseif not okConts or type(continuations) ~= "table" then
+		pathMapReason = "roadContinuations not readable"
+	elseif not okRing or type(ring) ~= "table" then
+		pathMapReason = "ringSegments not readable"
+	else
+		local rectsOk = true
+		for _, item in ipairs(arms) do
+			rectsOk = addPathRect(pathRects, item) and rectsOk
+		end
+		for _, item in ipairs(continuations) do
+			rectsOk = addPathRect(pathRects, item) and rectsOk
+		end
+		local segmentsOk = true
+		for _, item in ipairs(ring) do
+			segmentsOk = addPathSegment(pathSegments, item) and segmentsOk
+		end
+		if not rectsOk or #pathRects == 0 then
+			pathMapReason = "road rectangles malformed"
+		elseif not segmentsOk or #pathSegments == 0 then
+			pathMapReason = "ring segments malformed"
+		else
+			pathMapReady = true
+		end
+	end
+else
+	pathMapReason = "MapSpec not readable"
+end
+
+local function insideCentralCorridor(px, pz)
+	for _, rect in ipairs(pathRects) do
+		if rect.horizontal then
+			if math.abs(pz - rect.z) < CENTRAL_HALF and px >= rect.x - rect.halfX and px <= rect.x + rect.halfX then
+				return rect.name
+			end
+		elseif math.abs(px - rect.x) < CENTRAL_HALF and pz >= rect.z - rect.halfZ and pz <= rect.z + rect.halfZ then
+			return rect.name
+		end
+	end
+	for index, seg in ipairs(pathSegments) do
+		local dx, dz = px - seg.x, pz - seg.z
+		local tangent = dx * seg.tx + dz * seg.tz
+		local perpendicular = dx * seg.nx + dz * seg.nz
+		if math.abs(perpendicular) < CENTRAL_HALF and math.abs(tangent) < seg.halfLen then
+			return "RingRoad:" .. index
+		end
+	end
+	return nil
+end
+
+-- Count each intruding part once. A failed CanCollide read is conservatively counted as a
+-- collidable intruder, and a failed CFrame read is a recorded error, so an unreadable folder can
+-- never vacuously pass.
+local allIntruders, collidableIntruders = 0, 0
+local pathOffenders, pathReadErrors = {}, {}
+for _, part in ipairs(pathEdgeParts) do
+	local okPos, pos = pcall(function()
+		return part.CFrame.Position
+	end)
+	if not okPos or typeof(pos) ~= "Vector3" then
+		pathReadErrors[#pathReadErrors + 1] = tostring(attr(part, "Path")) .. ":cframe"
+	elseif pathMapReady then
+		local hitPath = insideCentralCorridor(pos.X, pos.Z)
+		if hitPath then
+			allIntruders += 1
+			local okCollide, collide = pcall(function()
+				return part.CanCollide
+			end)
+			if not okCollide or collide == true then
+				collidableIntruders += 1
+				if #pathOffenders < 10 then
+					pathOffenders[#pathOffenders + 1] =
+						string.format("%s:%s:%.2f,%.2f", tostring(hitPath), tostring(attr(part, "Kind")), pos.X, pos.Z)
+				end
+			end
+		end
+	end
+end
+local clearDetail = {
+	allIntruders = allIntruders,
+	total = #pathEdgeParts,
+	pathsChecked = pathMapReady and (#pathRects + #pathSegments) or 0,
+	rects = #pathRects,
+	segments = #pathSegments,
+	offenders = pathOffenders,
+	readErrors = pathReadErrors,
+	folderPresent = pathEdgeFolder ~= nil,
+}
+if not pathMapReady then
+	clearDetail.reason = pathMapReason
+elseif #pathEdgeParts == 0 then
+	clearDetail.reason = "no candidate parts"
+end
+emit(
+	"PATH_CLEAR",
+	pathMapReady and #pathEdgeParts > 0 and collidableIntruders == 0 and #pathReadErrors == 0,
+	collidableIntruders,
+	0,
+	clearDetail
+)
 
 -- 10. VEG_NEAR: dense near layer at the saved camera (45 studs, 70-degree cone). A model only
 -- counts when its bbox centre is inside the cone AND its bbox is >=2 studs tall; species and

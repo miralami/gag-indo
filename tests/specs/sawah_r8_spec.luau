@@ -122,7 +122,7 @@ return function(t, Env)
 
 	t:describe("sawah_r8 server LookDev wiring", function()
 		t:it("registers candidate 49 with a plan and a server review path", function()
-			expect(#LookDev.IDS):toBe(50)
+			expect(#LookDev.IDS):toBe(51)
 			expect(LookDev.IDS[49]):toBe("sawah_r8")
 			expect(LookDev.candidates.sawah_r8.status):toBe("candidate, awaiting designer yes")
 			expect(LookDev.candidates.sawah_r8.idsSource):toBe("Shared.ModelMapSawahR8")

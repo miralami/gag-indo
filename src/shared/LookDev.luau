@@ -31,6 +31,7 @@
 --   src/server/World/LookDevModelsNpcsR4.luau -- candidate "npcs_r4" (server-only)
 --   src/server/World/LookDevPlotsR8.luau -- candidate "plots_r8" (plot fences and gates, server-only)
 --   src/server/World/LookDevRiverR8.luau -- candidate "river_r8" (banks and bridge rails, server-only)
+--   src/server/World/LookDevPathEdgeR8.luau -- candidate "pathedge_r8" (path edge dressing, server-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -122,6 +123,7 @@ LookDev.IDS = {
 	"plots_r8",
 	"sawah_r8",
 	"river_r8",
+	"pathedge_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -716,6 +718,16 @@ LookDev.candidates = {
 		idsSource = "Shared.ModelMapRiverR8",
 		render = "docs/v2/evidence/h/2026-11-21-round9/CHECK_73.txt",
 	},
+
+	pathedge_r8 = {
+		id = "pathedge_r8",
+		title = "Dirt-path edge dressing — grass tufts, pebbles and puddles on both edges of every road (round 9, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Procedural parts, no asset IDs. Pure recipe in Shared.ModelMapPathEdgeR8.
+		idsSource = "Shared.ModelMapPathEdgeR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/CHECK_75.txt",
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -894,6 +906,7 @@ function LookDev.plan(id: string): any
 		or id == "plots_r8"
 		or id == "sawah_r8"
 		or id == "river_r8"
+		or id == "pathedge_r8"
 	then
 		local c = LookDev.candidates[id]
 		return {

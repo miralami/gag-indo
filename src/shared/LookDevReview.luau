@@ -69,6 +69,7 @@ LookDevReview.paths = {
 	plots_r8 = { datamodel = "server", path = { "World", "LookDevPlotsR8" } },
 	sawah_r8 = { datamodel = "server", path = { "World", "LookDevSawahR8" } },
 	river_r8 = { datamodel = "server", path = { "World", "LookDevRiverR8" } },
+	pathedge_r8 = { datamodel = "server", path = { "World", "LookDevPathEdgeR8" } },
 }
 
 function LookDevReview.pathsFor(id: string): any?

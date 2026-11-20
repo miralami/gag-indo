@@ -173,6 +173,7 @@ local specs = {
 	require("./specs/plots_r8_spec"),
 	require("./specs/sawah_r8_spec"),
 	require("./specs/river_r8_spec"),
+	require("./specs/pathedge_r8_spec"),
 }
 
 -- `--timing` prints a full per-spec table; without it only the slowest rows print. The first

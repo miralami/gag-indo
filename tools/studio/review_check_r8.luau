@@ -10,6 +10,8 @@
 -- MapSpec.HUB_ORDER key), VEG_SPECIES_HUB and VEG_OVERLAP. All three FAIL at measured 0 when the
 -- hubveg_r8 candidate is not staged. It also emits the r8 plots family (WORK_QUEUE item 71):
 -- PLOT_FENCE and GATE_CLEAR. Both FAIL when the plots_r8 candidate is not staged.
+-- It also emits the r8 sawah family (WORK_QUEUE item 72): SAWAH_TOPS, SAWAH_WATER,
+-- SAWAH_VERGE and GUBUK. All four FAIL when the sawah_r8 candidate is not staged.
 -- Client datamodel: same lines plus CLOUD_COVER (the client LocalScript owns Terrain.Clouds.Cover);
 -- the Server datamodel cannot observe that tween. Run client-owned candidates (water, grade,
 -- sounds, clouds) in the Client datamodel.
@@ -43,6 +45,10 @@ local ORDER = {
 	"VEG_OVERLAP",
 	"PLOT_FENCE",
 	"GATE_CLEAR",
+	"SAWAH_TOPS",
+	"SAWAH_WATER",
+	"SAWAH_VERGE",
+	"GUBUK",
 	"VEG_NEAR",
 	"PROP_SIZE",
 	"CLOUD_COVER",
@@ -1226,6 +1232,334 @@ emit(
 	"0",
 	gateDetail
 )
+
+-- 9d. r8 sawah family (WORK_QUEUE item 72). Four CHECK families over the staged
+-- LookDevSawahR8_sawah_r8 folder: SAWAH_TOPS (Terrain-only raycasts at the eight
+-- MapSpec.paddyWater pane centres), SAWAH_WATER (four water_sheet groups of two valid panes),
+-- SAWAH_VERGE (>=40 verge tufts) and GUBUK (one terrace-2 roof with four posts + one bench
+-- sharing its Gubuk id). Every game API is pcall-guarded; a missing folder, MapSpec, Terrain or
+-- failed read is a FAIL, never a skip.
+local SAWAH_FOLDER = "LookDevSawahR8_sawah_r8"
+local SAWAH_KEY = "sawah_r8"
+local SAWAH_TOP_TOL = 0.5
+local WATER_ALPHA = 0.55
+local WATER_ALPHA_TOL = 0.02
+local WATER_BAND_TOL = 0.5
+
+local sawahFolder = folderNamed(SAWAH_FOLDER)
+local sawahParts = {}
+local okSawahParts, sawahDescendants = pcall(function()
+	if not sawahFolder then
+		return {}
+	end
+	return sawahFolder:GetDescendants()
+end)
+if okSawahParts and type(sawahDescendants) == "table" then
+	for _, part in ipairs(sawahDescendants) do
+		if attr(part, "LookDevSawahR8") == SAWAH_KEY then
+			sawahParts[#sawahParts + 1] = part
+		end
+	end
+end
+
+-- MapSpec lives under ServerScriptService.Server.World. FindFirstChild (not WaitForChild) so the
+-- Client VM cannot block; require is cached from the item-70 family. A failed load fails both
+-- MapSpec-dependent checks with a reason instead of emitting a vacuous pass.
+local sawahMapReady = false
+local SawahMapSpec = nil
+local okSawahMap, loadedSawahMap = pcall(function()
+	local sss = game:GetService("ServerScriptService")
+	local server = sss and sss:FindFirstChild("Server")
+	if not server then
+		return nil
+	end
+	local world = server:FindFirstChild("World")
+	if not world then
+		return nil
+	end
+	local module = world:FindFirstChild("MapSpec")
+	if not module then
+		return nil
+	end
+	return require(module)
+end)
+if
+	okSawahMap
+	and type(loadedSawahMap) == "table"
+	and type(loadedSawahMap.TERRACES) == "table"
+	and type(loadedSawahMap.TERRACE_SIDES) == "table"
+	and type(loadedSawahMap.paddyWater) == "function"
+then
+	sawahMapReady = true
+	SawahMapSpec = loadedSawahMap
+end
+local sawahMapReason = sawahMapReady and nil or "MapSpec not readable"
+
+-- SAWAH_TOPS: terrain only. Raycast at each of the eight paddyWater pane centres and compare the
+-- Terrain hit to that pane's terrace top. Panes come in terrace order, two per terrace, so pane i
+-- belongs to terrace floor((i-1)/2)+1. A missing Terrain or failed ray sets worst = 999 and FAILs.
+local topFailed = {}
+local topWorst = 0
+local topSamples = 0
+if sawahMapReady then
+	local okPanes, panes = pcall(function()
+		return SawahMapSpec.paddyWater()
+	end)
+	if not okPanes or type(panes) ~= "table" or #panes == 0 then
+		sawahMapReady = false
+		sawahMapReason = "paddyWater not readable"
+	end
+	if sawahMapReady then
+		for index, pane in ipairs(panes) do
+			topSamples += 1
+			local label = "pane:" .. index
+			local terrace = SawahMapSpec.TERRACES[math.floor((index - 1) / 2) + 1]
+			local x = type(pane) == "table" and type(pane.centre) == "table" and pane.centre[1] or nil
+			local z = type(pane) == "table" and type(pane.centre) == "table" and pane.centre[3] or nil
+			if
+				type(x) ~= "number"
+				or type(z) ~= "number"
+				or type(terrace) ~= "table"
+				or type(terrace.top) ~= "number"
+			then
+				topFailed[#topFailed + 1] = label .. ":bad-spec"
+				topWorst = 999
+			else
+				local y = terrainSurfaceY(x, z)
+				if type(y) ~= "number" then
+					topFailed[#topFailed + 1] = label .. ":no-terrain-read"
+					topWorst = 999
+				else
+					local diff = math.abs(y - terrace.top)
+					topWorst = math.max(topWorst, diff)
+					if diff > SAWAH_TOP_TOL then
+						topFailed[#topFailed + 1] =
+							string.format("%s:y=%.2f want=%.2f d=%.2f", label, y, terrace.top, diff)
+					end
+				end
+			end
+		end
+	end
+end
+local topDetail = {
+	samples = topSamples,
+	terrainOnly = true,
+	tolerance = SAWAH_TOP_TOL,
+	failed = topFailed,
+}
+if not sawahMapReady then
+	topDetail.reason = sawahMapReason
+end
+emit(
+	"SAWAH_TOPS",
+	sawahMapReady and topSamples == 8 and #topFailed == 0,
+	sawahMapReady and math.floor(topWorst * 100) / 100 or 999,
+	SAWAH_TOP_TOL,
+	topDetail
+)
+
+-- SAWAH_WATER: collect water_sheet groups by Terrace, then validate the two water_pane children of
+-- the one sheet on each of terraces 1..4. A pane needs Transparency ~0.55, a green-brown tint far
+-- from pure blue, and a centre inside that terrace's z band and one of MapSpec.TERRACE_SIDES.
+local sheetsByTerrace = {}
+for _, part in ipairs(sawahParts) do
+	if attr(part, "Kind") == "water_sheet" then
+		local terrace = attr(part, "Terrace")
+		if type(terrace) == "number" then
+			sheetsByTerrace[terrace] = sheetsByTerrace[terrace] or {}
+			sheetsByTerrace[terrace][#sheetsByTerrace[terrace] + 1] = part
+		end
+	end
+end
+
+local function sawahPaneStatus(pane, terrace, sides)
+	local info = {}
+	local okTrans, transparency = pcall(function()
+		return pane.Transparency
+	end)
+	if not okTrans or type(transparency) ~= "number" then
+		info.error = "transparency-read"
+		return false, info
+	end
+	info.transparency = math.floor(transparency * 1000) / 1000
+	local okColour, colour = pcall(function()
+		return pane.Color
+	end)
+	local r, g, b = -1, -1, -1
+	if okColour and typeof(colour) == "Color3" then
+		r, g, b = colour.R, colour.G, colour.B
+	end
+	info.colour = { math.floor(r * 100) / 100, math.floor(g * 100) / 100, math.floor(b * 100) / 100 }
+	local distBlue = math.sqrt(r * r + g * g + (b - 1) * (b - 1))
+	info.distBlue = math.floor(distBlue * 100) / 100
+	local okPos, pos = pcall(function()
+		return pane.CFrame.Position
+	end)
+	if not okPos or typeof(pos) ~= "Vector3" then
+		info.error = "cframe-read"
+		return false, info
+	end
+	info.position = { math.floor(pos.X * 100) / 100, math.floor(pos.Y * 100) / 100, math.floor(pos.Z * 100) / 100 }
+	local alphaOk = math.abs(transparency - WATER_ALPHA) <= WATER_ALPHA_TOL
+	local colourOk = r > 0.05 and g > 0.05 and b < math.max(r, g) and distBlue > 0.5
+	local zOk = type(terrace) == "table"
+		and type(terrace.z0) == "number"
+		and type(terrace.z1) == "number"
+		and pos.Z >= terrace.z0 - WATER_BAND_TOL
+		and pos.Z <= terrace.z1 + WATER_BAND_TOL
+	local xOk = false
+	for _, side in ipairs(sides) do
+		if
+			type(side.x0) == "number"
+			and type(side.x1) == "number"
+			and pos.X >= side.x0 - WATER_BAND_TOL
+			and pos.X <= side.x1 + WATER_BAND_TOL
+		then
+			xOk = true
+			break
+		end
+	end
+	if not (alphaOk and colourOk and zOk and xOk) then
+		info.reasons = {}
+		if not alphaOk then
+			info.reasons[#info.reasons + 1] = "transparency"
+		end
+		if not colourOk then
+			info.reasons[#info.reasons + 1] = "colour"
+		end
+		if not zOk then
+			info.reasons[#info.reasons + 1] = "z-band"
+		end
+		if not xOk then
+			info.reasons[#info.reasons + 1] = "x-band"
+		end
+	end
+	return alphaOk and colourOk and zOk and xOk, info
+end
+
+local waterDetail = { sheets = {}, failures = {} }
+local validSheets = 0
+if sawahMapReady then
+	for terraceIndex = 1, 4 do
+		local terrace = SawahMapSpec.TERRACES[terraceIndex]
+		local group = sheetsByTerrace[terraceIndex] or {}
+		local entry = { sheets = #group, panes = {}, paneInfo = {} }
+		if #group ~= 1 then
+			entry.reason = "expected 1 sheet, got " .. #group
+			waterDetail.failures[#waterDetail.failures + 1] = "T" .. terraceIndex .. ":" .. entry.reason
+		else
+			local panes = {}
+			for _, child in ipairs(childList(group[1])) do
+				if attr(child, "LookDevSawahR8") == SAWAH_KEY and attr(child, "Kind") == "water_pane" then
+					panes[#panes + 1] = child
+				end
+			end
+			entry.panes = #panes
+			if #panes ~= 2 then
+				entry.reason = "expected 2 panes, got " .. #panes
+				waterDetail.failures[#waterDetail.failures + 1] = "T" .. terraceIndex .. ":" .. entry.reason
+			else
+				local panesOk = true
+				for paneIndex, pane in ipairs(panes) do
+					local paneOk, info = sawahPaneStatus(pane, terrace, SawahMapSpec.TERRACE_SIDES)
+					entry.paneInfo[paneIndex] = info
+					if not paneOk then
+						panesOk = false
+						local reason = info.reasons and table.concat(info.reasons, ",") or (info.error or "invalid")
+						waterDetail.failures[#waterDetail.failures + 1] = "T"
+							.. terraceIndex
+							.. ":pane"
+							.. paneIndex
+							.. ":"
+							.. reason
+					end
+				end
+				entry.ok = panesOk
+				if panesOk then
+					validSheets += 1
+				end
+			end
+		end
+		waterDetail.sheets[terraceIndex] = entry
+	end
+else
+	waterDetail.reason = sawahMapReason
+end
+emit("SAWAH_WATER", sawahMapReady and validSheets == 4, validSheets, "4 sheets", waterDetail)
+
+-- SAWAH_VERGE: count every staged verge tuft and break the count down by terrace. Missing folder
+-- yields 0 and a FAIL, never a vacuous pass.
+local vergeByTerrace = {}
+local vergeCount = 0
+for _, part in ipairs(sawahParts) do
+	if attr(part, "Kind") == "verge" then
+		vergeCount += 1
+		local terrace = attr(part, "Terrace")
+		local key = type(terrace) == "number" and ("T" .. terrace) or "none"
+		vergeByTerrace[key] = (vergeByTerrace[key] or 0) + 1
+	end
+end
+emit("SAWAH_VERGE", vergeCount >= 40, vergeCount, ">=40", {
+	perTerrace = vergeByTerrace,
+	staged = #sawahParts,
+	folderPresent = sawahFolder ~= nil,
+})
+
+-- GUBUK: exactly one roof, on terrace 2, with four posts and one bench carrying the same Gubuk id.
+-- Measured is the roof count, so no candidate gives 0/FAIL and a wrong structure still gives 1/FAIL.
+local roofs, posts, benches = {}, {}, {}
+for _, part in ipairs(sawahParts) do
+	local kind = attr(part, "Kind")
+	local entry = { part = part, terrace = attr(part, "Terrace"), id = attr(part, "Gubuk") }
+	if kind == "gubuk_roof" then
+		roofs[#roofs + 1] = entry
+	elseif kind == "gubuk_post" then
+		posts[#posts + 1] = entry
+	elseif kind == "gubuk_bench" then
+		benches[#benches + 1] = entry
+	end
+end
+local gubukPass = false
+local gubukReason = nil
+local matchedPosts, matchedBenches = 0, 0
+local roofTerrace, roofId = nil, nil
+if #roofs == 1 then
+	roofTerrace = roofs[1].terrace
+	roofId = roofs[1].id
+	if roofTerrace == 2 and roofId ~= nil and roofId ~= "" then
+		for _, post in ipairs(posts) do
+			if post.id == roofId then
+				matchedPosts += 1
+			end
+		end
+		for _, bench in ipairs(benches) do
+			if bench.id == roofId then
+				matchedBenches += 1
+			end
+		end
+		gubukPass = matchedPosts == 4 and matchedBenches == 1
+		if not gubukPass then
+			gubukReason = "members " .. matchedPosts .. "p/" .. matchedBenches .. "b"
+		end
+	else
+		gubukReason = "bad roof terrace/id"
+	end
+elseif #roofs == 0 then
+	gubukReason = "no roof"
+else
+	gubukReason = "multiple roofs"
+end
+emit("GUBUK", gubukPass, #roofs, 1, {
+	roofs = #roofs,
+	terrace = roofTerrace,
+	gubukId = roofId,
+	posts = #posts,
+	benches = #benches,
+	matchedPosts = matchedPosts,
+	matchedBenches = matchedBenches,
+	folderPresent = sawahFolder ~= nil,
+	reason = gubukReason,
+})
 
 -- 10. VEG_NEAR: dense near layer at the saved camera (45 studs, 70-degree cone). A model only
 -- counts when its bbox centre is inside the cone AND its bbox is >=2 studs tall; species and

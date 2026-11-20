@@ -126,5 +126,6 @@ pcall(require, script.Parent.World.LookDevModelsNpcsR7)
 pcall(require, script.Parent.World.LookDevModelsPropsR7)
 pcall(require, script.Parent.World.LookDevModelsVegetationHubR8)
 pcall(require, script.Parent.World.LookDevPlotsR8)
+pcall(require, script.Parent.World.LookDevSawahR8)
 
 print("[JuraganDesa] server started")

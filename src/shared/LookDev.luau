@@ -119,6 +119,7 @@ LookDev.IDS = {
 	"props_r7",
 	"hubveg_r8",
 	"plots_r8",
+	"sawah_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -693,6 +694,16 @@ LookDev.candidates = {
 		idsSource = "Shared.ModelMapPlotsR8",
 		render = "docs/v2/evidence/h/2026-11-21-round9/CHECK_71.txt",
 	},
+
+	sawah_r8 = {
+		id = "sawah_r8",
+		title = "Terrace dressing — muddy water sheets, alang-alang bunds, one field hut and stepping stones (round 9, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Procedural parts, no asset IDs. Pure recipe in Shared.ModelMapSawahR8.
+		idsSource = "Shared.ModelMapSawahR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/CHECK_72.txt",
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -869,6 +880,7 @@ function LookDev.plan(id: string): any
 		or id == "props_r6"
 		or id == "hubveg_r8"
 		or id == "plots_r8"
+		or id == "sawah_r8"
 	then
 		local c = LookDev.candidates[id]
 		return {

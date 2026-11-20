@@ -34,12 +34,37 @@ local COSTUMES = {
 -- returned by a completed Open Cloud operation (see upload_manifest.json) and is
 -- the value now used in COSTUMES above. replacedR6Id records the placeholder it
 -- superseded. No ID is invented here.
-ModelMapNpcsR7.costumeUploadNote = "Real R7 Image IDs from models_r7/npcs/upload_manifest.json; designer PASS on the costume sheet 2026-11-20."
+ModelMapNpcsR7.costumeUploadNote =
+	"Real R7 Image IDs from models_r7/npcs/upload_manifest.json; designer PASS on the costume sheet 2026-11-20."
 ModelMapNpcsR7.costumeUploads = {
-	{ role = "pak_rt", kind = "shirt", replacedR6Id = 117485364703264, assetId = 92996938301042, path = "docs/v2/visual/art/models_r7/npcs/templates/shirt_pak_rt.png" },
-	{ role = "polisi", kind = "shirt", replacedR6Id = 113212316103784, assetId = 133590758790821, path = "docs/v2/visual/art/models_r7/npcs/templates/shirt_polisi.png" },
-	{ role = "polisi", kind = "pants", replacedR6Id = 98102154190902, assetId = 98235919851901, path = "docs/v2/visual/art/models_r7/npcs/templates/pants_polisi.png" },
-	{ role = "petani", kind = "shirt", replacedR6Id = 112086829394587, assetId = 81581201405716, path = "docs/v2/visual/art/models_r7/npcs/templates/shirt_petani.png" },
+	{
+		role = "pak_rt",
+		kind = "shirt",
+		replacedR6Id = 117485364703264,
+		assetId = 92996938301042,
+		path = "docs/v2/visual/art/models_r7/npcs/templates/shirt_pak_rt.png",
+	},
+	{
+		role = "polisi",
+		kind = "shirt",
+		replacedR6Id = 113212316103784,
+		assetId = 133590758790821,
+		path = "docs/v2/visual/art/models_r7/npcs/templates/shirt_polisi.png",
+	},
+	{
+		role = "polisi",
+		kind = "pants",
+		replacedR6Id = 98102154190902,
+		assetId = 98235919851901,
+		path = "docs/v2/visual/art/models_r7/npcs/templates/pants_polisi.png",
+	},
+	{
+		role = "petani",
+		kind = "shirt",
+		replacedR6Id = 112086829394587,
+		assetId = 81581201405716,
+		path = "docs/v2/visual/art/models_r7/npcs/templates/shirt_petani.png",
+	},
 }
 
 -- Real Creator Store hats only from R5 (which itself records the verified IDs).
@@ -51,10 +76,48 @@ local HATS = {
 	pak_rt = "peci",
 }
 
+-- Catalog outfits picked by the designer on 2026-11-21 from Studio trial shots
+-- (docs/v2/evidence/h/2026-11-21-catalog-outfits/CATALOG_OUTFITS.html: row A for
+-- every role, batik B2 for Pak RT). Every ID is a real avatar-catalog asset found
+-- with the catalog search API; NPCs may wear catalog items without owning them.
+-- shirt/pants are classic clothing asset IDs for HumanoidDescription.Shirt/Pants;
+-- layeredShirt is a ShirtAccessory; hats are rigid Hat accessories.
+local CATALOG = {
+	petani = {
+		shirt = 109842878942326, -- "Petani" (Trocadero Clothing)
+		pants = 96146120958106, -- "Petani" (Trocadero Clothing)
+		hats = { 90801645168902 }, -- "Rice Farmer Hat" (caping)
+	},
+	petani_wanita = {
+		shirt = 107918452722296, -- "Petani" (Trocadero Clothing)
+		pants = 72201288248343, -- "Petani" (Trocadero Clothing)
+		hats = { 129076562650877 }, -- "Hijab" (Our Deen)
+	},
+	pedagang = {
+		shirt = 3604934784, -- "Merchant Shirt" (Blotnik)
+		pants = 72201288248343, -- "Petani" (Trocadero Clothing)
+		hats = {},
+	},
+	pak_rt = {
+		layeredShirt = 18903905363, -- "Batik (Yellow)" (Asosiasi Komunitas Roblox Indonesia)
+		pants = 73000190682589, -- "Polisi" trousers (Trocadero Clothing), plain black
+		hats = { 73748899536912 }, -- "Songkok" (Ketupat's Clothing), the peci
+	},
+	polisi = {
+		shirt = 134524039208416, -- "Polisi" (Trocadero Clothing)
+		pants = 73000190682589, -- "Polisi" (Trocadero Clothing)
+		hats = { 122271821782451 }, -- "Police Cap" (FIREBRAND!)
+	},
+}
+ModelMapNpcsR7.catalog = CATALOG
+ModelMapNpcsR7.catalogNote =
+	"Designer picked catalog outfits 2026-11-21 (row A, Pak RT batik B2). Replaces the drawn Image templates and the built peci."
+
 local function makeRole(id)
 	local source = R6.roles[id]
 	local costume = COSTUMES[id]
 	return {
+		catalog = CATALOG[id],
 		id = id,
 		skin = source.skin,
 		shirt = source.shirt,
@@ -88,8 +151,8 @@ ModelMapNpcsR7.hats = {
 	},
 }
 
--- Same plaza row and camera-facing yaw as R6; spacing tightened to 4 studs.
-local SPACING = 4
+-- Same plaza row and camera-facing yaw as R6; spacing 6 studs so shoulders do not touch.
+local SPACING = 6
 local function makeSlot(index)
 	local source = R6.slots[index]
 	return {

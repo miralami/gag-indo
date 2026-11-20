@@ -41,8 +41,7 @@ if not Shared then
 end
 
 local okModules, LookDev, Data, LookDevFailures = pcall(function()
-	return
-		require((Shared :: any).LookDev),
+	return require((Shared :: any).LookDev),
 		require((Shared :: any).ModelMapNpcsR7),
 		require((Shared :: any).LookDevFailures)
 end)
@@ -133,6 +132,43 @@ local function buildRig(role: any, roleName: string, warned: { [string]: boolean
 	if not okColours then
 		warnRole(roleName, warned, "could not set HumanoidDescription colours")
 		return nil
+	end
+
+	-- Designer-approved catalog outfit (2026-11-21): clothing and hats go on the
+	-- description so the engine mounts every accessory at the right attachment.
+	local catalog = role.catalog
+	if type(catalog) == "table" then
+		local okCatalog, catalogError = pcall(function()
+			local skin = Color3.fromRGB(role.skin.r, role.skin.g, role.skin.b)
+			hd.TorsoColor = skin
+			hd.LeftLegColor = skin
+			hd.RightLegColor = skin
+			if catalog.shirt then
+				hd.Shirt = catalog.shirt
+			end
+			if catalog.pants then
+				hd.Pants = catalog.pants
+			end
+			local accessories = {}
+			for _, hatId in ipairs(catalog.hats or {}) do
+				table.insert(
+					accessories,
+					{ AccessoryType = Enum.AccessoryType.Hat, AssetId = hatId, IsLayered = false }
+				)
+			end
+			if catalog.layeredShirt then
+				table.insert(accessories, {
+					AccessoryType = Enum.AccessoryType.Shirt,
+					AssetId = catalog.layeredShirt,
+					IsLayered = true,
+					Order = 1,
+				})
+			end
+			hd:SetAccessories(accessories, true)
+		end)
+		if not okCatalog then
+			fail(roleName, "catalog outfit failed: " .. tostring(catalogError))
+		end
 	end
 
 	local okAsync, asyncRig = pcall(function()
@@ -523,13 +559,29 @@ local function apply()
 				end)
 				configureParts(rig)
 				local humanoid = findHumanoid(rig)
-				dressRig(rig, humanoid, role, roleName, warned)
-
 				local hatKey = role.hat
-				if hatKey == "peci" then
+				if type(role.catalog) == "table" then
+					-- Catalog outfit already dressed the rig; count its hats.
+					local expected = #(role.catalog.hats or {})
+					local found = 0
+					pcall(function()
+						for _, child in ipairs(rig:GetChildren()) do
+							if child:IsA("Accessory") and child.AccessoryType == Enum.AccessoryType.Hat then
+								found += 1
+							end
+						end
+					end)
+					if found < expected then
+						fail(roleName, "catalog hats attached " .. found .. "/" .. expected)
+					end
+				elseif hatKey == "peci" then
+					dressRig(rig, humanoid, role, roleName, warned)
 					attachPeci(rig, humanoid, roleName)
-				elseif hatKey then
-					attachHat(rig, humanoid, (Data.hats :: any)[hatKey], roleName)
+				else
+					dressRig(rig, humanoid, role, roleName, warned)
+					if hatKey then
+						attachHat(rig, humanoid, (Data.hats :: any)[hatKey], roleName)
+					end
 				end
 				placed += 1
 			end

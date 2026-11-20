@@ -536,3 +536,24 @@ The candidate is off by default and no place was saved or published.
 | `shirt_polisi` | 133590758790821 | Image | polisi / shirt | Reviewing | `models_r7/npcs/upload_manifest.json` | designer (PNG + sheet PASS 2026-11-20) |
 | `pants_polisi` | 98235919851901 | Image | polisi / pants | Reviewing | `models_r7/npcs/upload_manifest.json` | designer (PNG + sheet PASS 2026-11-20) |
 | `shirt_petani` | 81581201405716 | Image | petani / shirt | Reviewing | `models_r7/npcs/upload_manifest.json` | designer (PNG + sheet PASS 2026-11-20) |
+
+### Catalog outfits (`npcs_r7`, designer-picked 2026-11-21)
+
+These are real avatar-catalog items found with the catalog search API. NPCs wear them through `HumanoidDescription`, which needs no ownership. They replace the drawn Image templates and the built peci.
+
+| Role | Asset ID | Catalog type | Name (creator) |
+|---|---:|---|---|
+| petani | 109842878942326 | Shirt | Petani (Trocadero Clothing) |
+| petani | 96146120958106 | Pants | Petani (Trocadero Clothing) |
+| petani | 90801645168902 | Hat | Rice Farmer Hat (Rey x Noob) |
+| petani_wanita | 107918452722296 | Shirt | Petani (Trocadero Clothing) |
+| petani_wanita, pedagang | 72201288248343 | Pants | Petani (Trocadero Clothing) |
+| petani_wanita | 129076562650877 | Hat | Hijab (Our Deen) |
+| pedagang | 3604934784 | Shirt | Merchant Shirt (Blotnik) |
+| pak_rt | 18903905363 | ShirtAccessory (layered) | Batik (Yellow) (Asosiasi Komunitas Roblox Indonesia) |
+| pak_rt, polisi | 73000190682589 | Pants | Polisi (Trocadero Clothing) |
+| pak_rt | 73748899536912 | Hat | Songkok (Ketupat's Clothing) |
+| polisi | 134524039208416 | Shirt | Polisi (Trocadero Clothing) |
+| polisi | 122271821782451 | Hat | Police Cap (FIREBRAND!) |
+
+Approved by the designer on 2026-11-21: row A for all roles and batik B2 for Pak RT. Evidence: `h/2026-11-21-catalog-outfits/`.

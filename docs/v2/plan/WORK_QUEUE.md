@@ -525,7 +525,40 @@ because of how they were applied, not where they came from.
   - Write `REVIEW_ROUND5.md` with the toggles (dot syntax), datamodels and
   saved cameras. Check that every saved camera actually sees its subject (not hidden by trees or
   grass). The main session takes the Studio shots.
-- [ ] 43. **Refill.** Re-check the blocked items; repeat until nothing agent-closable is left.
+- [x] 43. **Refill.** Done 2026-11-20. Re-read this queue, the tracker, `docs/testing/BUGS.md` and
+  `docs/testing/GATE1.md`. **No blocked item is agent-closable.** Every remaining blocker is one of:
+  a licensed real asset ID that may not be invented, a shared Studio Importer / Open Cloud upload
+  route, a designer/vision verdict, or designer hardware (phone emulator, five humans, a published
+  place, a multi-client Local Server). No place saved or published; no ID invented. The re-check and
+  the one final report are recorded below.
+
+### Item 43 re-check of blocked items (2026-11-20)
+
+| Item | Blocker that still stands | Agent-closable? |
+|---|---|---|
+| 4 buildings | real CC BY/CC0 Open Cloud IDs + Studio Importer + designer verdict | no |
+| 5 vegetation | same visual/session gate; step-2 generation for three-stage padi | no |
+| 6 props | wider set dressing needs the visual verdict and Studio Importer session | no |
+| 7 textures | download → MaterialVariant → Open Cloud upload → designer verdict | no upload path |
+| 8 NPCs | peci/batik/sarong still need builds; R15 validation + verdict | no (3 real free hat IDs landed in item 40, but no verdict) |
+| 9 animations | shared Studio session / Designer builds; Quaternius licence conflict | no |
+| 9b icons | new uploads through the approved Open Cloud route + image-input/vision review | no |
+| 10b day-cycle live wiring | no licensed sound IDs for the 5 beds; no settings UI/persistence; visual verdict | no |
+| 11 sky and fog | shipping sky needs a designer verdict on the licensed HDRIs now in the repo | no (CC0 HDRI IDs exist in `SkyMapR4`/`SkyMapR5`, still off by default, blank verdict) |
+| 12 spawn view | no *approved* look to combine; fps proxy needs designer hardware; animations open | no (round 5 added more off-by-default candidates, still no verdict) |
+| 14 VFX | V2 gate needs L7.1 particle textures; "after the frame is approved" | no |
+| 15 raid moment | `police_walkin` verdict pending, frame unapproved, real assets + hardware | no |
+| 16 budget/soak | no approved visuals to turn on; phone emulator + multi-client session | no (registry now 31 candidates, all off by default) |
+
+Stale facts corrected during the re-check (blocker still stands): item 10b's "Rojo not running" no
+longer applies — Rojo is running and Studio was successfully Rojo-synced this session; item 11's
+"no licensed HDRI exists in the repo" is no longer true — the CC0 sets are in `SkyMapR4`/`SkyMapR5`
+but remain gated behind a blank designer verdict; item 16's registry is 31 candidates, not 25.
+
+`BUGS.md` has no open `blocker`/`major` defect. `GATE1.md` still has 2 `BLOCKED` (G4, Q5), 1
+`LUNE-ONLY` (Q8) and 8 `UNVERIFIED` rows; every one of them needs the designer, a real device,
+a human playtest, a published place or a multi-client Local Server, none of which is agent-closable.
+The single final report is at `docs/v2/evidence/h/2026-11-20-final-report/FINAL_REPORT.md`.
 
 ## Designer builds
 

@@ -1,11 +1,18 @@
 --!nocheck
--- tools/studio/review_check_r7.luau — WORK_QUEUE section K item 53.
+-- tools/studio/review_check_r7.luau — WORK_QUEUE section K item 53, extended for section L
+-- (round 8). Paste the WHOLE file into Studio `execute_luau`.
 --
--- Paste the WHOLE file into Studio `execute_luau` with datamodel_type="Server" during real Play,
--- after the Edit-mode bake (item 54) and after enabling vegetation_r7 / npcs_r7 / props_r7.
--- Read-only: it never enables or restores a candidate. It prints exactly eight lines
+-- Server datamodel: run during real Play after the Edit-mode bake (item 54) and after enabling
+-- vegetation_r7 / npcs_r7 / props_r7. It prints these eleven lines:
+--   LOAD_FAILURES, SKY_DEFAULT, GRASS_ON_BEDS, HATS, PROPS_VISIBLE, PROPS_ON_GRASS,
+--   VEG_COUNT, VEG_SPECIES, BED_FLUSH, VEG_NEAR, PROP_SIZE
+-- Client datamodel: run in a FRESH Play with no enable call, at least 10 s after Start. It prints
+-- the same lines plus CLOUD_COVER (the client LocalScript owns Terrain.Clouds.Cover); the Server
+-- datamodel cannot observe that tween, so the check is deliberately emitted only on the client.
+--
+-- Read-only: it never enables or restores a candidate. Every line is
 --   CHECK <name> PASS|FAIL <measured> <target>
--- and returns a results table. A missing folder, attribute, service or failed read is a FAIL,
+-- and it returns a results table. A missing folder, attribute, service or failed read is a FAIL,
 -- never a skip. No visual verdict is made here.
 --
 -- Grass cell: y = 4 (4-stud Region3 spanning y ~= 2..6) for both beds and props.
@@ -19,6 +26,10 @@ local ORDER = {
 	"PROPS_ON_GRASS",
 	"VEG_COUNT",
 	"VEG_SPECIES",
+	"BED_FLUSH",
+	"VEG_NEAR",
+	"PROP_SIZE",
+	"CLOUD_COVER",
 }
 
 local GRASS_Y = 4
@@ -41,8 +52,14 @@ local FALLBACK_SKY_FT = 2835177931 -- Shared.SkyMapR6.sets.e.ids.SkyboxFt
 local results = {}
 
 local function emit(name, passed, measured, target, detail)
-	local line = "CHECK " .. name .. " " .. (passed and "PASS" or "FAIL") .. " "
-		.. tostring(measured) .. " " .. tostring(target)
+	local line = "CHECK "
+		.. name
+		.. " "
+		.. (passed and "PASS" or "FAIL")
+		.. " "
+		.. tostring(measured)
+		.. " "
+		.. tostring(target)
 	print(line)
 	results[#results + 1] = {
 		name = name,
@@ -104,7 +121,12 @@ local function asVector3(value)
 	if typeof(value) == "Vector3" then
 		return value
 	end
-	if type(value) == "table" and type(value.x) == "number" and type(value.y) == "number" and type(value.z) == "number" then
+	if
+		type(value) == "table"
+		and type(value.x) == "number"
+		and type(value.y) == "number"
+		and type(value.z) == "number"
+	then
 		return Vector3.new(value.x, value.y, value.z)
 	end
 	return nil
@@ -135,8 +157,16 @@ local function bboxCentre(inst)
 			if okPart and isPart then
 				local half = part.Size / 2
 				local centre = part.CFrame.Position
-				minV = Vector3.new(math.min(minV.X, centre.X - half.X), math.min(minV.Y, centre.Y - half.Y), math.min(minV.Z, centre.Z - half.Z))
-				maxV = Vector3.new(math.max(maxV.X, centre.X + half.X), math.max(maxV.Y, centre.Y + half.Y), math.max(maxV.Z, centre.Z + half.Z))
+				minV = Vector3.new(
+					math.min(minV.X, centre.X - half.X),
+					math.min(minV.Y, centre.Y - half.Y),
+					math.min(minV.Z, centre.Z - half.Z)
+				)
+				maxV = Vector3.new(
+					math.max(maxV.X, centre.X + half.X),
+					math.max(maxV.Y, centre.Y + half.Y),
+					math.max(maxV.Z, centre.Z + half.Z)
+				)
 				found = true
 			end
 		end
@@ -145,6 +175,84 @@ local function bboxCentre(inst)
 		return nil
 	end
 	return (minV + maxV) / 2
+end
+
+-- Same bounding box, but the SIZE Vector3. Used by VEG_NEAR (bbox height) and PROP_SIZE.
+local function bboxSize(inst)
+	if not inst then
+		return nil
+	end
+	local ok, cf, size = pcall(function()
+		return inst:GetBoundingBox()
+	end)
+	if ok and cf and size then
+		return size
+	end
+	local minV = Vector3.new(math.huge, math.huge, math.huge)
+	local maxV = Vector3.new(-math.huge, -math.huge, -math.huge)
+	local found = false
+	local okParts, parts = pcall(function()
+		return inst:GetDescendants()
+	end)
+	if okParts then
+		for _, part in ipairs(parts) do
+			local okPart, isPart = pcall(function()
+				return part:IsA("BasePart")
+			end)
+			if okPart and isPart then
+				local okBox, boxCf, boxSize = pcall(function()
+					return part:GetBoundingBox()
+				end)
+				if okBox and boxCf and boxSize then
+					local half = boxSize / 2
+					local centre = boxCf.Position
+					minV = Vector3.new(
+						math.min(minV.X, centre.X - half.X),
+						math.min(minV.Y, centre.Y - half.Y),
+						math.min(minV.Z, centre.Z - half.Z)
+					)
+					maxV = Vector3.new(
+						math.max(maxV.X, centre.X + half.X),
+						math.max(maxV.Y, centre.Y + half.Y),
+						math.max(maxV.Z, centre.Z + half.Z)
+					)
+					found = true
+				end
+			end
+		end
+	end
+	if not found then
+		return nil
+	end
+	return maxV - minV
+end
+
+-- Surface height of the terrain column at (x,z). Terrain-only ray so a staged prop or a player
+-- can never be mistaken for grade. Returns nil when Terrain or the ray is unavailable (= failure).
+local function terrainSurfaceY(x, z)
+	local okTerrain, terrain = pcall(function()
+		return workspace:FindFirstChildOfClass("Terrain")
+	end)
+	if not okTerrain or not terrain then
+		return nil
+	end
+	local okParams, params = pcall(function()
+		local p = RaycastParams.new()
+		p.FilterType = Enum.RaycastFilterType.Include
+		p.FilterDescendantsInstances = { terrain }
+		p.IgnoreWater = false
+		return p
+	end)
+	if not okParams then
+		return nil
+	end
+	local okRay, hit = pcall(function()
+		return workspace:Raycast(Vector3.new(x, 256, z), Vector3.new(0, -512, 0), params)
+	end)
+	if okRay and hit and hit.Instance == terrain then
+		return hit.Position.Y
+	end
+	return nil
 end
 
 local function insideCone(centre, eye, lookAt)
@@ -201,10 +309,7 @@ local function voxelHasNonGrass(x, y, z)
 		local cellX = math.floor(x / 4) * 4
 		local cellY = math.floor(y / 4) * 4
 		local cellZ = math.floor(z / 4) * 4
-		local region = Region3.new(
-			Vector3.new(cellX, cellY, cellZ),
-			Vector3.new(cellX + 4, cellY + 4, cellZ + 4)
-		)
+		local region = Region3.new(Vector3.new(cellX, cellY, cellZ), Vector3.new(cellX + 4, cellY + 4, cellZ + 4))
 		return terrain:ReadVoxels(region, 4)
 	end)
 	if not okRead or type(materials) ~= "table" then
@@ -325,7 +430,13 @@ for _, sample in ipairs(samples) do
 		grassFailures[#grassFailures + 1] = sample.name
 	end
 end
-emit("GRASS_ON_BEDS", #grassFailures == 0, #grassFailures, 0, { voxelY = GRASS_Y, samples = #samples, failed = grassFailures })
+emit(
+	"GRASS_ON_BEDS",
+	#grassFailures == 0,
+	#grassFailures,
+	0,
+	{ voxelY = GRASS_Y, samples = #samples, failed = grassFailures }
+)
 
 -- 4. HATS: each of four required roles needs >=1 Accessory descendant; missing rig = 0.
 local npcFolder = folderNamed("LookDevModelsNpcsR7_npcs_r7")
@@ -362,7 +473,13 @@ for _, role in ipairs(HAT_ROLES) do
 		rolesWithHats += 1
 	end
 end
-emit("HATS", rolesWithHats == #HAT_ROLES, rolesWithHats, #HAT_ROLES, { accessories = accessories, rigs = rigs, folderPresent = npcFolder ~= nil })
+emit(
+	"HATS",
+	rolesWithHats == #HAT_ROLES,
+	rolesWithHats,
+	#HAT_ROLES,
+	{ accessories = accessories, rigs = rigs, folderPresent = npcFolder ~= nil }
+)
 
 -- 5/6. PROPS_VISIBLE and PROPS_ON_GRASS: six fixed slots from the tagged folder.
 local propFolder = folderNamed("LookDevModelsPropsR7_props_r7")
@@ -438,6 +555,166 @@ emit("VEG_COUNT", vegCount >= 60, vegCount, 60, {
 	look = { VEG_LOOK.X, VEG_LOOK.Y, VEG_LOOK.Z },
 })
 emit("VEG_SPECIES", #speciesNames >= 8, #speciesNames, 8, { species = speciesNames })
+
+-- 9. BED_FLUSH: repainted beds must sit at grade. Compare each flower-bed centre's terrain
+-- surface against points 6 studs outside the 5.6-stud bed radius. Four cardinal samples, using
+-- the closest outside height, so natural slope cannot fake a failure; the old FillBlock mound
+-- was 4 studs tall across the whole 12x12 bed, so every outside sample stayed at grade.
+local bedRadius = 5.6
+local okBedMap, BedMap = pcall(function()
+	return require(game.ReplicatedStorage.Shared.SpawnGroundMapR6)
+end)
+if okBedMap and type(BedMap) == "table" and type(BedMap.flowerBedRadius) == "number" then
+	bedRadius = BedMap.flowerBedRadius
+end
+local outsideDist = bedRadius + 6
+local flushFailures = {}
+local worstFlush = 0
+for index, bed in ipairs(beds) do
+	if type(bed) == "table" and type(bed.x) == "number" and type(bed.z) == "number" then
+		local centreY = terrainSurfaceY(bed.x, bed.z)
+		local bestDiff = math.huge
+		if centreY then
+			for _, dir in ipairs({ { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } }) do
+				local outsideY = terrainSurfaceY(bed.x + dir[1] * outsideDist, bed.z + dir[2] * outsideDist)
+				if outsideY then
+					bestDiff = math.min(bestDiff, math.abs(centreY - outsideY))
+				end
+			end
+		end
+		if bestDiff == math.huge then
+			flushFailures[#flushFailures + 1] = "bed:" .. index .. ":no-read"
+			worstFlush = 999
+		else
+			worstFlush = math.max(worstFlush, bestDiff)
+			if bestDiff > 0.5 then
+				flushFailures[#flushFailures + 1] = "bed:" .. index .. ":" .. string.format("%.2f", bestDiff)
+			end
+		end
+	end
+end
+emit("BED_FLUSH", #flushFailures == 0, math.floor(worstFlush * 100) / 100, 0.5, {
+	beds = #beds,
+	outside = outsideDist,
+	failed = flushFailures,
+})
+
+-- 10. VEG_NEAR: dense near layer at the saved camera (45 studs, 70-degree cone). A model only
+-- counts when its bbox centre is inside the cone AND its bbox is >=2 studs tall; species and
+-- undersize are checked as well as the instance count.
+local NEAR_RADIUS = 45
+local NEAR_MIN_HEIGHT = 2
+local nearCount = 0
+local nearSpeciesSeen = {}
+local nearUndersized = {}
+for _, model in ipairs(childList(vegFolder)) do
+	if attr(model, "LookDevR7") == "vegetation_r7" then
+		local centre = bboxCentre(model)
+		local size = bboxSize(model)
+		if
+			centre
+			and size
+			and (centre - VEG_EYE).Magnitude <= NEAR_RADIUS
+			and insideCone(centre, VEG_EYE, VEG_LOOK)
+		then
+			nearCount += 1
+			local species = attr(model, "Species")
+			if type(species) == "string" and species ~= "" then
+				nearSpeciesSeen[species] = true
+			end
+			if size.Y < NEAR_MIN_HEIGHT then
+				nearUndersized[#nearUndersized + 1] = { species = species, height = size.Y }
+			end
+		end
+	end
+end
+local nearSpeciesCount = 0
+for _ in pairs(nearSpeciesSeen) do
+	nearSpeciesCount += 1
+end
+emit(
+	"VEG_NEAR",
+	nearCount >= 25 and nearSpeciesCount >= 6 and #nearUndersized == 0,
+	string.format("%d inst/%d sp/%d small", nearCount, nearSpeciesCount, #nearUndersized),
+	">=25 inst/>=6 sp/0 small",
+	{ radius = NEAR_RADIUS, minHeight = NEAR_MIN_HEIGHT, folderPresent = vegFolder ~= nil, undersized = nearUndersized }
+)
+
+-- 11. PROP_SIZE: the three round-8 replacement models at real size. gerobak and pagar are
+-- measured by their longest horizontal axis (max of bbox X/Z); cangkul by its bbox height.
+-- A missing model yields -1 and fails its band.
+local gLen, cHeight, pLen = -1, -1, -1
+local gSize = bboxSize(propsBySlot["gerobak"])
+if gSize then
+	gLen = math.max(gSize.X, gSize.Z)
+end
+local cSize = bboxSize(propsBySlot["alat_tani"])
+if cSize then
+	cHeight = cSize.Y
+end
+local pSize = bboxSize(propsBySlot["pagar_bambu"])
+if pSize then
+	pLen = math.max(pSize.X, pSize.Z)
+end
+local sizePass = gLen >= 4 and gLen <= 6 and cHeight >= 3.5 and cHeight <= 4.5 and pLen >= 8
+emit(
+	"PROP_SIZE",
+	sizePass,
+	string.format("g=%.2f c=%.2f p=%.2f", gLen, cHeight, pLen),
+	"g[4-6] c[3.5-4.5] p[>=8]",
+	{ gerobak = gLen, alat_tani = cHeight, pagar_bambu = pLen, folderPresent = propFolder ~= nil }
+)
+
+-- 12. CLOUD_COVER: client only. The client Sky LocalScript owns Terrain.Clouds.Cover and the
+-- Server datamodel cannot observe that tween, so this check is emitted only when IsClient().
+local RunService = service("RunService")
+local isClient = false
+if RunService then
+	local okClient, flag = pcall(function()
+		return RunService:IsClient()
+	end)
+	if okClient then
+		isClient = flag
+	end
+end
+if isClient then
+	local cover, clockTime = -1, -1
+	local okTerrain, terrain = pcall(function()
+		return workspace:FindFirstChildOfClass("Terrain")
+	end)
+	local cloud = nil
+	if okTerrain and terrain then
+		local okCloud, found = pcall(function()
+			return terrain:FindFirstChildOfClass("Clouds")
+		end)
+		if okCloud then
+			cloud = found
+		end
+	end
+	if cloud then
+		local okCover, value = pcall(function()
+			return cloud.Cover
+		end)
+		if okCover and type(value) == "number" then
+			cover = value
+		end
+	end
+	if Lighting then
+		local okClock, value = pcall(function()
+			return Lighting.ClockTime
+		end)
+		if okClock and type(value) == "number" then
+			clockTime = value
+		end
+	end
+	emit(
+		"CLOUD_COVER",
+		cover >= 0.4 and cover <= 0.6,
+		string.format("%.3f@ct%.2f", cover, clockTime),
+		"0.4-0.6",
+		{ cover = cover, clockTime = clockTime, cloudPresent = cloud ~= nil }
+	)
+end
 
 local byName = {}
 for _, result in ipairs(results) do

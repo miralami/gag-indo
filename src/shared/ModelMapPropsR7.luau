@@ -1,8 +1,8 @@
 --!strict
 -- ModelMapPropsR7: pure data for the OFF-BY-DEFAULT "props_r7" LookDev candidate
--- (WORK_QUEUE item 57). No IDs are constructed here: ids/sizes/orientation are derived by require
--- from ModelMapPropsR6, which in turn reuses ModelMapPropsR4's real Creator Store uploads.
--- No game APIs, no instances: Lune specs can require this module directly.
+-- (WORK_QUEUE item 57). ids/sizes/orientation come from ModelMapPropsR6, except the three
+-- R7-only WORK_QUEUE item 64 overrides below. No game APIs, no instances: Lune specs can
+-- require this module directly.
 --
 -- The yard centre is chosen at apply time by LookDevModelsPropsR7 (scan of tree/pine trunks in
 -- workspace). This module only holds the layout rules: six props, one row, 6 studs apart, and a
@@ -57,7 +57,7 @@ ModelMapPropsR7.padMargin = 2 -- footprint + 2 studs before the Terrain:FillBloc
 ModelMapPropsR7.cameraRule = { front = 28, up = 7, lookY = 2 }
 
 -- ID provenance: ModelMapPropsR6.idsFor("props_r6") is ModelMapPropsR4.idsFor("props_r4")
--- via require, so gerobak/sumur/lapak/pagar_bambu/alat_tani/jemuran are the same six real IDs.
+-- via require. sumur/lapak/jemuran stay on those IDs; R8_OVERRIDES below replaces the other three.
 local r6Family = ModelMapPropsR6.families[ModelMapPropsR6.familyId]
 local sourceIds = ModelMapPropsR6.idsFor(ModelMapPropsR6.familyId) or {}
 local r6SlotsByName: { [string]: any } = {}
@@ -65,20 +65,52 @@ for _, r6 in ipairs(r6Family.slots) do
 	r6SlotsByName[r6.slot] = r6
 end
 
+-- WORK_QUEUE item 64 (round 8): three weak R7 props get new models. sumur/lapak/jemuran keep
+-- their R6 values verbatim. Old R4 ids: alat_tani 109848917287023 (wooden AXE), gerobak
+-- 119426685469058 (small modern wheelbarrow), pagar_bambu 103341007913673 (barely visible).
+-- New ids, loaded in Edit mode with game:GetObjects("rbxassetid://<id>") on 2026-11-21:
+--   alat_tani    4951145641     "Cangkul"  native bbox 2.7 x 5.2 x 2 (X,Y,Z; upright)
+--   gerobak      10506531785    "Gerobak"  native bbox 5.5 x 9 x 13.5 (long axis Z)
+--   pagar_bambu  85094565897097 "fence"    native bbox 4.1 x 1.5 x 0.1 (long axis X)
+-- Final staged heights: cangkul 4.0 studs (required 3.5-4.5). gerobak 3.33 studs gives a
+-- 3.33 * 13.5/9 = 4.995-stud long axis (required 4-6). pagar 3.05 studs gives a
+-- 3.05 * 4.1/1.5 = 8.34-stud length (required >=8); ry=0 keeps that length on X.
+-- The applier scales by entry.height / loaded Y size, so targetHeight * scale = height.
+local R8_OVERRIDES: { [string]: { id: number, targetHeight: number, scale: number, ry: number? } } = {
+	alat_tani = { id = 4951145641, targetHeight = 4, scale = 1 },
+	gerobak = { id = 10506531785, targetHeight = 3.33, scale = 1 },
+	pagar_bambu = { id = 85094565897097, targetHeight = 3.05, scale = 1, ry = 0 },
+}
+
 local ids: { [string]: number } = {}
 local slots: { Slot } = {}
 for index, slotName in ipairs(ModelMapPropsR7.slotOrder) do
-	ids[slotName] = sourceIds[slotName]
 	local r6 = r6SlotsByName[slotName]
-	if r6 then
-		slots[index] = {
-			slot = slotName,
-			targetHeight = r6.targetHeight,
-			scale = r6.scale,
-			height = ModelMapPropsR6.effectiveHeight(r6),
-			ry = r6.ry,
-			rotX = r6.rotX,
-		}
+	local r8 = R8_OVERRIDES[slotName]
+	if r8 then
+		ids[slotName] = r8.id
+		if r6 then
+			slots[index] = {
+				slot = slotName,
+				targetHeight = r8.targetHeight,
+				scale = r8.scale,
+				height = r8.targetHeight * r8.scale,
+				ry = if r8.ry then r8.ry else r6.ry,
+				rotX = r6.rotX,
+			}
+		end
+	else
+		ids[slotName] = sourceIds[slotName]
+		if r6 then
+			slots[index] = {
+				slot = slotName,
+				targetHeight = r6.targetHeight,
+				scale = r6.scale,
+				height = ModelMapPropsR6.effectiveHeight(r6),
+				ry = r6.ry,
+				rotX = r6.rotX,
+			}
+		end
 	end
 end
 

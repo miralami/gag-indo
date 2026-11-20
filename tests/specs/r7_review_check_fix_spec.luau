@@ -39,9 +39,12 @@ return function(t, Env)
 	local eye, look = Veg.savedCamera.eye, Veg.savedCamera.look
 
 	t:describe("PROPS_VISIBLE camera-cone fix", function()
-		t:it("keeps six distinct slots in WORK_QUEUE order with real inherited IDs", function()
+		t:it("keeps six distinct slots in WORK_QUEUE order with real IDs", function()
 			expect(Props.slotOrder):toEqual({ "gerobak", "sumur", "lapak", "pagar_bambu", "alat_tani", "jemuran" })
 			expect(#family.slots):toBe(6)
+			-- WORK_QUEUE item 64 replaces three weak R4 props in the R7 look only. sumur/lapak/
+			-- jemuran still inherit their R4 ids; the other three use the measured round-8 models.
+			local r8Ids = { gerobak = 10506531785, pagar_bambu = 85094565897097, alat_tani = 4951145641 }
 			local seen = {}
 			for index, entry in ipairs(family.slots) do
 				expect(entry.slot):toBe(Props.slotOrder[index])
@@ -50,7 +53,7 @@ return function(t, Env)
 				local id = family.ids[entry.slot]
 				expect(type(id)):toBe("number")
 				expect(id > 0 and id % 1 == 0):toBe(true)
-				expect(id):toBe(R4.idsFor("props_r4")[entry.slot])
+				expect(id):toBe(r8Ids[entry.slot] or R4.idsFor("props_r4")[entry.slot])
 				expect(entry.height > 0):toBe(true)
 			end
 		end)

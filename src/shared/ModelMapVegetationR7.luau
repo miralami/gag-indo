@@ -77,7 +77,13 @@ ModelMapVegetationR7.sources = {
 	bunga = "Shared.ModelMapVegetationR6.ids.bunga",
 }
 
-ModelMapVegetationR7.budgets = SpawnDressingMapR5.budgets
+-- Round-8 near-ground layer adds staged instances; the planning ceiling moves with them. Real
+-- triangle figures are still only measured in Studio, so this stays a planning cap like R5's.
+ModelMapVegetationR7.budgets = {
+	Rendah = SpawnDressingMapR5.budgets.Rendah,
+	Sedang = { instances = 120, triangles = 100000 },
+	Tinggi = SpawnDressingMapR5.budgets.Tinggi,
+}
 ModelMapVegetationR7.tiers = SpawnDressingMapR5.tiers
 
 local TIER_RANK = { Rendah = 1, Sedang = 2, Tinggi = 3 }
@@ -88,8 +94,30 @@ end
 
 ModelMapVegetationR7.exclusionMargins = ModelMapVegetationR5.exclusionMargins
 
+-- Round-8 near-ground beds. R5's 3-stud road slack and full-lapangan keep-out were tuned for tall
+-- trees: they also cover the only ground inside the 45-stud near cone. Keep the road surface and
+-- the lapangan centre clear, but allow planted flanks from |x| = 16 outward. Hub, plot, plaza and
+-- ring-road zones stay verbatim. ponytail: if a designer wants the green completely bare, restore
+-- the delegated R5 zones here and drop the near group instead of nudging individual slots.
 function ModelMapVegetationR7.exclusionZones(mapSpec, anchorRects)
-	return ModelMapVegetationR5.exclusionZones(mapSpec, anchorRects)
+	local zones = ModelMapVegetationR5.exclusionZones(mapSpec, anchorRects)
+	local out = {}
+	for _, zone in ipairs(zones) do
+		local copy = {
+			name = zone.name,
+			x = zone.x,
+			z = zone.z,
+			halfX = zone.halfX,
+			halfZ = zone.halfZ,
+		}
+		if copy.name == "open" and copy.z == mapSpec.LAPANGAN.z then
+			copy.halfX = 14 -- centre stays clear; both flanks become planting beds
+		elseif type(copy.name) == "string" and string.sub(copy.name, 1, 4) == "Road" then
+			copy.halfX = math.max(0, copy.halfX - ModelMapVegetationR5.exclusionMargins.path) -- to the road edge
+		end
+		table.insert(out, copy)
+	end
+	return out
 end
 
 function ModelMapVegetationR7.pointAllowed(x, z, slotFootprint, zones)
@@ -297,12 +325,88 @@ local function buildSlots()
 	return out
 end
 
+-- Round-8 near layer: larger plants on the two lapangan flanks, 110..120 in Z, 16..22 in |X|.
+-- Every entry sits inside 45 studs of the saved eye AND inside the 35-degree half-cone at both
+-- jitter extremes (checked by tests/specs/veg_near_spec.luau). Small flowering shrubs alone cannot
+-- satisfy VEG_NEAR: base heights here are 3+ studs, so the scaled bbox is never under 2 studs tall.
+-- Asset keys and species are reuses of existing R4/R6/R7 entries; no new ID is introduced.
+local NEAR_PLAN = {
+	{ x = -16, z = 110, species = "bambu" },
+	{ x = 16, z = 110, species = "mangga" },
+	{ x = -16, z = 112, species = "pisang" },
+	{ x = 16, z = 112, species = "bambu" },
+	{ x = -18, z = 112, species = "pisang" },
+	{ x = 18, z = 112, species = "mangga" },
+	{ x = -20, z = 112, species = "bambu" },
+	{ x = 20, z = 112, species = "mangga" },
+	{ x = -16, z = 114, species = "teh-tehan" },
+	{ x = 16, z = 114, species = "kembang sepatu" },
+	{ x = -18, z = 114, species = "puring" },
+	{ x = 18, z = 114, species = "talas" },
+	{ x = -20, z = 114, species = "pisang" },
+	{ x = 20, z = 114, species = "bambu" },
+	{ x = -22, z = 114, species = "pisang" },
+	{ x = 22, z = 114, species = "mangga" },
+	{ x = -16, z = 116, species = "keladi" },
+	{ x = 16, z = 116, species = "teh-tehan" },
+	{ x = -18, z = 116, species = "kembang sepatu" },
+	{ x = 18, z = 116, species = "puring" },
+	{ x = -16, z = 118, species = "talas" },
+	{ x = 16, z = 118, species = "keladi" },
+	{ x = -18, z = 118, species = "kembang sepatu" },
+	{ x = 18, z = 118, species = "kembang sepatu" },
+	{ x = -16, z = 120, species = "teh-tehan" },
+	{ x = 16, z = 120, species = "puring" },
+	{ x = -16, z = 122, species = "bambu" },
+	{ x = 16, z = 122, species = "mangga" },
+	{ x = -18, z = 122, species = "pisang" },
+	{ x = 18, z = 122, species = "bambu" },
+	{ x = -20, z = 116, species = "mangga" },
+	{ x = 20, z = 116, species = "pisang" },
+}
+
+local function buildNearSlots()
+	local rand = lcg(8363)
+	local out = {}
+	for index, plan in ipairs(NEAR_PLAN) do
+		local assetKey = SPECIES_ASSET[plan.species]
+		if type(ModelMapVegetationR7.ids[assetKey]) ~= "number" then
+			error("vegetation_r7: no real ID for near " .. plan.species)
+		end
+		local baseHeight = BASE_HEIGHT[plan.species]
+		local scale = 0.85 + rand() * 0.30
+		table.insert(out, {
+			slot = assetKey,
+			species = plan.species,
+			cluster = "near_bed",
+			x = plan.x,
+			z = plan.z,
+			ry = 0, -- zero yaw keeps the measured bbox centre on the audited slot position
+			targetHeight = baseHeight * scale,
+			baseHeight = baseHeight,
+			scaleJitter = scale,
+			rotX = 0,
+			footprint = { halfX = 1, halfZ = 1 },
+			tier = "Sedang",
+			index = 1000 + index,
+			nearGround = true,
+		})
+	end
+	return out
+end
+
 ModelMapVegetationR7.groups = {
 	{
 		id = "vegetation_r7_camera_band",
 		staged = true,
 		tier = "Sedang",
 		slots = buildSlots(),
+	},
+	{
+		id = "vegetation_r7_near_bed",
+		staged = true,
+		tier = "Sedang",
+		slots = buildNearSlots(),
 	},
 }
 
@@ -326,6 +430,49 @@ function ModelMapVegetationR7.stagedSlots()
 		end
 	end
 	return out
+end
+
+ModelMapVegetationR7.nearCone = { radius = 45 }
+
+function ModelMapVegetationR7.nearSlots(slotList)
+	local out = {}
+	for _, slot in ipairs(slotList or ModelMapVegetationR7.slots()) do
+		if slot.nearGround then
+			table.insert(out, slot)
+		end
+	end
+	return out
+end
+
+-- VEG_NEAR contract: 3D range 45 from the same saved eye, same 70-degree cone, and a >=2-stud bbox.
+function ModelMapVegetationR7.countNear(slotList)
+	local view, target = ModelMapVegetationR7.savedCamera.eye, ModelMapVegetationR7.savedCamera.look
+	local count, seen, tooSmall = 0, {}, 0
+	for _, slot in ipairs(ModelMapVegetationR7.nearSlots(slotList)) do
+		if
+			ModelMapVegetationR7.pointInCone(
+				slot.x,
+				slot.z,
+				view,
+				target,
+				ModelMapVegetationR7.nearCone.radius,
+				ModelMapVegetationR7.cone.halfAngleDeg,
+				slot.targetHeight * 0.5
+			)
+		then
+			count += 1
+			seen[slot.species] = true
+			if slot.targetHeight < 2 then
+				tooSmall += 1
+			end
+		end
+	end
+	local species = {}
+	for name in pairs(seen) do
+		table.insert(species, name)
+	end
+	table.sort(species)
+	return count, #species, species, tooSmall
 end
 
 -- Pure cone test matching the Studio harness: 3D range plus a 70-degree full cone around the
@@ -436,6 +583,10 @@ do
 	local count, speciesCount = ModelMapVegetationR7.countInCone()
 	assert(count >= 60, "vegetation_r7: fewer than 60 in-cone slots: " .. tostring(count))
 	assert(speciesCount >= 8, "vegetation_r7: fewer than 8 species: " .. tostring(speciesCount))
+	local nearCount, nearSpecies, _, undersized = ModelMapVegetationR7.countNear()
+	assert(nearCount >= 25, "vegetation_r7: fewer than 25 near slots: " .. tostring(nearCount))
+	assert(nearSpecies >= 6, "vegetation_r7: fewer than 6 near species: " .. tostring(nearSpecies))
+	assert(undersized == 0, "vegetation_r7: near slot under 2 studs tall")
 	assert(ModelMapVegetationR7.minPairDistance() >= 2, "vegetation_r7: slots closer than 2 studs")
 	local counts, triangles = ModelMapVegetationR7.budgetAudit()
 	local budget = ModelMapVegetationR7.budgets.Sedang

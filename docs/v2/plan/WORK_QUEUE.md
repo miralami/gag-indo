@@ -827,26 +827,26 @@ Source: `docs/v2/evidence/h/2026-11-21-review-round7/STUDIO_REVIEW.md` (SEEN-IN-
 
 Designer verdicts: sky E, ground, and the catalog outfits (commit 4408a04) are approved. Do not touch NPC outfits.
 
-- [ ] 61. **Sky is hidden by clouds.**
+- [x] 61. **Sky is hidden by clouds.**
   - The shipping sky is E, but `Terrain.Clouds.Cover` is 1 in the live scene, so the skybox is invisible. Setting 0.5 on the client showed sky E correctly.
   - Set `Cover = 0.5` in the shipping look. Look at `src/client/World/Sky.luau` (the day-cycle preset `cloudCover` overrides it every tick, so fix the preset, not only the one-off write), `src/shared/World/DayCycle.luau` and `src/shared/Config/Seasons.luau`.
   - Keep `badai` and `hujan` weather overlays raising Cover; only the clear-day base changes.
   - **CHECK `CLOUD_COVER`:** in a fresh Play with no enable call, after 10 s, `workspace.Terrain.Clouds.Cover` is between 0.4 and 0.6 at ClockTime 13. Add it to `tools/studio/review_check_r7.luau` as a client check and document it.
-- [ ] 62. **Flower beds are raised mounds.**
+- [x] 62. **Flower beds are raised mounds.**
   - `ShippingLookR7.luau` fills `Ground` voxels with `FillBlock` and adds volume, so each bed is a dirt mound. Paint the material at grade instead: `Terrain:ReadVoxels` the region, keep each voxel's occupancy, and `WriteVoxels` with the same occupancy and `Enum.Material.Ground` (only where the voxel is not air). No volume added.
   - **CHECKS:** `GRASS_ON_BEDS` still 0, plus new `BED_FLUSH`: the terrain surface height at every bed centre differs by at most 0.5 stud from a point 6 studs outside the bed (raycast down).
-- [ ] 63. **Vegetation: dense in the near and mid ground.**
+- [x] 63. **Vegetation: dense in the near and mid ground.**
   - 67 instances pass, but most are small far shrubs. Add a near-ground layer.
   - **CHECK `VEG_NEAR`:** at least 25 plant instances within 45 studs of the saved camera and inside the 70° cone, at least 6 species among them, none smaller than 2 studs tall.
   - Reuse the baked assets. Respect exclusion zones and the 2-stud spacing. Do not drop `VEG_COUNT` or `VEG_SPECIES`.
-- [ ] 64. **Props: better models, visible.**
+- [x] 64. **Props: better models, visible.**
   - The cangkul slot is an axe, the gerobak is a small modern wheelbarrow, and the pagar bambu barely shows.
   - Follow the asset ladder: check already-baked IDs first, then Creator Store via Edit-mode `GetObjects`, then `generate_mesh`. Needed: a real cangkul (hoe with a long wooden handle), a traditional wooden gerobak (two-wheel hand cart), a pagar bambu at least 8 studs long and 3 tall.
   - Record new IDs in `ASSET_MANIFEST.md` and add them to the bake list.
   - **CHECKS:** `PROPS_VISIBLE` 6/6, `PROPS_ON_GRASS` 0, plus `PROP_SIZE`: gerobak 4–6 studs long, cangkul 3.5–4.5 tall, pagar 8+ long.
-- [ ] 65. **Process fix.** `ServerStorage.LookDevAssets` survived a Studio restart, so the place was probably saved after the bake. Add a step to the review doc: the bake must not be saved, and say how to check that. Do not save the place yourself.
-- [ ] 66. **Review handoff.** Write `REVIEW_ROUND8.md` (bake, toggles, datamodels, cameras, every `CHECK_*.txt` path). The main session takes the shots.
-- [ ] 67. **No-op marker.** Tick this when items 61–66 are done; section M follows and holds the real refill (item 101).
+- [x] 65. **Process fix.** `ServerStorage.LookDevAssets` survived a Studio restart, so the place was probably saved after the bake. Add a step to the review doc: the bake must not be saved, and say how to check that. Do not save the place yourself.
+- [x] 66. **Review handoff.** Write `REVIEW_ROUND8.md` (bake, toggles, datamodels, cameras, every `CHECK_*.txt` path). The main session takes the shots.
+- [x] 67. **No-op marker.** Tick this when items 61–66 are done; section M follows and holds the real refill (item 101).
 
 ### M. Round 9: dress the whole village (added 2026-11-21, long unattended run)
 

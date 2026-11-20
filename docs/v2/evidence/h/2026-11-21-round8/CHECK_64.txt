@@ -1,0 +1,9 @@
+# CHECK 64 — replacement props at real size and visible (WORK_QUEUE section L, round 8)
+# Studio: Development-Juragan-Desa (placeId 132087524375529), real Play, Server datamodel.
+# Setup: Edit-mode asset bake re-run (baked=3 failures=0; props_r8 ids 4951145641 "Cangkul",
+# 10506531785 "Gerobak", 85094565897097 bamboo fence all present), fresh Play, candidates staged:
+# vegetation_r7=120, npcs_r7=5, props_r7=6. Harness: tools/studio/review_check_r7.luau,
+# run in the Server VM. Raw console lines verbatim below.
+CHECK PROPS_VISIBLE PASS 6 6
+CHECK PROPS_ON_GRASS PASS 0 0
+CHECK PROP_SIZE PASS g=4.99 c=4.00 p=8.54 g[4-6] c[3.5-4.5] p[>=8]

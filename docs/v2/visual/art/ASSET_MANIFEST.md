@@ -274,7 +274,7 @@ model_r3.vegetation_r3/shrubs,model,agent_generated,docs/v2/visual/art/models_r3
 model_r3.props_r3/cart,model,agent_generated,docs/v2/visual/art/models_r3/export/props_r3/cart_gerobak.glb,original, CC0-equivalent,original deterministic generator,123070528502160,,UNVERIFIED
 model_r3.props_r3/well,model,agent_generated,docs/v2/visual/art/models_r3/export/props_r3/well_sumur.glb,original, CC0-equivalent,original deterministic generator,108779169207130,,UNVERIFIED
 model_r3.props_r3/stall,model,agent_generated,docs/v2/visual/art/models_r3/export/props_r3/market_stall.glb,original, CC0-equivalent,original deterministic generator,119525167329493,,UNVERIFIED
-model_r3.props_r3/fence,model,agent_generated,docs/v2/visual/art/models_r3/export/props_r3/fencing_bambu.glb,original, CC0-equivalent,original deterministic generator,85094565897097,,UNVERIFIED
+model_r3.props_r3/fence,model,agent_generated,docs/v2/visual/art/models_r3/export/props_r3/fencing_bambu.glb,original, CC0-equivalent,original deterministic generator; reused for R7 pagar_bambu in round 8 (WORK_QUEUE item 64),85094565897097,,UNVERIFIED
 model_r3.props_r3/tools,model,agent_generated,docs/v2/visual/art/models_r3/export/props_r3/tools_set.glb,original, CC0-equivalent,original deterministic generator,110400413362502,,UNVERIFIED
 model_r3.npcs_r3/villager_a,model,agent_generated,docs/v2/visual/art/models_r3/export/npcs_r3/npc_petani_caping.glb,original, CC0-equivalent,original deterministic generator,75743269173481,,UNVERIFIED
 model_r3.npcs_r3/villager_b,model,agent_generated,docs/v2/visual/art/models_r3/export/npcs_r3/npc_pedagang.glb,original, CC0-equivalent,original deterministic generator,100304009103314,,UNVERIFIED
@@ -415,6 +415,22 @@ Source: `docs/v2/visual/art/models_r4/props/{SOURCE_LICENSES.md,upload_manifest.
 | alat_tani | 109848917287023 | https://polyhaven.com/a/wooden_axe | Ulan Cabanilla | CC0 1.0 — https://polyhaven.com/license | "Wooden Axe" by Ulan Cabanilla — Poly Haven, CC0 1.0 (https://polyhaven.com/license), source https://polyhaven.com/a/wooden_axe |
 | karung | 87487192428396 | https://polyhaven.com/a/cement_bag | PierreB3D | CC0 1.0 — https://polyhaven.com/license | "Cement Bag" by PierreB3D — Poly Haven, CC0 1.0 (https://polyhaven.com/license), source https://polyhaven.com/a/cement_bag |
 | jemuran | 138444489439223 | https://grab3d.com/models/props/clothesline/ | Grab3D | CC0 1.0 Universal — https://creativecommons.org/publicdomain/zero/1.0/legalcode | "Clothesline" by Grab3D — CC0 1.0 Universal, no attribution required (https://creativecommons.org/publicdomain/zero/1.0/legalcode), source https://grab3d.com/models/props/clothesline/, licence text https://grab3d.com/dl/clothesline/LICENSE.txt |
+
+
+### props_r8 — round-8 prop replacements (R7 look only, SERVER datamodel)
+
+WORK_QUEUE item 64. These three IDs replace the weak R4 props **only in `props_r7`**;
+R4/R5/R6 maps and their IDs are unchanged. The two Creator Store models are free and were
+loaded in Edit mode with `game:GetObjects("rbxassetid://<id>")` (each returned a valid Model).
+All three were measured in Studio on 2026-11-21. No licence is claimed beyond what is recorded
+here: Creator Store terms apply to the two store models. No visual verdict, place save or
+publish is claimed.
+
+| Slot / map key | Asset ID | Source URL | Creator | Notes |
+|---|---|---|---|---|
+| alat_tani | 4951145641 | https://create.roblox.com/store/asset/4951145641 | Creator Store listing (creator not verified) | "Cangkul"; replaces wooden axe 109848917287023. Native bbox 2.7 x 5.2 x 2 studs, upright. Final staged height 4.0 studs (band 3.5-4.5). Creator Store terms apply. |
+| gerobak | 10506531785 | https://create.roblox.com/store/asset/10506531785 | Creator Store listing (creator not verified) | "Gerobak"; replaces modern wheelbarrow 119426685469058. Native bbox 5.5 x 9 x 13.5 studs, long axis Z. Final staged height 3.33 studs, giving a 4.995-stud long axis (band 4-6). Creator Store terms apply. |
+| pagar_bambu | 85094565897097 | docs/v2/visual/art/models_r3/export/props_r3/fencing_bambu.glb | agent-generated | Reused `model_r3.props_r3/fence`; replaces barely visible 103341007913673. Native bbox 4.1 x 1.5 x 0.1 studs, long axis X. Final staged height 3.05 studs gives ~8.34 studs long; `ry = 0`. |
 
 
 ### `npcs_r4` — 5 Model IDs, CC0 / CC BY 3.0 textured villagers (SERVER datamodel)

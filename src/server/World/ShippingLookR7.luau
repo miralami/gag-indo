@@ -4,6 +4,11 @@
 -- tagged PlotAnchor centres to Enum.Material.Ground. No whole-map fill, no new
 -- generators, no asset IDs, no LookDev enable call. Startup cannot yield, so apply()
 -- schedules the work and the Terrain/anchor wait is deferred with a 10 s cap.
+--
+-- WORK_QUEUE item 62: beds used to be raised dirt mounds because painting used
+-- Terrain:FillBlock, which ADDS a 4-stud Ground volume. Painting now reads the existing
+-- voxels and writes their occupancy back untouched, changing only the material where a
+-- voxel already holds terrain. No volume is added, so each bed stays flush with grade.
 
 local CollectionService = game:GetService("CollectionService")
 local Workspace = game:GetService("Workspace")
@@ -22,8 +27,14 @@ local RETRY_SECONDS = 0.25 -- 40 * 0.25 = 10 s
 -- Bed diameter 11.2 rounded down, plus 1 stud = 12x12 centred on the bed.
 local BED_BOX = math.floor(SpawnGroundMapR6.flowerBedRadius * 2) + 1
 local PLOT_PAD = 1
-local FILL_Y = 2
-local FILL_HEIGHT = 4
+
+-- ReadVoxels/WriteVoxels need grid-aligned bounds and matching resolution. Terrain's
+-- authoring grid is 4 studs, so every Region3 corner must be a multiple of VOXEL.
+local VOXEL = 4
+-- Y band: the two voxels at grade (-4..0, 0..4) plus the old mound band (4..8). Repainting
+-- the mound band's material (never its occupancy) also cleans up any stale fill in-session.
+local PAINT_Y0 = -VOXEL
+local PAINT_Y1 = VOXEL * 2
 
 local state = { groundApplied = false, painted = 0, failures = 0 }
 local started = false
@@ -63,20 +74,56 @@ local function applyGround()
 	end
 end
 
-local function fill(terrain: Terrain, x: number, z: number, sx: number, sz: number, label: string)
+-- WORK_QUEUE item 62: snap the centred BED_BOX / plot-pad footprint OUTWARD to 4-stud
+-- boundaries so ReadVoxels and WriteVoxels agree on the same grid-aligned region.
+-- The guard keeps even a degenerate (zero-size) anchor a valid one-voxel region.
+local function paintRegion(x: number, z: number, sx: number, sz: number): Region3
+	local minX = math.floor((x - sx / 2) / VOXEL) * VOXEL
+	local maxX = math.ceil((x + sx / 2) / VOXEL) * VOXEL
+	local minZ = math.floor((z - sz / 2) / VOXEL) * VOXEL
+	local maxZ = math.ceil((z + sz / 2) / VOXEL) * VOXEL
+	if maxX - minX < VOXEL then
+		maxX = minX + VOXEL
+	end
+	if maxZ - minZ < VOXEL then
+		maxZ = minZ + VOXEL
+	end
+	return Region3.new(Vector3.new(minX, PAINT_Y0, minZ), Vector3.new(maxX, PAINT_Y1, maxZ))
+end
+
+-- WORK_QUEUE item 62: repaint at grade. Read the materials AND occupancies, substitute
+-- Enum.Material.Ground only where the voxel already holds terrain (occupancy > 0 and
+-- material is not Air), then write BOTH tables back. Occupancy is preserved byte-for-byte:
+-- changing it would add or remove terrain volume, which is exactly the mound bug. An all-air
+-- region is written back unchanged — no voxels are created.
+local function repaint(terrain: Terrain, x: number, z: number, sx: number, sz: number, label: string)
+	local region = paintRegion(x, z, sx, sz)
 	local ok, err = pcall(function()
-		terrain:FillBlock(CFrame.new(x, FILL_Y, z), Vector3.new(sx, FILL_HEIGHT, sz), Enum.Material.Ground)
+		local materials, occupancies = terrain:ReadVoxels(region, VOXEL)
+		for ix, slab in ipairs(materials) do
+			local occSlab = occupancies[ix]
+			for iy, row in ipairs(slab) do
+				local occRow = occSlab and occSlab[iy]
+				for iz, material in ipairs(row) do
+					local occupancy = occRow and occRow[iz]
+					if occupancy and occupancy > 0 and material ~= Enum.Material.Air then
+						row[iz] = Enum.Material.Ground
+					end
+				end
+			end
+		end
+		terrain:WriteVoxels(region, VOXEL, materials, occupancies)
 	end)
 	if ok then
 		state.painted += 1
 	else
-		fail("FillBlock " .. label .. " failed: " .. tostring(err))
+		fail("repaint " .. label .. " failed: " .. tostring(err))
 	end
 end
 
 local function paintBeds(terrain: Terrain)
 	for index, bed in ipairs(SpawnGroundMapR6.flowerBeds) do
-		fill(terrain, bed.x, bed.z, BED_BOX, BED_BOX, "flowerbed:" .. index)
+		repaint(terrain, bed.x, bed.z, BED_BOX, BED_BOX, "flowerbed:" .. index)
 	end
 end
 
@@ -91,7 +138,7 @@ local function paintPlots(terrain: Terrain, anchors: { any })
 		end)
 		if ok then
 			if x ~= nil then
-				fill(terrain, x, z, sx, sz, "plot:" .. index)
+				repaint(terrain, x, z, sx, sz, "plot:" .. index)
 			end
 		else
 			fail("reading PlotAnchor " .. index .. " failed: " .. tostring(x))

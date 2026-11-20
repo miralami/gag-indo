@@ -51,13 +51,21 @@ local IDS: { number } = {
 	9639782964,
 	115462020907259,
 	5445549227,
+	-- props_r8 (WORK_QUEUE item 64): R7-only replacements, loaded in Edit mode on 2026-11-21
+	4951145641, -- Cangkul (was alat_tani 109848917287023)
+	10506531785, -- Gerobak (was 119426685469058)
+	85094565897097, -- bamboo fence, reused for pagar_bambu (was 103341007913673)
 }
 
 local function stripScripts(root: Instance)
 	local stack: { Instance } = { root }
 	while #stack > 0 do
 		local current = table.remove(stack)
-		if current.ClassName == "Script" or current.ClassName == "LocalScript" or current.ClassName == "ModuleScript" then
+		if
+			current.ClassName == "Script"
+			or current.ClassName == "LocalScript"
+			or current.ClassName == "ModuleScript"
+		then
 			pcall(function()
 				current:Destroy()
 			end)

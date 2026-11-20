@@ -69,7 +69,7 @@ Seasons.sky = {
 		atmosphereHaze = 0.8,
 		atmosphereColor = Color3.fromRGB(215, 190, 165),
 		atmosphereDecay = Color3.fromRGB(160, 110, 85),
-		cloudCover = 0.75,
+		cloudCover = 0.35,
 		tint = Color3.fromRGB(235, 230, 225),
 		saturation = 0.18,
 		contrast = 0.08,
@@ -89,7 +89,7 @@ Seasons.sky = {
 		atmosphereHaze = 0.5,
 		atmosphereColor = Color3.fromRGB(255, 205, 130),
 		atmosphereDecay = Color3.fromRGB(210, 110, 60),
-		cloudCover = 0.1,
+		cloudCover = 0.35,
 		tint = Color3.fromRGB(255, 238, 210),
 		saturation = 0.22,
 		contrast = 0.1,
@@ -123,10 +123,24 @@ Seasons.sky = {
 -- Weather overlays on top of the season preset. brightness/fogEnd/sunRays are multipliers;
 -- cloudCover/atmosphereDensity/atmosphereHaze/saturation are additive and clamped in skyFor.
 Seasons.cuacaSky = {
-	cerah = { brightness = 1.0, cloudCover = -0.2 },
+	cerah = { brightness = 1.0, cloudCover = 0.15 },
 	hujan = { brightness = 0.75, fogEnd = 0.7, cloudCover = 0.2, saturation = -0.04, sunRays = 0.3 },
-	badai = { brightness = 0.55, fogEnd = 0.45, cloudCover = 1, atmosphereDensity = 0.2, saturation = -0.12, sunRays = 0 },
-	kabut = { brightness = 0.85, fogEnd = 0.4, atmosphereDensity = 0.25, atmosphereHaze = 2, saturation = -0.08, sunRays = 0.5 },
+	badai = {
+		brightness = 0.55,
+		fogEnd = 0.45,
+		cloudCover = 1,
+		atmosphereDensity = 0.2,
+		saturation = -0.12,
+		sunRays = 0,
+	},
+	kabut = {
+		brightness = 0.85,
+		fogEnd = 0.4,
+		atmosphereDensity = 0.25,
+		atmosphereHaze = 2,
+		saturation = -0.08,
+		sunRays = 0.5,
+	},
 }
 
 -- Weighted weather table per season. `roll` is a number in [0, 1) — pass math.random()

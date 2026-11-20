@@ -38,8 +38,7 @@ else
 end
 
 local okModules, LookDev, Data, LookDevAssetLoader = pcall(function()
-	return
-		require((Shared :: any).LookDev),
+	return require((Shared :: any).LookDev),
 		require((Shared :: any).ModelMapVegetationR7),
 		require(script.Parent.LookDevAssetLoader)
 end)
@@ -89,11 +88,15 @@ local function bounds(root: any): (CFrame?, Vector3?)
 	return nil, nil
 end
 
--- Jitter is baked into slot.targetHeight; this only scales and grounds the model.
+-- Jitter is baked into slot.targetHeight; this only scales and grounds the model. VEG_NEAR needs a
+-- >=2-stud bbox, so near slots get a floor even if a future data edit lowers their base height.
+local MIN_NEAR_HEIGHT = 2.05
+
 local function placeAndScale(model: any, slot: any)
 	local _, boxSize = bounds(model)
 	local bodyY = if boxSize and boxSize.Y > 0 then boxSize.Y else 1
-	local factor = slot.targetHeight / bodyY
+	local targetHeight = if slot.nearGround then math.max(slot.targetHeight, MIN_NEAR_HEIGHT) else slot.targetHeight
+	local factor = targetHeight / bodyY
 	local scaled = false
 	if model:IsA("Model") then
 		scaled = pcall(function()
@@ -254,6 +257,9 @@ local function apply()
 				model.Name = "R7_" .. group.id .. "_" .. tostring(slot.species) .. "_" .. index
 				model:SetAttribute("LookDevR7", FAMILY_ID)
 				model:SetAttribute("Species", slot.species)
+				if slot.nearGround then
+					model:SetAttribute("NearGround", true)
+				end
 			end)
 			placeAndScale(model, slot)
 			pcall(function()

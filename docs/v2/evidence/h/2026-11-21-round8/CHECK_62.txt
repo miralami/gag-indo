@@ -1,0 +1,8 @@
+# CHECK 62 — flower beds flush with grade (WORK_QUEUE section L, round 8)
+# Studio: Development-Juragan-Desa (placeId 132087524375529), real Play, Server datamodel.
+# Setup: Edit-mode asset bake re-run (baked=3 failures=0, props_r8 ids present), then a fresh
+# Play. candidates staged: vegetation_r7=120, npcs_r7=5, props_r7=6. Harness:
+# tools/studio/review_check_r7.luau, run in the Server VM. Raw console lines verbatim below.
+CHECK LOAD_FAILURES PASS 0 0
+CHECK GRASS_ON_BEDS PASS 0 0
+CHECK BED_FLUSH PASS 0 0.5

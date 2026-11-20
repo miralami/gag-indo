@@ -1,0 +1,15 @@
+# CHECK 63 — near-ground vegetation density (WORK_QUEUE section L, round 8)
+# Studio: Development-Juragan-Desa (placeId 132087524375529), real Play, Server datamodel.
+# Setup: Edit-mode asset bake re-run (baked=3 failures=0), fresh Play, candidates staged:
+# vegetation_r7=120, npcs_r7=5, props_r7=6. Harness: tools/studio/review_check_r7.luau,
+# run in the Server VM. Raw console lines verbatim below.
+#
+# First harness attempt measured 21 in-cone near instances (FAIL, target >=25): real baked-model
+# bbox centres drift outward from nominal data slots, so several near-bed plants sat outside the
+# 45-stud radius. Fix: six well-behaved near slots (bambu/mangga/pisang at |x|>=16, z=116/122)
+# were added to NEAR_PLAN; a fresh Play re-staged 120 vegetation models. Second and final harness
+# attempt measured 27 in-cone instances / 7 species / 0 undersized within the 120-instance Sedang
+# budget. The check itself was not changed.
+CHECK VEG_COUNT PASS 94 60
+CHECK VEG_SPECIES PASS 10 8
+CHECK VEG_NEAR PASS 27 inst/7 sp/0 small >=25 inst/>=6 sp/0 small

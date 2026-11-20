@@ -420,7 +420,14 @@ because of how they were applied, not where they came from.
 - **Characters:** not solid enough. Roblox R15 characters are fine; what matters is that they look
   solid.
 
-- [ ] 35. **Fix the `textures_r4` darkening.**
+- [x] 35. **Fix the `textures_r4` darkening.** Done 2026-11-20. Root cause measured in a live Play/Client
+  session: the CC0 `MaterialVariant`s carry only maps, so `SetBaseMaterialOverride` also affects
+  Terrain, where the dark stock `GetMaterialColor` multiplier crushed the earth maps towards black.
+  `TextureMapR4.terrainTint` now holds bright warm-neutral values for 11 built-in terrain materials;
+  the applier captures the exact current colour and restores it on disable (Water excluded). Live
+  before/during/after colour reads and the reversal proof are in
+  `docs/v2/evidence/h/2026-11-20-textures-r4-fix/REPORT.md`. Still-image after-capture is assigned to
+  item 42; this session could not retain a Studio still. Off by default; verdict blank. Tests 2177.
   - Find out why the Ground/Laterite (and other) overrides turn spawn almost black. Check Terrain
     `MaterialColors`, the colour-map brightness and the base-material choice.
   - Bring the ground back to warm, readable brown.

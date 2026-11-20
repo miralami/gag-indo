@@ -169,6 +169,26 @@ return function(t, Env)
 		end)
 	end)
 
+	t:describe("TextureMapR4 terrain tint", function()
+		t:it("covers the terrain materials the overrides affect", function()
+			for _, base in ipairs({ "Grass", "Ground", "Mud", "Cobblestone", "Slate", "Brick" }) do
+				expect(type(TextureMapR4.terrainTint[base])):toBe("string")
+			end
+			expect(TextureMapR4.terrainTint.Water):toBe(nil)
+		end)
+
+		t:it("uses bright warm-neutral hex values", function()
+			for _, hex in TextureMapR4.terrainTint do
+				expect(string.match(hex, "^#%x%x%x%x%x%x$")):toBeTruthy()
+				local r = tonumber(string.sub(hex, 2, 3), 16) / 255
+				local g = tonumber(string.sub(hex, 4, 5), 16) / 255
+				local b = tonumber(string.sub(hex, 6, 7), 16) / 255
+				expect(r >= 0.85 and g >= 0.85 and b >= 0.85):toBe(true)
+				expect(r >= g and g >= b):toBe(true)
+			end
+		end)
+	end)
+
 	t:describe("LookDevTexturesR4 applier source", function()
 		t:it("registers textures_r4 without embedding asset IDs", function()
 			expect(applier:find('LookDev.register("textures_r4"', 1, true) ~= nil):toBe(true)
@@ -192,6 +212,20 @@ return function(t, Env)
 			expect(applier:find("MaterialService:SetBaseMaterialOverride(base, previous)", 1, true) ~= nil):toBe(true)
 			expect(applier:find("variant:Destroy()", 1, true) ~= nil):toBe(true)
 			expect(applier:find("previousOverrides = {}", 1, true) ~= nil):toBe(true)
+		end)
+
+		t:it("captures and restores Terrain material colours around the overrides", function()
+			expect(applier:find("TextureMapR4.terrainTint", 1, true) ~= nil):toBe(true)
+			expect(applier:find("previousTerrainColors", 1, true) ~= nil):toBe(true)
+			expect(applier:find("terrain:GetMaterialColor(base)", 1, true) ~= nil):toBe(true)
+			expect(applier:find("terrain:SetMaterialColor(base, Color3.fromHex(tint))", 1, true) ~= nil):toBe(true)
+			expect(applier:find("terrain:SetMaterialColor(base, previous)", 1, true) ~= nil):toBe(true)
+			expect(applier:find("previousTerrainColors = {}", 1, true) ~= nil):toBe(true)
+		end)
+
+		t:it("never targets Water with SetMaterialColor", function()
+			expect(applier:find('baseName == "Water"', 1, true) ~= nil):toBe(true)
+			expect(TextureMapR4.terrainTint.Water):toBe(nil)
 		end)
 	end)
 end

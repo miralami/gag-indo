@@ -205,6 +205,25 @@ TextureMapR4.baseMaterials = {
 	Sand = "sand_path",
 }
 
+-- Terrain multiplies a colour map by Terrain:GetMaterialColor(material); the stock dark
+-- earth colours crush the CC0 maps near black. While the base-material override is
+-- installed, neutralise the affected Terrain materials with bright warm-neutral tints.
+-- The applier captures each exact original colour and restores it on disable.
+-- Plain colours only: no asset IDs here.
+TextureMapR4.terrainTint = {
+	Grass = "#F7F2E4",
+	Ground = "#FAF4E8",
+	Mud = "#F6EEE2",
+	Cobblestone = "#F6F0E3",
+	WoodPlanks = "#F8F1E5",
+	Brick = "#F9F2E6",
+	Concrete = "#F9F3E7",
+	Slate = "#F7F1E5",
+	Metal = "#F6EFE2",
+	Rock = "#F7F0E3",
+	Sand = "#F8F1E4",
+}
+
 -- Named village surface -> variant slot, including the r4 additions.
 TextureMapR4.surfaces = {
 	grass = "dry_grass",

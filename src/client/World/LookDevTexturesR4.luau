@@ -23,6 +23,7 @@ end
 type Built = { name: string, baseName: string, base: any }
 
 local previousOverrides: { [string]: string } = {}
+local previousTerrainColors: { [string]: any } = {}
 local createdVariants: { any } = {}
 local applied = false
 
@@ -39,6 +40,19 @@ local function resolveBase(name: string): any?
 		return nil
 	end
 	return base
+end
+
+local function findTerrain(): any?
+	local ok, ws = pcall(function()
+		return game:GetService("Workspace")
+	end)
+	if not ok or not ws then
+		return nil
+	end
+	local okFind, terrain = pcall(function()
+		return ws:FindFirstChild("Terrain")
+	end)
+	return if okFind then terrain else nil
 end
 
 local function buildVariants(): { Built }
@@ -87,6 +101,7 @@ local function apply(_plan: any)
 		return
 	end
 	previousOverrides = {}
+	previousTerrainColors = {}
 	createdVariants = {}
 	for _, entry in buildVariants() do
 		local okRead, previous = pcall(function()
@@ -104,6 +119,33 @@ local function apply(_plan: any)
 			warn("textures_r4: could not read override for " .. entry.baseName .. ": " .. tostring(previous))
 		end
 	end
+
+	-- The terrain colour multiplies the colour map. Neutralise it only while the override
+	-- is live, capturing the exact prior colour first; absent/unsupported Terrain is a no-op.
+	local terrain = findTerrain()
+	if terrain and type(terrain.GetMaterialColor) == "function" and type(terrain.SetMaterialColor) == "function" then
+		for baseName, tint in TextureMapR4.terrainTint do
+			if baseName == "Water" then
+				continue
+			end
+			local base = resolveBase(baseName)
+			if not base then
+				continue
+			end
+			local okRead, current = pcall(function()
+				return terrain:GetMaterialColor(base)
+			end)
+			if okRead then
+				previousTerrainColors[baseName] = current
+				local okSet = pcall(function()
+					terrain:SetMaterialColor(base, Color3.fromHex(tint))
+				end)
+				if not okSet then
+					previousTerrainColors[baseName] = nil
+				end
+			end
+		end
+	end
 	applied = true
 end
 
@@ -111,6 +153,21 @@ local function restore()
 	if not applied then
 		return
 	end
+	local terrain = findTerrain()
+	if terrain and type(terrain.SetMaterialColor) == "function" then
+		for baseName, previous in previousTerrainColors do
+			local base = resolveBase(baseName)
+			if base then
+				local ok, err = pcall(function()
+					terrain:SetMaterialColor(base, previous)
+				end)
+				if not ok then
+					warn("textures_r4: could not restore terrain colour for " .. baseName .. ": " .. tostring(err))
+				end
+			end
+		end
+	end
+	previousTerrainColors = {}
 	if MaterialService then
 		for baseName, previous in previousOverrides do
 			local base = resolveBase(baseName)

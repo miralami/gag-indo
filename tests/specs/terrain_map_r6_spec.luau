@@ -392,7 +392,7 @@ return function(t, Env)
 					end
 				end
 				expect(type(row)):toBe("string")
-				expect(string.sub(row, -4)):toBe("|  |") -- verdict blank
+				expect(string.sub(row, -4) == "|  |" or string.find(row, "| %*%*[yn][eo]") ~= nil):toBe(true) -- verdict blank or a designer verdict
 			end
 			expect(mainSrc:find("pcall(require, script.Parent.World.LookDevTerrainR6)", 1, true) ~= nil):toBe(true)
 		end)

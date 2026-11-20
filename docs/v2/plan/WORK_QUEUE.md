@@ -679,6 +679,137 @@ Store free model; strip any scripts on insert):
   bug and no agent-closable row. Remaining rows need designer vision, a real device, a published place
   or tracks C/G/E art. Round-6 shots and verdicts belong to the designer from `REVIEW_ROUND6.md`.
 
+### K. Round 7: make it actually work (added 2026-11-20 after the round-6 Studio review)
+
+**Designer verdicts, 2026-11-20** (shots: `docs/v2/evidence/h/2026-11-20-review-round6/REVIEW_ROUND6_STUDIO.html`):
+
+- **Sky:** `sky_r6_e` is chosen.
+- **Ground:** `spawn_ground_r6` is chosen. `terrain_r6_a/b` are rejected.
+- **Everything else:** the designer agrees with the main-session notes in `STUDIO_REVIEW.md`.
+
+**Why this round exists.** The same four defects have now survived two or three rounds:
+
+| Defect | Rounds failed |
+|---|---|
+| hats are 0 | R5, R6 |
+| vegetation is sparse | R5, R6 |
+| props can't be seen from the saved camera | R4, R5, R6 |
+| grass covers the flower beds | R5, R6 |
+
+Lune specs passed every time, because they check data, not the scene. The designer said: *"berkali kali tapi tetep gaprogress."* The rules below are not optional.
+
+**Root cause, found in the Studio console on 2026-11-20 (SEEN-IN-STUDIO).**
+
+- At runtime, `InsertService:LoadAsset` fails with `User is not authorized to access Asset` for every Creator Store model the place owner doesn't own:
+  - all three hat IDs: 71002247087415, 126970096704856 and the caping;
+  - five vegetation IDs: 15344074131, 8864962424, 184362803, 361802126 and 9639782964.
+- The appliers `pcall`-warn and carry on, so the failure was invisible and the scene came out sparse or hatless.
+- In the **Edit** datamodel, `game:GetObjects("rbxassetid://<id>")` loads the same IDs fine. Tested: 71002247087415 returns a MeshPart, 126970096704856 an Accessory, 15344074131 a Model, 8864962424 a MeshPart.
+
+**Hard rules for section K (these override any habit from earlier rounds):**
+
+1. **Studio proof is required.**
+   - An item is ticked only when its `CHECK` lines print `PASS` in a real Studio Play session, run through `execute_luau`.
+   - The raw output goes in `docs/v2/evidence/h/<date>-round7/CHECK_<item>.txt`, committed.
+   - A Lune spec alone never ticks a section K item.
+2. **Two failed attempts mean BLOCKED.** If a check still prints `FAIL` after two fix attempts, mark the item `BLOCKED — <paste the FAIL line>` and move on. Never tick a FAIL, and never weaken the check so that it passes.
+3. **Failures must be loud.**
+   - Every model applier keeps a `failures` count, and the check reads it.
+   - Any load failure is a FAIL.
+   - Don't `pcall`-and-continue silently.
+4. **Use exact numbers.** Use the coordinates, counts and colours given below. Where a number is missing, choose one, write it in the item, and test it.
+5. **The designer grades visuals.** Don't grade them yourself. Do run every objective check.
+
+- [ ] 53. **Check harness first: `tools/studio/review_check_r7.luau`.**
+  - One script, run with `execute_luau` in the **Server** datamodel during Play, prints one line per check: `CHECK <name> PASS|FAIL <measured> <target>`.
+  - It must implement every check named in items 54–58: `LOAD_FAILURES`, `SKY_DEFAULT`, `GRASS_ON_BEDS`, `HATS`, `PROPS_VISIBLE`, `PROPS_ON_GRASS`, `VEG_COUNT` and `VEG_SPECIES`.
+  - Visibility is measured with `workspace:Raycast` from the saved camera position to each subject's bounding-box centre:
+    - exclude the subject itself and the player characters;
+    - a subject counts as visible when nothing else is hit first, and it lies inside a 70° cone around the camera's look vector.
+  - Grass is measured with `Terrain:ReadVoxels` on a 4×4-stud cell under each sample point. The material must not be `Enum.Material.Grass`; only Grass grows decoration blades.
+  - Document how to run it in `REVIEW_ROUND7.md`.
+- [ ] 54. **Edit-time asset bake: replace runtime LoadAsset.**
+  - **Route A (preferred, durable):**
+    - A Lune script uses the Open Cloud asset-delivery API with `ROBLOX_API_KEY` to download each model ID as a `.rbxm` into `assets/lookdev/<id>.rbxm`.
+    - It strips every `Script`, `LocalScript` and `ModuleScript` with Lune's `roblox` library.
+    - Map `assets/lookdev` to `ServerStorage.LookDevAssets` in `default.project.json`.
+    - If the API refuses with 401, 403 or 404, record the exact response in the item and use Route B.
+  - **Route B (fallback):**
+    - `tools/studio/bake_lookdev_assets.luau` runs in the **Edit** datamodel through `execute_luau`.
+    - For every model and hat ID in `ModelMap*R4/R5/R6`, it calls `game:GetObjects`, strips the scripts and parents the result to `ServerStorage.LookDevAssets.<id>`.
+    - This bake must be run before each review. Put it as step 1 of `REVIEW_ROUND7.md`.
+    - Don't save the place.
+  - **All model appliers:** clone from `ServerStorage.LookDevAssets` first and use `LoadAsset` only as the fallback.
+  - **CHECK `LOAD_FAILURES` = 0** after enabling `vegetation_r7`, `npcs_r7` and `props_r7` in turn. The console must not contain `not authorized`.
+- [ ] 55. **Promote the approved picks to the default look.**
+  - **Sky:** `sky_r6_e` plus its atmosphere stack becomes the shipping sky, applied at startup with no `enable` call.
+  - **Ground:** `spawn_ground_r6` becomes the shipping ground.
+  - **Candidates:** keep the remaining sky and terrain candidates as OFF candidates. `terrain_r6_a` and `terrain_r6_b` stay rejected and are not used.
+  - **Flower beds:** under every flower bed and crop plot centre (read the real positions from MapSpec), paint the voxels to `Enum.Material.Ground`, or to `LeafyGrass` if it shows no blades. Use a box the size of the bed plus 1 stud.
+  - **CHECK `SKY_DEFAULT`:** in a fresh Play with no enable call, `Lighting.Sky.SkyboxFt` equals sky E's Ft face.
+  - **CHECK `GRASS_ON_BEDS` = 0:** every bed and plot centre has a non-Grass voxel.
+- [ ] 56. **`npcs_r7`: hats and real costumes.** This needs item 54.
+  - **Hats:**
+    - Attach with `Humanoid:AddAccessory` from the baked Accessory.
+    - If a baked asset is a bare MeshPart, wrap it in an `Accessory`, add a `Handle` and a `HatAttachment` matching the head's `HatAttachment`, then call `AddAccessory`.
+    - **CHECK `HATS`:** petani ≥1, petani_wanita ≥1 and polisi ≥1 Accessory children, and Pak RT ≥1 (the peci).
+  - **Peci:** search the Creator Store with `search_asset` for "peci", "kopiah" and "songkok". If no free one exists, build an original peci as the last resort:
+    - a black `Part` 1.1×0.55×0.95 with `SpecialMesh` `MeshType=Cylinder` or a rounded `Block`;
+    - Material `Fabric`, Color `#1A1A1A`;
+    - welded to the head, sitting straight on top.
+  - **Pak RT batik:** redraw the shirt template, 585×559 classic layout, as a real batik motif. Either:
+    - *parang:* diagonal S-curved bands at 45°;
+    - *kawung:* four-oval rosettes in a grid.
+
+    Use at least 3 colours: sogan brown `#5C3A1E`, cream `#E8D9B5` and indigo `#2B3A55`. Fill the torso and both sleeves with the motif. Dots on a plain field are not acceptable.
+  - **Polisi:**
+    - Shirt: brown `#6B4A2B`, darker seams `#4E3520`, two chest pockets with flaps, shoulder epaulettes, a name tag on the right chest and a small badge on the left chest.
+    - Pants: the same brown, with a black belt `#151515` and a buckle.
+  - **Upload and preview:**
+    - Upload the new templates as Images and record their IDs in `ASSET_MANIFEST.md`.
+    - Commit the PNGs, plus a 2×2 contact sheet at `docs/v2/visual/art/models_r7/npcs/COSTUMES_SHEET.png` for the designer.
+  - Keep the villagers facing the camera, spaced 4 studs apart.
+- [ ] 57. **`props_r7`: restage where they can be seen.**
+  - **Placement:**
+    - Move all props out of the pine stand to an open yard with no tree or pine trunk within 15 studs.
+    - Choose the spot by scanning `workspace` for tree models in code.
+    - Lay them out in one row 6 studs apart, gerobak first, then sumur, lapak, pagar bambu, alat tani and jemuran.
+    - Paint a `Ground` voxel pad under each prop: footprint plus 2 studs.
+    - Keep the real sizes from round 6: gerobak 6 tall, sumur 4.5, cangkul 4.5.
+  - **Camera:** place the saved camera 18 studs in front of the row and 7 studs up, looking at the row's centre at y=2.
+  - **CHECKS:**
+    - `PROPS_VISIBLE` = 6/6;
+    - `PROPS_ON_GRASS` = 0.
+- [ ] 58. **`vegetation_r7`: really dense.** This needs item 54.
+  - **Targets** within 100 studs of the saved camera and inside its 70° cone:
+    - at least **60** plant model instances;
+    - at least **8** distinct species, taken from `KAMPUNG_VEGETATION.md`.
+  - **Composition:**
+    - a continuous teh-tehan hedge along the fence line, one instance every 2 studs;
+    - **at least 3** bambu clumps of 5–7 culms each;
+    - **at least 6** pisang;
+    - kembang sepatu and puring in front of every house;
+    - talas and keladi along the ditches;
+    - lidah mertua in pots by the doors;
+    - alang-alang on the sawah verge.
+  - **Placement rules:**
+    - Respect the exclusion zones (paths, plots, plaza).
+    - Random yaw.
+    - Scale jitter of ±15%.
+    - No two instances closer than 1.2 studs.
+  - **Budget:** stay inside the Sedang tier budget.
+  - **CHECKS:**
+    - `VEG_COUNT` ≥ 60;
+    - `VEG_SPECIES` ≥ 8;
+    - `LOAD_FAILURES` = 0.
+- [ ] 59. **Review handoff.**
+  - Write `REVIEW_ROUND7.md`:
+    - step 1 is the bake (if Route B);
+    - then the toggles, datamodels and cameras;
+    - then the path of every `CHECK_*.txt`.
+  - The main session takes the shots.
+- [ ] 60. **Refill.**
+
 ## Designer builds
 
 Models the ladder couldn't supply, each with a brief and a reference.

@@ -414,7 +414,7 @@ return function(t, Env)
 				end
 			end
 			expect(type(row)):toBe("string")
-			expect(string.sub(row, -4)):toBe("|  |")
+			expect(string.sub(row, -4) == "|  |" or string.find(row, "| %*%*[yn][eo]") ~= nil):toBe(true) -- verdict blank or a designer verdict
 			for _, id in pairs(NEW_IDS) do
 				expect(readme:find(tostring(id), 1, true) ~= nil):toBe(true)
 				expect(readme:find("https://create.roblox.com/store/asset/" .. tostring(id), 1, true) ~= nil):toBe(true)

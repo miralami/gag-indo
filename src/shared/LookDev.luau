@@ -20,6 +20,7 @@
 --   src/client/World/LookDevTexturesR4.luau -- candidate "textures_r4" (12 CC0 PBR MaterialVariants)
 --   src/client/World/LookDevSkyR4.luau -- candidates "sky_r4_a", "sky_r4_b", "sky_r4_c" (3 CC0 HDRI skies)
 --   src/client/World/LookDevSkyR6.luau -- candidates "sky_r6_a".."sky_r6_f" (6 Creator Store skies)
+--   src/server/World/LookDevSpawnGroundR6.luau -- candidate "spawn_ground_r6" (full dirt road corridor + grass mask)
 --   src/server/World/LookDevModelsBuildingsR4.luau -- candidate "buildings_r4" (server-only)
 --   src/server/World/LookDevModelsVegetationR4.luau -- candidate "vegetation_r4" (server-only)
 --   src/server/World/LookDevModelsPropsR4.luau -- candidate "props_r4" (server-only)
@@ -43,6 +44,7 @@
 --   LookDev.enable("textures_r4")
 --   LookDev.enable("sky_r4_a") -- or LookDev.enable("sky_r4_b") / LookDev.enable("sky_r4_c")
 --   LookDev.enable("sky_r6_a") -- or sky_r6_b / sky_r6_c / sky_r6_d / sky_r6_e / sky_r6_f
+--   LookDev.enable("spawn_ground_r6")
 --   -- server-only: LookDev.enable("buildings_r4") / LookDev.enable("vegetation_r4") / LookDev.enable("props_r4") / LookDev.enable("npcs_r4")
 --   require(game.ReplicatedStorage.Shared.LookDev).disable()   -- restores the original look
 --
@@ -99,6 +101,7 @@ LookDev.IDS = {
 	"sky_r6_d",
 	"sky_r6_e",
 	"sky_r6_f",
+	"spawn_ground_r6",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -567,6 +570,16 @@ LookDev.candidates = {
 		render = "docs/v2/visual/art/sky_r6/README.md",
 		faceCount = 6,
 	},
+
+	spawn_ground_r6 = {
+		id = "spawn_ground_r6",
+		title = "Dirt over the full road corridor and no grass on beds/plots (round 6, server-only review)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Pure geometry/colour data; the default road and generator code stays untouched.
+		idsSource = "Shared.SpawnGroundMapR6",
+		render = "docs/v2/visual/SPAWN_DRESSING.md",
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -731,6 +744,7 @@ function LookDev.plan(id: string): any
 		}
 	elseif
 		id == "spawn_ground_r5"
+		or id == "spawn_ground_r6"
 		or id == "vegetation_r5"
 		or id == "props_r5"
 		or id == "npcs_r5"

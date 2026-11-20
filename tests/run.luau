@@ -152,6 +152,7 @@ local specs = {
 	require("./specs/model_map_props_r4_spec"),
 	require("./specs/model_map_npcs_r4_spec"),
 	require("./specs/spawn_ground_r5_spec"),
+	require("./specs/spawn_ground_r6_spec"),
 	require("./specs/vegetation_r5_spec"),
 	require("./specs/sky_map_r5_spec"),
 	require("./specs/sky_map_r6_spec"),

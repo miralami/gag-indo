@@ -607,7 +607,7 @@ Store free model; strip any scripts on insert):
   - Apply the same atmosphere stack (above) to all of them.
   - Add one saved camera tilted up about 20°, so the sky fills half the frame.
   - Off by default; verdicts blank.
-- [ ] 45. **Ground fix (`spawn_ground_r6`).**
+- [x] 45. **Ground fix (`spawn_ground_r6`).**
   - Turn the remaining back road strip into dirt.
   - Keep the grass decoration off the flower beds and plots (with a mask or a Terrain material choice).
   - Keep the stored road design as it is.

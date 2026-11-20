@@ -520,3 +520,19 @@ candidate is off by default and no visual was graded. **Every approved-by cell i
 | `pants_pedagang` | 139244403929211 | Image | pedagang / pants | Approved | `models_r6/npcs/upload_manifest.json` |  |
 | `shirt_petani_wanita` | 105653588811968 | Image | petani_wanita / shirt | Reviewing | `models_r6/npcs/upload_manifest.json` |  |
 | `pants_petani_wanita` | 76370296974052 | Image | petani_wanita / pants | Reviewing | `models_r6/npcs/upload_manifest.json` |  |
+
+### Round-7 villager clothing templates (`npcs_r7`)
+
+Original 585×559 classic Shirt/Pants templates regenerated for round 7. Uploaded 2026-11-20 as
+Images via Open Cloud (`ROBLOX_API_KEY`, creator userId 172146044); every ID is from a completed
+operation in `models_r7/npcs/upload_manifest.json`. The designer reviewed the actual PNGs and the
+2×2 contact sheet (`models_r7/npcs/COSTUMES_SHEET.png`) and gave PASS on 2026-11-20. These four IDs
+replace their R6 counterparts in `ModelMapNpcsR7.COSTUMES`; the other six costume fields stay R6.
+The candidate is off by default and no place was saved or published.
+
+| Slot | Asset ID | Type | Role / kind | Moderation at upload | Source evidence | Approved by |
+|---|---:|---|---|---|---|---|
+| `shirt_pak_rt` | 92996938301042 | Image | pak_rt / shirt | Reviewing | `models_r7/npcs/upload_manifest.json` | designer (PNG + sheet PASS 2026-11-20) |
+| `shirt_polisi` | 133590758790821 | Image | polisi / shirt | Reviewing | `models_r7/npcs/upload_manifest.json` | designer (PNG + sheet PASS 2026-11-20) |
+| `pants_polisi` | 98235919851901 | Image | polisi / pants | Reviewing | `models_r7/npcs/upload_manifest.json` | designer (PNG + sheet PASS 2026-11-20) |
+| `shirt_petani` | 81581201405716 | Image | petani / shirt | Reviewing | `models_r7/npcs/upload_manifest.json` | designer (PNG + sheet PASS 2026-11-20) |

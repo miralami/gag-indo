@@ -164,6 +164,7 @@ local specs = {
 	require("./specs/props_r5_spec"),
 	require("./specs/npcs_r5_spec"),
 	require("./specs/spawn_dressing_r5_spec"),
+	require("./specs/r7_review_check_fix_spec"),
 }
 
 -- `--timing` prints a full per-spec table; without it only the slowest rows print. The first

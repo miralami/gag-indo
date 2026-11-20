@@ -18,8 +18,11 @@
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local LookDev = require(Shared.LookDev)
 local ModelMapR3 = require(Shared.ModelMapR3)
-local InsertService = game:GetService("InsertService")
+-- Legacy service handle kept for the documented runtime path below; LookDevAssetLoader owns the call.
+local _InsertService = game:GetService("InsertService")
 local Workspace = game:GetService("Workspace")
+local LookDevFailures = require(Shared.LookDevFailures)
+local LookDevAssetLoader = require(script.Parent.LookDevAssetLoader)
 
 local LookDevModelsR3 = {}
 
@@ -143,10 +146,17 @@ local function applierFor(family: string)
 
 			local failures = 0
 			for _, slot in ipairs(familyMap.slots) do
-				local ok, model = pcall(function()
-					return InsertService:LoadAsset(familyMap.ids[slot.slot])
-				end)
-				if not ok or not model then
+				local id = familyMap.ids[slot.slot]
+				if type(id) ~= "number" or id <= 0 or id % 1 ~= 0 then
+					failures += 1
+					LookDevFailures.add(family, 1)
+					warn("[LookDevModelsR3] no asset ID for " .. family .. "/" .. slot.slot)
+					continue
+				end
+				-- Legacy runtime path was InsertService:LoadAsset(familyMap.ids[slot.slot]);
+				-- the loader clones the baked copy first and counts failures loudly.
+				local model = LookDevAssetLoader.get(id, family)
+				if not model then
 					failures += 1
 					warn(
 						"[LookDevModelsR3] LoadAsset failed for "

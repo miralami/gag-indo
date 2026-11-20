@@ -113,6 +113,9 @@ LookDev.IDS = {
 	"vegetation_r6",
 	"npcs_r6",
 	"props_r6",
+	"vegetation_r7",
+	"npcs_r7",
+	"props_r7",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -640,6 +643,33 @@ LookDev.candidates = {
 		-- IDs are R4 via require (Shared.ModelMapPropsR6) with corrected per-slot scales.
 		idsSource = "Shared.ModelMapPropsR6",
 		render = "docs/v2/visual/art/models_r6/props/README.md",
+	},
+
+	vegetation_r7 = {
+		id = "vegetation_r7",
+		title = "Dense kampung vegetation — 60+ instances, 8+ species, clone-first baked models (round 7, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapVegetationR7",
+		render = "docs/v2/visual/art/models_r7/vegetation/README.md",
+	},
+
+	npcs_r7 = {
+		id = "npcs_r7",
+		title = "Villagers with baked hats, original peci and real batik/polisi templates (round 7, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapNpcsR7",
+		render = "docs/v2/visual/art/models_r7/npcs/COSTUMES_SHEET.png",
+	},
+
+	props_r7 = {
+		id = "props_r7",
+		title = "Six props restaged in an open yard with a readable row camera (round 7, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapPropsR7",
+		render = "docs/v2/visual/art/models_r7/props/README.md",
 	},
 }
 

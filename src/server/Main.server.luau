@@ -119,4 +119,10 @@ pcall(require, script.Parent.World.LookDevModelsNpcsR6)
 pcall(require, script.Parent.World.LookDevModelsPropsR6)
 pcall(require, script.Parent.World.LookDevSpawnDressingR5)
 
+-- Round 7: shipping sky/ground default (no enable call) and OFF-by-default model candidates.
+pcall(require, script.Parent.World.ShippingLookR7)
+pcall(require, script.Parent.World.LookDevModelsVegetationR7)
+pcall(require, script.Parent.World.LookDevModelsNpcsR7)
+pcall(require, script.Parent.World.LookDevModelsPropsR7)
+
 print("[JuraganDesa] server started")

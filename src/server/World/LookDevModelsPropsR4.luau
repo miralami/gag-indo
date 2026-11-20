@@ -22,7 +22,8 @@ local function service(name: string): any?
 end
 
 local ReplicatedStorage = service("ReplicatedStorage")
-local InsertService = service("InsertService")
+-- Legacy service handle kept for the documented runtime path below; LookDevAssetLoader owns the call.
+local _InsertService = service("InsertService")
 local Workspace = service("Workspace")
 
 local Shared: any? = nil
@@ -47,6 +48,16 @@ if not okModules or not LookDev or not ModelMapPropsR4 then
 	warn("[LookDevModelsPropsR4] could not require LookDev / ModelMapPropsR4")
 	return {}
 end
+
+local okLoaders, loadedFailures, loadedAssetLoader = pcall(function()
+	return require((Shared :: any).LookDevFailures), require(script.Parent.LookDevAssetLoader)
+end)
+if not okLoaders or not loadedFailures or not loadedAssetLoader then
+	warn("[LookDevModelsPropsR4] could not require LookDevFailures / LookDevAssetLoader")
+	return {}
+end
+local LookDevFailures = loadedFailures
+local LookDevAssetLoader = loadedAssetLoader
 
 local LookDevModelsPropsR4 = {}
 
@@ -225,15 +236,15 @@ local applier = {
 			-- No-ID guard: never pass a missing, zero, fractional or negative value to LoadAsset.
 			if type(id) ~= "number" or id <= 0 or id % 1 ~= 0 then
 				failures += 1
+				LookDevFailures.add(FAMILY_ID, 1)
 				warn(
 					"[LookDevModelsPropsR4] missing or invalid asset ID for " .. FAMILY_ID .. "/" .. tostring(slot.slot)
 				)
 				continue
 			end
-			local ok, model = pcall(function()
-				return InsertService:LoadAsset(id)
-			end)
-			if not ok or not model then
+			-- Legacy runtime path was InsertService:LoadAsset(id); the loader clones the bake first.
+			local model = LookDevAssetLoader.get(id, FAMILY_ID)
+			if not model then
 				failures += 1
 				warn(
 					"[LookDevModelsPropsR4] LoadAsset failed for "

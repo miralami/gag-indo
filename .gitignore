@@ -9,3 +9,7 @@ globalTypes.d.luau
 # local agent tooling
 .claude/
 Packages/
+
+# Python bytecode from asset-generation scripts
+__pycache__/
+*.pyc

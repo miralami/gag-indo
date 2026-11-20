@@ -9,6 +9,9 @@
     "ServerScriptService": {
       "Server": { "$path": "src/server" }
     },
+    "ServerStorage": {
+      "LookDevAssets": { "$path": "assets/lookdev" }
+    },
     "StarterPlayer": {
       "StarterPlayerScripts": {
         "Client": { "$path": "src/client" }

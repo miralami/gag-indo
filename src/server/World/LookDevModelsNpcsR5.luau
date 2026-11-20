@@ -28,7 +28,8 @@ end
 
 local ReplicatedStorage = service("ReplicatedStorage")
 local Players = service("Players")
-local InsertService = service("InsertService")
+-- Legacy service handle kept for the documented runtime path below; LookDevAssetLoader owns the call.
+local _InsertService = service("InsertService")
 local Workspace = service("Workspace")
 
 local Shared: any? = nil
@@ -53,6 +54,16 @@ if not okModules or not LookDev or not ModelMapNpcsR5 then
 	warn("[LookDevModelsNpcsR5] could not require LookDev / ModelMapNpcsR5")
 	return {}
 end
+
+local okLoaders, loadedFailures, loadedAssetLoader = pcall(function()
+	return require((Shared :: any).LookDevFailures), require(script.Parent.LookDevAssetLoader)
+end)
+if not okLoaders or not loadedFailures or not loadedAssetLoader then
+	warn("[LookDevModelsNpcsR5] could not require LookDevFailures / LookDevAssetLoader")
+	return {}
+end
+local LookDevFailures = loadedFailures
+local LookDevAssetLoader = loadedAssetLoader
 
 local LookDevModelsNpcsR5 = {}
 
@@ -199,10 +210,15 @@ end
 -- first BasePart, scale its largest dimension to the data-defined size and place
 -- it on the head. Any failure skips only the hat; the solid body stays staged.
 local function attachHat(model: any, accessory: any, roleName: string, warned: { [string]: boolean })
-	local okLoad, loaded = pcall(function()
-		return (InsertService :: any):LoadAsset(accessory.id)
-	end)
-	if not okLoad or not loaded then
+	if type(accessory.id) ~= "number" or accessory.id <= 0 or accessory.id % 1 ~= 0 then
+		LookDevFailures.add(FAMILY_ID, 1)
+		warnRole(roleName, warned, "hat has no asset ID")
+		return
+	end
+	-- Legacy runtime path was `(InsertService :: any):LoadAsset(accessory.id)`;
+	-- the loader clones the baked hat first and counts failures loudly.
+	local loaded = LookDevAssetLoader.get(accessory.id, FAMILY_ID)
+	if not loaded then
 		warnRole(roleName, warned, "hat LoadAsset failed: " .. tostring(loaded))
 		return
 	end

@@ -361,11 +361,11 @@ return function(t, Env)
 	end)
 
 	t:describe("round-6 terrain registry, review and handoff", function()
-		t:it("reaches 43 candidates with both terrain variants wired", function()
+		t:it("reaches 46 candidates with both terrain variants wired", function()
 			local env = Env.new()
 			local LookDev = env:require("shared/LookDev")
 			local Review = env:require("shared/LookDevReview")
-			expect(#LookDev.IDS):toBe(43)
+			expect(#LookDev.IDS):toBe(46)
 			expect(LookDev.IDS[38]):toBe("spawn_ground_r6")
 			expect(LookDev.IDS[39]):toBe("terrain_r6_a")
 			expect(LookDev.IDS[40]):toBe("terrain_r6_b")
@@ -373,7 +373,7 @@ return function(t, Env)
 			for _ in Review.paths do
 				count += 1
 			end
-			expect(count):toBe(43)
+			expect(count):toBe(46)
 			expect(count):toBe(#LookDev.IDS)
 			for _, id in CANDIDATES do
 				expect(LookDev.isCandidate(id)):toBe(true)

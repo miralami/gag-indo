@@ -10,7 +10,8 @@
 local ReplicatedStorageOk, ReplicatedStorage = pcall(function()
 	return game:GetService("ReplicatedStorage")
 end)
-local InsertServiceOk, InsertService = pcall(function()
+-- Legacy service handle kept for the documented runtime path below; LookDevAssetLoader owns the call.
+local InsertServiceOk, _InsertService = pcall(function()
 	return game:GetService("InsertService")
 end)
 local WorkspaceOk, Workspace = pcall(function()
@@ -35,10 +36,21 @@ if ReplicatedStorageOk and ReplicatedStorage then
 	end
 end
 
-if not (InsertServiceOk and InsertService and WorkspaceOk and Workspace and LookDev and ModelMapBuildingsR4) then
+if not (InsertServiceOk and _InsertService and WorkspaceOk and Workspace and LookDev and ModelMapBuildingsR4) then
 	pcall(warn, "[LookDevModelsBuildingsR4] services or shared modules unavailable; candidate not registered")
 	return {}
 end
+
+local okLoaders, loadedFailures, loadedAssetLoader = pcall(function()
+	local sharedFolder = (ReplicatedStorage :: any):WaitForChild("Shared")
+	return require((sharedFolder :: any).LookDevFailures), require(script.Parent.LookDevAssetLoader)
+end)
+if not okLoaders or not loadedFailures or not loadedAssetLoader then
+	pcall(warn, "[LookDevModelsBuildingsR4] could not require LookDevFailures / LookDevAssetLoader")
+	return {}
+end
+local LookDevFailures = loadedFailures
+local LookDevAssetLoader = loadedAssetLoader
 
 local LookDevModelsBuildingsR4 = {}
 
@@ -160,10 +172,17 @@ local function applierFor(family: string)
 
 			local failures = 0
 			for _, slot in ipairs(familyMap.slots) do
-				local loaded, model = pcall(function()
-					return InsertService:LoadAsset(familyMap.ids[slot.slot])
-				end)
-				if not loaded or not model then
+				local id = familyMap.ids[slot.slot]
+				if type(id) ~= "number" or id <= 0 or id % 1 ~= 0 then
+					failures += 1
+					LookDevFailures.add(family, 1)
+					pcall(warn, "[LookDevModelsBuildingsR4] no asset ID for " .. family .. "/" .. slot.slot)
+					continue
+				end
+				-- Legacy runtime path was InsertService:LoadAsset(familyMap.ids[slot.slot]);
+				-- the loader clones the baked copy first and counts failures loudly.
+				local model = LookDevAssetLoader.get(id, family)
+				if not model then
 					failures += 1
 					pcall(warn, "[LookDevModelsBuildingsR4] LoadAsset failed for " .. family .. "/" .. slot.slot)
 				else

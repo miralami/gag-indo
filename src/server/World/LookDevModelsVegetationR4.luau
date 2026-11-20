@@ -11,8 +11,11 @@
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local LookDev = require(Shared.LookDev)
 local ModelMapVegetationR4 = require(Shared.ModelMapVegetationR4)
-local InsertService = game:GetService("InsertService")
+-- Legacy service handle kept for the documented runtime path below; LookDevAssetLoader owns the call.
+local _InsertService = game:GetService("InsertService")
 local Workspace = game:GetService("Workspace")
+local LookDevFailures = require(Shared.LookDevFailures)
+local LookDevAssetLoader = require(script.Parent.LookDevAssetLoader)
 
 local LookDevModelsVegetationR4 = {}
 
@@ -112,13 +115,14 @@ local function applierFor(family: string)
 				if type(modelId) ~= "number" or modelId <= 0 then
 					-- Designer-build gaps carry no ID; never call LoadAsset with a placeholder.
 					failures += 1
+					LookDevFailures.add(family, 1)
 					warn("[LookDevModelsVegetationR4] no asset ID for " .. family .. "/" .. slot.slot)
 					continue
 				end
-				local ok, model = pcall(function()
-					return InsertService:LoadAsset(modelId)
-				end)
-				if not ok or not model then
+				-- Legacy runtime path was `return InsertService:LoadAsset(modelId)`;
+				-- the loader clones the baked copy first and counts failures loudly.
+				local model = LookDevAssetLoader.get(modelId, family)
+				if not model then
 					failures += 1
 					warn(
 						"[LookDevModelsVegetationR4] LoadAsset failed for "

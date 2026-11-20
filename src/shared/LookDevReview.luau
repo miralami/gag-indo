@@ -62,6 +62,9 @@ LookDevReview.paths = {
 	vegetation_r6 = { datamodel = "server", path = { "World", "LookDevModelsVegetationR6" } },
 	npcs_r6 = { datamodel = "server", path = { "World", "LookDevModelsNpcsR6" } },
 	props_r6 = { datamodel = "server", path = { "World", "LookDevModelsPropsR6" } },
+	vegetation_r7 = { datamodel = "server", path = { "World", "LookDevModelsVegetationR7" } },
+	npcs_r7 = { datamodel = "server", path = { "World", "LookDevModelsNpcsR7" } },
+	props_r7 = { datamodel = "server", path = { "World", "LookDevModelsPropsR7" } },
 }
 
 function LookDevReview.pathsFor(id: string): any?

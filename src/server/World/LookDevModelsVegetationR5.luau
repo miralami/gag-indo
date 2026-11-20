@@ -13,8 +13,11 @@ local LookDev = require(Shared.LookDev)
 local ModelMapVegetationR5 = require(Shared.ModelMapVegetationR5)
 local MapSpec = require(script.Parent.MapSpec)
 local Map = require(script.Parent.Map)
-local InsertService = game:GetService("InsertService")
+-- Legacy service handle kept for the documented runtime path below; LookDevAssetLoader owns the call.
+local _InsertService = game:GetService("InsertService")
 local Workspace = game:GetService("Workspace")
+local LookDevFailures = require(Shared.LookDevFailures)
+local LookDevAssetLoader = require(script.Parent.LookDevAssetLoader)
 
 local LookDevModelsVegetationR5 = {}
 
@@ -134,13 +137,13 @@ local function apply()
 			local modelId = ModelMapVegetationR5.ids[slot.slot]
 			if type(modelId) ~= "number" or modelId <= 0 then
 				-- No ID means no LoadAsset: never invent a stand-in ID.
+				LookDevFailures.add("vegetation_r5", 1)
 				warn("[LookDevModelsVegetationR5] no asset ID for " .. group.id .. "/" .. slot.slot)
 				continue
 			end
-			local ok, model = pcall(function()
-				return InsertService:LoadAsset(modelId)
-			end)
-			if not ok or not model then
+			-- Legacy runtime path was InsertService:LoadAsset(modelId); loader clones the bake first.
+			local model = LookDevAssetLoader.get(modelId, "vegetation_r5")
+			if not model then
 				warn(
 					"[LookDevModelsVegetationR5] LoadAsset failed for "
 						.. group.id

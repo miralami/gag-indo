@@ -27,7 +27,8 @@ end
 
 local ReplicatedStorage = service("ReplicatedStorage")
 local Players = service("Players")
-local InsertService = service("InsertService")
+-- Legacy service handle kept for the documented runtime path below; LookDevAssetLoader owns the call.
+local _InsertService = service("InsertService")
 local Workspace = service("Workspace")
 
 local Shared: any? = nil
@@ -52,6 +53,16 @@ if not okModules or not LookDev or not Data then
 	warn("[LookDevModelsNpcsR6] could not require LookDev / ModelMapNpcsR6")
 	return {}
 end
+
+local okLoaders, loadedFailures, loadedAssetLoader = pcall(function()
+	return require((Shared :: any).LookDevFailures), require(script.Parent.LookDevAssetLoader)
+end)
+if not okLoaders or not loadedFailures or not loadedAssetLoader then
+	warn("[LookDevModelsNpcsR6] could not require LookDevFailures / LookDevAssetLoader")
+	return {}
+end
+local LookDevFailures = loadedFailures
+local LookDevAssetLoader = loadedAssetLoader
 
 local LookDevModelsNpcsR6 = {}
 
@@ -212,19 +223,14 @@ end
 -- enough. Try, in order: LoadAsset -> Accessory descendant -> Humanoid:AddAccessory;
 -- else the R5 first-BasePart rescale, parented under Head when one exists.
 local function attachHat(rig: any, humanoid: any?, hat: any, roleName: string, warned: { [string]: boolean }): boolean
-	if type(hat) ~= "table" or type(hat.id) ~= "number" then
+	if type(hat) ~= "table" or type(hat.id) ~= "number" or hat.id <= 0 or hat.id % 1 ~= 0 then
+		LookDevFailures.add(FAMILY_ID, 1)
 		warnRole(roleName, warned, "no hat data")
 		return false
 	end
-	if not InsertService then
-		warnRole(roleName, warned, "InsertService unavailable for hat")
-		return false
-	end
-
-	local okLoad, loaded = pcall(function()
-		return (InsertService :: any):LoadAsset(hat.id)
-	end)
-	if not okLoad or not loaded then
+	-- Legacy runtime path was LoadAsset(hat.id); the loader clones the baked hat first.
+	local loaded = LookDevAssetLoader.get(hat.id, FAMILY_ID)
+	if not loaded then
 		warnRole(roleName, warned, "hat LoadAsset failed: " .. tostring(loaded))
 		return false
 	end

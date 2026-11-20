@@ -14,9 +14,9 @@ return function(t, Env)
 	end
 
 	t:describe("LookDev candidates (candidate, awaiting designer yes)", function()
-		t:it("ships forty-six candidates, all unapproved and cartoonish-realism", function()
+		t:it("ships forty-seven candidates, all unapproved and cartoonish-realism", function()
 			local LookDev = fresh()
-			expect(#LookDev.IDS):toBe(46)
+			expect(#LookDev.IDS):toBe(47)
 			expect(LookDev.IDS[1]):toBe("plaza_lighting")
 			expect(LookDev.IDS[2]):toBe("police_walkin")
 			expect(LookDev.IDS[3]):toBe("icons")
@@ -63,6 +63,7 @@ return function(t, Env)
 			expect(LookDev.IDS[44]):toBe("vegetation_r7")
 			expect(LookDev.IDS[45]):toBe("npcs_r7")
 			expect(LookDev.IDS[46]):toBe("props_r7")
+			expect(LookDev.IDS[47]):toBe("hubveg_r8")
 			for _, id in LookDev.IDS do
 				local c = LookDev.candidates[id]
 				expect(c.id):toBe(id)

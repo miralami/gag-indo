@@ -6,6 +6,9 @@
 -- It emits the eleven r7 server scene lines plus LOOKDEV_LEAK:
 --   LOAD_FAILURES, SKY_DEFAULT, GRASS_ON_BEDS, HATS, PROPS_VISIBLE, PROPS_ON_GRASS,
 --   VEG_COUNT, VEG_SPECIES, BED_FLUSH, VEG_NEAR, PROP_SIZE, LOOKDEV_LEAK.
+-- It also emits the r8 hub-vegetation family (WORK_QUEUE item 70): VEG_HUB_<hub> (one per
+-- MapSpec.HUB_ORDER key), VEG_SPECIES_HUB and VEG_OVERLAP. All three FAIL at measured 0 when the
+-- hubveg_r8 candidate is not staged.
 -- Client datamodel: same lines plus CLOUD_COVER (the client LocalScript owns Terrain.Clouds.Cover);
 -- the Server datamodel cannot observe that tween. Run client-owned candidates (water, grade,
 -- sounds, clouds) in the Client datamodel.
@@ -29,6 +32,14 @@ local ORDER = {
 	"VEG_COUNT",
 	"VEG_SPECIES",
 	"BED_FLUSH",
+	"VEG_HUB_pasar",
+	"VEG_HUB_gelap",
+	"VEG_HUB_warung",
+	"VEG_HUB_ronda",
+	"VEG_HUB_polisi",
+	"VEG_HUB_pakrt",
+	"VEG_SPECIES_HUB",
+	"VEG_OVERLAP",
 	"VEG_NEAR",
 	"PROP_SIZE",
 	"CLOUD_COVER",
@@ -146,15 +157,33 @@ local function asVector3(value)
 end
 
 -- Exact for Models/Parts; the manual union is only a fallback for an unusual staged instance.
+-- A baked asset may be a Model OR a single BasePart/MeshPart (teh-tehan): GetBoundingBox is
+-- Model-only, so a BasePart is measured from its own CFrame.
 local function bboxCentre(inst)
 	if not inst then
 		return nil
 	end
-	local ok, cf = pcall(function()
-		return inst:GetBoundingBox()
+	local okModel, isModel = pcall(function()
+		return inst:IsA("Model")
 	end)
-	if ok and cf then
-		return cf.Position
+	if okModel and isModel then
+		local ok, cf = pcall(function()
+			return inst:GetBoundingBox()
+		end)
+		if ok and cf then
+			return cf.Position
+		end
+	end
+	local okPart, isPart = pcall(function()
+		return inst:IsA("BasePart")
+	end)
+	if okPart and isPart then
+		local ok, cf = pcall(function()
+			return inst.CFrame
+		end)
+		if ok and cf then
+			return cf.Position
+		end
 	end
 	local minV = Vector3.new(math.huge, math.huge, math.huge)
 	local maxV = Vector3.new(-math.huge, -math.huge, -math.huge)
@@ -698,6 +727,334 @@ emit("BED_FLUSH", #flushFailures == 0, math.floor(worstFlush * 100) / 100, 0.5, 
 	outside = outsideDist,
 	failed = flushFailures,
 })
+
+-- 9b. r8 hub-vegetation family (WORK_QUEUE item 70). Three CHECK families over the staged
+-- LookDevModelsVegetationHubR8_hubveg_r8 folder. Hub keys come from MapSpec.HUB_ORDER (fallback
+-- listed below so the same six FAIL lines are emitted even when MapSpec cannot be required).
+-- Every game API is pcall-guarded; a missing folder / module is a FAIL at measured 0, never a skip.
+local FALLBACK_HUB_ORDER = { "pasar", "gelap", "warung", "ronda", "polisi", "pakrt" }
+local HUB_VEG_FOLDER = "LookDevModelsVegetationHubR8_hubveg_r8"
+local HUB_VEG_RADIUS = 40
+local HUB_VEG_MIN_COUNT = 12
+local HUB_VEG_MIN_SPECIES = 4
+local OVERLAP_TOL = 0.05
+
+-- Model: GetBoundingBox. Single BasePart/MeshPart (teh-tehan): project the part's CFrame basis
+-- onto world X/Z. Anything else: manual BasePart union fallback. Returns the instance's XZ AABB.
+local function bboxAABB(inst)
+	if not inst then
+		return nil
+	end
+	local okModel, isModel = pcall(function()
+		return inst:IsA("Model")
+	end)
+	if okModel and isModel then
+		local ok, cf, size = pcall(function()
+			return inst:GetBoundingBox()
+		end)
+		if ok and cf and size then
+			return {
+				minX = cf.Position.X - size.X / 2,
+				maxX = cf.Position.X + size.X / 2,
+				minZ = cf.Position.Z - size.Z / 2,
+				maxZ = cf.Position.Z + size.Z / 2,
+			}
+		end
+	end
+	local okPart, isPart = pcall(function()
+		return inst:IsA("BasePart")
+	end)
+	if okPart and isPart then
+		local ok, cf, size = pcall(function()
+			return inst.CFrame, inst.Size
+		end)
+		if ok and cf and size then
+			local hx, hy, hz = size.X / 2, size.Y / 2, size.Z / 2
+			local extentX = math.abs(cf.RightVector.X) * hx
+				+ math.abs(cf.UpVector.X) * hy
+				+ math.abs(cf.LookVector.X) * hz
+			local extentZ = math.abs(cf.RightVector.Z) * hx
+				+ math.abs(cf.UpVector.Z) * hy
+				+ math.abs(cf.LookVector.Z) * hz
+			return {
+				minX = cf.Position.X - extentX,
+				maxX = cf.Position.X + extentX,
+				minZ = cf.Position.Z - extentZ,
+				maxZ = cf.Position.Z + extentZ,
+			}
+		end
+	end
+	local minV = Vector3.new(math.huge, math.huge, math.huge)
+	local maxV = Vector3.new(-math.huge, -math.huge, -math.huge)
+	local found = false
+	local okParts, parts = pcall(function()
+		return inst:GetDescendants()
+	end)
+	if okParts then
+		for _, part in ipairs(parts) do
+			local okPart, isPart = pcall(function()
+				return part:IsA("BasePart")
+			end)
+			if okPart and isPart then
+				local okBox, boxCf, boxSize = pcall(function()
+					return part:GetBoundingBox()
+				end)
+				if okBox and boxCf and boxSize then
+					local half = boxSize / 2
+					local centre = boxCf.Position
+					minV = Vector3.new(
+						math.min(minV.X, centre.X - half.X),
+						math.min(minV.Y, centre.Y - half.Y),
+						math.min(minV.Z, centre.Z - half.Z)
+					)
+					maxV = Vector3.new(
+						math.max(maxV.X, centre.X + half.X),
+						math.max(maxV.Y, centre.Y + half.Y),
+						math.max(maxV.Z, centre.Z + half.Z)
+					)
+					found = true
+				end
+			end
+		end
+	end
+	if not found then
+		return nil
+	end
+	return { minX = minV.X, maxX = maxV.X, minZ = minV.Z, maxZ = maxV.Z }
+end
+
+-- MapSpec lives under ServerScriptService.Server.World; FindFirstChild (not WaitForChild) so the
+-- Client VM cannot block. Pure data modules; ModelMapVegetationR5 supplies pathZones(mapSpec),
+-- which already includes roadArms + ringSegments + roadContinuations.
+local okMapSpec, MapSpec = pcall(function()
+	local sss = game:GetService("ServerScriptService")
+	local server = sss:FindFirstChild("Server")
+	if not server then
+		return nil
+	end
+	local world = server:FindFirstChild("World")
+	if not world then
+		return nil
+	end
+	local module = world:FindFirstChild("MapSpec")
+	if not module then
+		return nil
+	end
+	return require(module)
+end)
+if not okMapSpec or type(MapSpec) ~= "table" then
+	MapSpec = nil
+end
+local okVegR5, VegR5 = pcall(function()
+	return require(game.ReplicatedStorage.Shared.ModelMapVegetationR5)
+end)
+if not okVegR5 or type(VegR5) ~= "table" or type(VegR5.pathZones) ~= "function" then
+	VegR5 = nil
+end
+local mapSpecReady = MapSpec ~= nil
+
+local hubOrder = FALLBACK_HUB_ORDER
+if mapSpecReady and type(MapSpec.HUB_ORDER) == "table" and #MapSpec.HUB_ORDER > 0 then
+	hubOrder = MapSpec.HUB_ORDER
+end
+
+local vegR8Folder = folderNamed(HUB_VEG_FOLDER)
+local staged = {}
+for _, model in ipairs(childList(vegR8Folder)) do
+	if attr(model, "LookDevHubVegR8") == "hubveg_r8" then
+		staged[#staged + 1] = {
+			hub = attr(model, "Hub"),
+			species = attr(model, "Species"),
+			centre = bboxCentre(model),
+			aabb = bboxAABB(model),
+		}
+	end
+end
+
+-- Count staged instances per hub inside HUB_VEG_RADIUS, and their distinct species there.
+local hubCounts = {}
+local hubSpecies = {}
+local hubCentres = {}
+for _, key in ipairs(hubOrder) do
+	hubCounts[key] = 0
+	hubSpecies[key] = {}
+	local hub = nil
+	if mapSpecReady and type(MapSpec.hub) == "function" then
+		local okHub, found = pcall(function()
+			return MapSpec.hub(key)
+		end)
+		if okHub then
+			hub = found
+		end
+	end
+	hubCentres[key] = hub
+end
+for _, entry in ipairs(staged) do
+	local key = entry.hub
+	if type(key) == "string" and hubCounts[key] ~= nil and entry.centre then
+		local hub = hubCentres[key]
+		if hub and type(hub.x) == "number" and type(hub.z) == "number" then
+			local dx = entry.centre.X - hub.x
+			local dz = entry.centre.Z - hub.z
+			if dx * dx + dz * dz <= HUB_VEG_RADIUS * HUB_VEG_RADIUS then
+				hubCounts[key] = hubCounts[key] + 1
+				if type(entry.species) == "string" and entry.species ~= "" then
+					hubSpecies[key][entry.species] = true
+				end
+			end
+		end
+	end
+end
+
+-- VEG_HUB_<hub>: one line per MapSpec.HUB_ORDER key, PASS iff that hub has >= 12 in-radius models.
+for _, key in ipairs(hubOrder) do
+	local detail = {
+		counts = hubCounts,
+		radius = HUB_VEG_RADIUS,
+		folderPresent = vegR8Folder ~= nil,
+		staged = #staged,
+	}
+	if not mapSpecReady then
+		detail.reason = "MapSpec not readable"
+	end
+	emit(
+		"VEG_HUB_" .. key,
+		mapSpecReady and hubCounts[key] >= HUB_VEG_MIN_COUNT,
+		hubCounts[key],
+		">=" .. HUB_VEG_MIN_COUNT,
+		detail
+	)
+end
+
+-- VEG_SPECIES_HUB: weakest hub decides. Never an average; a missing MapSpec/folder gives min=0.
+local speciesCounts = {}
+local weakest, weakestKey = math.huge, "?"
+local speciesParts = {}
+for _, key in ipairs(hubOrder) do
+	local n = 0
+	for _ in pairs(hubSpecies[key]) do
+		n += 1
+	end
+	speciesCounts[key] = n
+	speciesParts[#speciesParts + 1] = key .. ":" .. n
+	if n < weakest then
+		weakest, weakestKey = n, key
+	end
+end
+if weakest == math.huge then
+	weakest = 0
+end
+local speciesDetail = { perHub = speciesCounts, weakest = weakestKey, radius = HUB_VEG_RADIUS }
+if not mapSpecReady then
+	speciesDetail.reason = "MapSpec not readable"
+end
+emit(
+	"VEG_SPECIES_HUB",
+	mapSpecReady and weakest >= HUB_VEG_MIN_SPECIES,
+	string.format("min=%d (%s)", weakest, table.concat(speciesParts, " ")),
+	">=" .. HUB_VEG_MIN_SPECIES .. " each",
+	speciesDetail
+)
+
+-- VEG_OVERLAP: strict XZ AABB overlap against every building footprint (MapSpec.hubBounds) and
+-- every path rectangle (ModelMapVegetationR5.pathZones). Touching edges are NOT an intersection.
+-- PASS iff zero offending instances AND the candidate/data were actually readable, so a clean
+-- Play with no staged folder emits FAIL at measured 0 instead of a vacuous pass.
+local zones = {}
+local dataOk = mapSpecReady and VegR5 ~= nil
+local dataReason = nil
+if not mapSpecReady then
+	dataReason = "MapSpec not readable"
+elseif VegR5 == nil then
+	dataReason = "ModelMapVegetationR5 not readable"
+end
+if dataOk then
+	for _, key in ipairs(hubOrder) do
+		local hub = hubCentres[key]
+		if hub and type(MapSpec.hubBounds) == "function" then
+			local okBounds, b = pcall(function()
+				return MapSpec.hubBounds(hub)
+			end)
+			if
+				okBounds
+				and type(b) == "table"
+				and type(b.minX) == "number"
+				and type(b.maxX) == "number"
+				and type(b.minZ) == "number"
+				and type(b.maxZ) == "number"
+			then
+				zones[#zones + 1] = {
+					name = "hub:" .. key,
+					minX = b.minX,
+					maxX = b.maxX,
+					minZ = b.minZ,
+					maxZ = b.maxZ,
+				}
+			else
+				dataOk, dataReason = false, "hubBounds failed:" .. key
+			end
+		else
+			dataOk, dataReason = false, "hub missing:" .. key
+		end
+	end
+end
+if dataOk then
+	local okPaths, paths = pcall(function()
+		return VegR5.pathZones(MapSpec)
+	end)
+	if okPaths and type(paths) == "table" then
+		for _, p in ipairs(paths) do
+			if
+				type(p.name) == "string"
+				and type(p.x) == "number"
+				and type(p.z) == "number"
+				and type(p.halfX) == "number"
+				and type(p.halfZ) == "number"
+			then
+				zones[#zones + 1] = {
+					name = p.name,
+					minX = p.x - p.halfX,
+					maxX = p.x + p.halfX,
+					minZ = p.z - p.halfZ,
+					maxZ = p.z + p.halfZ,
+				}
+			end
+		end
+	else
+		dataOk, dataReason = false, "pathZones not readable"
+	end
+end
+local overlapCount = 0
+local unreadable = 0
+local offenders = {}
+for _, entry in ipairs(staged) do
+	if not entry.aabb then
+		unreadable += 1
+	else
+		for _, zone in ipairs(zones) do
+			local ox = math.min(entry.aabb.maxX, zone.maxX) - math.max(entry.aabb.minX, zone.minX)
+			local oz = math.min(entry.aabb.maxZ, zone.maxZ) - math.max(entry.aabb.minZ, zone.minZ)
+			if ox > OVERLAP_TOL and oz > OVERLAP_TOL then
+				overlapCount += 1
+				if #offenders < 10 then
+					offenders[#offenders + 1] = tostring(entry.hub)
+						.. "/"
+						.. tostring(entry.species)
+						.. " vs "
+						.. zone.name
+				end
+				break -- count the instance once, not once per zone
+			end
+		end
+	end
+end
+emit(
+	"VEG_OVERLAP",
+	vegR8Folder ~= nil and #staged > 0 and dataOk and #zones > 0 and unreadable == 0 and overlapCount == 0,
+	overlapCount,
+	0,
+	{ zones = #zones, staged = #staged, unreadable = unreadable, offenders = offenders, reason = dataReason }
+)
 
 -- 10. VEG_NEAR: dense near layer at the saved camera (45 studs, 70-degree cone). A model only
 -- counts when its bbox centre is inside the cone AND its bbox is >=2 studs tall; species and

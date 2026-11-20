@@ -116,6 +116,7 @@ LookDev.IDS = {
 	"vegetation_r7",
 	"npcs_r7",
 	"props_r7",
+	"hubveg_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -671,6 +672,15 @@ LookDev.candidates = {
 		idsSource = "Shared.ModelMapPropsR7",
 		render = "docs/v2/visual/art/models_r7/props/README.md",
 	},
+
+	hubveg_r8 = {
+		id = "hubveg_r8",
+		title = "Per-hub vegetation dressing — 16 baked plants around each of the six hubs (round 9, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapVegetationHubR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/CHECK_70.txt",
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -845,6 +855,7 @@ function LookDev.plan(id: string): any
 		or id == "vegetation_r6"
 		or id == "npcs_r6"
 		or id == "props_r6"
+		or id == "hubveg_r8"
 	then
 		local c = LookDev.candidates[id]
 		return {

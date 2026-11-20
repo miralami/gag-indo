@@ -1,0 +1,35 @@
+# CHECK 70 — hubveg_r8 per-hub vegetation (WORK_QUEUE section M item 70)
+# Studio: Development-Juragan-Desa (placeId 132087524375529), real Play, Server datamodel.
+# Fresh Play, no direct-staged candidates. Because Rojo had not synced the new/changed modules,
+# the following were injected into the Edit datamodel at runtime (not saved to the place):
+#   ReplicatedStorage.Shared.LookDev, LookDevReview, ModelMapVegetationHubR8 (+ ReviewCameras),
+#   ServerScriptService.Server.Main, Server.World.LookDevModelsVegetationHubR8.
+# Existing bake: ServerStorage.LookDevAssets = 34 folders. Staged with the one-call review path:
+#   require(game.ReplicatedStorage.Shared.LookDevReview).enable("hubveg_r8", game)
+# Verified before the run: LookDev.IDS = 47 (last = "hubveg_r8"), applier registered, slots = 96,
+#   review path datamodel = "server", current = "hubveg_r8", staged = 96, load failures = 0.
+# Harness: tools/studio/review_check_r8.luau. Raw console lines verbatim (item-70 family + guards):
+CHECK LOAD_FAILURES PASS 0 0
+CHECK VEG_HUB_pasar PASS 16 >=12
+CHECK VEG_HUB_gelap PASS 16 >=12
+CHECK VEG_HUB_warung PASS 16 >=12
+CHECK VEG_HUB_ronda PASS 16 >=12
+CHECK VEG_HUB_polisi PASS 16 >=12
+CHECK VEG_HUB_pakrt PASS 16 >=12
+CHECK VEG_SPECIES_HUB PASS min=9 (pasar:9 gelap:9 warung:9 ronda:9 polisi:9 pakrt:9) >=4 each
+CHECK VEG_OVERLAP PASS 0 0
+CHECK CAMERA_CLEAR PASS 0 blocked/26 checked 0 blocked
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+# VEG_OVERLAP detail: {zones=68, unreadable=0, staged=96, offenders={}} — every staged model's
+# world XZ AABB was measured (Models via GetBoundingBox, single BaseParts via CFrame basis), none
+# intersects a building footprint (MapSpec.hubBounds) or a path/ring road (R5 pathZones).
+# The other harness lines in this run (HATS 0/4, PROPS_VISIBLE 0/6, PROPS_ON_GRASS 6/0,
+# VEG_COUNT 0/60, VEG_SPECIES 0/8, VEG_NEAR 0, PROP_SIZE -1, CLOUD_COVER absent) are for candidates
+# NOT staged in this clean Play and are out of scope for item 70; they were PASS-verified in their
+# own evidence files.
+# Three earlier VEG_OVERLAP FAILs were fixed in code/data, never by weakening a target:
+#   FAIL 20 -> per-species footprints from real Studio bbox spans (mangga/pisang dropped).
+#   FAIL 7  -> single BasePart bbox reading in the harness (unreadable 8 -> 0).
+#   FAIL 7  -> applier now places by measured bbox centre (kembang sepatu pivot offset up to 32.73).
+# Final run PASS 0 with all targets unchanged: >=12/hub, >=4 species/hub, 0 overlap.
+# This is a placement/exclusion proof, not a visual verdict — the designer grades the look.

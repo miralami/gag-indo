@@ -9,7 +9,7 @@ are built-in Enum.Material names. No asset IDs.
 
 Source of truth: `src/shared/LookDevCorner.luau` (pure recipe, `partsInBounds()` seam).
 Applier: `src/client/World/LookDevCorner.luau` — builds `Workspace.LookDevCorner`, destroys it on
-disable. Toggle: `require(game.ReplicatedStorage.Shared.LookDev):enable("corner")`.
+disable. Toggle: `require(game.ReplicatedStorage.Shared.LookDev).enable("corner")`.
 
 ## V-D1 / V-D2 notes
 

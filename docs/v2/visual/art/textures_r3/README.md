@@ -8,9 +8,9 @@ No ID was invented and no agent graded the images visually.
 
 ## Toggle
 
-`require(game.ReplicatedStorage.Shared.LookDev):enable("textures_r3")`
+`require(game.ReplicatedStorage.Shared.LookDev).enable("textures_r3")`
 
-`:disable()` destroys the temporary MaterialVariants and restores every MeshPart's
+`.disable()` destroys the temporary MaterialVariants and restores every MeshPart's
 `Material` and `MaterialVariant`. Shipping defaults are unchanged; published
 servers can never enable the candidate.
 

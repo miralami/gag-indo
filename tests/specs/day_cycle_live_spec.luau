@@ -181,7 +181,7 @@ return function(t, Env)
 
 		t:it("records an absolute spawn-facing review camera, not a verdict", function()
 			local readme = fs.readFile("docs/v2/visual/art/daycycle/README.md")
-			expect(string.find(readme, ':enable("day_cycle")', 1, true) ~= nil):toBe(true)
+			expect(string.find(readme, '.enable("day_cycle")', 1, true) ~= nil):toBe(true)
 			expect(string.find(readme, "{ 0, 12, 52 }", 1, true) ~= nil):toBe(true)
 			expect(string.find(readme, "{ 0, 3, -20 }", 1, true) ~= nil):toBe(true)
 			expect(string.find(readme, "review position", 1, true) ~= nil):toBe(true)

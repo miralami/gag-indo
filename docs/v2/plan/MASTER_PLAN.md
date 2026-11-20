@@ -8,7 +8,7 @@
 
 ## Progress tracker — read first, update last
 
-**Last updated:** 2026-11-20 — branch `track/c-world-look` — WORK_QUEUE section G items 20–27
+**Last updated:** 2026-11-20 — designer verdicts on round 3 recorded (icons_r3 and day_cycle yes; corner and the four r3 model families no; textures_r3 and sky_r3 retest); WORK_QUEUE section H (round 4, items 28–34: bug fixes plus free online textures, HDRIs and models) queued; toggle docs now use `LookDev.enable`. Tests: 2101 passing. Earlier the same day: WORK_QUEUE section G items 20–27
 complete (`LUNE-ONLY` for the code/spec gates; one server-only `LoadAsset` probe was `SEEN-IN-STUDIO`
 in Edit and Play-Solo Server VMs, place never saved or published). The `ROBLOX_API_KEY` Open Cloud
 route was verified on a real texture (HTTP 200) and used for every later upload; the key was never

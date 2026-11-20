@@ -13,12 +13,12 @@ review pass's job, not a precondition.
 Rules, from `docs/v2/visual/CANDIDATES.md` and `src/shared/LookDev.luau`:
 
 - Toggle from the Studio command bar:
-  `require(game.ReplicatedStorage.Shared.LookDev):enable("<id>")`
+  `require(game.ReplicatedStorage.Shared.LookDev).enable("<id>")`
 - The four model families (`buildings_r3`, `vegetation_r3`, `props_r3`, `npcs_r3`) MUST be enabled
   from the **Server** datamodel: `InsertService:LoadAsset` is blocked on the client. All other
   candidates can be enabled from the Client or Server datamodel.
 - Restore the shipping look:
-  `require(game.ReplicatedStorage.Shared.LookDev):disable()`
+  `require(game.ReplicatedStorage.Shared.LookDev).disable()`
 - Only one candidate is active at a time; enabling another restores the first.
 - The gate is Studio-only. A published server can never enable it.
 - Every candidate is off by default. Nothing here is approved or shipped by this document.
@@ -31,7 +31,7 @@ Rules, from `docs/v2/visual/CANDIDATES.md` and `src/shared/LookDev.luau`:
 - Use synced code. `docs/v2/evidence/h/2026-11-20-lookdev-corner/REPORT.md` records a stale
   Studio instance where the registry still had only eight candidates and `corner` had to be
   injected before the gate accepted it.
-- Enable one row, inspect or audition it, then call `:disable()` before the next row. Enabling a
+- Enable one row, inspect or audition it, then call `.disable()` before the next row. Enabling a
   second candidate restores the first automatically.
 - "none saved — use render/contact sheet" means no Studio camera was saved for that candidate.
   Do not invent a camera position.
@@ -68,7 +68,7 @@ Rules, from `docs/v2/visual/CANDIDATES.md` and `src/shared/LookDev.luau`:
    master table; no other candidate has a saved Studio camera. Audio has no image render — its
    review artifact is the in-Studio enable/disable proof.
 4. **Section-G additions (item 26), in this order.** Enable one at a time, capture from the saved
-   camera, `:disable()`, then move on:
+   camera, `.disable()`, then move on:
    1. `textures_r3` — nine real CC0 PBR MaterialVariants; contact sheet plus the `pasar_material_row`
       camera in `textures_r3/README.md`.
    2. `icons_r3` — the 27 redraws; compare `contact_before.png` with `contact_after.png` under
@@ -108,23 +108,23 @@ Verdict cells stay blank. Evidence paths and "What it is" strings are from
 
 | Candidate | What it is | Toggle | Evidence / saved camera | Verdict (blank/pending) |
 |---|---|---|---|---|
-| `plaza_lighting` | Alternative Pasar material + lighting grade (round 1) | `require(game.ReplicatedStorage.Shared.LookDev):enable("plaza_lighting")`; `require(game.ReplicatedStorage.Shared.LookDev):disable()` | `docs/v2/evidence/h/2026-11-19-lookdev-candidates/` · none saved — use render/contact sheet |  |
-| `police_walkin` | Police NPC walk-in timed to the raid cutscene (round 1) | `require(game.ReplicatedStorage.Shared.LookDev):enable("police_walkin")`; `require(game.ReplicatedStorage.Shared.LookDev):disable()` | `docs/v2/evidence/h/2026-11-19-lookdev-candidates/` · none saved — use render/contact sheet |  |
-| `icons` | 27 agent-made painted icons for every IconMap slot (round 2 item 4) | `require(game.ReplicatedStorage.Shared.LookDev):enable("icons")`; `require(game.ReplicatedStorage.Shared.LookDev):disable()` | `docs/v2/visual/art/icons/render/contact_sheet.png` · none saved — use render/contact sheet |  |
-| `textures` | 7 agent-made seamless painted textures for the Pasar surface preset (round 2 item 5) | `require(game.ReplicatedStorage.Shared.LookDev):enable("textures")`; `require(game.ReplicatedStorage.Shared.LookDev):disable()` | `docs/v2/visual/art/textures/render/contact_sheet.png` · none saved — use render/contact sheet |  |
-| `npcs` | Procedural caricature detail parts for the box NPCs — Pak RT, Tengkulak, Polisi, debt collector (round 2 item 6) | `require(game.ReplicatedStorage.Shared.LookDev):enable("npcs")`; `require(game.ReplicatedStorage.Shared.LookDev):disable()` | `docs/v2/visual/art/npcs/render/contact_sheet.png` · none saved — use render/contact sheet |  |
-| `crops` | Low-poly growth-stage models (bibit/tumbuh/siap) for all 12 crops (round 2 item 7) | `require(game.ReplicatedStorage.Shared.LookDev):enable("crops")`; `require(game.ReplicatedStorage.Shared.LookDev):disable()` | `docs/v2/visual/art/crops/render/contact_sheet.png` · none saved — use render/contact sheet |  |
-| `hubprops` | Hero-prop details on the four shop hubs — stall/counter/desk/table, lantern, accent sign (round 2 item 8) | `require(game.ReplicatedStorage.Shared.LookDev):enable("hubprops")`; `require(game.ReplicatedStorage.Shared.LookDev):disable()` | `docs/v2/visual/art/hubprops/render/contact_sheet.png` · none saved — use render/contact sheet |  |
-| `sounds` | Two free Creator Store music beds for the sawah/hutan zones (round 2 item 9) | `require(game.ReplicatedStorage.Shared.LookDev):enable("sounds")`; `require(game.ReplicatedStorage.Shared.LookDev):disable()` | `docs/v2/evidence/h/2026-11-19-sound-candidates/REPORT.md` · none saved — use render/contact sheet |  |
-| `corner` | 60x60 warung / road bend / sawah edge corner at golden hour (round 3 item 2) | `require(game.ReplicatedStorage.Shared.LookDev):enable("corner")`; `require(game.ReplicatedStorage.Shared.LookDev):disable()` | `docs/v2/visual/art/corner/README.md` · `docs/v2/evidence/h/2026-11-20-lookdev-corner/REPORT.md` · saved cameras below |  |
-| `textures_r3` | Nine real CC0 Poly Haven PBR MaterialVariants (round 3 items 20/21) | `require(game.ReplicatedStorage.Shared.LookDev):enable("textures_r3")`; `require(game.ReplicatedStorage.Shared.LookDev):disable()` | `docs/v2/visual/art/textures_r3/render/contact_sheet.png` · camera `{ -70, 12, -30 }` → `{ -70, 3, -58 }` |  |
-| `day_cycle` | Live phase tweens, Rendah night lamps, five silent sound beds (round 3 item 25) | `require(game.ReplicatedStorage.Shared.LookDev):enable("day_cycle")`; `require(game.ReplicatedStorage.Shared.LookDev):disable()` | `docs/v2/visual/art/daycycle/README.md` · camera `{0,12,52}` → `{0,3,-20}` |  |
-| `icons_r3` | 27 revised original icon CANDIDATES with before/after sheets (round 3 item 22) | `require(game.ReplicatedStorage.Shared.LookDev):enable("icons_r3")`; `require(game.ReplicatedStorage.Shared.LookDev):disable()` | `docs/v2/visual/art/icons/render_r3/contact_after.png` · none saved — use contact sheets |  |
-| `buildings_r3` | Stilt house, coop, sawmill shed in the 60x60 corner (round 3 item 23) | **Server** datamodel: `require(game.ReplicatedStorage.Shared.LookDev):enable("buildings_r3")`; `:disable()` | `docs/v2/visual/art/models_r3/INTEGRATION.md` · camera `{500,16,542}` → `{500,4,490}` |  |
-| `vegetation_r3` | Tropical palm/bamboo plus banana, mango, shrubs (round 3 item 23) | **Server** datamodel: `require(game.ReplicatedStorage.Shared.LookDev):enable("vegetation_r3")`; `:disable()` | `docs/v2/visual/art/models_r3/INTEGRATION.md` · camera `{468,12,520}` → `{500,4,500}` |  |
-| `props_r3` | Gerobak, well, market stall, bamboo fence, tools (round 3 item 23) | **Server** datamodel: `require(game.ReplicatedStorage.Shared.LookDev):enable("props_r3")`; `:disable()` | `docs/v2/visual/art/models_r3/INTEGRATION.md` · camera `{532,11,500}` → `{498,2,500}` |  |
-| `npcs_r3` | Two CC0 rigged bodies plus four original villagers (round 3 item 23) | **Server** datamodel: `require(game.ReplicatedStorage.Shared.LookDev):enable("npcs_r3")`; `:disable()` | `docs/v2/visual/art/models_r3/INTEGRATION.md` · camera `{500,7,524}` → `{500,2,500}` |  |
-| `sky_r3` | CC0 overcast tropical sunrise HDRI cube sky + ridge + haze (round 3 item 24) | `require(game.ReplicatedStorage.Shared.LookDev):enable("sky_r3")`; `require(game.ReplicatedStorage.Shared.LookDev):disable()` | `docs/v2/visual/art/sky_r3/README.md` · camera `{500,9,554}` → `{500,16,500}` |  |
+| `plaza_lighting` | Alternative Pasar material + lighting grade (round 1) | `require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")`; `require(game.ReplicatedStorage.Shared.LookDev).disable()` | `docs/v2/evidence/h/2026-11-19-lookdev-candidates/` · none saved — use render/contact sheet |  |
+| `police_walkin` | Police NPC walk-in timed to the raid cutscene (round 1) | `require(game.ReplicatedStorage.Shared.LookDev).enable("police_walkin")`; `require(game.ReplicatedStorage.Shared.LookDev).disable()` | `docs/v2/evidence/h/2026-11-19-lookdev-candidates/` · none saved — use render/contact sheet |  |
+| `icons` | 27 agent-made painted icons for every IconMap slot (round 2 item 4) | `require(game.ReplicatedStorage.Shared.LookDev).enable("icons")`; `require(game.ReplicatedStorage.Shared.LookDev).disable()` | `docs/v2/visual/art/icons/render/contact_sheet.png` · none saved — use render/contact sheet |  |
+| `textures` | 7 agent-made seamless painted textures for the Pasar surface preset (round 2 item 5) | `require(game.ReplicatedStorage.Shared.LookDev).enable("textures")`; `require(game.ReplicatedStorage.Shared.LookDev).disable()` | `docs/v2/visual/art/textures/render/contact_sheet.png` · none saved — use render/contact sheet |  |
+| `npcs` | Procedural caricature detail parts for the box NPCs — Pak RT, Tengkulak, Polisi, debt collector (round 2 item 6) | `require(game.ReplicatedStorage.Shared.LookDev).enable("npcs")`; `require(game.ReplicatedStorage.Shared.LookDev).disable()` | `docs/v2/visual/art/npcs/render/contact_sheet.png` · none saved — use render/contact sheet |  |
+| `crops` | Low-poly growth-stage models (bibit/tumbuh/siap) for all 12 crops (round 2 item 7) | `require(game.ReplicatedStorage.Shared.LookDev).enable("crops")`; `require(game.ReplicatedStorage.Shared.LookDev).disable()` | `docs/v2/visual/art/crops/render/contact_sheet.png` · none saved — use render/contact sheet |  |
+| `hubprops` | Hero-prop details on the four shop hubs — stall/counter/desk/table, lantern, accent sign (round 2 item 8) | `require(game.ReplicatedStorage.Shared.LookDev).enable("hubprops")`; `require(game.ReplicatedStorage.Shared.LookDev).disable()` | `docs/v2/visual/art/hubprops/render/contact_sheet.png` · none saved — use render/contact sheet |  |
+| `sounds` | Two free Creator Store music beds for the sawah/hutan zones (round 2 item 9) | `require(game.ReplicatedStorage.Shared.LookDev).enable("sounds")`; `require(game.ReplicatedStorage.Shared.LookDev).disable()` | `docs/v2/evidence/h/2026-11-19-sound-candidates/REPORT.md` · none saved — use render/contact sheet |  |
+| `corner` | 60x60 warung / road bend / sawah edge corner at golden hour (round 3 item 2) | `require(game.ReplicatedStorage.Shared.LookDev).enable("corner")`; `require(game.ReplicatedStorage.Shared.LookDev).disable()` | `docs/v2/visual/art/corner/README.md` · `docs/v2/evidence/h/2026-11-20-lookdev-corner/REPORT.md` · saved cameras below |  |
+| `textures_r3` | Nine real CC0 Poly Haven PBR MaterialVariants (round 3 items 20/21) | `require(game.ReplicatedStorage.Shared.LookDev).enable("textures_r3")`; `require(game.ReplicatedStorage.Shared.LookDev).disable()` | `docs/v2/visual/art/textures_r3/render/contact_sheet.png` · camera `{ -70, 12, -30 }` → `{ -70, 3, -58 }` |  |
+| `day_cycle` | Live phase tweens, Rendah night lamps, five silent sound beds (round 3 item 25) | `require(game.ReplicatedStorage.Shared.LookDev).enable("day_cycle")`; `require(game.ReplicatedStorage.Shared.LookDev).disable()` | `docs/v2/visual/art/daycycle/README.md` · camera `{0,12,52}` → `{0,3,-20}` |  |
+| `icons_r3` | 27 revised original icon CANDIDATES with before/after sheets (round 3 item 22) | `require(game.ReplicatedStorage.Shared.LookDev).enable("icons_r3")`; `require(game.ReplicatedStorage.Shared.LookDev).disable()` | `docs/v2/visual/art/icons/render_r3/contact_after.png` · none saved — use contact sheets |  |
+| `buildings_r3` | Stilt house, coop, sawmill shed in the 60x60 corner (round 3 item 23) | **Server** datamodel: `require(game.ReplicatedStorage.Shared.LookDev).enable("buildings_r3")`; `.disable()` | `docs/v2/visual/art/models_r3/INTEGRATION.md` · camera `{500,16,542}` → `{500,4,490}` |  |
+| `vegetation_r3` | Tropical palm/bamboo plus banana, mango, shrubs (round 3 item 23) | **Server** datamodel: `require(game.ReplicatedStorage.Shared.LookDev).enable("vegetation_r3")`; `.disable()` | `docs/v2/visual/art/models_r3/INTEGRATION.md` · camera `{468,12,520}` → `{500,4,500}` |  |
+| `props_r3` | Gerobak, well, market stall, bamboo fence, tools (round 3 item 23) | **Server** datamodel: `require(game.ReplicatedStorage.Shared.LookDev).enable("props_r3")`; `.disable()` | `docs/v2/visual/art/models_r3/INTEGRATION.md` · camera `{532,11,500}` → `{498,2,500}` |  |
+| `npcs_r3` | Two CC0 rigged bodies plus four original villagers (round 3 item 23) | **Server** datamodel: `require(game.ReplicatedStorage.Shared.LookDev).enable("npcs_r3")`; `.disable()` | `docs/v2/visual/art/models_r3/INTEGRATION.md` · camera `{500,7,524}` → `{500,2,500}` |  |
+| `sky_r3` | CC0 overcast tropical sunrise HDRI cube sky + ridge + haze (round 3 item 24) | `require(game.ReplicatedStorage.Shared.LookDev).enable("sky_r3")`; `require(game.ReplicatedStorage.Shared.LookDev).disable()` | `docs/v2/visual/art/sky_r3/README.md` · camera `{500,9,554}` → `{500,16,500}` |  |
 | `reference board` | 15 images; designer adds 3–5 (V-D5) | none — reference only | `docs/v2/visual/art/reference/README.md` |  |
 | `blocked: buildings` | WORK_QUEUE 4 — rumah panggung, warung, pos polisi, rumah Pak RT, pasar stalls, gubuk sawah | **SUPERSEDED** — use `buildings_r3` | `docs/v2/visual/art/SOURCING_BUILDINGS_VEG.md` · historical plan only; three real CC0 / designer-build models are now integrated above |  |
 | `blocked: vegetation` | WORK_QUEUE 5 — kelapa, pisang, bambu clumps, shrubs, padi at three stages, dense grass (V-D4) | **SUPERSEDED** — use `vegetation_r3` | `docs/v2/visual/art/SOURCING_BUILDINGS_VEG.md` · historical plan only; six real CC0 / designer-build models are now integrated above |  |

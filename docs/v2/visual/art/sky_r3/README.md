@@ -86,7 +86,7 @@ Starting values only. Nothing here has been viewed in Studio.
 
 Proposal, not built here: create a `Folder` named `SkyR3Ridge` **inside**
 `Workspace.LookDevCorner` so the existing corner adapter destroys it on
-`LookDev:disable()`; if a folder of that name already exists, save and restore it.
+`LookDev.disable()`; if a folder of that name already exists, save and restore it.
 Populate it with 24 dark wedge `Part`s (or one `MeshPart` ring) centred on
 `(500, *, 500)`, radius ~27 studs, each wedge ~6 studs wide, `y` centres 10–14 and
 heights 8–20 studs (varied to make a low ridge). Suggested look:

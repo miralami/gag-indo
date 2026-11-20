@@ -17,13 +17,13 @@ integrates and hands off; it does not grade anything visually. No agent has judg
 In Studio, switch the command bar to the **Server** datamodel, then run:
 
 ```luau
-require(game.ReplicatedStorage.Shared.LookDev):enable("buildings_r3")
-require(game.ReplicatedStorage.Shared.LookDev):enable("vegetation_r3")
-require(game.ReplicatedStorage.Shared.LookDev):enable("props_r3")
-require(game.ReplicatedStorage.Shared.LookDev):enable("npcs_r3")
+require(game.ReplicatedStorage.Shared.LookDev).enable("buildings_r3")
+require(game.ReplicatedStorage.Shared.LookDev).enable("vegetation_r3")
+require(game.ReplicatedStorage.Shared.LookDev).enable("props_r3")
+require(game.ReplicatedStorage.Shared.LookDev).enable("npcs_r3")
 ```
 
-Restore with `require(game.ReplicatedStorage.Shared.LookDev):disable()`. Only one candidate is
+Restore with `require(game.ReplicatedStorage.Shared.LookDev).disable()`. Only one candidate is
 active at a time; enabling another restores the previous one. Each apply creates a Workspace
 Folder named `LookDevModelsR3_<family>`, removes any same-named leftover folder first, and loads
 each slot into it as `R3_<slot>`, standing on y=0 using the asset's own bounding box. A failed

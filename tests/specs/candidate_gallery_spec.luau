@@ -117,7 +117,7 @@ return function(t, Env)
 				local id = string.match(row[1], "^`(.-)`$")
 				expect(#row):toBe(6)
 				-- toggle names the exact candidate
-				expect(string.find(row[3], 'LookDev:enable("' .. id .. '")', 1, true) ~= nil):toBe(true)
+				expect(string.find(row[3], 'LookDev.enable("' .. id .. '")', 1, true) ~= nil):toBe(true)
 				-- render / screenshot is a backtick-wrapped path that really exists
 				local render = string.match(row[4], "^`(.-)`$")
 				expect(render ~= nil):toBe(true)

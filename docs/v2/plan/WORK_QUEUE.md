@@ -265,6 +265,94 @@ Studio stale. A licence that is not CC0 / CC BY (with attribution recorded) is s
   Their BLOCKED reasons were updated to reflect the section-G inputs; no further agent-closable work
   is left in the queue.
 
+### H. Round 4 — fix, then source real free assets (added 2026-11-20 after the Studio review)
+
+**Designer verdicts, 2026-11-20** (recorded in `CANDIDATES.md`; shots in
+`docs/v2/evidence/h/2026-11-20-review-round3/REVIEW_ROUND3.html`):
+- **yes:** `icons_r3` (ship) and `day_cycle` (keep, tune the 16:00 look, test night).
+- **no:** `corner` and the four model families. They are tiny, untextured and grey, and the script-built
+  placeholders are not acceptable.
+- **retest:** `textures_r3` and `sky_r3`.
+
+The designer's direction: lean much harder on **free online sources** for textures, HDRIs and models.
+The textures and HDRI in round 3 were already the right kind of source (CC0 Poly Haven). They failed
+because of how they were applied, not where they came from.
+
+**Toggle syntax:** `LookDev.enable("id")` / `LookDev.disable()` with a dot. The colon form fails with
+"unknown candidate". The docs and specs were corrected on 2026-11-20.
+
+**Free sources, in order of preference (licence is still a hard stop, so record it per asset):**
+
+| Kind | Sources (CC0 unless noted) | Notes |
+|---|---|---|
+| PBR textures | Poly Haven, ambientCG, ShareTextures, cgbookcase | Download at 1K for mobile (2K only for hero surfaces). Keep colour, normal and roughness. ambientCG has a public API (`/api/v2/full_json`). |
+| HDRI / sky | Poly Haven HDRIs, ambientCG HDRIs | Pick tropical or village skies with no city skyline. |
+| Models | Creator Store (licence allows use), Quaternius, Kenney, Poly Pizza (check each model: some are CC BY), Poly Haven models, Sketchfab with the "downloadable + CC0/CC BY" filter | Models must be **textured** (texture or vertex colour). CC BY needs the attribution recorded. |
+| Characters | Quaternius rigged packs, Kenney characters, Creator Store R15 rigs | R15-compatible or re-rigged to R15. |
+
+- [ ] 28. **Fix the seven round-3 bugs** (`h/2026-11-20-review-round3/REPORT.md`), each with a
+  regression spec:
+  - `sky_r3`: set the real `Sky.SkyboxBk/Dn/Ft/Lf/Rt/Up` properties and give `Atmosphere.Decay` a Color3.
+  - `LookDevModelsR3`: anchor every BasePart and set `CanCollide` to a sensible value.
+  - Normalise model scale to a target size: add a `targetHeight` per slot in `ModelMapR3` and scale
+    with `Model:ScaleTo`.
+  - Rotate Z-up imports to Y-up (`farmer_cc0`, `polisi_cc0`).
+  - Move the staging area from (500,500) onto real terrain near spawn, with the review cameras updated.
+  - Review tooling: add a `LookDevReview` helper, so one `execute_luau` or command-bar call requires
+    the applier modules for its datamodel before calling `LookDev.enable`.
+- [ ] 29. **`textures_r4`: coverage, not just sourcing.**
+  - Apply the CC0 sets as `MaterialService` **base-material overrides** (MaterialVariants with
+    `BaseMaterial` set, plus `MaterialService:SetBaseMaterialOverride`). Every Grass / Ground / Mud /
+    Cobblestone / Wood / Brick / Slate / CorrugatedMetal surface, Terrain included, should change, not
+    only MeshParts matched by name.
+  - Add ambientCG / ShareTextures sets where Poly Haven has no good match: rice-paddy mud, laterite red
+    dirt, woven bamboo (*bilik*), clay roof tile, weathered plaster wall, dry grass.
+  - Tune `StudsPerTile` per surface.
+  - Off by default. Contact sheet plus the saved spawn camera.
+- [ ] 30. **`sky_r4`: three HDRI options for an A/B/C pick.**
+  - Take three CC0 HDRIs from Poly Haven / ambientCG: clear tropical afternoon, golden hour, light
+    overcast.
+  - Convert each from equirect to six faces using Roblox's face orientation (verify one face in Studio
+    before the others).
+  - Upload the faces, register them as `sky_r4_a/b/c` (off by default), and make one contact sheet with
+    the three side by side.
+  - Keep the ridge silhouette and haze. `CelestialBodiesShown` stays on, so the day cycle still moves
+    the sun.
+- [ ] 31. **`*_r4` models: real textured models from the free sources above**, one LookDev family
+  each, replacing the round-3 placeholders.
+  - Families: `buildings_r4` (rumah panggung, kandang ayam, gudang, warung), `vegetation_r4` (kelapa,
+    pisang, bambu, mangga, shrubs, padi three stages), `props_r4` (gerobak, sumur, lapak, pagar bambu,
+    alat tani, karung, jemuran), `npcs_r4` (petani caping, pedagang, petani wanita, tukang peci, polisi).
+  - Target sizes, with the player at about 5 studs:
+
+    | Model | Size (studs) |
+    |---|---|
+    | rumah panggung | 18–24 tall, door ≥ 7 |
+    | kelapa | 25–35 |
+    | pisang | 10–14 |
+    | bambu clump | 18–25 |
+    | gerobak | about 6 tall |
+    | NPC | 5 (R15) |
+
+  - Decimate to `SOURCING_BUILDINGS_VEG.md` budgets.
+  - Record the source, licence, author and ID in `ASSET_MANIFEST.md`.
+  - Anything no free source covers goes to "Designer builds" with the brief. No more script-built
+    primitives.
+- [ ] 32. **Spawn liveliness brief (designer note 2026-11-20).** Spawn is still plain. Later it should
+  feel as busy and lived-in as the reference village games, through props: jemuran, karung stacks,
+  sepeda, ayam, gerobak, warung clutter, lanterns, potted plants, bamboo fences and *pematang* edges.
+  - Write `docs/v2/visual/SPAWN_DRESSING.md`, covering:
+    - the prop clusters around the spawn view;
+    - which r4 asset fills each cluster;
+    - an instance / triangle budget per fidelity tier;
+    - two or three ambient-life ideas: chickens wandering, smoke from the warung, swaying laundry.
+  - Plan only: dress spawn after item 31's models pass review.
+- [ ] 33. **Review handoff.** Write `REVIEW_ROUND4.md` with every new candidate, its dot-syntax toggle,
+  its datamodel and its saved camera, in review order. The main session takes the Studio shots and
+  builds the HTML review sheet. No agent grades visuals.
+- [ ] 34. **Refill.** Re-check the blocked items against round 4 output; repeat until nothing
+  agent-closable is left.
+
 ## Designer builds
 
 Models the ladder couldn't supply, each with a brief and a reference.

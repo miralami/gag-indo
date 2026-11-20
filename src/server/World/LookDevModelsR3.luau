@@ -4,8 +4,8 @@
 -- and toggled from the Studio command bar with the Server datamodel selected.
 -- See docs/v2/visual/art/models_r3/INTEGRATION.md for the four toggles and cameras.
 --
--- Eligibility is handled by Shared.LookDev: every candidate is off until :enable() is called
--- from Studio, and :disable() restores the previous look. No asset ID literals live here;
+-- Eligibility is handled by Shared.LookDev: every candidate is off until .enable() is called
+-- from Studio, and .disable() restores the previous look. No asset ID literals live here;
 -- they all come from Shared.ModelMapR3 (which is also what the spec audits).
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")

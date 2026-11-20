@@ -19,21 +19,21 @@
 --   src/client/World/LookDevSkyR3.luau -- candidate "sky_r3" (CC0 HDRI cube faces + ridge + haze)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
---   require(game.ReplicatedStorage.Shared.LookDev):enable("plaza_lighting")
---   require(game.ReplicatedStorage.Shared.LookDev):enable("police_walkin")
---   require(game.ReplicatedStorage.Shared.LookDev):enable("icons")
---   require(game.ReplicatedStorage.Shared.LookDev):enable("textures")
---   require(game.ReplicatedStorage.Shared.LookDev):enable("npcs")
---   require(game.ReplicatedStorage.Shared.LookDev):enable("crops")
---   require(game.ReplicatedStorage.Shared.LookDev):enable("hubprops")
---   require(game.ReplicatedStorage.Shared.LookDev):enable("sounds")
---   require(game.ReplicatedStorage.Shared.LookDev):enable("corner")
---   require(game.ReplicatedStorage.Shared.LookDev):enable("textures_r3")
---   require(game.ReplicatedStorage.Shared.LookDev):enable("day_cycle")
---   require(game.ReplicatedStorage.Shared.LookDev):enable("icons_r3")
---   require(game.ReplicatedStorage.Shared.LookDev):enable("sky_r3")
+--   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
+--   require(game.ReplicatedStorage.Shared.LookDev).enable("police_walkin")
+--   require(game.ReplicatedStorage.Shared.LookDev).enable("icons")
+--   require(game.ReplicatedStorage.Shared.LookDev).enable("textures")
+--   require(game.ReplicatedStorage.Shared.LookDev).enable("npcs")
+--   require(game.ReplicatedStorage.Shared.LookDev).enable("crops")
+--   require(game.ReplicatedStorage.Shared.LookDev).enable("hubprops")
+--   require(game.ReplicatedStorage.Shared.LookDev).enable("sounds")
+--   require(game.ReplicatedStorage.Shared.LookDev).enable("corner")
+--   require(game.ReplicatedStorage.Shared.LookDev).enable("textures_r3")
+--   require(game.ReplicatedStorage.Shared.LookDev).enable("day_cycle")
+--   require(game.ReplicatedStorage.Shared.LookDev).enable("icons_r3")
+--   require(game.ReplicatedStorage.Shared.LookDev).enable("sky_r3")
 --   -- from the Server datamodel: buildings_r3 / vegetation_r3 / props_r3 / npcs_r3
---   require(game.ReplicatedStorage.Shared.LookDev):disable()   -- restores the original look
+--   require(game.ReplicatedStorage.Shared.LookDev).disable()   -- restores the original look
 --
 -- The gate needs an explicit Studio-only opt-in, is never persisted, and can never be on in a
 -- published server (RunService:IsStudio() is false there). Nothing is applied until enable() is

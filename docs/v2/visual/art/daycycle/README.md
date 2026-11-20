@@ -26,8 +26,8 @@ grade. Nothing changes in the shipping game until it is explicitly enabled.
 ## Toggle
 
 ```luau
-require(game.ReplicatedStorage.Shared.LookDev):enable("day_cycle")
-require(game.ReplicatedStorage.Shared.LookDev):disable() -- restores the original sky and lamps
+require(game.ReplicatedStorage.Shared.LookDev).enable("day_cycle")
+require(game.ReplicatedStorage.Shared.LookDev).disable() -- restores the original sky and lamps
 ```
 
 Studio-only gate, in-memory only, one candidate active at a time. The central registry and client

@@ -12,6 +12,9 @@
 -- PLOT_FENCE and GATE_CLEAR. Both FAIL when the plots_r8 candidate is not staged.
 -- It also emits the r8 sawah family (WORK_QUEUE item 72): SAWAH_TOPS, SAWAH_WATER,
 -- SAWAH_VERGE and GUBUK. All four FAIL when the sawah_r8 candidate is not staged.
+-- It also emits the r8 river family (WORK_QUEUE item 73): RIVER_BANK_VEG, BRIDGE_RAILS and
+-- BRIDGE_WALKABLE. All three FAIL at measured 0 when the river_r8 candidate is not staged or
+-- MapSpec.BRIDGE cannot be read (the Client VM cannot read MapSpec).
 -- Client datamodel: same lines plus CLOUD_COVER (the client LocalScript owns Terrain.Clouds.Cover);
 -- the Server datamodel cannot observe that tween. Run client-owned candidates (water, grade,
 -- sounds, clouds) in the Client datamodel.
@@ -49,6 +52,9 @@ local ORDER = {
 	"SAWAH_WATER",
 	"SAWAH_VERGE",
 	"GUBUK",
+	"RIVER_BANK_VEG",
+	"BRIDGE_RAILS",
+	"BRIDGE_WALKABLE",
 	"VEG_NEAR",
 	"PROP_SIZE",
 	"CLOUD_COVER",
@@ -1560,6 +1566,235 @@ emit("GUBUK", gubukPass, #roofs, 1, {
 	folderPresent = sawahFolder ~= nil,
 	reason = gubukReason,
 })
+
+-- 9e. r8 river family (WORK_QUEUE item 73). Three CHECK families over the staged
+-- LookDevRiverR8_river_r8 folder, all read around MapSpec.BRIDGE (bridge centre + deck span):
+--   RIVER_BANK_VEG  >=30 bank_veg within 40 studs (XZ) of the bridge centre, both banks present
+--   BRIDGE_RAILS    each side has a rail spanning the deck and >=4 posts
+--   BRIDGE_WALKABLE no rail/post intrudes into the |x|<4 deck corridor, both sides present
+-- MapSpec lives under ServerScriptService.Server.World; the require is pcall-guarded and the
+-- Client VM cannot read it. Missing folder / part / attribute / MapSpec or a failed read is a
+-- FAIL, never a vacuous pass. Every game API read below is pcall-wrapped.
+local RIVER_FOLDER = "LookDevRiverR8_river_r8"
+local RIVER_KEY = "river_r8"
+local RIVER_BANK_VEG_RADIUS = 40
+local RIVER_BANK_VEG_MIN = 30
+local RAIL_SPAN_TOL = 4
+local POSTS_PER_SIDE_MIN = 4
+local WALK_CLEAR_MIN = 4
+local WALK_WIDTH_MIN = 8
+
+local riverFolder = folderNamed(RIVER_FOLDER)
+local riverParts = {}
+local okRiverParts, riverDescendants = pcall(function()
+	if not riverFolder then
+		return {}
+	end
+	return riverFolder:GetDescendants()
+end)
+if okRiverParts and type(riverDescendants) == "table" then
+	for _, part in ipairs(riverDescendants) do
+		if attr(part, "LookDevRiverR8") == RIVER_KEY then
+			riverParts[#riverParts + 1] = part
+		end
+	end
+end
+
+-- MapSpec.BRIDGE supplies the bridge centre (x, (z0+z1)/2) and the deck span [z0,z1]. A failed
+-- load fails all three checks with a reason instead of emitting a vacuous pass.
+local riverMapReady = false
+local bridge = nil
+local riverMapReason = nil
+local okRiverMap, loadedRiverMap = pcall(function()
+	local sss = game:GetService("ServerScriptService")
+	local server = sss and sss:FindFirstChild("Server")
+	if not server then
+		return nil
+	end
+	local world = server:FindFirstChild("World")
+	if not world then
+		return nil
+	end
+	local module = world:FindFirstChild("MapSpec")
+	if not module then
+		return nil
+	end
+	return require(module)
+end)
+if
+	okRiverMap
+	and type(loadedRiverMap) == "table"
+	and type(loadedRiverMap.BRIDGE) == "table"
+	and type(loadedRiverMap.BRIDGE.x) == "number"
+	and type(loadedRiverMap.BRIDGE.z0) == "number"
+	and type(loadedRiverMap.BRIDGE.z1) == "number"
+then
+	riverMapReady = true
+	bridge = loadedRiverMap.BRIDGE
+else
+	riverMapReason = "MapSpec.BRIDGE not readable"
+end
+local bridgeCX = riverMapReady and bridge.x or 0
+local bridgeCZ = riverMapReady and (bridge.z0 + bridge.z1) / 2 or 0
+
+-- RIVER_BANK_VEG: numeric VegX/VegZ, falling back to part.Position, then distance in the XZ
+-- plane. South/north counts are taken over the in-radius veg, so one bank alone cannot pass.
+local vegTotal, vegNear, vegSouth, vegNorth = 0, 0, 0, 0
+for _, part in ipairs(riverParts) do
+	if attr(part, "Kind") == "bank_veg" then
+		vegTotal += 1
+		local vx, vz = attr(part, "VegX"), attr(part, "VegZ")
+		if type(vx) ~= "number" or type(vz) ~= "number" then
+			local okPos, pos = pcall(function()
+				return part.Position
+			end)
+			if okPos and typeof(pos) == "Vector3" then
+				vx, vz = pos.X, pos.Z
+			end
+		end
+		if type(vx) == "number" and type(vz) == "number" then
+			local dx, dz = vx - bridgeCX, vz - bridgeCZ
+			if dx * dx + dz * dz <= RIVER_BANK_VEG_RADIUS * RIVER_BANK_VEG_RADIUS then
+				vegNear += 1
+				local side = attr(part, "Side")
+				if side == "south" then
+					vegSouth += 1
+				elseif side == "north" then
+					vegNorth += 1
+				end
+			end
+		end
+	end
+end
+local vegDetail = {
+	near = riverMapReady and vegNear or 0,
+	south = vegSouth,
+	north = vegNorth,
+	totalVeg = vegTotal,
+	staged = #riverParts,
+	radius = RIVER_BANK_VEG_RADIUS,
+	centre = riverMapReady and { bridgeCX, bridgeCZ } or nil,
+	folderPresent = riverFolder ~= nil,
+}
+if not riverMapReady then
+	vegDetail.reason = riverMapReason
+end
+emit(
+	"RIVER_BANK_VEG",
+	riverMapReady and vegNear >= RIVER_BANK_VEG_MIN and vegSouth >= 1 and vegNorth >= 1,
+	riverMapReady and vegNear or 0,
+	">=" .. RIVER_BANK_VEG_MIN,
+	vegDetail
+)
+
+-- BRIDGE_RAILS: group rails/posts by Side. A rail spans the deck when its CFrame/Size Z interval
+-- reaches both deck ends within tolerance. The weakest side decides; missing sides give 0.
+local railsBySide, postsBySide = { left = {}, right = {} }, { left = {}, right = {} }
+for _, part in ipairs(riverParts) do
+	local kind = attr(part, "Kind")
+	local side = attr(part, "Side")
+	if side == "left" or side == "right" then
+		if kind == "bridge_rail" then
+			railsBySide[side][#railsBySide[side] + 1] = part
+		elseif kind == "bridge_post" then
+			postsBySide[side][#postsBySide[side] + 1] = part
+		end
+	end
+end
+local function railCoversDeck(part)
+	local okRead, posZ, sizeZ = pcall(function()
+		return part.CFrame.Position.Z, part.Size.Z
+	end)
+	if not okRead or type(posZ) ~= "number" or type(sizeZ) ~= "number" then
+		return false
+	end
+	local minZ, maxZ = posZ - sizeZ / 2, posZ + sizeZ / 2
+	return minZ <= bridge.z0 + RAIL_SPAN_TOL and maxZ >= bridge.z1 - RAIL_SPAN_TOL
+end
+local railSidesPassed = 0
+local railDetail = {
+	sides = {},
+	deck = riverMapReady and { bridge.z0, bridge.z1 } or nil,
+	tolerance = RAIL_SPAN_TOL,
+	folderPresent = riverFolder ~= nil,
+}
+for _, side in ipairs({ "left", "right" }) do
+	local covered = false
+	if riverMapReady then
+		for _, rail in ipairs(railsBySide[side]) do
+			if railCoversDeck(rail) then
+				covered = true
+				break
+			end
+		end
+	end
+	local postCount = #postsBySide[side]
+	local sidePass = riverMapReady and covered and postCount >= POSTS_PER_SIDE_MIN
+	if sidePass then
+		railSidesPassed += 1
+	end
+	railDetail.sides[side] = {
+		rails = #railsBySide[side],
+		railCovered = covered,
+		posts = postCount,
+		pass = sidePass,
+	}
+end
+if not riverMapReady then
+	railDetail.reason = riverMapReason
+end
+emit("BRIDGE_RAILS", railSidesPassed == 2, railSidesPassed, 2, railDetail)
+
+-- BRIDGE_WALKABLE: the inner face is the edge nearest x=0 (left rails reach +X, right rails
+-- reach -X). Every rail/post must keep that face at |x|>=4, both sides must exist and the
+-- walkable width 2*min(|innerFaceX|) must be >=8. Any API read error fails the check.
+local sideInnerX, sideClear = { left = nil, right = nil }, { left = math.huge, right = math.huge }
+local walkOffenders, walkErrors = {}, {}
+for _, part in ipairs(riverParts) do
+	local kind = attr(part, "Kind")
+	if kind == "bridge_rail" or kind == "bridge_post" then
+		local side = attr(part, "Side")
+		local okRead, centreX, sizeX = pcall(function()
+			return part.CFrame.Position.X, part.Size.X
+		end)
+		if not okRead or type(centreX) ~= "number" or type(sizeX) ~= "number" then
+			walkErrors[#walkErrors + 1] = tostring(kind) .. ":" .. tostring(side) .. ":read"
+		elseif side == "left" or side == "right" then
+			local innerFaceX = side == "left" and (centreX + sizeX / 2) or (centreX - sizeX / 2)
+			local clearance = math.abs(innerFaceX)
+			if clearance < WALK_CLEAR_MIN then
+				walkOffenders[#walkOffenders + 1] =
+					string.format("%s:%s:x=%.2f", tostring(kind), tostring(side), innerFaceX)
+			end
+			if clearance < sideClear[side] then
+				sideClear[side] = clearance
+				sideInnerX[side] = innerFaceX
+			end
+		else
+			walkErrors[#walkErrors + 1] = tostring(kind) .. ":bad-side:" .. tostring(side)
+		end
+	end
+end
+local bothSides = sideInnerX.left ~= nil and sideInnerX.right ~= nil
+local minClear = math.min(sideClear.left, sideClear.right)
+local walkableWidth = (riverMapReady and bothSides and minClear ~= math.huge) and (2 * minClear) or 0
+local walkPass = riverMapReady
+	and bothSides
+	and #walkOffenders == 0
+	and #walkErrors == 0
+	and walkableWidth >= WALK_WIDTH_MIN
+local walkDetail = {
+	leftInnerX = sideInnerX.left and math.floor(sideInnerX.left * 100) / 100 or nil,
+	rightInnerX = sideInnerX.right and math.floor(sideInnerX.right * 100) / 100 or nil,
+	walkableWidth = math.floor(walkableWidth * 100) / 100,
+	offenders = walkOffenders,
+	errors = walkErrors,
+	folderPresent = riverFolder ~= nil,
+}
+if not riverMapReady then
+	walkDetail.reason = riverMapReason
+end
+emit("BRIDGE_WALKABLE", walkPass, math.floor(walkableWidth * 100) / 100, ">=" .. WALK_WIDTH_MIN, walkDetail)
 
 -- 10. VEG_NEAR: dense near layer at the saved camera (45 studs, 70-degree cone). A model only
 -- counts when its bbox centre is inside the cone AND its bbox is >=2 studs tall; species and

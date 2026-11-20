@@ -30,6 +30,7 @@
 --   src/server/World/LookDevModelsPropsR4.luau -- candidate "props_r4" (server-only)
 --   src/server/World/LookDevModelsNpcsR4.luau -- candidate "npcs_r4" (server-only)
 --   src/server/World/LookDevPlotsR8.luau -- candidate "plots_r8" (plot fences and gates, server-only)
+--   src/server/World/LookDevRiverR8.luau -- candidate "river_r8" (banks and bridge rails, server-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -120,6 +121,7 @@ LookDev.IDS = {
 	"hubveg_r8",
 	"plots_r8",
 	"sawah_r8",
+	"river_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -704,6 +706,16 @@ LookDev.candidates = {
 		idsSource = "Shared.ModelMapSawahR8",
 		render = "docs/v2/evidence/h/2026-11-21-round9/CHECK_72.txt",
 	},
+
+	river_r8 = {
+		id = "river_r8",
+		title = "River banks and bridge dressing — bank vegetation, two-side rails and stepping stones (round 9, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Procedural parts, no asset IDs. Pure recipe in Shared.ModelMapRiverR8.
+		idsSource = "Shared.ModelMapRiverR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/CHECK_73.txt",
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -881,6 +893,7 @@ function LookDev.plan(id: string): any
 		or id == "hubveg_r8"
 		or id == "plots_r8"
 		or id == "sawah_r8"
+		or id == "river_r8"
 	then
 		local c = LookDev.candidates[id]
 		return {

@@ -21,6 +21,7 @@
 --   src/client/World/LookDevSkyR4.luau -- candidates "sky_r4_a", "sky_r4_b", "sky_r4_c" (3 CC0 HDRI skies)
 --   src/client/World/LookDevSkyR6.luau -- candidates "sky_r6_a".."sky_r6_f" (6 Creator Store skies)
 --   src/server/World/LookDevSpawnGroundR6.luau -- candidate "spawn_ground_r6" (full dirt road corridor + grass mask)
+--   src/client/World/LookDevTerrainR6.luau -- candidates "terrain_r6_a"/"terrain_r6_b" (Terrain colours, no Terrain texture)
 --   src/server/World/LookDevModelsBuildingsR4.luau -- candidate "buildings_r4" (server-only)
 --   src/server/World/LookDevModelsVegetationR4.luau -- candidate "vegetation_r4" (server-only)
 --   src/server/World/LookDevModelsPropsR4.luau -- candidate "props_r4" (server-only)
@@ -45,6 +46,7 @@
 --   LookDev.enable("sky_r4_a") -- or LookDev.enable("sky_r4_b") / LookDev.enable("sky_r4_c")
 --   LookDev.enable("sky_r6_a") -- or sky_r6_b / sky_r6_c / sky_r6_d / sky_r6_e / sky_r6_f
 --   LookDev.enable("spawn_ground_r6")
+--   LookDev.enable("terrain_r6_a") -- or LookDev.enable("terrain_r6_b")
 --   -- server-only: LookDev.enable("buildings_r4") / LookDev.enable("vegetation_r4") / LookDev.enable("props_r4") / LookDev.enable("npcs_r4")
 --   require(game.ReplicatedStorage.Shared.LookDev).disable()   -- restores the original look
 --
@@ -102,6 +104,8 @@ LookDev.IDS = {
 	"sky_r6_e",
 	"sky_r6_f",
 	"spawn_ground_r6",
+	"terrain_r6_a",
+	"terrain_r6_b",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -580,6 +584,26 @@ LookDev.candidates = {
 		idsSource = "Shared.SpawnGroundMapR6",
 		render = "docs/v2/visual/SPAWN_DRESSING.md",
 	},
+
+	terrain_r6_a = {
+		id = "terrain_r6_a",
+		title = "Lush tropical Terrain colours with CC0 maps on parts/meshes only (round 6, option a)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- No new IDs: colours are plain {r,g,b} data and map URLs come from TextureMapR4.
+		idsSource = "Shared.TerrainMapR6",
+		render = "docs/v2/visual/art/terrain_r6/README.md",
+	},
+
+	terrain_r6_b = {
+		id = "terrain_r6_b",
+		title = "Brighter olive Terrain colours with CC0 maps on parts/meshes only (round 6, option b)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Same part/mesh texture set as a; only the Terrain palette differs.
+		idsSource = "Shared.TerrainMapR6",
+		render = "docs/v2/visual/art/terrain_r6/README.md",
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -749,6 +773,8 @@ function LookDev.plan(id: string): any
 		or id == "props_r5"
 		or id == "npcs_r5"
 		or id == "spawn_r5"
+		or id == "terrain_r6_a"
+		or id == "terrain_r6_b"
 	then
 		local c = LookDev.candidates[id]
 		return {

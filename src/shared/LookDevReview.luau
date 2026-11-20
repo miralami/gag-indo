@@ -57,6 +57,8 @@ LookDevReview.paths = {
 	sky_r6_e = { datamodel = "client", path = { "World", "LookDevSkyR6" } },
 	sky_r6_f = { datamodel = "client", path = { "World", "LookDevSkyR6" } },
 	spawn_ground_r6 = { datamodel = "server", path = { "World", "LookDevSpawnGroundR6" } },
+	terrain_r6_a = { datamodel = "client", path = { "World", "LookDevTerrainR6" } },
+	terrain_r6_b = { datamodel = "client", path = { "World", "LookDevTerrainR6" } },
 }
 
 function LookDevReview.pathsFor(id: string): any?

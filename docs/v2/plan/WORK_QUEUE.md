@@ -611,7 +611,7 @@ Store free model; strip any scripts on insert):
   - Turn the remaining back road strip into dirt.
   - Keep the grass decoration off the flower beds and plots (with a mask or a Terrain material choice).
   - Keep the stored road design as it is.
-- [ ] 46. **Terrain look rethink (`terrain_r6`).** The `textures_r4` overrides read as a red desert
+- [x] 46. **Terrain look rethink (`terrain_r6`).** The `textures_r4` overrides read as a red desert
   with straw grass, so drop the terrain-wide overrides.
   - Try the default Terrain materials with tuned `Terrain:SetMaterialColor`: lush green Grass, warm
     brown Ground, dark wet Mud for the sawah.

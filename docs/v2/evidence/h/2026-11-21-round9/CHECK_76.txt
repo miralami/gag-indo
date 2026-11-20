@@ -1,0 +1,44 @@
+# CHECK 76 — water_r8_a/b/c river water look (WORK_QUEUE section M item 76)
+# Studio: Development-Juragan-Desa (placeId 132087524375529), real Play, CLIENT datamodel.
+# Fresh Play, no candidate staged. Because Rojo had not synced the new/changed modules, the
+# following were injected into the Edit datamodel at runtime (not saved to the place):
+#   ReplicatedStorage.Shared.LookDev, LookDevReview, ModelMapWaterR8;
+#   StarterPlayer.StarterPlayerScripts.Client.Main,
+#   StarterPlayer.StarterPlayerScripts.Client.World.LookDevWaterR8.
+# Verified before the run (Client VM): LookDev.IDS = 54 (last = "water_r8_c"), all three review
+#   paths datamodel="client" -> LookDevWaterR8, ModelMapWaterR8.order = a,b,c with 5 safeRanges,
+#   Terrain present and all five water properties readable. Baseline Terrain water (verbatim):
+#   WaterColor=(31,78,107), WaterTransparency=0.3, WaterReflectance=1, WaterWaveSize=0.15,
+#   WaterWaveSpeed=10  (note: baseline reflectance/speed are outside the candidate-safe bands;
+#   restore must return to them EXACTLY, and did).
+# Harness: tools/studio/review_check_r8.luau, run in the Client VM. The two item-76 checks share
+#   one self-cycling pass: baseline read -> LookDevReview.enable(id, game) -> read 5 properties
+#   -> range check -> LookDev.disable() -> exact restore compare, for a/b/c, then re-enable the
+#   prior candidate (was nil). Raw console lines verbatim (item-76 family + guards):
+CHECK WATER_SAFE PASS 3 3
+CHECK WATER_RESTORE PASS 3 3
+CHECK LOAD_FAILURES PASS 0 0
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+# CAMERA_CLEAR is intentionally absent in the Client VM (ReviewCameras requires MapSpec from
+# ServerScriptService.Server, so that check is Server-only); it PASSed in the Server run for item 75.
+# WATER_SAFE detail — all 15 readings (3 variants x 5 properties), all inside documented safeRanges:
+#   water_r8_a (clear tropical green): WaterColor=(48,124,104) Transparency=0.28
+#     Reflectance=0.35 WaveSize=0.42 WaveSpeed=0.9
+#   water_r8_b (murky brown after rain): WaterColor=(96,84,58) Transparency=0.12
+#     Reflectance=0.12 WaveSize=0.7 WaveSpeed=1.6
+#   water_r8_c (bright turquoise): WaterColor=(40,182,196) Transparency=0.42
+#     Reflectance=0.5 WaveSize=0.3 WaveSpeed=0.55
+#   failures=[], errors=[]; safeRanges: WaterColor R/G/B 0..255 per channel,
+#   WaterTransparency 0.05..0.75, WaterReflectance 0..0.6, WaterWaveSize 0..1,
+#   WaterWaveSpeed -2..2.
+# WATER_RESTORE detail — after each disable all 5 properties matched the baseline EXACTLY
+#   (Color3 float equality + number equality); failures=[], errors=[]; 3/3 variants restored.
+# Post-run state: LookDev.current()="nil", LookDevFailures(water_r8_a)=0, ids=54, and Terrain water
+#   read back verbatim as the baseline "0.121569,0.305882,0.419608|0.3|1|0.15|10" — no net change.
+# The other harness lines in this Client run (HATS 0/4, PROPS_VISIBLE 0/6, PROPS_ON_GRASS 6/0,
+# VEG_COUNT/VEG_SPECIES, all VEG_HUB_*, PLOT_FENCE, GATE_CLEAR, SAWAH_*, RIVER_*, BRIDGE_*,
+# PATH_EDGE, PATH_CLEAR, VEG_NEAR, PROP_SIZE, CLOUD_COVER 1.0) are server-owned or cloud candidates
+# NOT staged in this clean Play and are out of scope for item 76; each was PASS-verified in its own
+# evidence file (SAWAH_TOPS reading 999 in the Client VM is a server-candidate cross-VM artifact).
+# Both item-76 checks PASS on the first run — no target weakened, no asset IDs, no place saved.
+# This is a value/restore proof, not a visual verdict — the designer grades the look.

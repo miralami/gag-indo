@@ -32,6 +32,7 @@
 --   src/server/World/LookDevPlotsR8.luau -- candidate "plots_r8" (plot fences and gates, server-only)
 --   src/server/World/LookDevRiverR8.luau -- candidate "river_r8" (banks and bridge rails, server-only)
 --   src/server/World/LookDevPathEdgeR8.luau -- candidate "pathedge_r8" (path edge dressing, server-only)
+--   src/client/World/LookDevWaterR8.luau -- candidates "water_r8_a/b/c" (river water, client-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -124,6 +125,9 @@ LookDev.IDS = {
 	"sawah_r8",
 	"river_r8",
 	"pathedge_r8",
+	"water_r8_a",
+	"water_r8_b",
+	"water_r8_c",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -728,6 +732,36 @@ LookDev.candidates = {
 		idsSource = "Shared.ModelMapPathEdgeR8",
 		render = "docs/v2/evidence/h/2026-11-21-round9/CHECK_75.txt",
 	},
+
+	water_r8_a = {
+		id = "water_r8_a",
+		title = "River water — clear tropical green (round 9, client-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Terrain water properties only, no asset IDs. Pure palettes in Shared.ModelMapWaterR8.
+		idsSource = "Shared.ModelMapWaterR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/CHECK_76.txt",
+	},
+
+	water_r8_b = {
+		id = "water_r8_b",
+		title = "River water — murky brown after rain (round 9, client-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Terrain water properties only, no asset IDs. Pure palettes in Shared.ModelMapWaterR8.
+		idsSource = "Shared.ModelMapWaterR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/CHECK_76.txt",
+	},
+
+	water_r8_c = {
+		id = "water_r8_c",
+		title = "River water — bright turquoise (round 9, client-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Terrain water properties only, no asset IDs. Pure palettes in Shared.ModelMapWaterR8.
+		idsSource = "Shared.ModelMapWaterR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/CHECK_76.txt",
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -907,6 +941,9 @@ function LookDev.plan(id: string): any
 		or id == "sawah_r8"
 		or id == "river_r8"
 		or id == "pathedge_r8"
+		or id == "water_r8_a"
+		or id == "water_r8_b"
+		or id == "water_r8_c"
 	then
 		local c = LookDev.candidates[id]
 		return {

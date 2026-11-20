@@ -428,11 +428,11 @@ return function(t, Env, _Fakes)
 	end)
 
 	t:describe("round-6 registry and review wiring", function()
-		t:it("registers 51 candidates including all six round-6 skies", function()
+		t:it("registers 54 candidates including all six round-6 skies", function()
 			local env = Env.new()
 			local LookDev = env:require("shared/LookDev")
 			local Review = env:require("shared/LookDevReview")
-			expect(#LookDev.IDS):toBe(51)
+			expect(#LookDev.IDS):toBe(54)
 			for _, key in ipairs({ "a", "b", "c", "d", "e", "f" }) do
 				local id = "sky_r6_" .. key
 				expect(LookDev.isCandidate(id)):toBe(true)
@@ -449,7 +449,7 @@ return function(t, Env, _Fakes)
 			for _ in Review.paths do
 				count += 1
 			end
-			expect(count):toBe(51)
+			expect(count):toBe(54)
 			expect(count):toBe(#LookDev.IDS)
 		end)
 

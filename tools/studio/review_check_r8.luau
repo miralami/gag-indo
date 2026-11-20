@@ -17,12 +17,15 @@
 -- MapSpec.BRIDGE cannot be read (the Client VM cannot read MapSpec).
 -- It also emits the r8 path-edge family (WORK_QUEUE item 75): PATH_EDGE and PATH_CLEAR. Both FAIL
 -- when the pathedge_r8 candidate is not staged or MapSpec's road geometry cannot be read.
+-- It also emits the r8 water family (WORK_QUEUE item 76): WATER_SAFE and WATER_RESTORE. Both are
+-- CLIENT-only and mutate Terrain in one guarded enable/read/disable/compare cycle per variant,
+-- restoring the prior active candidate at the end.
 -- Client datamodel: same lines plus CLOUD_COVER (the client LocalScript owns Terrain.Clouds.Cover);
 -- the Server datamodel cannot observe that tween. Run client-owned candidates (water, grade,
 -- sounds, clouds) in the Client datamodel.
 --
--- All checks except LOOKDEV_LEAK are read-only. LOOKDEV_LEAK calls enable(id)/disable() for every
--- id in LookDev.IDS and restores the prior active candidate at the end; it is safe to repeat.
+-- All checks except LOOKDEV_LEAK, WATER_SAFE and WATER_RESTORE are read-only. Those three call
+-- enable(id)/disable() and restore the prior active candidate at the end; they are safe to repeat.
 -- Every line is
 --   CHECK <name> PASS|FAIL <measured> <target>
 -- and the file returns a results table. A missing folder, attribute, service or failed read is a
@@ -62,6 +65,8 @@ local ORDER = {
 	"VEG_NEAR",
 	"PROP_SIZE",
 	"CLOUD_COVER",
+	"WATER_SAFE",
+	"WATER_RESTORE",
 	"CAMERA_CLEAR",
 	"LOOKDEV_LEAK",
 }
@@ -2142,6 +2147,231 @@ if isClient then
 		"0.4-0.6",
 		{ cover = cover, clockTime = clockTime, cloudPresent = cloud ~= nil }
 	)
+end
+
+-- 12a. WATER_SAFE / WATER_RESTORE (WORK_QUEUE item 76): CLIENT only. One mutating cycle over
+-- water_r8_a/b/c reads all five Terrain water properties before and after each enable/disable.
+-- WATER_SAFE checks every reading against ModelMapWaterR8.safeRanges; WATER_RESTORE checks exact
+-- equality with the baseline captured before any enable. Both emit even on error. The prior
+-- candidate is re-enabled at the end, so a staged toggle is left intact.
+if isClient then
+	local function waterFail(reason)
+		emit("WATER_SAFE", false, 0, 3, { reason = reason })
+		emit("WATER_RESTORE", false, 0, 3, { reason = reason })
+	end
+
+	local okWater, water = pcall(function()
+		return {
+			look = require(game.ReplicatedStorage.Shared.LookDev),
+			review = require(game.ReplicatedStorage.Shared.LookDevReview),
+			map = require(game.ReplicatedStorage.Shared.ModelMapWaterR8),
+		}
+	end)
+	if not okWater or type(water) ~= "table" then
+		waterFail("water modules not readable")
+	else
+		local look, review, map = water.look, water.review, water.map
+		if
+			type(look) ~= "table"
+			or type(look.enable) ~= "function"
+			or type(look.disable) ~= "function"
+			or type(look.current) ~= "function"
+			or type(review) ~= "table"
+			or type(review.enable) ~= "function"
+			or type(map) ~= "table"
+			or type(map.properties) ~= "table"
+			or type(map.safeRanges) ~= "table"
+			or type(map.variants) ~= "table"
+			or type(map.order) ~= "table"
+		then
+			waterFail("water map or LookDev API incomplete")
+		else
+			local okTerrain, terrain = pcall(function()
+				return workspace:FindFirstChildOfClass("Terrain")
+			end)
+			if not okTerrain or not terrain then
+				waterFail("Terrain missing")
+			else
+				local function readWater()
+					local snapshot = {}
+					for _, property in ipairs(map.properties) do
+						local ok, value = pcall(function()
+							return terrain[property]
+						end)
+						if not ok then
+							return nil, property .. ":" .. tostring(value)
+						end
+						snapshot[property] = value
+					end
+					return snapshot
+				end
+
+				local function describe(property, value)
+					if property == "WaterColor" and typeof(value) == "Color3" then
+						return string.format("(%0.3f,%0.3f,%0.3f)", value.R * 255, value.G * 255, value.B * 255)
+					end
+					return tostring(value)
+				end
+
+				local function inRange(property, value)
+					local range = map.safeRanges[property]
+					if type(range) ~= "table" then
+						return false, "no range"
+					end
+					if property == "WaterColor" then
+						if typeof(value) ~= "Color3" then
+							return false, "type=" .. typeof(value)
+						end
+						for _, channel in ipairs({ "R", "G", "B" }) do
+							local channelRange = range[channel]
+							local scaled = value[channel] * 255
+							if
+								type(channelRange) ~= "table"
+								or type(scaled) ~= "number"
+								or scaled < channelRange.min
+								or scaled > channelRange.max
+							then
+								return false, channel .. "=" .. tostring(scaled)
+							end
+						end
+						return true
+					end
+					if type(value) ~= "number" or value < range.min or value > range.max then
+						return false, tostring(value)
+					end
+					return true
+				end
+
+				local function exactlyEqual(property, before, after)
+					if property == "WaterColor" then
+						if typeof(before) ~= "Color3" or typeof(after) ~= "Color3" then
+							return false
+						end
+						return before.R == after.R and before.G == after.G and before.B == after.B
+					end
+					return before == after
+				end
+
+				local baseline, baselineErr = readWater()
+				if not baseline then
+					waterFail("baseline read failed:" .. tostring(baselineErr))
+				else
+					local priorId = nil
+					local okCurrent, current = pcall(function()
+						return look.current()
+					end)
+					if okCurrent and type(current) == "string" then
+						priorId = current
+					end
+
+					local safeCount, restoredCount = 0, 0
+					local safeFails, restoreFails, readings, cycleErrors = {}, {}, {}, {}
+					local variantCount = 0
+					for _, key in ipairs(map.order) do
+						variantCount += 1
+						local variant = map.variants[key]
+						local id = variant and variant.id or (map.idPrefix .. key)
+						local okEnable, enabled, enableErr = pcall(function()
+							return review.enable(id, game)
+						end)
+						if not okEnable or enabled == false then
+							cycleErrors[#cycleErrors + 1] = id .. ":enable:" .. tostring(enableErr or enabled)
+						else
+							local applied, appliedErr = readWater()
+							if not applied then
+								cycleErrors[#cycleErrors + 1] = id .. ":read:" .. tostring(appliedErr)
+							else
+								local safe = true
+								for _, property in ipairs(map.properties) do
+									local inBand, why = inRange(property, applied[property])
+									readings[#readings + 1] = id
+										.. "."
+										.. property
+										.. "="
+										.. describe(property, applied[property])
+									if not inBand then
+										safe = false
+										safeFails[#safeFails + 1] = id .. "." .. property .. ":" .. tostring(why)
+									end
+								end
+								if safe then
+									safeCount += 1
+								end
+							end
+						end
+
+						local okDisable, disabled = pcall(function()
+							return look.disable()
+						end)
+						if not okDisable then
+							cycleErrors[#cycleErrors + 1] = id .. ":disable:" .. tostring(disabled)
+						end
+
+						local after, afterErr = readWater()
+						if not after then
+							cycleErrors[#cycleErrors + 1] = id .. ":read-after:" .. tostring(afterErr)
+						else
+							local exact = okDisable
+							for _, property in ipairs(map.properties) do
+								if not exactlyEqual(property, baseline[property], after[property]) then
+									exact = false
+									restoreFails[#restoreFails + 1] = id
+										.. "."
+										.. property
+										.. ":"
+										.. describe(property, baseline[property])
+										.. "->"
+										.. describe(property, after[property])
+								end
+							end
+							if exact then
+								restoredCount += 1
+							end
+						end
+					end
+
+					if priorId then
+						local okRestore, restored = pcall(function()
+							return look.enable(priorId)
+						end)
+						if not okRestore or restored == false then
+							cycleErrors[#cycleErrors + 1] = "restore:" .. priorId .. ":" .. tostring(restored)
+						end
+					end
+
+					local baselineDetail = {}
+					for _, property in ipairs(map.properties) do
+						baselineDetail[#baselineDetail + 1] = property .. "=" .. describe(property, baseline[property])
+					end
+					emit(
+						"WATER_SAFE",
+						#cycleErrors == 0 and variantCount > 0 and safeCount == variantCount,
+						safeCount,
+						3,
+						{
+							baseline = baselineDetail,
+							readings = readings,
+							failures = safeFails,
+							errors = cycleErrors,
+							restoredPrior = priorId,
+						}
+					)
+					emit(
+						"WATER_RESTORE",
+						#cycleErrors == 0 and variantCount > 0 and restoredCount == variantCount,
+						restoredCount,
+						3,
+						{
+							baseline = baselineDetail,
+							failures = restoreFails,
+							errors = cycleErrors,
+							restoredPrior = priorId,
+						}
+					)
+				end
+			end
+		end
+	end
 end
 
 -- 12b. CAMERA_CLEAR (WORK_QUEUE item 69): for every named review camera, raycast from position

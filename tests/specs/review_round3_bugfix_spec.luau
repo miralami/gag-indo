@@ -287,7 +287,7 @@ return function(t, Env)
 			}
 		end
 
-		t:it("covers exactly the 25 existing candidates and their datamodel", function()
+		t:it("covers exactly the 37 existing candidates and their datamodel", function()
 			local env = Env.new()
 			local LookDev = env:require("shared/LookDev")
 			local Review = env:require("shared/LookDevReview")
@@ -296,7 +296,7 @@ return function(t, Env)
 				count += 1
 			end
 			expect(count):toBe(#LookDev.IDS)
-			expect(count):toBe(31)
+			expect(count):toBe(37)
 			for _, id in ipairs(LookDev.IDS) do
 				local entry = Review.pathsFor(id)
 				expect(entry ~= nil):toBe(true)
@@ -314,6 +314,18 @@ return function(t, Env)
 				props_r4 = "server",
 				npcs_r4 = "server",
 			}
+			local round6Datamodel = {
+				sky_r6_a = "client",
+				sky_r6_b = "client",
+				sky_r6_c = "client",
+				sky_r6_d = "client",
+				sky_r6_e = "client",
+				sky_r6_f = "client",
+			}
+			for id, datamodel in pairs(round6Datamodel) do
+				expect(Review.pathsFor(id).datamodel):toBe(datamodel)
+				expect(Review.pathsFor(id).path):toEqual({ "World", "LookDevSkyR6" })
+			end
 			for id, datamodel in pairs(round4Datamodel) do
 				expect(Review.pathsFor(id).datamodel):toBe(datamodel)
 			end

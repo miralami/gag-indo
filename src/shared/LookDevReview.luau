@@ -50,6 +50,12 @@ LookDevReview.paths = {
 	props_r5 = { datamodel = "server", path = { "World", "LookDevModelsPropsR5" } },
 	npcs_r5 = { datamodel = "server", path = { "World", "LookDevModelsNpcsR5" } },
 	spawn_r5 = { datamodel = "server", path = { "World", "LookDevSpawnDressingR5" } },
+	sky_r6_a = { datamodel = "client", path = { "World", "LookDevSkyR6" } },
+	sky_r6_b = { datamodel = "client", path = { "World", "LookDevSkyR6" } },
+	sky_r6_c = { datamodel = "client", path = { "World", "LookDevSkyR6" } },
+	sky_r6_d = { datamodel = "client", path = { "World", "LookDevSkyR6" } },
+	sky_r6_e = { datamodel = "client", path = { "World", "LookDevSkyR6" } },
+	sky_r6_f = { datamodel = "client", path = { "World", "LookDevSkyR6" } },
 }
 
 function LookDevReview.pathsFor(id: string): any?

@@ -428,3 +428,69 @@ Source: `docs/v2/visual/art/models_r4/npcs/{MANIFEST.md,upload_manifest.json}`. 
 | petani_wanita | 123174857731098 | https://poly.pizza/m/usAZvwbH0Y | Polygonal Mind | CC0 1.0 | "Woman" by Polygonal Mind — CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/); source: https://poly.pizza/m/usAZvwbH0Y |
 | tukang_peci | 115389644627447 | https://poly.pizza/m/IE7rk47BHn | prathm | CC0 1.0 | "Character_Man" by prathm — CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/); source: https://poly.pizza/m/IE7rk47BHn |
 | polisi | 105455683512183 | https://poly.pizza/m/ipEgtSYI8u | J-Toastie | CC-BY 3.0 | "Male Officer" by J-Toastie — CC-BY 3.0 (https://creativecommons.org/licenses/by/3.0/); source: https://poly.pizza/m/ipEgtSYI8u |
+
+## Round 6 (2026-11-20) — `sky_r6_a`..`sky_r6_f` Creator Store skies (CLIENT datamodel)
+
+Source: six real free Creator Store Models loaded with `InsertService:LoadAsset` in the Server
+datamodel of a Play-Solo Studio VM; exact face IDs read from the first `Sky` descendant of each.
+Provenance: `docs/v2/evidence/h/2026-11-20-sky-r6-asset-load/REPORT.md` (`SEEN-IN-STUDIO` for the
+asset load and face-ID read only). Pure data: `src/shared/SkyMapR6.luau`; applier:
+`src/client/World/LookDevSkyR6.luau`. Licence per row: Creator Store free model (`isFree=true`,
+`priceCents=0` at `search_asset` time). Models `e`/`f` contain scripts; the applier copies only the
+six Sky faces, never any script. All are LookDev candidates behind `sky_r6_*`, off by default. **No
+visual was graded; every verdict / approved-by cell is blank.** `sky_r5` is the unchanged baseline.
+
+### Models
+
+| Model ID | Creator Store name | Creator | Store URL | Licence | Source evidence | Approved by |
+|---|---|---|---|---|---|---|
+| 4607457995 | Realistic Sky | Xeksworld08 | https://create.roblox.com/store/asset/4607457995 | Creator Store free model | `h/2026-11-20-sky-r6-asset-load/REPORT.md` |  |
+| 10256505900 | Sky-Realistic | Dev_Flowey | https://create.roblox.com/store/asset/10256505900 | Creator Store free model | `h/2026-11-20-sky-r6-asset-load/REPORT.md` |  |
+| 9589448285 | Realistic Clear Sky | HeyItzDaredevil | https://create.roblox.com/store/asset/9589448285 | Creator Store free model | `h/2026-11-20-sky-r6-asset-load/REPORT.md` |  |
+| 11219565245 | Realistic Clear Skies (SKYBOX) | TrainMaker6 | https://create.roblox.com/store/asset/11219565245 | Creator Store free model | `h/2026-11-20-sky-r6-asset-load/REPORT.md` |  |
+| 71778157196658 | Blue Sky W Scattered Clouds Daytime Skybox Light | Rozosere48 | https://create.roblox.com/store/asset/71778157196658 | Creator Store free model | `h/2026-11-20-sky-r6-asset-load/REPORT.md` |  |
+| 79778158338852 | Sunless blue sky skybox realistic clouds | f0xz08 | https://create.roblox.com/store/asset/79778158338852 | Creator Store free model | `h/2026-11-20-sky-r6-asset-load/REPORT.md` |  |
+
+### Sky face IDs — 36 rows
+
+Source URL per row is the owning model's Store URL above. Legacy `http://www.roblox.com/asset/?id=N`
+was normalised to the integer `N`; `sky_r6_d` repeats Ft/Lf/Rt exactly as the loaded model does.
+
+| Slot / map key | Asset ID | Source URL | Creator | Licence | Approved by |
+|---|---:|---|---|---|---|
+| sky_r6_a / SkyboxBk | 150335574 | https://create.roblox.com/store/asset/4607457995 | Xeksworld08 | Creator Store free model |  |
+| sky_r6_a / SkyboxDn | 150335585 | https://create.roblox.com/store/asset/4607457995 | Xeksworld08 | Creator Store free model |  |
+| sky_r6_a / SkyboxFt | 150335628 | https://create.roblox.com/store/asset/4607457995 | Xeksworld08 | Creator Store free model |  |
+| sky_r6_a / SkyboxLf | 150335620 | https://create.roblox.com/store/asset/4607457995 | Xeksworld08 | Creator Store free model |  |
+| sky_r6_a / SkyboxRt | 150335610 | https://create.roblox.com/store/asset/4607457995 | Xeksworld08 | Creator Store free model |  |
+| sky_r6_a / SkyboxUp | 150335642 | https://create.roblox.com/store/asset/4607457995 | Xeksworld08 | Creator Store free model |  |
+| sky_r6_b / SkyboxBk | 144933338 | https://create.roblox.com/store/asset/10256505900 | Dev_Flowey | Creator Store free model |  |
+| sky_r6_b / SkyboxDn | 144931530 | https://create.roblox.com/store/asset/10256505900 | Dev_Flowey | Creator Store free model |  |
+| sky_r6_b / SkyboxFt | 144933262 | https://create.roblox.com/store/asset/10256505900 | Dev_Flowey | Creator Store free model |  |
+| sky_r6_b / SkyboxLf | 144933244 | https://create.roblox.com/store/asset/10256505900 | Dev_Flowey | Creator Store free model |  |
+| sky_r6_b / SkyboxRt | 144933299 | https://create.roblox.com/store/asset/10256505900 | Dev_Flowey | Creator Store free model |  |
+| sky_r6_b / SkyboxUp | 144931564 | https://create.roblox.com/store/asset/10256505900 | Dev_Flowey | Creator Store free model |  |
+| sky_r6_c / SkyboxBk | 9544505500 | https://create.roblox.com/store/asset/9589448285 | HeyItzDaredevil | Creator Store free model |  |
+| sky_r6_c / SkyboxDn | 9544547905 | https://create.roblox.com/store/asset/9589448285 | HeyItzDaredevil | Creator Store free model |  |
+| sky_r6_c / SkyboxFt | 9544504852 | https://create.roblox.com/store/asset/9589448285 | HeyItzDaredevil | Creator Store free model |  |
+| sky_r6_c / SkyboxLf | 9544547694 | https://create.roblox.com/store/asset/9589448285 | HeyItzDaredevil | Creator Store free model |  |
+| sky_r6_c / SkyboxRt | 9544547542 | https://create.roblox.com/store/asset/9589448285 | HeyItzDaredevil | Creator Store free model |  |
+| sky_r6_c / SkyboxUp | 9544547398 | https://create.roblox.com/store/asset/9589448285 | HeyItzDaredevil | Creator Store free model |  |
+| sky_r6_d / SkyboxBk | 91458002 | https://create.roblox.com/store/asset/11219565245 | TrainMaker6 | Creator Store free model |  |
+| sky_r6_d / SkyboxDn | 91457980 | https://create.roblox.com/store/asset/11219565245 | TrainMaker6 | Creator Store free model |  |
+| sky_r6_d / SkyboxFt | 91458024 | https://create.roblox.com/store/asset/11219565245 | TrainMaker6 | Creator Store free model |  |
+| sky_r6_d / SkyboxLf | 91458024 | https://create.roblox.com/store/asset/11219565245 | TrainMaker6 | Creator Store free model |  |
+| sky_r6_d / SkyboxRt | 91458024 | https://create.roblox.com/store/asset/11219565245 | TrainMaker6 | Creator Store free model |  |
+| sky_r6_d / SkyboxUp | 91458002 | https://create.roblox.com/store/asset/11219565245 | TrainMaker6 | Creator Store free model |  |
+| sky_r6_e / SkyboxBk | 2835173905 | https://create.roblox.com/store/asset/71778157196658 | Rozosere48 | Creator Store free model |  |
+| sky_r6_e / SkyboxDn | 2493829793 | https://create.roblox.com/store/asset/71778157196658 | Rozosere48 | Creator Store free model |  |
+| sky_r6_e / SkyboxFt | 2835177931 | https://create.roblox.com/store/asset/71778157196658 | Rozosere48 | Creator Store free model |  |
+| sky_r6_e / SkyboxLf | 2835174704 | https://create.roblox.com/store/asset/71778157196658 | Rozosere48 | Creator Store free model |  |
+| sky_r6_e / SkyboxRt | 2835177433 | https://create.roblox.com/store/asset/71778157196658 | Rozosere48 | Creator Store free model |  |
+| sky_r6_e / SkyboxUp | 2835175409 | https://create.roblox.com/store/asset/71778157196658 | Rozosere48 | Creator Store free model |  |
+| sky_r6_f / SkyboxBk | 591058823 | https://create.roblox.com/store/asset/79778158338852 | f0xz08 | Creator Store free model |  |
+| sky_r6_f / SkyboxDn | 591059876 | https://create.roblox.com/store/asset/79778158338852 | f0xz08 | Creator Store free model |  |
+| sky_r6_f / SkyboxFt | 591058104 | https://create.roblox.com/store/asset/79778158338852 | f0xz08 | Creator Store free model |  |
+| sky_r6_f / SkyboxLf | 591057861 | https://create.roblox.com/store/asset/79778158338852 | f0xz08 | Creator Store free model |  |
+| sky_r6_f / SkyboxRt | 591057625 | https://create.roblox.com/store/asset/79778158338852 | f0xz08 | Creator Store free model |  |
+| sky_r6_f / SkyboxUp | 591059642 | https://create.roblox.com/store/asset/79778158338852 | f0xz08 | Creator Store free model |  |

@@ -154,6 +154,7 @@ local specs = {
 	require("./specs/spawn_ground_r5_spec"),
 	require("./specs/vegetation_r5_spec"),
 	require("./specs/sky_map_r5_spec"),
+	require("./specs/sky_map_r6_spec"),
 	require("./specs/props_r5_spec"),
 	require("./specs/npcs_r5_spec"),
 	require("./specs/spawn_dressing_r5_spec"),

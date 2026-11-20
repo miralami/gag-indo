@@ -19,6 +19,7 @@
 --   src/client/World/LookDevSkyR3.luau -- candidate "sky_r3" (CC0 HDRI cube faces + ridge + haze)
 --   src/client/World/LookDevTexturesR4.luau -- candidate "textures_r4" (12 CC0 PBR MaterialVariants)
 --   src/client/World/LookDevSkyR4.luau -- candidates "sky_r4_a", "sky_r4_b", "sky_r4_c" (3 CC0 HDRI skies)
+--   src/client/World/LookDevSkyR6.luau -- candidates "sky_r6_a".."sky_r6_f" (6 Creator Store skies)
 --   src/server/World/LookDevModelsBuildingsR4.luau -- candidate "buildings_r4" (server-only)
 --   src/server/World/LookDevModelsVegetationR4.luau -- candidate "vegetation_r4" (server-only)
 --   src/server/World/LookDevModelsPropsR4.luau -- candidate "props_r4" (server-only)
@@ -41,6 +42,7 @@
 --   -- from the Server datamodel: buildings_r3 / vegetation_r3 / props_r3 / npcs_r3
 --   LookDev.enable("textures_r4")
 --   LookDev.enable("sky_r4_a") -- or LookDev.enable("sky_r4_b") / LookDev.enable("sky_r4_c")
+--   LookDev.enable("sky_r6_a") -- or sky_r6_b / sky_r6_c / sky_r6_d / sky_r6_e / sky_r6_f
 --   -- server-only: LookDev.enable("buildings_r4") / LookDev.enable("vegetation_r4") / LookDev.enable("props_r4") / LookDev.enable("npcs_r4")
 --   require(game.ReplicatedStorage.Shared.LookDev).disable()   -- restores the original look
 --
@@ -91,6 +93,12 @@ LookDev.IDS = {
 	"props_r5",
 	"npcs_r5",
 	"spawn_r5",
+	"sky_r6_a",
+	"sky_r6_b",
+	"sky_r6_c",
+	"sky_r6_d",
+	"sky_r6_e",
+	"sky_r6_f",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -498,6 +506,67 @@ LookDev.candidates = {
 		idsSource = "Shared.SpawnDressingMapR5",
 		render = "docs/v2/visual/SPAWN_DRESSING_R5.md",
 	},
+
+	sky_r6_a = {
+		id = "sky_r6_a",
+		title = "Realistic Sky (Creator Store, Xeksworld08) with the shared humid atmosphere stack (round 6)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- IDs deliberately NOT here: they live in Shared.SkyMapR6.sets.a.ids.
+		idsSource = "Shared.SkyMapR6.sets.a.ids",
+		render = "docs/v2/visual/art/sky_r6/README.md",
+		faceCount = 6,
+	},
+
+	sky_r6_b = {
+		id = "sky_r6_b",
+		title = "Sky-Realistic (Creator Store, Dev_Flowey) with the shared humid atmosphere stack (round 6)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.SkyMapR6.sets.b.ids",
+		render = "docs/v2/visual/art/sky_r6/README.md",
+		faceCount = 6,
+	},
+
+	sky_r6_c = {
+		id = "sky_r6_c",
+		title = "Realistic Clear Sky (Creator Store, HeyItzDaredevil) with the shared humid atmosphere stack (round 6)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.SkyMapR6.sets.c.ids",
+		render = "docs/v2/visual/art/sky_r6/README.md",
+		faceCount = 6,
+	},
+
+	sky_r6_d = {
+		id = "sky_r6_d",
+		title = "Realistic Clear Skies SKYBOX (Creator Store, TrainMaker6) with the shared humid atmosphere stack (round 6)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.SkyMapR6.sets.d.ids",
+		render = "docs/v2/visual/art/sky_r6/README.md",
+		faceCount = 6,
+	},
+
+	sky_r6_e = {
+		id = "sky_r6_e",
+		title = "Blue Sky W Scattered Clouds Daytime (Creator Store, Rozosere48) with the shared humid atmosphere stack (round 6)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.SkyMapR6.sets.e.ids",
+		render = "docs/v2/visual/art/sky_r6/README.md",
+		faceCount = 6,
+	},
+
+	sky_r6_f = {
+		id = "sky_r6_f",
+		title = "Sunless blue sky skybox (Creator Store, f0xz08) with the shared humid atmosphere stack (round 6)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.SkyMapR6.sets.f.ids",
+		render = "docs/v2/visual/art/sky_r6/README.md",
+		faceCount = 6,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -641,7 +710,18 @@ function LookDev.plan(id: string): any
 			variantCount = c.variantCount,
 			mapCount = c.mapCount,
 		}
-	elseif id == "sky_r4_a" or id == "sky_r4_b" or id == "sky_r4_c" or id == "sky_r5" then
+	elseif
+		id == "sky_r4_a"
+		or id == "sky_r4_b"
+		or id == "sky_r4_c"
+		or id == "sky_r5"
+		or id == "sky_r6_a"
+		or id == "sky_r6_b"
+		or id == "sky_r6_c"
+		or id == "sky_r6_d"
+		or id == "sky_r6_e"
+		or id == "sky_r6_f"
+	then
 		local c = LookDev.candidates[id]
 		return {
 			id = id,

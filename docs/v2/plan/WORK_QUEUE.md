@@ -600,7 +600,7 @@ Store free model; strip any scripts on insert):
 | 71778157196658 | Blue Sky W Scattered Clouds Daytime Skybox | Rozosere48 |
 | 79778158338852 | Sunless blue sky skybox realistic clouds | f0xz08 |
 
-- [ ] 44. **`sky_r6_a`…`sky_r6_f`, plus the `sky_r5` baseline.**
+- [x] 44. **`sky_r6_a`…`sky_r6_f`, plus the `sky_r5` baseline.**
   - Load each Creator Store sky above on the server (`InsertService:LoadAsset`) and copy its six face
     IDs into `SkyMapR6`.
   - Record the ID, name and creator in `ASSET_MANIFEST.md`.

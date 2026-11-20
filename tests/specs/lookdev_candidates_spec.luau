@@ -14,9 +14,9 @@ return function(t, Env)
 	end
 
 	t:describe("LookDev candidates (candidate, awaiting designer yes)", function()
-		t:it("ships thirty-one candidates, all unapproved and cartoonish-realism", function()
+		t:it("ships thirty-seven candidates, all unapproved and cartoonish-realism", function()
 			local LookDev = fresh()
-			expect(#LookDev.IDS):toBe(31)
+			expect(#LookDev.IDS):toBe(37)
 			expect(LookDev.IDS[1]):toBe("plaza_lighting")
 			expect(LookDev.IDS[2]):toBe("police_walkin")
 			expect(LookDev.IDS[3]):toBe("icons")
@@ -48,6 +48,12 @@ return function(t, Env)
 			expect(LookDev.IDS[29]):toBe("props_r5")
 			expect(LookDev.IDS[30]):toBe("npcs_r5")
 			expect(LookDev.IDS[31]):toBe("spawn_r5")
+			expect(LookDev.IDS[32]):toBe("sky_r6_a")
+			expect(LookDev.IDS[33]):toBe("sky_r6_b")
+			expect(LookDev.IDS[34]):toBe("sky_r6_c")
+			expect(LookDev.IDS[35]):toBe("sky_r6_d")
+			expect(LookDev.IDS[36]):toBe("sky_r6_e")
+			expect(LookDev.IDS[37]):toBe("sky_r6_f")
 			for _, id in LookDev.IDS do
 				local c = LookDev.candidates[id]
 				expect(c.id):toBe(id)
@@ -84,6 +90,7 @@ return function(t, Env)
 					"src/server/World/LookDevSpawnGroundR5.luau",
 					"src/server/World/LookDevModelsVegetationR5.luau",
 					"src/client/World/LookDevSkyR5.luau",
+					"src/client/World/LookDevSkyR6.luau",
 					"src/server/World/LookDevModelsPropsR5.luau",
 					"src/server/World/LookDevModelsNpcsR5.luau",
 					"src/server/World/LookDevSpawnDressingR5.luau",
@@ -325,6 +332,18 @@ return function(t, Env)
 			expect(plan.faceCount):toBe(6)
 			expect(type(plan.render)):toBe("string")
 		end)
+
+		t:it("all six sky_r6 plans point at SkyMapR6 sets without embedding IDs", function()
+			local LookDev = fresh()
+			for _, key in ipairs({ "a", "b", "c", "d", "e", "f" }) do
+				local id = "sky_r6_" .. key
+				local plan = LookDev.plan(id)
+				expect(plan.id):toBe(id)
+				expect(plan.idsSource):toBe("Shared.SkyMapR6.sets." .. key .. ".ids")
+				expect(plan.render):toBe("docs/v2/visual/art/sky_r6/README.md")
+				expect(plan.faceCount):toBe(6)
+			end
+		end)
 	end)
 
 	t:describe("LookDev adapter wiring", function()
@@ -342,6 +361,7 @@ return function(t, Env)
 			local iconsR3 = fs.readFile("src/client/UI/LookDevIconsR3.luau")
 			local modelsR3 = fs.readFile("src/server/World/LookDevModelsR3.luau")
 			local skyR3 = fs.readFile("src/client/World/LookDevSkyR3.luau")
+			local skyR6 = fs.readFile("src/client/World/LookDevSkyR6.luau")
 			expect(string.find(plaza, 'LookDev.register("plaza_lighting"', 1, true) ~= nil):toBe(true)
 			expect(string.find(walkin, 'LookDev.register("police_walkin"', 1, true) ~= nil):toBe(true)
 			expect(string.find(icons, 'LookDev.register("icons"', 1, true) ~= nil):toBe(true)
@@ -358,6 +378,10 @@ return function(t, Env)
 			expect(string.find(modelsR3, 'LookDev.register("props_r3"', 1, true) ~= nil):toBe(true)
 			expect(string.find(modelsR3, 'LookDev.register("npcs_r3"', 1, true) ~= nil):toBe(true)
 			expect(string.find(skyR3, 'LookDev.register("sky_r3"', 1, true) ~= nil):toBe(true)
+			expect(string.find(skyR6, 'LookDev.register("sky_r6_" .. key', 1, true) ~= nil):toBe(true)
+			for _, key in ipairs({ "a", "b", "c", "d", "e", "f" }) do
+				expect(string.find(skyR6, 'make("sky_r6_' .. key .. '", "' .. key .. '")', 1, true) ~= nil):toBe(true)
+			end
 		end)
 
 		t:it("icons applier toggles IconMap candidate ids and restores fallbacks", function()
@@ -454,6 +478,7 @@ return function(t, Env)
 				true
 			)
 			expect(string.find(client, "pcall(require, script.Parent.World.LookDevSounds)", 1, true) ~= nil):toBe(true)
+			expect(string.find(client, "pcall(require, script.Parent.World.LookDevSkyR6)", 1, true) ~= nil):toBe(true)
 			expect(string.find(server, "pcall(require, script.Parent.World.LookDevWalkin)", 1, true) ~= nil):toBe(true)
 		end)
 	end)

@@ -618,7 +618,7 @@ Store free model; strip any scripts on insert):
   - Keep CC0 textures only on parts and meshes (walls, roofs, wood).
   - Build two variants, `terrain_r6_a` and `terrain_r6_b`, with before/after shots from the spawn
     camera.
-- [ ] 47. **Kampung vegetation research and fill (`vegetation_r6`).**
+- [x] 47. **Kampung vegetation research and fill (`vegetation_r6`).**
   - Write `docs/v2/visual/KAMPUNG_VEGETATION.md`: what typically grows in a Javanese or Sundanese
     village yard and its edges, with reference photo links. Examples:
     - trees and crops: pisang, bambu, mangga, jambu air, rambutan, pepaya, nangka, singkong
@@ -629,7 +629,7 @@ Store free model; strip any scripts on insert):
   - Build dense clusters along the yard edge, hedge line, fence line and sawah edge. Respect the
     exclusion zones and stay within the tier budgets.
   - Stage the clusters where the saved camera actually sees them.
-- [ ] 48. **Villager costumes (`npcs_r6`).** Each of the five R15 villagers gets a role-specific,
+- [x] 48. **Villager costumes (`npcs_r6`).** Each of the five R15 villagers gets a role-specific,
   textured outfit:
 
   | Role | Outfit |
@@ -645,7 +645,7 @@ Store free model; strip any scripts on insert):
     uploaded as Images via Open Cloud and set as `Shirt.ShirtTemplate` / `Pants.PantsTemplate`.
   - Fix the 0-accessory bug: the three round-5 hat IDs never attach.
   - Turn the villagers to face the saved camera.
-- [ ] 49. **Designer kit (no spawn dressing).**
+- [x] 49. **Designer kit (no spawn dressing).**
   - Put every approved or temporary asset in one tidy folder the designer can drag from, for example
     `ServerStorage.DesignerKit` or a Studio-only `ReplicatedStorage.DesignerKit`. Include:
     - pisang, the jemuran and the karung semen stack
@@ -660,7 +660,7 @@ Store free model; strip any scripts on insert):
     - yards at grade
     - a slight rise toward the warung and pasar
     - drainage ditches along the paths
-- [ ] 50. **Props: tools at real size (`props_r6`).**
+- [x] 50. **Props: tools at real size (`props_r6`).**
   - The round-5 tools got smaller (gerobak 3.0 studs, sumur 2.5). Scale them with `Model:ScaleTo` to
     real targets:
 
@@ -672,9 +672,12 @@ Store free model; strip any scripts on insert):
 
   - Add a spec that reads the actual `GetBoundingBox` sizes and compares them with the targets.
   - Move the props' saved camera out from behind the pines.
-- [ ] 51. **Review handoff.** Write `REVIEW_ROUND6.md` with the toggles, datamodels and cameras. The
+- [x] 51. **Review handoff.** Write `REVIEW_ROUND6.md` with the toggles, datamodels and cameras. The
   main session takes the Studio shots.
-- [ ] 52. **Refill.**
+- [x] 52. **Refill.** Re-read the tracker, `WORK_QUEUE.md`, `BUGS.md` and `GATE1.md` after items 44–51:
+  Gate 1 unchanged (2 `BLOCKED` G4/Q5, 1 `LUNE-ONLY` Q8, 8 `UNVERIFIED`), no open `blocker`/`major`
+  bug and no agent-closable row. Remaining rows need designer vision, a real device, a published place
+  or tracks C/G/E art. Round-6 shots and verdicts belong to the designer from `REVIEW_ROUND6.md`.
 
 ## Designer builds
 

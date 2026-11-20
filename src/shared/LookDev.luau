@@ -24,6 +24,9 @@
 --   src/client/World/LookDevTerrainR6.luau -- candidates "terrain_r6_a"/"terrain_r6_b" (Terrain colours, no Terrain texture)
 --   src/server/World/LookDevModelsBuildingsR4.luau -- candidate "buildings_r4" (server-only)
 --   src/server/World/LookDevModelsVegetationR4.luau -- candidate "vegetation_r4" (server-only)
+--   src/server/World/LookDevModelsVegetationR6.luau -- candidate "vegetation_r6" (server-only)
+--   src/server/World/LookDevModelsNpcsR6.luau -- candidate "npcs_r6" (server-only)
+--   src/server/World/LookDevModelsPropsR6.luau -- candidate "props_r6" (server-only)
 --   src/server/World/LookDevModelsPropsR4.luau -- candidate "props_r4" (server-only)
 --   src/server/World/LookDevModelsNpcsR4.luau -- candidate "npcs_r4" (server-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
@@ -48,6 +51,7 @@
 --   LookDev.enable("spawn_ground_r6")
 --   LookDev.enable("terrain_r6_a") -- or LookDev.enable("terrain_r6_b")
 --   -- server-only: LookDev.enable("buildings_r4") / LookDev.enable("vegetation_r4") / LookDev.enable("props_r4") / LookDev.enable("npcs_r4")
+--   -- round-6 server-only: LookDev.enable("vegetation_r6") / LookDev.enable("npcs_r6") / LookDev.enable("props_r6")
 --   require(game.ReplicatedStorage.Shared.LookDev).disable()   -- restores the original look
 --
 -- The gate needs an explicit Studio-only opt-in, is never persisted, and can never be on in a
@@ -106,6 +110,9 @@ LookDev.IDS = {
 	"spawn_ground_r6",
 	"terrain_r6_a",
 	"terrain_r6_b",
+	"vegetation_r6",
+	"npcs_r6",
+	"props_r6",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -604,6 +611,36 @@ LookDev.candidates = {
 		idsSource = "Shared.TerrainMapR6",
 		render = "docs/v2/visual/art/terrain_r6/README.md",
 	},
+
+	vegetation_r6 = {
+		id = "vegetation_r6",
+		title = "Dense kampung vegetation — real-model clusters along yard, hedge, fence and sawah edges (round 6, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- IDs are R4 via require plus the real Creator Store shortlist in this data module.
+		idsSource = "Shared.ModelMapVegetationR6",
+		render = "docs/v2/visual/art/models_r6/vegetation/README.md",
+	},
+
+	npcs_r6 = {
+		id = "npcs_r6",
+		title = "Role-specific textured R15 villagers — per-role Shirt/Pants, hats, facing the camera (round 6, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Image IDs are pure data (Shared.ModelMapNpcsR6), applied to Shirt/Pants siblings.
+		idsSource = "Shared.ModelMapNpcsR6",
+		render = "docs/v2/visual/art/models_r6/npcs/COSTUMES.md",
+	},
+
+	props_r6 = {
+		id = "props_r6",
+		title = "Village tools at real size — gerobak/sumur/cangkul rescaled via GetBoundingBox (round 6, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- IDs are R4 via require (Shared.ModelMapPropsR6) with corrected per-slot scales.
+		idsSource = "Shared.ModelMapPropsR6",
+		render = "docs/v2/visual/art/models_r6/props/README.md",
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -775,6 +812,9 @@ function LookDev.plan(id: string): any
 		or id == "spawn_r5"
 		or id == "terrain_r6_a"
 		or id == "terrain_r6_b"
+		or id == "vegetation_r6"
+		or id == "npcs_r6"
+		or id == "props_r6"
 	then
 		local c = LookDev.candidates[id]
 		return {

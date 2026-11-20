@@ -1,0 +1,27 @@
+# CHECK 74 — ring_r8 hills and forest ring (WORK_QUEUE section M item 74) — BLOCKED
+# Studio: Development-Juragan-Desa (placeId 132087524375529), real Play, Server datamodel.
+# Fresh Play, no candidate staged, default look (LookDev.current() = "nil", LookDev.IDS = 50).
+# Two independent attempts in the SAME clean default-look Play, both verbatim:
+CHECK NO_PINES FAIL 254 0
+CHECK NO_PINES FAIL 254 0
+# Detail (identical on both attempts): byName=254 (workspace descendants whose Name contains
+# "Pine"), byTemplate=0, BackgroundForest children=86. Samples: Pine_114_2 [Model],
+# Pine Tree [Model], Pine_276_2 [Model], Pine Tree [Model] — every pine is a child of the
+# shipping BackgroundForest built by src/server/World/Greybox.luau (buildForestRing, ~L765-868).
+#
+# WHY THIS IS BLOCKED (not a fixable FAIL of the candidate):
+# Item 74 requires NO_PINES = 0 in the WHOLE workspace and explicitly runs that check in the
+# DEFAULT look "so a stray pine anywhere is caught". The default look already contains 254
+# pine-named instances in its BackgroundForest. No OFF-by-default LookDev candidate can satisfy
+# this: the default-look run has no candidate staged by definition, and candidates only add
+# staged folders (restore removes them) — they neither edit nor hide the shipping forest.
+# The only way to reach 0 is to REPLACE the default pine backdrop in Greybox.luau with tropical
+# trees. That is a SHIPPING, DEFAULT-look visual change, which section M keeps OFF by default and
+# AGENTS.md reserves for designer visual grading (no round-8/9 screenshot has been graded). It is
+# therefore a scope decision for the designer, not an agent-closable item.
+#
+# Per WORK_QUEUE rule at line 7, two failed attempts mean BLOCKED — <FAIL line>; the check was NOT
+# weakened (target stays 0). A "Decisions for designer" entry records the exact scope question:
+# may the shipping BackgroundForest pines be replaced with baked tropical trees (V-D4 execution,
+# default-look change), or should item 74 be re-scoped to the additive ±400 band only?
+# No place saved or published. Status: BLOCKED.

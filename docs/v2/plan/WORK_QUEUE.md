@@ -873,7 +873,7 @@ The designer reviews the results one candidate at a time afterwards, so produce 
 - [x] 71. **`plots_r8`: plot fences and gates.** Along each plot's edge (footprint and gate radius from `MapSpec`) place bamboo fence segments with a gap at the gate, plus a simple gate arch built from two posts and a lintel. Fence segments overlap their neighbours by 0.2 studs, no z-fighting. **CHECKS:** `PLOT_FENCE` ≥ 6 segments per plot; `GATE_CLEAR`: a 6-wide, 8-tall box at every gate, tested with `GetPartBoundsInBox`, hits no part that has `CanCollide` true.
 - [x] 72. **`sawah_r8`: terrace dressing.** On the four sawah terraces: a thin water sheet (`Transparency` 0.55, a muddy green-brown tint) only in the paddies, alang-alang tufts on every verge, one small gubuk (field hut: four posts, a thatch roof, a bench) on terrace 2, and a few stepping stones between terraces. The terrace terrain tops stay exactly 4.5 / 8.5 / 12.5 / 16.5. **CHECKS:** `SAWAH_TOPS` unchanged; `SAWAH_WATER` = 4 sheets; `SAWAH_VERGE` ≥ 40 tufts in total; gubuk present once.
 - [x] 73. **`river_r8`: banks and bridge.** The river is at `z = 304 + 12 sin(2 pi x / 320)`, 28 wide. Add bank vegetation (talas, keladi, bambu, alang-alang) on both banks along the whole visible stretch, railings and posts on the 10 x 56 bridge, and 6 stepping stones near it. Do not edit the terrain. **CHECKS:** `RIVER_BANK_VEG` ≥ 30 within 40 studs of the bridge; `BRIDGE_RAILS` on both sides; `BRIDGE_WALKABLE`: the railings never narrow the walkable deck below 8 studs.
-- [ ] 74. **`ring_r8`: hills and forest ring.** Dress the hills and the band beyond ±400 with tropical trees only (kelapa, mangga, bambu, pisang, jati or similar from the ladder; no pines, per V-D4). At least **150** instances, at least **4** species, random yaw and scale, within the Rendah budget. **CHECKS:** `RING_COUNT` ≥ 150; `RING_SPECIES` ≥ 4; **`NO_PINES` = 0 in the whole workspace**, and that check is also run in the default look so a stray pine anywhere is caught.
+- [ ] 74. **BLOCKED — `ring_r8`: hills and forest ring.** `NO_PINES` FAIL 254 0 in the default look: the shipping `BackgroundForest` (Greybox `buildForestRing`) already holds 254 pine-named instances, and the check explicitly runs in the default look with no candidate staged. Two identical fails; the check was not weakened. Reaching 0 requires replacing the default pine backdrop — a shipping, default-look visual change reserved for designer grading, not an agent-closable candidate. See `docs/v2/evidence/h/2026-11-21-round9/CHECK_74.txt` and the scope question under Decisions for designer. Dress the hills and the band beyond ±400 with tropical trees only (kelapa, mangga, bambu, pisang, jati or similar from the ladder; no pines, per V-D4). At least **150** instances, at least **4** species, random yaw and scale, within the Rendah budget. **CHECKS:** `RING_COUNT` ≥ 150; `RING_SPECIES` ≥ 4; **`NO_PINES` = 0 in the whole workspace**, and that check is also run in the default look so a stray pine anywhere is caught.
 - [ ] 75. **`pathedge_r8`: path borders.** Along every dirt path, small grass tufts, pebbles and the occasional puddle sheet (tiny, `Transparency` 0.4, no collision) on both edges, every 3–5 studs with jitter. **CHECKS:** `PATH_EDGE` ≥ 120 pieces; `PATH_CLEAR`: nothing with `CanCollide` true intrudes into the central 6 studs of any path.
 - [ ] 76. **`water_r8_a/b/c`: river water look.** Tune terrain water properties only (`WaterColor`, `WaterTransparency`, `WaterReflectance`, `WaterWaveSize`, `WaterWaveSpeed`) as client candidates with exact save and restore: clear tropical green, murky brown after rain, bright turquoise. **CHECKS:** each variant sets only values in the safe ranges documented in the module; `disable()` restores the prior values exactly.
 
@@ -968,3 +968,24 @@ One non-`id` finding from the same read: `raid_lower_third.en` ends with the tra
 `(A wink at dramatic Indonesian TV news.)`, which would be shown to English players. Proposed `en`:
 `BREAKING NEWS: Village Police are heading for your farm!` (drop the note). No other `id` edit is
 recommended at this time.
+
+### Round 9 item 74 — `ring_r8` default-look pine backdrop (2026-11-21)
+
+Item 74's `NO_PINES` check requires 0 pine-named instances in the whole workspace and explicitly
+runs in the default look. Two clean default-look Play attempts both measured `CHECK NO_PINES FAIL
+254 0` (`docs/v2/evidence/h/2026-11-21-round9/CHECK_74.txt`): the shipping `BackgroundForest` built
+by `Greybox.buildForestRing` already contains 254 pines. An OFF-by-default candidate cannot change
+that run, so the item is BLOCKED until the designer chooses one of:
+
+1. **Authorize V-D4 execution in the default look** — replace the shipping `BackgroundForest`
+   pines with baked tropical trees (kelapa/pisang/bambu/mangga/jati). This is a shipping visual
+   change that must be graded in Studio and verified inside the Rendah budget; it runs against the
+   section-M "OFF by default" model and the AGENTS.md rule that only a vision-capable designer
+   grades visuals. Safest reversible default if accepted: keep the existing ring geometry/count and
+   swap only the pine meshes, behind a dedicated toggle until graded.
+2. **Re-scope item 74** to the additive band beyond ±400 only and drop or relax the default-look
+   `NO_PINES` clause (the hard rule forbids weakening a check, so this needs an explicit designer
+   amendment to the item text, not an agent edit).
+
+No check was weakened and the place was not saved. Item 74 stays unchecked/BLOCKED pending this
+decision; the long run continues with item 75.

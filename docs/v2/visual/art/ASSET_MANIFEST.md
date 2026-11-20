@@ -494,3 +494,29 @@ was normalised to the integer `N`; `sky_r6_d` repeats Ft/Lf/Rt exactly as the lo
 | sky_r6_f / SkyboxLf | 591057861 | https://create.roblox.com/store/asset/79778158338852 | f0xz08 | Creator Store free model |  |
 | sky_r6_f / SkyboxRt | 591057625 | https://create.roblox.com/store/asset/79778158338852 | f0xz08 | Creator Store free model |  |
 | sky_r6_f / SkyboxUp | 591059642 | https://create.roblox.com/store/asset/79778158338852 | f0xz08 | Creator Store free model |  |
+
+## Round 6 (2026-11-20) — `npcs_r6` villager costumes (Image assets, SERVER datamodel)
+
+Source: ten original classic-clothing Shirt/Pants templates (585×559, one per role) drawn by
+`docs/v2/visual/art/models_r6/npcs/src/generate_templates.py` and uploaded as **Image** assets through
+the verified `ROBLOX_API_KEY` Open Cloud `POST /assets/v1/assets` route by
+`docs/v2/visual/art/models_r6/npcs/src/upload.py`. Every ID below comes from a COMPLETED operation and
+is recorded in `docs/v2/visual/art/models_r6/npcs/upload_manifest.json`; none was invented. Open Cloud
+cannot create Shirt/Pants asset types, so these are Image IDs set directly on
+`Shirt.ShirtTemplate` / `Pants.PantsTemplate` of a `Shirt`/`Pants` sibling of each R15 Humanoid (not via
+`HumanoidDescription`). Layout and constraints: `docs/v2/evidence/h/2026-11-20-r6-costume-template-layout/REPORT.md`.
+Moderation state at upload time is recorded honestly — nine were `Reviewing`, one `Approved`; the
+candidate is off by default and no visual was graded. **Every approved-by cell is blank.**
+
+| Slot | Asset ID | Type | Role / kind | Moderation at upload | Source evidence | Approved by |
+|---|---:|---|---|---|---|---|
+| `shirt_polisi` | 113212316103784 | Image | polisi / shirt | Reviewing | `models_r6/npcs/upload_manifest.json` |  |
+| `pants_polisi` | 98102154190902 | Image | polisi / pants | Reviewing | `models_r6/npcs/upload_manifest.json` |  |
+| `shirt_pak_rt` | 117485364703264 | Image | pak_rt / shirt | Reviewing | `models_r6/npcs/upload_manifest.json` |  |
+| `pants_pak_rt` | 127593796770640 | Image | pak_rt / pants | Reviewing | `models_r6/npcs/upload_manifest.json` |  |
+| `shirt_petani` | 112086829394587 | Image | petani / shirt | Reviewing | `models_r6/npcs/upload_manifest.json` |  |
+| `pants_petani` | 130876277340560 | Image | petani / pants | Reviewing | `models_r6/npcs/upload_manifest.json` |  |
+| `shirt_pedagang` | 71100897124673 | Image | pedagang / shirt | Reviewing | `models_r6/npcs/upload_manifest.json` |  |
+| `pants_pedagang` | 139244403929211 | Image | pedagang / pants | Approved | `models_r6/npcs/upload_manifest.json` |  |
+| `shirt_petani_wanita` | 105653588811968 | Image | petani_wanita / shirt | Reviewing | `models_r6/npcs/upload_manifest.json` |  |
+| `pants_petani_wanita` | 76370296974052 | Image | petani_wanita / pants | Reviewing | `models_r6/npcs/upload_manifest.json` |  |

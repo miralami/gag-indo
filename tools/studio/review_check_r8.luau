@@ -154,7 +154,7 @@
 -- All checks except LOOKDEV_LEAK, ADDITIVE_STAGE, WATER_SAFE, WATER_RESTORE, WIND_SET,
 -- SWAY_TWEENS, WIND_RESTORE, NIGHT_WINDOWS, NIGHT_LIGHTS, GRADE_SAFE, GRADE_RESTORE,
 -- GRADE_NO_DOF, SOUND_LOADED, SOUND_VOLUME, SOUND_RESTORE, PERAHU_PARTS, IRRIGATION_PARTS,
--- LAUNDRY_PARTS and LAUNDRY_CLOTH_CLEAR are read-only.
+-- LAUNDRY_PARTS, LAUNDRY_CLOTH_CLEAR, KITE_COUNT, KITE_COST and KITE_STRING_CLEAR are read-only.
 -- IRRIGATION_WATER_ON_TERRACE joins the mutating set; it saves and restores the prior candidate.
 -- Item 114 adds KINCIR_ROT, a mutating SERVER block that stages kincir_r8, checks its one rotating
 -- root / one Heartbeat / 3..9-degree deterministic pump rate, disables it and re-enables it, then
@@ -166,6 +166,11 @@
 -- candidate set stay READ-ONLY and byte-identical. Both new names are appended AFTER KINCIR_ROT
 -- and every failing path emits BOTH of them at measured 0. CLOTH_SWAY is intentionally NOT checked:
 -- item 85 (wind_r8) owns sway, is off by default and candidates are single-active.
+-- Item 116 adds KITE_COUNT, KITE_COST and KITE_STRING_CLEAR, one mutating SERVER block that stages
+-- layangan_r8, counts its four tagged kite roots / Beams / anchors under one Heartbeat connection,
+-- times a deterministic 3600-step applier pump, and raycasts each kite down to its anchor to prove
+-- no string crosses a collidable hub building. All three join the mutating set and are appended at
+-- the very END of ORDER; every failing path emits ALL THREE at measured 0 / ERR / 0.
 -- The mutating checks call enable(id)/disable() and
 -- restore the prior active candidate at the end; ADDITIVE_STAGE uses enableAdditive(id)/
 -- disableAll(). All are safe to repeat.
@@ -315,6 +320,9 @@ local ORDER = {
 	"KINCIR_ROT",
 	"LAUNDRY_PARTS",
 	"LAUNDRY_CLOTH_CLEAR",
+	"KITE_COUNT",
+	"KITE_COST",
+	"KITE_STRING_CLEAR",
 }
 
 local GRASS_Y = 4
@@ -8649,6 +8657,456 @@ do
 				probeErrors = probeErrors,
 				antiVac = "every tagged cloth probed + readable wall parts + 0 wall hits",
 			})
+		end
+	end
+end
+
+do
+-- 9q. WORK_QUEUE section N item 116: layangan_r8, four kites over the Lapangan field. ONE mutating
+-- SERVER block emits KITE_COUNT, KITE_COST and KITE_STRING_CLEAR. It stages layangan_r8, requires
+-- exactly four tagged kite roots / Beams / anchors under one Heartbeat connection with a numeric
+-- KiteAngle attribute each, times a deterministic pump(SIM_SECONDS / DT) loop with os.clock, then
+-- raycasts each kite down to its matched ground anchor with the staged folder excluded. Every
+-- failing path emits ALL THREE checks at measured 0 / ERR / 0 and restores the prior candidate.
+-- No decal/brand/material verdict and no Terrain write; all earlier checks, FLYER_COST, IDLE_COST,
+-- ROCK_*, DOOR_CLEAR, BLDG_DOOR, full_r9 and the candidate set stay READ-ONLY and byte-identical.
+	local KT_ID = "layangan_r8"
+	local KT_FOLDER_FALLBACK = "LookDevLayanganR8_layangan_r8"
+
+	local function ktFail(reason, extra)
+		local detail = {
+			reason = reason,
+			folderPresent = folderNamed(KT_FOLDER_FALLBACK) ~= nil,
+			rootCount = 0,
+			beamCount = 0,
+			anchorCount = 0,
+			connectionCount = -1,
+			ms = -1,
+			rays = 0,
+			buildingHits = 0,
+			antiVac = "exact 4 roots / 4 Beams / 4 anchors / 1 connection / 4 rays + readable data and World required",
+		}
+		if type(extra) == "table" then
+			for key, value in pairs(extra) do
+				detail[key] = value
+			end
+		end
+		emit("KITE_COUNT", false, 0, 4, detail)
+		emit("KITE_COST", false, "ERR", "<0.2ms", detail)
+		emit("KITE_STRING_CLEAR", false, 0, "0", detail)
+	end
+
+	local okKtModules, ktModules = pcall(function()
+		return {
+			data = require(game.ReplicatedStorage.Shared.ModelMapLayanganR8),
+			look = require(game.ReplicatedStorage.Shared.LookDev),
+			review = require(game.ReplicatedStorage.Shared.LookDevReview),
+		}
+	end)
+	local ktData, ktLook, ktReview = nil, nil, nil
+	if okKtModules and type(ktModules) == "table" then
+		if type(ktModules.data) == "table" then
+			ktData = ktModules.data
+		end
+		if type(ktModules.look) == "table" then
+			ktLook = ktModules.look
+		end
+		if type(ktModules.review) == "table" then
+			ktReview = ktModules.review
+		end
+	end
+	local ktFolderName = KT_FOLDER_FALLBACK
+	if ktData and type(ktData.folderName) == "string" then
+		ktFolderName = ktData.folderName
+	end
+
+	local ktRunService = service("RunService")
+	local okKtServer, ktIsServer = false, false
+	if ktRunService then
+		okKtServer, ktIsServer = pcall(function()
+			return (ktRunService :: any):IsServer()
+		end)
+	end
+
+	-- The same module instance LookDev.enable() registered: resolve the applier through the
+	-- review path so the diagnostics describe the live staged kites.
+	local function ktApplier(): any?
+		if not ktReview or type((ktReview :: any).resolveContainer) ~= "function" then
+			return nil
+		end
+		local ok, module = pcall(function()
+			local container = (ktReview :: any).resolveContainer("server", game)
+			if not container then
+				return nil
+			end
+			local entry = (ktReview :: any).paths and (ktReview :: any).paths[KT_ID]
+			if type(entry) ~= "table" or type(entry.path) ~= "table" then
+				return nil
+			end
+			local node = container
+			for _, segment in ipairs(entry.path) do
+				node = node[segment]
+				if not node then
+					return nil
+				end
+			end
+			return require(node)
+		end)
+		if not ok or not module then
+			return nil
+		end
+		return module
+	end
+
+	if
+		not ktData
+		or not ktLook
+		or not ktReview
+		or not okKtServer
+		or not ktIsServer
+		or not mapSpecReady
+		or type(ktLook.enable) ~= "function"
+		or type(ktLook.disable) ~= "function"
+		or type(ktLook.current) ~= "function"
+		or type(ktReview.enable) ~= "function"
+		or type(ktData.parts) ~= "function"
+		or type(ktData.counts) ~= "function"
+		or type(ktData.KINDS) ~= "table"
+		or type(ktData.HUB_MODELS) ~= "table"
+		or #ktData.HUB_MODELS ~= 6
+		or type(ktData.BEAM) ~= "table"
+		or type(ktData.BEAM.faceColour) ~= "table"
+		or type(ktData.folderName) ~= "string"
+		or type(ktData.familyId) ~= "string"
+		or type(ktData.stageAttribute) ~= "string"
+		or type(ktData.kindAttribute) ~= "string"
+		or type(ktData.angleAttribute) ~= "string"
+		or type(ktData.ROOT_KIND) ~= "string"
+		or type(ktData.ANCHOR_KIND) ~= "string"
+		or type(ktData.BEAM_KIND) ~= "string"
+		or type(ktData.SIM_SECONDS) ~= "number"
+		or type(ktData.DT) ~= "number"
+		or type(ktData.MAX_STEP_MS) ~= "number"
+		or ktData.MAX_STEP_MS ~= 0.2
+		or type(ktData.KITE_ALT_MIN) ~= "number"
+		or type(ktData.KITE_ALT_MAX) ~= "number"
+	then
+		ktFail("server VM / layangan data / LookDev / review / MapSpec not readable")
+	else
+		local applier = ktApplier()
+		if
+			not applier
+			or type((applier :: any).kiteRoots) ~= "function"
+			or type((applier :: any).anchors) ~= "function"
+			or type((applier :: any).beams) ~= "function"
+			or type((applier :: any).connectionCount) ~= "function"
+			or type((applier :: any).isApplied) ~= "function"
+			or type((applier :: any).pump) ~= "function"
+		then
+			ktFail("layangan applier diagnostics not readable")
+		else
+			local priorId = nil
+			local okPrior, value = pcall(function()
+				return (ktLook :: any).current()
+			end)
+			if okPrior then
+				priorId = value
+			end
+			local function ktRestorePrior()
+				pcall(function()
+					(ktLook :: any).disable()
+				end)
+				if type(priorId) == "string" then
+					pcall(function()
+						(ktLook :: any).enable(priorId)
+					end)
+				end
+			end
+			local okEnable, enabled, whyEnable = pcall(function()
+				return (ktReview :: any).enable(KT_ID, game, { studio = true })
+			end)
+			if not okEnable or enabled == false then
+				ktRestorePrior()
+				ktFail("enable:" .. tostring(whyEnable or enabled))
+			else
+				local folders = {}
+				for _, inst in ipairs(childList(workspace)) do
+					local okName, name = pcall(function()
+						return (inst :: any).Name
+					end)
+					if okName and name == ktFolderName then
+						folders[#folders + 1] = inst
+					end
+				end
+				local folder = folders[1]
+				local folderPresent = #folders == 1 and folderNamed(ktFolderName) ~= nil
+
+				local function ktTagged(kind: string)
+					local found = {}
+					for _, inst in ipairs(descendantList(workspace)) do
+						local okBase, isBase = pcall(function()
+							return (inst :: any):IsA("BasePart")
+						end)
+						if
+							okBase
+							and isBase
+							and attr(inst, ktData.stageAttribute) == ktData.familyId
+							and attr(inst, ktData.kindAttribute) == kind
+						then
+							found[#found + 1] = inst
+						end
+					end
+					return found
+				end
+				local roots = ktTagged(ktData.ROOT_KIND)
+				local anchors = ktTagged(ktData.ANCHOR_KIND)
+				local beams = {}
+				if folder then
+					for _, inst in ipairs(descendantList(folder)) do
+						local okBeam, isBeam = pcall(function()
+							return (inst :: any):IsA("Beam")
+						end)
+						if
+							okBeam
+							and isBeam
+							and attr(inst, ktData.stageAttribute) == ktData.familyId
+							and attr(inst, ktData.kindAttribute) == ktData.BEAM_KIND
+						then
+							beams[#beams + 1] = inst
+						end
+					end
+				end
+
+				local okApiRoots, apiRoots = pcall(function()
+					return (applier :: any).kiteRoots()
+				end)
+				local okApiAnchors, apiAnchors = pcall(function()
+					return (applier :: any).anchors()
+				end)
+				local okApiBeams, apiBeams = pcall(function()
+					return (applier :: any).beams()
+				end)
+				local okConn, connCount = pcall(function()
+					return (applier :: any).connectionCount()
+				end)
+				local okApplied, isApplied = pcall(function()
+					return (applier :: any).isApplied()
+				end)
+				local apiReady = okApiRoots
+					and okApiAnchors
+					and okApiBeams
+					and type(apiRoots) == "table"
+					and type(apiAnchors) == "table"
+					and type(apiBeams) == "table"
+					and #apiRoots == 4
+					and #apiAnchors == 4
+					and #apiBeams == 4
+
+				local function ktIn(list, item)
+					for _, candidate in ipairs(list) do
+						if candidate == item then
+							return true
+						end
+					end
+					return false
+				end
+
+				local anglesOk, altitudesOk, stringsMatched = true, true, true
+				local groundY = if mapSpecReady and type(MapSpec.GROUND_Y) == "number" then MapSpec.GROUND_Y else nil
+				if apiReady then
+					for index = 1, 4 do
+						local root = apiRoots[index]
+						local anchor = apiAnchors[index]
+						local beam = apiBeams[index]
+						if
+							not ktIn(roots, root)
+							or not ktIn(anchors, anchor)
+							or not ktIn(beams, beam)
+						then
+							stringsMatched = false
+						end
+						local okAngle, angleValue = pcall(function()
+							return (root :: any):GetAttribute(ktData.angleAttribute)
+						end)
+						if not okAngle or type(angleValue) ~= "number" then
+							anglesOk = false
+						end
+						local okPos, position = pcall(function()
+							return (root :: any).CFrame.Position
+						end)
+						if not okPos or not groundY then
+							altitudesOk = false
+						else
+							local altitude = position.Y - groundY
+							if altitude < ktData.KITE_ALT_MIN or altitude > ktData.KITE_ALT_MAX then
+								altitudesOk = false
+							end
+						end
+						local okA0, a0 = pcall(function()
+							return (beam :: any).Attachment0
+						end)
+						local okA1, a1 = pcall(function()
+							return (beam :: any).Attachment1
+						end)
+						local okTop, top = false, nil
+						if okA0 and a0 then
+							okTop, top = pcall(function()
+								return (a0 :: any).Parent
+							end)
+						end
+						local okFoot, foot = false, nil
+						if okA1 and a1 then
+							okFoot, foot = pcall(function()
+								return (a1 :: any).Parent
+							end)
+						end
+						if not okA0 or not okA1 or not okTop or not okFoot or top ~= root or foot ~= anchor then
+							stringsMatched = false
+						end
+					end
+				end
+
+				local countPass = folderPresent
+					and #folders == 1
+					and #roots == 4
+					and #anchors == 4
+					and #beams == 4
+					and apiReady
+					and okConn
+					and connCount == 1
+					and okApplied
+					and isApplied == true
+					and anglesOk
+					and altitudesOk
+					and stringsMatched
+					and folderNamed(ktFolderName) ~= nil
+
+				-- Raycast from each kite to its matched ground anchor. The staged folder is excluded;
+				-- only a collidable BasePart inside one of the six hub Models counts as a building hit.
+				local world = nil
+				pcall(function()
+					world = workspace:FindFirstChild("World")
+				end)
+				local hubModels = {}
+				if world then
+					for _, name in ipairs(ktData.HUB_MODELS) do
+						local model = nil
+						pcall(function()
+							model = world:FindFirstChild(name)
+						end)
+						if model then
+							hubModels[#hubModels + 1] = model
+						end
+					end
+				end
+				local rays, buildingHits, rayErrors = 0, 0, {}
+				if countPass and world then
+					for index = 1, 4 do
+						local from, to = nil, nil
+						local okFrom = pcall(function()
+							from = (apiRoots[index] :: any).CFrame.Position
+						end)
+						local okTo = pcall(function()
+							to = (apiAnchors[index] :: any).CFrame.Position
+						end)
+						local okParams, params = pcall(function()
+							local p = RaycastParams.new()
+							p.FilterType = Enum.RaycastFilterType.Exclude
+							p.FilterDescendantsInstances = { folder }
+							return p
+						end)
+						if not okFrom or not okTo or not okParams or not params or (to - from).Magnitude <= 0 then
+							rayErrors[#rayErrors + 1] = "kite " .. index .. " ray setup failed"
+						else
+							local okRay, hit = pcall(function()
+								return workspace:Raycast(from, to - from, params)
+							end)
+							if not okRay then
+								rayErrors[#rayErrors + 1] = "kite " .. index .. " raycast failed"
+							else
+								rays += 1
+								if hit then
+									local instance = hit.Instance
+									local okBase, isBase = pcall(function()
+										return (instance :: any):IsA("BasePart")
+									end)
+									local okCollide, collide = false, false
+									if okBase and isBase then
+										okCollide, collide = pcall(function()
+											return (instance :: any).CanCollide
+										end)
+									end
+									if okCollide and collide == true then
+										for _, model in ipairs(hubModels) do
+											local okDesc, desc = pcall(function()
+												return (instance :: any):IsDescendantOf(model)
+											end)
+											if okDesc and desc then
+												buildingHits += 1
+												break
+											end
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+				local clearPass = countPass
+					and world ~= nil
+					and #hubModels == 6
+					and rays == 4
+					and #rayErrors == 0
+					and buildingHits == 0
+
+				-- Deterministic cost: the SAME applier function the Heartbeat callback calls.
+				local steps = math.max(1, math.ceil(ktData.SIM_SECONDS / ktData.DT))
+				local started = os.clock()
+				local okSim, simErr = pcall(function()
+					for _ = 1, steps do
+						(applier :: any).pump(ktData.DT)
+					end
+				end)
+				local totalElapsed = os.clock() - started
+				local ms = okSim and (totalElapsed * 1000 / steps) or math.huge
+				local costPass = okSim and ms >= 0 and ms < ktData.MAX_STEP_MS and ktData.MAX_STEP_MS == 0.2
+				local measuredMs = if okSim then math.floor(ms * 10000) / 10000 else "ERR"
+
+				ktRestorePrior()
+				emit("KITE_COUNT", countPass, #roots, 4, {
+					reason = if countPass then nil else "folder / root / Beam / anchor / angle / altitude mismatch",
+					folders = #folders,
+					folderPresent = folderPresent,
+					rootCount = #roots,
+					beamCount = #beams,
+					anchorCount = #anchors,
+					connectionCount = if okConn then connCount else -1,
+					isApplied = if okApplied then isApplied else false,
+					anglesOk = anglesOk,
+					altitudesOk = altitudesOk,
+					stringsMatched = stringsMatched,
+					antiVac = "exact 4 roots / 4 Beams / 4 anchors / 1 connection / one numeric KiteAngle each",
+				})
+				emit("KITE_COST", costPass, measuredMs, "<0.2ms", {
+					reason = if costPass then nil else "pump failed or ms per step >= limit: " .. tostring(simErr),
+					totalMs = math.floor(totalElapsed * 1000 * 100) / 100,
+					steps = steps,
+					kites = #apiRoots,
+					msPerStep = ms,
+					limitMs = ktData.MAX_STEP_MS,
+					simSeconds = ktData.SIM_SECONDS,
+					dt = ktData.DT,
+				})
+				emit("KITE_STRING_CLEAR", clearPass, buildingHits, "0", {
+					reason = if clearPass then nil else "missing World / hubs / rays or a string crosses a building",
+					worldPresent = world ~= nil,
+					hubModels = #hubModels,
+					rays = rays,
+					buildingHits = buildingHits,
+					rayErrors = rayErrors,
+					antiVac = "4 matched kites / 4 rays / 6 hub Models / 0 collidable building hits",
+				})
+			end
 		end
 	end
 end

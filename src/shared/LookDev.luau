@@ -56,6 +56,7 @@
 --   src/server/World/LookDevIrrigationR8.luau -- candidate "irrigation_r8" (sawah irrigation and field life, server-only)
 --   src/server/World/LookDevKincirR8.luau -- candidate "kincir_r8" (rotating river-bank waterwheel, server-only)
 --   src/server/World/LookDevLaundryR8.luau -- candidate "laundry_r8" (hanging laundry behind two houses, server-only)
+--   src/server/World/LookDevLayanganR8.luau -- candidate "layangan_r8" (four kites over the field, server-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -189,6 +190,7 @@ LookDev.IDS = {
 	"irrigation_r8",
 	"kincir_r8",
 	"laundry_r8",
+	"layangan_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -1262,6 +1264,23 @@ LookDev.candidates = {
 		partCount = 44,
 		minParts = 40,
 	},
+
+	layangan_r8 = {
+		id = "layangan_r8",
+		title = "Four layangan — diamond kites flying 60-90 studs over the village field, each with a thin tail and a textureless Beam string to a kid-sized ground anchor (round 10, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Original procedural Parts, no asset IDs, no brand logos, no decals and no terrain edit.
+		-- Pure recipe in Shared.ModelMapLayanganR8, placed from a mirror of MapSpec.LAPANGAN. One
+		-- shared Heartbeat loop rocks all four kites gently; the Beams use a solid ColorSequence.
+		-- No new camera.
+		idsSource = "Shared.ModelMapLayanganR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		partCount = 48,
+		minParts = 40,
+		kiteCount = 4,
+		maxStepMs = 0.2,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1613,6 +1632,17 @@ function LookDev.plan(id: string): any
 			render = c.render,
 			partCount = c.partCount,
 			minParts = c.minParts,
+		}
+	elseif id == "layangan_r8" then
+		local c = LookDev.candidates.layangan_r8
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			partCount = c.partCount,
+			minParts = c.minParts,
+			kiteCount = c.kiteCount,
+			maxStepMs = c.maxStepMs,
 		}
 	end
 	return nil

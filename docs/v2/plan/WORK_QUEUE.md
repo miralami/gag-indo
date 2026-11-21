@@ -1141,7 +1141,22 @@ Same rules as section M (candidates off by default, Studio PASS per item, no gam
   `CLOTH_SWAY` SKIPPED: optional, item 85 wind_r8 owns sway and candidates are single-active. ORDER names
   appended last so all contiguous ORDER-literal assertions hold. All existing checks byte-identical. 2766
   tests, selene 0/0/0. Candidate off by default; no shipping default changed. No new camera (item 133).
-- [ ] 116. **`layangan_r8`: kites.** Four layangan (kites) flying at 60–90 studs of altitude near the field, each with a thin tail and a string (`Beam`) down to a small kid-sized point on the ground; they rock gently. **CHECKS:** `KITE_COUNT` = 4; `KITE_COST` under 0.2 ms per frame; strings don't pass through buildings (raycast from kite to anchor hits nothing).
+- [x] 116. **`layangan_r8`: kites.** Four layangan (kites) flying at 60–90 studs of altitude near the field, each with a thin tail and a string (`Beam`) down to a small kid-sized point on the ground; they rock gently. **CHECKS:** `KITE_COUNT` = 4; `KITE_COST` under 0.2 ms per frame; strings don't pass through buildings (raycast from kite to anchor hits nothing).
+  Done 2026-11-22: NEW pure `ModelMapLayanganR8` (48 original Parts: kiteroot 4, spine 4, spar 4, sail 16,
+  tail 16, anchor 4; 4 textureless Beam strings; field mirror centre 0,96, 4 sites, altitudes 64/72/80/88
+  in [60,90]; no asset IDs/decals/brand) + NEW server `LookDevLayanganR8` applier (ONE shared Heartbeat
+  sine-rock loop, numeric KiteAngle attr, Beams via ColorSequence/Width0/Width1 — NOT invalid FaceColor/
+  Width — no Texture, diagnostics kiteRoots/anchors/beams/connectionCount/isApplied/pump, exact folder
+  save/detach-restore). New ID 88 (count literals 87->88 across 40 specs + 3 extra), review path, 3 harness
+  checks, new spec, CANDIDATES pending row. Real Studio fresh-Play Server-VM PASS (`CHECK_116.txt`,
+  SEEN-IN-STUDIO): `KITE_COUNT` 4 roots/4 Beams/4 anchors/1 conn, altitudes 64/72/80/88, `KITE_STRING_CLEAR`
+  4 rays/6 hubs/0 building hits (synthetic wall ray correctly flagged), `KITE_COST` 0.149ms < 0.2 (3600
+  pump steps), real rock ~1.9deg/1s + CFrame motion, disable/re-enable PASS, zero warnings. TWO REAL BUGS
+  FIXED in Studio: (1) Beam FaceColor/Width invalid here -> ColorSequence/Width0/Width1 (all 4 strings had
+  failed); (2) cost 0.25375ms with all 44 moving Parts -> tail Parts static, 28 move ≈0.14ms; threshold 0.2
+  and part counts UNCHANGED. ORDER names appended last so all contiguous ORDER-literal assertions hold. All
+  existing checks byte-identical. 2777 tests, selene 0/0/0. Candidate off by default; no shipping default
+  changed. No new camera (item 133).
 - [ ] 117. **`seated_r8`: seated villagers at the warung.** Use `HumanoidDescription` NPCs (same catalog outfits as npcs_r7) seated on the warung benches with `Humanoid.Sit` driven by a `Seat`, and a few glasses and plates on the table. At most 4. **CHECKS:** `SEATED_COUNT` ≤ 4; each `Humanoid.Sit` is true after 3 s; none intersects the bench.
 - [ ] 118. **`crops_showcase_r8`: crop review plots.** For the designer's review: one plot per growth stage (bibit, tumbuh, siap) showing all 12 crops in rows, and a camera for each in `REVIEW_CAMERAS.md`. No gameplay state is touched; it is staged geometry only. **CHECKS:** `CROPS_STAGED` = 36; `CROP_GROWTH` re-run.
 

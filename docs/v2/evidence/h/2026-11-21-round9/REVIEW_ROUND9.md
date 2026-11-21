@@ -421,3 +421,38 @@ the CHECK evidence, tracker ticks and any visual verdict. No place is saved or p
    candidate is off by default and the default look is untouched. Visual grading — do the stalls read
    as a canonical Pasar and do the stripes read as red/white/blue without a brand? — stays the
    designer's.
+
+## 20. Item-149 run — `plaza_r9` central plaza dressing (WORK_QUEUE section O)
+
+Run-note recipe. **No Studio result is claimed** by the implementation agent; the main session owns
+the CHECK evidence, tracker ticks and any visual verdict. No place is saved or published.
+
+1. Stop Play. Inject at runtime (not saved): `ReplicatedStorage.Shared.ModelMapPlazaR9`, the changed
+   `ReplicatedStorage.Shared.LookDev` and `LookDevReview`,
+   `ServerScriptService.Server.World.LookDevPlazaR9`, and the changed
+   `tools/studio/review_check_r8.luau`. No asset ID is introduced: the tree and every other piece are
+   original Parts; nothing is painted into Terrain (the plaza is already Ground).
+2. Start a FRESH real Play session in the SERVER datamodel. Stage ONLY this candidate:
+   `require(game.ReplicatedStorage.Shared.LookDevReview).enable("plaza_r9", game)`. One
+   `PlazaFountain` Model (with a `FountainWater` disc tagged `WaterColour = "water"`), four
+   `PlazaBench` Models, four `PlazaUmbrella` Models (six `UmbrellaStripe` Parts each,
+   `StripeColour` red/white/blue alternating), one `PlazaBunting` Model (two `BuntingPole` Parts,
+   one `BuntingLine`, eleven `BuntingFlag` Parts) and one `PlazaShadeTree` Model appear in the single
+   `LookDevPlazaR9_plaza_r9` folder. Every anchor is plaza-local, resolved from `MapSpec.PLAZA`
+   inside the 38x28 dressed area; the four 6-stud arm lanes stop at the fountain rim.
+3. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the SERVER
+   VM. Read the seven new READ-ONLY lines: `CHECK PLAZA_FOUNTAIN 1 1` (one fountain Model with a
+   water-colour disc), `CHECK PLAZA_BENCHES 4 4`, `CHECK PLAZA_UMBRELLAS 4 4` (all four carry
+   alternating red/white/blue stripes), `CHECK PLAZA_BUNTING 1 1` (at least two poles, at least six
+   flags and a line spanning both poles), `CHECK PLAZA_SHADE_TREE 1 1` (at least 10 studs tall at the
+   plaza edge), `CHECK PLAZA_LANE_CLEAR 0 0` (no visible staged Part's CFrame+Size AABB intersects a
+   6-stud lane) and `CHECK PLAZA_PATH_REACH 0 0` (all four corridors from the road-arm mouths at the
+   plaza edge to the centre rim are clear). A missing folder, tag, pure data module or MapSpec FAILs
+   at measured 0 for the count lines and a positive blocked count for the two clearance lines —
+   never a vacuous pass. These are AABB clearances, not a PathfindingService audit.
+4. Call `require(game.ReplicatedStorage.Shared.LookDevReview).disable()` and re-run `LOOKDEV_LEAK`:
+   the staged folder must be gone. Capture `LOAD_FAILURES 0 0` and `LOOKDEV_LEAK 0 leaks` as the
+   shared guards. Read staged `PERF_BUDGET` if the main session measures it; record and flag over
+   the Sedang proxy without weakening any target.
+5. Stop Play without saving. Visual grading — does the fountain/bunting/umbrella/bench/tree set read
+   as the canonical Lapangan? — stays the designer's.

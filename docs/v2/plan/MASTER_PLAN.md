@@ -103,6 +103,15 @@ original Parts with no asset IDs or real brand. Real Studio staged-Play PASS `ST
 hidden: 558/500 over the Sedang proxy; item has no perf clause, default look 334/500. Suite **2515 tests**;
 `selene src` 0/0/0.
 
+Item 149 COMPLETE: `plaza_r9` dresses the central Lapangan with a water-disc fountain, 4 benches,
+4 striped umbrellas (24 alternating red/white/blue stripes), bunting between 2 poles (11 flags) and
+one ~12-stud procedural shade tree, all original Parts inside the 38x28 dressed area derived from
+MapSpec.PLAZA. Real Studio staged-Play PASS `PLAZA_FOUNTAIN 1/1`, `PLAZA_BENCHES 4/4`,
+`PLAZA_UMBRELLAS 4/4`, `PLAZA_BUNTING 1/1`, `PLAZA_SHADE_TREE 1/1`, `PLAZA_LANE_CLEAR 0 0`
+(4 six-stud lanes), `PLAZA_PATH_REACH 0 0` (4 road-arm corridors), `CAMERA_CLEAR 0/36`
+(`h/2026-11-21-round9/CHECK_149.txt`). PERF_BUDGET 404/500 — under the Sedang proxy; default look
+334/500. Suite **2524 tests**; `selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

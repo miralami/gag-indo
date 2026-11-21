@@ -72,6 +72,13 @@
 -- they inspect only LookDevPasarAwningsR8_pasar_awnings_r8 and FAIL when the folder, tags, lane data
 -- or MapSpec are missing. LANE_CLEAR uses the 6-stud lane rectangle from the pure data module and
 -- per-Part CFrame+Size AABBs; PASAR_AWNING_ON_GRASS samples GRASS_Y=4 under each staged stall.
+-- It also emits the O-section plaza_r9 family (WORK_QUEUE item 149): PLAZA_FOUNTAIN,
+-- PLAZA_BENCHES, PLAZA_UMBRELLAS, PLAZA_BUNTING, PLAZA_SHADE_TREE, PLAZA_LANE_CLEAR and
+-- PLAZA_PATH_REACH. All seven are SERVER-side and READ-ONLY; they inspect only the folder
+-- LookDevPlazaR9_plaza_r9 and FAIL at measured 0 (counts) / 1..4 (clearance) when the folder, tags,
+-- pure data or MapSpec.PLAZA are missing. The lane and path checks use per-Part CFrame+Size AABBs
+-- against 6-stud rectangles built from plaza-local lane data plus MapSpec.PLAZA; the path corridors
+-- run from each of the four road-arm mouths at the plaza edge to the centre fountain rim.
 -- It also emits the O-section DEFAULT-LOOK forest checks (WORK_QUEUE item 138): NO_PINES,
 -- RING_COUNT, RING_SPECIES and PERF_BUDGET. All four are READ-ONLY and stage no candidate, so they
 -- grade the shipping tropical backdrop itself. NO_PINES counts workspace descendants whose Name
@@ -158,6 +165,13 @@ local ORDER = {
 	"AWNING_STRIPES",
 	"LANE_CLEAR",
 	"PASAR_AWNING_ON_GRASS",
+	"PLAZA_FOUNTAIN",
+	"PLAZA_BENCHES",
+	"PLAZA_UMBRELLAS",
+	"PLAZA_BUNTING",
+	"PLAZA_SHADE_TREE",
+	"PLAZA_LANE_CLEAR",
+	"PLAZA_PATH_REACH",
 	"VEG_NEAR",
 	"PROP_SIZE",
 	"CLOUD_COVER",
@@ -4356,6 +4370,310 @@ emit("PASAR_AWNING_ON_GRASS", awningFolder ~= nil and awningGrass == 0, awningGr
 	voxelY = GRASS_Y,
 	stalls = awningStallDetail,
 })
+
+-- PLAZA_FOUNTAIN / PLAZA_BENCHES / PLAZA_UMBRELLAS / PLAZA_BUNTING / PLAZA_SHADE_TREE /
+-- PLAZA_LANE_CLEAR / PLAZA_PATH_REACH (WORK_QUEUE item 149, all SERVER-side and READ-ONLY). They
+-- stage nothing and inspect only LookDevPlazaR9_plaza_r9. No intersection uses GetPartsInPart: all
+-- staged parts are non-collidable by construction, so both clearance checks use per-Part
+-- CFrame+Size AABBs (bboxAABB) against 6-stud rectangles derived from the pure lane data plus
+-- MapSpec.PLAZA. A missing folder, tag, data module or MapSpec FAILs at measured 0 (counts) or a
+-- positive blocked count (clearance), never a vacuous pass.
+local PLAZA_FOLDER = "LookDevPlazaR9_plaza_r9"
+local plazaFolder = folderNamed(PLAZA_FOLDER)
+local okPlazaData, PlazaData = pcall(function()
+	return require(game.ReplicatedStorage.Shared.ModelMapPlazaR9)
+end)
+if not okPlazaData or type(PlazaData) ~= "table" then
+	PlazaData = nil
+end
+
+local plazaFountains, plazaBenches, plazaUmbrellas = {}, {}, {}
+local plazaBuntings, plazaTrees = {}, {}
+local fountainDiscs, plazaPoles, plazaFlags, plazaLines = {}, {}, {}, {}
+local umbrellaStripes, plazaParts = {}, {}
+for _, inst in ipairs(descendantList(plazaFolder)) do
+	local okModel, isModel = pcall(function()
+		return inst:IsA("Model")
+	end)
+	if okModel and isModel then
+		if attr(inst, "PlazaFountain") == "plaza_r9" then
+			plazaFountains[#plazaFountains + 1] = inst
+		end
+		if attr(inst, "PlazaBench") == true then
+			plazaBenches[#plazaBenches + 1] = inst
+		end
+		if attr(inst, "PlazaUmbrella") == true then
+			plazaUmbrellas[#plazaUmbrellas + 1] = inst
+			local stripes = {}
+			for _, part in ipairs(descendantList(inst)) do
+				if attr(part, "UmbrellaStripe") == true then
+					local colour = attr(part, "StripeColour")
+					if colour == "red" or colour == "white" or colour == "blue" then
+						stripes[#stripes + 1] = colour
+					end
+				end
+			end
+			umbrellaStripes[#umbrellaStripes + 1] = stripes
+		end
+		if attr(inst, "PlazaBunting") == true then
+			plazaBuntings[#plazaBuntings + 1] = inst
+		end
+		if attr(inst, "PlazaShadeTree") == true then
+			plazaTrees[#plazaTrees + 1] = inst
+		end
+	end
+	if attr(inst, "FountainWater") == true and attr(inst, "WaterColour") == "water" then
+		fountainDiscs[#fountainDiscs + 1] = inst
+	end
+	if attr(inst, "BuntingPole") == true then
+		plazaPoles[#plazaPoles + 1] = inst
+	end
+	if attr(inst, "BuntingFlag") == true then
+		plazaFlags[#plazaFlags + 1] = inst
+	end
+	if attr(inst, "BuntingLine") == true then
+		plazaLines[#plazaLines + 1] = inst
+	end
+	local okPart, isPart = pcall(function()
+		return inst:IsA("BasePart")
+	end)
+	if okPart and isPart then
+		local okT, transparency = pcall(function()
+			return inst.Transparency
+		end)
+		if okT and type(transparency) == "number" and transparency < 1 then
+			plazaParts[#plazaParts + 1] = inst
+		end
+	end
+end
+
+local plazaExpected = if PlazaData and type(PlazaData.counts) == "function" then PlazaData.counts() else nil
+local plazaReady = plazaFolder ~= nil and PlazaData ~= nil and type(plazaExpected) == "table"
+
+emit(
+	"PLAZA_FOUNTAIN",
+	plazaReady and #plazaFountains == plazaExpected.fountains and #fountainDiscs >= 1,
+	#plazaFountains,
+	if plazaExpected then plazaExpected.fountains else 1,
+	{ folderPresent = plazaFolder ~= nil, fountains = #plazaFountains, waterDiscs = #fountainDiscs }
+)
+emit(
+	"PLAZA_BENCHES",
+	plazaReady and #plazaBenches == plazaExpected.benches,
+	#plazaBenches,
+	if plazaExpected then plazaExpected.benches else 4,
+	{ folderPresent = plazaFolder ~= nil, benches = #plazaBenches }
+)
+
+local order = if PlazaData and type(PlazaData.STRIPE_ORDER) == "table"
+	then PlazaData.STRIPE_ORDER
+	else { "red", "white", "blue" }
+local badUmbrellas, stripedCount = 0, 0
+for _, stripes in ipairs(umbrellaStripes) do
+	local good = #stripes >= 3
+	for stripeIndex, colour in ipairs(stripes) do
+		if colour ~= order[((stripeIndex - 1) % #order) + 1] then
+			good = false
+		end
+	end
+	if good then
+		stripedCount += 1
+	else
+		badUmbrellas += 1
+	end
+end
+emit(
+	"PLAZA_UMBRELLAS",
+	plazaReady and #plazaUmbrellas == plazaExpected.umbrellas and stripedCount == #plazaUmbrellas,
+	#plazaUmbrellas,
+	if plazaExpected then plazaExpected.umbrellas else 4,
+	{ folderPresent = plazaFolder ~= nil, umbrellas = #plazaUmbrellas, striped = stripedCount, bad = badUmbrellas }
+)
+
+-- The line must actually span the two poles: its XZ AABB covers both pole centres (the bunting
+-- recipe runs along X; the same min/max test also holds for a diagonal string).
+local lineBox = plazaLines[1] and bboxAABB(plazaLines[1]) or nil
+local poleXs = {}
+for _, pole in ipairs(plazaPoles) do
+	local centre = bboxCentre(pole)
+	if centre then
+		poleXs[#poleXs + 1] = centre.X
+	end
+end
+local lineSpans = false
+if lineBox and #poleXs >= 2 then
+	local minX, maxX = math.huge, -math.huge
+	for _, value in ipairs(poleXs) do
+		minX, maxX = math.min(minX, value), math.max(maxX, value)
+	end
+	lineSpans = lineBox.minX <= minX + OVERLAP_TOL and lineBox.maxX >= maxX - OVERLAP_TOL
+end
+emit(
+	"PLAZA_BUNTING",
+	plazaReady
+		and #plazaBuntings >= 1
+		and #plazaPoles == plazaExpected.buntingPoles
+		and #plazaFlags >= plazaExpected.buntingFlags
+		and #plazaLines >= 1
+		and lineSpans,
+	#plazaBuntings,
+	1,
+	{
+		folderPresent = plazaFolder ~= nil,
+		buntings = #plazaBuntings,
+		poles = #plazaPoles,
+		flags = #plazaFlags,
+		lines = #plazaLines,
+		lineSpans = lineSpans,
+	}
+)
+
+local treeHeight = 0
+local treeAtEdge = false
+local treeCentre = plazaTrees[1] and bboxCentre(plazaTrees[1]) or nil
+local treeSize = plazaTrees[1] and bboxSize(plazaTrees[1]) or nil
+if treeSize and type(treeSize.Y) == "number" then
+	treeHeight = treeSize.Y
+end
+if treeCentre and mapSpecReady and type(MapSpec.PLAZA) == "table" then
+	local dx = math.abs(treeCentre.X - MapSpec.PLAZA.x)
+	local dz = math.abs(treeCentre.Z - MapSpec.PLAZA.z)
+	treeAtEdge = math.max(dx, dz) >= 8
+end
+if plazaTrees[1] then
+	local attrHeight = attr(plazaTrees[1], "TreeHeight")
+	if type(attrHeight) == "number" and attrHeight > treeHeight then
+		treeHeight = attrHeight
+	end
+end
+emit(
+	"PLAZA_SHADE_TREE",
+	plazaReady and #plazaTrees == plazaExpected.shadeTrees and treeHeight >= 10 and treeAtEdge,
+	#plazaTrees,
+	if plazaExpected then plazaExpected.shadeTrees else 1,
+	{
+		folderPresent = plazaFolder ~= nil,
+		trees = #plazaTrees,
+		height = treeHeight,
+		atPlazaEdge = treeAtEdge,
+	}
+)
+
+-- World XZ rectangles from plaza-local lane data. Plaza is axis-aligned in MapSpec, so no yaw.
+local laneBoxes, corridorBoxes = {}, {}
+local lanesReady = plazaReady
+	and mapSpecReady
+	and type(MapSpec.PLAZA) == "table"
+	and type(PlazaData.lanes) == "function"
+local laneData = {}
+if lanesReady then
+	local okLanes, rows = pcall(function()
+		return PlazaData.lanes()
+	end)
+	lanesReady = okLanes and type(rows) == "table" and #rows > 0
+	if lanesReady then
+		laneData = rows
+		local px, pz = MapSpec.PLAZA.x, MapSpec.PLAZA.z
+		local halfW, halfD = MapSpec.PLAZA.width / 2, MapSpec.PLAZA.depth / 2
+		for _, lane in ipairs(rows) do
+			if
+				type(lane) ~= "table"
+				or type(lane.x) ~= "number"
+				or type(lane.z) ~= "number"
+				or type(lane.width) ~= "number"
+				or type(lane.depth) ~= "number"
+			then
+				lanesReady = false
+				break
+			end
+			local box = {
+				minX = px + lane.x - lane.width / 2,
+				maxX = px + lane.x + lane.width / 2,
+				minZ = pz + lane.z - lane.depth / 2,
+				maxZ = pz + lane.z + lane.depth / 2,
+			}
+			laneBoxes[#laneBoxes + 1] = box
+			local corridor = {
+				minX = box.minX,
+				maxX = box.maxX,
+				minZ = box.minZ,
+				maxZ = box.maxZ,
+			}
+			if lane.name == "north" then
+				corridor.minZ = pz - halfD
+			elseif lane.name == "south" then
+				corridor.maxZ = pz + halfD
+			elseif lane.name == "east" then
+				corridor.maxX = px + halfW
+			elseif lane.name == "west" then
+				corridor.minX = px - halfW
+			end
+			corridorBoxes[#corridorBoxes + 1] = corridor
+		end
+	end
+end
+
+local function overlapsLane(box, rect)
+	if not box then
+		return false
+	end
+	local ox = math.min(box.maxX, rect.maxX) - math.max(box.minX, rect.minX)
+	local oz = math.min(box.maxZ, rect.maxZ) - math.max(box.minZ, rect.minZ)
+	return ox > OVERLAP_TOL and oz > OVERLAP_TOL
+end
+
+local laneBlockers = 0
+if not lanesReady then
+	laneBlockers = 1
+else
+	for _, part in ipairs(plazaParts) do
+		local box = bboxAABB(part)
+		for _, rect in ipairs(laneBoxes) do
+			if overlapsLane(box, rect) then
+				laneBlockers += 1
+				break -- one part blocking any lane counts once
+			end
+		end
+	end
+end
+emit("PLAZA_LANE_CLEAR", lanesReady and laneBlockers == 0, laneBlockers, 0, {
+	folderPresent = plazaFolder ~= nil,
+	lanes = #laneBoxes,
+	visibleParts = #plazaParts,
+	blockingParts = laneBlockers,
+})
+
+local plazaBlockedCorridors = 0
+local plazaBlockersByCorridor = {}
+for _, lane in ipairs(laneData) do
+	plazaBlockersByCorridor[tostring(lane.name)] = 0
+end
+if not lanesReady then
+	plazaBlockedCorridors = math.max(#laneData, 1)
+else
+	for index, corridor in ipairs(corridorBoxes) do
+		for _, part in ipairs(plazaParts) do
+			if overlapsLane(bboxAABB(part), corridor) then
+				plazaBlockedCorridors += 1
+				local name = tostring(laneData[index] and laneData[index].name or index)
+				plazaBlockersByCorridor[name] = (plazaBlockersByCorridor[name] or 0) + 1
+				break -- one blocked corridor counts once
+			end
+		end
+	end
+end
+emit(
+	"PLAZA_PATH_REACH",
+	lanesReady and #corridorBoxes == #laneData and plazaBlockedCorridors == 0,
+	plazaBlockedCorridors,
+	0,
+	{
+		folderPresent = plazaFolder ~= nil,
+		corridors = #corridorBoxes,
+		blockedByCorridor = plazaBlockersByCorridor,
+		reason = if lanesReady then nil else "folder / data / MapSpec.PLAZA not readable",
+	}
+)
 
 -- 10. VEG_NEAR: dense near layer at the saved camera (45 studs, 70-degree cone). A model only
 -- counts when its bbox centre is inside the cone AND its bbox is >=2 studs tall; species and

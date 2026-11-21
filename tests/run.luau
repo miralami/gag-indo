@@ -204,6 +204,7 @@ local specs = {
 	require("./specs/season_r8_spec"),
 	require("./specs/rain_r8_spec"),
 	require("./specs/subuh_r8_spec"),
+	require("./specs/lamps_shadows_r8_spec"),
 	require("./specs/ronda_tower_r9_spec"),
 	require("./specs/rocks_r9_spec"),
 	require("./specs/streetfurn_r8_spec"),

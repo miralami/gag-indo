@@ -340,6 +340,7 @@ local ORDER = {
 	"RAIN_COST",
 	"DAWN_PHASES_MONOTONIC",
 	"DAWN_SAFE",
+	"LIGHT_COST",
 }
 
 local GRASS_Y = 4
@@ -10837,6 +10838,206 @@ local function runDawnChecks()
 	})
 end
 runDawnChecks()
+end
+
+-- 9w. WORK_QUEUE section N item 122: lamps_shadows_r8. MUTATING SERVER check appended LAST in
+-- ORDER. full_r9 is an ADDITIVE review set (item 103), NOT a LookDev ID: stage the exact 13-ID
+-- list with LookDevReview.enableAdditive/disableAll in the SERVER VM, then enumerate every
+-- PointLight/SpotLight under the staged folders and require Shadows=false, Range<=30 and
+-- Brightness<=3. Anti-vacuity requires totalLights>0 (the >=6 smoke_r8 torch lights). No ID,
+-- count, camera, Strings or CANDIDATES change. Own do...end + inner function (near 200-local cap).
+do
+local function lightFail(reason)
+	emit("LIGHT_COST", false, "ERR", "0 violations", { reason = reason })
+end
+
+local function runLightCostChecks()
+	-- Own RunService gate: the shared isServer local is declared LATER in this harness.
+	local okRun, run = pcall(function()
+		return game:GetService("RunService")
+	end)
+	local lightIsServer = okRun and run and run:IsServer() or false
+	if not lightIsServer then
+		lightFail("server VM required")
+		return
+	end
+
+	local okReview, Review = pcall(function()
+		return require(game.ReplicatedStorage.Shared.LookDevReview)
+	end)
+	if
+		not okReview
+		or type(Review) ~= "table"
+		or type(Review.enableAdditive) ~= "function"
+		or type(Review.disableAll) ~= "function"
+	then
+		lightFail("LookDevReview additive API missing")
+		return
+	end
+
+	-- The 13-ID full_r9 list from CHECK_103 (9 server + 4 client appliers staged in the Server VM).
+	local FULL_R9 = {
+		{ id = "hubveg_r8", folder = "LookDevModelsVegetationHubR8_hubveg_r8" },
+		{ id = "plots_r8", folder = "LookDevPlotsR8_plots_r8" },
+		{ id = "sawah_r8", folder = "LookDevSawahR8_sawah_r8" },
+		{ id = "river_r8", folder = "LookDevRiverR8_river_r8" },
+		{ id = "pathedge_r8", folder = "LookDevPathEdgeR8_pathedge_r8" },
+		{ id = "facades_r8", folder = "LookDevFacadesR8_facades_r8" },
+		{ id = "hubprops_r8", folder = "LookDevHubPropsR8_hubprops_r8" },
+		{ id = "streetfurn_r8", folder = "LookDevStreetFurnR8_streetfurn_r8" },
+		{ id = "spanduk_r8", folder = "LookDevSpandukR8_spanduk_r8" },
+		{ id = "animals_r8", folder = "LookDevAnimalsR8_animals_r8" },
+		{ id = "flyers_r8", folder = "LookDevFlyersR8_flyers_r8" },
+		{ id = "smoke_r8", folder = "LookDevSmokeR8_smoke_r8" },
+		{ id = "wind_r8", folder = "LookDevWindR8_wind_r8" },
+	}
+
+	local look, priorId = nil, nil
+	local okLook, lookMod = pcall(function()
+		return require(game.ReplicatedStorage.Shared.LookDev)
+	end)
+	if okLook and type(lookMod) == "table" and type(lookMod.current) == "function" then
+		look = lookMod
+		local okPrior, current = pcall(function()
+			return look.current()
+		end)
+		if okPrior and type(current) == "string" then
+			priorId = current
+		end
+	end
+
+	local function restorePrior()
+		pcall(function()
+			return Review.disableAll()
+		end)
+		if look and priorId then
+			pcall(function()
+				return look.enable(priorId, { studio = true })
+			end)
+		end
+	end
+
+	local errors = {}
+	local okClear, clearResult = pcall(function()
+		return Review.disableAll()
+	end)
+	if not okClear or clearResult == false then
+		errors[#errors + 1] = "disableAll(base):" .. tostring(clearResult)
+	end
+
+	local staged = {}
+	for _, entry in ipairs(FULL_R9) do
+		local okStage, result, why = pcall(function()
+			return Review.enableAdditive(entry.id, game, { studio = true })
+		end)
+		if not okStage or result == false then
+			errors[#errors + 1] = entry.id .. ":stage:" .. tostring(why or result)
+		else
+			local folder = nil
+			local okWs, wsFolder = pcall(function()
+				return workspace:FindFirstChild(entry.folder)
+			end)
+			if okWs and wsFolder then
+				folder = wsFolder
+			end
+			if not folder then
+				local okClient, clientFolder = pcall(function()
+					return game.PlayerScripts.Client:FindFirstChild(entry.folder)
+				end)
+				if okClient and clientFolder then
+					folder = clientFolder
+				end
+			end
+			if not folder then
+				local okStarter, starterFolder = pcall(function()
+					return game.StarterPlayer.StarterPlayerScripts.Client:FindFirstChild(entry.folder)
+				end)
+				if okStarter and starterFolder then
+					folder = starterFolder
+				end
+			end
+			if folder then
+				staged[#staged + 1] = { id = entry.id, folder = folder }
+			else
+				errors[#errors + 1] = entry.id .. ":folder missing"
+			end
+		end
+	end
+
+	local totalLights, shadowsTrue, overRange, overBrightness = 0, 0, 0, 0
+	local offenders = {}
+	for _, entry in ipairs(staged) do
+		local okDesc, descendants = pcall(function()
+			return entry.folder:GetDescendants()
+		end)
+		if not okDesc or type(descendants) ~= "table" then
+			errors[#errors + 1] = entry.id .. ":descendants unreadable"
+		else
+			for _, instance in ipairs(descendants) do
+				local okPoint, isPoint = pcall(function()
+					return instance:IsA("PointLight")
+				end)
+				local isSpot = false
+				if okPoint and not isPoint then
+					local okSpot, spot = pcall(function()
+						return instance:IsA("SpotLight")
+					end)
+					if okSpot then
+						isSpot = spot
+					end
+				end
+				if (okPoint and isPoint) or isSpot then
+					totalLights += 1
+					local label = entry.id .. "/" .. tostring(instance)
+					local okShadows, castsShadows = pcall(function()
+						return instance.Shadows
+					end)
+					local okRange, range = pcall(function()
+						return instance.Range
+					end)
+					local okBright, brightness = pcall(function()
+						return instance.Brightness
+					end)
+					if not okShadows or not okRange or not okBright then
+						errors[#errors + 1] = label .. ":props unreadable"
+					end
+					if okShadows and castsShadows == true then
+						shadowsTrue += 1
+						offenders[#offenders + 1] = label .. ":Shadows=true"
+					end
+					if okRange and type(range) == "number" and range > 30 then
+						overRange += 1
+						offenders[#offenders + 1] = label .. ":Range=" .. tostring(range)
+					end
+					if okBright and type(brightness) == "number" and brightness > 3 then
+						overBrightness += 1
+						offenders[#offenders + 1] = label .. ":Brightness=" .. tostring(brightness)
+					end
+				end
+			end
+		end
+	end
+
+	restorePrior()
+
+	local violations = shadowsTrue + overRange + overBrightness + #errors
+	local passed = totalLights > 0
+		and shadowsTrue == 0
+		and overRange == 0
+		and overBrightness == 0
+		and #errors == 0
+	emit("LIGHT_COST", passed, violations, "0 violations", {
+		totalLights = totalLights,
+		shadowsTrue = shadowsTrue,
+		overRange = overRange,
+		overBrightness = overBrightness,
+		offenders = offenders,
+		errors = errors,
+		stagedIds = #staged,
+		restoredPrior = priorId,
+	})
+end
+runLightCostChecks()
 end
 
 -- 10. VEG_NEAR: dense near layer at the saved camera (45 studs, 70-degree cone). A model only

@@ -8,7 +8,7 @@
 
 ## Visual tracker — read first, update last
 
-**Last updated:** 2026-11-17 — V0.1 fidelity tiers + V0.2 admin perf switches now `SEEN-IN-STUDIO` (structure/state; `h/2026-11-17-perf-switches/`, `-phone-studio/`) with a Studio-only `FpsSampler` publishing `ClientFps`; real per-switch phone fps cost table still a designer task. V0.3 reference board, V0.4 look-dev scene and V0.5 V-D1..V-D5 answers remain `BLOCKED` on the designer. Raid cutscene focus anchors added (Track F) but framing quality `BLOCKED` on the designer (visual plan §8).
+**Last updated:** 2026-11-22 — V0.1 fidelity tiers + V0.2 admin perf switches now `SEEN-IN-STUDIO` (structure/state; `h/2026-11-17-perf-switches/`, `-phone-studio/`) with a Studio-only `FpsSampler` publishing `ClientFps`; real per-switch phone fps cost table still a designer task. V0.3 reference board, V0.4 look-dev scene and V0.5 V-D1..V-D5 answers remain `BLOCKED` on the designer. Raid cutscene focus anchors added (Track F) but framing quality `BLOCKED` on the designer (visual plan §8). Per-layer L1–L10 status lines refreshed 2026-11-22.
 
 Same rules as the master tracker: tick in the same commit as the work, with a status word
 (`SEEN-IN-STUDIO`, `LUNE-ONLY`, `UNVERIFIED`, `BLOCKED`) and an evidence path.
@@ -125,6 +125,8 @@ Each layer: where it is, where it goes, the work items. IDs are stable; cite the
 
 ### L1. Light and atmosphere (lane C)
 
+2026-11-22 — SEEN-IN-STUDIO — `docs/v2/evidence/h/2026-11-19-lighting-fidelity/REPORT.md`
+
 Target: light does the art direction. The village should look good with every texture switched off.
 
 - **V-L1.1** Re-grade the three season presets against reference photos (V0), on a phone screen,
@@ -142,6 +144,8 @@ Target: light does the art direction. The village should look good with every te
 - **V-L1.7** Depth of field only in authored shots (M1, M3, M5, photo mode), never during play.
 
 ### L2. Surfaces and materials (lane G makes, lane C applies)
+
+2026-11-22 — UNVERIFIED — `docs/v2/evidence/h/2026-11-20-textures-r4-fix/REPORT.md`
 
 Target: no surface is a built-in material at default. Eight to ten materials carry the village.
 
@@ -163,6 +167,8 @@ Target: no surface is a built-in material at default. Eight to ten materials car
 
 ### L3. Models and silhouette (lanes G and C)
 
+2026-11-22 — SEEN-IN-STUDIO — `docs/v2/evidence/h/2026-11-21-round9/CHECK_77.txt`
+
 Target: one style. Today there are two (low-poly props, realistic pines); pick realistic
 proportions with moderate detail and bring everything to it.
 
@@ -181,6 +187,8 @@ proportions with moderate detail and bring everything to it.
 
 ### L4. Vegetation, terrain and water (lane C)
 
+2026-11-22 — SEEN-IN-STUDIO — `docs/v2/evidence/h/2026-11-21-round9/CHECK_137.txt`
+
 Target: the fields are the game. Padi must look like padi.
 
 - **V-L4.1** **Crops as real plants.** Replace stem-and-crown Parts with authored meshes per crop
@@ -198,6 +206,8 @@ Target: the fields are the game. Padi must look like padi.
 
 ### L5. Ambient life (lane C, client)
 
+2026-11-22 — SEEN-IN-STUDIO — `docs/v2/evidence/h/2026-11-21-round9/CHECK_082.txt`
+
 Target: stand still for ten seconds and count five things moving.
 
 - **V-L5.1** Always on: kitchen smoke, dust in sun shafts, insects over the sawah, leaves falling,
@@ -210,6 +220,8 @@ Target: stand still for ten seconds and count five things moving.
 - **V-L5.5** All of it is client-side, pooled, range-culled, and scaled by fidelity tier (§6).
 
 ### L6. Characters and animation (lane F)
+
+2026-11-22 — SEEN-IN-STUDIO — `docs/v2/evidence/h/2026-11-21-round9/CHECK_087.txt`
 
 Target: NPCs are people with a posture, not boxes with a line of text.
 
@@ -224,6 +236,8 @@ Target: NPCs are people with a posture, not boxes with a line of text.
 - **V-L6.5** Heads and eyes track the player within a few studs. Cheap and it reads as alive.
 
 ### L7. Gameplay VFX (lane A)
+
+2026-11-22 — UNVERIFIED — `docs/v2/evidence/h/2026-11-20-final-report/FINAL_REPORT.md`
 
 Target: every verb has an anticipation, an impact and a settle, with authored textures.
 
@@ -247,6 +261,8 @@ Target: every verb has an anticipation, an impact and a settle, with authored te
 
 ### L8. Camera (lanes A and F)
 
+2026-11-22 — BLOCKED — `docs/v2/evidence/h/2026-11-17-cutscene-anchors/REPORT.md` — "Visual framing quality of the anchored shots: BLOCKED on designer"
+
 - **V-L8.1** Authored shots for M1, M3 and M5, each under three seconds and skippable by moving.
 - **V-L8.2** Impact language: small, fast, decaying kicks keyed to the event, never a generic
   shake. Reduced-motion setting turns all of it off.
@@ -256,6 +272,8 @@ Target: every verb has an anticipation, an impact and a settle, with authored te
   players produce our marketing. After Gate 1.
 
 ### L9. UI fidelity (lane D)
+
+2026-11-22 — SEEN-IN-STUDIO — `docs/v2/evidence/h/2026-11-19-icons-candidates/REPORT.md`
 
 The kit is right; the finish is missing. Fidelity here means material, motion and response.
 
@@ -273,6 +291,8 @@ The kit is right; the finish is missing. Fidelity here means material, motion an
 - **V-L9.6** Font decision on a phone (master tracker D, §9.3) and one pass for optical alignment.
 
 ### L10. Sound-to-picture sync (lane E)
+
+2026-11-22 — UNVERIFIED — `docs/v2/evidence/h/2026-11-21-round9/CHECK_092.txt`
 
 Audio has its own track; this layer only says what picture work must not ship silent. Every item
 in L5 and L7 has a sound within the same frame budget, footsteps change by surface, rain on seng

@@ -181,6 +181,13 @@ client Heartbeat loop over a pure shared step. Real Studio Server-VM PASS on a d
 (`h/2026-11-21-round9/CHECK_083.txt`). PERF_BUDGET 334/500 — equal to default, under the Sedang proxy.
 Suite **2591 tests**; `selene src` 0/0/0.
 
+Item 84 COMPLETE: `smoke_r8` stages 9 emitters (2 chimney smoke, 1 warung steam, 6 torch flames, max
+Rate 10 <= 12) and 6 flickering PointLights (Range 14 <= 30), original Parts, no asset IDs, one client
+Heartbeat flicker + ClockTime night gate. Real Studio Server-VM pure-data PASS `EMITTERS 0 violations`,
+`LIGHTS 0 violations`, `TORCH_NIGHT 13=false 20=true 5=true` (torches off at ClockTime 13),
+`CAMERA_CLEAR 0/42` (`h/2026-11-21-round9/CHECK_084.txt`). PERF_BUDGET 334/500 — equal to default, under
+the Sedang proxy. Suite **2601 tests**; `selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

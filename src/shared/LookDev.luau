@@ -44,6 +44,7 @@
 --   src/server/World/LookDevSpandukR8.luau -- candidate "spanduk_r8" (banners and signage, server-only)
 --   src/client/World/LookDevAnimalsR8.luau -- candidate "animals_r8" (village animals, client-only)
 --   src/client/World/LookDevFlyersR8.luau -- candidate "flyers_r8" (birds, butterflies, dragonflies, client-only)
+--   src/client/World/LookDevSmokeR8.luau -- candidate "smoke_r8" (chimney smoke, steam, night torches, client-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -154,6 +155,7 @@ LookDev.IDS = {
 	"spanduk_r8",
 	"animals_r8",
 	"flyers_r8",
+	"smoke_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -964,6 +966,19 @@ LookDev.candidates = {
 		tier = "Tinggi",
 		maxFlyers = 24,
 	},
+
+	smoke_r8 = {
+		id = "smoke_r8",
+		title = "Kitchen smoke, Warung steam and night-only flickering torches (round 9, client-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Original Parts and ParticleEmitters/PointLights only, no asset IDs. Pure MapSpec-derived
+		-- recipes live in Shared.ModelMapSmokeR8; the client applier owns the ClockTime gate.
+		idsSource = "Shared.ModelMapSmokeR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		maxEmitters = 12,
+		maxLights = 24,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1156,6 +1171,7 @@ function LookDev.plan(id: string): any
 		or id == "streetfurn_r8"
 		or id == "spanduk_r8"
 		or id == "animals_r8"
+		or id == "smoke_r8"
 	then
 		local c = LookDev.candidates[id]
 		return {

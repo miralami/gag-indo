@@ -695,3 +695,27 @@ the CHECK evidence and tracker ticks. No place is saved or published.
    `canonical_overview`, `hub_warung` and `bridge_south_bank` from `docs/v2/visual/REVIEW_CAMERAS.md`.
    Re-read `LOOKDEV_LEAK 0` after disable; stop Play without saving. Visual yes/no stays the
    designer's.
+
+## Item-84 run — `smoke_r8` kitchen smoke, steam and fire (WORK_QUEUE section M)
+
+Run-note recipe. **No Studio result is claimed** by the implementation agent; the main session owns
+CHECK evidence, tracker ticks and the visual verdict. No place is saved or published.
+
+1. Inject at runtime (not saved): `ReplicatedStorage.Shared.ModelMapSmokeR8`, the changed
+   `Shared.LookDev` and `Shared.LookDevReview`, the new
+   `PlayerScripts.Client.World.LookDevSmokeR8`, and the changed
+   `tools/studio/review_check_r8.luau`.
+2. Start a fresh real Play session. The three item checks are READ-ONLY and need no staged
+   candidate: they call `recipes(MapSpec)` and `isNight` from the pure shared module with the live
+   `ServerScriptService.Server.World.MapSpec`.
+3. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the SERVER
+   VM (the Client VM cannot read MapSpec, so all three FAIL there by design). Read `EMITTERS`
+   (0 violations; 9 total, 2 chimneys + 1 steam + 6 torch flames, max Rate 10 <= 12), `LIGHTS`
+   (0 violations; 6 lights, max Range 14 <= 30) and `TORCH_NIGHT` (`13=false 20=true 5=true`).
+   Missing module/MapSpec FAILs at measured >= 1, never a skip.
+4. For a visual pass only, stage the client applier from the CLIENT datamodel with
+   `require(game.ReplicatedStorage.Shared.LookDevReview).enable("smoke_r8", game)`; set
+   `Lighting.ClockTime` to 13 (torches off) then 20 (torches on with Heartbeat flicker), and shoot
+   `hub_warung`, `hub_pasar` and `canonical_overview` from `docs/v2/visual/REVIEW_CAMERAS.md`.
+   Re-read `LOOKDEV_LEAK 0` after disable; stop Play without saving. Visual yes/no stays the
+   designer's.

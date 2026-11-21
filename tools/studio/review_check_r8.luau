@@ -217,6 +217,9 @@ local ORDER = {
 	"CAMERA_CLEAR",
 	"FLYER_COUNT",
 	"FLYER_COST",
+	"EMITTERS",
+	"LIGHTS",
+	"TORCH_NIGHT",
 	"ADDITIVE_STAGE",
 	"LOOKDEV_LEAK",
 }
@@ -5848,6 +5851,170 @@ emit(
 		msPerStep = fr8Ms,
 		reason = fr8Reason,
 	}
+)
+end
+
+do
+-- 9h-5. WORK_QUEUE section M item 84: smoke_r8. Three NEW READ-ONLY pure-data checks.
+-- Shared.ModelMapSmokeR8 is pure and MapSpec lives in ServerScriptService.Server.World, so all
+-- three lines run in the SERVER VM with no staged candidate, no folder mutation and no real wait.
+-- A missing module or MapSpec FAILs at measured >= 1, never a vacuous pass.
+local SR8 = nil
+local okS8, s8Module = pcall(function()
+	return require(game.ReplicatedStorage.Shared.ModelMapSmokeR8)
+end)
+if okS8 and type(s8Module) == "table" then
+	SR8 = s8Module
+end
+local SR8_BUILT, SR8_REASON = nil, nil
+if not SR8 then
+	SR8_REASON = "Shared.ModelMapSmokeR8 not readable"
+elseif not mapSpecReady then
+	SR8_REASON = "MapSpec not readable (Server VM required)"
+else
+	local okBuilt, built = pcall(function()
+		return SR8.recipes(MapSpec)
+	end)
+	if
+		okBuilt
+		and type(built) == "table"
+		and type(built.emitters) == "table"
+		and type(built.lights) == "table"
+	then
+		SR8_BUILT = built
+	else
+		SR8_REASON = "recipes failed: " .. tostring(built)
+	end
+end
+
+-- EMITTERS: <= 12 total, every Rate <= 12, at least two chimneys, one steam and one torch flame.
+local SR8_EMITTERS = SR8_BUILT and SR8_BUILT.emitters or {}
+local SR8_KINDS = { chimney = 0, steam = 0, torch_flame = 0 }
+local SR8_BAD_EMITTERS = {}
+local SR8_MAX_RATE = 0
+for _, spec in ipairs(SR8_EMITTERS) do
+	local kind = type(spec) == "table" and spec.kind or "unknown"
+	SR8_KINDS[kind] = (SR8_KINDS[kind] or 0) + 1
+	local rate = type(spec) == "table" and spec.rate or math.huge
+	if type(rate) == "number" then
+		SR8_MAX_RATE = math.max(SR8_MAX_RATE, rate)
+	end
+	local position = type(spec) == "table" and spec.position or nil
+	if
+		not SR8_BUILT
+		or type(spec) ~= "table"
+		or type(rate) ~= "number"
+		or rate <= 0
+		or rate > (SR8 and SR8.MAX_RATE or 12)
+		or type(position) ~= "table"
+		or type(position.x) ~= "number"
+		or type(position.y) ~= "number"
+		or type(position.z) ~= "number"
+	then
+		SR8_BAD_EMITTERS[#SR8_BAD_EMITTERS + 1] = tostring(kind) .. ":rate=" .. tostring(rate)
+	end
+end
+local SR8_EMITTER_VIOLATIONS = #SR8_BAD_EMITTERS
+if SR8_BUILT then
+	if #SR8_EMITTERS > (SR8 and SR8.MAX_EMITTERS or 12) then
+		SR8_EMITTER_VIOLATIONS += 1
+	end
+	if SR8_KINDS.chimney < 2 then
+		SR8_EMITTER_VIOLATIONS += 1
+	end
+	if SR8_KINDS.steam < 1 then
+		SR8_EMITTER_VIOLATIONS += 1
+	end
+	if SR8_KINDS.torch_flame < 1 then
+		SR8_EMITTER_VIOLATIONS += 1
+	end
+else
+	SR8_EMITTER_VIOLATIONS += 1
+end
+emit(
+	"EMITTERS",
+	SR8_EMITTER_VIOLATIONS == 0,
+	SR8_EMITTER_VIOLATIONS,
+	"0 violations",
+	{
+		count = #SR8_EMITTERS,
+		chimney = SR8_KINDS.chimney,
+		steam = SR8_KINDS.steam,
+		torchFlame = SR8_KINDS.torch_flame,
+		maxRate = SR8_MAX_RATE,
+		failures = SR8_BAD_EMITTERS,
+		reason = SR8_REASON,
+	}
+)
+
+-- LIGHTS: <= 24 total, every Range <= 30, at least one light, deterministic per-light seed.
+local SR8_LIGHTS = SR8_BUILT and SR8_BUILT.lights or {}
+local SR8_BAD_LIGHTS = {}
+local SR8_MAX_RANGE = 0
+for _, spec in ipairs(SR8_LIGHTS) do
+	local range = type(spec) == "table" and spec.range or math.huge
+	if type(range) == "number" then
+		SR8_MAX_RANGE = math.max(SR8_MAX_RANGE, range)
+	end
+	if
+		not SR8_BUILT
+		or type(spec) ~= "table"
+		or type(range) ~= "number"
+		or range <= 0
+		or range > (SR8 and SR8.MAX_RANGE or 30)
+		or type(spec.seed) ~= "number"
+	then
+		SR8_BAD_LIGHTS[#SR8_BAD_LIGHTS + 1] = tostring(spec and spec.id or "?") .. ":range=" .. tostring(range)
+	end
+end
+local SR8_LIGHT_VIOLATIONS = #SR8_BAD_LIGHTS
+if SR8_BUILT then
+	if #SR8_LIGHTS > (SR8 and SR8.MAX_LIGHTS or 24) then
+		SR8_LIGHT_VIOLATIONS += 1
+	end
+	if #SR8_LIGHTS < 1 then
+		SR8_LIGHT_VIOLATIONS += 1
+	end
+else
+	SR8_LIGHT_VIOLATIONS += 1
+end
+emit(
+	"LIGHTS",
+	SR8_LIGHT_VIOLATIONS == 0,
+	SR8_LIGHT_VIOLATIONS,
+	"0 violations",
+	{ count = #SR8_LIGHTS, maxRange = SR8_MAX_RANGE, failures = SR8_BAD_LIGHTS, reason = SR8_REASON }
+)
+
+-- TORCH_NIGHT: the pure day-off predicate. ClockTime 13 must be false, 20 and 5 true.
+local SR8_CLOCKS = { day13 = "ERR", night20 = "ERR", preDawn5 = "ERR" }
+local SR8_NIGHT_OK = false
+if SR8 and type(SR8.isNight) == "function" then
+	local ok13, day13 = pcall(function()
+		return SR8.isNight(13)
+	end)
+	local ok20, night20 = pcall(function()
+		return SR8.isNight(20)
+	end)
+	local ok5, preDawn5 = pcall(function()
+		return SR8.isNight(5)
+	end)
+	SR8_CLOCKS.day13 = ok13 and tostring(day13) or "ERR"
+	SR8_CLOCKS.night20 = ok20 and tostring(night20) or "ERR"
+	SR8_CLOCKS.preDawn5 = ok5 and tostring(preDawn5) or "ERR"
+	SR8_NIGHT_OK = ok13 and day13 == false and ok20 and night20 == true and ok5 and preDawn5 == true
+end
+emit(
+	"TORCH_NIGHT",
+	SR8_NIGHT_OK,
+	string.format(
+		"13=%s 20=%s 5=%s",
+		SR8_CLOCKS.day13,
+		SR8_CLOCKS.night20,
+		SR8_CLOCKS.preDawn5
+	),
+	"13 off / 20 on / 5 on",
+	{ readings = SR8_CLOCKS, reason = SR8_REASON }
 )
 end
 

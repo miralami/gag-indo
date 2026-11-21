@@ -153,11 +153,19 @@
 -- SoundService/group/folder restore and the prior candidate back. All three always emit.
 -- All checks except LOOKDEV_LEAK, ADDITIVE_STAGE, WATER_SAFE, WATER_RESTORE, WIND_SET,
 -- SWAY_TWEENS, WIND_RESTORE, NIGHT_WINDOWS, NIGHT_LIGHTS, GRADE_SAFE, GRADE_RESTORE,
--- GRADE_NO_DOF, SOUND_LOADED, SOUND_VOLUME, SOUND_RESTORE, PERAHU_PARTS and IRRIGATION_PARTS are read-only.
+-- GRADE_NO_DOF, SOUND_LOADED, SOUND_VOLUME, SOUND_RESTORE, PERAHU_PARTS, IRRIGATION_PARTS,
+-- LAUNDRY_PARTS and LAUNDRY_CLOTH_CLEAR are read-only.
 -- IRRIGATION_WATER_ON_TERRACE joins the mutating set; it saves and restores the prior candidate.
 -- Item 114 adds KINCIR_ROT, a mutating SERVER block that stages kincir_r8, checks its one rotating
 -- root / one Heartbeat / 3..9-degree deterministic pump rate, disables it and re-enables it, then
 -- restores the prior candidate on every path. It is appended at the very END of ORDER.
+-- Item 115 adds LAUNDRY_PARTS and LAUNDRY_CLOTH_CLEAR, one mutating SERVER block that stages
+-- laundry_r8, counts every tagged original-Part kind against Shared.ModelMapLaundryR8.counts(),
+-- and probes EVERY tagged cloth with a temporary GetPartsInPart Part against the two hub wall
+-- parts. No decal/brand/material verdict, no Terrain write; all earlier checks, full_r9 and the
+-- candidate set stay READ-ONLY and byte-identical. Both new names are appended AFTER KINCIR_ROT
+-- and every failing path emits BOTH of them at measured 0. CLOTH_SWAY is intentionally NOT checked:
+-- item 85 (wind_r8) owns sway, is off by default and candidates are single-active.
 -- The mutating checks call enable(id)/disable() and
 -- restore the prior active candidate at the end; ADDITIVE_STAGE uses enableAdditive(id)/
 -- disableAll(). All are safe to repeat.
@@ -305,6 +313,8 @@ local ORDER = {
 	"IRRIGATION_PARTS",
 	"IRRIGATION_WATER_ON_TERRACE",
 	"KINCIR_ROT",
+	"LAUNDRY_PARTS",
+	"LAUNDRY_CLOTH_CLEAR",
 }
 
 local GRASS_Y = 4
@@ -8334,6 +8344,311 @@ do
 					end
 				end
 			end
+		end
+	end
+end
+
+do
+-- 9p. WORK_QUEUE section N item 115: laundry_r8, hanging laundry behind two houses. ONE mutating
+-- SERVER block emits LAUNDRY_PARTS and LAUNDRY_CLOTH_CLEAR. It stages laundry_r8 once, counts every
+-- tagged original-Part kind against Shared.ModelMapLaundryR8.counts(), then probes EVERY tagged
+-- cloth (sarung/batik/kebaya) with a temporary GetPartsInPart Part against the collidable wall
+-- parts of the two hub Models. The staged folder and the probe are excluded from the overlap; all
+-- probes are destroyed in a pcall path; the prior candidate is restored on every staging path.
+-- Anti-vacuity: missing folder/data, zero cloths, unreadable walls or any failed probe is a FAIL.
+-- CLOTH_SWAY is intentionally NOT checked here: item 85 (wind_r8) owns sway, is off by default and
+-- candidates are single-active. No decal/brand/material verdict, no Terrain write; all earlier
+-- checks, DOOR_CLEAR, BLDG_DOOR and full_r9 stay READ-ONLY and byte-identical.
+	local LY_ID = "laundry_r8"
+	local LY_FOLDER_FALLBACK = "LookDevLaundryR8_laundry_r8"
+
+	local function lyFail(partsDetail, clearDetail)
+		emit("LAUNDRY_PARTS", false, 0, ">=40", partsDetail)
+		emit("LAUNDRY_CLOTH_CLEAR", false, 0, "0", clearDetail)
+	end
+
+	local okLyModules, lyModules = pcall(function()
+		return {
+			data = require(game.ReplicatedStorage.Shared.ModelMapLaundryR8),
+			look = require(game.ReplicatedStorage.Shared.LookDev),
+			review = require(game.ReplicatedStorage.Shared.LookDevReview),
+		}
+	end)
+	local lyData, lyLook, lyReview = nil, nil, nil
+	if okLyModules and type(lyModules) == "table" then
+		if type(lyModules.data) == "table" then
+			lyData = lyModules.data
+		end
+		if type(lyModules.look) == "table" then
+			lyLook = lyModules.look
+		end
+		if type(lyModules.review) == "table" then
+			lyReview = lyModules.review
+		end
+	end
+	local lyFolderName = LY_FOLDER_FALLBACK
+	if lyData and type(lyData.folderName) == "string" then
+		lyFolderName = lyData.folderName
+	end
+
+	local lyRunService = service("RunService")
+	local okLyServer, lyIsServer = false, false
+	if lyRunService then
+		okLyServer, lyIsServer = pcall(function()
+			return (lyRunService :: any):IsServer()
+		end)
+	end
+
+	if
+		not lyData
+		or not lyLook
+		or not lyReview
+		or not okLyServer
+		or not lyIsServer
+		or type(lyLook.enable) ~= "function"
+		or type(lyLook.disable) ~= "function"
+		or type(lyLook.current) ~= "function"
+		or type(lyReview.enable) ~= "function"
+		or type(lyData.counts) ~= "function"
+		or type(lyData.folderName) ~= "string"
+		or type(lyData.familyId) ~= "string"
+		or type(lyData.stageAttribute) ~= "string"
+		or type(lyData.kindAttribute) ~= "string"
+		or type(lyData.MIN_PARTS) ~= "number"
+		or type(lyData.KINDS) ~= "table"
+		or type(lyData.CLOTH_KINDS) ~= "table"
+		or type(lyData.WALL_NAMES) ~= "table"
+		or type(lyData.HUB_MODELS) ~= "table"
+	then
+		lyFail(
+			{ reason = "server VM / laundry data / LookDev / review modules not readable", folderPresent = folderNamed(lyFolderName) ~= nil },
+			{ reason = "server VM / laundry data / LookDev / review modules not readable", antiVac = "readable data + folder + cloths + walls + 0 wall hits required" }
+		)
+	else
+		local priorId = nil
+		local okPrior, value = pcall(function()
+			return lyLook.current()
+		end)
+		if okPrior then
+			priorId = value
+		end
+		local function lyRestorePrior()
+			pcall(function()
+				lyLook.disable()
+			end)
+			if type(priorId) == "string" then
+				pcall(function()
+					lyLook.enable(priorId)
+				end)
+			end
+		end
+
+		local okEnable, enabled, whyEnable = pcall(function()
+			return lyReview.enable(LY_ID, game, { studio = true })
+		end)
+		if not okEnable or enabled == false then
+			lyRestorePrior()
+			lyFail(
+				{ reason = "enable:" .. tostring(whyEnable or enabled) },
+				{ reason = "enable:" .. tostring(whyEnable or enabled) }
+			)
+		else
+			local lyFolders = {}
+			for _, inst in ipairs(childList(workspace)) do
+				local okName, name = pcall(function()
+					return (inst :: any).Name
+				end)
+				if okName and name == lyFolderName then
+					lyFolders[#lyFolders + 1] = inst
+				end
+			end
+			local folder = lyFolders[1]
+			local folderPresent = #lyFolders == 1 and folderNamed(lyFolderName) ~= nil
+
+			-- Wall parts live under workspace.World hub Models named in the pure data module.
+			local wallSet = {}
+			for _, name in ipairs(lyData.WALL_NAMES) do
+				wallSet[name] = true
+			end
+			local models = {}
+			local walls = {}
+			local world = nil
+			pcall(function()
+				world = workspace:FindFirstChild("World")
+			end)
+			if world then
+				for _, name in pairs(lyData.HUB_MODELS) do
+					local model = nil
+					pcall(function()
+						model = world:FindFirstChild(name)
+					end)
+					if model then
+						models[#models + 1] = model
+						for _, inst in ipairs(descendantList(model)) do
+							local okName, partName = pcall(function()
+								return (inst :: any).Name
+							end)
+							if okName and wallSet[partName] then
+								local okBase, isBase = pcall(function()
+									return (inst :: any):IsA("BasePart")
+								end)
+								if okBase and isBase then
+									walls[#walls + 1] = inst
+								end
+							end
+						end
+					end
+				end
+			end
+
+			local clothSet = {}
+			for _, kind in ipairs(lyData.CLOTH_KINDS) do
+				clothSet[kind] = true
+			end
+			local expected = lyData.counts()
+			local measured = {}
+			for _, kind in ipairs(lyData.KINDS) do
+				measured[kind] = 0
+			end
+			local tagged, cloths = {}, {}
+			local total = 0
+			for _, inst in ipairs(descendantList(workspace)) do
+				local okBase, isBase = pcall(function()
+					return (inst :: any):IsA("BasePart")
+				end)
+				if okBase and isBase and attr(inst, lyData.stageAttribute) == lyData.familyId then
+					local okKind, kind = pcall(function()
+						return (inst :: any):GetAttribute(lyData.kindAttribute)
+					end)
+					tagged[#tagged + 1] = inst
+					total += 1
+					if okKind and type(kind) == "string" then
+						if measured[kind] ~= nil then
+							measured[kind] += 1
+						end
+						if clothSet[kind] then
+							cloths[#cloths + 1] = inst
+						end
+					end
+				end
+			end
+			local kindsExact = true
+			for _, kind in ipairs(lyData.KINDS) do
+				if measured[kind] ~= expected[kind] then
+					kindsExact = false
+				end
+			end
+			local partsPass = folderPresent
+				and total >= lyData.MIN_PARTS
+				and total == expected.total
+				and #tagged == total
+				and kindsExact
+
+			-- One temporary probe per cloth. Size/CFrame come from the real staged cloth; the
+			-- staged folder AND the probe are excluded, and the probe is destroyed on every path.
+			local function lyProbe(cloth)
+				local probe = nil
+				local params = nil
+				local okSetup, setupErr = pcall(function()
+					probe = Instance.new("Part")
+					local size = cloth.Size
+					probe.Size = Vector3.new(size.X, size.Y, size.Z)
+					probe.CFrame = cloth.CFrame
+					probe.CanCollide = false
+					probe.Transparency = 1
+					probe.Anchored = false
+					probe.Parent = workspace
+					params = OverlapParams.new()
+					params.FilterType = Enum.RaycastFilterType.Exclude
+					local excludes = { probe }
+					if folder then
+						excludes[#excludes + 1] = folder
+					end
+					params.FilterDescendantsInstances = excludes
+				end)
+				if not okSetup then
+					pcall(function()
+						if probe then
+							probe:Destroy()
+						end
+					end)
+					return nil, tostring(setupErr)
+				end
+				local okHits, hits = pcall(function()
+					return workspace:GetPartsInPart(probe, params)
+				end)
+				pcall(function()
+					probe:Destroy()
+				end)
+				if not okHits or type(hits) ~= "table" then
+					return nil, "GetPartsInPart failed"
+				end
+				local count = 0
+				for _, hit in ipairs(hits) do
+					local okCollide, collide = pcall(function()
+						return (hit :: any).CanCollide
+					end)
+					if okCollide and collide == true then
+						local okName, partName = pcall(function()
+							return (hit :: any).Name
+						end)
+						if okName and wallSet[partName] then
+							for _, model in ipairs(models) do
+								local okDesc, desc = pcall(function()
+									return (hit :: any):IsDescendantOf(model)
+								end)
+								if okDesc and desc then
+									count += 1
+									break
+								end
+							end
+						end
+					end
+				end
+				return count, nil
+			end
+
+			local probed, wallHits = 0, 0
+			local probeErrors = {}
+			for _, cloth in ipairs(cloths) do
+				local n, err = lyProbe(cloth)
+				if type(n) == "number" then
+					probed += 1
+					wallHits += n
+				else
+					probeErrors[#probeErrors + 1] = tostring(err)
+				end
+			end
+			local clearPass = folderPresent
+				and #cloths > 0
+				and #walls > 0
+				and probed == #cloths
+				and wallHits == 0
+
+			lyRestorePrior()
+			emit("LAUNDRY_PARTS", partsPass, total, ">=40", {
+				reason = if partsPass then nil else "kind counts / folder mismatch",
+				folders = #lyFolders,
+				folderPresent = folderPresent,
+				total = total,
+				expectedTotal = expected.total,
+				tagged = #tagged,
+				minParts = lyData.MIN_PARTS,
+				measured = measured,
+				expected = expected,
+				kindsExact = kindsExact,
+				antiVac = "one exact folder + total >= MIN_PARTS + every kind exact",
+			})
+			emit("LAUNDRY_CLOTH_CLEAR", clearPass, wallHits, "0", {
+				reason = if clearPass then nil else "cloth / wall / probe anti-vacuity failed",
+				clothCount = #cloths,
+				probed = probed,
+				wallModels = #models,
+				wallParts = #walls,
+				wallHits = wallHits,
+				probeErrors = probeErrors,
+				antiVac = "every tagged cloth probed + readable wall parts + 0 wall hits",
+			})
 		end
 	end
 end

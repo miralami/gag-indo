@@ -197,6 +197,7 @@ local specs = {
 	require("./specs/perahu_r8_spec"),
 	require("./specs/irrigation_r8_spec"),
 	require("./specs/kincir_r8_spec"),
+	require("./specs/laundry_r8_spec"),
 	require("./specs/ronda_tower_r9_spec"),
 	require("./specs/rocks_r9_spec"),
 	require("./specs/streetfurn_r8_spec"),

@@ -55,6 +55,7 @@
 --   src/server/World/LookDevSoundsR8.luau -- candidate "sounds_r8" (six positional Creator Store beds, server-only)
 --   src/server/World/LookDevIrrigationR8.luau -- candidate "irrigation_r8" (sawah irrigation and field life, server-only)
 --   src/server/World/LookDevKincirR8.luau -- candidate "kincir_r8" (rotating river-bank waterwheel, server-only)
+--   src/server/World/LookDevLaundryR8.luau -- candidate "laundry_r8" (hanging laundry behind two houses, server-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -187,6 +188,7 @@ LookDev.IDS = {
 	"perahu_r8",
 	"irrigation_r8",
 	"kincir_r8",
+	"laundry_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -1245,6 +1247,21 @@ LookDev.candidates = {
 		minParts = 20,
 		degPerSec = 6,
 	},
+
+	laundry_r8 = {
+		id = "laundry_r8",
+		title = "Hanging laundry — washing lines with a sarung, batik cloth and kebaya behind the Pasar and Tengkulak Gelap houses, plus a hammock and a tikar under each porch (round 10, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Original procedural Parts, no asset IDs, no brand logos, no decals and no terrain edit.
+		-- Pure recipe in Shared.ModelMapLaundryR8; positions come from MapSpec.hub/hubPoint, with
+		-- cloths behind local -Z and hammock/tikar on the local +Z porch. Static only: CLOTH_SWAY
+		-- belongs to item 85 (wind_r8), which is off by default and single-active. No new camera.
+		idsSource = "Shared.ModelMapLaundryR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		partCount = 44,
+		minParts = 40,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1587,6 +1604,15 @@ function LookDev.plan(id: string): any
 			partCount = c.partCount,
 			minParts = c.minParts,
 			degPerSec = c.degPerSec,
+		}
+	elseif id == "laundry_r8" then
+		local c = LookDev.candidates.laundry_r8
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			partCount = c.partCount,
+			minParts = c.minParts,
 		}
 	end
 	return nil

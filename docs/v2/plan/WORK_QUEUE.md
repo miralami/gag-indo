@@ -1128,7 +1128,19 @@ Same rules as section M (candidates off by default, Studio PASS per item, no gam
   18 studs off centreline, nearest face 14, outside bridge span. All existing checks byte-identical.
   ORDER name appended last so all 19 ORDER-literal assertions hold. 2756 tests, selene 0/0/0. Candidate
   off by default; no shipping default changed. No new camera (item 133).
-- [ ] 115. **`laundry_r8`: hanging laundry.** Washing lines with sarung, batik cloth and kebaya hanging between posts behind two houses, plus a hammock and a tikar under the porch. Use solid colours or simple patterned decals made from existing assets; no brand logos. **CHECKS:** counts; cloths do not intersect walls (`GetPartsInPart` is empty); `CLOTH_SWAY` is optional and tied to item 85 when present.
+- [x] 115. **`laundry_r8`: hanging laundry.** Washing lines with sarung, batik cloth and kebaya hanging between posts behind two houses, plus a hammock and a tikar under the porch. Use solid colours or simple patterned decals made from existing assets; no brand logos. **CHECKS:** counts; cloths do not intersect walls (`GetPartsInPart` is empty); `CLOTH_SWAY` is optional and tied to item 85 when present.
+  Done 2026-11-22: NEW pure `ModelMapLaundryR8` (44 original Parts in 7 kinds: post 8, line 4, sarung 4,
+  batik 4, kebaya 4 — two washing lines/house behind pasar+gelap; hammock 10, tikar 10 — under each +Z
+  porch; solid Wood/Fabric colours only, no asset IDs/decals/brand logos; behind lz -31/-29 & -19/-17,
+  porch lz +22 & +10) + NEW server `LookDevLaundryR8` applier (anchored, non-collidable, tagged, live
+  MapSpec.hub/hubPoint, exact folder save/detach-restore, no terrain edit, no animation). New ID 87 (count
+  literals 86->87 across 40 specs + 3 extra), review path, 2 harness checks, new spec (10 tests), CANDIDATES
+  pending row. Real Studio fresh-Play Server-VM PASS (`CHECK_115.txt`, SEEN-IN-STUDIO): `LAUNDRY_PARTS` 44>=40
+  all kind counts match, `LAUNDRY_CLOTH_CLEAR` 0 wall hits / 12 cloths probed / 9 wall parts / 2 hub Models,
+  synthetic wall-overlap probe correctly flagged (non-vacuous), disable/re-enable PASS, zero staging warnings.
+  `CLOTH_SWAY` SKIPPED: optional, item 85 wind_r8 owns sway and candidates are single-active. ORDER names
+  appended last so all contiguous ORDER-literal assertions hold. All existing checks byte-identical. 2766
+  tests, selene 0/0/0. Candidate off by default; no shipping default changed. No new camera (item 133).
 - [ ] 116. **`layangan_r8`: kites.** Four layangan (kites) flying at 60–90 studs of altitude near the field, each with a thin tail and a string (`Beam`) down to a small kid-sized point on the ground; they rock gently. **CHECKS:** `KITE_COUNT` = 4; `KITE_COST` under 0.2 ms per frame; strings don't pass through buildings (raycast from kite to anchor hits nothing).
 - [ ] 117. **`seated_r8`: seated villagers at the warung.** Use `HumanoidDescription` NPCs (same catalog outfits as npcs_r7) seated on the warung benches with `Humanoid.Sit` driven by a `Seat`, and a few glasses and plates on the table. At most 4. **CHECKS:** `SEATED_COUNT` ≤ 4; each `Humanoid.Sit` is true after 3 s; none intersects the bench.
 - [ ] 118. **`crops_showcase_r8`: crop review plots.** For the designer's review: one plot per growth stage (bibit, tumbuh, siap) showing all 12 crops in rows, and a camera for each in `REVIEW_CAMERAS.md`. No gameplay state is touched; it is staged geometry only. **CHECKS:** `CROPS_STAGED` = 36; `CROP_GROWTH` re-run.

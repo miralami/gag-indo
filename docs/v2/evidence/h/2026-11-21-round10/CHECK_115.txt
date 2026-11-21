@@ -1,0 +1,98 @@
+CHECK 115 — laundry_r8 hanging laundry (WORK_QUEUE section N, item 115)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Fresh Play, Server DataModel. Place NOT saved, nothing published.
+
+== Target (verbatim) ==
+"**`laundry_r8`: hanging laundry.** Washing lines with sarung, batik cloth and kebaya hanging between
+posts behind two houses, plus a hammock and a tikar under the porch. Use solid colours or simple
+patterned decals made from existing assets; no brand logos. **CHECKS:** counts; cloths do not intersect
+walls (`GetPartsInPart` is empty); `CLOTH_SWAY` is optional and tied to item 85 when present."
+
+== Implementation (all OFF by default; no shipping default changed) ==
+- NEW `src/shared/ModelMapLaundryR8.luau`: pure, engine-API-free data. 44 original Parts in 7 kinds:
+  post 8, line 4, sarung 4, batik 4, kebaya 4, hammock 10, tikar 10. Per house (pasar + gelap): TWO
+  washing lines between two posts, each with a plain-solid-fill sarung, batik cloth and kebaya (12 cloth
+  Parts total); a hammock (sling + 2 angled ropes + spreader bar + pillow = 5 Parts) and a tikar (woven
+  mat + 2 wooden rollers + 2 tie cords = 5 Parts) under the +Z front porch. Plain RGB via Color3.fromRGB
+  and real built-in tokens Wood/Fabric only — neither stale Painted nor stale Leaf used; NO asset IDs,
+  NO decals, NO brand logos, no terrain edit, no engine API in the data module. CLOTH_SWAY deliberately
+  ABSENT: item 85 (wind_r8) already owns sway, is done but OFF by default, and candidates are
+  single-active, so a second sway owner would duplicate it — static cloth Parts only. SITE derivation:
+  copies only hub footprint depth (pasar 52/halfD 26, gelap 28/halfD 14); BEHIND = local -Z at
+  lz = -(halfD + 5) with 2-stud line spacing (pasar -31/-29, gelap -19/-17); PORCH = local +Z at
+  lz = halfD - 4 (pasar +22, gelap +10); both yaw 0. Washing lines/hangs sit >=4 studs clear of the
+  BackWall plane (-halfD + 0.25).
+- NEW `src/server/World/LookDevLaundryR8.luau`: pcall-guarded server applier, folder
+  `LookDevLaundryR8_laundry_r8`; all 44 Parts `Anchored=true`, `CanCollide=false`, tagged stage +
+  `LaundryKind`; positions from live `MapSpec.hub`/`hubPoint`/`GROUND_Y`. Exact prior-folder
+  save/detach-restore; `LookDev.register(Data.familyId, applier)`. NO terrain read/write, no animation.
+- `src/shared/LookDev.luau`: `laundry_r8` appended as ID 87 (86 -> 87); descriptor (part count 44,
+  min 40) + plan branch + header comment. `src/shared/LookDevReview.luau`: server path
+  `{ "World", "LookDevLaundryR8" }`.
+- `tools/studio/review_check_r8.luau`: `LAUNDRY_PARTS` + `LAUNDRY_CLOTH_CLEAR` appended LAST in ORDER
+  (after `KINCIR_ROT`, so all contiguous ORDER-literal assertions stay intact). New `do...end` block at
+  section `-- 9p. WORK_QUEUE section N item 115` (line 8351+). `LAUNDRY_PARTS` counts tagged parts by
+  kind vs `ModelMapLaundryR8.counts()` (total >= MIN_PARTS, every kind exact). `LAUNDRY_CLOTH_CLEAR`:
+  saves the prior candidate, stages laundry, resolves hub Models `Pasar`/`TengkulakGelap` under
+  `workspace.World`, collects wall parts by name (BackWall/SideWall/LoftWall/FrontWall). For EVERY
+  tagged cloth (sarung/batik/kebaya) it creates a temporary probe Part at the cloth's CFrame/Size
+  (CanCollide=false, Transparency=1, Anchored=false), calls `workspace:GetPartsInPart` with
+  `OverlapParams{FilterType=Exclude, FilterDescendantsInstances={probe,folder}}`, destroys the probe,
+  and counts collidable hits that are wall-named descendants of the two hub Models. PASS only if
+  folder present ∧ cloths > 0 ∧ wall parts > 0 ∧ probed == cloths ∧ 0 wall hits ∧ 0 probe errors;
+  all-FAIL paths emit BOTH checks at measured 0 with a reason; prior candidate restored on every path.
+  Every existing check (incl. DOOR_CLEAR / BLDG_DOOR), SAWAH_TOPS, river checks and full_r9 are
+  byte-identical. Mutating-set comment updated.
+- NEW `tests/specs/laundry_r8_spec.luau` (10 tests) + registration in `tests/run.luau`: locks
+  counts/MIN_PARTS, valid material tokens (forbid both stale tokens), CLOTH_KINDS, behind/porch offsets,
+  wall-name set, `#IDS==87`/`IDS[87]`, Review path, plan, ORDER strings + emit for both distinct names,
+  applier strings, no asset IDs, CANDIDATES pending row, CLOTH_SWAY absence.
+- Count literals bumped 86 -> 87 across 40 specs plus 3 extra count literals
+  (`review_round3_bugfix_spec`, `sky_map_r6_spec`, `terrain_map_r6_spec`); every changed spec diff line
+  verified to be only a count literal. Index-locked `IDS[n]` checks intact.
+- `docs/v2/visual/CANDIDATES.md`: pending 6-column row, verdict `pending - review in Studio (no brand
+  logos; solid colours only; CLOTH_SWAY skipped per item 85 single-active)`, existing `REVIEW_ROUND9.md`
+  render path. No new camera (item 133 owns camera additions).
+
+== Method (fresh Play, Server VM, single-active stage) ==
+`LookDevReview.enable("laundry_r8", game, {studio=true})` returned true; the staging folder held 44
+BaseParts matching `ModelMapLaundryR8.counts()` per kind, 12 tagged cloths, 0 anomalous (all anchored
+and non-collidable), ZERO laundry-specific warnings. The two check blocks in `review_check_r8.luau` were
+executed as an equivalent ad hoc execute_luau probe (items 103/105/108..114 precedent — the whole harness
+file cannot be injected with a pre-set candidate state), using the live staged parts and the real collidable
+wall parts in the two hub Models. A synthetic wall-overlap probe and disable/re-enable lifecycle were
+added as extra evidence.
+
+== Verbatim check lines (single canonical run, all PASS) ==
+CHECK LAUNDRY_PARTS PASS 44 >=40 kinds=post=8 line=4 sarung=4 batik=4 kebaya=4 hammock=10 tikar=10
+CHECK LAUNDRY_CLOTH_CLEAR PASS wallHits=0 cloths=12 probed=12 wallModels=2 wallParts=9 errors=0
+SITE pasar halfD=26 behind=-31.0 porch=+22.0 yaw=0
+SITE gelap halfD=14 behind=-19.0 porch=+10.0 yaw=0
+All 44 tagged parts counted by kind, total >= 40, every kind exact. All 12 tagged cloths probed against
+9 readable wall parts in 2 hub Models, ZERO wall hits, 0 probe errors. Washing lines sit behind each house
+(local -Z beyond the half-depth) and hammock/tikar on the +Z porch.
+
+== Non-vacuity / discrimination evidence ==
+DISCRIM wallProbe hits=1 flagged=true (expect >=1 / true)
+A probe placed exactly at a real wall's CFrame/Size produced 1 collidable wall hit under the SAME
+GetPartsInPart predicate — the check would flag a real cloth/wall overlap; the actual 12 staged cloths
+produced 0. All staged parts are CanCollide=false, so a collidable-only filter on the staged parts would
+have been vacuous; the check tests every tagged cloth by copying it into a temporary overlapping probe
+and counts only collidable WALL hits.
+
+== Lifecycle evidence ==
+CHECK LAUNDRY_RESTORE PASS gone=true back=true parts=44
+`disable` removed the folder; a second `enable` re-created it with all 44 parts; `disableAll` at end;
+any prior candidate restored. No Terrain write anywhere, so Terrain-only checks cannot be affected.
+
+== Validation / scope ==
+lune run tests/run.luau: All 2766 tests passed. selene src: 0 errors / 0 warnings / 0 parse errors.
+stylua --check clean on all changed Luau files. git diff --check clean. Play stopped after verification;
+no place saved, nothing published. No visual, copy or aural verdict. Candidate off by default; no
+shipping default changed. No asset IDs, no brand marks, no decals, no terrain edit, no new camera.
+All existing checks byte-identical. `CLOTH_SWAY` skipped (optional, item 85 single-active).
+
+Status: SEEN-IN-STUDIO (fresh Play Server VM, laundry_r8 staged; LAUNDRY_PARTS 44>=40 all counts match,
+LAUNDRY_CLOTH_CLEAR 0 wall hits / 12 cloths probed / 9 wall parts / 2 hub Models, synthetic wall overlap
+correctly flagged, disable/re-enable PASS, zero staging warnings).

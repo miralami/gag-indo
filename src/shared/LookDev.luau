@@ -136,6 +136,7 @@ LookDev.IDS = {
 	"facades_r8",
 	"hubprops_r8",
 	"forest_pines_legacy",
+	"blocks_r9",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -818,6 +819,16 @@ LookDev.candidates = {
 		idsSource = "Shared.ModelMapForestR9",
 		render = "docs/v2/visual/art/models_r8/forest/README.md",
 	},
+
+	blocks_r9 = {
+		id = "blocks_r9",
+		title = "Village blocks — 72 medium trees (4 stand-in species) and 96 shrubs/flower patches with 3-stud spacing (round 9, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Reuses only the verified R7 IDs; the pure slot/zone data is Shared.ModelMapBlocksR9.
+		idsSource = "Shared.ModelMapBlocksR9",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1001,6 +1012,7 @@ function LookDev.plan(id: string): any
 		or id == "water_r8_a"
 		or id == "water_r8_b"
 		or id == "water_r8_c"
+		or id == "blocks_r9"
 	then
 		local c = LookDev.candidates[id]
 		return {

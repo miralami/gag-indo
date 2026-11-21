@@ -301,3 +301,30 @@ the CHECK evidence and tracker ticks. No place is saved or published.
    `LOAD_FAILURES 0 0` and `LOOKDEV_LEAK 0 leaks` too.
 5. Stop Play without saving. Visual grading — do the canopy trees, pisang/bambu groups and door
    beds read as the canonical village? — stays the designer's.
+
+## 16. Item-145 run — `blocks_r9` village grass blocks (WORK_QUEUE section O)
+
+Run-note recipe. **No Studio result is claimed** by the implementation agent; the main session owns
+the CHECK evidence, tracker ticks and any visual verdict. No place is saved or published.
+
+1. Stop Play. Inject at runtime (not saved): `ReplicatedStorage.Shared.ModelMapBlocksR9`, the
+   changed `ReplicatedStorage.Shared.LookDev` and `LookDevReview`,
+   `ServerScriptService.Server.World.LookDevBlocksR9`, and the changed
+   `tools/studio/review_check_r8.luau`. Confirm the R4/R6 baked asset folders for mangga, bambu,
+   pisang, teh-tehan, shrubs, bunga, kembang sepatu and alang-alang exist under
+   `ServerStorage.LookDevAssets`; no new asset ID is introduced.
+2. Start a FRESH real Play session in the SERVER datamodel. Stage ONLY this candidate additively:
+   `require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("blocks_r9", game)`.
+3. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the SERVER
+   VM. Read the three new READ-ONLY lines: `CHECK BLOCK_TREES PASS <n> >=60` (72 tagged trees at
+   6-12 studs in pure data), `CHECK BLOCK_SPECIES PASS 4 >=4` (mangga/bambu/pisang/teh-tehan
+   stand-ins) and `CHECK AVATAR_FIT PASS 0 0` (no collidable staged part intersects a 7 x 7.25 x 4
+   gauge along any of the six PATH_REACH hub-door corridors). A missing folder, tag or failed Part
+   read FAILs at measured 0 for the count lines and 6 for AVATAR_FIT — never a vacuous pass.
+4. In the SAME run read `CHECK VEG_OVERLAP ... 0`, `CHECK PATH_REACH ... 0` and `CHECK PERF_BUDGET ...`
+   (record the measured value; flag over the Sedang proxy, do not weaken the target). PATH_REACH
+   reads the hubveg folder, so stage `hubveg_r8` additively too if it is not already staged; do not
+   change the check. Read the guards `LOAD_FAILURES 0 0` and `LOOKDEV_LEAK 0 leaks`.
+5. Stop Play without saving. `AVATAR_FIT` covers only this section-O block subset; item 106's full
+   16/16 PathfindingService audit remains separate. Visual grading — do the blocks read as a
+   canonical full kampung, not an orchard grid? — stays the designer's.

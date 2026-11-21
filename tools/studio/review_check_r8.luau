@@ -113,6 +113,9 @@ local ORDER = {
 	"HUB_TREES",
 	"VEG_OVERLAP",
 	"PATH_REACH",
+	"BLOCK_TREES",
+	"BLOCK_SPECIES",
+	"AVATAR_FIT",
 	"PLOT_FENCE",
 	"PLOT_FENCE_VISIBLE",
 	"GATE_CLEAR",
@@ -1406,6 +1409,187 @@ if not pathLaneOk then
 	pathDetail.reason = "MapSpec / hubveg folder not readable"
 end
 emit("PATH_REACH", pathLaneOk and blockedLanes == 0, blockedLanes, 0, pathDetail)
+
+-- BLOCK_TREES / BLOCK_SPECIES / AVATAR_FIT (section-O item 145, all READ-ONLY). They inspect only
+-- the staged LookDevBlocksR9_blocks_r9 folder, stage nothing, and FAIL at measured 0/6 when that
+-- folder or its tags are missing. AVATAR_FIT reuses PATH_REACH's six local +Z door corridors but
+-- checks a 7 x 7.25 x 4 avatar gauge against COLLIDABLE staged block parts. All blocks_r9 parts are
+-- non-collidable by construction (see the applier), so a correctly staged candidate measures 0.
+-- This is the section-O block subset only: item 106's full 16/16 PathfindingService audit stays a
+-- separate item and no such claim is made here. The Studio VM has no Part.GetBoundingBox, so all
+-- part boxes are CFrame+Size corner math.
+local BLOCKS_FOLDER = "LookDevBlocksR9_blocks_r9"
+local blocksFolder = folderNamed(BLOCKS_FOLDER)
+local blockInstances, blockTrees, blockSpeciesSeen = {}, {}, {}
+for _, inst in ipairs(descendantList(blocksFolder)) do
+	if attr(inst, "LookDevBlocksR9") == "blocks_r9" then
+		blockInstances[#blockInstances + 1] = inst
+		if attr(inst, "BlockTree") == true then
+			local height = attr(inst, "BlockTreeHeight")
+			if type(height) == "number" and height >= 6 and height <= 12 then
+				blockTrees[#blockTrees + 1] = inst
+			end
+			local species = attr(inst, "BlockSpecies")
+			if type(species) == "string" and species ~= "" then
+				blockSpeciesSeen[species] = true
+			end
+		end
+	end
+end
+local blockTreeCount = #blockTrees
+local blockSpeciesCount = 0
+for _ in pairs(blockSpeciesSeen) do
+	blockSpeciesCount += 1
+end
+emit(
+	"BLOCK_TREES",
+	blocksFolder ~= nil and blockTreeCount >= 60,
+	blockTreeCount,
+	60,
+	{ folder = blocksFolder ~= nil, staged = #blockInstances, speciesSeen = blockSpeciesCount }
+)
+emit(
+	"BLOCK_SPECIES",
+	blocksFolder ~= nil and blockTreeCount > 0 and blockSpeciesCount >= 4,
+	blockSpeciesCount,
+	4,
+	{ folder = blocksFolder ~= nil, trees = blockTreeCount }
+)
+
+-- PATH_REACH computes the same lanes but requires the hubveg folder to be staged; rebuild the
+-- identical six-lane geometry here so blocks_r9 alone can still be graded.
+local avatarLanes = {}
+if #pathLanes == #hubOrder then
+	avatarLanes = pathLanes
+elseif mapSpecReady and type(MapSpec.hubPoint) == "function" then
+	for _, key in ipairs(hubOrder) do
+		local hub = hubCentres[key]
+		if hub and type(hub.depth) == "number" then
+			local corners = {
+				{ -PATH_LANE_HALF, hub.depth / 2 },
+				{ PATH_LANE_HALF, hub.depth / 2 },
+				{ -PATH_LANE_HALF, hub.depth / 2 + PATH_LANE_LENGTH },
+				{ PATH_LANE_HALF, hub.depth / 2 + PATH_LANE_LENGTH },
+			}
+			local minX, maxX, minZ, maxZ = math.huge, -math.huge, math.huge, -math.huge
+			local okLane = true
+			for _, corner in ipairs(corners) do
+				local okPoint, x, z = pcall(function()
+					return MapSpec.hubPoint(hub, corner[1], corner[2])
+				end)
+				if not okPoint or type(x) ~= "number" or type(z) ~= "number" then
+					okLane = false
+					break
+				end
+				minX, maxX = math.min(minX, x), math.max(maxX, x)
+				minZ, maxZ = math.min(minZ, z), math.max(maxZ, z)
+			end
+			if okLane then
+				avatarLanes[#avatarLanes + 1] = { hub = key, minX = minX, maxX = maxX, minZ = minZ, maxZ = maxZ }
+			end
+		end
+	end
+end
+
+local function partAABB(part)
+	local ok, box = pcall(function()
+		if not part:IsA("BasePart") then
+			return nil
+		end
+		local cf, size = part.CFrame, part.Size
+		local minX, minY, minZ = math.huge, math.huge, math.huge
+		local maxX, maxY, maxZ = -math.huge, -math.huge, -math.huge
+		for _, sx in ipairs({ -1, 1 }) do
+			for _, sy in ipairs({ -1, 1 }) do
+				for _, sz in ipairs({ -1, 1 }) do
+					local corner = cf * Vector3.new(sx * size.X / 2, sy * size.Y / 2, sz * size.Z / 2)
+					minX, maxX = math.min(minX, corner.X), math.max(maxX, corner.X)
+					minY, maxY = math.min(minY, corner.Y), math.max(maxY, corner.Y)
+					minZ, maxZ = math.min(minZ, corner.Z), math.max(maxZ, corner.Z)
+				end
+			end
+		end
+		return { minX = minX, maxX = maxX, minY = minY, maxY = maxY, minZ = minZ, maxZ = maxZ }
+	end)
+	if ok then
+		return box
+	end
+	return nil
+end
+
+local avatarGroundY = if mapSpecReady and type(MapSpec.GROUND_Y) == "number" then MapSpec.GROUND_Y else 0.5
+local avatarGaugeWidth, avatarGaugeHeight, avatarGaugeDepth = 7, 7.25, 4
+local collidableBoxes, unreadableParts = {}, 0
+if blocksFolder and #blockInstances > 0 then
+	for _, inst in ipairs(descendantList(blocksFolder)) do
+		local okCollide, collides = pcall(function()
+			return inst:IsA("BasePart") and inst.CanCollide == true
+		end)
+		if okCollide and collides then
+			local box = partAABB(inst)
+			if box then
+				collidableBoxes[#collidableBoxes + 1] = box
+			else
+				unreadableParts += 1
+			end
+		end
+	end
+end
+local avatarBlocked, avatarErrors = 0, 0
+if blocksFolder and #blockInstances > 0 and #avatarLanes == #hubOrder then
+	for _, lane in ipairs(avatarLanes) do
+		local alongX = lane.maxX - lane.minX > lane.maxZ - lane.minZ
+		local start = if alongX then lane.minX else lane.minZ
+		local span = if alongX then lane.maxX - lane.minX else lane.maxZ - lane.minZ
+		local crossMin = if alongX then lane.minZ else lane.minX
+		local crossMax = if alongX then lane.maxZ else lane.maxX
+		local crossCentre = (crossMin + crossMax) / 2
+		local gauges = math.max(1, math.floor(span / avatarGaugeDepth))
+		local hit = false
+		for index = 0, gauges - 1 do
+			local centre = start + (index + 0.5) * avatarGaugeDepth
+			local gauge = if alongX
+				then {
+					minX = centre - avatarGaugeDepth / 2,
+					maxX = centre + avatarGaugeDepth / 2,
+					minZ = crossCentre - avatarGaugeWidth / 2,
+					maxZ = crossCentre + avatarGaugeWidth / 2,
+				}
+				else {
+					minX = crossCentre - avatarGaugeWidth / 2,
+					maxX = crossCentre + avatarGaugeWidth / 2,
+					minZ = centre - avatarGaugeDepth / 2,
+					maxZ = centre + avatarGaugeDepth / 2,
+				}
+			gauge.minY, gauge.maxY = avatarGroundY, avatarGroundY + avatarGaugeHeight
+			for _, box in ipairs(collidableBoxes) do
+				local ox = math.min(box.maxX, gauge.maxX) - math.max(box.minX, gauge.minX)
+				local oy = math.min(box.maxY, gauge.maxY) - math.max(box.minY, gauge.minY)
+				local oz = math.min(box.maxZ, gauge.maxZ) - math.max(box.minZ, gauge.minZ)
+				if ox > OVERLAP_TOL and oy > OVERLAP_TOL and oz > OVERLAP_TOL then
+					hit = true
+					break
+				end
+			end
+			if hit then
+				break
+			end
+		end
+		if hit then
+			avatarBlocked += 1
+		end
+	end
+else
+	avatarErrors = 1
+	avatarBlocked = #hubOrder
+end
+emit("AVATAR_FIT", avatarErrors == 0 and unreadableParts == 0 and avatarBlocked == 0, avatarBlocked, 0, {
+	lanes = #avatarLanes,
+	gauge = { avatarGaugeWidth, avatarGaugeHeight, avatarGaugeDepth },
+	collidableParts = #collidableBoxes,
+	unreadable = unreadableParts,
+	reason = if avatarErrors > 0 then "blocks folder / lanes not readable" else nil,
+})
 
 -- 9c. r8 plots family (WORK_QUEUE item 71). Two CHECK families over the staged
 -- LookDevPlotsR8_plots_r8 folder. PLOT_FENCE counts fence segments per plot (min decides, never

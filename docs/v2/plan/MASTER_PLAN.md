@@ -65,6 +65,16 @@ gauges). FLAGGED, not hidden: staged PERF_BUDGET 799/500 (hubveg) / 848/500 (+fa
 Sedang proxy; item 144 has no perf clause, no check weakened, CANDIDATES.md records the flag, default
 look stays 334/500. Suite **2486 tests**; `selene src` 0/0/0.
 
+Item 145 COMPLETE: `blocks_r9` fills the village grass blocks with 72 medium trees (6-12 studs, 4
+species) and 96 shrubs, deterministic lattice with R5 exclusion zones, 3-stud spacing and review-camera
+sightline rejection, reusing verified R4/R6 IDs. Real Studio staged-Play PASS `BLOCK_TREES 72 >=60`,
+`BLOCK_SPECIES 4 >=4`, `VEG_OVERLAP 0 0` (with hubveg), `PATH_REACH 0 0`, `AVATAR_FIT 0 0`,
+`CAMERA_CLEAR 0 blocked/36` (`h/2026-11-21-round9/CHECK_145.txt`). First run correctly FAILED
+CAMERA_CLEAR 1/36 (a block tree in the hub_warung 6-stud sightline); data now excludes all 36 named
+camera rays, check unchanged. PERF_BUDGET recorded: 354/500 blocks alone, 819/500 with hubveg
+(flagged, item asks only that it be recorded); default look 334/500. Suite **2495 tests**;
+`selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

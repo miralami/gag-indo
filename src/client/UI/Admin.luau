@@ -201,7 +201,7 @@ local function build()
 		}),
 	})
 	-- The panel is 690 tall; shrink it to fit short phone screens (iPhone 14 landscape is 390).
-	local fit = Theme.new("UIScale", { Parent = frame })
+	local fit = Theme.new("UIScale", { Parent = gui })
 	local function refit()
 		local camera = workspace.CurrentCamera
 		local h = if camera then camera.ViewportSize.Y else 690
@@ -335,7 +335,7 @@ local function build()
 		LayoutOrder = nextOrder(),
 		Size = UDim2.new(1, 0, 0, 58),
 		Text = t("admin_idle"),
-		TextColor3 = Theme.accent,
+		TextColor3 = Theme.text,
 		TextWrapped = true,
 		TextYAlignment = Enum.TextYAlignment.Top,
 		Parent = frame,

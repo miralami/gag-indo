@@ -270,7 +270,7 @@ function Hud.mount(initialLang: string?)
 		Size = UDim2.new(1, -20, 0, 18),
 		Text = t("tutorial_card_title"),
 		Font = Theme.displayFont,
-		TextColor3 = Theme.merah,
+		TextColor3 = Theme.text,
 		TextScaled = false,
 		TextSize = 14,
 		TextXAlignment = Enum.TextXAlignment.Left,

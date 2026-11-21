@@ -1028,7 +1028,7 @@ local function buildDevice(ctx: any)
 				LayoutOrder = order,
 				Size = UDim2.new(1, 0, 0, 26),
 				Text = t("phone_pinjol_clear"),
-				TextColor3 = Theme.daun,
+				TextColor3 = Theme.text,
 				TextXAlignment = Enum.TextXAlignment.Left,
 				Parent = page,
 			})

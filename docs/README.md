@@ -45,6 +45,7 @@ when the task needs it.
 | [art/ICONS.md](v2/visual/art/ICONS.md), [art/TEXTURES.md](v2/visual/art/TEXTURES.md), [art/npcs.md](v2/visual/art/npcs.md) | Production briefs | LIVE |
 | [art/RESEARCH_VISUAL_TIPS.md](v2/visual/art/RESEARCH_VISUAL_TIPS.md) | Visual tips applied and the optimise-later backlog | LIVE |
 | [GRADE_R8.md](v2/visual/GRADE_R8.md) | Colour-grade safe ranges and scope for `grade_r8_a/b/c` (item 91) | LIVE |
+| [UI_THEME_AUDIT.md](v2/visual/UI_THEME_AUDIT.md) | Palette/font/corner bypass audit of `src/client/UI/**`; CHECK THEME_BYPASS baseline and designer radius decisions | LIVE |
 | [improvements/AI_ROBLOX_TIPS.md](improvements/AI_ROBLOX_TIPS.md) | 28 AI-workflow tips mapped to what we already do / should adopt | SNAPSHOT 2026-11-19 |
 | `art/map/full-package/` | Outside map brief | Reference; MAP_SPEC wins |
 | [mockups/juragan-ui.tokens.md](v2/visual/mockups/juragan-ui.tokens.md), `mockups/index.html` | UI mockups and tokens, not wired in | SNAPSHOT 2026-11-15 |

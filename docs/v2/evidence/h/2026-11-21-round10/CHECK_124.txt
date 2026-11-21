@@ -1,0 +1,52 @@
+CHECK 124 — phone-size UI bounds (WORK_QUEUE section N4, item 124)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Fresh Play, CLIENT DataModel. Place NOT saved, nothing published.
+
+== Target (verbatim) ==
+"**Phone-size UI bounds.** With the Device Simulator skill (`get_roblox_skill rbx-device-simulator-lua`) or an equivalent script, open each ScreenGui at 375×812, 812×375 and 1024×768 and measure that every visible `GuiObject` lies inside the safe area and no interactive element is smaller than 44×44 px. **CHECK `UI_BOUNDS`** per screen and size; fix the failures that are plain size or anchor bugs. Do not move layout the designer chose."
+
+== Method (rbx-device-simulator-lua skill loaded; fresh Play, CLIENT VM) ==
+- Loaded skill `rbx-device-simulator-lua` via get_roblox_skill. `StudioDeviceSimulatorService` device control confirmed live in Play/Client.
+- Built three CUSTOM devices (`CreateDeviceAsync`, Phone/Phone/Tablet form, PixelDensity 200) named UI375x812 / UI812x375 / UI1024x768. Stock devices add OS chrome (a 375x812 device gave a 375x792 viewport), so resolution was set to (832,375)/(812,395)/(1024,788) to land on EXACT camera viewports of 375x812, 812x375, 1024x768 (each confirmed from `camera.ViewportSize`).
+- For each viewport: enumerated every enabled non-system ScreenGui (Hud, Phone, Minigame, RaidOverlay, AdminPanel, Leaderboard, Toasts). System GUIs (Chat, BubbleChat, TouchGui, Freecam, Controller) excluded. Event-only overlays (Minigame/RaidOverlay/AdminPanel/Leaderboard) had their direct children force-visible during measurement and restored immediately after. `ScrollingFrame` descendants excluded (legitimately clipped by their scroller). Walked all GuiObjects; flagged any whose AbsolutePosition/AbsoluteSize rect falls outside the safe rect `{x=0, y=-GuiInset.Y, w=Viewport.X, h=Viewport.Y}` with a ±2 px tolerance; flagged TextButton/ImageButton with either axis <44 px; flagged any non-empty text with `TextFits==false`.
+- Cleanup: `StopSimulationAsync`, all three custom devices `RemoveDeviceAsync`, Play stopped, Edit mode.
+
+== Measurements (verbatim counts) ==
+All three viewports: 116 visible GuiObjects measured across 7 screens (Hud 25, Phone 3, Minigame 9, RaidOverlay 17, AdminPanel 51, Leaderboard 10, Toasts 1).
+
+  375x812 (portrait):
+    safe-area violations = 0
+    truncated text = 0
+    sub-44px interactive elements = 31
+  812x375 (landscape):
+    safe-area violations = 1  ->  AdminPanel.PanelShadow | 240,-182,580,508
+    truncated text = 0
+    sub-44px interactive elements = 31
+  1024x768 (tablet):
+    safe-area violations = 0
+    truncated text = 0
+    sub-44px interactive elements = 31
+
+== Safe-area finding: ONE plain bug (decorative shadow), not a text/layout change ==
+The lone violation is `AdminPanel.PanelShadow`, an auto-generated decoration from `Theme.dropShadow` (src/client/UI/Theme.luau:135-147), NOT an interactive element and NOT text. Root cause: `Admin.luau:204` parents the refit `UIScale` to `frame` (the Panel) only. `PanelShadow` is a SIBLING of `Panel` under the AdminPanel ScreenGui, so the scale is not applied to it; on short landscape the panel shrinks to fit but the full-size shadow stays and escapes the safe area (y=-182..508 vs safe y=-58..317). At 375x812 and 1024x768 no shrink is needed (scale=1) so the shadow fits — hence the single landscape violation.
+
+Live fix probe (812x375): reparenting the UIScale from `frame` to the ScreenGui (parent of both Panel and PanelShadow) produced Panel bounds IDENTICAL (334,12,478,305 before and after) and pulled the shadow INSIDE (240,-182,580,508 -> 336,14,480,307). This changes no designer-chosen panel size/position; it only makes the generated decoration track the existing refit. Classified as a plain anchor/scale bug — the kind the item authorises fixing — not a designer layout move. Probe restored the original parent before ending.
+
+== Sub-44px interactive elements: designer layout, NOT changed ==
+31 buttons are under 44x44 at every size: `Hud.Stats.LangToggle` 44x30; `Minigame.Scrim.Card.Auto` 170x42/262x42; `AdminPanel` row buttons ~56-96x34 (and ~22-41x14 at 812x375), perf switches 158x30/67x13, `AdminPanel.TextButton` 320x32/136x14; `Leaderboard` tabs 82x40/138x40/159x40 and Close 256x38/431x38/496x38. These are deliberate compact tool/HUD controls (admin panel, perf toggles, leaderboard tabs, language chip), not plain size/anchor bugs. Repo precedent is a ONE-axis 44 px touch contract (`src/shared/PhoneLayout.luau:6-34`, locked by `ui_touch_text_audit_spec`); the item's two-axis 44x44 is stricter. Per the item's "Do not move layout the designer chose", none were resized. Decision recorded for designer. No check was weakened.
+
+== CHECK UI_BOUNDS verdict (per screen and size) ==
+- Safe area: 375x812 PASS (0), 1024x768 PASS (0), 812x375 initially FAIL (1) on the PanelShadow plain bug. FIX APPLIED at `src/client/UI/Admin.luau:204` (`UIScale` parent `frame` -> `gui`) and RE-VERIFIED from a FRESH Play at 812x375: PanelShadow 240,-182,580,508 -> 336,14,480,307 (inside safe rect 0,-58,812,375), Panel bounds unchanged 334,12,478,305. All three sizes now 0 safe-area violations.
+- Touch target 44x44: 31 compact designer controls under size at all three viewports — NOT fixed (designer layout); recorded, not a regression.
+- Truncated text: 0 at all three sizes.
+Status of the measurement: SEEN-IN-STUDIO (live CLIENT VM at three exact viewports; counts above are verbatim). No visual "looks good" verdict from pixels; no screenshot claim.
+
+== Scope / non-vacuity ==
+- Non-vacuity: 116 GuiObjects/screen enumerated including force-shown overlays; a real violation (PanelShadow) was detected, so the probe is not vacuously passing.
+- No ScreenGui layout authored or saved; the only code change is the one-line UIScale reparent in Admin.luau:204, applied and re-verified in fresh Play (above). No place save, no publish, no Strings/camera/asset change.
+
+Status: SEEN-IN-STUDIO (objective live measurement at 3 exact viewports; 1 plain shadow-scale bug found, fixed at Admin.luau:204 and re-verified in fresh Play at 812x375 — shadow 336,14,480,307 inside safe, panel unchanged; 31 compact designer controls left unchanged and flagged). No visual/pixel verdict.
+
+== Formatting note (stylua) ==
+The 5 touched UI files are legacy CRLF and were ALREADY stylua-noncompliant at HEAD (long lines + CRLF vs stylua.toml `line_endings="Unix"`). Verified: formatting HEAD vs formatting the working tree differ ONLY in this batch's intended one-line edits (Admin.luau:204 UIScale parent + :338 colour; Hud:273; Leaderboard:163; Phone:1031; RaidOverlay:61) — zero NEW formatting violations introduced. Full reformat would churn 144 unrelated lines and flip legacy line endings; not done (out of scope). New spec/docs files are stylua-clean. `git diff --check` clean.

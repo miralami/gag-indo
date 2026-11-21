@@ -160,7 +160,7 @@ function LeaderboardUI.mount(lang: string)
 	function LeaderboardUI.render()
 		for id, tabButton in tabButtons do
 			tabButton.BackgroundColor3 = if id == current then Theme.accent else Theme.panelLight
-			tabButton.TextColor3 = if id == current then Theme.text else Theme.muted
+			tabButton.TextColor3 = Theme.text
 		end
 		local entries = boards[current] or {}
 		empty.Visible = #entries == 0

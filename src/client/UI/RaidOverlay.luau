@@ -58,7 +58,7 @@ function RaidOverlay.mount(lang: string)
 		Position = UDim2.fromScale(0, 0.55),
 		Size = UDim2.fromScale(1, 0.45),
 		Text = t("raid_title"),
-		TextColor3 = Theme.senja,
+		TextColor3 = Theme.paper,
 		Parent = banner,
 	})
 	bannerTitle.TextSize = 13

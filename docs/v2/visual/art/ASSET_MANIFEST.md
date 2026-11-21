@@ -677,3 +677,63 @@ x 2.6 studs). This is an agent-generated original work, CC0-equivalent, not a Ro
 scripts on the generated `ProceduralModel` were stripped and the static geometry was baked
 runtime-only into `ServerStorage.LookDevAssets.generated_bamboo_basket`. It ships only inside the
 OFF-by-default `hubprops_r8` LookDev candidate; look grading is pending the designer.
+
+## Manifest coverage (WORK_QUEUE item 127, 2026-11-22)
+
+Every 7–15-digit asset ID in `src/shared/*Map*.luau` must appear in this manifest. The
+`ASSET_MANIFEST_COVERAGE` spec scans those modules and the whole of `src/`: an unmarked manifest ID
+must have a code reference; one with no code reference must carry an `unused` row below. The two
+`2147483646`/`2147483647` literals in the pure-data modules are RNG moduli, not asset IDs, and are
+excluded from the scan. Nothing was deleted from code to make this section pass.
+
+### Previously uncovered map IDs — added 2026-11-22
+
+| Slot | Asset ID | Source module | Provenance | Status |
+|---|---|---|---|---|
+| `lidah_mertua` | 184362803 | `src/shared/ModelMapVegetationR6.luau` | free Creator Store Model; `docs/v2/evidence/h/2026-11-20-r6-vegetation-ids/REPORT.md` | recorded here |
+| `alang_alang` | 361802126 | `src/shared/ModelMapVegetationR6.luau` | free Creator Store Model; same REPORT | recorded here |
+| `lidah_mertua` (alternate) | 5445549227 | `src/shared/ModelMapVegetationR6.luau` | free Creator Store Model shortlist; same REPORT | recorded here, not loaded |
+| `teh_tehan` | 8864962424 | `src/shared/ModelMapVegetationR6.luau` | Bush / Shrub, Zoriontsu716; same REPORT | recorded here |
+| `bunga` | 9639782964 | `src/shared/ModelMapVegetationR6.luau` | FlowerBush, EmeraldKingExtabyte; same REPORT | recorded here |
+| `kembang_sepatu` (alternate) | 115462020907259 | `src/shared/ModelMapVegetationR6.luau` | free Creator Store Model shortlist; same REPORT | recorded here, not loaded |
+| `kembang_sepatu` | 15344074131 | `src/shared/ModelMapVegetationR6.luau` | free Creator Store Model; same REPORT | recorded here |
+| `caping_backup` | 14769019514 | `src/shared/ModelMapNpcsR5.luau` | Oriental Bamboo Conical Hat, RZKU; Creator Store FREE, Model | recorded here |
+| `caping` | 71002247087415 | `src/shared/ModelMapNpcsR5.luau` | Chinese Straw Hat Asian Conical Rice Farmer Hats, Zephban5961; Creator Store FREE, Model | recorded here |
+| `polisi_cap` | 126970096704856 | `src/shared/ModelMapNpcsR5.luau` | Police Hat Cap Cop Officer Headwear Hats Accessory, Mukamato101; Creator Store FREE, Model | recorded here |
+
+The three hat IDs above were already present in code (`ModelMapNpcsR5.accessories`) with creator,
+name and store URL; the seven vegetation IDs were already present in `ModelMapVegetationR6.ids` /
+`.alternates` with a shortlist REPORT. This section only closes the manifest gap.
+
+### Unused manifest IDs
+
+Convention: `unused` means the ID appears in this manifest for provenance but has no reference in
+`src/` at the time of the check. These rows are not deletions; a later code use simply removes the
+marker. All other manifest IDs are required by the coverage spec to resolve in `src/`.
+
+| Asset ID | Why it is here | Status |
+|---|---|---|
+| 155440478 | legacy classic sunset skybox face, superseded by round-6 skies | unused |
+| 156042292 | legacy classic sunset skybox face, superseded by round-6 skies | unused |
+| 156042307 | legacy classic sunset skybox face, superseded by round-6 skies | unused |
+| 156042328 | legacy classic sunset skybox face, superseded by round-6 skies | unused |
+| 156042348 | legacy classic sunset skybox face, superseded by round-6 skies | unused |
+| 156042384 | legacy classic sunset skybox face, superseded by round-6 skies | unused |
+| 739614116 | Trunk mesh of the legacy pine tree; licence note only | unused |
+| 739619496 | Leaves mesh of the legacy pine tree; licence note only | unused |
+| 1840694476 | search-only music alternative, never wired | unused |
+| 2312874610 | Leaves mesh of the legacy pine tree; licence note only | unused |
+| 5392132809 | legacy pine tree model; default wall is the tropical forest (item 138) | unused |
+| 9112841064 | search-only Pasar crowd ambience, never wired | unused |
+| 10019841237 | rejected building (no clear ground-floor opening), never loaded | unused |
+| 70770369223840 | Poly Pizza crate upload, no current map slot | unused |
+| 80611793347029 | Poly Pizza sumur upload, superseded by the real CC BY sumur ID | unused |
+| 83895031629944 | Poly Pizza kit wall upload, no current map slot | unused |
+| 92903548535675 | Poly Pizza kit fence upload, no current map slot | unused |
+| 95225115736749 | Poly Pizza kit hut upload, no current map slot | unused |
+| 97786595529501 | Poly Pizza barrel upload, no current map slot | unused |
+| 106680734829483 | icon pipeline upload probe, marked "not for use" at source | unused |
+| 121540426548169 | Poly Pizza gerobak upload, superseded by the real CC BY gerobak ID | unused |
+| 122341055760449 | search-only Gamelan Without Pulse, never wired | unused |
+| 129607759321192 | Poly Pizza pasar stall upload, superseded by the lapak asset | unused |
+| 133136389632701 | Poly Pizza karung upload, superseded by the real CC0 karung ID | unused |

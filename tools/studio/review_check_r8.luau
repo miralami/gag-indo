@@ -24,6 +24,10 @@
 -- READ-ONLY checks (plant base shape, bank boulder count). BRIDGE_RAILS / BRIDGE_WALKABLE unchanged.
 -- It also emits the r8 path-edge family (WORK_QUEUE item 75): PATH_EDGE and PATH_CLEAR. Both FAIL
 -- when the pathedge_r8 candidate is not staged or MapSpec's road geometry cannot be read.
+-- PATH_EDGE_OFFSET (WORK_QUEUE item 142) is READ-ONLY and emitted beside them: every PathEdgePart's
+-- tagged |Lateral| must be in [HalfWidth, HalfWidth + 3], its CFrame must agree with that lateral
+-- about CentreX/CentreZ, and the recorded centre must lie on a readable MapSpec centreline. A
+-- missing folder, tag or attribute FAILs at measured >= 1, never a vacuous pass.
 -- It also emits the r8 water family (WORK_QUEUE item 76): WATER_SAFE and WATER_RESTORE. Both are
 -- CLIENT-only and mutate Terrain in one guarded enable/read/disable/compare cycle per variant,
 -- restoring the prior active candidate at the end. WATER_DEFAULT (WORK_QUEUE item 137) is a
@@ -113,6 +117,7 @@ local ORDER = {
 	"BRIDGE_WALKABLE",
 	"PATH_EDGE",
 	"PATH_CLEAR",
+	"PATH_EDGE_OFFSET",
 	"BLDG_VISIBLE",
 	"BLDG_WIDTH",
 	"BLDG_DOOR",
@@ -2543,6 +2548,123 @@ emit(
 	0,
 	clearDetail
 )
+
+-- 9f-2. WORK_QUEUE section O item 142: PATH_EDGE_OFFSET. READ-ONLY: reads the item-142 tags
+-- written by LookDevPathEdgeR8 and reuses the MapSpec centreline table built for PATH_CLEAR.
+-- Every tagged piece must carry a signed Lateral whose absolute value lies in
+-- [HalfWidth, HalfWidth + PATH_EDGE_GROW]; its CFrame distance from the recorded CentreX/CentreZ
+-- must agree, and that centre must sit on a real road arm, continuation or ring chord. A missing
+-- folder, tag or numeric attribute is an offender, never a skip. No candidate is staged here.
+local PATH_EDGE_GROW = 3
+local PATH_EDGE_TOL = 0.25
+
+local function nearestPathCentreDistance(px, pz)
+	local best = math.huge
+	for _, rect in ipairs(pathRects) do
+		local along, perpendicular
+		if rect.horizontal then
+			local clamped = math.max(rect.x - rect.halfX, math.min(px, rect.x + rect.halfX))
+			along, perpendicular = clamped - px, pz - rect.z
+		else
+			local clamped = math.max(rect.z - rect.halfZ, math.min(pz, rect.z + rect.halfZ))
+			along, perpendicular = px - rect.x, clamped - pz
+		end
+		best = math.min(best, math.sqrt(along * along + perpendicular * perpendicular))
+	end
+	for _, seg in ipairs(pathSegments) do
+		local dx, dz = px - seg.x, pz - seg.z
+		local tangent = dx * seg.tx + dz * seg.tz
+		local perpendicular = dx * seg.nx + dz * seg.nz
+		local clamped = math.max(-seg.halfLen, math.min(tangent, seg.halfLen))
+		local dt = tangent - clamped
+		best = math.min(best, math.sqrt(dt * dt + perpendicular * perpendicular))
+	end
+	return best
+end
+
+local offsetOffenders, offsetReadErrors = {}, {}
+local offsetChecked = 0
+for _, part in ipairs(pathEdgeParts) do
+	offsetChecked += 1
+	local okName, partName = pcall(function()
+		return part.Name
+	end)
+	local name = okName and tostring(partName) or "?"
+	local lateral = attr(part, "Lateral")
+	local halfWidth = attr(part, "HalfWidth")
+	local centreX = attr(part, "CentreX")
+	local centreZ = attr(part, "CentreZ")
+	local measured, lower, upper = nil, nil, nil
+	local reason = nil
+	if attr(part, "PathEdgePart") ~= true then
+		reason = "missing PathEdgePart tag"
+	elseif
+		type(lateral) ~= "number"
+		or type(halfWidth) ~= "number"
+		or type(centreX) ~= "number"
+		or type(centreZ) ~= "number"
+	then
+		reason = "missing/non-numeric item-142 attributes"
+	else
+		measured, lower, upper = math.abs(lateral), halfWidth, halfWidth + PATH_EDGE_GROW
+		if measured < lower or measured > upper then
+			reason = "lateral outside band"
+		end
+		local okPos, pos = pcall(function()
+			return part.CFrame.Position
+		end)
+		if not okPos or typeof(pos) ~= "Vector3" then
+			reason = reason or "unreadable CFrame"
+			offsetReadErrors[#offsetReadErrors + 1] = name .. ":cframe"
+		else
+			local fromCentre = math.sqrt((pos.X - centreX) ^ 2 + (pos.Z - centreZ) ^ 2)
+			if math.abs(fromCentre - measured) > PATH_EDGE_TOL then
+				reason = reason or "CFrame disagrees with Lateral/Centre"
+			end
+			if pathMapReady then
+				local centreGap = nearestPathCentreDistance(centreX, centreZ)
+				if centreGap > PATH_EDGE_TOL then
+					reason = reason or "centre off MapSpec centreline"
+				end
+			end
+		end
+	end
+	if reason then
+		if measured == nil then
+			measured = type(lateral) == "number" and math.abs(lateral) or -1
+		end
+		if lower == nil then
+			lower = type(halfWidth) == "number" and halfWidth or -1
+		end
+		if upper == nil then
+			upper = type(halfWidth) == "number" and halfWidth + PATH_EDGE_GROW or -1
+		end
+		offsetOffenders[#offsetOffenders + 1] =
+			string.format("%s measured=%.2f allowed=[%.2f,%.2f] reason=%s", name, measured, lower, upper, reason)
+	end
+end
+local offsetStructural = pathEdgeFolder == nil or offsetChecked == 0 or not okPathEdgeParts
+local offsetPass = not offsetStructural and #offsetOffenders == 0 and #offsetReadErrors == 0
+local offsetMeasured = #offsetOffenders
+if offsetMeasured == 0 and not offsetPass then
+	offsetMeasured = 1
+end
+local offsetDetail = {
+	checked = offsetChecked,
+	offenderCount = #offsetOffenders,
+	offenders = offsetOffenders,
+	readErrors = offsetReadErrors,
+	band = { min = 0, grow = PATH_EDGE_GROW },
+	tolerance = PATH_EDGE_TOL,
+	centrelineChecked = pathMapReady,
+	folderPresent = pathEdgeFolder ~= nil,
+}
+if not pathMapReady then
+	offsetDetail.reason = pathMapReason
+elseif offsetStructural then
+	offsetDetail.reason = "no candidate parts"
+end
+emit("PATH_EDGE_OFFSET", offsetPass, offsetMeasured, 0, offsetDetail)
 
 -- 9g. r8 buildings family (WORK_QUEUE item 77). Three CHECK families over the staged
 -- LookDevBuildingsR8_buildings_r8 folder: BLDG_VISIBLE (six building Models inside the review

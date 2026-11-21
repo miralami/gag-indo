@@ -40,6 +40,13 @@ Item 141 COMPLETE: `river_r8` thin posts replaced with 54 baked bank plants (5 s
 `BRIDGE_WALKABLE 8 >=8` (`h/2026-11-21-round9/CHECK_141.txt`). Suite **2474 tests**; `selene src`
 0/0/0.
 
+Item 142 COMPLETE: `pathedge_r8` now places 626 baked grass-clump/pebble pieces at halfWidth+0.3..2.5
+on both sides of every MapSpec path. Real Studio staged-Play PASS `PATH_EDGE_OFFSET 0 0`,
+`PATH_CLEAR 0 0`, `PATH_EDGE 626 >=120` (`h/2026-11-21-round9/CHECK_142.txt`). FLAGGED, not hidden:
+with this candidate staged `PERF_BUDGET` is 1146/500, over the Sedang proxy; item 142 has no perf
+clause and no check was weakened. CANDIDATES.md marks it pending/over-budget; default look stays
+334/500. Suite **2476 tests**; `selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

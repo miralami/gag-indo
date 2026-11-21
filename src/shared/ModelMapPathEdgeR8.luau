@@ -1,11 +1,19 @@
 --!strict
 -- ModelMapPathEdgeR8: pure data for the OFF-BY-DEFAULT "pathedge_r8" LookDev candidate
--- (WORK_QUEUE section M item 75). Dirt-path edge dressing: alternating grass tufts and pebbles with
--- a few flat puddles, along both edges of every road arm, ring segment and continuation.
+-- (WORK_QUEUE section M item 75, redone in section O item 142). Dirt-path edge dressing:
+-- grass clumps, pebbles and a few flat puddles along BOTH edges of every road arm, ring segment
+-- and continuation. Each piece records its nearest centreline point, the path's half-width and its
+-- own signed lateral distance, so the applier and the harness never re-guess the geometry.
 --
 -- Pure data/functions only: no Roblox APIs, no Instances, no Enums, no asset IDs. The applier passes
--- the real MapSpec.roadArms() / ringSegments() / roadContinuations() geometry in, so this module never
--- reimplements the road layout. Jitter is an integer hash of (seed, index, salt): deterministic.
+-- the real MapSpec.roadArms() / ringSegments() / roadContinuations() / ROAD geometry in, so this
+-- module never reimplements the road layout. Jitter is an integer hash of (seed, index, salt):
+-- deterministic. Lateral = side * (halfWidth + extra), with extra in
+-- [PATH_OFFSET_MIN, PATH_OFFSET_MAX]; a clump at most CLUMP_MAX_WIDTH wide therefore reaches the
+-- road edge without entering the central corridor.
+--
+-- ponytail: no per-path curvature model — the ring is a set of 6-degree MapSpec chords, and each
+-- chord's own centreline is exact. Upgrade only if MapSpec switches to a spline ring.
 
 local ModelMapPathEdgeR8 = {}
 
@@ -17,9 +25,13 @@ ModelMapPathEdgeR8.CENTRAL_CLEAR = 6
 ModelMapPathEdgeR8.SPACING_MIN = 3
 ModelMapPathEdgeR8.SPACING_MAX = 5
 
-local INSET = 2 -- from the outer road edge, so every piece stays outside the 6-wide centre corridor
+-- Item 142: the offset band beyond the path edge and the check/grass geometry ceilings.
+ModelMapPathEdgeR8.PATH_OFFSET_MIN = 0.3
+ModelMapPathEdgeR8.PATH_OFFSET_MAX = 2.5
+ModelMapPathEdgeR8.PATH_EDGE_GROW = 3
+ModelMapPathEdgeR8.CLUMP_MAX_WIDTH = 1.5
+
 local END_MARGIN = 3
-local RING_HALF = 6 -- MapSpec.ROAD.ringWidth / 2
 local SIDES = { -1, 1 }
 
 -- Buckets stay below 2^53, so the multiply is exact on both Lune and Roblox.
@@ -40,69 +52,109 @@ local function sideName(side: number): string
 	return if side < 0 then "-1" else "1"
 end
 
--- Axis-aligned arms and continuations: step along the long axis, place on both outer edges.
+-- The lateral push beyond the half-width, never negative. A clump is at most CLUMP_MAX_WIDTH
+-- wide, so grass stops at half that width from the centreline and its inner edge touches the road
+-- edge; pebbles and puddles may use the whole band.
+local function edgeExtra(seed: number, stepIndex: number, kind: string): number
+	local ceiling = ModelMapPathEdgeR8.PATH_OFFSET_MAX
+	if kind == "grass_tuft" then
+		ceiling = math.min(ceiling, ModelMapPathEdgeR8.CLUMP_MAX_WIDTH / 2)
+	end
+	return ModelMapPathEdgeR8.PATH_OFFSET_MIN
+		+ noise(seed, stepIndex, 2) * (ceiling - ModelMapPathEdgeR8.PATH_OFFSET_MIN)
+end
+
+local function stepFor(seed: number, stepIndex: number): number
+	return ModelMapPathEdgeR8.SPACING_MIN
+		+ noise(seed, stepIndex, 1) * (ModelMapPathEdgeR8.SPACING_MAX - ModelMapPathEdgeR8.SPACING_MIN)
+end
+
+-- Axis-aligned arms and continuations. MapSpec gives the centre (arm.x, arm.z) and the full sizes;
+-- the centreline is the long axis and halfWidth is the short dimension / 2. `along` is the exact
+-- position on that centreline; consecutive steps differ by >= SPACING_MIN because only the step
+-- length is jittered, never the position on the axis.
 function ModelMapPathEdgeR8.armPieces(arm: any, jitterSeed: number): { any }
 	local horizontal = arm.sx > arm.sz
 	local length = if horizontal then arm.sx else arm.sz
-	local halfWidth = if horizontal then arm.sz / 2 else arm.sx / 2
-	local edge = halfWidth - INSET
+	local halfWidth = math.min(arm.sx, arm.sz) / 2
 	local out = {}
 	local t = -length / 2 + END_MARGIN
 	local stepIndex = 0
 	while t <= length / 2 - END_MARGIN do
 		stepIndex += 1
-		local along = (noise(jitterSeed, stepIndex, 1) - 0.5) * 0.8
-		local perpendicular = (noise(jitterSeed, stepIndex, 2) - 0.5) * 0.4
 		for sideIndex, side in ipairs(SIDES) do
 			local index = (stepIndex - 1) * #SIDES + sideIndex
-			local offset = side * (edge + perpendicular)
+			local kind = kindFor(index)
+			local extra = edgeExtra(jitterSeed, stepIndex, kind)
+			local cx = if horizontal then arm.x + t else arm.x
+			local cz = if horizontal then arm.z else arm.z + t
+			local lateral = side * (halfWidth + extra)
 			out[#out + 1] = {
-				x = if horizontal then arm.x + t + along else arm.x + offset,
-				z = if horizontal then arm.z + offset else arm.z + t + along,
-				offset = offset,
-				kind = kindFor(index),
+				x = if horizontal then cx else cx + lateral,
+				z = if horizontal then cz + lateral else cz,
+				centre = { cx, cz },
+				halfWidth = halfWidth,
+				lateral = lateral,
+				offset = lateral, -- legacy alias: now the signed centreline distance
+				along = t,
+				kind = kind,
 				side = sideName(side),
+				segment = arm.name,
 				path = arm.name,
 			}
 		end
-		t += ModelMapPathEdgeR8.SPACING_MIN + noise(jitterSeed, stepIndex, 3) * (ModelMapPathEdgeR8.SPACING_MAX - ModelMapPathEdgeR8.SPACING_MIN)
+		t += stepFor(jitterSeed, stepIndex)
 	end
 	return out
 end
 
--- A rotated ring segment: local +X is the tangent, local +Z the perpendicular edge normal.
-function ModelMapPathEdgeR8.ringPieces(piece: any, jitterSeed: number): { any }
+-- A rotated MapSpec ring chord. Local +X is the tangent, local +Z the perpendicular edge normal;
+-- halfWidth comes from MapSpec.ROAD.ringWidth / 2, never from a literal here. The recorded centre
+-- is the exact point on the chord that the piece grows out of.
+function ModelMapPathEdgeR8.ringPieces(piece: any, jitterSeed: number, halfWidth: number, segmentId: any): { any }
 	local yaw = math.rad(piece.yaw)
 	local tx, tz = math.cos(yaw), -math.sin(yaw)
 	local nx, nz = math.sin(yaw), math.cos(yaw)
-	local edge = RING_HALF - INSET
 	local out = {}
 	local t = -piece.length / 2 + END_MARGIN
 	local stepIndex = 0
 	while t <= piece.length / 2 - END_MARGIN do
 		stepIndex += 1
-		local along = (noise(jitterSeed, stepIndex, 1) - 0.5) * 0.8
-		local perpendicular = (noise(jitterSeed, stepIndex, 2) - 0.5) * 0.4
 		for sideIndex, side in ipairs(SIDES) do
 			local index = (stepIndex - 1) * #SIDES + sideIndex
-			local offset = side * (edge + perpendicular)
+			local kind = kindFor(index)
+			local extra = edgeExtra(jitterSeed, stepIndex, kind)
+			local cx = piece.x + t * tx
+			local cz = piece.z + t * tz
+			local lateral = side * (halfWidth + extra)
 			out[#out + 1] = {
-				x = piece.x + (t + along) * tx + offset * nx,
-				z = piece.z + (t + along) * tz + offset * nz,
-				offset = offset,
-				kind = kindFor(index),
+				x = cx + lateral * nx,
+				z = cz + lateral * nz,
+				centre = { cx, cz },
+				halfWidth = halfWidth,
+				lateral = lateral,
+				offset = lateral,
+				along = t,
+				kind = kind,
 				side = sideName(side),
+				segment = "RingRoad:" .. tostring(segmentId),
 				path = "RingRoad",
 			}
 		end
-		t += ModelMapPathEdgeR8.SPACING_MIN + noise(jitterSeed, stepIndex, 3) * (ModelMapPathEdgeR8.SPACING_MAX - ModelMapPathEdgeR8.SPACING_MIN)
+		t += stepFor(jitterSeed, stepIndex)
 	end
 	return out
 end
 
 -- Aggregate every real MapSpec path family. Distinct seeds per segment keep the pattern varied but
--- identical across requires and machines.
-function ModelMapPathEdgeR8.allPieces(arms: any, ring: any, continuations: any): { any }
+-- identical across requires and machines. `road` must be MapSpec.ROAD (its ringWidth sets the ring
+-- half-width); failing loudly beats silently reintroducing a baked-in geometry constant.
+function ModelMapPathEdgeR8.allPieces(arms: any, ring: any, continuations: any, road: any): { any }
+	assert(
+		type(road) == "table" and type(road.ringWidth) == "number" and road.ringWidth > 0,
+		"MapSpec.ROAD.ringWidth required"
+	)
+	local ringHalf = road.ringWidth / 2
 	local out = {}
 	for index, arm in ipairs(arms) do
 		for _, piece in ipairs(ModelMapPathEdgeR8.armPieces(arm, 17 + index)) do
@@ -110,7 +162,7 @@ function ModelMapPathEdgeR8.allPieces(arms: any, ring: any, continuations: any):
 		end
 	end
 	for index, piece in ipairs(ring) do
-		for _, item in ipairs(ModelMapPathEdgeR8.ringPieces(piece, 101 + index)) do
+		for _, item in ipairs(ModelMapPathEdgeR8.ringPieces(piece, 101 + index, ringHalf, index)) do
 			out[#out + 1] = item
 		end
 	end

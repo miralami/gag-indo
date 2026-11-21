@@ -222,3 +222,34 @@ the CHECK evidence and tracker ticks. No place is saved or published.
    Wedge) — no verified rock model ID exists in the shared maps. No target is weakened.
 4. Stop Play without saving. Rails and stepping stones are untouched. Visual grading — do the bank
    plants and boulders read as a planted river? — stays the designer's.
+
+## 13. Item-142 run — `pathedge_r8` edge-band redo (WORK_QUEUE section O)
+
+Run-note recipe. **No Studio result is claimed** by the implementation agent; the main session owns
+the CHECK evidence and tracker ticks. No place is saved or published.
+
+1. Stop Play. Inject at runtime (not saved): `ReplicatedStorage.Shared.ModelMapPathEdgeR8`, the
+   changed `ServerScriptService.Server.World.LookDevPathEdgeR8` and the changed
+   `tools/studio/review_check_r8.luau`. Confirm the baked `ServerStorage.LookDevAssets.361802126`
+   grass folder exists (verified alang-alang ID from `Shared.ModelMapVegetationR6.ids.alang_alang`)
+   so the clumps clone instead of falling back to thin procedural blades.
+2. Start a FRESH real Play session in the SERVER datamodel. Stage ONLY this candidate from the
+   Server VM:
+   ```lua
+   require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("pathedge_r8", game)
+   ```
+   The applier now derives each piece's nearest centreline point and half-width from MapSpec
+   (`roadArms`, `roadContinuations`, `ROAD.ringWidth`), with lateral signed distance in the
+   `[halfWidth + 0.3, halfWidth + 2.5]` band; grass stays within `CLUMP_MAX_WIDTH / 2` of the edge
+   so its inner face reaches the road. Each staged Part carries `PathEdgePart = true` plus numeric
+   `Lateral`, `HalfWidth`, `CentreX`, `CentreZ`.
+3. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the SERVER
+   VM. Read `CHECK PATH_EDGE_OFFSET PASS 0 0` (READ-ONLY: every tagged piece's `|Lateral|` lies in
+   `[HalfWidth, HalfWidth + 3]`, its CFrame agrees with the recorded centre, and that centre lies on
+   a MapSpec centreline), plus the unchanged `CHECK PATH_CLEAR PASS 0 0` and `CHECK PATH_EDGE PASS
+   <count> >=120`. A missing folder, tag or attribute FAILs with part name, measured lateral and
+   allowed band in `detail.offenders` — never a vacuous pass. No target is weakened.
+4. Read the guards `LOAD_FAILURES` (0) and `LOOKDEV_LEAK` (0 leaks). `PATH_EDGE_OFFSET`, `PATH_EDGE`
+   and `PATH_CLEAR` are SERVER-side; this Studio has no `Part.GetBoundingBox`, so clump scaling uses
+   CFrame + Size corner math. Visual grading — does the grass read as a planted road edge? — stays
+   the designer's.

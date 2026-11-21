@@ -1,0 +1,80 @@
+CHECK 107 — Clean-Play smoke test (WORK_QUEUE section N, item 107)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Fresh Play, Server DataModel. Place NOT saved, nothing published.
+
+== Target (verbatim) ==
+"`tools/studio/smoke_play.luau`: start a fresh Play, wait 60 s, read the console through
+`get_console_output`, and assert no error-level message and no warning outside a short allowlist
+in the same file (each allowed line carries a one-line reason). Run it for the default look and for
+`full_r9`. CHECK `SMOKE_CLEAN` 0 errors for both. Fix real errors; never grow the allowlist to
+hide one."
+
+== Real bug found and fixed (NOT allowlisted) ==
+The pre-fix console (captured in Edit mode before this item's fresh Play) had nine
+`smoke_r8: could not build ParticleEmitter <id>: Unable to assign property Lifetime. NumberRange
+expected, got NumberSequence` warnings, repeated across earlier full_r9 staging plays. Root cause:
+`src/client/World/LookDevSmokeR8.luau:77-78` set `ParticleEmitter.Lifetime` and `.Speed` with
+`NumberSequence.new(...)`; both properties are `NumberRange` on Roblox, so `buildEmitter` pcall
+failed and warned once per emitter (9 emitters). Fixed both to `NumberRange.new(...)`. This is the
+other two same-symptom FarmService emitters already use NumberRange
+(`src/server/Farm/FarmService.luau:248-249,265-266`). A new spec case in
+`tests/specs/smoke_r8_spec.luau` locks `pe.Lifetime`/`pe.Speed` to `NumberRange` and forbids
+`NumberSequence` for them, so the bug cannot regress silently. NO allowlist entry hides this line:
+`smoke_play_spec.luau` asserts the allowlist contains neither `smoke_r8: could not build
+ParticleEmitter` nor `NumberSequence expected`.
+
+After the fix, two fresh-Play 60 s windows (default look and full_r9 staged) produced ZERO
+smoke_r8 warnings — the fix is effective in Studio, not just in source.
+
+== Harness (tools/studio/smoke_play.luau, NEW) ==
+- `ORDER = { "SMOKE_CLEAN" }`, `emit(name, passed, measured, target, detail)` prints
+  `CHECK <name> PASS|FAIL <measured> <target>` and returns
+  `{ order, checks, byName, ok }` (review_check_r8.luau:291-311 precedent).
+- `ALLOWLIST`: 5 entries, each `{ text, reason }` with a one-line reason. Deliberately short:
+  server boot info, ProfileStore boot info, external Assistant plugin self-notice, D-G4/BUG-003
+  wrong-asset warning (external, documented, D-G4 in DECISIONS.md:27), and the pre-existing
+  `ShippingLookR7: no PlotAnchor parts ... flower beds painted` shipping ground-look notice (dev
+  place has no PlotAnchor parts; unrelated to lookdev staging). No game-code error is allowlisted.
+- Classification: every non-empty console line is either allowlisted WITH a reason or counted as a
+  violation. There is no "info ignored" bucket, so an error-level message can never pass silently.
+  `SMOKE_CLEAN` passes iff `#violations == 0`; measured = violation count, target = 0.
+- Console readback is main-session only: Luau cannot call the MCP `get_console_output` tool, so the
+  main session snapshots `get_console_output()` after the 60 s wait and feeds the exact lines to
+  the harness via `_G.SMOKE_CONSOLE_LINES`. The harness file itself is pasted whole into
+  execute_luau (Server VM). Output log resets on a fresh Play in this session, so no stale-prefix
+  subtraction was needed; the harness documents the multiset-delta method for sessions where the
+  log accumulates.
+
+== RUN 1 — default look (fresh Play, nothing staged, 60 s wait) ==
+Console lines considered: 8. All 8 allowlisted (with reasons). Violations: 0.
+CHECK SMOKE_CLEAN PASS 0 0
+Lines: 1x `[JuraganDesa] server started`; 2x Assistant plugin version warning; 1x
+`[ProfileStore]: Roblox API services available - data will be saved`; 3x
+`ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type` (D-G4);
+1x `ShippingLookR7: no PlotAnchor parts within 10 s; only flower beds painted`.
+No smoke_r8 error line.
+
+== RUN 2 — full_r9 (fresh Play, 13/13 candidates staged via LookDevReview.enableAdditive, 60 s wait) ==
+Staging probe returned `{ staged = 13, additive = 13 }`. Console lines considered: 8. All 8
+allowlisted. Violations: 0.
+CHECK SMOKE_CLEAN PASS 0 0
+Same 8 known-noise lines as run 1. No smoke_r8 ParticleEmitter warning — confirms the
+`NumberRange` fix on the actual full_r9 stage path.
+
+== Outcome ==
+Both required runs: SMOKE_CLEAN 0 errors / 0 violations. The one real error class found (smoke_r8
+NumberSequence) was fixed in source and guarded by a spec; the allowlist grew by no entry to hide
+it. The pre-existing shipping `ShippingLookR7` notice and D-G4 external asset warning are the only
+non-info lines allowed, each with an on-file reason and a designer note under WORK_QUEUE.
+
+== Validation / scope ==
+lune run tests/run.luau: All 2693 tests passed (was 2687; +1 NumberRange guard, +5 smoke_play
+harness guards). selene src: 0 errors / 0 warnings / 0 parse errors. stylua --check clean on all
+5 changed Luau files. git diff --check clean (pre-existing LF->CRLF notices only). Play stopped
+after verification; no place saved, nothing published. No visual, copy or aural verdict. All
+candidates remain off by default; no shipping default changed by this item (the NumberRange fix
+only affects the smoke_r8 candidate's emitter construction, not any default look).
+
+Status: SEEN-IN-STUDIO (fresh Play, two 60 s windows — default look and full_r9 — zero
+error/unapproved-warning lines; real smoke_r8 NumberSequence bug fixed + spec-guarded).

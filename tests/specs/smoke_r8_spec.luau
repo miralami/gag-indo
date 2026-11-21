@@ -187,6 +187,15 @@ return function(t, Env)
 			expect(applierSrc:find("rbxassetid://", 1, true) == nil):toBe(true)
 		end)
 
+		t:it("builds ParticleEmitter Lifetime and Speed as NumberRange, never NumberSequence", function()
+			-- Item 107 clean-Play smoke: these two properties are NumberRange on Roblox; using
+			-- NumberSequence makes buildEmitter fail and warn once per emitter (9x per full_r9 stage).
+			expect(applierSrc:find("pe.Lifetime = NumberRange.new(", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("pe.Speed = NumberRange.new(", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("pe.Lifetime = NumberSequence", 1, true) == nil):toBe(true)
+			expect(applierSrc:find("pe.Speed = NumberSequence", 1, true) == nil):toBe(true)
+		end)
+
 		t:it("names a pending gallery row with an existing render path and fps note", function()
 			local row = string.match(gallerySrc, "\n(| `smoke_r8` |[^\r\n]+)")
 			expect(row ~= nil):toBe(true)

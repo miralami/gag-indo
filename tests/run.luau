@@ -197,6 +197,7 @@ local specs = {
 	require("./specs/animals_r8_spec"),
 	require("./specs/flyers_r8_spec"),
 	require("./specs/smoke_r8_spec"),
+	require("./specs/smoke_play_spec"),
 	require("./specs/wind_r8_spec"),
 	require("./specs/review_cameras_o_spec"),
 	require("./specs/npcs_idle_r8_spec"),

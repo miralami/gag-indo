@@ -1023,7 +1023,16 @@ Same rules as section M (candidates off by default, Studio PASS per item, no gam
   shipping world parts is a default-look/gameplay change, out of lookdev scope. Not re-scoped to
   staged-only (would weaken the literal check and be vacuous). No check weakened; no part changed.
   Measurement caveat + follow-up under "Decisions for designer". Gates unchanged (2687 tests).
-- [ ] 107. **Clean-Play smoke test.** `tools/studio/smoke_play.luau`: start a fresh Play, wait 60 s, read the console through `get_console_output`, and assert no error-level message and no warning outside a short allowlist in the same file (each allowed line carries a one-line reason). Run it for the default look and for `full_r9`. **CHECK `SMOKE_CLEAN`** 0 errors for both. Fix real errors; never grow the allowlist to hide one.
+- [x] 107. **Clean-Play smoke test.** `tools/studio/smoke_play.luau`: start a fresh Play, wait 60 s, read the console through `get_console_output`, and assert no error-level message and no warning outside a short allowlist in the same file (each allowed line carries a one-line reason). Run it for the default look and for `full_r9`. **CHECK `SMOKE_CLEAN`** 0 errors for both. Fix real errors; never grow the allowlist to hide one.
+  Done 2026-11-22: `tools/studio/smoke_play.luau` NEW (`ORDER`/`emit`/`byName`, 5-entry reason-tagged
+  ALLOWLIST, no info-ignored bucket; main session feeds `get_console_output` lines via
+  `_G.SMOKE_CONSOLE_LINES` because Luau cannot call the MCP tool). Real error FOUND and FIXED, not
+  allowlisted: `LookDevSmokeR8.luau:77-78` used `NumberSequence.new` for ParticleEmitter
+  `Lifetime`/`Speed` (need `NumberRange`) -> 9 build warnings per full_r9 stage; both now
+  `NumberRange.new`, spec-guarded in `smoke_r8_spec.luau` (+5 harness guards in `smoke_play_spec`).
+  Fresh Play, 60 s windows, both `CHECK SMOKE_CLEAN PASS 0 0` (8 known-noise lines each, 0
+  violations): default look and full_r9 staged 13/13 (`CHECK_107.txt`, `SEEN-IN-STUDIO`). 2693
+  tests, selene 0/0/0. No shipping default changed. Allowlist scope under Decisions.")
 
 #### N2. More village
 
@@ -1081,6 +1090,23 @@ Models the ladder couldn't supply, each with a brief and a reference.
   `models_r3/MANIFEST.md`.
 
 ## Decisions for designer
+
+### Round 10 item 107 — smoke allowlist scope and the real smoke_r8 error (2026-11-22)
+
+`tools/studio/smoke_play.luau` carries a deliberately short 5-entry allowlist. Four entries are
+already-documented environment noise: server boot info, ProfileStore boot info, the external
+Assistant plugin self-notice, and the D-G4/BUG-003 wrong-asset warning (`DECISIONS.md:27`). The
+fifth is the pre-existing `ShippingLookR7: no PlotAnchor parts within 10 s; only flower beds
+painted` shipping ground-look notice — the dev place has no `PlotAnchor` parts, it fires on every
+Play with or without lookdev staging, and it is unrelated to any candidate. If the designer wants
+a truly silent log, adding PlotAnchor parts to the dev world (a world task behind Gate 1) would let
+this entry be removed; it was NOT removed by editing shipping look here.
+
+The one genuine error the smoke surfaced — `smoke_r8` ParticleEmitter `Lifetime`/`Speed` built as
+`NumberSequence` instead of `NumberRange` — was FIXED in source and spec-guarded, NOT added to the
+allowlist. `smoke_play_spec.luau` enforces that neither that error line nor `NumberSequence`
+appears in the allowlist, so the bar cannot be weakened to hide a recurrence. Both required 60 s
+fresh-Play windows (default look, full_r9) then passed `SMOKE_CLEAN 0 0`.
 
 ### Round 10 item 106 — full-route AVATAR_FIT blocked on shipping geometry (2026-11-21)
 

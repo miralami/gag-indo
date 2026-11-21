@@ -74,8 +74,8 @@ local function buildEmitter(spec: any, parent: Instance): any?
 		local pe = Instance.new("ParticleEmitter")
 		pe.Name = "Rate"
 		pe.Rate = spec.rate
-		pe.Lifetime = NumberSequence.new(1.4, 2.2)
-		pe.Speed = NumberSequence.new(1.2, 2)
+		pe.Lifetime = NumberRange.new(1.4, 2.2)
+		pe.Speed = NumberRange.new(1.2, 2)
 		pe.SpreadAngle = Vector2.new(10, 10)
 		pe.Enabled = not spec.nightOnly
 		pe.Parent = part

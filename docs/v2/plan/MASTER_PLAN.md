@@ -284,6 +284,15 @@ with stem size[2] 0.8; `CropModelCandidates.archetypes.bawang.stem.size[2]` 0.8 
 `crop_growth_audit_spec.luau` (locks thresholds 0.5/6/15 and the 1.4 rescale) added. Audit + data fix
 only; no look/default change, no visual verdict. Suite **2672 tests**; `selene src` 0/0/0.
 
+Item 94 COMPLETE (icon audit): `tools/icon_audit.py` (Python + Pillow, report-only) audits all 58
+icon PNGs for size, alpha coverage (15-85% inclusive) and dHash-8x8 near-duplicates (Hamming<=5).
+Deterministic output, exit 0, no visual judgment. Result: 51 coverage PASS / 7 FAIL (4 thin icons
+6.07-14.66% + 3 opaque contact sheets 100%), 35 near-duplicate pairs (all render<->render_r3 same-slot
+revisions / contact sheets / tier badges). `tier_biasa` numbers: render 256x256 47.13% hash
+40d49e969696d460 nearest dist 5; r3 256x256 61.23% hash 50c492b2b296cc54 nearest dist 10
+(`h/2026-11-21-round9/CHECK_094.txt`). Whether the r3 redraw resolved the designer verdict is a
+visual call, NOT made here. No Luau/tests touched.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

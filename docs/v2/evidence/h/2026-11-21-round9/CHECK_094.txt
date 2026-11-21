@@ -1,0 +1,50 @@
+CHECK 94 — Icon audit (WORK_QUEUE section M6, item 94)
+Datetime: 2026-11-21
+Session: filesystem audit, no Studio (objective numbers only — no visual judgment).
+
+== Target (verbatim) ==
+"Icon audit. A script (`tools/icon_audit.py` or Luau): for every icon PNG, check size, alpha
+coverage (between 15% and 85%) and flag near-duplicates by perceptual hash. Report `tier_biasa`
+with numbers only (the `icons` verdict said to fix it). Don't judge looks."
+
+== Script ==
+tools/icon_audit.py — Python 3 + Pillow 12.2.0 (installed), stdlib otherwise, no new deps.
+Discovers every .png recursively under docs/v2/visual/art/icons/ at runtime. For each: pixel size;
+alpha coverage = % of pixels with alpha>0 (PASS iff 15<=coverage<=85 inclusive; no-alpha->100%->FAIL);
+dHash 8x8 (RGB over white, 9x8 grayscale LANCZOS, left>right bit), Hamming<=5 near-duplicate pairs
+within+across dirs. Deterministic sorted report, repo-relative paths, exit 0 (report, not a gate).
+No visual/aesthetic judgment. Run: `python tools/icon_audit.py`.
+
+== Validation ==
+python -m py_compile tools/icon_audit.py: PASS (exit 0).
+python tools/icon_audit.py (repo root): exit 0, 114 lines, 58 per-PNG lines.
+Determinism: run from a different cwd via absolute path -> identical file hash
+ADB7F7FAC479...; DETERMINISTIC. git diff --check: clean.
+
+== SUMMARY (verbatim) ==
+total PNGs: 58
+coverage PASS: 51
+coverage FAIL: 7
+coverage FAIL list:
+  docs/v2/visual/art/icons/render/cheat.png | 11.27%
+  docs/v2/visual/art/icons/render/contact_sheet.png | 100.00%
+  docs/v2/visual/art/icons/render/crop_cengkeh.png | 6.07%
+  docs/v2/visual/art/icons/render/crop_kopi.png | 11.24%
+  docs/v2/visual/art/icons/render/garden.png | 14.66%
+  docs/v2/visual/art/icons/render_r3/contact_after.png | 100.00%
+  docs/v2/visual/art/icons/render_r3/contact_before.png | 100.00%
+near-duplicate pairs (Hamming<=5): 35
+  (full 35-pair list printed by the script; all are render<->render_r3 revisions of the same slot,
+   plus the three contact sheets and the tier-badge family. No cross-slot duplicates reported.)
+
+== tier_biasa (verbatim, numbers only) ==
+docs/v2/visual/art/icons/render/tier_biasa.png | size=256x256 | coverage=47.13% | coverage_pass=YES | hash=40d49e969696d460 | nearest=docs/v2/visual/art/icons/render/tier_super.png | nearest_distance=5 | has_alpha=YES
+docs/v2/visual/art/icons/render_r3/tier_biasa.png | size=256x256 | coverage=61.23% | coverage_pass=YES | hash=50c492b2b296cc54 | nearest=docs/v2/visual/art/icons/render_r3/tier_super.png | nearest_distance=10 | has_alpha=YES
+
+Both tier_biasa PNGs: 256x256, alpha coverage inside 15-85%, hashes differ between render and r3
+(40d49e969696d460 vs 50c492b2b296cc54). r3's nearest neighbour distance is 10 (>5 threshold, not a
+near-duplicate); render's is 5 (at the threshold). Whether the r3 redraw resolved the round-3
+"fix tier_biasa" verdict is a DESIGNER visual call — NOT made here, per "don't judge looks".
+
+Status: report produced with objective numbers; no pass/gate on aesthetics. Full 58-row per-PNG
+table is reproducible with `python tools/icon_audit.py`. No place saved, nothing published.

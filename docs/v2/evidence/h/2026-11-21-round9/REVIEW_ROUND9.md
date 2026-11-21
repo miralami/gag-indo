@@ -274,3 +274,30 @@ the CHECK evidence and tracker ticks. No place is saved or published.
 4. Read the guards `LOAD_FAILURES 0 0` and `LOOKDEV_LEAK 0 leaks` in the same run. Stop Play
    without saving. Visual grading — does the fence read as bamboo from the road? — stays the
    designer's.
+
+
+## 15. Item-144 run — `hubveg_r8` densify (WORK_QUEUE section O)
+
+Run-note recipe. **No Studio result is claimed** by the implementation agent; the main session owns
+the CHECK evidence and tracker ticks. No place is saved or published.
+
+1. Stop Play. Inject at runtime (not saved): `ReplicatedStorage.Shared.ModelMapVegetationHubR8`,
+   `ServerScriptService.Server.World.LookDevModelsVegetationHubR8` and the changed
+   `tools/studio/review_check_r8.luau`. The applier is already booted by `Main.server`. Confirm the
+   baked R7 asset folders under `ServerStorage.LookDevAssets` (mangga, pisang, bambu, bunga,
+   kembang sepatu plus the nine base species) so clone-first loading succeeds — no new asset ID.
+2. Start a FRESH real Play session in the SERVER datamodel. Stage ONLY this candidate additively:
+   `require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("hubveg_r8", game)`.
+3. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the SERVER
+   VM. Read `VEG_HUB_<hub>` (now `>=30` in-radius instances per hub; group children are counted as
+   individual staged models), `HUB_TREES` (READ-ONLY, `>=2` per hub with `HubVegTree == true` and
+   `HubVegTreeHeight` in 8..12), `VEG_SPECIES_HUB` (unchanged `>=4` each), `VEG_OVERLAP` (unchanged
+   `0`) and `DOOR_CLEAR` (unchanged, facades). A missing folder or unreadable attribute FAILs at
+   measured 0, never a skip.
+4. In the same run read the new READ-ONLY `PATH_REACH` (target `0` blocked lanes): a 6-stud lane
+   from each MapSpec hub front outward 24 studs must contain no opaque staged hub-veg AABB. This is
+   the section-O six-hub-door subset only; item 105's full PathfindingService 16/16 audit remains a
+   separate section-M item and this recipe claims no PathfindingService success. Read the guards
+   `LOAD_FAILURES 0 0` and `LOOKDEV_LEAK 0 leaks` too.
+5. Stop Play without saving. Visual grading — do the canopy trees, pisang/bambu groups and door
+   beds read as the canonical village? — stays the designer's.

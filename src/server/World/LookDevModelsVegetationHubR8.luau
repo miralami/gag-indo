@@ -186,6 +186,62 @@ local function plotRects(): { any }
 	return out
 end
 
+-- Item-144 grouped slots: one anchor Model per pisang group / bamboo clump, with each culm or
+-- banana plant as its own tagged child Model. The harness counts children (not the empty anchor)
+-- and reads HubVegGroup / HubVegGroupKind / HubVegCulmHeight from them.
+local function stageGroup(slot: any, modelId: number, folder: any): number
+	local anchor: any? = nil
+	local okAnchor, created = pcall(function()
+		return Instance.new("Model")
+	end)
+	if not okAnchor or not created then
+		fail("could not create group anchor for " .. tostring(slot.group))
+		return 0
+	end
+	anchor = created
+	pcall(function()
+		anchor.Name = "R8_Group_" .. tostring(slot.group)
+		anchor:SetAttribute("LookDevHubVegR8", FAMILY_ID)
+		anchor:SetAttribute("Hub", slot.hub)
+		anchor:SetAttribute("Species", slot.species)
+		anchor:SetAttribute("HubVegGroupAnchor", true)
+		anchor:SetAttribute("HubVegGroup", slot.group)
+		anchor:SetAttribute("HubVegGroupKind", slot.groupKind)
+		anchor.Parent = folder
+	end)
+
+	local placed = 0
+	for memberIndex, member in ipairs(slot.members or {}) do
+		local okLoad, memberModel = pcall(function()
+			return LookDevAssetLoader.get(modelId, FAMILY_ID)
+		end)
+		if not okLoad or not memberModel then
+			fail("group member load failed for " .. tostring(slot.group) .. " #" .. memberIndex)
+			continue
+		end
+		pcall(function()
+			memberModel.Name = "R8_" .. tostring(slot.hub) .. "_" .. tostring(slot.groupKind) .. "_" .. memberIndex
+			memberModel:SetAttribute("LookDevHubVegR8", FAMILY_ID)
+			memberModel:SetAttribute("Hub", slot.hub)
+			memberModel:SetAttribute("Species", slot.species)
+			memberModel:SetAttribute("HubVegGroup", slot.group)
+			memberModel:SetAttribute("HubVegGroupKind", slot.groupKind)
+			if slot.groupKind == "bambu" then
+				memberModel:SetAttribute("HubVegCulmHeight", member.targetHeight)
+			end
+		end)
+		placeAndScale(memberModel, member)
+		pcall(function()
+			memberModel.Parent = anchor
+		end)
+		placed += 1
+	end
+	if placed == 0 then
+		fail("no group members placed for " .. tostring(slot.group))
+	end
+	return placed
+end
+
 local function apply()
 	failures = 0
 	if activeFolder then
@@ -243,6 +299,10 @@ local function apply()
 			fail("no asset ID for " .. tostring(slot.hub) .. "/" .. tostring(slot.species))
 			continue
 		end
+		if slot.kind == "pisang_group" or slot.kind == "bambu_clump" then
+			placed += stageGroup(slot, modelId, folder)
+			continue
+		end
 		-- Clone-first retrieval; the loader owns the LoadAsset fallback and its own counter.
 		local okLoad, model = pcall(function()
 			return LookDevAssetLoader.get(modelId, FAMILY_ID)
@@ -265,6 +325,10 @@ local function apply()
 			model:SetAttribute("LookDevHubVegR8", FAMILY_ID)
 			model:SetAttribute("Hub", slot.hub)
 			model:SetAttribute("Species", slot.species)
+			if slot.kind == "tree" then
+				model:SetAttribute("HubVegTree", true)
+				model:SetAttribute("HubVegTreeHeight", slot.targetHeight)
+			end
 		end)
 		placeAndScale(model, slot)
 		pcall(function()

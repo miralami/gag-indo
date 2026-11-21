@@ -6,9 +6,16 @@
 -- It emits the eleven r7 server scene lines plus LOOKDEV_LEAK:
 --   LOAD_FAILURES, SKY_DEFAULT, GRASS_ON_BEDS, HATS, PROPS_VISIBLE, PROPS_ON_GRASS,
 --   VEG_COUNT, VEG_SPECIES, BED_FLUSH, VEG_NEAR, PROP_SIZE, LOOKDEV_LEAK.
--- It also emits the r8 hub-vegetation family (WORK_QUEUE item 70): VEG_HUB_<hub> (one per
--- MapSpec.HUB_ORDER key), VEG_SPECIES_HUB and VEG_OVERLAP. All three FAIL at measured 0 when the
--- hubveg_r8 candidate is not staged. It also emits the r8 plots family (WORK_QUEUE item 71,
+-- It also emits the r8 hub-vegetation family (WORK_QUEUE item 70, densified in item 144):
+-- VEG_HUB_<hub> (one per MapSpec.HUB_ORDER key, target raised 12 -> 30), VEG_SPECIES_HUB,
+-- HUB_TREES and VEG_OVERLAP. HUB_TREES is READ-ONLY: it counts staged instances tagged HubVegTree
+-- with HubVegTreeHeight in 8..12, and the weakest hub decides (target >= 2). PATH_REACH is also
+-- READ-ONLY and section-O's six-hub-door subset: a 6-stud corridor from each MapSpec hub front
+-- outward 24 studs must hold no opaque staged hub-veg AABB (Part CFrame+Size corner math for
+-- BaseParts; transparent parts ignored). It is NOT a PathfindingService audit -- item 105's full
+-- 16/16 navigation audit stays a separate section-M item and no such success is claimed here.
+-- All four family lines FAIL at measured 0 when the hubveg_r8 candidate is not staged. It also
+-- emits the r8 plots family (WORK_QUEUE item 71,
 -- redone in item 143): PLOT_FENCE, PLOT_FENCE_VISIBLE and GATE_CLEAR. All three FAIL when the
 -- plots_r8 candidate is not staged. Item 143 adds READ-ONLY PLOT_FENCE_VISIBLE beside them: from
 -- each plot_aerial_NN camera, raycast toward every Kind=="fence" segment centre and require that
@@ -103,7 +110,9 @@ local ORDER = {
 	"VEG_HUB_polisi",
 	"VEG_HUB_pakrt",
 	"VEG_SPECIES_HUB",
+	"HUB_TREES",
 	"VEG_OVERLAP",
+	"PATH_REACH",
 	"PLOT_FENCE",
 	"PLOT_FENCE_VISIBLE",
 	"GATE_CLEAR",
@@ -210,6 +219,20 @@ local function childList(inst)
 	end
 	local ok, list = pcall(function()
 		return inst:GetChildren()
+	end)
+	if ok and type(list) == "table" then
+		return list
+	end
+	return {}
+end
+
+-- Item 144: group members live under one anchor Model, so the vegetation census walks descendants.
+local function descendantList(inst)
+	if not inst then
+		return {}
+	end
+	local ok, list = pcall(function()
+		return inst:GetDescendants()
 	end)
 	if ok and type(list) == "table" then
 		return list
@@ -913,7 +936,7 @@ emit("BED_FLUSH", #flushFailures == 0, math.floor(worstFlush * 100) / 100, 0.5, 
 local FALLBACK_HUB_ORDER = { "pasar", "gelap", "warung", "ronda", "polisi", "pakrt" }
 local HUB_VEG_FOLDER = "LookDevModelsVegetationHubR8_hubveg_r8"
 local HUB_VEG_RADIUS = 40
-local HUB_VEG_MIN_COUNT = 12
+local HUB_VEG_MIN_COUNT = 30
 local HUB_VEG_MIN_SPECIES = 4
 local OVERLAP_TOL = 0.05
 
@@ -1038,13 +1061,22 @@ end
 
 local vegR8Folder = folderNamed(HUB_VEG_FOLDER)
 local staged = {}
-for _, model in ipairs(childList(vegR8Folder)) do
-	if attr(model, "LookDevHubVegR8") == "hubveg_r8" then
+for _, model in ipairs(descendantList(vegR8Folder)) do
+	if
+		attr(model, "LookDevHubVegR8") == "hubveg_r8"
+		and attr(model, "HubVegGroupAnchor") ~= true -- count real instances, not empty group anchors
+	then
 		staged[#staged + 1] = {
+			inst = model,
 			hub = attr(model, "Hub"),
 			species = attr(model, "Species"),
 			centre = bboxCentre(model),
 			aabb = bboxAABB(model),
+			tree = attr(model, "HubVegTree") == true,
+			treeHeight = attr(model, "HubVegTreeHeight"),
+			group = attr(model, "HubVegGroup"),
+			groupKind = attr(model, "HubVegGroupKind"),
+			culmHeight = attr(model, "HubVegCulmHeight"),
 		}
 	end
 end
@@ -1132,6 +1164,52 @@ emit(
 	string.format("min=%d (%s)", weakest, table.concat(speciesParts, " ")),
 	">=" .. HUB_VEG_MIN_SPECIES .. " each",
 	speciesDetail
+)
+
+-- HUB_TREES (section-O item 144, READ-ONLY): at least two staged HubVegTree instances per hub
+-- inside HUB_VEG_RADIUS whose recorded height is in [8,12]. Missing tags/height FAIL at measured 0.
+local HUB_TREE_MIN, TREE_HEIGHT_MIN, TREE_HEIGHT_MAX = 2, 8, 12
+local hubTreeCounts, treeParts = {}, {}
+for _, key in ipairs(hubOrder) do
+	hubTreeCounts[key] = 0
+end
+for _, entry in ipairs(staged) do
+	local key = entry.hub
+	if entry.tree and type(key) == "string" and hubTreeCounts[key] ~= nil and entry.centre then
+		local hub = hubCentres[key]
+		if
+			hub
+			and type(hub.x) == "number"
+			and type(hub.z) == "number"
+			and type(entry.treeHeight) == "number"
+			and entry.treeHeight >= TREE_HEIGHT_MIN
+			and entry.treeHeight <= TREE_HEIGHT_MAX
+		then
+			local dx, dz = entry.centre.X - hub.x, entry.centre.Z - hub.z
+			if dx * dx + dz * dz <= HUB_VEG_RADIUS * HUB_VEG_RADIUS then
+				hubTreeCounts[key] += 1
+			end
+		end
+	end
+end
+local weakestTrees = math.huge
+for _, key in ipairs(hubOrder) do
+	weakestTrees = math.min(weakestTrees, hubTreeCounts[key])
+	treeParts[#treeParts + 1] = key .. ":" .. hubTreeCounts[key]
+end
+if weakestTrees == math.huge then
+	weakestTrees = 0
+end
+local treeDetail = { perHub = hubTreeCounts, staged = #staged, folderPresent = vegR8Folder ~= nil }
+if not mapSpecReady then
+	treeDetail.reason = "MapSpec not readable"
+end
+emit(
+	"HUB_TREES",
+	mapSpecReady and vegR8Folder ~= nil and #staged > 0 and weakestTrees >= HUB_TREE_MIN,
+	weakestTrees,
+	">=" .. HUB_TREE_MIN,
+	treeDetail
 )
 
 -- VEG_OVERLAP: strict XZ AABB overlap against every building footprint (MapSpec.hubBounds) and
@@ -1233,6 +1311,101 @@ emit(
 	0,
 	{ zones = #zones, staged = #staged, unreadable = unreadable, offenders = offenders, reason = dataReason }
 )
+
+-- PATH_REACH (section-O item 144, READ-ONLY). Six-hub-door subset only: for every MapSpec hub a
+-- 6-stud lane runs from the documented local +Z facade plane outward 24 studs toward the road.
+-- All six hub yaws are multiples of 90 degrees, so the four local corners fold to an exact world
+-- AABB; staged veg AABBs are compared against it (Part CFrame+Size corners, transparent ignored).
+-- PASS iff all six lanes are clear. No PathfindingService claim: item 105's full 16/16 audit is a
+-- separate section-M item. A missing folder / MapSpec / hub geometry FAILs at measured 6.
+local PATH_LANE_HALF, PATH_LANE_LENGTH = 3, 24
+local function isOpaqueStaged(inst)
+	if attr(inst, "Transparent") == true then
+		return false
+	end
+	local candidates = { inst }
+	for _, part in ipairs(descendantList(inst)) do
+		candidates[#candidates + 1] = part
+	end
+	for _, part in ipairs(candidates) do
+		local okPart, isPart = pcall(function()
+			return part:IsA("BasePart")
+		end)
+		if okPart and isPart then
+			local okT, transparency = pcall(function()
+				return part.Transparency
+			end)
+			if okT and type(transparency) == "number" and transparency < 1 then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+local pathLanes = {}
+local pathLaneOk = mapSpecReady and vegR8Folder ~= nil and #staged > 0 and type(MapSpec.hubPoint) == "function"
+for _, key in ipairs(hubOrder) do
+	local hub = hubCentres[key]
+	if pathLaneOk and hub and type(hub.depth) == "number" then
+		local corners = {
+			{ -PATH_LANE_HALF, hub.depth / 2 },
+			{ PATH_LANE_HALF, hub.depth / 2 },
+			{ -PATH_LANE_HALF, hub.depth / 2 + PATH_LANE_LENGTH },
+			{ PATH_LANE_HALF, hub.depth / 2 + PATH_LANE_LENGTH },
+		}
+		local minX, maxX, minZ, maxZ = math.huge, -math.huge, math.huge, -math.huge
+		for _, corner in ipairs(corners) do
+			local okPoint, x, z = pcall(function()
+				return MapSpec.hubPoint(hub, corner[1], corner[2])
+			end)
+			if not okPoint or type(x) ~= "number" or type(z) ~= "number" then
+				pathLaneOk = false
+				break
+			end
+			minX, maxX = math.min(minX, x), math.max(maxX, x)
+			minZ, maxZ = math.min(minZ, z), math.max(maxZ, z)
+		end
+		if pathLaneOk then
+			pathLanes[#pathLanes + 1] = {
+				hub = key,
+				minX = minX,
+				maxX = maxX,
+				minZ = minZ,
+				maxZ = maxZ,
+			}
+		end
+	else
+		pathLaneOk = false
+	end
+end
+local blockedLanes, blockedByHub = 0, {}
+for _, key in ipairs(hubOrder) do
+	blockedByHub[key] = 0
+end
+if pathLaneOk and #pathLanes == #hubOrder then
+	for _, lane in ipairs(pathLanes) do
+		for _, entry in ipairs(staged) do
+			local box = entry.aabb
+			if box and isOpaqueStaged(entry.inst) then
+				local ox = math.min(box.maxX, lane.maxX) - math.max(box.minX, lane.minX)
+				local oz = math.min(box.maxZ, lane.maxZ) - math.max(box.minZ, lane.minZ)
+				if ox > OVERLAP_TOL and oz > OVERLAP_TOL then
+					blockedByHub[lane.hub] += 1
+					blockedLanes += 1
+					break -- one blocked lane counts once
+				end
+			end
+		end
+	end
+else
+	blockedLanes = #hubOrder
+end
+local pathDetail = { blockedByHub = blockedByHub, lanes = #pathLanes, staged = #staged }
+if not pathLaneOk then
+	pathDetail.reason = "MapSpec / hubveg folder not readable"
+end
+emit("PATH_REACH", pathLaneOk and blockedLanes == 0, blockedLanes, 0, pathDetail)
 
 -- 9c. r8 plots family (WORK_QUEUE item 71). Two CHECK families over the staged
 -- LookDevPlotsR8_plots_r8 folder. PLOT_FENCE counts fence segments per plot (min decides, never

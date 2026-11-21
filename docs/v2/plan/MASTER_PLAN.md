@@ -55,6 +55,16 @@ posts every 4 studs, gate lintel + name sign, scarecrow, mailbox, 2-stud outer d
 their own posts); the measurement now excludes self-occlusion, target 70 unchanged. Suite
 **2482 tests**; `selene src` 0/0/0; default PERF_BUDGET 334/500.
 
+Item 144 COMPLETE: `hubveg_r8` densified to 36 anchors / 50 staged instances per hub (300 total),
+with >=2 canopy trees per hub at 8-12 studs, 2 pisang groups of 3, 2 bamboo clumps of 5-7 culms
+(10.5-12 studs), door flower beds, all within 40 studs. Real Studio staged-Play PASS
+`VEG_HUB_* 50 >=30`, `HUB_TREES 2 >=2`, `VEG_SPECIES_HUB 14 >=4`, `VEG_OVERLAP 0 0`,
+`PATH_REACH 0 0`, `DOOR_CLEAR 6 6` (with facades staged), `FACADE_STRAY 0 0`, `CAMERA_CLEAR 0/36`
+(`h/2026-11-21-round9/CHECK_144.txt`). DOOR_CLEAR correctly failed 0/6 with hubveg alone (no facade
+gauges). FLAGGED, not hidden: staged PERF_BUDGET 799/500 (hubveg) / 848/500 (+facades), over the
+Sedang proxy; item 144 has no perf clause, no check weakened, CANDIDATES.md records the flag, default
+look stays 334/500. Suite **2486 tests**; `selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

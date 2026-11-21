@@ -1,0 +1,63 @@
+CHECK 79 — hubprops_r8 (WORK_QUEUE section M, item 79)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: JuraganDesa (Edit runtime injection; place NOT saved, nothing published)
+
+== Setup (evidence path) ==
+1. Fresh real Play session after runtime module injection (no place save). Baked asset folders
+   present under ServerStorage.LookDevAssets (43 folders), including 106061905410704 (motor) and
+   generated_bamboo_basket (step-(2) BambooBasket, 0 scripts, 18 parts).
+2. Injected at runtime into the EDIT datamodel (no save):
+   - ReplicatedStorage.Shared.ModelMapHubPropsR8
+   - ReplicatedStorage.Shared.LookDev
+   - ReplicatedStorage.Shared.LookDevReview
+   - ServerScriptService.Server.Main
+   - ServerScriptService.Server.World.LookDevHubPropsR8
+3. Started Play. Staged via LookDevReview.enable("hubprops_r8", game) in the SERVER VM.
+   Staging report: prepare=true, ok=true, failures=0, folder=true, props=47,
+   current="hubprops_r8".
+4. Pasted the WHOLE tools/studio/review_check_r8.luau into execute_luau in the SERVER VM.
+
+== Raw check lines (SERVER datamodel, hubprops_r8 staged, verbatim) ==
+CHECK HUBPROPS_VISIBLE PASS 6 5
+CHECK HUBPROPS_ON_GRASS PASS 0 0
+CHECK LOAD_FAILURES PASS 0 0
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+CHECK CAMERA_CLEAR PASS 0 blocked/26 checked 0 blocked
+
+== Per-hub HUBPROPS_VISIBLE detail (verbatim from harness detail) ==
+pasar  : visible 9, props 9, onGrass 0, folderPresent true, cameraPresent true
+ronda  : visible 7, props 7, onGrass 0, folderPresent true, cameraPresent true
+polisi : visible 8, props 8, onGrass 0, folderPresent true, cameraPresent true
+warung : visible 9, props 9, onGrass 0, folderPresent true, cameraPresent true
+pakrt  : visible 8, props 8, onGrass 0, folderPresent true, cameraPresent true
+gelap  : visible 6, props 6, onGrass 0, folderPresent true, cameraPresent true
+
+Targets (unweakened):
+- HUBPROPS_VISIBLE >= 5 = MINIMUM HubProp Models visible from that hub's hub_<key> ReviewCameras
+  camera (70-degree cone + one occlusion ray, excluding player characters). Measured min = 6
+  (ronda 7 is the lowest single hub; all six hubs >= 6). Missing folder/camera/bbox counts as
+  FAIL at measured 0, never a skip.
+- HUBPROPS_ON_GRASS = 0: Terrain voxel at GRASS_Y=4 under every prop centre is non-Grass (the
+  applier paints and restores a Ground pad; sample uses grassAt({x,z}) with fixed GRASS_Y).
+- Guards: LOAD_FAILURES 0, LOOKDEV_LEAK 0, CAMERA_CLEAR 0 blocked.
+
+== Note on ronda placement ==
+The hub_ronda review camera looks through Tree_12's canopy; the regular at() row left three ronda
+props occluded (measured 4/7 visible in Studio). All seven ronda props therefore use explicit
+tree-free, gauge-clear, >=6-stud-spaced front-apron slots in ModelMapHubPropsR8 (verified against
+the live Studio raycast in this session). This changed only data positions; no check target was
+weakened. Lune self-check (hubprops_r8_spec) also passes >=5 unmasked per hub with these slots.
+
+== Other CHECK lines in the same console dump ==
+The full harness emits checks for all LookDev families; only hubprops_r8 was staged in this run.
+All non-hubprops checks report FAIL at measured 0 because their candidate folders are absent —
+that is expected and is NOT evidence for or against this item. Only the five lines above are the
+item-79 result.
+
+== Validation before this run ==
+lune run tests/run.luau: All 2441 tests passed.
+selene src: 0 errors / 0 warnings / 0 parse errors.
+stylua --check (changed Luau): clean. git diff --check: clean (pre-existing autocrlf notices only).
+
+Status: SEEN-IN-STUDIO (hubprops_r8 OFF by default; visual grading remains with the designer).

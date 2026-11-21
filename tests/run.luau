@@ -177,6 +177,7 @@ local specs = {
 	require("./specs/water_r8_spec"),
 	require("./specs/buildings_r8_spec"),
 	require("./specs/facades_r8_spec"),
+	require("./specs/hubprops_r8_spec"),
 }
 
 -- `--timing` prints a full per-spec table; without it only the slowest rows print. The first

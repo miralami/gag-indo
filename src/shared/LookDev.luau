@@ -35,6 +35,7 @@
 --   src/client/World/LookDevWaterR8.luau -- candidates "water_r8_a/b/c" (river water, client-only)
 --   src/server/World/LookDevBuildingsR8.luau -- candidate "buildings_r8" (six Creator Store buildings, server-only)
 --   src/server/World/LookDevFacadesR8.luau -- candidate "facades_r8" (hub facade details, server-only)
+--   src/server/World/LookDevHubPropsR8.luau -- candidate "hubprops_r8" (hub vernacular props, server-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -54,7 +55,7 @@
 --   LookDev.enable("textures_r4")
 --   LookDev.enable("sky_r4_a") -- or LookDev.enable("sky_r4_b") / LookDev.enable("sky_r4_c")
 --   LookDev.enable("sky_r6_a") -- or sky_r6_b / sky_r6_c / sky_r6_d / sky_r6_e / sky_r6_f
---   -- from the Server datamodel: LookDev.enable("buildings_r8") / LookDev.enable("facades_r8")
+--   -- from the Server datamodel: LookDev.enable("buildings_r8") / LookDev.enable("facades_r8") / LookDev.enable("hubprops_r8")
 --   LookDev.enable("spawn_ground_r6")
 --   LookDev.enable("terrain_r6_a") -- or LookDev.enable("terrain_r6_b")
 --   -- server-only: LookDev.enable("buildings_r4") / LookDev.enable("vegetation_r4") / LookDev.enable("props_r4") / LookDev.enable("npcs_r4")
@@ -133,6 +134,7 @@ LookDev.IDS = {
 	"water_r8_c",
 	"buildings_r8",
 	"facades_r8",
+	"hubprops_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -156,6 +158,7 @@ local BUILTIN_MATERIALS = {
 	WoodPlanks = true,
 	Wood = true,
 	Fabric = true,
+	Cardboard = true,
 	Paper = true,
 	SmoothPlastic = true,
 	Plastic = true,
@@ -791,6 +794,18 @@ LookDev.candidates = {
 		render = "docs/v2/visual/art/models_r8/facades/README.md",
 		hubCount = 6,
 	},
+
+	hubprops_r8 = {
+		id = "hubprops_r8",
+		title = "Vernacular hub props — crates, baskets, benches, flags, kentongan and more on all six hubs (round 9, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Baked IDs live in Shared.ModelMapHubPropsR8.ALLOWED_IDS (nine verified IDs only);
+		-- the other kinds are procedural Roblox parts. Grading is pending Studio review.
+		idsSource = "Shared.ModelMapHubPropsR8",
+		render = "docs/v2/visual/art/models_r8/hubprops/README.md",
+		hubCount = 6,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -983,6 +998,14 @@ function LookDev.plan(id: string): any
 		}
 	elseif id == "facades_r8" then
 		local c = LookDev.candidates.facades_r8
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			hubCount = c.hubCount,
+		}
+	elseif id == "hubprops_r8" then
+		local c = LookDev.candidates.hubprops_r8
 		return {
 			id = id,
 			idsSource = c.idsSource,

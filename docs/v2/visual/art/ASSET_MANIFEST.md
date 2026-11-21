@@ -593,3 +593,23 @@ All are LookDev candidates behind `buildings_r8`, off by default; look grading i
 | pendopo_jawa | 136417251697510 | pendopo_jawa | Pramadhita_wira | Creator Store, free | Creator Store free model; Roblox Creator Store terms; licence not re-read here | designer to confirm |
 | warung_penyetan | 118767493095408 | warung_penyetan | Voltcho1354 | Creator Store, free | Creator Store free model; Roblox Creator Store terms; licence not re-read here | designer to confirm |
 | nipa_hut | 167594119 | nipa_hut | SanchettaSam ("Nipa Hut Set") | Creator Store, free | Creator Store free model; Roblox Creator Store terms; licence not re-read here | designer to confirm |
+
+### hubprops_r8 — per-hub props (round 9, item 79, SERVER datamodel)
+
+Item 79 reuses only assets already recorded above with real IDs and licences: `karung`
+87487192428396 (CC0, line 416), `pagar_bambu` 85094565897097 (agent-generated CC0-equivalent,
+line 277) and 103341007913673 (CC BY 3.0, line 414), `jemuran` 138444489439223 (CC0, line 417),
+`lapak` 115924626989907 (CC BY 3.0, line 413), `gerobak` 119426685469058 (CC BY 3.0, line 411)
+and 10506531785 (Creator Store, line 432), `sumur` 95025959179405 (CC BY 3.0, line 412), and the
+real Poly Pizza CC0 motor `106061905410704` (line 99). The motor was newly baked this run from its
+verified ID into `ServerStorage.LookDevAssets.106061905410704` (scripts stripped); no place was
+saved. Kinds with no verified free asset were made from primitives as step 4 of D15 and are pure
+data in `src/shared/ModelMapHubPropsR8.luau` — no ID was invented for them.
+
+Step-2 ladder asset (D15): the Studio MCP `generate_procedural_model` tool produced a low-poly
+`BambooBasket` (generationId `14b48661-4c08-425f-ab3f-c641c1a885fd`, tag
+`PrimitiveGen_14b48661-4c08-425f-ab3f-c641c1a885fd`, 18 primitive parts, native bbox ~4.24 x 4.24
+x 2.6 studs). This is an agent-generated original work, CC0-equivalent, not a Roblox asset ID. All
+scripts on the generated `ProceduralModel` were stripped and the static geometry was baked
+runtime-only into `ServerStorage.LookDevAssets.generated_bamboo_basket`. It ships only inside the
+OFF-by-default `hubprops_r8` LookDev candidate; look grading is pending the designer.

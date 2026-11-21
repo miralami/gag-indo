@@ -161,7 +161,7 @@ return function(t, Env)
 
 	t:describe("facades_r8 registry, review and gallery", function()
 		t:it("ships candidate 56 with a plan and a server review path", function()
-			expect(#LookDev.IDS):toBe(56)
+			expect(#LookDev.IDS):toBe(57)
 			expect(LookDev.IDS[56]):toBe("facades_r8")
 			expect(LookDev.candidates.facades_r8.status):toBe("candidate, awaiting designer yes")
 			expect(LookDev.candidates.facades_r8.idsSource):toBe("Shared.ModelMapFacadesR8")

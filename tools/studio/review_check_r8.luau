@@ -30,6 +30,11 @@
 -- are absent. FACADE_PARTS requires >=10 tagged decorative Parts and all six FacadeKind values per
 -- hub; DOOR_CLEAR uses a rotation-aware GetPartsInPart probe at each FacadeDoorGauge's exact Size and
 -- CFrame and requires zero collidable hub parts and zero FacadePart decorative hits.
+-- It also emits the r8 hub-props family (WORK_QUEUE item 79): HUBPROPS_VISIBLE and
+-- HUBPROPS_ON_GRASS. Both are SERVER-side and FAIL when the LookDevHubPropsR8_hubprops_r8 folder or
+-- any hub_* ReviewCameras camera is absent. HUBPROPS_VISIBLE measures the MINIMUM number of tagged
+-- props visible from their own hub camera (target >=5 in all six hubs); HUBPROPS_ON_GRASS counts
+-- props whose Terrain voxel at GRASS_Y is Grass (target 0).
 -- Client datamodel: same lines plus CLOUD_COVER (the client LocalScript owns Terrain.Clouds.Cover);
 -- the Server datamodel cannot observe that tween. Run client-owned candidates (water, grade,
 -- sounds, clouds) in the Client datamodel.
@@ -77,6 +82,8 @@ local ORDER = {
 	"BLDG_DOOR",
 	"FACADE_PARTS",
 	"DOOR_CLEAR",
+	"HUBPROPS_VISIBLE",
+	"HUBPROPS_ON_GRASS",
 	"VEG_NEAR",
 	"PROP_SIZE",
 	"CLOUD_COVER",
@@ -2615,6 +2622,104 @@ end
 emit("DOOR_CLEAR", facadeDoorOk == #hubOrder, facadeDoorOk, #hubOrder, {
 	folderPresent = facadesFolder ~= nil,
 	hubs = facadeDoorDetail,
+})
+
+-- 9i. r8 hub props family (WORK_QUEUE item 79). SERVER-only: ReviewCameras requires MapSpec from
+-- ServerScriptService.Server.World, so the Client VM cannot read it. Both checks FAIL at measured 0
+-- (visible) / measured >0 (grass) when the staging folder or a hub camera is missing — never a skip.
+local HUBPROPS_FOLDER = "LookDevHubPropsR8_hubprops_r8"
+local HUBPROPS_MIN_VISIBLE = 5
+local hubPropsFolder = folderNamed(HUBPROPS_FOLDER)
+local hubPropsFolders, hubPropsByHub = {}, {}
+for _, folder in ipairs(childList(hubPropsFolder)) do
+	local key = attr(folder, "HubKey")
+	if type(key) == "string" then
+		hubPropsFolders[key] = folder
+		local list = {}
+		for _, model in ipairs(childList(folder)) do
+			if attr(model, "HubProp") == true then
+				list[#list + 1] = model
+			end
+		end
+		hubPropsByHub[key] = list
+	end
+end
+local hubPropsServer = false
+local hubPropsRun = service("RunService")
+if hubPropsRun then
+	pcall(function()
+		hubPropsServer = hubPropsRun:IsServer() == true
+	end)
+end
+local hubPropsCamera = {}
+if hubPropsServer then
+	local okCameras, Cameras = pcall(function()
+		return require(game.ReplicatedStorage.Shared.ReviewCameras)
+	end)
+	if okCameras and type(Cameras) == "table" and type(Cameras.get) == "function" then
+		for _, key in ipairs(hubOrder) do
+			local okCam, camera = pcall(function()
+				return Cameras.get("hub_" .. key)
+			end)
+			if okCam and camera then
+				local eye, look = asVector3(camera.position), asVector3(camera.lookAt)
+				if eye and look then
+					hubPropsCamera[key] = { eye, look }
+				end
+			end
+		end
+	end
+end
+local hubPropsMinVisible = math.huge
+local hubPropsGrass = 0
+local hubPropsDetail = {}
+for _, key in ipairs(hubOrder) do
+	local props = hubPropsByHub[key] or {}
+	local camera = hubPropsCamera[key]
+	local visible, grassy = 0, 0
+	for _, prop in ipairs(props) do
+		local centre = bboxCentre(prop)
+		if centre then
+			if camera and visibleFrom(prop, centre, camera[1], camera[2]) then
+				visible += 1
+			end
+			if grassAt({ x = centre.X, z = centre.Z }) then -- fixed GRASS_Y, as in r7
+				grassy += 1
+			end
+		else
+			grassy += 1 -- an unmeasurable prop is a grass failure, not a skip
+		end
+	end
+	if not hubPropsFolder or not camera then
+		visible = 0
+	end
+	if not hubPropsFolder or #props == 0 then
+		grassy = math.max(grassy, 1) -- a missing folder/hub cannot pass a 0-target
+	end
+	hubPropsMinVisible = math.min(hubPropsMinVisible, visible)
+	hubPropsGrass += grassy
+	hubPropsDetail[key] = {
+		folderPresent = hubPropsFolders[key] ~= nil,
+		cameraPresent = camera ~= nil,
+		props = #props,
+		visible = visible,
+		onGrass = grassy,
+	}
+end
+if hubPropsMinVisible == math.huge then
+	hubPropsMinVisible = 0
+end
+emit(
+	"HUBPROPS_VISIBLE",
+	hubPropsServer and hubPropsFolder ~= nil and hubPropsMinVisible >= HUBPROPS_MIN_VISIBLE,
+	hubPropsMinVisible,
+	HUBPROPS_MIN_VISIBLE,
+	{ folderPresent = hubPropsFolder ~= nil, serverOnly = hubPropsServer, hubs = hubPropsDetail }
+)
+emit("HUBPROPS_ON_GRASS", hubPropsFolder ~= nil and hubPropsGrass == 0, hubPropsGrass, 0, {
+	folderPresent = hubPropsFolder ~= nil,
+	voxelY = GRASS_Y,
+	hubs = hubPropsDetail,
 })
 
 -- 10. VEG_NEAR: dense near layer at the saved camera (45 studs, 70-degree cone). A model only

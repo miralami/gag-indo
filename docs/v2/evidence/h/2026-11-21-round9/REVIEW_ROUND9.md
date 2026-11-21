@@ -47,3 +47,28 @@ Ordered run notes. No Studio result is claimed; no place is saved or published.
 3. Stage with `require(game.ReplicatedStorage.Shared.LookDevReview).enable("facades_r8", game)`.
 4. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the SERVER VM. Capture `FACADE_PARTS` and `DOOR_CLEAR`, plus `LOAD_FAILURES` and `LOOKDEV_LEAK`. Exact targets: `FACADE_PARTS 6 6` (each hub folder has >=10 `FacadePart` Parts and all six `FacadeKind` values) and `DOOR_CLEAR 6 6` (each `FacadeDoorGauge` has the exact 7/10.5/2 pakrt or 6/9/2 other sizes, zero collidable hub parts and zero `FacadePart` hits in a rotation-aware `GetPartsInPart` probe at the gauge's exact Size/CFrame). A missing folder, per-hub folder, gauge or hub Model FAILs at measured 0, never a skip. Guards: `LOAD_FAILURES 0 0`, `LOOKDEV_LEAK 0 leaks`.
 5. Stop Play. No save, no publish. Visual yes/no is the designer's.
+
+## 6. Item-79 run — hubprops_r8
+
+Ordered run notes. **No Studio result is claimed**; no PASS is asserted, no place is saved or published.
+
+1. Stop Play. Inject at runtime: `ReplicatedStorage.Shared.ModelMapHubPropsR8`, the changed
+   `Shared.LookDev` and `Shared.LookDevReview`, `ServerScriptService.Server.Main.server`,
+   `ServerScriptService.Server.World.LookDevHubPropsR8`, and the new
+   `tools/studio/review_check_r8.luau`. Confirm the nine baked asset folders exist under
+   `ServerStorage.LookDevAssets` plus the step-(2) generated `generated_bamboo_basket` folder
+   (0 scripts, 18 parts, native bbox ~4.24x4.24x2.6, scaled to 2x2x1.5; CC0-equivalent,
+   generationId `14b48661-4c08-425f-ab3f-c641c1a885fd`, no invented ID, runtime-only, never saved).
+2. Start a FRESH real Play session in the SERVER datamodel; do not reuse one that staged another
+   candidate. Stage with
+   `require(game.ReplicatedStorage.Shared.LookDevReview).enable("hubprops_r8", game)`.
+3. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the SERVER
+   VM. Capture `HUBPROPS_VISIBLE`, `HUBPROPS_ON_GRASS`, `LOAD_FAILURES` and `LOOKDEV_LEAK`. Targets:
+   `HUBPROPS_VISIBLE >= 5` (minimum number of `HubProp` Models visible from each hub's
+   `hub_<key>` camera inside the 70-degree cone with one occlusion ray) and `HUBPROPS_ON_GRASS 0`
+   (Terrain voxel at `GRASS_Y=4` under each prop is not Grass). A missing staging folder, missing
+   camera or failed read FAILs at measured 0/1 per hub — never a skip. The item-79 grass line is
+   named `HUBPROPS_ON_GRASS` so it does not collide with the existing r7 `PROPS_ON_GRASS` CHECK;
+   `LOAD_FAILURES 0 0` and `LOOKDEV_LEAK` remain the shared guards.
+4. Stop Play without saving. Both new checks are SERVER-only: `ReviewCameras` requires MapSpec from
+   `ServerScriptService`, so they are skipped in the Client VM. Visual yes/no is the designer's.

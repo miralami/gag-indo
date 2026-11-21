@@ -32,6 +32,7 @@ return function(t, Env, Fakes)
 		"client/World/LookDevNpcs",
 		"client/World/LookDevCrops",
 		"client/World/LookDevSeasonR8",
+		"client/World/LookDevRainR8",
 		"client/World/LookDevHubProps",
 		"client/World/LookDevSounds",
 		"client/World/LookDevTexturesR4",

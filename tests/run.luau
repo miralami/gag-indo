@@ -202,6 +202,7 @@ local specs = {
 	require("./specs/seated_r8_spec"),
 	require("./specs/crops_showcase_r8_spec"),
 	require("./specs/season_r8_spec"),
+	require("./specs/rain_r8_spec"),
 	require("./specs/ronda_tower_r9_spec"),
 	require("./specs/rocks_r9_spec"),
 	require("./specs/streetfurn_r8_spec"),

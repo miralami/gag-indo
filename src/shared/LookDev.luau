@@ -60,6 +60,7 @@
 --   src/server/World/LookDevSeatedR8.luau -- candidate "seated_r8" (four seated R15 villagers at the Warung, server-only)
 --   src/server/World/LookDevCropsShowcaseR8.luau -- candidate "crops_showcase_r8" (three crop stage-review plots, server-only)
 --   src/client/World/LookDevSeasonR8.luau -- candidates "season_r8_hujan/kemarau/panen" (seasonal looks, client-only)
+--   src/client/World/LookDevRainR8.luau -- candidate "rain_r8" (client rain ring and morning mist, client-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -199,6 +200,7 @@ LookDev.IDS = {
 	"season_r8_hujan",
 	"season_r8_kemarau",
 	"season_r8_panen",
+	"rain_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -1354,6 +1356,19 @@ LookDev.candidates = {
 		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
 		seasonKey = "panen",
 	},
+
+	rain_r8 = {
+		id = "rain_r8",
+		title = "Client-only rain ring and morning mist — up to three textureless emitters gated on the Cuaca weather attribute (round 10, client-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Pure recipe and safe bounds in Shared.ModelMapRainR8. No asset ID, no decal, no Terrain
+		-- write, no DataStore/player/crop state and no player-facing text.
+		idsSource = "Shared.ModelMapRainR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		maxEmitters = 3,
+		maxRate = 60,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1743,6 +1758,15 @@ function LookDev.plan(id: string): any
 			seasonKey = c.seasonKey,
 			idsSource = c.idsSource,
 			render = c.render,
+		}
+	elseif id == "rain_r8" then
+		local c = LookDev.candidates.rain_r8
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			maxEmitters = c.maxEmitters,
+			maxRate = c.maxRate,
 		}
 	end
 	return nil

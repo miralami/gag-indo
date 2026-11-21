@@ -335,6 +335,9 @@ local ORDER = {
 	"SEASON_SAFE",
 	"SEASON_RESTORE",
 	"SEASON_DISTINCT",
+	"RAIN_EMITTERS",
+	"RAIN_OFF_CERAH",
+	"RAIN_COST",
 }
 
 local GRASS_Y = 4
@@ -10329,6 +10332,313 @@ local function runSeasonChecks()
 	)
 end
 runSeasonChecks()
+end
+
+-- 9u. WORK_QUEUE section N item 120: rain_r8, a client rain ring of at most three textureless
+-- ParticleEmitters plus a bounded morning-mist Atmosphere bump, gated on the live Cuaca weather.
+-- THREE MUTATING CLIENT checks, appended last in ORDER. RAIN_EMITTERS counts live emitter Parts
+-- while cuaca=hujan and validates Rate/Lifetime/Speed (the two ranges must be NumberRange).
+-- RAIN_OFF_CERAH proves both gate directions with pump(dt) called between them, so a pump cannot
+-- silently re-enable rain. RAIN_COST times the SAME applier.pump(dt) the Heartbeat calls. The prior
+-- candidate is re-enabled, the check override cleared and the rain folder destroyed on EVERY path.
+-- Own do...end + inner function: the harness is near the 200-local cap. No existing check is touched.
+do
+local function rainFailAll(reason)
+	emit("RAIN_EMITTERS", false, 0, 3, { reason = reason })
+	emit("RAIN_OFF_CERAH", false, 0, 0, { reason = reason })
+	emit("RAIN_COST", false, "ERR", "<0.5ms", { reason = reason })
+end
+
+local function runRainChecks()
+	-- Own RunService gate: the shared isClient local is declared LATER in this harness.
+	local okRun, run = pcall(function()
+		return game:GetService("RunService")
+	end)
+	local rainIsClient = okRun and run and run:IsClient() or false
+	if not rainIsClient then
+		rainFailAll("client VM required")
+		return
+	end
+	-- Client container exactly as LookDevReview.resolveContainer("client", game), with the
+	-- harness-friendly game.PlayerScripts.Client fallback used by the other client blocks.
+	local function rainApplier()
+		local okLocal, localModule = pcall(function()
+			return require(game.Players.LocalPlayer.PlayerScripts.Client.World.LookDevRainR8)
+		end)
+		if okLocal and type(localModule) == "table" then
+			return localModule
+		end
+		local okDirect, directModule = pcall(function()
+			return require(game.PlayerScripts.Client.World.LookDevRainR8)
+		end)
+		return if okDirect then directModule else nil
+	end
+	local look, rainMap, api = nil, nil, nil
+	local priorId = nil
+	local function cleanup()
+		-- Disable first: restore clears the override and destroys every emitter Part. Then clear
+		-- again through the public helper so no check override can leak into the next candidate.
+		if look then
+			pcall(function()
+				look.disable()
+			end)
+		end
+		if api then
+			pcall(function()
+				api.clearCuacaForCheck()
+			end)
+		end
+		if look and priorId then
+			pcall(function()
+				look.enable(priorId, { studio = true })
+			end)
+		end
+	end
+	local function failAll(reason)
+		cleanup()
+		rainFailAll(reason)
+	end
+
+	local okMods, mods = pcall(function()
+		return {
+			look = require(game.ReplicatedStorage.Shared.LookDev),
+			map = require(game.ReplicatedStorage.Shared.ModelMapRainR8),
+			-- Registration happens at module load; a saved place's boot script may predate this one.
+			applier = rainApplier(),
+		}
+	end)
+	if
+		not okMods
+		or type(mods) ~= "table"
+		or type(mods.look) ~= "table"
+		or type(mods.look.enable) ~= "function"
+		or type(mods.look.disable) ~= "function"
+		or type(mods.look.current) ~= "function"
+		or type(mods.map) ~= "table"
+		or type(mods.map.EMITTERS) ~= "table"
+		or type(mods.map.weatherIsRain) ~= "function"
+		or type(mods.map.MAX_EMITTERS) ~= "number"
+		or type(mods.map.MAX_RATE) ~= "number"
+		or type(mods.map.DT) ~= "number"
+		or type(mods.map.SIM_SECONDS) ~= "number"
+		or type(mods.map.MAX_STEP_MS) ~= "number"
+		or type(mods.applier) ~= "table"
+		or type(mods.applier.emitterCount) ~= "function"
+		or type(mods.applier.isApplied) ~= "function"
+		or type(mods.applier.currentWeather) ~= "function"
+		or type(mods.applier.pump) ~= "function"
+		or type(mods.applier.lastCostMs) ~= "function"
+		or type(mods.applier.setCuacaForCheck) ~= "function"
+		or type(mods.applier.clearCuacaForCheck) ~= "function"
+	then
+		failAll("modules unreadable: " .. tostring(mods))
+		return
+	end
+	look, rainMap, api = mods.look, mods.map, mods.applier
+	local okPrior, current = pcall(function()
+		return look.current()
+	end)
+	if okPrior and type(current) == "string" then
+		priorId = current
+	end
+
+	local liveEmitters = {}
+	local function readLiveEmitters()
+		local found = {}
+		local okFolder, foundFolder = pcall(function()
+			return workspace:FindFirstChild(rainMap.FOLDER)
+		end)
+		if not okFolder or not foundFolder then
+			return found
+		end
+		local okList, list = pcall(function()
+			return foundFolder:GetDescendants()
+		end)
+		if not okList or type(list) ~= "table" then
+			return found
+		end
+		for _, instance in ipairs(list) do
+			local okKind, pe = pcall(function()
+				return if instance:IsA("ParticleEmitter") then instance else nil
+			end)
+			if okKind and pe then
+				local okParent, part = pcall(function()
+					return pe.Parent
+				end)
+				if okParent and part then
+					local okPart, isPart = pcall(function()
+						return part:IsA("BasePart")
+					end)
+					if okPart and isPart then
+						found[#found + 1] = { part = part, emitter = pe }
+					end
+				end
+			end
+		end
+		return found
+	end
+	local function emitterValid(entry)
+		local okRate, rate = pcall(function()
+			return entry.emitter.Rate
+		end)
+		local okLife, life = pcall(function()
+			return entry.emitter.Lifetime
+		end)
+		local okSpeed, speed = pcall(function()
+			return entry.emitter.Speed
+		end)
+		return okRate
+			and okLife
+			and okSpeed
+			and type(rate) == "number"
+			and rate >= 0
+			and rate <= rainMap.MAX_RATE
+			and typeof(life) == "NumberRange"
+			and typeof(speed) == "NumberRange"
+	end
+	local errors = {}
+	local function runPumps(count)
+		for _ = 1, count do
+			local okPump, pumpErr = pcall(function()
+				api.pump(rainMap.DT)
+			end)
+			if not okPump then
+				errors[#errors + 1] = "pump:" .. tostring(pumpErr)
+				return
+			end
+		end
+	end
+
+	local okEnable, enabled, enableErr = pcall(function()
+		return look.enable(rainMap.id, { studio = true })
+	end)
+	if not okEnable or enabled == false then
+		errors[#errors + 1] = "enable:" .. tostring(enableErr or enabled)
+	end
+
+	local okHujan, setHujanErr = pcall(function()
+		return api.setCuacaForCheck(rainMap.WEATHER_RAIN)
+	end)
+	if not okHujan or setHujanErr == false then
+		errors[#errors + 1] = "set hujan:" .. tostring(setHujanErr)
+	end
+	runPumps(2)
+	liveEmitters = readLiveEmitters()
+	local okDiagnostic, diagnosticCount = pcall(function()
+		return api.emitterCount()
+	end)
+	local okApplied, appliedNow = pcall(function()
+		return api.isApplied()
+	end)
+	local okWeather, weatherNow = pcall(function()
+		return api.currentWeather()
+	end)
+	local invalidEmitters = 0
+	for _, entry in ipairs(liveEmitters) do
+		if not emitterValid(entry) then
+			invalidEmitters += 1
+		end
+	end
+	local emitterPass = #errors == 0
+		and okDiagnostic
+		and okApplied
+		and okWeather
+		and appliedNow == true
+		and weatherNow == rainMap.WEATHER_RAIN
+		and #liveEmitters >= 1
+		and #liveEmitters <= rainMap.MAX_EMITTERS
+		and #liveEmitters == diagnosticCount
+		and invalidEmitters == 0
+
+	local okCerah, setCerahErr = pcall(function()
+		return api.setCuacaForCheck(rainMap.WEATHER_CLEAR)
+	end)
+	if not okCerah or setCerahErr == false then
+		errors[#errors + 1] = "set cerah:" .. tostring(setCerahErr)
+	end
+	runPumps(3)
+	local offCount, onCount = 0, 0
+	for _, entry in ipairs(readLiveEmitters()) do
+		local okOff, isOff = pcall(function()
+			return entry.emitter.Enabled == false
+		end)
+		if okOff and isOff then
+			offCount += 1
+		end
+	end
+	local okClearWeather, clearWeather = pcall(function()
+		return api.currentWeather()
+	end)
+	local okHujanAgain, setAgainErr = pcall(function()
+		return api.setCuacaForCheck(rainMap.WEATHER_RAIN)
+	end)
+	if not okHujanAgain or setAgainErr == false then
+		errors[#errors + 1] = "set hujan again:" .. tostring(setAgainErr)
+	end
+	runPumps(3)
+	for _, entry in ipairs(readLiveEmitters()) do
+		local okOn, isOn = pcall(function()
+			return entry.emitter.Enabled == true
+		end)
+		if okOn and isOn then
+			onCount += 1
+		end
+	end
+	local gatePass = #errors == 0
+		and okClearWeather
+		and clearWeather == rainMap.WEATHER_CLEAR
+		and #liveEmitters > 0
+		and offCount == #liveEmitters
+		and onCount == #liveEmitters
+
+	local steps = math.max(1, math.ceil(rainMap.SIM_SECONDS / rainMap.DT))
+	local started = os.clock()
+	local okSim, simErr = pcall(function()
+		for _ = 1, steps do
+			api.pump(rainMap.DT)
+		end
+	end)
+	local totalElapsed = os.clock() - started
+	local ms = okSim and (totalElapsed * 1000 / steps) or math.huge
+	local costPass = #errors == 0
+		and okSim
+		and ms >= 0
+		and ms < rainMap.MAX_STEP_MS
+		and rainMap.MAX_STEP_MS == 0.5
+	local measuredMs = if okSim then math.floor(ms * 10000) / 10000 else "ERR"
+
+	cleanup()
+	emit("RAIN_EMITTERS", emitterPass, #liveEmitters, rainMap.MAX_EMITTERS, {
+		reason = if emitterPass then nil else "emitter count / rate / NumberRange / diagnostic mismatch",
+		diagnosticCount = diagnosticCount,
+		invalidEmitters = invalidEmitters,
+		rateMax = rainMap.MAX_RATE,
+		errors = errors,
+		restoredPrior = priorId,
+	})
+	emit("RAIN_OFF_CERAH", gatePass, offCount, #liveEmitters, {
+		reason = if gatePass then nil else "a pump re-enabled rain or a gate direction failed",
+		cerahDisabled = offCount,
+		hujanEnabled = onCount,
+		liveEmitters = #liveEmitters,
+		clearWeather = clearWeather,
+		errors = errors,
+		restoredPrior = priorId,
+	})
+	emit("RAIN_COST", costPass, measuredMs, "<0.5ms", {
+		reason = if costPass then nil else "pump failed or ms per step >= limit: " .. tostring(simErr),
+		totalMs = math.floor(totalElapsed * 1000 * 100) / 100,
+		steps = steps,
+		msPerStep = ms,
+		limitMs = rainMap.MAX_STEP_MS,
+		simSeconds = rainMap.SIM_SECONDS,
+		dt = rainMap.DT,
+		lastCostMsDiagnostic = if okDiagnostic then api.lastCostMs() else "ERR",
+		errors = errors,
+		restoredPrior = priorId,
+	})
+end
+runRainChecks()
 end
 
 -- 10. VEG_NEAR: dense near layer at the saved camera (45 studs, 70-degree cone). A model only

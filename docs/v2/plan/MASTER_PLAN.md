@@ -293,6 +293,14 @@ revisions / contact sheets / tier badges). `tier_biasa` numbers: render 256x256 
 (`h/2026-11-21-round9/CHECK_094.txt`). Whether the r3 redraw resolved the designer verdict is a
 visual call, NOT made here. No Luau/tests touched.
 
+Item 95 COMPLETE (strings audit): extended `strings_integrity_spec.luau` — banned words now include
+lorem/ipsum/dolor/"sit amet"/placeholder; long `id == en` strings (>=12 chars) emit a non-failing
+`[STRINGS FLAG] id==en long key=... value=...` line (sorted) plus a determinism test. Baseline clean:
+350 keys all with non-empty id/en, 0 placeholder hits; 2 long loanwords flagged, NOT failed
+(`admin_title`, `raid_breaking`). All 32 `Text =` literals in src/client are empty/glyph/technical —
+0 word-like player-facing strings to move, so no Strings.luau/src/client change
+(`h/2026-11-21-round9/CHECK_095.txt`). Designer's call on flagged copy.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

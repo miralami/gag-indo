@@ -3,7 +3,9 @@
 --
 -- * Every key has a non-empty `id` and `en`.
 -- * Placeholders (%s, %d, {name}) match between id and en.
--- * No leading/trailing whitespace, no TODO/TBD/xxx leftovers.
+-- * No leading/trailing whitespace, no TODO/TBD/XXX or lorem/placeholder leftovers.
+-- * Long strings where id == en (>= 12 chars) are FLAGGED, never failed: they are usually loanwords
+--   or proper nouns left to the designer (item 95). Watch for "[STRINGS FLAG]" in the Lune output.
 -- * Every literal key sent via Notify.send / Notify.broadcast, read via Strings.get or the
 --   client `t(...)` helper, or passed as an "@key" argument, exists in the table.
 --   Concatenated prefixes such as "@crop_" .. id must match at least one real key.
@@ -16,6 +18,27 @@
 local fs = require("@lune/fs")
 
 local MAX_LISTED = 12
+
+-- Item 95: a string is "long" for the id==en loanword flag at this length or above.
+local LONG_ID_EQ_EN_MIN = 12
+
+-- Long entries whose id and en are byte-identical are almost always loanwords / proper nouns.
+-- Flag them for the designer instead of failing the spec. Sorted by key for deterministic output.
+local function longIdEqualsEn(S: { [string]: any }): { { key: string, value: string } }
+	local flags = {}
+	for key, entry in S do
+		if type(entry) == "table" then
+			local id, en = entry.id, entry.en
+			if type(id) == "string" and type(en) == "string" and id == en and #id >= LONG_ID_EQ_EN_MIN then
+				table.insert(flags, { key = key, value = id })
+			end
+		end
+	end
+	table.sort(flags, function(a, b)
+		return a.key < b.key
+	end)
+	return flags
+end
 
 -- Recursively collect every .luau file under a directory.
 local function listLuau(dir: string, out: { string })
@@ -43,7 +66,7 @@ local ALLOWED_LITERAL_TEXT = {
 -- only the captured literal, so the property name is intentionally not part of the result.
 local function hardcodedTextIn(src: string): { string }
 	local found = {}
-	for literal in string.gmatch(src, "[%w_]*Text%s*=%s*\"([^\"]*)\"") do
+	for literal in string.gmatch(src, '[%w_]*Text%s*=%s*"([^"]*)"') do
 		if string.find(literal, "%a") and not ALLOWED_LITERAL_TEXT[literal] then
 			table.insert(found, literal)
 		end
@@ -116,11 +139,11 @@ local function scanReferences(): ({ [string]: { string } }, { [string]: { string
 			end
 			pos = comma + 1
 		end
-		local _, e = string.find(src, "^%s*\"", pos)
+		local _, e = string.find(src, '^%s*"', pos)
 		if not e then
 			return nil
 		end
-		local close = string.find(src, "\"", e + 1, true)
+		local close = string.find(src, '"', e + 1, true)
 		if not close then
 			return nil
 		end
@@ -141,7 +164,7 @@ local function scanReferences(): ({ [string]: { string } }, { [string]: { string
 					local key = literalArg(src, e + 1, afterComma)
 					if key and key ~= "" then
 						-- "admin_perf_" .. x is a prefix: it only has to match some real key.
-						local _, closeQuote = string.find(src, "\"", string.find(src, key, e + 1, true) + #key, true)
+						local _, closeQuote = string.find(src, '"', string.find(src, key, e + 1, true) + #key, true)
 						local concatenated = closeQuote and string.find(src, "^%s*%.%.", closeQuote + 1) ~= nil
 						if concatenated then
 							addTo(keyRefs, "prefix:" .. key, path)
@@ -159,7 +182,7 @@ local function scanReferences(): ({ [string]: { string } }, { [string]: { string
 
 			local pos = 1
 			while true do
-				local s, e, name = string.find(src, "\"@([%w_]*)\"", pos)
+				local s, e, name = string.find(src, '"@([%w_]*)"', pos)
 				if not s then
 					break
 				end
@@ -184,6 +207,12 @@ return function(t, Env, Fakes)
 	local Strings = probe:require("shared/Strings")
 	local S = Strings.raw
 
+	-- Item 95: build once, sorted, then emit the observable non-failing flag lines.
+	local longFlags = longIdEqualsEn(S)
+	for _, flag in ipairs(longFlags) do
+		print("[STRINGS FLAG] id==en long key=" .. flag.key .. " value=" .. flag.value)
+	end
+
 	local function entryProblems(key: string): { string }
 		local entry = S[key]
 		local problems = {}
@@ -202,7 +231,8 @@ return function(t, Env, Fakes)
 					table.insert(problems, `{lang} has leading/trailing whitespace`)
 				end
 				local upper = string.upper(text)
-				for _, word in { "TODO", "TBD", "XXX" } do
+				-- Item 95: also reject lorem-ipsum / placeholder filler in either language.
+				for _, word in { "TODO", "TBD", "XXX", "LOREM", "IPSUM", "DOLOR", "SIT AMET", "PLACEHOLDER" } do
 					if string.find(upper, word, 1, true) then
 						table.insert(problems, `{lang} contains "{word}"`)
 					end
@@ -249,13 +279,17 @@ return function(t, Env, Fakes)
 							break
 						end
 					end
-					local name = if matched then `dynamic key "{prefix}" .. x has real keys` else `[BUG] no key starts with "{prefix}" for dynamic key "{prefix}" .. x, e.g. {files[1]}`
+					local name = if matched
+						then `dynamic key "{prefix}" .. x has real keys`
+						else `[BUG] no key starts with "{prefix}" for dynamic key "{prefix}" .. x, e.g. {files[1]}`
 					t:it(name, function()
 						expect(matched):toBeTruthy()
 					end)
 				else
 					local exists = S[ref] ~= nil
-					local name = if exists then `{ref} is defined` else `[BUG] missing key "{ref}" referenced by {#files} call site(s), e.g. {files[1]}`
+					local name = if exists
+						then `{ref} is defined`
+						else `[BUG] missing key "{ref}" referenced by {#files} call site(s), e.g. {files[1]}`
 					t:it(name, function()
 						expect(exists):toBeTruthy()
 					end)
@@ -275,7 +309,9 @@ return function(t, Env, Fakes)
 							break
 						end
 					end
-					local name = if matched then `"{base}" .. x has real keys` else `[BUG] no key starts with "{prefix}" for dynamic "{base}" .. x args`
+					local name = if matched
+						then `"{base}" .. x has real keys`
+						else `[BUG] no key starts with "{prefix}" for dynamic "{base}" .. x args`
 					t:it(name, function()
 						expect(matched):toBeTruthy()
 					end)
@@ -283,7 +319,9 @@ return function(t, Env, Fakes)
 					local key = string.sub(ref, 2)
 					local exists = S[key] ~= nil
 					local files = atRefs[ref]
-					local name = if exists then `"{ref}" argument resolves` else `[BUG] missing key "{key}" passed as "{ref}" by {#files} call site(s), e.g. {files[1]}`
+					local name = if exists
+						then `"{ref}" argument resolves`
+						else `[BUG] missing key "{key}" passed as "{ref}" by {#files} call site(s), e.g. {files[1]}`
 					t:it(name, function()
 						expect(exists):toBeTruthy()
 					end)
@@ -291,6 +329,9 @@ return function(t, Env, Fakes)
 			end
 		end)
 
+		-- Item 95 re-audited all 32 `Text = "..."` hits across src/client: every one is empty, a
+		-- documented glyph/technical label ("X", "[L]", "-", "<", "|||| 4G [===]") or non-word-like.
+		-- Zero word-like player-facing literals to move, so Strings.luau and src/client were untouched.
 		t:describe("hardcoded player text in src/", function()
 			-- One [BUG] case per straggler so a failure names the exact literal and file.
 			for _, hit in ipairs(hardcoded) do
@@ -310,6 +351,21 @@ return function(t, Env, Fakes)
 				expect(#hardcodedTextIn('hint.Text = "[L]"')):toBe(0)
 				expect(#hardcodedTextIn('signal.Text = "|||| 4G [===]"')):toBe(0)
 				expect(#hardcodedTextIn('count.Text = "42"')):toBe(0)
+			end)
+		end)
+
+		t:describe("id==en long-string flag", function()
+			-- Non-failing by design: the lines are printed above, this only proves determinism.
+			t:it("flag list is rebuilt sorted, identical to the printed list", function()
+				local fresh = longIdEqualsEn(S)
+				expect(#fresh):toBe(#longFlags)
+				for i, flag in ipairs(fresh) do
+					expect(flag.key):toBe(longFlags[i].key)
+					expect(flag.value):toBe(longFlags[i].value)
+					if i > 1 then
+						expect(longFlags[i - 1].key < flag.key):toBeTruthy()
+					end
+				end
 			end)
 		end)
 

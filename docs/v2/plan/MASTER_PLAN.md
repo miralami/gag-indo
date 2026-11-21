@@ -346,6 +346,18 @@ candidate from `REVIEW_CAMERAS.md`; all 50 `CHECK_*.txt` paths) and wrote `CHECK
 PASS/LUNE-ONLY line per item 68–100; visual/aural grading left to designer). All items 68–100 ticked or
 BLOCKED (74 closed via 138/102), so 101 no-op marker ticked. Section N (round 10) follows.
 
+Item 103 COMPLETE (`full_r9` combined review set): staged all 13 approved/pending round-9 scene candidates
+together (9 server + 4 client-applier ids) in one SERVER VM lane via `LookDevReview.enableAdditive`. Real
+Play PASS, two deterministic runs, `h/2026-11-21-round10/CHECK_103.txt`: `CHECK CROSS_OVERLAP PASS 0
+collidable pairs 0 pairs` (anti-vacuity guard: 13 folders, 35949 parts, 0 unreadable, stagedOk; 7 expected
+non-collidable decorative overlaps reported), `CHECK STAGE_COUNT PASS 13 13`, `CHECK LOAD_FAILURES PASS 0 0`,
+`CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks`, `CHECK PERF_BUDGET RECORDED 2041 500` (proxy 500, over but
+off-by-default; default look still 334 per CHECK_097 — recorded, not hidden). First naive CROSS_OVERLAP
+was vacuous (0 collidable parts by design); guard added. Deviation: additive review set, NOT a new LookDev
+ID — one ID cannot span the two VM registries and would break 33 `#IDS==79` specs; item 136 precedent.
+Decision recorded under WORK_QUEUE "Decisions for designer". No Luau/spec changed; no place saved.
+Suite **2676 tests**; `selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

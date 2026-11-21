@@ -988,7 +988,7 @@ Same rules as section M (candidates off by default, Studio PASS per item, no gam
 #### N1. Unblock and combine
 
 - [x] 102. **(Pulled forward: do it as item 138 in section O and tick both.) Unblock item 74: replace the pine backdrop.** V-D4 is decided (tropical trees, no pines). In `Greybox` `buildForestRing`, replace the pine-named backdrop with tropical trees from the baked species (kelapa, mangga, bambu, pisang, jati or similar), same count or higher, same placement band, random yaw ±15% scale, within the Rendah budget. This is a **default-look change on purpose**; keep the old pines behind a `LookDev` candidate `forest_pines_legacy` so the designer can compare. Then finish `ring_r8` (hills and the band beyond ±400, at least 150 instances, 4 species). **CHECKS:** `NO_PINES` = 0 in the default look; `RING_COUNT` ≥ 150; `RING_SPECIES` ≥ 4; `PERF_BUDGET` still within Sedang. Untick and re-tick item 74 with the new evidence, and remove the item from "Decisions for designer".
-- [ ] 103. **`full_r9`: everything approved-or-pending at once.** A candidate that stages, in order, the round-9 scene candidates that don't conflict: `hubveg_r8`, `plots_r8`, `sawah_r8`, `river_r8`, `pathedge_r8`, `facades_r8`, plus whichever of items 79–85 are ticked. Skip `buildings_r8` (it is a staging lot, not a village layout) and the water/grade/sound variants (the designer picks one). **CHECKS:** `LOAD_FAILURES` = 0; `CROSS_OVERLAP` = 0: no two candidates' parts with `CanCollide` true have intersecting bounding boxes (report the pair names on FAIL); `LOOKDEV_LEAK` PASS; `PERF_BUDGET` result recorded.
+- [x] 103. **`full_r9`: everything approved-or-pending at once.** A candidate that stages, in order, the round-9 scene candidates that don't conflict: `hubveg_r8`, `plots_r8`, `sawah_r8`, `river_r8`, `pathedge_r8`, `facades_r8`, plus whichever of items 79–85 are ticked. Skip `buildings_r8` (it is a staging lot, not a village layout) and the water/grade/sound variants (the designer picks one). **CHECKS:** `LOAD_FAILURES` = 0; `CROSS_OVERLAP` = 0: no two candidates' parts with `CanCollide` true have intersecting bounding boxes (report the pair names on FAIL); `LOOKDEV_LEAK` PASS; `PERF_BUDGET` result recorded.
 - [ ] 104. **Rendah/Sedang/Tinggi thinning.** Each round-9 candidate takes the player's quality tier from the existing tier module and thins itself: Rendah keeps at most 50% of instances (never the structural ones such as fences, bridge rails, doors), Tinggi keeps 100%. **CHECKS:** `TIER_THIN`: for each candidate, count at Rendah ≤ 0.55 × count at Tinggi, and at Tinggi equals the item's documented count.
 - [ ] 105. **Walkability audit with everything on.** With `full_r9` staged, run `PathfindingService:CreatePath({AgentRadius = 2, AgentHeight = 5.5, AgentCanJump = false})` from the spawn to each hub entrance and each plot gate. **CHECK `PATH_REACH`:** every route returns `Success` (16/16). If one fails, find the blocking candidate and fix it (move or shrink the part), never the check.
 - [ ] 106. **Avatar scale audit with everything on.** A 7.25-stud-tall, 4-stud-wide box swept along each of those routes must hit no `CanCollide` part. **CHECK `AVATAR_FIT`** 16/16.
@@ -1050,6 +1050,23 @@ Models the ladder couldn't supply, each with a brief and a reference.
   `models_r3/MANIFEST.md`.
 
 ## Decisions for designer
+
+### Round 10 item 103 — `full_r9` is an additive review set, not a new LookDev ID (2026-11-21)
+
+Item 103 asked for a "candidate" staging all approved/pending round-9 scene candidates at once. Built
+it as an additive review set staged via `LookDevReview.enableAdditive` in the SERVER VM (`CHECK_103.txt`,
+`SEEN-IN-STUDIO`), NOT as a new ID in `LookDev.IDS`. Reasons: (1) the set spans 9 server + 4 client
+appliers; the two VMs have separate registries, a single candidate ID cannot stage both halves, and
+the 4 client appliers early-return in a Client VM because MapSpec is server-only — but all 13 DO stage
+together in the Server VM, so that is the one lane used. (2) An 80th ID breaks 33 specs asserting
+`#LookDev.IDS == 79` plus review_round3_bugfix_spec and candidate_gallery_spec. (3) Item 136
+ADDITIVE_STAGE is precedent for multi-candidate staging in the harness/review recipe. The item's
+CHECKS (load/overlap/leak/perf) are all met without an ID. CROSS_OVERLAP was vacuous on the first
+pass (0 collidable parts — all lookdev dressing is intentionally non-collidable); an anti-vacuity
+guard now fails on missing folders / 0 parts / unreadable parts, and the 0-collidable result is
+reported alongside the 7 expected decorative overlaps. PERF_BUDGET 2041 (proxy 500) recorded, not
+hidden; all candidates off by default. Designer call if wanted later: a first-class combined ID,
+which needs the IDS-count specs updated and a deliberate cross-VM staging design.
 
 ### Round 6 items 44–51 — LookDev verdicts and reversible defaults (2026-11-20)
 

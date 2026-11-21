@@ -120,6 +120,7 @@ local ORDER = {
 	"BLOCK_TREES",
 	"BLOCK_SPECIES",
 	"AVATAR_FIT",
+	"HUB_FIT",
 	"PLOT_FENCE",
 	"PLOT_FENCE_VISIBLE",
 	"GATE_CLEAR",
@@ -1594,6 +1595,73 @@ emit("AVATAR_FIT", avatarErrors == 0 and unreadableParts == 0 and avatarBlocked 
 	collidableParts = #collidableBoxes,
 	unreadable = unreadableParts,
 	reason = if avatarErrors > 0 then "blocks folder / lanes not readable" else nil,
+})
+
+-- HUB_FIT (section-O item 147, READ-ONLY). Each staged hubs_real_r9 building must sit inside its
+-- MapSpec hub footprint grown by HUBS_REAL_MARGIN studs on each side, and every mapped hub must
+-- have a staged building. A missing folder / tag / MapSpec / unreadable bbox FAILs at measured 6,
+-- never a vacuous pass. The greybox restore is graded separately by LOOKDEV_LEAK (see recipe §18).
+local HUBS_REAL_FOLDER = "LookDevHubsRealR9_hubs_real_r9"
+local HUBS_REAL_MARGIN = 2
+local hubsRealFolder = folderNamed(HUBS_REAL_FOLDER)
+local hubsRealByHub = {}
+local hubsRealCount = {}
+local hubsRealOffenders = {}
+local hubsRealBad, hubsRealUnreadable = 0, 0
+if mapSpecReady and hubsRealFolder and type(MapSpec.hubBounds) == "function" and type(MapSpec.hub) == "function" then
+	for _, child in ipairs(descendantList(hubsRealFolder)) do
+		local okModel, isModel = pcall(function()
+			return child:IsA("Model")
+		end)
+		if okModel and isModel and attr(child, "HubRealR9") == "hubs_real_r9" then
+			local key = attr(child, "HubRealR9Hub")
+			if type(key) == "string" then
+				hubsRealByHub[key] = hubsRealByHub[key] or {}
+				hubsRealCount[key] = (hubsRealCount[key] or 0) + 1
+				table.insert(hubsRealByHub[key], child)
+				local okHub, hub = pcall(function()
+					return MapSpec.hub(key)
+				end)
+				local box = bboxAABB(child)
+				local okBounds, bounds = false, nil
+				if okHub and hub then
+					okBounds, bounds = pcall(function()
+						return MapSpec.hubBounds(hub)
+					end)
+				end
+				if not okHub or not hub or not okBounds or type(bounds) ~= "table" or not box then
+					hubsRealUnreadable += 1
+					table.insert(hubsRealOffenders, { hub = key, reason = "MapSpec / bbox not readable" })
+				elseif
+					box.minX < bounds.minX - HUBS_REAL_MARGIN
+					or box.maxX > bounds.maxX + HUBS_REAL_MARGIN
+					or box.minZ < bounds.minZ - HUBS_REAL_MARGIN
+					or box.maxZ > bounds.maxZ + HUBS_REAL_MARGIN
+				then
+					hubsRealBad += 1
+					table.insert(hubsRealOffenders, { hub = key, box = box, bounds = bounds })
+				end
+			else
+				hubsRealBad += 1
+				table.insert(hubsRealOffenders, { reason = "missing HubRealR9Hub" })
+			end
+		end
+	end
+else
+	hubsRealUnreadable = #hubOrder
+end
+local hubsRealMissing = 0
+for _, key in ipairs(hubOrder) do
+	if not hubsRealCount[key] or hubsRealCount[key] == 0 then
+		hubsRealMissing += 1
+	end
+end
+local hubsRealMeasured = hubsRealBad + hubsRealUnreadable + hubsRealMissing
+emit("HUB_FIT", hubsRealMeasured == 0, hubsRealMeasured, 0, {
+	perHub = hubsRealCount,
+	offenders = hubsRealOffenders,
+	missing = hubsRealMissing,
+	reason = if hubsRealUnreadable > 0 then "hubs_real_r9 folder / MapSpec / bbox not readable" else nil,
 })
 
 -- 9c. r8 plots family (WORK_QUEUE item 71). Two CHECK families over the staged

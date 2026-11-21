@@ -17,6 +17,7 @@
 --   require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("hubveg_r8", game)
 --   require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("plots_r8", game)
 --   require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("facades_r8", game)
+--   require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("hubs_real_r9", game)
 --   require(game.ReplicatedStorage.Shared.LookDevReview).disableAll()
 -- Restore with the same module instance; IDs are the existing Shared.LookDev.IDS only.
 
@@ -84,6 +85,7 @@ LookDevReview.paths = {
 	hubprops_r8 = { datamodel = "server", path = { "World", "LookDevHubPropsR8" } },
 	forest_pines_legacy = { datamodel = "server", path = { "World", "LookDevForestPinesLegacy" } },
 	blocks_r9 = { datamodel = "server", path = { "World", "LookDevBlocksR9" } },
+	hubs_real_r9 = { datamodel = "server", path = { "World", "LookDevHubsRealR9" } },
 }
 
 function LookDevReview.pathsFor(id: string): any?

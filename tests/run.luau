@@ -183,6 +183,7 @@ local specs = {
 	require("./specs/forest_pines_legacy_spec"),
 	require("./specs/forest_r9_spec"),
 	require("./specs/blocks_r9_spec"),
+	require("./specs/hubs_real_r9_spec"),
 }
 
 -- `--timing` prints a full per-spec table; without it only the slowest rows print. The first

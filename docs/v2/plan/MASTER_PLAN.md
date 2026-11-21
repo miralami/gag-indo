@@ -83,6 +83,17 @@ staged-Play PASS `PIVOT_GROUND 0 0` (max delta ~8e-4 of 0.2 tolerance), `BLDG_VI
 mapping marked PROPOSAL awaiting the designer (no look verdict by an agent). Suite **2497 tests**;
 `selene src` 0/0/0; default look unchanged.
 
+Item 147 COMPLETE: `hubs_real_r9` stages one real Creator Store building per hub (PROPOSAL mapping
+from BUILDING_KIT.md, pending designer), downscaled into MapSpec footprint+2, ground-base pivot, with
+the greybox body hidden but its Sign kept. Real Studio staged-Play PASS `HUB_FIT 0 0` (6/6 staged,
+0 offenders), `DOOR_CLEAR 6 6`, `PATH_REACH 0 0`, `LOOKDEV_LEAK 0`, `CAMERA_CLEAR 0/36`
+(`h/2026-11-21-round9/CHECK_147.txt`). Verified hide/restore: body Transparency 1 / CanCollide false
+while staged, Sign unchanged 0, after disable body back to 0/true, state attribute removed, folder
+gone. DOOR_CLEAR/PATH_REACH correctly failed 0/6 and 6/0 with hubs_real alone (no facade/veg gauges);
+with the documented additive set both PASS — no check weakened. PERF_BUDGET FLAGGED not hidden:
+692/500 alone, 1206/500 additive (facades+hubveg+hubs_real), over the Sedang proxy; item has no perf
+clause, default look 334/500. Suite **2506 tests**; `selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

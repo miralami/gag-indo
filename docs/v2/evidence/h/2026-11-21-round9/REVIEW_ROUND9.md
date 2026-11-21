@@ -346,3 +346,49 @@ the CHECK evidence, tracker ticks and any visual verdict. No place is saved or p
 4. Read the guards `LOAD_FAILURES 0 0` and `LOOKDEV_LEAK 0 leaks` in the same run. Stop Play without
    saving. The kit table and hub mapping proposal live in `docs/v2/visual/art/BUILDING_KIT.md`;
    visual grading — does each building suit its proposed hub? — stays the designer's.
+
+## 18. Item-147 run — `hubs_real_r9` real buildings on six hubs (WORK_QUEUE section O)
+
+Run-note recipe. **No Studio result is claimed** by the implementation agent; the main session owns
+the CHECK evidence, tracker ticks and any visual verdict. No place is saved or published. The
+hub → building matches are the PROPOSAL in `docs/v2/visual/art/BUILDING_KIT.md`, pending designer yes.
+
+1. Stop Play. Inject at runtime (not saved): `ReplicatedStorage.Shared.ModelMapHubsRealR9`, the
+   changed `ReplicatedStorage.Shared.LookDev` and `LookDevReview`,
+   `ServerScriptService.Server.World.LookDevHubsRealR9`, and the changed
+   `tools/studio/review_check_r8.luau`. Confirm the six baked `BuildingSlot` folders exist under
+   `ServerStorage.LookDevAssets` so `LookDevAssetLoader` clones them instead of falling back; no new
+   asset ID is introduced.
+2. Start a FRESH real Play session in the SERVER datamodel. Stage ONLY this candidate:
+   `require(game.ReplicatedStorage.Shared.LookDevReview).enable("hubs_real_r9", game)`.
+   Each staged Model is named `R9_<hub>_<slot>` in `LookDevHubsRealR9_hubs_real_r9` and carries
+   `HubRealR9 = "hubs_real_r9"`, `HubRealR9Hub` and `HubRealR9Slot`. The greybox hub Model's
+   non-sign `BasePart`s are set `Transparency = 1` / `CanCollide = false`; `Sign` and its children
+   stay visible. The exact prior values are saved in attributes and put back on disable.
+3. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the SERVER
+   VM. Read the new READ-ONLY `CHECK HUB_FIT 0 0`: PASS iff every mapped hub has at least one staged
+   building and every staged Model's world AABB lies inside `MapSpec.hubBounds(hub)` grown 2 studs
+   on each side. A missing folder, tag, MapSpec or unreadable bbox FAILs at measured 6 (one per
+   hub), never a vacuous pass. `HUB_FIT` sits in `ORDER` directly after `AVATAR_FIT`.
+4. In the SAME run read `CHECK DOOR_CLEAR 6 6` (stage `facades_r8` additively too if it is not already
+   staged — `DOOR_CLEAR` grades the facade gauges, which this candidate does not add),
+   `CHECK PATH_REACH 0 0` (stage `hubveg_r8` additively too; the six 6-stud hub-door lanes start at
+   the footprint facade plane so an inside-footprint building cannot block them), and the guards
+   `LOAD_FAILURES 0 0` and `LOOKDEV_LEAK 0 leaks`. Then call
+   `require(game.ReplicatedStorage.Shared.LookDevReview).disable()` and re-run `LOOKDEV_LEAK`: the
+   staged folder must be gone and all six greybox hub bodies back at their prior opacity/collision
+   with the signs still readable.
+5. Stop Play without saving. Fit numbers from the pure data (0.25-stud inset, downscale only,
+   world axes swapped for yaw 90):
+
+   | Hub | Building | Fit scale | Final `ScaleTo` | World bbox W × D | MapSpec footprint W × D |
+   | --- | --- | --- | --- | --- | --- |
+   | `pasar` | `indonesian_house` | 0.989814 | 0.989814 | 36.296 × 51.500 | 64 × 52 |
+   | `gelap` | `rumah_joglo` | 0.486640 | 0.364980 (0.75 base baked in) | 28.060 × 27.500 | 32 × 28 |
+   | `warung` | `warung_penyetan` | 1.000000 | 1.000000 | 24.000 × 13.820 | 52 × 44 |
+   | `ronda` | `nipa_hut` | 0.891849 | 0.891849 | 39.500 × 20.263 (yaw 90) | 40 × 44 |
+   | `polisi` | `pendopo_jawa` | 0.843677 | 0.843677 | 25.749 × 43.500 | 48 × 44 |
+   | `pakrt` | `rumah_4` | 0.611314 | 0.611314 | 22.992 × 33.500 | 48 × 34 |
+
+6. Stop Play without saving. Visual grading — does each real building read as its hub at that
+   scale, and should the PROPOSAL mapping be kept? — stays the designer's.

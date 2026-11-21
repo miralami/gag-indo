@@ -975,8 +975,8 @@ The designer reviews the results one candidate at a time afterwards, so produce 
 
 #### M7. Handoff
 
-- [ ] 100. **Review pack.** Write `REVIEW_ROUND9.md`: the bake (step 1), then batches grouped by datamodel (Client: water, grade, sounds; Server: everything else), the exact `enable` sequence per batch, the camera name from `REVIEW_CAMERAS.md` for each candidate, and every `CHECK_*.txt` path. Add `docs/v2/evidence/h/<date>-round9/CHECKS_SUMMARY.md` with one PASS/FAIL/BLOCKED line per item. The main session takes the screenshots.
-- [ ] 101. **No-op marker.** Tick this when items 68–100 are each ticked or `BLOCKED`; section N follows and holds the real refill (item 135).
+- [x] 100. **Review pack.** Write `REVIEW_ROUND9.md`: the bake (step 1), then batches grouped by datamodel (Client: water, grade, sounds; Server: everything else), the exact `enable` sequence per batch, the camera name from `REVIEW_CAMERAS.md` for each candidate, and every `CHECK_*.txt` path. Add `docs/v2/evidence/h/<date>-round9/CHECKS_SUMMARY.md` with one PASS/FAIL/BLOCKED line per item. The main session takes the screenshots.
+- [x] 101. **No-op marker.** Tick this when items 68–100 are each ticked or `BLOCKED`; section N follows and holds the real refill (item 135).
 
 ### N. Round 10: more village, combined look, audits (added 2026-11-21, second long unattended run)
 

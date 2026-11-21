@@ -1,6 +1,6 @@
 # Round-9 check harness — REVIEW_ROUND9.md (WORK_QUEUE section M)
 
-Session: `<fill: Studio session name / placeId>`. No place is saved or published in this round.
+Session: `Development-Juragan-Desa`, placeId `132087524375529` (Studio MCP). No place is saved or published in this round.
 Harness fix (2026-11-21): `bboxAABB`/`bboxCentre` now measure single BasePart/MeshPart assets (teh-tehan) directly instead of returning nil; VEG_OVERLAP still requires `unreadable == 0`. Re-run needed in Studio.
 
 ## 1. Edit-mode bake (step 1)
@@ -883,3 +883,132 @@ Implementation-only SERVER-VM recipe. **No Studio result is claimed here**; the 
 3. Read `SOUND_LOADED` (target `6`): all six staged Sounds must report `IsLoaded=true` within `ModelMapSoundsR8.LOAD_TIMEOUT_S` (10 s). The detail lists each bed's loaded flag, `TimeLength` and the elapsed seconds. Roblox exposes no `not authorized` Luau signal — a bed that never loads is the only available proxy, so the check FAILs on any bed still unloaded at the deadline, never a fake string match.
 4. Read `SOUND_VOLUME` (target `6`): every bed must have `Volume <= 0.5`, `RollOffMaxDistance <= 80`, a non-nil `SoundGroup` and a BasePart/Attachment parent (positional). Missing folder/Sounds or any offender FAILs loudly. Read `SOUND_RESTORE` (target `1`): the staged folder/Sounds/Parts must be destroyed, no `JD_sounds_r8` group leaked unless pre-existing, every captured Sound stopped and unparented, and the prior candidate back. All three lines always emit.
 5. For the audition only, stage from the SERVER datamodel with `require(game.ReplicatedStorage.Shared.LookDevReview).enable("sounds_r8", game)`, listen near the six staged bed positions, then `LookDevReview.disable()` and re-read `LOOKDEV_LEAK 0`. Stop Play without saving. Whether jangkrik at night, ayam + birds by day, river/wind and the kentongan event actually read as a kampung soundscape is the designer's call; this recipe and the three objective checks make no aural verdict.
+
+---
+
+## 24. Review pack (WORK_QUEUE item 100) — datamodel batches, enable sequences, cameras, CHECK paths
+
+This is the handoff pack for the main session, which TAKES the shots; a vision-capable designer GRADES
+them. Nothing here is a visual verdict. No place is saved or published. Section 1 above is step 1 (the
+Edit-mode bake) and section 2 is the harness run order; both apply before any batch below.
+
+### 24.1 Datamodel batches
+
+Item 100's shorthand "Client: water, grade, sounds; Server: everything else" does not match the
+authoritative registry `src/shared/LookDevReview.luau` `paths[].datamodel`. Grouping below follows the
+REGISTRY (the harness recipes in this file already stage each id in its correct VM). Discrepancy noted
+so the designer is not sent to the wrong DataModel:
+
+- `grade_r8_a/b/c` and `sounds_r8` are **SERVER** candidates in the registry (`:104-107`), not Client —
+  their effects/beds are created server-side and replicate. Their recipes are sections "Item-91" and
+  "Item-92" above (SERVER VM).
+- CLIENT candidates beyond water: `animals_r8`, `flyers_r8`, `smoke_r8`, `wind_r8`, `day_cycle_r8`
+  (`LookDevReview.luau:95-102`). They are staged in the CLIENT VM.
+
+**Batch A — CLIENT water** (client VM): `water_r8_a` (shipping default; NO enable call), `water_r8_b`,
+`water_r8_c` (enable one at a time). Camera `spawn_golden` (Client). Recipe section "Item-76".
+
+**Batch B — CLIENT other** (client VM): `animals_r8`, `flyers_r8`, `smoke_r8`, `wind_r8`,
+`day_cycle_r8`. Cameras per §24.3. Recipes sections "Item-82".."Item-85", "Item-89".
+
+**Batch C — SERVER grade/sounds** (server VM): `grade_r8_a/b/c`, `sounds_r8`. Cameras
+`canonical_overview` + `spawn` (grade); aural audition at the six bed positions (sounds, no camera).
+Recipes sections "Item-91", "Item-92".
+
+**Batch D — SERVER everything else** (server VM): all remaining round-9 candidates —
+`hubveg_r8`, `plots_r8`, `sawah_r8`, `river_r8`, `pathedge_r8`, `forest_pines_legacy`/`ring_r8`
+(item 74, done as section-O 138/102), `buildings_r8`, `facades_r8`, `hubprops_r8`, `streetfurn_r8`,
+`spanduk_r8`, `npcs_r8`, `npcs_idle_r8`, `ambient_walkers_r8`, `night_r8`, plus section-O
+`blocks_r9`, `hubs_real_r9`, `pasar_awnings_r8`, `plaza_r9`, `ronda_tower_r9`, `rocks_r9`.
+Cameras per §24.3. Recipes throughout this file; section 23 is the section-O pack.
+
+### 24.2 Exact enable sequence per batch
+
+All toggles pass `game` and use DOT syntax (`require(...).enable(id, game)`; the colon form fails
+"unknown candidate"). From a FRESH Play (or after `review.disableAll()`):
+
+```lua
+local review = require(game.ReplicatedStorage.Shared.LookDevReview)
+-- ONE candidate at a time (the standard review shot):
+review.enable("<candidate-id>", game)   -- stages in this VM's correct datamodel
+-- shoot the camera(s) from §24.3 in the datamodel named for that candidate
+review.disable()                        -- restores exactly; re-read LOOKDEV_LEAK 0
+```
+
+- Batch A: `water_r8_a` needs NO call (shipping client default via `Water.mount()`); for b/c use
+  `review.enable("water_r8_b", game)` / `_c` in the CLIENT VM, one at a time.
+- Batch B: `review.enable("<id>", game)` in the CLIENT VM, one at a time (`day_cycle_r8` with
+  `{ studio = true }`).
+- Batch C: `review.enable("grade_r8_a", game)` (or `_b`/`_c`) / `review.enable("sounds_r8", game)`
+  in the SERVER VM, one at a time.
+- Batch D: single `review.enable("<id>", game)` in the SERVER VM per shot, OR — for the combined
+  all-together shot only — the additive sequence (item 136, do NOT substitute `enable`, it disables
+  the previously staged candidate):
+
+```lua
+local review = require(game.ReplicatedStorage.Shared.LookDevReview)
+review.disableAll()
+review.enableAdditive("hubveg_r8", game)
+review.enableAdditive("plots_r8", game)
+review.enableAdditive("facades_r8", game)
+review.enableAdditive("hubs_real_r9", game)   -- optional 4th
+-- shoot `canonical_overview` in the SERVER VM; current() stays nil
+review.disableAll()
+```
+
+After every batch: `review.disableAll()`, re-read `CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks`, stop Play
+WITHOUT saving. Fix a failing `CAMERA_CLEAR` by moving the camera, not by weakening the check.
+
+### 24.3 Camera name per candidate (from `docs/v2/visual/REVIEW_CAMERAS.md`)
+
+| Candidate | Datamodel | Camera(s) |
+|---|---|---|
+| `water_r8_a/b/c` | Client | `spawn_golden` (a = default, no call) |
+| `animals_r8` | Client | `hub_warung`, `river_rocks`, `sawah_above` |
+| `flyers_r8` | Client | `canonical_overview`, `hub_warung`, `bridge_south_bank` |
+| `smoke_r8` | Client | `hub_warung`, `hub_pasar`, `canonical_overview` |
+| `wind_r8` | Client | `hub_warung`, `hub_pasar`, `canonical_overview` |
+| `day_cycle_r8` | Client | `spawn` at 16:00 (client lighting; use `spawn_golden`/`spawn_night` presets) |
+| `grade_r8_a/b/c` | Server | `canonical_overview`, `spawn` |
+| `sounds_r8` | Server | none — aural audition at the six bed positions |
+| `hubveg_r8` | Server | `hub_warung` (+ `hub_pasar`, `hub_gelap`, `hub_ronda`, `hub_polisi`, `hub_pakrt`) |
+| `plots_r8` | Server | `plot_aerial_01`..`10`, `plot_gate_01`..`10` |
+| `sawah_r8` | Server | `sawah_above`, `sawah_below` |
+| `river_r8` | Server | `bridge_north_bank`, `bridge_south_bank`, `river_rocks` |
+| `pathedge_r8` | Server | `spawn` |
+| `forest_pines_legacy` / `ring_r8` | Server | `forest_wall` |
+| `buildings_r8` | Server | no registry name — saved `ModelMapBuildingsR8` row camera (folder attributes) |
+| `facades_r8` | Server | `hub_pakrt`; sweep `hub_pasar`, `hub_gelap`, `hub_warung`, `hub_ronda`, `hub_polisi` |
+| `hubprops_r8` | Server | six `hub_*` cameras |
+| `streetfurn_r8` | Server | `spawn`, `canonical_overview` |
+| `spanduk_r8` | Server | `canonical_overview`, `hub_warung`, `hub_pasar` |
+| `npcs_r8` | Server | no registry name — saved `ModelMapNpcsR8.savedCamera` |
+| `npcs_idle_r8` | Server | no registry name — same saved `ModelMapNpcsR8.savedCamera` |
+| `ambient_walkers_r8` | Server | camera not named in the item recipe — use `canonical_overview` + `hub_warung` |
+| `night_r8` | Server | `spawn`, `canonical_overview`, `hub_warung` |
+| `blocks_r9` | Server | `canonical_overview`, `spawn` |
+| `hubs_real_r9` | Server | six `hub_*` cameras |
+| `pasar_awnings_r8` | Server | `pasar_awnings` |
+| `plaza_r9` | Server | `plaza_centre` |
+| `ronda_tower_r9` | Server | `ronda_tower` |
+| `rocks_r9` | Server | `river_rocks` |
+
+Candidates without a registry camera name: `buildings_r8`, `npcs_r8`, `npcs_idle_r8`,
+`ambient_walkers_r8`, `sounds_r8` (aural), `day_cycle_r8` (uses `spawn`, not a registry lighting name).
+
+### 24.4 Every CHECK_*.txt path (round 9)
+
+All under `docs/v2/evidence/h/2026-11-21-round9/`. Zero-padded `CHECK_080`..`CHECK_099`; the rest are
+unpadded. 50 files total:
+
+`CHECK_68.txt`, `CHECK_69.txt`, `CHECK_70.txt`, `CHECK_71.txt`, `CHECK_72.txt`, `CHECK_73.txt`,
+`CHECK_74.txt`, `CHECK_75.txt`, `CHECK_76.txt`, `CHECK_77.txt`, `CHECK_78.txt`, `CHECK_79.txt`,
+`CHECK_080.txt`, `CHECK_081.txt`, `CHECK_082.txt`, `CHECK_083.txt`, `CHECK_084.txt`, `CHECK_085.txt`,
+`CHECK_086.txt`, `CHECK_087.txt`, `CHECK_088.txt`, `CHECK_089.txt`, `CHECK_090.txt`, `CHECK_091.txt`,
+`CHECK_092.txt`, `CHECK_093.txt`, `CHECK_094.txt`, `CHECK_095.txt`, `CHECK_096.txt`, `CHECK_097.txt`,
+`CHECK_098.txt`, `CHECK_099.txt`, `CHECK_102.txt`, `CHECK_136.txt`, `CHECK_137.txt`, `CHECK_138.txt`,
+`CHECK_139.txt`, `CHECK_140.txt`, `CHECK_141.txt`, `CHECK_142.txt`, `CHECK_143.txt`, `CHECK_144.txt`,
+`CHECK_145.txt`, `CHECK_146.txt`, `CHECK_147.txt`, `CHECK_148.txt`, `CHECK_149.txt`, `CHECK_150.txt`,
+`CHECK_151.txt`, `CHECK_153.txt`.
+
+Also see `CHECKS_SUMMARY.md` in this folder: one PASS/FAIL/BLOCKED line per item 68–100.

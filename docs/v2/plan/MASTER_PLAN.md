@@ -339,6 +339,13 @@ service mocks), BUG-015/016/019 (need Player/Remote/DataStore mocks), BUG-006/00
 GATE1 rows (G1/G2/Q1 composite, G4b phone-visual, G6 fps half needs hardware + count recorded 13059/3921,
 G7 five humans, Q6 published place, Q7 real device, Q8 inherently LUNE process gate). No Luau/spec changed.
 
+Items 100+101 COMPLETE (review pack + no-op marker): appended §24 to `h/2026-11-21-round9/REVIEW_ROUND9.md`
+(datamodel batches — note registry says grade/sounds are SERVER and animals/flyers/smoke/wind/day_cycle
+are CLIENT, unlike item-100 shorthand; exact `enable(id, game)`/additive sequences; camera name per
+candidate from `REVIEW_CAMERAS.md`; all 50 `CHECK_*.txt` paths) and wrote `CHECKS_SUMMARY.md` (one
+PASS/LUNE-ONLY line per item 68–100; visual/aural grading left to designer). All items 68–100 ticked or
+BLOCKED (74 closed via 138/102), so 101 no-op marker ticked. Section N (round 10) follows.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

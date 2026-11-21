@@ -32,6 +32,31 @@ screenshots in the look-dev corner.
 
 Gaps between phases (03:30–04:00, 09:30–10:00 and so on) blend between their neighbours.
 
+## Documented numeric limits (item 89)
+
+Established for the OFF-BY-DEFAULT `day_cycle_r8` candidate (`Shared.ModelMapDayCycleR8`); the
+shipping table and these limits are unchanged by the candidate.
+
+- **Luminance** = Rec.709 `0.2126*R + 0.7152*G + 0.0722*B` on 0–255 channel values. Phase colours
+  are `Color3` (0–1 channels); multiply by 255 first.
+- **Sun-vs-ambient ratio** = `luminance(colorShiftTop) / luminance(ambient)`. At 16:00 the spawn
+  sits inside Sore at alpha 0, so the pure phase values are used. The tuned 16:00 ratio must be at
+  least **20% higher** than the original table's; Lune baseline: base 2.160825, tuned 2.705297
+  (+25.20%).
+- **Documented phase-jump limit** = `PHASE_JUMP_FACTOR` (1.25) × the ORIGINAL table's own largest
+  adjacent-channel jump. A jump is the max absolute delta over colour channels (ambient,
+  outdoorAmbient, colorShiftTop, colorShiftBottom, tint, each channel /255) and scalars
+  (brightnessMultiplier, fogEndMultiplier, saturationDelta, sunRaysDelta, lampLevel), comparing
+  each adjacent phase pair in clock order including the malam → dini_hari wrap. Original max
+  0.623529; documented limit 0.779412. The tuned table must stay at or under this limit — 25%
+  headroom over the original, so a real snap is caught without weakening the check.
+- Tone changes still tween over **20–40 real seconds, never snap** (see Performance below).
+- **Maghrib values are fixed** and must remain field-for-field identical to the original table;
+  `DAY_MAGHRIB_UNCHANGED` checks this.
+- **ShadowSoftness** ships at 0.3 (`client/World/Sky.luau`); the tuned Sore phase sets 0.45, other
+  phases keep 0.3. The tuned Sore also lowers the sun cue by 0.75 game hours (`sunClockOffset`
+  -0.75: 16:00 reads as 15:15) for a lower, more directional sun.
+
 ## Fit with the hook moments (`VISUAL_MASTER_PLAN.md` §4)
 
 - **Spawn / first screenshot:** phase 6, golden hour, always.

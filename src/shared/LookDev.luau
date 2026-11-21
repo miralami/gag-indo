@@ -49,6 +49,7 @@
 --   src/server/World/LookDevModelsNpcsR8.luau -- candidate "npcs_r8" (five more catalog-dressed villager roles, server-only)
 --   src/server/World/LookDevNpcsIdleR8.luau -- candidate "npcs_idle_r8" (ten villagers with a real idle track + tiny sway, server-only)
 --   src/server/World/LookDevAmbientWalkersR8.luau -- candidate "ambient_walkers_r8" (eight ambient R15 strollers via NpcWalk, server-only)
+--   src/client/World/LookDevDayCycleR8.luau -- candidate "day_cycle_r8" (tuned golden-hour contrast, client-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -62,6 +63,7 @@
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("corner")
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("textures_r3")
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("day_cycle")
+--   require(game.ReplicatedStorage.Shared.LookDev).enable("day_cycle_r8")
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("icons_r3")
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("sky_r3")
 --   -- from the Server datamodel: buildings_r3 / vegetation_r3 / props_r3 / npcs_r3
@@ -164,6 +166,7 @@ LookDev.IDS = {
 	"npcs_r8",
 	"npcs_idle_r8",
 	"ambient_walkers_r8",
+	"day_cycle_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -1043,6 +1046,18 @@ LookDev.candidates = {
 		walkSpeed = 6,
 		simSeconds = 90,
 	},
+
+	day_cycle_r8 = {
+		id = "day_cycle_r8",
+		title = "Day cycle tune — warmer lower Sore sun, darker Ambient and ShadowSoftness 0.45, still 20–40 s tweens (round 9, client-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Pure tuned phase table + numeric limits in Shared.ModelMapDayCycleR8. Maghrib and every
+		-- other phase stay field-for-field identical to the shipping table. No asset IDs.
+		idsSource = "Shared.ModelMapDayCycleR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		shadowSoftness = 0.45,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1143,6 +1158,14 @@ function LookDev.plan(id: string): any
 			id = id,
 			idsSource = c.idsSource,
 			render = c.render,
+		}
+	elseif id == "day_cycle_r8" then
+		local c = LookDev.candidates.day_cycle_r8
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			shadowSoftness = c.shadowSoftness,
 		}
 	elseif id == "icons_r3" then
 		local c = LookDev.candidates.icons_r3

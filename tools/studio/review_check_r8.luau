@@ -235,6 +235,9 @@ local ORDER = {
 	"LIGHTS",
 	"TORCH_NIGHT",
 	"ADDITIVE_STAGE",
+	"DAY_PHASES_MONOTONIC",
+	"DAY_1600_CONTRAST",
+	"DAY_MAGHRIB_UNCHANGED",
 	"LOOKDEV_LEAK",
 }
 
@@ -7415,6 +7418,88 @@ else
 			end)
 		end
 	end
+end
+end
+
+-- 12f. Item 89: three PURE day-cycle checks, no engine calls beyond the guarded require and no
+-- staging. Shared.ModelMapDayCycleR8 owns the tuned phases and the documented numeric limits
+-- (DAY_CYCLE.md): a normalized adjacent-channel jump <= 1.25x the original table's own maximum,
+-- a 16:00 sun-vs-ambient luminance ratio >= 1.20x the original, and a field-for-field unchanged
+-- Maghrib. These are VM-agnostic: they emit three FAIL lines when the module is missing, never skip.
+do
+local dayOk, Day = pcall(function()
+	return require(game.ReplicatedStorage.Shared.ModelMapDayCycleR8)
+end)
+if not dayOk or type(Day) ~= "table" then
+	local reason = "ModelMapDayCycleR8 not readable: " .. tostring(Day)
+	emit("DAY_PHASES_MONOTONIC", false, "ERR", "<= documented limit", { reason = reason })
+	emit("DAY_1600_CONTRAST", false, "ERR", ">= 1.20x base", { reason = reason })
+	emit("DAY_MAGHRIB_UNCHANGED", false, 0, 1, { reason = reason })
+else
+	local function call(fn, ...)
+		local ok, value = pcall(fn, ...)
+		return ok, value
+	end
+
+	local okBaseJump, baseJump = call(Day.adjacentJumps, Day.BASE_PHASES)
+	local okTunedJump, tunedJump = call(Day.adjacentJumps, Day.PHASES)
+	local okLimit, limit = pcall(function()
+		return Day.PHASE_JUMP_FACTOR * baseJump
+	end)
+	-- baseJump > 0 is a non-vacuity guard: if colours are unreadable (e.g. userdata mishandled)
+	-- both base and tuned jump collapse to 0 and 0 <= limit would PASS with no evidence.
+	local monotone = okBaseJump and okTunedJump and okLimit
+		and type(baseJump) == "number" and baseJump > 0
+		and type(tunedJump) == "number"
+		and type(limit) == "number"
+		and tunedJump <= limit
+	emit(
+		"DAY_PHASES_MONOTONIC",
+		monotone,
+		type(tunedJump) == "number" and string.format("%.6f", tunedJump) or "ERR",
+		type(limit) == "number" and "<=" .. string.format("%.6f", limit) or "<= documented limit",
+		{
+			baseMax = okBaseJump and baseJump or "ERR",
+			tunedMax = okTunedJump and tunedJump or "ERR",
+			factor = Day.PHASE_JUMP_FACTOR,
+			moduleLimit = Day.documentedLimit,
+		}
+	)
+
+	local okBaseRatio, baseRatio = call(Day.contrastAt1600, Day.BASE_PHASES)
+	local okTunedRatio, tunedRatio = call(Day.contrastAt1600, Day.PHASES)
+	local okTarget, target = pcall(function()
+		return 1.2 * baseRatio
+	end)
+	-- baseRatio > 0 is a non-vacuity guard: if Color3 channels are unreadable (userdata handled as
+	-- a table) both ratios become 0 and 0 >= 0 would PASS with no evidence.
+	local contrast = okBaseRatio and okTunedRatio and okTarget
+		and type(baseRatio) == "number" and baseRatio > 0
+		and type(tunedRatio) == "number"
+		and type(target) == "number"
+		and tunedRatio >= target
+	emit(
+		"DAY_1600_CONTRAST",
+		contrast,
+		type(tunedRatio) == "number" and string.format("%.6f", tunedRatio) or "ERR",
+		type(target) == "number" and ">=" .. string.format("%.6f", target) or ">= 1.20x base",
+		{
+			baseRatio = okBaseRatio and baseRatio or "ERR",
+			tunedRatio = okTunedRatio and tunedRatio or "ERR",
+			upliftPct = okTarget and type(baseRatio) == "number" and baseRatio > 0
+					and type(tunedRatio) == "number"
+					and string.format("%.2f%%", (tunedRatio / baseRatio - 1) * 100)
+				or "ERR",
+		}
+	)
+
+	local okMaghrib, unchanged = pcall(Day.maghribUnchanged)
+	local okChanges, changes = pcall(Day.maghribChanges)
+	local pass = okMaghrib and unchanged == true
+	emit("DAY_MAGHRIB_UNCHANGED", pass, pass and 1 or 0, 1, {
+		changed = okChanges and changes or "ERR",
+		reason = okMaghrib and nil or tostring(unchanged),
+	})
 end
 end
 

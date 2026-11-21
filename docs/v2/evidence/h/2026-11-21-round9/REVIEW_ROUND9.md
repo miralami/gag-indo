@@ -826,3 +826,29 @@ Implementation-only SERVER-VM recipe. **No Studio result is claimed here**; the 
 5. Read the guard `LOAD_FAILURES 0 0` (the list now sums `ambient_walkers_r8` too). Call
    `LookDevReview.disable()` and re-read `LOOKDEV_LEAK 0`; stop Play without saving. Visual yes/no
    stays the designer's.
+
+## Item-89 run — `day_cycle_r8` tuned Sore (WORK_QUEUE section M, CLIENT candidate)
+
+Implementation-only CLIENT-VM recipe. **No Studio result is claimed here**; the main session owns
+`CHECK_089.txt`, the tracker tick and the visual yes/no. No place is saved or published.
+
+1. Inject at runtime (not saved) into the **Client** datamodel: `Shared.ModelMapDayCycleR8`,
+   `Client.World.LookDevDayCycleR8`, the changed `Shared.LookDev` / `Shared.LookDevReview` and the
+   changed `tools/studio/review_check_r8.luau`. `ServerScriptService` does not replicate Edit→Client,
+   so a client applier must live under `Players.LocalPlayer.PlayerScripts.Client.World`; use
+   `require(game.ReplicatedStorage.Shared.LookDevReview).enable("day_cycle_r8", game, { studio = true })`
+   (it pre-registers the applier in this VM, then calls `LookDev.enable`). No asset IDs: the nine
+   existing Lighting/effect properties, six Rendah lamp lights and `Lighting.ShadowSoftness` are
+   restored exactly by `LookDevReview.disable()`.
+2. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the CLIENT
+   VM. The three item-89 checks are PURE and VM-agnostic (`do -- 12f. Item 89`): they require
+   `Shared.ModelMapDayCycleR8` with a pcall, always emit, never stage and never skip. Their Lune
+   baselines: `DAY_PHASES_MONOTONIC` tuned jump 0.623529 <= documented limit 0.779412 (1.25x the
+   original table's own max); `DAY_1600_CONTRAST` tuned ratio 2.705297 >= target 2.592990
+   (+25.20% over the original 2.160825); `DAY_MAGHRIB_UNCHANGED` 1/1. Any missing module or read
+   FAILs the line rather than skipping it. The definitions are in `docs/v2/visual/DAY_CYCLE.md`.
+3. Review at spawn (16:00, pure Sore) against the `day_cycle` before-shot from
+   `docs/v2/visual/CANDIDATES.md`; the change is lower sun angle, warmer `ColorShift_Top`, darker
+   Ambient and ShadowSoftness 0.45. The subjective yes/no (does 16:00 now read directional?) is the
+   designer's — this recipe and the three numeric checks make no visual verdict. Stop Play without
+   saving.

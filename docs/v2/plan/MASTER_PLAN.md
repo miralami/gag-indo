@@ -229,6 +229,18 @@ sim of the same step math; NpcWalk yields via task.wait so real 90 s cannot be p
 defect (0.5 s < shortest ~3 s waypoint leg) was fixed to a 6 s bounded poll; assertion unchanged; re-run
 PASS. PERF_BUDGET 334/500, default. Suite **2642 tests**; `selene src` 0/0/0.
 
+Item 89 COMPLETE: `day_cycle_r8` ships the tuned Sore look as an OFF-by-default CLIENT candidate —
+warmer lower sun (ColorShift_Top 255/190/96), darker Ambient (84/70/68), sunClockOffset -0.75,
+ShadowSoftness 0.45 (shipping 0.3), still 20-40 s tweens; Maghrib and all other phases field-for-field
+unchanged. Numeric limits newly documented in `visual/DAY_CYCLE.md` (Rec.709 luminance ratio, 1.25x
+phase-jump headroom). Studio VM PASS `DAY_PHASES_MONOTONIC 0.623529 <=0.779412`,
+`DAY_1600_CONTRAST 2.705297 >=2.592990` (+25.20% vs base 2.160825), `DAY_MAGHRIB_UNCHANGED 1 1`,
+`LOAD_FAILURES 0`, `LOOKDEV_LEAK 0`, `CAMERA_CLEAR 0/42`, `PERF_BUDGET 334/500`
+(`h/2026-11-21-round9/CHECK_089.txt`). A Color3-userdata vacuous PASS (0 >= 0 in Studio while Lune
+measured 2.16->2.71) was found and fixed via pcall duck-typed channel reads + `baseRatio > 0` /
+`baseJump > 0` non-vacuity guards — checks made stricter, no threshold weakened; re-run PASS. Visual
+yes/no remains the designer's. Suite **2653 tests**; `selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

@@ -47,6 +47,14 @@ with this candidate staged `PERF_BUDGET` is 1146/500, over the Sedang proxy; ite
 clause and no check was weakened. CANDIDATES.md marks it pending/over-budget; default look stays
 334/500. Suite **2476 tests**; `selene src` 0/0/0.
 
+Item 143 COMPLETE: `plots_r8` rebuilt to the canonical plot module — 3-stud two-rail bamboo fence,
+posts every 4 studs, gate lintel + name sign, scarecrow, mailbox, 2-stud outer ditch, gubuk in plots
+2/5/8, plus 10 new `plot_aerial_01..10` review cameras. Real Studio staged-Play PASS
+`PLOT_FENCE 16 >=8`, `PLOT_FENCE_VISIBLE 87 >=70`, `GATE_CLEAR 0 hits`, `CAMERA_CLEAR 0 blocked/36`
+(`h/2026-11-21-round9/CHECK_143.txt`). First run correctly FAILED visibility 37 (rails occluded by
+their own posts); the measurement now excludes self-occlusion, target 70 unchanged. Suite
+**2482 tests**; `selene src` 0/0/0; default PERF_BUDGET 334/500.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

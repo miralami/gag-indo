@@ -253,3 +253,24 @@ the CHECK evidence and tracker ticks. No place is saved or published.
    and `PATH_CLEAR` are SERVER-side; this Studio has no `Part.GetBoundingBox`, so clump scaling uses
    CFrame + Size corner math. Visual grading — does the grass read as a planted road edge? — stays
    the designer's.
+
+## 14. Item-143 run — `plots_r8` canonical dressing (WORK_QUEUE section O)
+
+Run-note recipe. **No Studio result is claimed** by the implementation agent; the main session owns
+the CHECK evidence and tracker ticks. No place is saved or published.
+
+1. Stop Play. Inject at runtime (not saved): `ReplicatedStorage.Shared.ModelMapPlotsR8`,
+   `ReplicatedStorage.Shared.ReviewCameras`, `ServerScriptService.Server.World.LookDevPlotsR8` and
+   the changed `tools/studio/review_check_r8.luau`. The applier is already booted by `Main.server`.
+2. Start a FRESH real Play session in the SERVER datamodel. Stage ONLY this candidate:
+   `require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("plots_r8", game)`.
+3. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the SERVER
+   VM. Read `CHECK PLOT_FENCE ... >=8 each` (now eight two-rail fence runs per plot; posts are
+   `fence_post` and do not count), `CHECK PLOT_FENCE_VISIBLE ... >=70` (READ-ONLY: each
+   `plot_aerial_NN` eye raycasts every `Kind=="fence"` rail centre; the first opaque hit must be
+   that rail, transparent ditch water is skipped, missing camera/ray/zero segment FAILs at 0),
+   `CHECK GATE_CLEAR ... 0` and `CHECK CAMERA_CLEAR ... 0 blocked` (now includes the ten aerials).
+   No target was weakened.
+4. Read the guards `LOAD_FAILURES 0 0` and `LOOKDEV_LEAK 0 leaks` in the same run. Stop Play
+   without saving. Visual grading — does the fence read as bamboo from the road? — stays the
+   designer's.

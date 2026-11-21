@@ -59,6 +59,19 @@ local function plotGate(index: number): (Vec3, Vec3)
 	return vec(gx - ux * standOff, gateY + MapSpec.S, gz - uz * standOff), vec(gx, gateY, gz)
 end
 
+-- WORK_QUEUE item 143: 30 studs up, 40 studs back along the connector-road radial. Same
+-- Config.Game + MapSpec.ROAD radial frame as plotGate; only the fixed queue offsets differ.
+local PLOT_AERIAL_RISE = 30
+local PLOT_AERIAL_BACK = 40
+
+local function plotAerial(index: number): (Vec3, Vec3)
+	local px, pz = Game.plotCenter(index)
+	local plotRadius = math.sqrt(px * px + pz * pz)
+	local ux, uz = px / plotRadius, pz / plotRadius
+	return vec(px - ux * PLOT_AERIAL_BACK, MapSpec.GROUND_Y + PLOT_AERIAL_RISE, pz - uz * PLOT_AERIAL_BACK),
+		vec(px, MapSpec.GROUND_Y, pz)
+end
+
 local cameras: { ReviewCamera } = {}
 
 local function add(name: string, position: Vec3, lookAt: Vec3, datamodel: "Client" | "Server", purpose: string)
@@ -96,6 +109,18 @@ for index = 1, Game.plotCount do
 		look,
 		"Server",
 		`Gate of plot P{index} from the connector-road side.`
+	)
+end
+
+-- Plot aerials: one per configured plot, for the item-143 PLOT_FENCE_VISIBLE raycast check.
+for index = 1, Game.plotCount do
+	local eye, look = plotAerial(index)
+	add(
+		`plot_aerial_{string.format("%02d", index)}`,
+		eye,
+		look,
+		"Server",
+		`Fence and gate of plot P{index} from 30 studs up and 40 studs back along the connector road.`
 	)
 end
 

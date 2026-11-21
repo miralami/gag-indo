@@ -8,8 +8,12 @@
 --   VEG_COUNT, VEG_SPECIES, BED_FLUSH, VEG_NEAR, PROP_SIZE, LOOKDEV_LEAK.
 -- It also emits the r8 hub-vegetation family (WORK_QUEUE item 70): VEG_HUB_<hub> (one per
 -- MapSpec.HUB_ORDER key), VEG_SPECIES_HUB and VEG_OVERLAP. All three FAIL at measured 0 when the
--- hubveg_r8 candidate is not staged. It also emits the r8 plots family (WORK_QUEUE item 71):
--- PLOT_FENCE and GATE_CLEAR. Both FAIL when the plots_r8 candidate is not staged.
+-- hubveg_r8 candidate is not staged. It also emits the r8 plots family (WORK_QUEUE item 71,
+-- redone in item 143): PLOT_FENCE, PLOT_FENCE_VISIBLE and GATE_CLEAR. All three FAIL when the
+-- plots_r8 candidate is not staged. Item 143 adds READ-ONLY PLOT_FENCE_VISIBLE beside them: from
+-- each plot_aerial_NN camera, raycast toward every Kind=="fence" segment centre and require that
+-- the first opaque hit is that segment; a missing camera, folder, ray or zero segments FAILs at
+-- measured 0, never a vacuous pass.
 -- It also emits the r8 sawah family (WORK_QUEUE item 72): SAWAH_TOPS, SAWAH_WATER,
 -- SAWAH_VERGE and GUBUK. All four FAIL when the sawah_r8 candidate is not staged.
 -- Item 140 adds four READ-ONLY checks beside that block: TUFT_SHAPE (no PadiPart part longer than
@@ -101,6 +105,7 @@ local ORDER = {
 	"VEG_SPECIES_HUB",
 	"VEG_OVERLAP",
 	"PLOT_FENCE",
+	"PLOT_FENCE_VISIBLE",
 	"GATE_CLEAR",
 	"SAWAH_TOPS",
 	"SAWAH_WATER",
@@ -1236,7 +1241,7 @@ emit(
 -- FAIL, never a skip.
 local PLOTS_FOLDER = "LookDevPlotsR8_plots_r8"
 local PLOT_COUNT = 10
-local FENCE_MIN = 6
+local FENCE_MIN = 8
 local GATE_WIDTH, GATE_HEIGHT, GATE_DEPTH = 6, 8, 1
 -- Ground-contact tolerance: a box whose bottom sits exactly on the ground surface still reports
 -- the collidable ground slab, so lift the opening box by this much. Target stays 6x8, zero hits.
@@ -1259,16 +1264,19 @@ if okPlotParts and type(plotDescendants) == "table" then
 end
 
 -- PLOT_FENCE: the weakest plot decides. Count only Kind=="fence" with an in-range numeric
--- PlotIndex; a missing folder gives every plot 0, hence min=0 and a FAIL.
-local fenceCounts = {}
+-- PlotIndex; a missing folder gives every plot 0, hence min=0 and a FAIL. fencePartsByPlot is
+-- reused by PLOT_FENCE_VISIBLE so both checks measure the exact same rail pieces.
+local fenceCounts, fencePartsByPlot = {}, {}
 for i = 1, PLOT_COUNT do
 	fenceCounts[i] = 0
+	fencePartsByPlot[i] = {}
 end
 for _, part in ipairs(plotParts) do
 	if attr(part, "Kind") == "fence" then
 		local index = attr(part, "PlotIndex")
 		if type(index) == "number" and fenceCounts[index] ~= nil then
 			fenceCounts[index] = fenceCounts[index] + 1
+			fencePartsByPlot[index][#fencePartsByPlot[index] + 1] = part
 		end
 	end
 end
@@ -1396,6 +1404,208 @@ emit(
 	"0",
 	gateDetail
 )
+
+-- 9c-2. PLOT_FENCE_VISIBLE (WORK_QUEUE item 143). READ-ONLY and SERVER-only: ReviewCameras
+-- requires MapSpec from ServerScriptService. For each plot i, use plot_aerial_NN's eye and cast
+-- toward the centre of each Kind=="fence" rail. Transparent hits (thin ditch water) are skipped
+-- by re-casting with that instance added to the exclude filter; the first hit with
+-- Transparency < 0.5 must be the target rail itself (or a descendant of it). Each plot's own
+-- Kind=="fence_post" parts are excluded: the ray to a rail centre passes through the fence's
+-- 3-stud posts standing along that same rail, which is self-occlusion of the assembly, not an
+-- obstruction. Terrain, trees, buildings and other world geometry still count as opaque blockers.
+-- A missing camera, staging folder, ray, unreadable transparency or zero segments is a FAIL at
+-- measured 0.
+local PLOT_FENCE_VISIBLE_MIN = 70
+local visibleRun = service("RunService")
+local visibleServer = false
+if visibleRun then
+	local okServer, flag = pcall(function()
+		return visibleRun:IsServer()
+	end)
+	if okServer then
+		visibleServer = flag
+	end
+end
+
+local visibleCams = nil
+local visibleReason = nil
+if not visibleServer then
+	visibleReason = "ReviewCameras requires the Server VM"
+elseif not plotsFolder then
+	visibleReason = "plots_r8 staging folder absent"
+elseif #plotParts == 0 then
+	visibleReason = "no tagged plots_r8 Parts staged"
+else
+	local okCams, loaded = pcall(function()
+		return require(game.ReplicatedStorage.Shared.ReviewCameras)
+	end)
+	if not okCams or type(loaded) ~= "table" or type(loaded.get) ~= "function" then
+		visibleReason = "ReviewCameras not readable"
+	else
+		visibleCams = loaded
+	end
+end
+
+local visiblePcts, visibleDetail = {}, {}
+local visibleSummary = {}
+local visiblePercent = 0
+local visibleOk = false
+local visibleErrors = 0
+
+if visibleCams then
+	for i = 1, PLOT_COUNT do
+		local label = "P" .. i
+		local segments = fencePartsByPlot[i]
+		local total = #segments
+		local seen, reason = 0, nil
+		local cameraName = "plot_aerial_" .. string.format("%02d", i)
+		local eye = nil
+		local okCam, camera = pcall(function()
+			return visibleCams.get(cameraName)
+		end)
+		if not okCam or type(camera) ~= "table" then
+			reason = "camera missing"
+		else
+			eye = asVector3(camera.position)
+			if not eye then
+				reason = "camera coords unreadable"
+			end
+		end
+
+		if not reason and total == 0 then
+			reason = "zero fence segments"
+		end
+
+		if not reason then
+			local ignore = {}
+			local okPlayers, players = pcall(function()
+				local Players = service("Players")
+				return Players and Players:GetPlayers() or {}
+			end)
+			if okPlayers and type(players) == "table" then
+				for _, player in ipairs(players) do
+					local okCharacter, character = pcall(function()
+						return player.Character
+					end)
+					if okCharacter and character then
+						ignore[#ignore + 1] = character
+					end
+				end
+			end
+			-- Exclude this plot's own posts: the aerial ray to a rail centre crosses the
+			-- fence assembly's 3-stud posts standing along that same rail. That is self-occlusion,
+			-- not an obstruction; terrain, trees, buildings and other world geometry still count.
+			for _, part in ipairs(plotParts) do
+				if attr(part, "Kind") == "fence_post" and attr(part, "PlotIndex") == i then
+					ignore[#ignore + 1] = part
+				end
+			end
+
+			for _, segment in ipairs(segments) do
+				local centre = bboxCentre(segment)
+				if not centre then
+					visibleErrors += 1 -- unreadable target is not visible, never a free pass
+					if #visibleDetail < 10 then
+						visibleDetail[#visibleDetail + 1] = label .. ":unreadable-segment"
+					end
+				else
+					local delta = centre - eye
+					if delta.Magnitude <= 0 then
+						visibleErrors += 1
+					else
+						local hitInst = nil
+						-- Raycast returns only the nearest hit: peel transparent hits off the
+						-- filter until an opaque one (or nothing) remains. Bounded to stop a
+						-- broken filter from looping forever.
+						for _ = 1, 16 do
+							local okParams, params = pcall(function()
+								local p = RaycastParams.new()
+								p.FilterType = Enum.RaycastFilterType.Exclude
+								p.FilterDescendantsInstances = ignore
+								return p
+							end)
+							if not okParams or not params then
+								visibleErrors += 1
+								break
+							end
+							local okRay, hit = pcall(function()
+								return workspace:Raycast(eye, delta, params)
+							end)
+							if not okRay then
+								visibleErrors += 1
+								break
+							end
+							if not hit then
+								break
+							end
+							if not hit.Instance then
+								visibleErrors += 1
+								break
+							end
+							local okTrans, transparency = pcall(function()
+								if hit.Instance:IsA("BasePart") then
+									return hit.Instance.Transparency
+								end
+								return 0
+							end)
+							if not okTrans or type(transparency) ~= "number" then
+								visibleErrors += 1
+								break
+							end
+							if transparency < 0.5 then
+								hitInst = hit.Instance
+								break
+							end
+							ignore[#ignore + 1] = hit.Instance
+						end
+						if hitInst then
+							local okRel, related = pcall(function()
+								return hitInst == segment or hitInst:IsDescendantOf(segment)
+							end)
+							if okRel and related then
+								seen += 1
+							elseif #visibleDetail < 10 then
+								local okName, name = pcall(function()
+									return hitInst.Name
+								end)
+								visibleDetail[#visibleDetail + 1] = label
+									.. ":blocked-by:"
+									.. (okName and tostring(name) or "?")
+							end
+						end
+					end
+				end
+			end
+		end
+
+		local pct = reason and 0 or (total > 0 and math.floor(seen * 100 / total) or 0)
+		visiblePcts[i] = pct
+		visibleSummary[#visibleSummary + 1] = label .. ":" .. pct .. "%"
+		if reason and #visibleDetail < 10 then
+			visibleDetail[#visibleDetail + 1] = label .. ":" .. reason
+		end
+	end
+end
+
+if visibleCams then
+	visiblePercent = 100
+	for i = 1, PLOT_COUNT do
+		visiblePercent = math.min(visiblePercent, visiblePcts[i] or 0)
+	end
+	visibleOk = visibleErrors == 0 and visiblePercent >= PLOT_FENCE_VISIBLE_MIN
+else
+	visiblePercent = 0
+end
+
+emit("PLOT_FENCE_VISIBLE", visibleOk, visiblePercent, ">=" .. PLOT_FENCE_VISIBLE_MIN, {
+	method = "plot_aerial_NN eye -> each Kind=='fence' centre; first opaque hit must be that rail; own fence_post parts excluded as self-occlusion",
+	perPlot = visiblePcts,
+	summary = table.concat(visibleSummary, " "),
+	rayErrors = visibleErrors,
+	camera = "plot_aerial_01..10",
+	reasons = visibleDetail,
+	reason = visibleReason,
+})
 
 -- 9d. r8 sawah family (WORK_QUEUE item 72). Four CHECK families over the staged
 -- LookDevSawahR8_sawah_r8 folder: SAWAH_TOPS (Terrain-only raycasts at the eight

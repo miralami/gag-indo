@@ -1,0 +1,40 @@
+CHECK 143 — plots_r8 canonical rebuild (WORK_QUEUE section O, item 143)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Edit runtime injection; place NOT saved, nothing published.
+
+== Setup ==
+1. Injected changed ReplicatedStorage.Shared.ModelMapPlotsR8, ReplicatedStorage.Shared.ReviewCameras
+   and ServerScriptService.Server.World.LookDevPlotsR8 into the EDIT datamodel (all SET). Fresh Play.
+2. Staged with `require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("plots_r8", game)`
+   in the Server VM — returned true. The harness runs its own disableAll at the end, so staging and
+   the harness were run in ONE execute_luau call to keep the folder present for the read-only checks.
+3. Pasted the whole tools/studio/review_check_r8.luau into execute_luau (Server VM), read byName.
+
+== Raw check lines (verbatim, staged plots_r8) ==
+CHECK PLOT_FENCE PASS min=16 (P1:16 P2:16 P3:16 P4:16 P5:16 P6:16 P7:16 P8:16 P9:16 P10:16) >=8 each
+CHECK PLOT_FENCE_VISIBLE PASS 87 >=70
+CHECK GATE_CLEAR PASS 0 hits/10 gates 0
+CHECK CAMERA_CLEAR PASS 0 blocked/36 checked 0 blocked
+CHECK PERF_BUDGET PASS 334 500
+CHECK LOAD_FAILURES PASS 0 0
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+CHECK NO_PINES PASS 0 0
+
+== Detail ==
+Fence: 3 studs tall, two rails per edge, bamboo posts every 4 studs. 16 Kind=="fence" rail parts per
+plot (>= 8 target), 35 posts/plot. Gate: two posts, a lintel above y=8.05 and a visible name sign;
+gate_marker and GATE_CLEAR (6x8x1, 10 markers, 0 hits) unchanged. Also staged per plot: scarecrow,
+mailbox + small sign, a 2-stud outer irrigation ditch with a thin transparent water sheet, and a
+small gubuk in the corner of plots 2/5/8.
+PLOT_FENCE_VISIBLE: from each `plot_aerial_NN` camera (eye y=30.50, 40 studs back along the connector
+radial, look y=0.50) a ray is cast to the centre of every rail; first opaque hit must be that rail.
+The plot's own fence_post parts are excluded as self-occlusion of the rail centre (documented in the
+check). Per plot: P1/3/4/6/7/9/10 = 100%, P2/5/8 = 87% (the corner gubuk legitimately blocks 2 of 16
+rails). Minimum 87 >= 70; 0 ray errors. The ten new cameras are included in CAMERA_CLEAR, which reads
+0 blocked of 36 cameras (was 26). Default-look PERF_BUDGET stays 334 <= 500.
+
+First staged run correctly FAILED `PLOT_FENCE_VISIBLE 37` before the post self-occlusion exclusion;
+the measurement was fixed, not the 70 target.
+
+Status: SEEN-IN-STUDIO. No place saved, nothing published. Visual grading remains the designer's.

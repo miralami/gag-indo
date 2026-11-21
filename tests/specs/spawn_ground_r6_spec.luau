@@ -229,10 +229,21 @@ return function(t, Env)
 			expect(applier:find("part.Visible = state.visible", 1, true) ~= nil):toBe(true)
 			expect(applier:find("part.CanCollide = state.canCollide", 1, true) ~= nil):toBe(true)
 			expect(applier:find("saved = {}", 1, true) ~= nil):toBe(true)
-			expect(applier:find("createdFolder:Destroy()", 1, true) ~= nil):toBe(true)
-			expect(applier:find("createdFolder = nil", 1, true) ~= nil):toBe(true)
+			-- Item 98: apply() creates TWO folders (buildCovers + buildPaths each call makeFolder).
+			-- Both must be tracked and destroyed; a single createdFolder reference leaked the cover
+			-- folder on restore. Lock the list-based cleanup so the +42-descendant leak cannot regress.
+			expect(applier:find("local createdFolders: { Folder } = {}", 1, true) ~= nil):toBe(true)
+			expect(applier:find("createdFolders[#createdFolders + 1] = folder", 1, true) ~= nil):toBe(true)
+			expect(applier:find("for _, folder in ipairs(createdFolders) do", 1, true) ~= nil):toBe(true)
+			expect(applier:find("folder:Destroy()", 1, true) ~= nil):toBe(true)
+			expect(applier:find("createdFolders = {}", 1, true) ~= nil):toBe(true)
+			expect(applier:find("createdFolder:Destroy()", 1, true) == nil):toBe(true) -- old single-ref gone
+			expect(applier:find("createdFolder = folder", 1, true) == nil):toBe(true)
 			expect(applier:find('Instance.new("Folder")', 1, true) ~= nil):toBe(true)
 			expect(applier:find("Map.TAGS.PlotAnchor", 1, true) ~= nil):toBe(true)
+			-- makeFolder() is called from both buildCovers and buildPaths.
+			local _, makeCalls = string.gsub(applier, "makeFolder%(%)", "")
+			expect(makeCalls >= 3):toBe(true) -- definition + 2 callers
 		end)
 
 		t:it("guards Roblox calls with pcall so a bad toggle cannot break the server", function()

@@ -25,7 +25,10 @@ local LookDevSpawnGroundR6 = {}
 local saved: { [Instance]: { visible: boolean, canCollide: boolean } } = {}
 local savedFolder: Instance? = nil
 local savedFolderParent: Instance? = nil
-local createdFolder: Folder? = nil
+-- Item 98: buildCovers() and buildPaths() each call makeFolder(), so apply() creates TWO folders.
+-- Track every one; a single createdFolder reference let the cover folder leak on restore (+42
+-- descendants per cycle, caught by the LOOKDEV_LEAK sweep). Destroy all tracked folders on clear.
+local createdFolders: { Folder } = {}
 
 local function remember(part: Instance)
 	if saved[part] ~= nil then
@@ -151,12 +154,12 @@ local function hideMaskedGrass(all: { Instance }, anchors: { any })
 end
 
 local function clearCreated()
-	if createdFolder then
+	for _, folder in ipairs(createdFolders) do
 		pcall(function()
-			createdFolder:Destroy()
+			folder:Destroy()
 		end)
-		createdFolder = nil
 	end
+	createdFolders = {}
 end
 
 local function makeFolder()
@@ -179,7 +182,7 @@ local function makeFolder()
 	local folder = Instance.new("Folder")
 	folder.Name = name
 	folder.Parent = Workspace
-	createdFolder = folder
+	createdFolders[#createdFolders + 1] = folder
 	return folder
 end
 

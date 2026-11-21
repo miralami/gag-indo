@@ -318,6 +318,18 @@ hubs_real_r9 692, pasar_awnings_r8 558, vegetation_r7 584, npcs_idle_r8 505, cro
 off by default; reproduces prior CHECK_142/144/147/148 flags. Heavy sawah_r8 (408k prim tris / 30k
 parts, outside spawn census) noted. No default change, no visual verdict. No Luau source/spec changed.
 
+Item 98 COMPLETE (LOOKDEV_LEAK sweep): ran the item-68 leak check over all 79 `LookDev.IDS` in BOTH
+VMs with all appliers registered (46 server + 33 client; no vacuous pass). Pre-fix server FAIL:
+`CHECK LOOKDEV_LEAK FAIL 1 leaks: spawn_ground_r6(w3921->3963 +42,l6->6 +0) 0 leaks`; client PASS.
+Root cause: `LookDevSpawnGroundR6.apply()` calls buildCovers()+buildPaths(), both call makeFolder(), but
+old single `createdFolder` ref held only the second folder — the cover folder (41 parts) survived
+restore, +42 descendants/cycle (also seen in item 97 residue). Fix: track every folder in a
+`createdFolders` list, destroy all in clearCreated(); runtime-injected into Server VM, place NOT saved.
+Post-fix both VMs `CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks` (candidateCount=79, two deterministic runs)
+recorded in `h/2026-11-21-round9/CHECK_098.txt`. Hardened `spawn_ground_r6_spec` restore case (old
+source-string assertion passed WITH the leak). 1 leak, 1 fix; no candidate hit the two-attempt BLOCKED
+threshold. Suite **2676 tests**; `selene src` 0/0/0; stylua clean; diff clean.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

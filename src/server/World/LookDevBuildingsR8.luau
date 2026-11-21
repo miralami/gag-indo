@@ -581,6 +581,27 @@ local function stage(model: any, entry: any, x: number, z: number, probe: any): 
 		return false
 	end
 
+	-- WORK_QUEUE item 146: building-kit pivot convention. Kit placement wants the pivot at the
+	-- ground base, centred on the footprint and facing -Z (identity CFrame LookVector is -Z, so the
+	-- front door points toward the plaza). With NO PrimaryPart, WorldPivot moves only the pivot:
+	-- verified in Studio that all Part CFrames and the world bbox stay unchanged, so the gauge
+	-- probe, BLDG_VISIBLE geometry and ground pad below are untouched. Clear PrimaryPart defensively
+	-- first: a baked model with one set would move its geometry when WorldPivot is assigned.
+	do
+		local baseY = placedBox.Position.Y - placedSize.Y * 0.5
+		if
+			not pcall(function()
+				if model.PrimaryPart then
+					model.PrimaryPart = nil
+				end
+				model.WorldPivot = CFrame.new(x, baseY, z)
+			end)
+		then
+			fail("could not set ground pivot for " .. slotName)
+			return false
+		end
+	end
+
 	-- Anchor parts after measurement. Authored CanCollide is deliberately PRESERVED: the harness's
 	-- BLDG_DOOR check recomputes gauge-vs-collider overlap, so clearing colliders here would make
 	-- the avatar-fit test vacuous. The gauge itself is the only non-collidable part we add.

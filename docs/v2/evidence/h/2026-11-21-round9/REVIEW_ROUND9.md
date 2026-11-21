@@ -328,3 +328,21 @@ the CHECK evidence, tracker ticks and any visual verdict. No place is saved or p
 5. Stop Play without saving. `AVATAR_FIT` covers only this section-O block subset; item 106's full
    16/16 PathfindingService audit remains separate. Visual grading — do the blocks read as a
    canonical full kampung, not an orchard grid? — stays the designer's.
+
+## 17. Item-146 run — building kit ground pivots (WORK_QUEUE section O)
+
+Run-note recipe. **No Studio result is claimed** by the implementation agent; the main session owns
+the CHECK evidence, tracker ticks and any visual verdict. No place is saved or published.
+
+1. Stop Play. Inject at runtime (not saved) the changed `ServerScriptService.Server.World.LookDevBuildingsR8`
+   and `tools/studio/review_check_r8.luau`. The applier is already booted by `Main.server`; confirm
+   the six baked `BuildingSlot` folders exist under `ServerStorage.LookDevAssets`.
+2. Start a FRESH real Play session in the SERVER datamodel. Stage ONLY this candidate:
+   `require(game.ReplicatedStorage.Shared.LookDevReview).enable("buildings_r8", game)`.
+3. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the SERVER
+   VM. Read `CHECK PIVOT_GROUND <failing> 0` (READ-ONLY; target 0 failing models — each pivot's Y
+   within 0.2 studs of its own world bbox bottom) and `CHECK BLDG_VISIBLE 6 6` (unchanged geometry).
+   A missing folder, unreadable pivot or zero staged Models FAILs at measured 6, never a skip.
+4. Read the guards `LOAD_FAILURES 0 0` and `LOOKDEV_LEAK 0 leaks` in the same run. Stop Play without
+   saving. The kit table and hub mapping proposal live in `docs/v2/visual/art/BUILDING_KIT.md`;
+   visual grading — does each building suit its proposed hub? — stays the designer's.

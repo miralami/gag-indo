@@ -75,6 +75,14 @@ camera rays, check unchanged. PERF_BUDGET recorded: 354/500 blocks alone, 819/50
 (flagged, item asks only that it be recorded); default look 334/500. Suite **2495 tests**;
 `selene src` 0/0/0.
 
+Item 146 COMPLETE: building kit doc + ground-level pivots. `stage()` sets each staged building's
+`WorldPivot` to (footprint centre, bbox-bottom Y, z) facing -Z; geometry unchanged. Real Studio
+staged-Play PASS `PIVOT_GROUND 0 0` (max delta ~8e-4 of 0.2 tolerance), `BLDG_VISIBLE 6/6`,
+`BLDG_DOOR 6/6`, `BLDG_WIDTH 6/6`, `CAMERA_CLEAR 0/36` (`h/2026-11-21-round9/CHECK_146.txt`).
+`docs/v2/visual/art/BUILDING_KIT.md` records ID/licence/bbox/door offset per building and a hub
+mapping marked PROPOSAL awaiting the designer (no look verdict by an agent). Suite **2497 tests**;
+`selene src` 0/0/0; default look unchanged.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

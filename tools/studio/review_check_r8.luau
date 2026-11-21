@@ -49,6 +49,10 @@
 -- BLDG_VISIBLE counts staged building Models inside the review camera cone; BLDG_WIDTH measures
 -- each Model's world bounding-box width; BLDG_DOOR checks every DoorGauge for a >=7 clearance
 -- with zero collidable building geometry overlapping its volume (the real avatar-fit test).
+-- PIVOT_GROUND (WORK_QUEUE item 146) is READ-ONLY and emitted beside BLDG_VISIBLE: each staged
+-- building's pivot must sit within 0.2 studs of its own world bbox bottom (ground base). Measured
+-- is the number of failing Models (target 0); a missing folder, unreadable pivot or zero staged
+-- Models FAIL at measured 6, never vacuously.
 -- It also emits the r8 facades family (WORK_QUEUE item 78): FACADE_PARTS and DOOR_CLEAR. Both are
 -- SERVER-side and FAIL at measured 0 when the LookDevFacadesR8_facades_r8 folder or its gauge Parts
 -- are absent. FACADE_PARTS requires >=10 tagged decorative Parts and all six FacadeKind values per
@@ -136,6 +140,7 @@ local ORDER = {
 	"PATH_CLEAR",
 	"PATH_EDGE_OFFSET",
 	"BLDG_VISIBLE",
+	"PIVOT_GROUND",
 	"BLDG_WIDTH",
 	"BLDG_DOOR",
 	"FACADE_PARTS",
@@ -3302,6 +3307,60 @@ emit("BLDG_VISIBLE", bldgVisibleCount == #BUILDING_SLOTS, bldgVisibleCount, #BUI
 	eye = bldgEye and { bldgEye.X, bldgEye.Y, bldgEye.Z } or nil,
 	lookAt = bldgLook and { bldgLook.X, bldgLook.Y, bldgLook.Z } or nil,
 	slots = bldgVisibleBySlot,
+})
+
+-- PIVOT_GROUND (WORK_QUEUE item 146; READ-ONLY). Kit convention: pivot at the ground base,
+-- footprint centre, facing -Z. This grades only the Y equality (0.2-stud tolerance); X/Z and
+-- facing are stage-time conventions documented in docs/v2/visual/art/BUILDING_KIT.md.
+-- GetBoundingBox is exposed on Model in this Studio; bboxCentre/bboxSize carry the CFrame+Size
+-- corner-math fallback. A missing folder, unreadable pivot or zero staged Models FAIL at 6.
+local PIVOT_TOL = 0.2
+local pivotDetail = {}
+local pivotFailures = 0
+for _, slot in ipairs(BUILDING_SLOTS) do
+	local model = buildingsBySlot[slot]
+	local pivotY, bottomY = nil, nil
+	if model then
+		local okPivot, pivot = pcall(function()
+			return model:GetPivot()
+		end)
+		if okPivot and pivot then
+			pivotY = pivot.Position.Y
+		end
+		local okBox, boxCF, boxSize = pcall(function()
+			return model:GetBoundingBox()
+		end)
+		if okBox and boxCF and boxSize and boxSize.Y > 0 then
+			bottomY = boxCF.Position.Y - boxSize.Y / 2
+		else
+			local centre, size = bboxCentre(model), bboxSize(model)
+			if centre and size and size.Y > 0 then
+				bottomY = centre.Y - size.Y / 2
+			end
+		end
+	end
+	local delta = nil
+	if type(pivotY) == "number" and type(bottomY) == "number" then
+		delta = math.abs(pivotY - bottomY)
+	end
+	local pass = delta ~= nil and delta <= PIVOT_TOL
+	if not pass then
+		pivotFailures += 1
+	end
+	pivotDetail[slot] = {
+		pivotY = pivotY,
+		bottomY = bottomY,
+		delta = type(delta) == "number" and math.floor(delta * 1000) / 1000 or nil,
+		pass = pass,
+	}
+end
+local pivotReadable = buildingsFolder ~= nil and #buildingModels > 0
+local pivotMeasured = if pivotReadable then pivotFailures else #BUILDING_SLOTS
+emit("PIVOT_GROUND", pivotReadable and pivotFailures == 0, pivotMeasured, 0, {
+	folderPresent = buildingsFolder ~= nil,
+	staged = #buildingModels,
+	tolerance = PIVOT_TOL,
+	slots = pivotDetail,
 })
 
 -- BLDG_WIDTH: measure each staged Model's world GetBoundingBox().Size.X; no hardcoded widths.

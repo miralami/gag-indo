@@ -128,6 +128,19 @@ round/wedge/cluster stand-ins, no verified rock model id exists), bands 24 river
 (`h/2026-11-21-round9/CHECK_151.txt`). PERF_BUDGET 334/500 — equal to default, under the Sedang proxy.
 Suite **2541 tests**; `selene src` 0/0/0.
 
+Items 152–155 COMPLETE (section O4 verdicts and review). Item 152: CANDIDATES.md verdict cells audited
+against the designer table — facades_r8 **yes** (stray pole fixed, item 139), pathedge_r8 **no**,
+sawah_r8 **no**, plots_r8/river_r8 `pending` redo/partial, water_r8_c **no**; all three gallery tables
+still spec-valid (`candidate_gallery_spec`). Item 153: six new MapSpec-derived Server cameras added
+(`pasar_awnings`, `plaza_centre`, `ronda_tower`, `river_rocks`, `forest_wall`, `canonical_overview`),
+plot_aerial_01..10 confirmed; REVIEW_CAMERAS.md count 26→42. Real Studio full-set PASS
+`CAMERA_CLEAR 0 blocked/42 checked` (`h/2026-11-21-round9/CHECK_153.txt`). Item 154:
+`docs/v2/visual/CANONICAL_GAP.md` — 29 canonical features (10 default / 18 candidate / 1 missing:
+balai desa), counts + evidence only, no look grading; missing entry is a visual-only proposal. Item 155:
+`REVIEW_ROUND9.md` §23 review pack (additive sequence from `canonical_overview`, per-candidate camera
+table, all CHECK_*.txt paths) + new `docs/v2/visual/SHOT_LIST.md` (14 candidates + additive + 2 base
+shots, no grading). Suite **2547 tests**; `selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

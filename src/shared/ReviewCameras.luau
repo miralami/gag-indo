@@ -46,6 +46,24 @@ local function hubCamera(hub, side: number): (Vec3, Vec3)
 	return vec(x, MapSpec.GROUND_Y + HUB_RISE, z), vec(hub.x, MapSpec.GROUND_Y + hub.ridge / 2, hub.z)
 end
 
+-- Item 153: 3/4 view of a hub's dressed front apron. `apronLz` is a hub-local distance past the
+-- front wall (the item-148 stalls stand 16 studs out from the Pasar footprint); the eye stands off
+-- from that apron on the same diagonal as hubCamera, but higher so the first 6-stud ray stays clear.
+local function hubApronCamera(
+	hub,
+	side: number,
+	apronLz: number,
+	standoff: number,
+	rise: number,
+	lookRise: number
+): (Vec3, Vec3)
+	local eyeLx = (hub.width / 2 + standoff * DIAGONAL) * side
+	local eyeLz = apronLz + standoff * DIAGONAL
+	local ex, ez = MapSpec.hubPoint(hub, eyeLx, eyeLz)
+	local lx, lz = MapSpec.hubPoint(hub, 0, apronLz)
+	return vec(ex, MapSpec.GROUND_Y + rise, ez), vec(lx, MapSpec.GROUND_Y + lookRise, lz)
+end
+
 -- MAP_SPEC §4 puts plot gates on the inner side of the plot ring, just outside the connector road.
 -- Config.Game owns the ring radius/angles; MapSpec owns the road that fixes the gate radius.
 local function plotGate(index: number): (Vec3, Vec3)
@@ -181,6 +199,75 @@ add(
 	vec(MapSpec.PLAZA.x, MapSpec.GROUND_Y + MapSpec.HEADROOM, MapSpec.PLAZA.z),
 	"Server",
 	"Hill/forest backdrop looking in across the village."
+)
+
+-- Item 153 dressing cameras. Every offset below is a MapSpec-derived length or a dimensionless
+-- fraction; each eye stands off and rises enough that the 6-stud CAMERA_CLEAR ray starts in air.
+local pasarHub = MapSpec.hub("pasar")
+assert(pasarHub, "ReviewCameras: MapSpec has no pasar hub")
+local stallApronLz = pasarHub.depth / 2 + MapSpec.S * 8
+local pasarApronEye, pasarApronLook =
+	hubApronCamera(pasarHub, hubSides.pasar, stallApronLz, HUB_STANDOFF, HUB_RISE + MapSpec.S * 2, MapSpec.S)
+add(
+	"pasar_awnings",
+	pasarApronEye,
+	pasarApronLook,
+	"Server",
+	"Item-148 lapak stalls and striped awnings on the Pasar front apron, from the front-right 3/4."
+)
+
+-- Plaza centre: above the fountain, looking down across the dressed Lapangan.
+add(
+	"plaza_centre",
+	vec(MapSpec.PLAZA.x + MapSpec.S, MapSpec.GROUND_Y + MapSpec.HEADROOM * 2, MapSpec.PLAZA.z + MapSpec.S * 3),
+	vec(MapSpec.PLAZA.x, MapSpec.GROUND_Y + MapSpec.HEADROOM / 2, MapSpec.PLAZA.z),
+	"Server",
+	"Fountain, benches, umbrellas and bunting at the MapSpec plaza centre, seen from above."
+)
+
+-- Pos Ronda tower: back off the north shoulder and rise above the greybox roof to frame the tower.
+local tower = MapSpec.RONDA_TOWER
+add(
+	"ronda_tower",
+	vec(tower.x + tower.deck / 2, MapSpec.GROUND_Y + tower.height / 2 + MapSpec.S * 2, tower.z - HUB_STANDOFF),
+	vec(tower.x, MapSpec.GROUND_Y + (tower.height - tower.deck) / 2, tower.z),
+	"Server",
+	"Bamboo watchtower at MapSpec.RONDA_TOWER, 3/4 from the north shoulder at mid-height."
+)
+
+-- River rocks: bank standoff and lateral step come from the bridge; sight down the river centreline.
+local rockX = bridge.x + bridge.width * MapSpec.S * 2
+local rockLookX = rockX + bridge.width * MapSpec.S * 2
+local rockBankOffset = bridge.rampLength * MapSpec.S + MapSpec.S * 2
+add(
+	"river_rocks",
+	vec(rockX, MapSpec.GROUND_Y + MapSpec.HEADROOM * 2, MapSpec.riverCentreZ(rockX) - rockBankOffset),
+	vec(rockLookX, MapSpec.GROUND_Y + bridge.top, MapSpec.riverCentreZ(rockLookX)),
+	"Server",
+	"Bank boulders and plants along MapSpec.riverCentreZ, looking downstream from the south bank."
+)
+
+-- Forest wall: from the playable edge out toward the hills. Eye sits in the 380..400 gap between the
+-- ring and hill tree bands and well above the canopy, so no tree is inside the clear ray.
+add(
+	"forest_wall",
+	vec(MapSpec.PLAZA.x, MapSpec.GROUND_Y + MapSpec.HEADROOM * 4, -(MapSpec.TERRAIN_HALF - MapSpec.TERRAIN_VOXEL * 2)),
+	vec(MapSpec.PLAZA.x, MapSpec.GROUND_Y + MapSpec.HEADROOM * 2, -(MapSpec.TERRAIN_HALF + MapSpec.TERRAIN_VOXEL * 4)),
+	"Server",
+	"Tree wall beyond the village edge, looking north from MapSpec.TERRAIN_HALF toward the hills."
+)
+
+-- Canonical overview: high 3/4 from the south of the bridge, looking north over it to the plaza.
+add(
+	"canonical_overview",
+	vec(
+		bridge.x + bridge.width * MapSpec.S * 2,
+		MapSpec.GROUND_Y + MapSpec.TERRAIN_HALF / (MapSpec.S * MapSpec.S),
+		bridge.z1 + bridge.width * MapSpec.S * 3
+	),
+	vec(MapSpec.PLAZA.x, MapSpec.GROUND_Y + MapSpec.HEADROOM, MapSpec.PLAZA.z),
+	"Server",
+	"High 3/4 canonical-style overview from the south over the bridge toward the whole village."
 )
 
 -- Lighting variants: same framing as their base camera; the name selects the lighting preset.

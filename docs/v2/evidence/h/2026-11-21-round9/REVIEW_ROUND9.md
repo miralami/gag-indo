@@ -519,3 +519,86 @@ published.
    flag over the Sedang proxy without weakening any target.
 5. Stop Play without saving. Visual grading — do the boulders read as natural half-buried stones
    along the river, hill foot and field edges? — stays the designer's.
+
+## 23. Section O review pack (item 155 — shots to be taken by the main session)
+
+No agent grades these shots. Camera names and datamodels are from `docs/v2/visual/REVIEW_CAMERAS.md`;
+the per-shot plan is `docs/v2/visual/SHOT_LIST.md`. Start each single-candidate shot from a fresh
+Play (or `review.disableAll()`), stage one id from the SERVER datamodel with
+`require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive(id, game)`, shoot, then
+`disableAll()`. `water_r8_a` needs no enable: it is the shipping client default. No place is saved
+or published.
+
+### (a) All-together additive shot (item 136) — `canonical_overview`
+
+```lua
+local review = require(game.ReplicatedStorage.Shared.LookDevReview)
+review.disableAll()
+review.enableAdditive("hubveg_r8", game)
+review.enableAdditive("plots_r8", game)
+review.enableAdditive("facades_r8", game)
+-- shoot `canonical_overview` in the SERVER datamodel; current() stays nil,
+-- all three staged folders are present together
+review.disableAll()
+```
+
+Do not substitute `enable(id)` — it disables the previously staged candidate. Verified objective
+backup: `ADDITIVE_STAGE PASS 3 3`, `LOOKDEV_LEAK PASS 0 leaks 0 leaks` (`CHECK_136.txt`).
+
+### (b) Each section-O candidate alone
+
+| Item | Candidate | Datamodel | Review camera(s) | CHECK evidence |
+|---|---|---|---|---|
+| 138 | `forest_pines_legacy` (comparison only) | Server | `forest_wall` | `docs/v2/evidence/h/2026-11-21-round9/CHECK_138.txt`, `docs/v2/evidence/h/2026-11-21-round9/CHECK_102.txt`, `docs/v2/evidence/h/2026-11-21-round9/CHECK_74.txt` |
+| 139 | `facades_r8` | Server | `hub_pakrt` (stray-pole fix); `hub_pasar`, `hub_gelap`, `hub_warung`, `hub_ronda`, `hub_polisi` for the same-defect sweep | `docs/v2/evidence/h/2026-11-21-round9/CHECK_139.txt` |
+| 140 | `sawah_r8` | Server | `sawah_above` (padi rows), `sawah_below` | `docs/v2/evidence/h/2026-11-21-round9/CHECK_140.txt` |
+| 141 | `river_r8` | Server | `bridge_north_bank`, `bridge_south_bank`, `river_rocks` | `docs/v2/evidence/h/2026-11-21-round9/CHECK_141.txt` |
+| 142 | `pathedge_r8` | Server | `spawn` | `docs/v2/evidence/h/2026-11-21-round9/CHECK_142.txt` |
+| 143 | `plots_r8` | Server | `plot_aerial_01`..`plot_aerial_10`, `plot_gate_01`..`plot_gate_10` | `docs/v2/evidence/h/2026-11-21-round9/CHECK_143.txt` |
+| 144 | `hubveg_r8` | Server | `hub_warung` (densify shot), plus `hub_pasar`, `hub_gelap`, `hub_ronda`, `hub_polisi`, `hub_pakrt` | `docs/v2/evidence/h/2026-11-21-round9/CHECK_144.txt` |
+| 145 | `blocks_r9` | Server | `canonical_overview`, `spawn` | `docs/v2/evidence/h/2026-11-21-round9/CHECK_145.txt` |
+| 146 | `buildings_r8` (building kit) | Server | saved row camera on the staged folder (`ReviewCameraPos`/`ReviewLookAt`, `front=-228`, `up=60`, `lookY=16`); no registry name in `REVIEW_CAMERAS.md` | `docs/v2/evidence/h/2026-11-21-round9/CHECK_146.txt` |
+| 147 | `hubs_real_r9` | Server | `hub_pasar`, `hub_gelap`, `hub_warung`, `hub_ronda`, `hub_polisi`, `hub_pakrt` | `docs/v2/evidence/h/2026-11-21-round9/CHECK_147.txt` |
+| 148 | `pasar_awnings_r8` | Server | `pasar_awnings` | `docs/v2/evidence/h/2026-11-21-round9/CHECK_148.txt` |
+| 149 | `plaza_r9` | Server | `plaza_centre` | `docs/v2/evidence/h/2026-11-21-round9/CHECK_149.txt` |
+| 150 | `ronda_tower_r9` | Server | `ronda_tower` | `docs/v2/evidence/h/2026-11-21-round9/CHECK_150.txt` |
+| 151 | `rocks_r9` | Server | `river_rocks` | `docs/v2/evidence/h/2026-11-21-round9/CHECK_151.txt` |
+
+Base look: no candidate enabled — `spawn` and `canonical_overview` in the SERVER datamodel,
+`spawn_golden` in the CLIENT datamodel for the shipped sky/water.
+
+### (c) Every `CHECK_*.txt` in this folder
+
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_68.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_69.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_70.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_71.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_72.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_73.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_74.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_75.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_76.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_77.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_78.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_79.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_102.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_136.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_137.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_138.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_139.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_140.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_141.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_142.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_143.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_144.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_145.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_146.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_147.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_148.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_149.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_150.txt`
+- `docs/v2/evidence/h/2026-11-21-round9/CHECK_151.txt`
+
+The exact `CHECK_138`..`CHECK_151` set present on disk is CHECK_138, 139, 140, 141, 142, 143,
+144, 145, 146, 147, 148, 149, 150, 151 — 14 files, all listed above. No `CHECK_152`..`CHECK_155`
+file exists; main session writes those if needed.

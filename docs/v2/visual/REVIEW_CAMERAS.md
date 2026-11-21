@@ -1,7 +1,7 @@
 # Review cameras (WORK_QUEUE section M item 69)
 
 Registry: `src/shared/ReviewCameras.luau` (`ReviewCameras.all()`, `.get(name)`, `.names()`).
-26 named cameras. Coordinates are computed at load from `src/server/World/MapSpec.luau` (hub centres,
+42 named cameras. Coordinates are computed at load from `src/server/World/MapSpec.luau` (hub centres,
 footprints, road ring, bridge, terraces, hill edge, spawn), `src/shared/Config/Game.luau` (plot-ring
 angles/radius) and `ModelMapVegetationR7.savedCamera` (the current saved spawn camera). No hand-typed
 world coordinates. `ReviewCameras.clearDistance` is the 6-stud `CAMERA_CLEAR` ray length.
@@ -33,11 +33,27 @@ Shots and verdicts belong under `docs/v2/evidence/h/<date>-round9/`.
 | `plot_gate_08` | Server | Gate of P8 from the connector-road side. |
 | `plot_gate_09` | Server | Gate of P9 from the connector-road side. |
 | `plot_gate_10` | Server | Gate of P10 from the connector-road side. |
+| `plot_aerial_01` | Server | Fence and gate of P1 from 30 studs up and 40 studs back along the connector road. |
+| `plot_aerial_02` | Server | Fence and gate of P2 from 30 studs up and 40 studs back along the connector road. |
+| `plot_aerial_03` | Server | Fence and gate of P3 from 30 studs up and 40 studs back along the connector road. |
+| `plot_aerial_04` | Server | Fence and gate of P4 from 30 studs up and 40 studs back along the connector road. |
+| `plot_aerial_05` | Server | Fence and gate of P5 from 30 studs up and 40 studs back along the connector road. |
+| `plot_aerial_06` | Server | Fence and gate of P6 from 30 studs up and 40 studs back along the connector road. |
+| `plot_aerial_07` | Server | Fence and gate of P7 from 30 studs up and 40 studs back along the connector road. |
+| `plot_aerial_08` | Server | Fence and gate of P8 from 30 studs up and 40 studs back along the connector road. |
+| `plot_aerial_09` | Server | Fence and gate of P9 from 30 studs up and 40 studs back along the connector road. |
+| `plot_aerial_10` | Server | Fence and gate of P10 from 30 studs up and 40 studs back along the connector road. |
 | `bridge_north_bank` | Server | Bridge deck and railing from the north approach. |
 | `bridge_south_bank` | Server | Bridge deck and railing from the south approach. |
 | `sawah_below` | Server | Low view up the terrace bunds and paddy water. |
 | `sawah_above` | Server | High view down the full sawah band. |
 | `hill_ring_in` | Server | Hill/forest backdrop looking in across the village. |
+| `pasar_awnings` | Server | Item-148 lapak stalls and striped awnings on the Pasar front apron, from the front-right 3/4. |
+| `plaza_centre` | Server | Fountain, benches, umbrellas and bunting at the MapSpec plaza centre, seen from above. |
+| `ronda_tower` | Server | Bamboo watchtower at MapSpec.RONDA_TOWER, 3/4 from the north shoulder at mid-height. |
+| `river_rocks` | Server | Bank boulders and plants along MapSpec.riverCentreZ, looking downstream from the south bank. |
+| `forest_wall` | Server | Tree wall beyond the village edge, looking north from MapSpec.TERRAIN_HALF toward the hills. |
+| `canonical_overview` | Server | High 3/4 canonical-style overview from the south over the bridge toward the whole village. |
 | `spawn_golden` | Client | Spawn framing under the golden-hour lighting preset. |
 | `spawn_night` | Client | Spawn framing under the night lighting preset. |
 | `pasar_golden` | Client | Pasar framing under the golden-hour lighting preset. |

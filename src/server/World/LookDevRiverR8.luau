@@ -1,14 +1,19 @@
 --!strict
 -- LookDevRiverR8: SERVER-ONLY applier for the OFF-BY-DEFAULT "river_r8" candidate
--- (WORK_QUEUE section M item 73). River-bank vegetation, a second pair of bridge rails/posts that
--- keeps the central 8 studs of the deck clear, and six stepping stones on the banks.
+-- (WORK_QUEUE section M item 73, redone in section O item 141). River-bank PLANTS cloned from
+-- verified baked assets, twelve half-buried procedural boulder stand-ins, a second pair of bridge
+-- rails/posts keeping the central 8 studs of the deck clear, and six stepping stones on the banks.
 --
--- PROCEDURAL PARTS, NO ASSET IDS. Terrain, greybox, the existing BridgeDeck/BridgePost/BridgeRail,
--- padi rows and the ford are never touched: every piece is a plain Part built from pure data in
--- Shared.ModelMapRiverR8, using the real MapSpec.riverCentreZ for the bank positions. All Parts are
--- anchored, non-collidable, tagged, and removed by restore() (which reattaches any prior folder).
+-- NO INVENTED ASSET IDS. Every plant resolves to an ID already recorded in Shared.ModelMapVegetationR4
+-- / Shared.ModelMapVegetationR6 and is fetched clone-first via LookDevAssetLoader (bake -> LoadAsset
+-- fallback inside the loader). talas/keladi use the documented R4 shrub stand-in; alang-alang uses
+-- R6's real ID; bambu and kelapa use their real R4 IDs. No verified rock MODEL id exists in any
+-- shared ModelMap* module, so the two boulder shapes (Ball, squashed Wedge) are procedural
+-- stand-ins, not invented assets. Terrain, greybox, the existing BridgeDeck/BridgePost/BridgeRail,
+-- padi rows and the ford are never touched: every piece is staged, anchored, non-collidable, tagged,
+-- and removed by restore() (which reattaches any prior folder).
 -- Enable from the Studio Server command bar:
---   require(game.ReplicatedStorage.Shared.LookDevReview).enable("river_r8", game)
+--   require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("river_r8", game)
 
 local function service(name: string): any?
 	local ok, value = pcall(function()
@@ -38,11 +43,15 @@ else
 	return {}
 end
 
-local okModules, LookDev, Data = pcall(function()
-	return require((Shared :: any).LookDev), require((Shared :: any).ModelMapRiverR8)
+local okModules, LookDev, Data, LookDevAssetLoader, VegR4, VegR6 = pcall(function()
+	return require((Shared :: any).LookDev),
+		require((Shared :: any).ModelMapRiverR8),
+		require(script.Parent.LookDevAssetLoader),
+		require((Shared :: any).ModelMapVegetationR4),
+		require((Shared :: any).ModelMapVegetationR6)
 end)
-if not okModules or not LookDev or not Data then
-	warn("[LookDevRiverR8] could not require LookDev / ModelMapRiverR8")
+if not okModules or not LookDev or not Data or not LookDevAssetLoader or not VegR4 or not VegR6 then
+	warn("[LookDevRiverR8] could not require LookDev / ModelMapRiverR8 / LookDevAssetLoader / vegetation maps")
 	return {}
 end
 
@@ -62,8 +71,22 @@ local FAMILY_ID = Data.id
 local activeFolder: any? = nil
 local savedFolder: any? = nil
 local failures = 0
+local groundY = 0.5
+if MapSpec and type(MapSpec.GROUND_Y) == "number" then
+	groundY = MapSpec.GROUND_Y
+end
 
--- Procedural parts only: a clean apply publishes 0. The counter moves only when staging fails.
+-- All IDs come from the verified shared maps; none is written here as a literal.
+local R4_IDS = VegR4.families.vegetation_r4.ids
+local PLANT_ASSETS = {
+	talas = R4_IDS.shrubs, -- R4 shrub as the wet-edge taro stand-in (R7 documented mapping)
+	keladi = R4_IDS.shrubs, -- same documented stand-in
+	["alang-alang"] = VegR6.ids.alang_alang,
+	bambu = R4_IDS.bambu,
+	kelapa = R4_IDS.kelapa,
+}
+
+-- Procedural parts only publish 0; a failed baked-plant load or placement moves the counter.
 local function publishFailures()
 	pcall(function()
 		require(game.ReplicatedStorage.Shared.LookDevFailures).set(FAMILY_ID, failures)
@@ -128,6 +151,77 @@ local function place(part: any?, centre: { number }, size: { number }): boolean
 	return ok
 end
 
+-- A baked asset may be a Model OR a single BasePart/MeshPart. GetBoundingBox exists only on Model,
+-- so both bounds and scaling branch (a Part uses its own CFrame + Size).
+local function bounds(root: any): (CFrame?, Vector3?)
+	local ok, centre, size = pcall(function()
+		if root:IsA("Model") then
+			return root:GetBoundingBox()
+		end
+		if root:IsA("BasePart") then
+			return root.CFrame, root.Size
+		end
+		return nil, nil
+	end)
+	if ok then
+		return centre, size
+	end
+	return nil, nil
+end
+
+-- Scale to the requested height and sit the model's bbox bottom on bottomY at (x, z). The pivot of
+-- a baked asset can be far from its geometry, so carry the bbox-centre offset like the hub-veg
+-- applier does. Returns false on any failed scale/pivot write.
+local function placeModel(model: any, x: number, bottomY: number, z: number, targetHeight: number): boolean
+	local _, boxSize = bounds(model)
+	local bodyY = if boxSize and boxSize.Y > 0 then boxSize.Y else 1
+	local factor = targetHeight / bodyY
+	local scaled = false
+	if model:IsA("Model") then
+		scaled = pcall(function()
+			model:ScaleTo(factor)
+		end)
+	elseif model:IsA("BasePart") then
+		scaled = pcall(function()
+			model.Size = model.Size * factor
+		end)
+	end
+	if not scaled then
+		return false
+	end
+	local okParts, parts = pcall(function()
+		return model:GetDescendants()
+	end)
+	if okParts and parts then
+		for _, part in ipairs(parts) do
+			pcall(function()
+				if part:IsA("BasePart") then
+					part.Anchored = true
+					part.CanCollide = false
+				end
+			end)
+		end
+	end
+	local bboxCF, scaledSize = bounds(model)
+	local okPivot, pivot = pcall(function()
+		return model:GetPivot()
+	end)
+	if bboxCF and scaledSize and okPivot and pivot then
+		local offset = bboxCF.Position - pivot.Position
+		local centre = Vector3.new(x, bottomY + scaledSize.Y * 0.5, z)
+		return pcall(function()
+			model:PivotTo(CFrame.new(centre - offset))
+		end)
+	end
+	if okPivot and pivot then
+		local height = scaledSize and scaledSize.Y or targetHeight
+		return pcall(function()
+			model:PivotTo(CFrame.new(x, bottomY + height * 0.5, z))
+		end)
+	end
+	return false
+end
+
 local function apply()
 	failures = 0
 	if activeFolder then
@@ -166,46 +260,92 @@ local function apply()
 	activeFolder = folder
 
 	local vegFolder = taggedFolder("BankVeg_river_r8", folder)
+	local plantModelFolder = taggedFolder("BankPlantModels_river_r8", folder)
+	local rockFolder = taggedFolder("BankRocks_river_r8", folder)
 	local railFolder = taggedFolder("BridgeRails_river_r8", folder)
 	local stoneFolder = taggedFolder("SteppingStones_river_r8", folder)
 
-	-- Bank vegetation follows the real centreline. Positions under the 10-wide deck are skipped so
-	-- nothing is staged on the bridge itself.
+	-- Bank plants use the real centreline. The tagged base Part carries BankPlant/PlantSpecies/
+	-- PlantTall (and the legacy bank_veg attributes the harness reads); the baked model grows out
+	-- of it. A failed load leaves the grassy base as the procedural fallback.
+	local centreFn = MapSpec and MapSpec.riverCentreZ or Data.RIVER_CENTRE
 	local nearBridge = 0
 	local placedVeg = 0
-	if MapSpec then
-		for index, veg in ipairs(Data.bankVeg(MapSpec.riverCentreZ, -48, 48, 2)) do
-			if math.abs(veg.x) <= Data.BRIDGE_WIDTH / 2 + 1 then
-				continue
-			end
-			local part = taggedPart("bank_veg", "BankVeg_" .. index, vegFolder or folder)
-			if part then
+	for index, veg in ipairs(Data.bankPlants(centreFn)) do
+		if math.abs(veg.x) <= Data.BRIDGE_WIDTH / 2 + 1 then
+			continue
+		end
+		local part = taggedPart("bank_veg", "BankPlant_" .. index, vegFolder or folder)
+		if part then
+			pcall(function()
+				part:SetAttribute("Side", veg.Side)
+				part:SetAttribute("Species", veg.Species)
+				part:SetAttribute("VegX", veg.VegX)
+				part:SetAttribute("VegZ", veg.VegZ)
+				part:SetAttribute("BankPlant", true)
+				part:SetAttribute("PlantSpecies", veg.Species)
+				part:SetAttribute("PlantTall", veg.Tall)
+				part.Material = Enum.Material.Grass
+				part.Color = if veg.Species == "alang-alang"
+					then Color3.fromRGB(150, 142, 74)
+					elseif veg.Species == "bambu" or veg.Species == "kelapa" then Color3.fromRGB(74, 132, 62)
+					else Color3.fromRGB(92, 132, 58)
+			end)
+		end
+		local baseW = if veg.Tall then 2.6 else 1.6
+		local baseH = if veg.Tall then 2.4 else 1.6
+		if not place(part, { veg.x, groundY + baseH * 0.5 - 0.15, veg.z }, { baseW, baseH, baseW }) then
+			fail("could not place bank plant " .. index)
+		end
+
+		local assetId = PLANT_ASSETS[veg.Species]
+		if type(assetId) == "number" then
+			local okLoad, model = pcall(function()
+				return LookDevAssetLoader.get(assetId, FAMILY_ID)
+			end)
+			if okLoad and model then
 				pcall(function()
-					part:SetAttribute("Side", veg.Side)
-					part:SetAttribute("Species", veg.Species)
-					part:SetAttribute("VegX", veg.VegX)
-					part:SetAttribute("VegZ", veg.VegZ)
-					part.Material = Enum.Material.Grass
-					part.Color = if veg.Species == "alang-alang"
-						then Color3.fromRGB(150, 142, 74)
-						elseif veg.Species == "bambu" then Color3.fromRGB(74, 132, 62)
-						else Color3.fromRGB(92, 132, 58)
+					model.Name = "BankPlantModel_" .. index
+					model:SetAttribute("LookDevRiverR8", FAMILY_ID)
+					model:SetAttribute("Kind", "bank_veg_model")
+					model:SetAttribute("Species", veg.Species)
+					model.Parent = plantModelFolder or folder
 				end)
-			end
-			if not place(part, { veg.x, 0.8, veg.z }, { 0.18, 1.6, 0.18 }) then
-				fail("could not place bank veg " .. index)
-			end
-			placedVeg += 1
-			local dz = veg.z - Data.BRIDGE_CENTRE_Z
-			if math.sqrt(veg.x * veg.x + dz * dz) <= 40 then
-				nearBridge += 1
+				if not placeModel(model, veg.x, groundY + baseH - 0.15, veg.z, veg.Height) then
+					fail("could not scale/place bank plant model " .. index)
+				end
 			end
 		end
-	else
-		fail("missing MapSpec river centreline")
+		placedVeg += 1
+		local dz = veg.z - Data.BRIDGE_CENTRE_Z
+		if math.sqrt(veg.x * veg.x + dz * dz) <= 40 then
+			nearBridge += 1
+		end
 	end
 	if nearBridge < Data.MIN_BANK_VEG then
-		fail("only " .. nearBridge .. " bank veg near the bridge (" .. placedVeg .. " total)")
+		fail("only " .. nearBridge .. " bank plants near the bridge (" .. placedVeg .. " total)")
+	end
+
+	-- Twelve half-buried boulders: two procedural shapes (Ball, squashed Wedge) stand in for the
+	-- two rock models because no verified rock MODEL id exists in the shared asset maps.
+	for index, rock in ipairs(Data.bankRocks(centreFn)) do
+		local part = taggedPart("bank_rock", "BankRock_" .. index, rockFolder or folder)
+		if part then
+			pcall(function()
+				part:SetAttribute("Side", rock.Side)
+				part:SetAttribute("Shape", rock.Shape)
+				part:SetAttribute("BankRock", true)
+				-- Dynamic key: the two stand-in shapes are Ball and squashed Wedge.
+				part.Shape = Enum.Shape[if rock.Shape == "ball" then "Ball" else "Wedge"]
+				part.Material = Enum.Material.Rock
+				part.Color = if rock.Shape == "ball"
+					then Color3.fromRGB(126, 122, 108)
+					else Color3.fromRGB(110, 106, 96)
+			end)
+		end
+		if not place(part, { rock.x, groundY - rock.size[2] * 0.1, rock.z }, rock.size) then
+			fail("could not place bank rock " .. index)
+		end
 	end
 
 	-- A second rail on each side, inboard of the greybox rails. A 1-stud rail centred at x = +/-4.5

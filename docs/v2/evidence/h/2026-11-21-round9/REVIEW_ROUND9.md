@@ -199,3 +199,26 @@ the CHECK evidence and tracker ticks. No place is saved or published.
    (`>=40`) and `GUBUK` (`1`) in the same run; all must stay PASS. A missing folder, camera or
    Raycast FAILs with a reason in `detail.reason`, never a skip. No target is weakened.
 5. Stop Play without saving. Visual grading — does the band read as padi? — stays the designer's.
+
+## 12. Item-141 run — `river_r8` bank plants redo (WORK_QUEUE section O)
+
+Run-note recipe. **No Studio result is claimed** by the implementation agent; the main session owns
+the CHECK evidence and tracker ticks. No place is saved or published.
+
+1. Stop Play. Inject at runtime (not saved): `ReplicatedStorage.Shared.ModelMapRiverR8`, the changed
+   `ServerScriptService.Server.World.LookDevRiverR8` and the changed
+   `tools/studio/review_check_r8.luau`. Confirm the baked plant asset folders for the five species
+   exist under `ServerStorage.LookDevAssets` (talas/keladi use the R4 shrub stand-in, alang-alang the
+   R6 ID, bambu/kelapa their R4 IDs) so `LookDevAssetLoader` clones them instead of falling back.
+2. Start a FRESH real Play session in the SERVER datamodel. Stage ONLY `river_r8` from the Server VM:
+   `require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("river_r8", game)`.
+3. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the SERVER VM.
+   Read `RIVER_BANK_VEG` (now target `>=40` in-radius plants, both banks), `BANK_PLANT_SHAPE` (target
+   `0` offenders: every `BankPlant` base Part is >=0.8 studs in X and Z and >=1.5 studs tall),
+   `RIVER_ROCKS` (target `>=12` `BankRock` Parts within 40 studs of the bridge, each axis 1–4 studs)
+   and the unchanged guard `BRIDGE_WALKABLE` (target `>=8` clear studs). All four checks are
+   READ-ONLY and stage nothing; a missing folder/tag or failed Part read FAILs with the offender in
+   `detail`, never a vacuous pass. The two rock shapes are procedural stand-ins (Ball, squashed
+   Wedge) — no verified rock model ID exists in the shared maps. No target is weakened.
+4. Stop Play without saving. Rails and stepping stones are untouched. Visual grading — do the bank
+   plants and boulders read as a planted river? — stays the designer's.

@@ -1,0 +1,34 @@
+CHECK 141 — river_r8 bank plants redo (WORK_QUEUE section O, item 141)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Edit runtime injection; place NOT saved, nothing published.
+
+== Setup ==
+1. Injected changed ReplicatedStorage.Shared.ModelMapRiverR8 and
+   ServerScriptService.Server.World.LookDevRiverR8 into the EDIT datamodel (both SET). Fresh Play.
+2. Staged with `require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("river_r8", game)`
+   in the Server VM — returned true.
+3. Pasted the whole tools/studio/review_check_r8.luau into execute_luau (Server VM), read byName.
+
+== Raw check lines (verbatim, staged river_r8) ==
+CHECK RIVER_BANK_VEG PASS 54 >=40
+CHECK BANK_PLANT_SHAPE PASS 0 0
+CHECK RIVER_ROCKS PASS 12 >=12
+CHECK BRIDGE_RAILS PASS 2 2
+CHECK BRIDGE_WALKABLE PASS 8 >=8
+CHECK PERF_BUDGET PASS 334 500
+CHECK LOAD_FAILURES PASS 0 0
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+CHECK NO_PINES PASS 0 0
+
+== Detail ==
+54 bank plants within 40 studs of bridge centre (0,304): 27 north + 27 south; 60 staged total.
+Species (near): talas 9, keladi 9, alang-alang 9, bambu 18, kelapa 9 = 5 >= 4; 27 tall (8+ studs)
+>= 6. Verified IDs only: talas/keladi 116666781655827 (vegetation_r4.shrubs stand-in), alang-alang
+361802126 (vegetation_r6), bambu 130965811347980 and kelapa 95769944522207 (vegetation_r4).
+BANK_PLANT_SHAPE: 60 plants checked, 0 offenders, 0 read errors (base X/Z >= 0.8, height >= 1.5).
+RIVER_ROCKS: 12/12 within radius, all 1-4 studs, 0 offenders; two procedural shapes (Ball + squashed
+Wedge) are documented stand-ins because no verified rock MODEL id exists in the shared maps. No ID
+was invented. Bridge rails (2) and stepping stones/walkable (8) are unchanged.
+
+Status: SEEN-IN-STUDIO. No place saved, nothing published. Visual grading remains the designer's.

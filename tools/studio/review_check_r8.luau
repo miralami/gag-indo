@@ -17,9 +17,11 @@
 -- PadiClump ids per terrace) and SAWAH_GREEN (20x8 grid per terrace sampled from sawah_above by
 -- downward rays, Include-filtered to PadiPart parts). All four FAIL at measured 0 when no candidate
 -- is staged; a missing camera/Raycast is a FAIL with a reason, never a skip.
--- It also emits the r8 river family (WORK_QUEUE item 73): RIVER_BANK_VEG, BRIDGE_RAILS and
--- BRIDGE_WALKABLE. All three FAIL at measured 0 when the river_r8 candidate is not staged or
--- MapSpec.BRIDGE cannot be read (the Client VM cannot read MapSpec).
+-- It also emits the r8 river family (WORK_QUEUE item 73, redone in item 141): RIVER_BANK_VEG,
+-- BANK_PLANT_SHAPE, RIVER_ROCKS, BRIDGE_RAILS and BRIDGE_WALKABLE. All FAIL at measured 0 when the
+-- river_r8 candidate is not staged or MapSpec.BRIDGE cannot be read (the Client VM cannot read
+-- MapSpec). RIVER_BANK_VEG now targets >=40; BANK_PLANT_SHAPE and RIVER_ROCKS are item-141's new
+-- READ-ONLY checks (plant base shape, bank boulder count). BRIDGE_RAILS / BRIDGE_WALKABLE unchanged.
 -- It also emits the r8 path-edge family (WORK_QUEUE item 75): PATH_EDGE and PATH_CLEAR. Both FAIL
 -- when the pathedge_r8 candidate is not staged or MapSpec's road geometry cannot be read.
 -- It also emits the r8 water family (WORK_QUEUE item 76): WATER_SAFE and WATER_RESTORE. Both are
@@ -105,6 +107,8 @@ local ORDER = {
 	"PADI_CLUMPS",
 	"SAWAH_GREEN",
 	"RIVER_BANK_VEG",
+	"BANK_PLANT_SHAPE",
+	"RIVER_ROCKS",
 	"BRIDGE_RAILS",
 	"BRIDGE_WALKABLE",
 	"PATH_EDGE",
@@ -1960,18 +1964,27 @@ local greenDetail = {
 }
 emit("SAWAH_GREEN", greenOk and greenWorst >= SAWAH_GREEN_TOTAL, greenWorst, 40, greenDetail)
 
--- 9e. r8 river family (WORK_QUEUE item 73). Three CHECK families over the staged
+-- 9e. r8 river family (WORK_QUEUE item 73, redone in item 141). Five CHECK families over the staged
 -- LookDevRiverR8_river_r8 folder, all read around MapSpec.BRIDGE (bridge centre + deck span):
---   RIVER_BANK_VEG  >=30 bank_veg within 40 studs (XZ) of the bridge centre, both banks present
+--   RIVER_BANK_VEG   >=40 bank_veg within 40 studs (XZ) of the bridge centre, both banks present
+--   BANK_PLANT_SHAPE every BankPlant base Part >=0.8 studs in X/Z and >=1.5 studs tall (0 offenders)
+--   RIVER_ROCKS     >=12 BankRock Parts within 40 studs of the bridge, each axis 1..4 studs
 --   BRIDGE_RAILS    each side has a rail spanning the deck and >=4 posts
 --   BRIDGE_WALKABLE no rail/post intrudes into the |x|<4 deck corridor, both sides present
+-- BANK_PLANT_SHAPE and RIVER_ROCKS are READ-ONLY (stage nothing). A missing folder / part /
+-- attribute / MapSpec or a failed read is a FAIL, never a vacuous pass. No GetBoundingBox on Part
+-- is used: plant/rock geometry is read from each Part's own CFrame + Size.
 -- MapSpec lives under ServerScriptService.Server.World; the require is pcall-guarded and the
--- Client VM cannot read it. Missing folder / part / attribute / MapSpec or a failed read is a
--- FAIL, never a vacuous pass. Every game API read below is pcall-wrapped.
+-- Client VM cannot read it. Every game API read below is pcall-wrapped.
 local RIVER_FOLDER = "LookDevRiverR8_river_r8"
 local RIVER_KEY = "river_r8"
 local RIVER_BANK_VEG_RADIUS = 40
-local RIVER_BANK_VEG_MIN = 30
+local RIVER_BANK_VEG_MIN = 40
+local BANK_PLANT_MIN_WIDTH = 0.8
+local BANK_PLANT_MIN_HEIGHT = 1.5
+local RIVER_ROCK_MIN = 12
+local RIVER_ROCK_MIN_SIZE = 1
+local RIVER_ROCK_MAX_SIZE = 4
 local RAIL_SPAN_TOL = 4
 local POSTS_PER_SIDE_MIN = 4
 local WALK_CLEAR_MIN = 4
@@ -2078,6 +2091,114 @@ emit(
 	riverMapReady and vegNear or 0,
 	">=" .. RIVER_BANK_VEG_MIN,
 	vegDetail
+)
+
+-- BANK_PLANT_SHAPE (WORK_QUEUE item 141). READ-ONLY: no candidate is enabled/staged here. Every
+-- BankPlant base Part must be >=0.8 studs in both horizontal Size axes and >=1.5 studs tall.
+-- A missing folder or zero tagged plants FAILs (never a vacuous pass); a failed Size/IsA read is an
+-- offender, not a skip. Part.Size is read directly — no GetBoundingBox on Part in this environment.
+local plantTotal, plantOffenders, plantReadErrors = 0, 0, 0
+local plantOffenderList = {}
+for _, part in ipairs(riverParts) do
+	if attr(part, "BankPlant") == true then
+		plantTotal += 1
+		local okRead, isPart, size = pcall(function()
+			return part:IsA("BasePart"), part.Size
+		end)
+		local bad = not okRead or isPart ~= true or typeof(size) ~= "Vector3"
+		if not bad then
+			bad = size.X < BANK_PLANT_MIN_WIDTH or size.Z < BANK_PLANT_MIN_WIDTH or size.Y < BANK_PLANT_MIN_HEIGHT
+		end
+		if bad then
+			plantOffenders += 1
+			if #plantOffenderList < 10 then
+				local okName, name = pcall(function()
+					return part.Name
+				end)
+				local dims = typeof(size) == "Vector3" and string.format("%.2fx%.2fx%.2f", size.X, size.Y, size.Z)
+					or "unreadable"
+				plantOffenderList[#plantOffenderList + 1] = (okName and tostring(name) or "?") .. ":" .. dims
+			end
+			if not okRead or isPart ~= true then
+				plantReadErrors += 1
+			end
+		end
+	end
+end
+local plantDetail = {
+	plants = plantTotal,
+	offenders = plantOffenderList,
+	readErrors = plantReadErrors,
+	minWidth = BANK_PLANT_MIN_WIDTH,
+	minHeight = BANK_PLANT_MIN_HEIGHT,
+	folderPresent = riverFolder ~= nil,
+}
+emit(
+	"BANK_PLANT_SHAPE",
+	riverFolder ~= nil and plantTotal > 0 and plantReadErrors == 0 and plantOffenders == 0,
+	plantOffenders,
+	0,
+	plantDetail
+)
+
+-- RIVER_ROCKS (WORK_QUEUE item 141). READ-ONLY: count BankRock Parts within RIVER_BANK_VEG_RADIUS
+-- (XZ) of the bridge centre whose three Size axes are each in [1, 4] studs. A missing folder or
+-- zero tagged rocks FAILs; a failed CFrame/Size/IsA read is an error, never a skip.
+local rockTotal, rockNear, rockReadErrors = 0, 0, 0
+local rockOffenderList = {}
+for _, part in ipairs(riverParts) do
+	if attr(part, "BankRock") == true then
+		rockTotal += 1
+		local okRead, isPart, pos, size = pcall(function()
+			return part:IsA("BasePart"), part.CFrame.Position, part.Size
+		end)
+		if not okRead or isPart ~= true or typeof(pos) ~= "Vector3" or typeof(size) ~= "Vector3" then
+			rockReadErrors += 1
+		else
+			local inBand = size.X >= RIVER_ROCK_MIN_SIZE
+				and size.X <= RIVER_ROCK_MAX_SIZE
+				and size.Y >= RIVER_ROCK_MIN_SIZE
+				and size.Y <= RIVER_ROCK_MAX_SIZE
+				and size.Z >= RIVER_ROCK_MIN_SIZE
+				and size.Z <= RIVER_ROCK_MAX_SIZE
+			local dx, dz = pos.X - bridgeCX, pos.Z - bridgeCZ
+			if inBand and dx * dx + dz * dz <= RIVER_BANK_VEG_RADIUS * RIVER_BANK_VEG_RADIUS then
+				rockNear += 1
+			elseif #rockOffenderList < 10 then
+				local okName, name = pcall(function()
+					return part.Name
+				end)
+				rockOffenderList[#rockOffenderList + 1] = string.format(
+					"%s:d=%.1f:%.2fx%.2fx%.2f",
+					okName and tostring(name) or "?",
+					math.sqrt(dx * dx + dz * dz),
+					size.X,
+					size.Y,
+					size.Z
+				)
+			end
+		end
+	end
+end
+local rockDetail = {
+	total = rockTotal,
+	near = riverMapReady and rockNear or 0,
+	readErrors = rockReadErrors,
+	offenders = rockOffenderList,
+	radius = RIVER_BANK_VEG_RADIUS,
+	sizeBand = { RIVER_ROCK_MIN_SIZE, RIVER_ROCK_MAX_SIZE },
+	centre = riverMapReady and { bridgeCX, bridgeCZ } or nil,
+	folderPresent = riverFolder ~= nil,
+}
+if not riverMapReady then
+	rockDetail.reason = riverMapReason
+end
+emit(
+	"RIVER_ROCKS",
+	riverMapReady and riverFolder ~= nil and rockTotal > 0 and rockReadErrors == 0 and rockNear >= RIVER_ROCK_MIN,
+	riverMapReady and rockNear or 0,
+	">=" .. RIVER_ROCK_MIN,
+	rockDetail
 )
 
 -- BRIDGE_RAILS: group rails/posts by Side. A rail spans the deck when its CFrame/Size Z interval

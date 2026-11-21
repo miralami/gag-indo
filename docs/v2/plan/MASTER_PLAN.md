@@ -34,6 +34,12 @@ of flat verge bars. Real Studio staged-Play PASS `TUFT_SHAPE 0 0`, `PADI_ROWS 29
 (`h/2026-11-21-round9/CHECK_140.txt`). The 35,520 staged parts exist only while this OFF-by-default
 candidate is on; default PERF_BUDGET stays 334/500. Suite **2471 tests**; `selene src` 0/0/0.
 
+Item 141 COMPLETE: `river_r8` thin posts replaced with 54 baked bank plants (5 species, 27 tall) and
+12 half-buried boulders; bridge rails/stones unchanged. Real Studio staged-Play PASS
+`RIVER_BANK_VEG 54 >=40`, `BANK_PLANT_SHAPE 0 0`, `RIVER_ROCKS 12 >=12`, `BRIDGE_RAILS 2 2`,
+`BRIDGE_WALKABLE 8 >=8` (`h/2026-11-21-round9/CHECK_141.txt`). Suite **2474 tests**; `selene src`
+0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

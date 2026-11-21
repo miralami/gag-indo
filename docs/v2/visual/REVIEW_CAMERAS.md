@@ -1,7 +1,7 @@
 # Review cameras (WORK_QUEUE section M item 69)
 
 Registry: `src/shared/ReviewCameras.luau` (`ReviewCameras.all()`, `.get(name)`, `.names()`).
-45 named cameras. Coordinates are computed at load from `src/server/World/MapSpec.luau` (hub centres,
+45 named cameras at item 118; 54 named cameras after item 133. Coordinates are computed at load from `src/server/World/MapSpec.luau` (hub centres,
 footprints, road ring, bridge, terraces, hill edge, spawn), `src/shared/Config/Game.luau` (plot-ring
 angles/radius) and `ModelMapVegetationR7.savedCamera` (the current saved spawn camera). No hand-typed
 world coordinates. `ReviewCameras.clearDistance` is the 6-stud `CAMERA_CLEAR` ray length.
@@ -61,6 +61,15 @@ Shots and verdicts belong under `docs/v2/evidence/h/<date>-round9/`.
 | `crop_bibit` | Server | Item-118 `crops_showcase_r8` bibit stage plot: the 12 seedling crop Models in the first row at the MapSpec Lapangan field. |
 | `crop_tumbuh` | Server | Item-118 `crops_showcase_r8` tumbuh stage plot: the 12 growing crop Models in the second row at the MapSpec Lapangan field. |
 | `crop_siap` | Server | Item-118 `crops_showcase_r8` siap stage plot: the 12 mature crop Models in the third row at the MapSpec Lapangan field. |
+| `lapangan_view` | Server | Item-108 lapangan goals, flagpole, benches and stone edge from the south end of the field. |
+| `musala_view` | Server | Item-110 musala door, wudhu and shoe rack from the front-left approach. |
+| `lumbung_view` | Server | Item-111 lumbung padi, ladder and drying yard from the front-right of the Pasar barn. |
+| `perahu_view` | Server | Item-112 perahu hull and gunwales on the south river bank, 3/4 from upstream. |
+| `irrigation_view` | Server | Item-113 bamboo irrigation flume and water sheet on the second sawah terrace. |
+| `kincir_view` | Server | Item-114 waterwheel blades and support posts from the river side, 3/4 east. |
+| `laundry_view` | Server | Item-115 Pasar washing lines with sarung, batik and kebaya behind the back wall. |
+| `kite_sky` | Server | Item-116 kites over the Lapangan, framed on the highest sail from above. |
+| `warung_seated` | Server | Item-117 seated villagers, glasses and plates on the Warung benches from the front-left apron. |
 
 ## Notes
 

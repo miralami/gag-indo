@@ -1,0 +1,46 @@
+CHECK 133 — camera additions, full-set CAMERA_CLEAR (WORK_QUEUE section N6, item 133)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Fresh Play, SERVER VM. Place NOT saved, nothing published.
+
+== Target (verbatim) ==
+"**Camera additions.** Add a named camera to `REVIEW_CAMERAS.md` and `ReviewCameras.luau` for every new item above (lapangan, musala, lumbung, perahu, irrigation, kincir, laundry, kite sky, warung seated, crops showcase ×3), derived from `MapSpec`. **CHECK `CAMERA_CLEAR`** for the full set."
+
+== Implementation (LUNE-ONLY source work; verified below in Studio) ==
+- `src/shared/ReviewCameras.luau`: 127 additions / 0 removals (append-only; all 45 pre-item cameras byte-identical). 9 new cameras added, each position/lookAt computed at load from authored MapSpec/model data (no hand-typed world coords), datamodel "Server":
+  - `lapangan_view` eye {0,29,152} -> look {0,8.475,96}; src `ModelMapLapanganR8.luau:48,52`, `MapSpec.luau:193`.
+  - `musala_view` eye {66.0718,19.5,130.4397} -> look {62.5,3.6,108.2532}; `ModelMapMusalaR8.luau:64,67-71,103-123`.
+  - `lumbung_view` eye {-72,19.5,-9} -> look {-82,6.5,-29}; `ModelMapLumbungR8.luau:78-85`.
+  - `perahu_view` eye {-64,19.5,255.7683} -> look {-52,1.5,275.7683}; `ModelMapPerahuR8.luau:65-71,85-88`.
+  - `irrigation_view` eye {-186,27.5,-356} -> look {-170,10.75,-336}; `ModelMapIrrigationR8.luau:53-76`.
+  - `kincir_view` eye {-56,19.5,294.3316} -> look {-68,5.7,310.3316}; `ModelMapKincirR8.luau:67-74,127`.
+  - `laundry_view` eye {-44,19.5,-115} -> look {-64,7.15,-94}; `ModelMapLaundryR8.luau:33-50,118-125`.
+  - `kite_sky` eye {45,107.5,133} -> look {21,88.5,109}; `ModelMapLayanganR8.luau:71-84`.
+  - `warung_seated` eye {56,19.5,-32} -> look {68,6.45,-56.65}; `ModelMapSeatedR8.luau:36-60,75-89`.
+  - The "crops showcase ×3" subjects (`crop_bibit`, `crop_tumbuh`, `crop_siap`) were ALREADY added by item 118 — no new crop cameras needed. Total item-133 subjects covered: 12; registry 45 -> 54.
+- `docs/v2/visual/REVIEW_CAMERAS.md`: 9 doc rows appended (name | Server | purpose); header "45 named cameras at item 118; 54 named cameras after item 133"; 54 table rows total. Existing rows unchanged.
+- `tests/specs/cameras_new_r10_spec.luau`: `CAMERA_CLEAR_R10` guard (3 cases) loads the REAL registry via Env.require — count 54, no duplicate names, all 12 names present with valid distinct `{x,y,z}` coords and Server datamodel, doc rows present. Registered in `tests/run.luau`.
+
+== CHECK CAMERA_CLEAR — full-set Studio run (verbatim) ==
+Fresh Play, SERVER VM (CAMERA_CLEAR is server-only: ReviewCameras requires MapSpec from ServerScriptService.Server.World). The harness block `tools/studio/review_check_r8.luau:11723-11811` was replicated exactly as an ad-hoc Server-VM execute_luau probe (item 103/105/108 precedent — the whole harness is too large to paste into execute_luau). For every camera in `Cameras.all()`: raycast from position toward lookAt for `clearDistance` studs, RaycastParams excluding player Characters, opaque BasePart hit (Transparency<0.5) = blocked.
+
+  namesCount = 54
+  clearDistance = 6
+  checked = 54
+  blocked = 0
+  failed = [] (empty)
+  vote = PASS
+
+CHECK CAMERA_CLEAR PASS 0 blocked/54 checked 0 blocked
+
+Note: prior rounds reported 0/42 (item 118-era registry) and 0/45; this is the full 54-camera set including all 9 new round-10 cameras. New cameras' positions were derived from authored coordinates and are now proven clear in Studio by the real 6-stud ray — no camera starts inside terrain/parts.
+
+== Gates ==
+`lune run tests/run.luau` -> All 2872 tests passed (2869 + 3 new). `selene src` 0/0/0. `stylua --check` on changed/new Luau clean. `git diff --check` clean (benign LF->CRLF working-copy warnings only).
+
+== Scope / non-vacuity ==
+- Non-vacuity: 54 real cameras loaded from the registry and raycast; a blocked camera would have produced a named FAIL. No check weakened; clearDistance unchanged at 6; harness unchanged.
+- No visual "looks good" verdict from pixels; no screenshot claim; no place save, no publish, no Strings/asset/UI change.
+- SHOT_LIST.md (item 132) camera column uses `—` where no camera was documented and notes item 133; new camera names are now valid for the main session to use. No stale token needs editing (item-132 verification confirmed all cited camera tokens exist in REVIEW_CAMERAS.md).
+
+Status: SEEN-IN-STUDIO (full 54-camera CAMERA_CLEAR PASS 0/54 in fresh-Play Server VM; LUNE-ONLY registry/doc guards). No visual verdict.

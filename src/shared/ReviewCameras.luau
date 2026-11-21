@@ -15,6 +15,15 @@ local MapSpec = require(game:GetService("ServerScriptService"):WaitForChild("Ser
 local Game = require(script.Parent.Config.Game)
 local VegR7 = require(script.Parent.ModelMapVegetationR7)
 local CropsShowcase: any = require(script.Parent.ModelMapCropsShowcaseR8)
+local Lapangan: any = require(script.Parent.ModelMapLapanganR8)
+local Musala: any = require(script.Parent.ModelMapMusalaR8)
+local Lumbung: any = require(script.Parent.ModelMapLumbungR8)
+local Perahu: any = require(script.Parent.ModelMapPerahuR8)
+local Irrigation: any = require(script.Parent.ModelMapIrrigationR8)
+local Kincir: any = require(script.Parent.ModelMapKincirR8)
+local Laundry: any = require(script.Parent.ModelMapLaundryR8)
+local Layangan: any = require(script.Parent.ModelMapLayanganR8)
+local Seated: any = require(script.Parent.ModelMapSeatedR8)
 
 export type Vec3 = { number }
 export type ReviewCamera = {
@@ -312,6 +321,124 @@ add(
 	cropSiapLook,
 	"Server",
 	"Item-118 crops_showcase_r8 siap plot: 12 crop Models in a row at the MapSpec Lapangan field."
+)
+
+-- WORK_QUEUE item 133: one camera for each remaining round-10 scene item. Item 118 already added the
+-- three crops_showcase_r8 cameras above, so this block adds nine, not twelve. Every eye/look below is
+-- derived from the item's authored data module plus MapSpec; the literals are stand-offs and rises.
+-- Each eye sits high outside the subject so the 6-stud CAMERA_CLEAR ray starts in air.
+local field = MapSpec.LAPANGAN
+add(
+	"lapangan_view",
+	vec(field.x, MapSpec.GROUND_Y + MapSpec.HEADROOM * 3, field.z + field.depth / 2 + MapSpec.TERRAIN_VOXEL * 7),
+	vec(field.x, MapSpec.GROUND_Y + Lapangan.GOAL_HEIGHT / 2, field.z),
+	"Server",
+	"Item-108 lapangan goals, flagpole, benches and stone edge from the south end of the field."
+)
+
+local musalaCentre = Musala.centre(MapSpec.ROAD)
+musalaCentre.y = MapSpec.GROUND_Y
+local mex, mey, mez = Musala.sitePoint(
+	musalaCentre,
+	musalaCentre.yaw,
+	-MapSpec.S * 4,
+	MapSpec.HEADROOM * 2,
+	Musala.CORRIDOR.maxLz + MapSpec.TERRAIN_VOXEL * 3
+)
+local mlx, mly, mlz = Musala.sitePoint(musalaCentre, musalaCentre.yaw, Musala.DOOR.lx, Musala.DOOR.ly, Musala.DOOR.lz)
+add(
+	"musala_view",
+	vec(mex, mey, mez),
+	vec(mlx, mly, mlz),
+	"Server",
+	"Item-110 musala door, wudhu and shoe rack from the front-left approach."
+)
+
+local barn = Lumbung.barnCentre(pasar)
+barn.y = MapSpec.GROUND_Y
+local lbex, lbey, lbez =
+	Lumbung.sitePoint(barn, MapSpec.S * 5, MapSpec.HEADROOM * 2, Lumbung.DOOR.lz + MapSpec.TERRAIN_VOXEL * 5)
+local lblx, lbly, lblz = Lumbung.sitePoint(barn, Lumbung.DOOR.lx, Lumbung.DOOR.ly, Lumbung.DOOR.lz)
+add(
+	"lumbung_view",
+	vec(lbex, lbey, lbez),
+	vec(lblx, lbly, lblz),
+	"Server",
+	"Item-111 lumbung padi, ladder and drying yard from the front-right of the Pasar barn."
+)
+
+local boatSite = Perahu.siteByKey("perahu_a")
+assert(boatSite, "ReviewCameras: Perahu has no perahu_a site")
+local pex, pez = Perahu.worldXZ(boatSite, -MapSpec.S * 6, MapSpec.TERRAIN_VOXEL * 5, MapSpec.riverCentreZ)
+local plx, plz = Perahu.worldXZ(boatSite, 0, 0, MapSpec.riverCentreZ)
+add(
+	"perahu_view",
+	vec(pex, MapSpec.GROUND_Y + MapSpec.HEADROOM * 2, pez),
+	vec(plx, MapSpec.GROUND_Y + MapSpec.S / 2, plz),
+	"Server",
+	"Item-112 perahu hull and gunwales on the south river bank, 3/4 from upstream."
+)
+
+local channelSite = Irrigation.siteByKey("channel_a")
+assert(channelSite, "ReviewCameras: Irrigation has no channel_a site")
+local channelTop = Irrigation.terraceTop(channelSite.terrace)
+assert(channelTop, "ReviewCameras: irrigation channel terrace has no top")
+add(
+	"irrigation_view",
+	vec(channelSite.x - MapSpec.S * 8, channelTop + MapSpec.HEADROOM * 2, channelSite.z - MapSpec.TERRAIN_VOXEL * 5),
+	vec(channelSite.x, channelTop + Irrigation.WATER_TOP_DELTA + MapSpec.S, channelSite.z),
+	"Server",
+	"Item-113 bamboo irrigation flume and water sheet on the second sawah terrace."
+)
+
+local wheelSite = Kincir.SITE
+local kx, kz = Kincir.worldXZ(wheelSite, MapSpec.S * 6, -MapSpec.TERRAIN_VOXEL * 4, MapSpec.riverCentreZ)
+local klx, klz = Kincir.worldXZ(wheelSite, 0, 0, MapSpec.riverCentreZ)
+add(
+	"kincir_view",
+	vec(kx, MapSpec.GROUND_Y + MapSpec.HEADROOM * 2, kz),
+	vec(klx, MapSpec.GROUND_Y + Kincir.WHEEL_CENTRE_LY, klz),
+	"Server",
+	"Item-114 waterwheel blades and support posts from the river side, 3/4 east."
+)
+
+local washZ = Laundry.behindZ("pasar")
+local lex, lez = MapSpec.hubPoint(pasar, MapSpec.S * 10, washZ - MapSpec.TERRAIN_VOXEL * 5)
+local llx, llz = MapSpec.hubPoint(pasar, 0, washZ + Laundry.LINE_SPACING / 2)
+add(
+	"laundry_view",
+	vec(lex, MapSpec.GROUND_Y + MapSpec.HEADROOM * 2, lez),
+	vec(llx, MapSpec.GROUND_Y + MapSpec.HEADROOM * 0.7, llz),
+	"Server",
+	"Item-115 Pasar washing lines with sarung, batik and kebaya behind the back wall."
+)
+
+local kiteSite = Layangan.SITES[4]
+assert(kiteSite, "ReviewCameras: Layangan has no fourth site")
+local kiteX, kiteZ = Layangan.kiteXZ(kiteSite)
+add(
+	"kite_sky",
+	vec(
+		kiteX + MapSpec.TERRAIN_VOXEL * 6,
+		MapSpec.GROUND_Y + kiteSite.altitude + MapSpec.HEADROOM * 2,
+		kiteZ + MapSpec.TERRAIN_VOXEL * 6
+	),
+	vec(kiteX, MapSpec.GROUND_Y + kiteSite.altitude, kiteZ),
+	"Server",
+	"Item-116 kites over the Lapangan, framed on the highest sail from above."
+)
+
+local warung = MapSpec.hub("warung")
+assert(warung, "ReviewCameras: MapSpec has no warung hub")
+local sex, sez =
+	MapSpec.hubPoint(warung, -MapSpec.S * 6, warung.depth / 2 + MapSpec.AWNING_REACH + MapSpec.TERRAIN_VOXEL * 2)
+local slx, slz = MapSpec.hubPoint(warung, 0, Seated.BENCH.localZ + Seated.SEAT.zLift)
+add(
+	"warung_seated",
+	vec(sex, MapSpec.GROUND_Y + MapSpec.HEADROOM * 2, sez),
+	vec(slx, Seated.BENCH.topY + Seated.SEAT.lift + MapSpec.S * 2, slz),
+	"Server",
+	"Item-117 seated villagers, glasses and plates on the Warung benches from the front-left apron."
 )
 
 local byName: { [string]: ReviewCamera } = {}

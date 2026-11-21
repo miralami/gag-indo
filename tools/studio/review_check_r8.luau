@@ -276,6 +276,9 @@ local ORDER = {
 	"MUSALA_PARTS",
 	"MUSALA_DOOR_CLEAR",
 	"MUSALA_PATH_REACH",
+	"LUMBUNG_PARTS",
+	"LUMBUNG_DOOR_CLEAR",
+	"LUMBUNG_PROPS_ON_GRASS",
 	"LOOKDEV_LEAK",
 }
 
@@ -7028,6 +7031,397 @@ else
 			}
 		)
 		restoreMsPrior()
+	end
+end
+end
+
+do
+-- 9l. WORK_QUEUE section N item 111: lumbung_r8. THREE checks over the staged
+-- LookDevLumbungR8_lumbung_r8 folder, run in the SERVER VM. LUMBUNG_PARTS counts architecture Parts
+-- by kind against Shared.ModelMapLumbungR8.counts() (the invisible door gauge is excluded).
+-- LUMBUNG_DOOR_CLEAR stages one tagged LumbungDoorGauge at the lumbung door and counts collidable
+-- SHIPPING-world hits with GetPartBoundsInBox, excluding every descendant of the staged folder.
+-- LUMBUNG_PROPS_ON_GRASS reads the three yard pads from pure yard sample centres and their snapped
+-- 4-stud cells; the applier paints real Ground voxels there, this harness only samples them.
+-- Naming matters: bare DOOR_CLEAR belongs to the six facades (ORDER 226) and bare PROPS_ON_GRASS to
+-- the six r7 props (ORDER 172), so these are distinct names. No existing check, full_r9 list or
+-- shipping default is touched; no visual verdict is made here.
+local LB_FOLDER_FALLBACK = "LookDevLumbungR8_lumbung_r8"
+local LB_ID = "lumbung_r8"
+local LB_MIN_PARTS = 80
+local LB_GAUGE_FALLBACK = "LumbungDoorGauge"
+local LB_FALLBACK_DIMS = { 3.2, 4.8, 2 }
+local LB_FALLBACK_KINDS = {
+	"stilt",
+	"floor",
+	"wall",
+	"door",
+	"roof",
+	"ladder",
+	"vent",
+	"fence",
+	"toga",
+	"chilli",
+	"mat",
+	"rake",
+}
+local LB_HOUSE_KEYS = { "pasar", "gelap", "pakrt" }
+
+local okLbModules, lbModules = pcall(function()
+	return {
+		data = require(game.ReplicatedStorage.Shared.ModelMapLumbungR8),
+		look = require(game.ReplicatedStorage.Shared.LookDev),
+		review = require(game.ReplicatedStorage.Shared.LookDevReview),
+	}
+end)
+local lbData: any? = nil
+if okLbModules and type(lbModules) == "table" and type((lbModules :: any).data) == "table" then
+	lbData = (lbModules :: any).data
+end
+local lbExpected: any? = nil
+if lbData and type((lbData :: any).counts) == "function" then
+	local okCounts, counts = pcall(function()
+		return (lbData :: any).counts()
+	end)
+	if okCounts and type(counts) == "table" and type(counts.total) == "number" then
+		lbExpected = counts
+	end
+end
+
+local function lbFail(reason)
+	local kinds = LB_FALLBACK_KINDS
+	if lbData and type((lbData :: any).KINDS) == "table" then
+		kinds = (lbData :: any).KINDS
+	end
+	local byKind, targets = {}, {}
+	for _, kind in ipairs(kinds) do
+		byKind[#byKind + 1] = kind .. "=0"
+		targets[#targets + 1] = kind .. "=?"
+	end
+	local detail = {
+		reason = reason,
+		folderPresent = folderNamed(if lbData then (lbData :: any).folderName else LB_FOLDER_FALLBACK) ~= nil,
+		parts = 0,
+		byKind = table.concat(byKind, " "),
+		kindTargets = table.concat(targets, " "),
+		gauge = 0,
+		collidableHits = -1,
+		grassyCells = -1,
+		yardSamples = 0,
+		antiVac = "pure yard samples + snapped cells; missing folder/data fails all three",
+	}
+	emit("LUMBUNG_PARTS", false, 0, ">=" .. LB_MIN_PARTS, detail)
+	emit("LUMBUNG_DOOR_CLEAR", false, 0, 0, detail)
+	emit("LUMBUNG_PROPS_ON_GRASS", false, 1, 0, detail)
+end
+
+local lbRunService = service("RunService")
+local okLbServer, lbIsServer = false, false
+if lbRunService then
+	okLbServer, lbIsServer = pcall(function()
+		return (lbRunService :: any):IsServer()
+	end)
+end
+local lbLook = okLbModules and (lbModules :: any).look or nil
+local lbReview = okLbModules and (lbModules :: any).review or nil
+if
+	not lbData
+	or not lbExpected
+	or not mapSpecReady
+	or not okLbServer
+	or not lbIsServer
+	or type(lbLook) ~= "table"
+	or type(lbLook.enable) ~= "function"
+	or type(lbLook.disable) ~= "function"
+	or type(lbReview) ~= "table"
+	or type(lbReview.enable) ~= "function"
+	or type((lbData :: any).KINDS) ~= "table"
+	or type((lbData :: any).KIND) ~= "table"
+	or type((lbData :: any).HOUSE_KEYS) ~= "table"
+	or type((lbData :: any).BARN) ~= "table"
+	or type((lbData :: any).DOOR) ~= "table"
+	or type((lbData :: any).sitePoint) ~= "function"
+	or type((lbData :: any).gaugeDims) ~= "function"
+	or type((lbData :: any).yards) ~= "function"
+	or type((lbData :: any).yardRegion) ~= "function"
+	or type(MapSpec.hub) ~= "function"
+	or type(MapSpec.hubPoint) ~= "function"
+	or type(MapSpec.GROUND_Y) ~= "number"
+then
+	lbFail("server VM / lumbung modules / MapSpec / counts not readable")
+else
+	local okPrior, priorId = pcall(function()
+		return (lbLook :: any).current and (lbLook :: any).current() or nil
+	end)
+	if not okPrior then
+		priorId = nil
+	end
+	local function restoreLbPrior()
+		pcall(function()
+			(lbLook :: any).disable()
+		end)
+		if type(priorId) == "string" then
+			pcall(function()
+				(lbLook :: any).enable(priorId)
+			end)
+		end
+	end
+	local okEnable, enabled, whyEnable = pcall(function()
+		return (lbReview :: any).enable(LB_ID, game, { studio = true })
+	end)
+	if not okEnable or enabled == false then
+		restoreLbPrior()
+		lbFail("enable:" .. tostring(whyEnable or enabled))
+	else
+		local lbFolder = folderNamed((lbData :: any).folderName)
+		local tagged, allTagged, gauges = {}, {}, {}
+		local countsByKind = {}
+		for _, kind in ipairs((lbData :: any).KINDS) do
+			countsByKind[kind] = 0
+		end
+		for _, inst in ipairs(descendantList(lbFolder)) do
+			local okPart, isPart = pcall(function()
+				return (inst :: any):IsA("BasePart")
+			end)
+			local kind = attr(inst, (lbData :: any).kindAttribute)
+			local stage = attr(inst, (lbData :: any).stageAttribute)
+			if okPart and isPart and type(kind) == "string" and stage == (lbData :: any).familyId then
+				allTagged[#allTagged + 1] = inst
+				if kind == (lbData :: any).KIND.gauge then
+					gauges[#gauges + 1] = inst
+				elseif countsByKind[kind] ~= nil then
+					countsByKind[kind] += 1
+					tagged[#tagged + 1] = inst
+				end
+			end
+		end
+		local byKindMismatch = {}
+		local expectedCounts = (lbExpected :: any)
+		for _, kind in ipairs((lbData :: any).KINDS) do
+			if countsByKind[kind] ~= expectedCounts[kind] then
+				byKindMismatch[#byKindMismatch + 1] = kind .. "=" .. tostring(countsByKind[kind])
+			end
+		end
+		local partsOk = lbFolder ~= nil
+			and #tagged >= LB_MIN_PARTS
+			and #tagged == expectedCounts.total
+			and #byKindMismatch == 0
+		emit(
+			"LUMBUNG_PARTS",
+			partsOk,
+			#tagged,
+			">=" .. LB_MIN_PARTS,
+			{
+				folderPresent = lbFolder ~= nil,
+				parts = #tagged,
+				byKind = countsByKind,
+				expected = expectedCounts,
+				byKindMismatch = byKindMismatch,
+				gauges = #gauges,
+				antiVac = "architecture tagged Parts only; door gauge excluded",
+			}
+		)
+
+		-- Barn site: MapSpec.hub(pasar) + hubPoint with pure hub-local barn offsets.
+		local barnHub = MapSpec.hub((lbData :: any).BARN.hubKey)
+		local bx, bz = MapSpec.hubPoint(barnHub, (lbData :: any).BARN.lx, (lbData :: any).BARN.lz)
+		local centre = {
+			x = bx,
+			y = MapSpec.GROUND_Y,
+			z = bz,
+			yaw = barnHub.yaw + (lbData :: any).BARN.yawOffsetDeg,
+		}
+
+		-- Exactly one gauge: exact Size + DoorW/H/D attrs, exact site pose, then a collidable-only
+		-- SHIPPING-world overlap probe excluding every staged-folder descendant.
+		local expectedDims = (lbData :: any).gaugeDims()
+		if type(expectedDims) ~= "table" or #expectedDims ~= 3 then
+			expectedDims = LB_FALLBACK_DIMS
+		end
+		local gauge = gauges[1]
+		local dimsMatch, poseMatch = false, false
+		local measuredDims = {}
+		if #gauges == 1 and gauge then
+			local okDims, w, h, d = pcall(function()
+				local size = (gauge :: any).Size
+				return size.X, size.Y, size.Z
+			end)
+			local okAttrs, aw, ah, ad = pcall(function()
+				return (gauge :: any):GetAttribute((lbData :: any).doorWidthAttribute),
+					(gauge :: any):GetAttribute((lbData :: any).doorHeightAttribute),
+					(gauge :: any):GetAttribute((lbData :: any).doorDepthAttribute)
+			end)
+			if okDims then
+				measuredDims = { w, h, d }
+			end
+			dimsMatch = okDims
+				and okAttrs
+				and type(w) == "number"
+				and type(h) == "number"
+				and type(d) == "number"
+				and type(aw) == "number"
+				and type(ah) == "number"
+				and type(ad) == "number"
+				and math.abs(w - expectedDims[1]) < 1e-4
+				and math.abs(h - expectedDims[2]) < 1e-4
+				and math.abs(d - expectedDims[3]) < 1e-4
+				and math.abs(aw - expectedDims[1]) < 1e-4
+				and math.abs(ah - expectedDims[2]) < 1e-4
+				and math.abs(ad - expectedDims[3]) < 1e-4
+			local okDoor, dx, dy, dz = pcall(function()
+				local door = (lbData :: any).DOOR
+				return (lbData :: any).sitePoint(centre, door.lx, door.ly, door.lz)
+			end)
+			local okPose, px, py, pz, lookX, lookZ = false, 0, 0, 0, 0, 0
+			if gauge then
+				okPose, px, py, pz, lookX, lookZ = pcall(function()
+					local cf = (gauge :: any).CFrame
+					return cf.Position.X, cf.Position.Y, cf.Position.Z, cf.LookVector.X, cf.LookVector.Z
+				end)
+			end
+			poseMatch = okDoor
+				and okPose
+				and type(dx) == "number"
+				and type(dy) == "number"
+				and type(dz) == "number"
+				and math.abs(px - dx) < 1e-3
+				and math.abs(py - dy) < 1e-3
+				and math.abs(pz - dz) < 1e-3
+				-- Roblox LookVector is a Part's local -Z. Local +Z is the barn's outward door side,
+				-- so -LookVector (NOT LookVector) must match the rotated outward direction.
+				and math.abs(-lookX - math.sin(math.rad(centre.yaw))) < 1e-3
+				and math.abs(-lookZ - math.cos(math.rad(centre.yaw))) < 1e-3
+		end
+		local collidableHits, apiOk = -1, false
+		if #gauges == 1 and dimsMatch and poseMatch then
+			local okParams, params = pcall(function()
+				local p = OverlapParams.new()
+				p.CollisionGroup = "Default"
+				p.FilterType = Enum.RaycastFilterType.Exclude
+				p.FilterDescendantsInstances = { lbFolder }
+				return p
+			end)
+			local okHits, hits = false, nil
+			if okParams and params then
+				okHits, hits = pcall(function()
+					return workspace:GetPartBoundsInBox((gauge :: any).CFrame, (gauge :: any).Size, params)
+				end)
+			end
+			if okHits and type(hits) == "table" then
+				collidableHits = 0
+				apiOk = true
+				for _, hit in ipairs(hits) do
+					local okDesc, descendant = pcall(function()
+						return lbFolder ~= nil and (hit :: any):IsDescendantOf(lbFolder)
+					end)
+					local okCollide, collide = pcall(function()
+						return (hit :: any).CanCollide
+					end)
+					if (not okDesc or descendant == false) and okCollide and collide == true then
+						collidableHits += 1
+					end
+				end
+			end
+		end
+		emit(
+			"LUMBUNG_DOOR_CLEAR",
+			#gauges == 1 and dimsMatch and poseMatch and apiOk and collidableHits == 0,
+			collidableHits,
+			0,
+			{
+				folderPresent = lbFolder ~= nil,
+				gauges = #gauges,
+				expectedDims = expectedDims,
+				measuredDims = measuredDims,
+				dimsMatch = dimsMatch,
+				poseMatch = poseMatch,
+				apiOk = apiOk,
+				collidableHits = collidableHits,
+				site = { x = centre.x, y = centre.y, z = centre.z, yaw = centre.yaw },
+				measuredSurface = "door gauge GetPartBoundsInBox, collidable shipping geometry only",
+			}
+		)
+
+		-- Yard samples come from pure data, one per house. Every snapped 4-stud cell must be
+		-- readable and non-Grass; grassAt true or a failed voxelHasNonGrass read is a failure.
+		local hubs = {}
+		for _, key in ipairs((lbData :: any).HOUSE_KEYS) do
+			local okHub, hub = pcall(function()
+				return MapSpec.hub(key)
+			end)
+			if okHub and hub then
+				hubs[key] = hub
+			end
+		end
+		local yards, yardDetail = {}, {}
+		local grassyCells, unreadableCells, nonGrassCells, totalCells = 0, 0, 0, 0
+		local okYards, yardsResult = pcall(function()
+			return (lbData :: any).yards(hubs)
+		end)
+		if okYards and type(yardsResult) == "table" then
+			yards = yardsResult
+		end
+		for _, yard in ipairs(yards) do
+			local region = nil
+			local okRegion, regionResult = pcall(function()
+				return (lbData :: any).yardRegion(yard.x, yard.z, yard.sx, yard.sz)
+			end)
+			if okRegion and type(regionResult) == "table" then
+				region = regionResult
+			end
+			local cells = if region and type(region.cells) == "table" then region.cells else {}
+			local grassy, unreadable, nonGrass = 0, 0, 0
+			for _, cell in ipairs(cells) do
+				totalCells += 1
+				local sample = { x = cell.x, z = cell.z }
+				if grassAt(sample) then
+					grassy += 1
+					grassyCells += 1
+				end
+				if voxelHasNonGrass(cell.x, GRASS_Y, cell.z) then
+					nonGrass += 1
+					nonGrassCells += 1
+				else
+					unreadable += 1
+					unreadableCells += 1
+				end
+			end
+			yardDetail[yard.key] = {
+				centre = { x = yard.x, z = yard.z },
+				region = region,
+				cells = #cells,
+				grassy = grassy,
+				unreadable = unreadable,
+				nonGrass = nonGrass,
+			}
+		end
+		local expectedYardCount = if type((lbData :: any).YARD_COUNT) == "number" then (lbData :: any).YARD_COUNT else 3
+		local yardOk = lbFolder ~= nil
+			and #yards == expectedYardCount
+			and expectedYardCount > 0
+			and totalCells > 0
+			and unreadableCells == 0
+			and nonGrassCells == totalCells
+			and grassyCells == 0
+		emit(
+			"LUMBUNG_PROPS_ON_GRASS",
+			yardOk,
+			grassyCells,
+			0,
+			{
+				folderPresent = lbFolder ~= nil,
+				voxelY = GRASS_Y,
+				yardSamples = #yards,
+				expectedYardSamples = expectedYardCount,
+				totalCells = totalCells,
+				nonGrassCells = nonGrassCells,
+				unreadableCells = unreadableCells,
+				houses = yardDetail,
+				antiVac = "pure yard list must be non-empty and exact; every snapped cell must read non-Grass",
+				reason = if yardOk then nil else "missing folder / wrong yard count / unreadable or Grass cell",
+			}
+		)
+		restoreLbPrior()
 	end
 end
 end

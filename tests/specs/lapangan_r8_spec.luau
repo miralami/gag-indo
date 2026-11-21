@@ -124,7 +124,7 @@ return function(t, Env)
 
 	t:describe("lapangan_r8 LookDev wiring and review harness", function()
 		t:it("ships new candidate 80 with a descriptor, plan and server review path", function()
-			expect(#LookDev.IDS):toBe(82)
+			expect(#LookDev.IDS):toBe(83)
 			expect(LookDev.IDS[79]):toBe("sounds_r8")
 			expect(LookDev.IDS[80]):toBe("lapangan_r8")
 			local candidate = LookDev.candidates.lapangan_r8
@@ -149,7 +149,7 @@ return function(t, Env)
 		t:it("adds the three read-only-result checks next to SOUND_RESTORE in ORDER", function()
 			expect(
 				harnessSrc:find(
-					'"SOUND_LOADED",\n\t"SOUND_VOLUME",\n\t"SOUND_RESTORE",\n\t"LAPANGAN_PARTS",\n\t"LAPANGAN_PATH_REACH",\n\t"LAPANGAN_GOAL_SIZE",\n\t"MUSALA_PARTS",\n\t"MUSALA_DOOR_CLEAR",\n\t"MUSALA_PATH_REACH",\n\t"LOOKDEV_LEAK",',
+					'"SOUND_LOADED",\n\t"SOUND_VOLUME",\n\t"SOUND_RESTORE",\n\t"LAPANGAN_PARTS",\n\t"LAPANGAN_PATH_REACH",\n\t"LAPANGAN_GOAL_SIZE",\n\t"MUSALA_PARTS",\n\t"MUSALA_DOOR_CLEAR",\n\t"MUSALA_PATH_REACH",\n\t"LUMBUNG_PARTS",\n\t"LUMBUNG_DOOR_CLEAR",\n\t"LUMBUNG_PROPS_ON_GRASS",\n\t"LOOKDEV_LEAK",',
 					1,
 					true
 				) ~= nil

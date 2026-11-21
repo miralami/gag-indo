@@ -1074,7 +1074,21 @@ Same rules as section M (candidates off by default, Studio PASS per item, no gam
   world-AABB false positives on the yaw-rotated kit (lane now measured site-local). Distinct check
   names `MUSALA_DOOR_CLEAR`/`MUSALA_PATH_REACH` — the facades DOOR_CLEAR and six-hub PATH_REACH
   checks own the bare names. 2718 tests, selene 0/0/0. Candidate off by default; no shipping default changed.
-- [ ] 111. **`lumbung_r8`: lumbung and pekarangan.** A rice barn (lumbung padi) on stilts, garden fences with toga herbs and chilli pots, a tempat jemur padi (drying mat on the ground) and a well-swept dirt yard around each of three houses. **CHECKS:** counts per kind; `PROPS_ON_GRASS` = 0 for the yard pads; `DOOR_CLEAR`.
+- [x] 111. **`lumbung_r8`: lumbung and pekarangan.** A rice barn (lumbung padi) on stilts, garden fences with toga herbs and chilli pots, a tempat jemur padi (drying mat on the ground) and a well-swept dirt yard around each of three houses. **CHECKS:** counts per kind; `PROPS_ON_GRASS` = 0 for the yard pads; `DOOR_CLEAR`.
+  Done 2026-11-22: NEW pure `ModelMapLumbungR8` (90 original Parts in 12 kinds: 6-stilt barn with raised
+  floor, tiered thatch roof, clear door + ladder + vents, plus fence/toga/chilli/drying-mat/rake kit at
+  pasar/gelap/pakrt; MapSpec.hub/hubPoint derivation; no asset IDs) + 1 invisible door gauge + NEW server
+  `LookDevLumbungR8` applier (anchored, non-collidable, Ground voxel yard pads snapshotted with
+  ReadVoxels and restored byte-exact LIFO via WriteVoxels, folder save/detach-restore). New ID 83 (count
+  literals 82->83), review path, 3 harness checks, new spec, CANDIDATES pending row. Real Studio
+  fresh-Play Server-VM PASS (`CHECK_111.txt`, SEEN-IN-STUDIO): `LUMBUNG_PARTS` 90>=80 all kind counts
+  match, `LUMBUNG_DOOR_CLEAR` gauge dims/pose/API OK 0 collidable hits (`-LookVector` radial),
+  `LUMBUNG_PROPS_ON_GRASS` 0/24 grassy over 3 exact yards (cells readable+nonGrass; anti-vac via exact
+  sample list+folder), Ground pads changed and restored byte-exact LIFO, PFS yard+spawn routes PASS,
+  disable/re-enable PASS. One real error fixed, not hidden: stale `Leaf` material token (6 toga leaves
+  failed to stage -> `Plastic`, spec guard added; shared allowlist left intact — other modules use Leaf).
+  Distinct check names (bare `DOOR_CLEAR`/`PROPS_ON_GRASS` owned by facades/r7 props). 2727 tests,
+  selene 0/0/0. Candidate off by default; no shipping default changed. No new camera (item 133).
 - [ ] 112. **`perahu_r8`: boats and river life.** Two small perahu at the river bank, a fishing net on poles, a bamboo landing stage and a stack of baskets (not in the water channel, keep the bridge span clear). **CHECKS:** counts; `BRIDGE_WALKABLE` unchanged; nothing intersects the river centreline within the bridge's 56 studs.
 - [ ] 113. **`irrigation_r8`: irrigation and field life.** Two scarecrows (orang-orangan sawah) with a woven hat and a ragged shirt, two bamboo irrigation channels with a thin water sheet, a bamboo clapper bird-scarer and a small stack of padi sheaves. **CHECKS:** counts; `SAWAH_TOPS` unchanged; the water sheets sit within 0.3 studs of the terrace top.
 - [ ] 114. **`kincir_r8`: water wheel.** A small wooden waterwheel beside the river that rotates slowly (one shared loop, 6 degrees per second). **CHECKS:** `KINCIR_ROT`: the wheel angle changes by 3–9 degrees over 1 s; one instance only; `disable()` stops and removes it.

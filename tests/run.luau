@@ -193,6 +193,7 @@ local specs = {
 	require("./specs/lapangan_r8_spec"),
 	require("./specs/pasar_ground_r8_spec"),
 	require("./specs/musala_r8_spec"),
+	require("./specs/lumbung_r8_spec"),
 	require("./specs/ronda_tower_r9_spec"),
 	require("./specs/rocks_r9_spec"),
 	require("./specs/streetfurn_r8_spec"),

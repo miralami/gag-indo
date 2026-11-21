@@ -121,7 +121,7 @@ return function(t, Env)
 
 	t:describe("pasar_ground_r8 LookDev wiring and review harness", function()
 		t:it("ships new candidate 81 with a descriptor, plan and server review path", function()
-			expect(#LookDev.IDS):toBe(82)
+			expect(#LookDev.IDS):toBe(83)
 			expect(LookDev.IDS[80]):toBe("lapangan_r8")
 			expect(LookDev.IDS[81]):toBe("pasar_ground_r8")
 			local candidate = LookDev.candidates.pasar_ground_r8
@@ -146,7 +146,7 @@ return function(t, Env)
 		t:it("adds the two read-only-result checks next to the lapangan trio in ORDER", function()
 			expect(
 				harnessSrc:find(
-					'"PASAR_PAVING",\n\t"PASAR_GROUND_LANE_CLEAR",\n\t"SOUND_LOADED",\n\t"SOUND_VOLUME",\n\t"SOUND_RESTORE",\n\t"LAPANGAN_PARTS",\n\t"LAPANGAN_PATH_REACH",\n\t"LAPANGAN_GOAL_SIZE",\n\t"MUSALA_PARTS",\n\t"MUSALA_DOOR_CLEAR",\n\t"MUSALA_PATH_REACH",\n\t"LOOKDEV_LEAK",',
+					'"PASAR_PAVING",\n\t"PASAR_GROUND_LANE_CLEAR",\n\t"SOUND_LOADED",\n\t"SOUND_VOLUME",\n\t"SOUND_RESTORE",\n\t"LAPANGAN_PARTS",\n\t"LAPANGAN_PATH_REACH",\n\t"LAPANGAN_GOAL_SIZE",\n\t"MUSALA_PARTS",\n\t"MUSALA_DOOR_CLEAR",\n\t"MUSALA_PATH_REACH",\n\t"LUMBUNG_PARTS",\n\t"LUMBUNG_DOOR_CLEAR",\n\t"LUMBUNG_PROPS_ON_GRASS",\n\t"LOOKDEV_LEAK",',
 					1,
 					true
 				) ~= nil

@@ -139,7 +139,7 @@ return function(t, Env)
 
 	t:describe("musala_r8 LookDev wiring and review harness", function()
 		t:it("ships new candidate 82 with a descriptor, plan and server review path", function()
-			expect(#LookDev.IDS):toBe(82)
+			expect(#LookDev.IDS):toBe(83)
 			expect(LookDev.IDS[81]):toBe("pasar_ground_r8")
 			expect(LookDev.IDS[82]):toBe("musala_r8")
 			local candidate = LookDev.candidates.musala_r8
@@ -169,7 +169,7 @@ return function(t, Env)
 		t:it("adds three distinct check names next to the lapangan trio in ORDER", function()
 			expect(
 				harnessSrc:find(
-					'"LAPANGAN_PARTS",\n\t"LAPANGAN_PATH_REACH",\n\t"LAPANGAN_GOAL_SIZE",\n\t"MUSALA_PARTS",\n\t"MUSALA_DOOR_CLEAR",\n\t"MUSALA_PATH_REACH",\n\t"LOOKDEV_LEAK",',
+					'"LAPANGAN_PARTS",\n\t"LAPANGAN_PATH_REACH",\n\t"LAPANGAN_GOAL_SIZE",\n\t"MUSALA_PARTS",\n\t"MUSALA_DOOR_CLEAR",\n\t"MUSALA_PATH_REACH",\n\t"LUMBUNG_PARTS",\n\t"LUMBUNG_DOOR_CLEAR",\n\t"LUMBUNG_PROPS_ON_GRASS",\n\t"LOOKDEV_LEAK",',
 					1,
 					true
 				) ~= nil

@@ -181,6 +181,7 @@ LookDev.IDS = {
 	"lapangan_r8",
 	"pasar_ground_r8",
 	"musala_r8",
+	"lumbung_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -1179,6 +1180,23 @@ LookDev.candidates = {
 		doorH = 5.4,
 		doorD = 2,
 	},
+
+	lumbung_r8 = {
+		id = "lumbung_r8",
+		title = "Lumbung and pekarangan — stilt rice barn, bamboo fences with toga and chilli pots, rice drying mats and swept dirt yards at three houses (round 10, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Original procedural Parts, no asset IDs. Pure recipe in Shared.ModelMapLumbungR8; all
+		-- positions come from MapSpec.hub/hubPoint. The server applier paints and restores three
+		-- real Ground voxel pads; no new camera, no shipping default change.
+		idsSource = "Shared.ModelMapLumbungR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		partCount = 90,
+		minParts = 80,
+		doorW = 3.2,
+		doorH = 4.8,
+		doorD = 2,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1472,6 +1490,18 @@ function LookDev.plan(id: string): any
 		}
 	elseif id == "musala_r8" then
 		local c = LookDev.candidates.musala_r8
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			partCount = c.partCount,
+			minParts = c.minParts,
+			doorW = c.doorW,
+			doorH = c.doorH,
+			doorD = c.doorD,
+		}
+	elseif id == "lumbung_r8" then
+		local c = LookDev.candidates.lumbung_r8
 		return {
 			id = id,
 			idsSource = c.idsSource,

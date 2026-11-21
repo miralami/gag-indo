@@ -1012,7 +1012,17 @@ Same rules as section M (candidates off by default, Studio PASS per item, no gam
   No blocker found, so no part moved/shrunk; no source, spec or harness changed (gates unchanged
   from item 104: 2687 tests, selene 0/0/0). All lookdev parts CanCollide=false by design, so the
   guard proves staging/routes rather than trusting a vacuous pass.
-- [ ] 106. **Avatar scale audit with everything on.** A 7.25-stud-tall, 4-stud-wide box swept along each of those routes must hit no `CanCollide` part. **CHECK `AVATAR_FIT`** 16/16.
+- [ ] 106. **BLOCKED — Avatar scale audit with everything on.** A 7.25-stud-tall, 4-stud-wide box swept along each of those routes must hit no `CanCollide` part. **CHECK `AVATAR_FIT`** 16/16.
+  BLOCKED — `CHECK AVATAR_FIT FAIL 2 16` (2026-11-21, fresh Play Server VM, full_r9 staged, 13/13
+  staged). Two FAIL attempts: (1) any-CanCollide-hit sweep 2/16; (2) >0.1-stud-penetration sweep
+  3/16. Anti-vacuity staged=13 folders=13 parts=35949 collidable=513 routes=16 samples=2124.
+  Evidence `h/2026-11-21-round10/CHECK_106.txt`. Same sweep with NOTHING staged gives an IDENTICAL
+  hit set — all blockers are pre-existing shipping geometry (`RumahPakRT.BackWall/SideWall`,
+  `Plot_4.SignPost`, `kit_fence`, house Floor/Desk/Table, NPC UpperTorso), not lookdev candidates
+  (0 of 35,949 staged parts collidable, CHECK_103). No blocking candidate to move/shrink; moving
+  shipping world parts is a default-look/gameplay change, out of lookdev scope. Not re-scoped to
+  staged-only (would weaken the literal check and be vacuous). No check weakened; no part changed.
+  Measurement caveat + follow-up under "Decisions for designer". Gates unchanged (2687 tests).
 - [ ] 107. **Clean-Play smoke test.** `tools/studio/smoke_play.luau`: start a fresh Play, wait 60 s, read the console through `get_console_output`, and assert no error-level message and no warning outside a short allowlist in the same file (each allowed line carries a one-line reason). Run it for the default look and for `full_r9`. **CHECK `SMOKE_CLEAN`** 0 errors for both. Fix real errors; never grow the allowlist to hide one.
 
 #### N2. More village
@@ -1071,6 +1081,24 @@ Models the ladder couldn't supply, each with a brief and a reference.
   `models_r3/MANIFEST.md`.
 
 ## Decisions for designer
+
+### Round 10 item 106 — full-route AVATAR_FIT blocked on shipping geometry (2026-11-21)
+
+Item 106's avatar box sweep fails with full_r9 staged (`CHECK AVATAR_FIT FAIL 2 16`), but the same
+sweep with NOTHING staged produces an IDENTICAL hit set: every blocker is pre-existing shipping
+world geometry (`RumahPakRT` walls, `Plot_4.SignPost`, `kit_fence`, house Floor/Desk/Table, NPC
+UpperTorso), not any lookdev candidate. No staged part is collidable (0 of 35,949), so there is no
+"blocking candidate" to move or shrink, and re-scoping the query to staged-only would be both a
+weakened and a vacuous check. Two FAIL attempts -> BLOCKED; no shipping world part was touched.
+Two things are for the designer / a future item: (1) a corrected full-route gauge — ground-based box
+bottom (not waypoint-centred), segment-oriented rather than world-axis-aligned, with the box size
+4 x 7.25 x 4 and the target 16/16 / zero hits UNCHANGED; the current axis-aligned box clips corners a
+radius-2 pathfinding capsule clears and its 7.25 height exceeds the routes' AgentHeight=5.5, so some
+hits are measurement artifacts — but the deep penetrations (2.26 studs into a BackWall, 2.20 into a
+SignPost) are real shipping geometry a corrected gauge would likely still flag. (2) If the avatar
+must truly fit everywhere with everything on, align AgentHeight with the 7.25-stud avatar and clear
+or move the shipping walls/signposts/desks in a world task behind Gate 1 — not by weakening this
+check. No place saved, nothing published.
 
 ### Round 10 item 104 — tier-thinning interpretation and facades exemption (2026-11-21)
 

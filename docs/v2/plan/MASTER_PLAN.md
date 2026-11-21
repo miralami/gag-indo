@@ -377,6 +377,16 @@ folders=13 parts=35949 markers=10 routes=16, two deterministic runs. No blocker 
 moved or shrunk, no check weakened; no source/spec/harness change (still **2687 tests**, selene
 0/0/0). All lookdev parts CanCollide=false by design, so the guard proves real staging + routes.
 
+Item 106 BLOCKED (`CHECK AVATAR_FIT FAIL 2 16`, `h/2026-11-21-round10/CHECK_106.txt`): the 4x7.25x4
+avatar box swept along item 105's 16 routes hit CanCollide parts on 14/16 routes (attempt 2 with a
+>0.1-stud penetration filter: 13/16). The IDENTICAL hit set with NOTHING staged proves every blocker
+is pre-existing shipping geometry (`RumahPakRT` walls, `Plot_4.SignPost`, `kit_fence`, house
+Floor/Desk/Table, NPC UpperTorso) — 0 of 35,949 staged lookdev parts are collidable, so there is no
+blocking candidate to move/shrink, and re-scoping to staged-only would weaken + vacate the check.
+Two FAILs -> BLOCKED; no part changed, no check weakened, no default look touched. Corrected-gauge
+follow-up and shipping-world clearance under WORK_QUEUE "Decisions for designer". Suite unchanged
+**2687 tests**, `selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

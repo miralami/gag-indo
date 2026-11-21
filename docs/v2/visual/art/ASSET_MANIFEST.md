@@ -582,6 +582,36 @@ These are real avatar-catalog items found with the catalog search API. NPCs wear
 
 Approved by the designer on 2026-11-21: row A for all roles and batik B2 for Pak RT. Evidence: `h/2026-11-21-catalog-outfits/`.
 
+### Catalog outfits (`npcs_r8`, WORK_QUEUE section M item 86, 2026-11-21)
+
+Five new villager roles. Every ID is a real avatar-catalog asset: found with the catalog search API
+(`catalog.roblox.com/v1/search/items?keyword=...&limit=10`, 4 s between calls) and its Name,
+AssetTypeId and Creator re-read from `economy.roblox.com/v2/assets/<id>/details`. No ID was invented.
+NPCs wear them through `HumanoidDescription` (no ownership needed). All five shirt+pants pairs are
+distinct and every role has a hat. Pure data: `src/shared/ModelMapNpcsR8.luau`.
+
+| Role | Asset ID | Catalog type | Name (creator) |
+|---|---:|---|---|
+| tengkulak | 11755115818 | Shirt (11) | [+] Merchant (SinTLORii Clothing) |
+| tengkulak | 121010548089939 | Pants (12) | Petani (Trocadero Clothing) |
+| tengkulak | 76392482317942 | Hat (8) | Young Entrepreneur (acid souljah) |
+| debt_collector | 5601091452 | Shirt (11) | Uniform (?INSIDE?) |
+| debt_collector | 104437888647181 | Pants (12) | uniform (wauf) |
+| debt_collector | 122870229188390 | Hat (8) | Police Balaclava [Blood Debt] (The Place 3) |
+| ibu_warung | 135555867890569 | ShirtAccessory / layered (65) | Batik modern Jawa Wanita V2 (TriangleStudioo) |
+| ibu_warung | 94473038627675 | Pants (12) | Petani (Trocadero Clothing) |
+| ibu_warung | 99279983172002 | Hat (8) | Hijab (Our Deen) |
+| anak_anak | 17550183186 | Shirt (11) | uniform (nekowo) |
+| anak_anak | 14798718772 | Pants (12) | basic pants (VloyL) |
+| anak_anak | 90295258026402 | Hat (8) | Kid (ufotabIe) |
+| bapak_ojek | 129826976931984 | Shirt (11) | Petani (Trocadero Clothing) |
+| bapak_ojek | 79151443926768 | Pants (12) | Petani (Trocadero Clothing) |
+| bapak_ojek | 16100797199 | Hat (8) | Classic Taxi Hat (rblx?) |
+
+`anak_anak` also sets `HumanoidDescription.BodyHeightScale` 0.8 and `HeadScale` 1.2 for the kid
+proportions — these are scale properties, not asset IDs. Catalogue licence not re-read here; Roblox
+catalog terms apply. Visual yes/no is the designer's; this manifest only records provenance.
+
 ### buildings_r8 — six free Creator Store buildings (round 9, item 77, SERVER datamodel)
 
 WORK_QUEUE section M item 77. All six IDs came from real Creator Store `search_asset` (free-filter)

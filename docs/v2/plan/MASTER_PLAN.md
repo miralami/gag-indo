@@ -198,6 +198,17 @@ restored exactly), `LOOKDEV_LEAK 0`, `CAMERA_CLEAR 0/42`
 (ServerScriptService does not replicate Edit->Client); place not saved. PERF_BUDGET 334/500 — equal to
 default, under the Sedang proxy. Suite **2611 tests**; `selene src` 0/0/0.
 
+Item 86 COMPLETE: `npcs_r8` adds 5 villager roles (tengkulak, debt_collector, ibu_warung, anak_anak,
+bapak_ojek) as R15 rigs in a second camera-facing row (z=14, 6-stud spacing) through
+`HumanoidDescription` and 15 real catalog IDs (5 distinct shirt/pants pairs + a hat each), all sourced
+via catalog API + economy GET and recorded in `ASSET_MANIFEST.md`. Kids get BodyHeightScale 0.8 /
+HeadScale 1.2; `HumanoidDescription.BodyHeightScale` is absent in this Studio build, so the applier
+writes the authoritative scale to the rig Humanoid's scale Instances after build (verified live:
+kid 0.8/1.2 vs adult 1/1). Real Studio SERVER-VM PASS `NPC8_ROLES 5/5` (each rig >=1 Accessory),
+`NPC8_OUTFITS 5/5` (5 distinct pairs, 5 hats), `LOAD_FAILURES 0`, `LOOKDEV_LEAK 0`, `CAMERA_CLEAR 0/42`
+(`h/2026-11-21-round9/CHECK_086.txt`). PERF_BUDGET 420/500 — flagged, up from default 334 by the
+extra rigs, still under the Sedang proxy ceiling. Suite **2621 tests**; `selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

@@ -744,3 +744,26 @@ CHECK evidence, tracker ticks and the visual verdict. No place is saved or publi
    `hub_warung`, `hub_pasar` and `canonical_overview` from `docs/v2/visual/REVIEW_CAMERAS.md` and
    watch the cloths/signs sway and the pisang/bambu lean. Call `LookDevReview.disable()` and re-read
    `LOOKDEV_LEAK 0`; stop Play without saving. Visual yes/no stays the designer's.
+
+## Item-86 run — `npcs_r8` five more villager roles (WORK_QUEUE section M)
+
+Implementation-only run note. **No Studio result is claimed here**; the main session owns CHECK
+evidence, `CHECK_086.txt`, tracker ticks and the visual yes/no. No place is saved or published.
+
+1. Inject at runtime (not saved): `ReplicatedStorage.Shared.ModelMapNpcsR8`, the changed
+   `Shared.LookDev` and `Shared.LookDevReview`, the new
+   `ServerScriptService.Server.World.LookDevModelsNpcsR8`, and the changed
+   `tools/studio/review_check_r8.luau`. The 15 verified catalog IDs are already recorded in
+   `docs/v2/visual/art/ASSET_MANIFEST.md` by the main session; agents never invent or re-source IDs.
+2. Start a fresh real Play session. `npcs_r8` is a SERVER candidate (HumanoidDescription rigs): run
+   the WHOLE `tools/studio/review_check_r8.luau` in the SERVER VM via Studio MCP `execute_luau`.
+   MapSpec is not needed by this family — the two checks read the staged folder and its rig
+   attributes directly. Stage with
+   `require(game.ReplicatedStorage.Shared.LookDevReview).enable("npcs_r8", game)`.
+3. Read `NPC8_ROLES` (5/5: exactly one rig per role stamped `LookDevR8="npcs_r8"` plus an
+   `Accessory` descendant) and `NPC8_OUTFITS` (5/5 unique `ShirtId`+`PantsId` pairs, all with a
+   non-empty `HatIds` attribute). Missing folder/rig/attribute FAILs at measured <5, never a skip.
+   Guard: `LOAD_FAILURES 0 0` now sums `npcs_r8` alongside `vegetation_r7`/`npcs_r7`/`props_r7`.
+4. Shoot the second row (z=14, x=-12..12, 6-stud spacing, same camera-facing yaw as `npcs_r7`)
+   from the saved `Shared.ModelMapNpcsR8.savedCamera`, then call `LookDevReview.disable()` and
+   re-read `LOOKDEV_LEAK 0`; stop Play without saving. Visual yes/no stays the designer's.

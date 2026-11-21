@@ -136,6 +136,8 @@ local ORDER = {
 	"SKY_DEFAULT",
 	"GRASS_ON_BEDS",
 	"HATS",
+	"NPC8_ROLES",
+	"NPC8_OUTFITS",
 	"PROPS_VISIBLE",
 	"PROPS_ON_GRASS",
 	"VEG_COUNT",
@@ -643,7 +645,7 @@ local function grassAt(pos)
 	return not voxelHasNonGrass(x, y, z)
 end
 
--- 1. LOAD_FAILURES: sum of the three r7 counters, PASS only at 0.
+-- 1. LOAD_FAILURES: sum of the three r7 counters plus npcs_r8, PASS only at 0.
 local failureCounts = {}
 local failureOk = true
 local okModule, Failures = pcall(function()
@@ -652,7 +654,7 @@ end)
 if not okModule or type(Failures) ~= "table" then
 	failureOk = false
 else
-	for _, id in ipairs({ "vegetation_r7", "npcs_r7", "props_r7" }) do
+	for _, id in ipairs({ "vegetation_r7", "npcs_r7", "props_r7", "npcs_r8" }) do
 		local okGet, count = pcall(function()
 			return Failures.get(id)
 		end)
@@ -869,6 +871,93 @@ emit(
 	rolesWithHats,
 	#HAT_ROLES,
 	{ accessories = accessories, rigs = rigs, folderPresent = npcFolder ~= nil }
+)
+end
+
+-- 4b. npcs_r8 roles and outfits (WORK_QUEUE item 86). Own do...end scope: the harness
+-- already hit the 200-local-register limit before this family. Both checks are
+-- SERVER-side and READ-ONLY. A missing folder/rig/attribute FAILs at measured <5,
+-- never a skip; all reads are pcall-guarded and both lines always emit.
+do
+local NPC8_ROLES = { "tengkulak", "debt_collector", "ibu_warung", "anak_anak", "bapak_ojek" }
+local npc8Folder = folderNamed("LookDevModelsNpcsR8_npcs_r8")
+local npc8Rigs, npc8RigCount, npc8ReadErrors = {}, {}, 0
+for _, role in ipairs(NPC8_ROLES) do
+	npc8Rigs[role] = {}
+	npc8RigCount[role] = 0
+end
+local okChildren, children = pcall(function()
+	return childList(npc8Folder)
+end)
+if not okChildren or type(children) ~= "table" then
+	npc8ReadErrors += 1
+	children = {}
+end
+for _, rig in ipairs(children) do
+	if attr(rig, "LookDevR8") == "npcs_r8" then
+		local role = attr(rig, "Role")
+		if type(role) == "string" and npc8Rigs[role] ~= nil then
+			npc8RigCount[role] += 1
+			npc8Rigs[role][#npc8Rigs[role] + 1] = rig
+		end
+	end
+end
+local npc8WithHats = 0
+for _, role in ipairs(NPC8_ROLES) do
+	if npc8RigCount[role] == 1 then
+		local okDesc, descendants = pcall(function()
+			return npc8Rigs[role][1]:GetDescendants()
+		end)
+		if okDesc and type(descendants) == "table" then
+			for _, descendant in ipairs(descendants) do
+				local okHat, isHat = pcall(function()
+					return descendant:IsA("Accessory")
+				end)
+				if okHat and isHat then
+					npc8WithHats += 1
+					break
+				end
+			end
+		else
+			npc8ReadErrors += 1
+		end
+	end
+end
+emit("NPC8_ROLES", npc8WithHats == #NPC8_ROLES, npc8WithHats, #NPC8_ROLES, {
+	rigs = npc8RigCount,
+	folderPresent = npc8Folder ~= nil,
+	readErrors = npc8ReadErrors,
+})
+
+local npc8Pairs, npc8Hats = {}, {}
+for _, role in ipairs(NPC8_ROLES) do
+	if npc8RigCount[role] == 1 then
+		local rig = npc8Rigs[role][1]
+		local shirtId, pantsId, hatIds = attr(rig, "ShirtId"), attr(rig, "PantsId"), attr(rig, "HatIds")
+		if type(shirtId) == "number" and type(pantsId) == "number" and type(hatIds) == "string" and #hatIds > 0 then
+			npc8Pairs[role] = tostring(shirtId) .. ":" .. tostring(pantsId)
+			npc8Hats[role] = true
+		end
+	end
+end
+local npc8Seen, npc8UniqueCount, npc8HatCount = {}, 0, 0
+for role, pair in pairs(npc8Pairs) do
+	if not npc8Seen[pair] then
+		npc8Seen[pair] = role
+		npc8UniqueCount += 1
+	end
+end
+for _, role in ipairs(NPC8_ROLES) do
+	if npc8Hats[role] then
+		npc8HatCount += 1
+	end
+end
+emit(
+	"NPC8_OUTFITS",
+	npc8UniqueCount == #NPC8_ROLES and npc8HatCount == #NPC8_ROLES,
+	npc8UniqueCount,
+	#NPC8_ROLES,
+	{ pairs = npc8Pairs, hats = npc8HatCount, folderPresent = npc8Folder ~= nil }
 )
 end
 

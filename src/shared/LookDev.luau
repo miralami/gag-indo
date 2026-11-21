@@ -46,6 +46,7 @@
 --   src/client/World/LookDevFlyersR8.luau -- candidate "flyers_r8" (birds, butterflies, dragonflies, client-only)
 --   src/client/World/LookDevSmokeR8.luau -- candidate "smoke_r8" (chimney smoke, steam, night torches, client-only)
 --   src/client/World/LookDevWindR8.luau -- candidate "wind_r8" (gentle GlobalWind, sway tweens, tilt loop, client-only)
+--   src/server/World/LookDevModelsNpcsR8.luau -- candidate "npcs_r8" (five more catalog-dressed villager roles, server-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -158,6 +159,7 @@ LookDev.IDS = {
 	"flyers_r8",
 	"smoke_r8",
 	"wind_r8",
+	"npcs_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -996,6 +998,19 @@ LookDev.candidates = {
 		maxTweens = 30,
 		maxTiltDeg = 4,
 	},
+
+	npcs_r8 = {
+		id = "npcs_r8",
+		title = "Five more villager roles — tengkulak, debt collector, ibu warung, anak-anak and bapak ojek in verified catalog outfits (round 9, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Real catalog clothing/hat IDs live in Shared.ModelMapNpcsR8.catalog and are
+		-- recorded in ASSET_MANIFEST.md. Kids get BodyHeightScale/HeadScale on the
+		-- HumanoidDescription; second row at z=14 keeps the npcs_r7 row clear.
+		idsSource = "Shared.ModelMapNpcsR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		roleCount = 5,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1190,6 +1205,7 @@ function LookDev.plan(id: string): any
 		or id == "animals_r8"
 		or id == "smoke_r8"
 		or id == "wind_r8"
+		or id == "npcs_r8"
 	then
 		local c = LookDev.candidates[id]
 		return {

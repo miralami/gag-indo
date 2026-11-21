@@ -12,6 +12,12 @@
 --   require(game.ReplicatedStorage.Shared.LookDevReview).enable("sky_r3", game)
 --   require(game.ReplicatedStorage.Shared.LookDevReview).enable("buildings_r3", game)
 --   require(game.ReplicatedStorage.Shared.LookDevReview).disable()
+-- Additive review staging (WORK_QUEUE item 136): enableAdditive stages without disabling anything
+-- else, and disableAll restores every staged candidate plus the single enabled one:
+--   require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("hubveg_r8", game)
+--   require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("plots_r8", game)
+--   require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("facades_r8", game)
+--   require(game.ReplicatedStorage.Shared.LookDevReview).disableAll()
 -- Restore with the same module instance; IDs are the existing Shared.LookDev.IDS only.
 
 local LookDevReview = {}
@@ -176,6 +182,20 @@ end
 
 function LookDevReview.disable(): boolean
 	return sharedLookDev().disable()
+end
+
+-- Additive review staging (WORK_QUEUE item 136): prepare (register in this VM) first, then stage
+-- without touching any other candidate. Existing enable/disable are unchanged.
+function LookDevReview.enableAdditive(id: string, root: any?, opts: any?): (boolean, string?)
+	local prepared, why = LookDevReview.prepare(id, root)
+	if not prepared then
+		return false, why
+	end
+	return sharedLookDev().enableAdditive(id, opts)
+end
+
+function LookDevReview.disableAll(): boolean
+	return sharedLookDev().disableAll()
 end
 
 return LookDevReview

@@ -39,8 +39,14 @@
 -- the Server datamodel cannot observe that tween. Run client-owned candidates (water, grade,
 -- sounds, clouds) in the Client datamodel.
 --
--- All checks except LOOKDEV_LEAK, WATER_SAFE and WATER_RESTORE are read-only. Those three call
--- enable(id)/disable() and restore the prior active candidate at the end; they are safe to repeat.
+-- It also emits ADDITIVE_STAGE (WORK_QUEUE item 136): SERVER-only and mutating. It calls
+-- disableAll() for a clean base, stages hubveg_r8 + plots_r8 + facades_r8 with enableAdditive(),
+-- requires each staged folder to still hold its tagged parts, then calls disableAll() again.
+-- LOOKDEV_LEAK runs after it and proves no folders leaked.
+--
+-- All checks except LOOKDEV_LEAK, ADDITIVE_STAGE, WATER_SAFE and WATER_RESTORE are read-only. The
+-- first, third and fourth call enable(id)/disable() and restore the prior active candidate at the
+-- end; ADDITIVE_STAGE uses enableAdditive(id)/disableAll(). All are safe to repeat.
 -- Every line is
 --   CHECK <name> PASS|FAIL <measured> <target>
 -- and the file returns a results table. A missing folder, attribute, service or failed read is a
@@ -90,6 +96,7 @@ local ORDER = {
 	"WATER_SAFE",
 	"WATER_RESTORE",
 	"CAMERA_CLEAR",
+	"ADDITIVE_STAGE",
 	"LOOKDEV_LEAK",
 }
 
@@ -3146,6 +3153,109 @@ if isServer then
 		)
 	end
 end
+
+-- 12c. ADDITIVE_STAGE (WORK_QUEUE item 136): SERVER-only, mutating. Clean base via disableAll(),
+-- stage the three accepted round-9 r8 candidates additively, count how many staged folders hold
+-- their tagged parts, then disableAll() again. measured = number of candidates present (0..3),
+-- target = 3. LOOKDEV_LEAK runs after this and proves zero leaked folders.
+local STAGE_FOLDERS = {
+	{
+		id = "hubveg_r8",
+		folder = "LookDevModelsVegetationHubR8_hubveg_r8",
+		attribute = "LookDevHubVegR8",
+		value = "hubveg_r8",
+	},
+	{
+		id = "plots_r8",
+		folder = "LookDevPlotsR8_plots_r8",
+		attribute = "LookDevPlotsR8",
+		value = "plots_r8",
+	},
+	{
+		id = "facades_r8",
+		folder = "LookDevFacadesR8_facades_r8",
+		attribute = "FacadePart",
+		value = true,
+	},
+}
+local stagePresent, stageLeaked = 0, 0
+local stageParts, stageErrors, stageDetail = {}, {}, {}
+if not isServer then
+	stageErrors[#stageErrors + 1] = "server VM required"
+else
+	local okReview, Review = pcall(function()
+		return require(game.ReplicatedStorage.Shared.LookDevReview)
+	end)
+	if
+		not okReview
+		or type(Review) ~= "table"
+		or type(Review.enableAdditive) ~= "function"
+		or type(Review.disableAll) ~= "function"
+	then
+		stageErrors[#stageErrors + 1] = "LookDevReview additive API missing"
+	else
+		local function stagedCount(entry)
+			local folder = folderNamed(entry.folder)
+			if not folder then
+				return 0
+			end
+			local ok, descendants = pcall(function()
+				return folder:GetDescendants()
+			end)
+			if not ok or type(descendants) ~= "table" then
+				return 0
+			end
+			local count = 0
+			for _, item in ipairs(descendants) do
+				if attr(item, entry.attribute) == entry.value then
+					count += 1
+				end
+			end
+			return count
+		end
+
+		local function clearAll()
+			local okClear, result = pcall(function()
+				return Review.disableAll()
+			end)
+			if not okClear then
+				stageErrors[#stageErrors + 1] = "disableAll:" .. tostring(result)
+			end
+		end
+
+		clearAll() -- clean base: no prior single or additive candidate
+		for _, entry in ipairs(STAGE_FOLDERS) do
+			local okStage, result, why = pcall(function()
+				return Review.enableAdditive(entry.id, game, { studio = true })
+			end)
+			if not okStage or result == false then
+				stageErrors[#stageErrors + 1] = entry.id .. ":stage:" .. tostring(why or result)
+			end
+		end
+		for _, entry in ipairs(STAGE_FOLDERS) do
+			local count = stagedCount(entry)
+			stageParts[entry.id] = count
+			stageDetail[#stageDetail + 1] = entry.id .. ":" .. count
+			if count > 0 then
+				stagePresent += 1
+			end
+		end
+		clearAll()
+		for _, entry in ipairs(STAGE_FOLDERS) do
+			if stagedCount(entry) > 0 then
+				stageLeaked += 1
+			end
+		end
+	end
+end
+
+emit(
+	"ADDITIVE_STAGE",
+	stagePresent == #STAGE_FOLDERS and stageLeaked == 0 and #stageErrors == 0,
+	stagePresent,
+	#STAGE_FOLDERS,
+	{ parts = stageParts, measured = table.concat(stageDetail, " "), leaked = stageLeaked, errors = stageErrors }
+)
 
 -- 13. LOOKDEV_LEAK: mutating, run last. For every LookDev.IDS entry, count workspace and
 -- Lighting descendants, enable(id), disable(), count again. PASS only when both counts are

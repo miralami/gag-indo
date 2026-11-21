@@ -72,3 +72,41 @@ Ordered run notes. **No Studio result is claimed**; no PASS is asserted, no plac
    `LOAD_FAILURES 0 0` and `LOOKDEV_LEAK` remain the shared guards.
 4. Stop Play without saving. Both new checks are SERVER-only: `ReviewCameras` requires MapSpec from
    `ServerScriptService`, so they are skipped in the Client VM. Visual yes/no is the designer's.
+
+## 7. Item-136 run — additive review staging (WORK_QUEUE section O)
+
+Ordered run notes. **No Studio result is claimed**; no place is saved or published. No tracker tick
+or evidence CHECK file is written by the implementation agent; the main session owns those.
+
+1. Stop Play. Inject at runtime (not saved): `ReplicatedStorage.Shared.LookDev`,
+   `ReplicatedStorage.Shared.LookDevReview`, and the changed
+   `tools/studio/review_check_r8.luau`. The three appliers
+   (`ServerScriptService.Server.World.LookDevModelsVegetationHubR8`, `LookDevPlotsR8`,
+   `LookDevFacadesR8`) are already booted by `Main.server`; a fresh Play after injection gives each
+   one a clean registration in the SERVER VM.
+2. Start a FRESH real Play session in the SERVER datamodel; do not reuse one that staged another
+   candidate. For a manual combined visual review, stage all three from the command bar:
+   ```lua
+   local review = require(game.ReplicatedStorage.Shared.LookDevReview)
+   review.disableAll()
+   review.enableAdditive("hubveg_r8", game)
+   review.enableAdditive("plots_r8", game)
+   review.enableAdditive("facades_r8", game)
+   -- review current() stays nil; all three folders are present at once
+   -- when finished: review.disableAll()
+   ```
+   `enableAdditive` uses the same Studio gate as `enable` and never disables another candidate.
+3. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the SERVER
+   VM. `ADDITIVE_STAGE` is self-staging: it calls `disableAll()` first, stages the same three ids
+   with `enableAdditive(id, game, { studio = true })`, counts each staged folder's tagged parts, and
+   calls `disableAll()` again. Folder/tag pairs: `LookDevModelsVegetationHubR8_hubveg_r8`
+   (`LookDevHubVegR8 == "hubveg_r8"`), `LookDevPlotsR8_plots_r8` (`LookDevPlotsR8 == "plots_r8"`),
+   `LookDevFacadesR8_facades_r8` (`FacadePart == true`). Expected:
+   `CHECK ADDITIVE_STAGE PASS 3 3` — measured is the number of the three candidates with parts
+   present, target is 3. A missing folder, blocked stage or leaked folder FAILs at measured 0..2;
+   the raw `detail` carries `parts`, `leaked` and `errors`.
+4. `LOOKDEV_LEAK` runs immediately after `ADDITIVE_STAGE` in `ORDER`, i.e. after `disableAll()`.
+   Expected `CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks`. Guards `LOAD_FAILURES 0 0` and
+   `CAMERA_CLEAR 0 blocked/26 checked` should still PASS.
+5. Stop Play without saving. `ADDITIVE_STAGE` is SERVER-only: in the Client VM it emits
+   `CHECK ADDITIVE_STAGE FAIL 0 3` rather than staging. Visual yes/no is the designer's.

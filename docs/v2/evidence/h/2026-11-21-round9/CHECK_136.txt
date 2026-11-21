@@ -1,0 +1,52 @@
+CHECK 136 — additive review staging (WORK_QUEUE section O, item 136)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: JuraganDesa (Edit runtime injection; place NOT saved, nothing published)
+
+== Setup (evidence path) ==
+1. Stopped Play. Injected the two changed modules into the EDIT datamodel (no save):
+   - ReplicatedStorage.Shared.LookDev
+   - ReplicatedStorage.Shared.LookDevReview
+   Bake folders present under ServerStorage.LookDevAssets: 43. Started a fresh Play.
+2. Pasted the WHOLE tools/studio/review_check_r8.luau into execute_luau in the SERVER VM.
+   ADDITIVE_STAGE is SERVER-only and mutating: it calls LookDevReview.disableAll() for a clean
+   base, stages hubveg_r8 + plots_r8 + facades_r8 via enableAdditive(id, game, {studio=true}),
+   counts each staged folder's tagged parts, calls disableAll() again and asserts zero leaked
+   folders. LOOKDEV_LEAK then sweeps every LookDev.IDS entry.
+
+== Raw check lines (SERVER datamodel, verbatim) ==
+CHECK ADDITIVE_STAGE PASS 3 3
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+CHECK LOAD_FAILURES PASS 0 0
+CHECK CAMERA_CLEAR PASS 0 blocked/26 checked 0 blocked
+
+== ADDITIVE_STAGE detail (verbatim) ==
+measured = "hubveg_r8:96 plots_r8:120 facades_r8:60"
+parts    = { hubveg_r8 = 96, plots_r8 = 120, facades_r8 = 60 }
+leaked   = 0
+errors   = {}
+
+Targets (unweakened):
+- ADDITIVE_STAGE target 3 = number of the three candidates whose staged folder holds tagged parts
+  AFTER three enableAdditive() calls with no disable() between them. Measured = 3. All three folders
+  were present simultaneously: LookDevModelsVegetationHubR8_hubveg_r8 (96 LookDevHubVegR8 models),
+  LookDevPlotsR8_plots_r8 (120 LookDevPlotsR8 parts), LookDevFacadesR8_facades_r8 (60 FacadePart
+  parts). Prior behaviour (enable() disables the previous candidate) would stage only the last, so
+  this check genuinely exercises the additive path.
+- LOOKDEV_LEAK 0 leaks = after disableAll() all three staged folders were gone, and the full
+  enable/disable sweep of every LookDev.IDS entry left workspace + Lighting descendant counts
+  unchanged.
+- Guards: LOAD_FAILURES 0, CAMERA_CLEAR 0 blocked.
+
+== Behaviour preserved ===
+Existing enable()/disable() are byte-for-byte unchanged: enable(A) then enable(B) still restores A
+and leaves current()==B; disable() restores B. enableAdditive() never touches enabledId or the single
+candidate; disableAll() restores additive ids in reverse order plus the single enabled one and is
+repeatable. Pure Lune spec (tests/specs/lookdev_additive_spec.luau) locks all five cases.
+
+== Validation before this run ===
+lune run tests/run.luau: All 2446 tests passed (was 2441; +5).
+selene src: 0 errors / 0 warnings / 0 parse errors.
+stylua --check (changed Luau): clean. git diff --check: clean (pre-existing autocrlf notices only).
+
+Status: SEEN-IN-STUDIO. No place saved, nothing published.

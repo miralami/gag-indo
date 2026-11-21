@@ -1020,6 +1020,8 @@ end
 
 local enabledId: string? = nil
 local appliers: { [string]: { apply: (any) -> (), restore: () -> () } } = {}
+-- WORK_QUEUE item 136: additively staged ids are tracked separately from the single enabledId.
+local additiveIds: { string } = {}
 
 -- The single gate rule: a LITERAL studio == true. A published server, a nil flag, or a truthy
 -- non-boolean all refuse. Kept pure so the spec can prove every branch without Roblox.
@@ -1089,6 +1091,63 @@ end
 
 function LookDev.current(): string?
 	return enabledId
+end
+
+-- Stage a candidate additively (WORK_QUEUE item 136): same candidate + studio gate as enable(), but
+-- it never touches enabledId and never restores another staged candidate. Re-staging an id is a
+-- no-op. The restore side is driven exclusively by disableAll().
+function LookDev.enableAdditive(id: string, opts: any?): (boolean, string?)
+	if not LookDev.isCandidate(id) then
+		return false, "unknown candidate"
+	end
+	opts = if type(opts) == "table" then table.clone(opts) else {}
+	if opts.studio == nil then
+		local ok, runService = pcall(function()
+			return game:GetService("RunService")
+		end)
+		opts.studio = ok and runService and runService:IsStudio() == true or false
+	end
+	if not LookDev.canEnable(opts) then
+		return false, "look-dev candidates are Studio-only"
+	end
+	for _, staged in additiveIds do
+		if staged == id then
+			return true, nil
+		end
+	end
+	local applier = appliers[id]
+	if applier then
+		local ok, err = pcall(applier.apply, LookDev.plan(id))
+		if not ok then
+			return false, "applier failed: " .. tostring(err)
+		end
+	end
+	additiveIds[#additiveIds + 1] = id
+	return true, nil
+end
+
+-- Restore every additively staged candidate (reverse order), then the single enabled one. Safe to
+-- call repeatedly; leaves current() == nil and no staged folders behind.
+function LookDev.disableAll(): boolean
+	local changed = false
+	for i = #additiveIds, 1, -1 do
+		local applier = appliers[additiveIds[i]]
+		if applier then
+			pcall(applier.restore)
+		end
+		additiveIds[i] = nil
+		changed = true
+	end
+	if LookDev.disable() then
+		changed = true
+	end
+	return changed
+end
+
+-- Read-only view for specs / harnesses (Luau table.clear is not guaranteed in every host, so the
+-- backing list is cleared by loop above).
+function LookDev.additiveIds(): { string }
+	return table.clone(additiveIds)
 end
 
 return LookDev

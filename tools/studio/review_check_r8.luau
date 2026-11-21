@@ -265,6 +265,8 @@ local ORDER = {
 	"GRADE_SAFE",
 	"GRADE_RESTORE",
 	"GRADE_NO_DOF",
+	"PASAR_PAVING",
+	"PASAR_GROUND_LANE_CLEAR",
 	"SOUND_LOADED",
 	"SOUND_VOLUME",
 	"SOUND_RESTORE",
@@ -6391,6 +6393,273 @@ else
 			}
 		)
 		restoreLapanganPrior()
+	end
+end
+end
+
+do
+-- 9j. WORK_QUEUE section N item 109: pasar_ground_r8. TWO checks over the staged
+-- LookDevPasarGroundR8_pasar_ground_r8 folder. PASAR_PAVING counts flat paving+cobble pieces
+-- (target >= 60) and measures every slab's bbox BOTTOM against MapSpec.GROUND_Y with a 0.15-stud
+-- tolerance. PASAR_GROUND_LANE_CLEAR checks EVERY tagged part - collidable or not; all staged parts
+-- are non-collidable by construction, so a collidable-only test would be vacuous - against the
+-- 6-stud lane rectangle translated through MapSpec.hubPoint(MapSpec.hub("pasar"), ...). This block
+-- stages the candidate and restores the prior single candidate; every failure path emits BOTH lines
+-- FAIL. Item 148's LANE_CLEAR and the full_r9 list stay untouched.
+local PG_FOLDER = "LookDevPasarGroundR8_pasar_ground_r8"
+local PG_ID = "pasar_ground_r8"
+local PAVING_TOL = 0.15
+local PG_MIN_PAVING = 60
+local PG_FALLBACK_KINDS = { "paving", "cobble", "gutter" }
+
+local okPgModules, pgModules = pcall(function()
+	return {
+		data = require(game.ReplicatedStorage.Shared.ModelMapPasarGroundR8),
+		look = require(game.ReplicatedStorage.Shared.LookDev),
+		review = require(game.ReplicatedStorage.Shared.LookDevReview),
+	}
+end)
+local pgData: any? = nil
+if okPgModules and type(pgModules) == "table" and type((pgModules :: any).data) == "table" then
+	pgData = (pgModules :: any).data
+end
+local pgExpected: any? = nil
+if pgData and type((pgData :: any).counts) == "function" then
+	local okCounts, counts = pcall(function()
+		return (pgData :: any).counts()
+	end)
+	if okCounts and type(counts) == "table" then
+		pgExpected = counts
+	end
+end
+
+-- The measured surface is the part's bottom face. Project the CFrame basis onto world Y so a
+-- rotated slab would still be measured correctly.
+local function pgBottomY(inst)
+	local ok, cf, size = pcall(function()
+		return (inst :: any).CFrame, (inst :: any).Size
+	end)
+	if not ok or not cf or not size then
+		return nil
+	end
+	local hx, hy, hz = size.X / 2, size.Y / 2, size.Z / 2
+	local extentY = math.abs(cf.RightVector.Y) * hx
+		+ math.abs(cf.UpVector.Y) * hy
+		+ math.abs(cf.LookVector.Y) * hz
+	return cf.Position.Y - extentY
+end
+
+local function pgFail(reason)
+	local kinds = PG_FALLBACK_KINDS
+	if pgData and type((pgData :: any).KINDS) == "table" then
+		kinds = (pgData :: any).KINDS
+	end
+	local byKind, targets = {}, {}
+	for _, kind in ipairs(kinds) do
+		byKind[#byKind + 1] = kind .. "=0"
+		targets[#targets + 1] = kind .. "=?"
+	end
+	local detail = {
+		reason = reason,
+		folderPresent = folderNamed(PG_FOLDER) ~= nil,
+		parts = 0,
+		byKind = table.concat(byKind, " "),
+		kindTargets = table.concat(targets, " "),
+		pavingLike = 0,
+		laneBoxes = 0,
+		tolerance = PAVING_TOL,
+		antiVac = "all tagged parts tested; none collidable by design",
+	}
+	emit("PASAR_PAVING", false, 0, ">=" .. PG_MIN_PAVING, detail)
+	emit("PASAR_GROUND_LANE_CLEAR", false, 1, 0, detail)
+end
+
+local pgRunService = service("RunService")
+local okPgServer, pgIsServer = false, false
+if pgRunService then
+	okPgServer, pgIsServer = pcall(function()
+		return (pgRunService :: any):IsServer()
+	end)
+end
+local pgLook = okPgModules and (pgModules :: any).look or nil
+local pgReview = okPgModules and (pgModules :: any).review or nil
+if
+	not pgData
+	or not pgExpected
+	or not okPgServer
+	or not pgIsServer
+	or type(pgLook) ~= "table"
+	or type(pgLook.enable) ~= "function"
+	or type(pgLook.disable) ~= "function"
+	or type(pgReview) ~= "table"
+	or type(pgReview.enable) ~= "function"
+then
+	pgFail("server VM / pasar ground modules / counts not readable")
+else
+	local okPrior, priorId = pcall(function()
+		return (pgLook :: any).current and (pgLook :: any).current() or nil
+	end)
+	if not okPrior then
+		priorId = nil
+	end
+	local function restorePgPrior()
+		pcall(function()
+			(pgLook :: any).disable()
+		end)
+		if type(priorId) == "string" then
+			pcall(function()
+				(pgLook :: any).enable(priorId)
+			end)
+		end
+	end
+	local okEnable, enabled, whyEnable = pcall(function()
+		return (pgReview :: any).enable(PG_ID, game, { studio = true })
+	end)
+	if not okEnable or enabled == false then
+		restorePgPrior()
+		pgFail("enable:" .. tostring(whyEnable or enabled))
+	else
+		local pgFolder = folderNamed(PG_FOLDER)
+		local taggedParts = {}
+		local countsByKind = {}
+		for _, kind in ipairs((pgData :: any).KINDS) do
+			countsByKind[kind] = 0
+		end
+		for _, inst in ipairs(descendantList(pgFolder)) do
+			local kind = attr(inst, (pgData :: any).kindAttribute)
+			if type(kind) == "string" and countsByKind[kind] ~= nil then
+				local okPart, isPart = pcall(function()
+					return (inst :: any):IsA("BasePart")
+				end)
+				if okPart and isPart then
+					countsByKind[kind] += 1
+					taggedParts[#taggedParts + 1] = inst
+				end
+			end
+		end
+		local pavingLike = (countsByKind.paving or 0) + (countsByKind.cobble or 0)
+		local groundY = if mapSpecReady and type(MapSpec.GROUND_Y) == "number" then MapSpec.GROUND_Y else 0.5
+		local badBottoms, maxBottomDelta = 0, 0
+		for _, part in ipairs(taggedParts) do
+			local kind = attr(part, (pgData :: any).kindAttribute)
+			if kind == "paving" or kind == "cobble" then
+				local bottom = pgBottomY(part)
+				if type(bottom) ~= "number" then
+					badBottoms += 1
+				else
+					local delta = math.abs(bottom - groundY)
+					maxBottomDelta = math.max(maxBottomDelta, delta)
+					if delta > PAVING_TOL then
+						badBottoms += 1
+					end
+				end
+			end
+		end
+		emit(
+			"PASAR_PAVING",
+			pgFolder ~= nil
+				and #taggedParts > 0
+				and pavingLike >= PG_MIN_PAVING
+				and badBottoms == 0,
+			pavingLike,
+			">=" .. PG_MIN_PAVING,
+			{
+				folderPresent = pgFolder ~= nil,
+				parts = #taggedParts,
+				byKind = countsByKind,
+				pavingLike = pavingLike,
+				groundY = groundY,
+				tolerance = PAVING_TOL,
+				maxBottomDelta = math.floor(maxBottomDelta * 10000) / 10000,
+				badBottoms = badBottoms,
+				measuredSurface = "slab bbox bottom",
+			}
+		)
+
+		-- The pure lane rectangle is Pasar-local; map all four corners through MapSpec.hubPoint so
+		-- a rotated hub would still produce the correct world AABB.
+		local laneBoxes = {}
+		local laneWidth, laneDepth = nil, nil
+		local laneReady = pgFolder ~= nil
+			and #taggedParts > 0
+			and mapSpecReady
+			and type((pgData :: any).lane) == "function"
+			and type(MapSpec.hub) == "function"
+			and type(MapSpec.hubPoint) == "function"
+		if laneReady then
+			local okLane, lane = pcall(function()
+				return (pgData :: any).lane()
+			end)
+			local okHub, hub = pcall(function()
+				return MapSpec.hub("pasar")
+			end)
+			laneReady = okLane
+				and okHub
+				and hub ~= nil
+				and type(lane) == "table"
+				and type(lane.lx) == "number"
+				and type(lane.lz) == "number"
+				and type(lane.width) == "number"
+				and type(lane.depth) == "number"
+			if laneReady then
+				laneWidth, laneDepth = lane.width, lane.depth
+				local minX, maxX, minZ, maxZ = math.huge, -math.huge, math.huge, -math.huge
+				for _, corner in ipairs({
+					{ lane.lx - lane.width / 2, lane.lz - lane.depth / 2 },
+					{ lane.lx + lane.width / 2, lane.lz - lane.depth / 2 },
+					{ lane.lx - lane.width / 2, lane.lz + lane.depth / 2 },
+					{ lane.lx + lane.width / 2, lane.lz + lane.depth / 2 },
+				}) do
+					local okPoint, x, z = pcall(function()
+						return MapSpec.hubPoint(hub, corner[1], corner[2])
+					end)
+					if not okPoint or type(x) ~= "number" or type(z) ~= "number" then
+						laneReady = false
+						break
+					end
+					minX, maxX = math.min(minX, x), math.max(maxX, x)
+					minZ, maxZ = math.min(minZ, z), math.max(maxZ, z)
+				end
+				if laneReady and minX < maxX and minZ < maxZ then
+					laneBoxes[1] = { minX = minX, maxX = maxX, minZ = minZ, maxZ = maxZ }
+				end
+			end
+		end
+		local laneOverlaps = 0
+		if not laneReady or #laneBoxes == 0 then
+			laneOverlaps = math.max(1, laneOverlaps)
+		else
+			for _, box in ipairs(laneBoxes) do
+				for _, part in ipairs(taggedParts) do
+					local partBox = bboxAABB(part)
+					if
+						partBox
+						and math.min(partBox.maxX, box.maxX) - math.max(partBox.minX, box.minX) > OVERLAP_TOL
+						and math.min(partBox.maxZ, box.maxZ) - math.max(partBox.minZ, box.minZ) > OVERLAP_TOL
+					then
+						laneOverlaps += 1
+					end
+				end
+			end
+		end
+		emit(
+			"PASAR_GROUND_LANE_CLEAR",
+			laneReady and folderNamed(PG_FOLDER) ~= nil and #taggedParts > 0 and #laneBoxes > 0 and laneOverlaps == 0,
+			laneOverlaps,
+			0,
+			{
+				folderPresent = folderNamed(PG_FOLDER) ~= nil,
+				parts = #taggedParts,
+				laneBoxes = #laneBoxes,
+				lane = laneBoxes[1],
+				laneWidth = laneWidth,
+				laneDepth = laneDepth,
+				blockingParts = laneOverlaps,
+				antiVac = "all tagged parts tested; none collidable by design",
+				reason = if laneReady then nil else "folder / data / MapSpec.hub(pasar) not readable",
+			}
+		)
+		restorePgPrior()
 	end
 end
 end

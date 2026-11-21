@@ -179,6 +179,7 @@ LookDev.IDS = {
 	"grade_r8_c",
 	"sounds_r8",
 	"lapangan_r8",
+	"pasar_ground_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -1146,6 +1147,20 @@ LookDev.candidates = {
 		goalCount = 2,
 		goalHeight = 15.95,
 	},
+
+	pasar_ground_r8 = {
+		id = "pasar_ground_r8",
+		title = "Pasar ground — flat paving stones, cobble patches and drainage gutters around the building, with a clear six-stud walking lane (round 10, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Original procedural Parts, no asset IDs and no terrain edit. Pure recipe in
+		-- Shared.ModelMapPasarGroundR8, placed from MapSpec.hub("pasar") / hubPoint. Every slab's
+		-- bottom sits on GROUND_Y (tolerance 0.15 studs); the 6-stud lane stays clear.
+		idsSource = "Shared.ModelMapPasarGroundR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		pavingCount = 76,
+		pavingTolerance = 0.15,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1427,6 +1442,15 @@ function LookDev.plan(id: string): any
 			render = c.render,
 			goalCount = c.goalCount,
 			goalHeight = c.goalHeight,
+		}
+	elseif id == "pasar_ground_r8" then
+		local c = LookDev.candidates.pasar_ground_r8
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			pavingCount = c.pavingCount,
+			pavingTolerance = c.pavingTolerance,
 		}
 	end
 	return nil

@@ -155,7 +155,7 @@ return function(t, Env)
 		end)
 
 		t:it("registers candidate 71 with its server review path", function()
-			expect(#LookDev.IDS):toBe(80)
+			expect(#LookDev.IDS):toBe(81)
 			expect(LookDev.IDS[71]):toBe("npcs_r8")
 			expect(LookDev.isCandidate("npcs_r8")):toBe(true)
 			local plan = LookDev.plan("npcs_r8")

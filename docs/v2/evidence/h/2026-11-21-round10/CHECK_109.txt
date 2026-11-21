@@ -1,0 +1,87 @@
+CHECK 109 — pasar_ground_r8 Pasar ground (WORK_QUEUE section N, item 109)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Fresh Play, Server DataModel. Place NOT saved, nothing published.
+
+== Target (verbatim) ==
+"`pasar_ground_r8`: Pasar ground. Around the Pasar, flat paving stones and cobble patches (parts,
+`Material` Cobblestone/Slate, no terrain edit), drainage gutters along the building edges, and a
+cleared 6-stud walking lane between stalls. CHECKS: `PASAR_PAVING` >= 60 pieces; `LANE_CLEAR`: the
+6-stud lane has no collidable parts; paving is within 0.15 studs of ground height so nobody trips."
+
+== Implementation (all OFF by default; no shipping default changed) ==
+- NEW `src/shared/ModelMapPasarGroundR8.luau`: pure, engine-API-free, MapSpec-derived data. 94 flat
+  Parts in a ring just outside the Pasar building: 40 Cobblestone paving stones, 36 Slate cobble
+  patches, 18 Slate drainage-gutter segments hugging all four building edges. Paving-like total =
+  76 (>= 60). Coordinates are PASAR-LOCAL offsets from `MapSpec.hub("pasar")`; the applier resolves
+  each via `MapSpec.hubPoint`. LANE mirrors `ModelMapPasarAwningsR8.LANE` (local x -38..38, z
+  30..36, depth 6); the south paving row stops at local z 29.8, clear of the lane. Documents the
+  height rule: each slab's BOTTOM sits on `MapSpec.GROUND_Y` (centre Y = GROUND_Y + thickness/2),
+  `PAVING_TOL = 0.15` measured on the bbox bottom face, no Terrain/voxel edits, no asset IDs.
+- NEW `src/server/World/LookDevPasarGroundR8.luau`: pcall-guarded server applier, folder
+  `LookDevPasarGroundR8_pasar_ground_r8`; all 94 Parts `Anchored=true`, `CanCollide=false`, tagged
+  `PasarGroundKind`/stage attribute; `apply`/`restore` save-detach-restore the prior folder;
+  `LookDev.register(Data.familyId, applier)`.
+- `src/shared/LookDev.luau`: `pasar_ground_r8` appended as ID 81 (80 -> 81); descriptor + plan
+  branch. `src/shared/LookDevReview.luau`: server path `{ "World", "LookDevPasarGroundR8" }`.
+- `tools/studio/review_check_r8.luau`: ORDER gets `PASAR_PAVING` and `PASAR_GROUND_LANE_CLEAR`;
+  new `do...end` block at section `-- 9j. WORK_QUEUE section N item 109` (line 6400+) with a
+  non-vacuous design. The item text's `LANE_CLEAR` name is TAKEN by item 148 (awnings, ORDER:232,
+  block 4434-4557), so this item emits the distinct `PASAR_GROUND_LANE_CLEAR` — item 148's check is
+  untouched. Every failure path emits BOTH checks FAIL (`pgFail`). `PASAR_GROUND_LANE_CLEAR` tests
+  ALL tagged parts (not just collidable ones — all staged lookdev parts are `CanCollide=false`, so a
+  collidable-only test would be vacuous) against the 6-stud lane rectangle translated through
+  `MapSpec.hubPoint(MapSpec.hub("pasar"), ...)`, using `bboxAABB` with `OVERLAP_TOL=0.05`.
+- NEW `tests/specs/pasar_ground_r8_spec.luau` + registration in `tests/run.luau`: locks counts,
+  `pavingCount=76`, `PAVING_TOL=0.15`, `#IDS==81`, `IDS[81]`, Review path, plan, harness ORDER/emit
+  names (`PASAR_GROUND_LANE_CLEAR`, not bare `LANE_CLEAR`), applier strings, no asset IDs.
+- 37 count literals across 35 specs bumped 80 -> 81 (34 `#LookDev.IDS):toBe(80)` plus
+  `review_round3_bugfix_spec:299`, `sky_map_r6_spec:452`, `terrain_map_r6_spec:376`); every changed
+  spec diff line was verified to be only an 80/81 literal. Index-locked `IDS[79]`/`IDS[80]` checks
+  left intact.
+- `docs/v2/visual/CANDIDATES.md`: pending 6-column row, existing `REVIEW_ROUND9.md` render path.
+  No new review camera this item (item 133 owns camera additions).
+
+== Method (fresh Play, Server VM, single-active stage) ==
+`LookDevReview.enable("pasar_ground_r8", game, {studio=true})` returned true; staging folder present
+with 94 BaseParts matching `ModelMapPasarGroundR8.counts()`. Read the real data module and
+`MapSpec.hub("pasar")`/`hubPoint`/`GROUND_Y`; counted tagged parts by `PasarGroundKind`, measured each
+paving/cobble slab's bbox bottom face, and translated the four local lane corners to a world AABB
+and scanned every tagged part for overlap. The two check blocks in `review_check_r8.luau` were
+executed as an equivalent ad hoc execute_luau probe (item 103/105/108 precedent — the whole harness
+file cannot be injected with a pre-set candidate state). A real `PathfindingService` lane-crossing
+route and a disable/re-enable lifecycle run were added as extra evidence.
+
+== Verbatim check lines (single canonical run, all PASS) ==
+KIND paving 40 40
+KIND cobble 36 36
+KIND gutter 18 18
+CHECK PASAR_PAVING PASS 76 >=60
+CHECK PASAR_HEIGHT PASS bad=0 maxDelta=0.0000 tol=0.15 groundY=0.50
+CHECK PASAR_GROUND_LANE_CLEAR PASS 0 0
+LANE RECT x=-102.0..-26.0 z=-34.0..-28.0 depth=6.0
+ANTIVAC folder=true tagged=94 kinds=3 laneBoxes=1 blockers=none
+
+`PASAR_PAVING`: 76 paving-like pieces (40 paving + 36 cobble) >= 60 target. Every slab bottom is
+exactly on `MapSpec.GROUND_Y = 0.5` (max delta 0.0000 studs, well inside the 0.15 tolerance) — no
+trip lip. The 6-stud lane measured depth 6.0 with zero overlapping staged parts; 94 tagged parts
+scanned, all three kinds present, so the clear result is non-vacuous.
+
+== Extra route + lifecycle evidence ==
+CHECK PASAR_PFS_LANE PASS status=Enum.PathStatus.Success across 6-stud lane
+CHECK PASAR_RESTORE PASS disabledGone=true enabledBack=true parts=94
+A `PathfindingService:CreatePath({AgentRadius=2, AgentHeight=5.5, AgentCanJump=false})` route from
+Pasar-local (-40,33) to (40,33) via `MapSpec.hubPoint` crossed the 6-stud lane successfully.
+`disable` removed the folder; a second `enable` re-created it with all 94 parts.
+
+== Validation / scope ==
+lune run tests/run.luau: All 2710 tests passed. selene src: 0 errors / 0 warnings / 0 parse errors.
+stylua --check clean on all changed Luau files. git diff --check clean (pre-existing LF->CRLF notices
+only). Play stopped after verification; no place saved, nothing published. No visual, copy or aural
+verdict. Candidate remains off by default; no shipping default changed. No terrain edit, no asset
+IDs, no brand marks.
+
+Status: SEEN-IN-STUDIO (fresh Play Server VM, pasar_ground_r8 staged; PASAR_PAVING 76>=60, slab
+bottoms on GROUND_Y within 0.0000 of 0.15 tolerance, PASAR_GROUND_LANE_CLEAR 0/94 overlaps over a
+6.0-stud lane, PFS lane-crossing route PASS, disable/re-enable lifecycle PASS; anti-vacuity 94
+tagged parts, 3 kinds, 1 lane box).

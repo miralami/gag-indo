@@ -1048,7 +1048,17 @@ Same rules as section M (candidates off by default, Studio PASS per item, no gam
   PASS, anti-vacuity parts=54 corridors=5 goals=2. `LAPANGAN_PATH_REACH` name used instead of bare
   `PATH_REACH` (that name belongs to the existing 6-hub read-only check). 2702 tests, selene 0/0/0.
   Candidate off by default; no shipping default changed. No new camera (item 133 owns that).
-- [ ] 109. **`pasar_ground_r8`: Pasar ground.** Around the Pasar, flat paving stones and cobble patches (parts, `Material` Cobblestone/Slate, no terrain edit), drainage gutters along the building edges, and a cleared 6-stud walking lane between stalls. **CHECKS:** `PASAR_PAVING` ≥ 60 pieces; `LANE_CLEAR`: the 6-stud lane has no collidable parts; paving is within 0.15 studs of ground height so nobody trips.
+- [x] 109. **`pasar_ground_r8`: Pasar ground.** Around the Pasar, flat paving stones and cobble patches (parts, `Material` Cobblestone/Slate, no terrain edit), drainage gutters along the building edges, and a cleared 6-stud walking lane between stalls. **CHECKS:** `PASAR_PAVING` ≥ 60 pieces; `LANE_CLEAR`: the 6-stud lane has no collidable parts; paving is within 0.15 studs of ground height so nobody trips.
+  Done 2026-11-22: NEW pure `ModelMapPasarGroundR8` (94 original Parts: 40 Cobblestone paving, 36
+  Slate cobble, 18 gutters; MapSpec.hub("pasar")-local offsets via hubPoint; no terrain edit) + NEW
+  server `LookDevPasarGroundR8` applier (anchored, non-collidable, save/detach/restore). Slab bottoms
+  sit on GROUND_Y, `PAVING_TOL=0.15` on the bbox bottom face. New ID 81 (37 count literals 80->81),
+  review path, new spec + registration, CANDIDATES.md pending row. Real Studio fresh-Play Server-VM
+  PASS (`CHECK_109.txt`, `SEEN-IN-STUDIO`): `PASAR_PAVING` 76>=60, slab bottoms on GROUND_Y
+  (max delta 0.0000), `PASAR_GROUND_LANE_CLEAR` 0 overlaps over a 6.0-stud lane (94 tagged parts
+  tested, non-vacuous), PFS lane-crossing route PASS, disable/re-enable PASS. Used distinct name
+  `PASAR_GROUND_LANE_CLEAR` — item 148 owns bare `LANE_CLEAR`; its check untouched. 2710 tests,
+  selene 0/0/0. Candidate off by default; no shipping default changed. No new camera (item 133).
 - [ ] 110. **`musala_r8`: musala (small prayer house).** A small musala with a green dome or tiered roof, a pengeras suara horn on a pole, a wudhu tap area and a shoe rack. Built from parts, modest in size, respectful. Place it with a clear approach on the village side of the ring road. **CHECKS:** `MUSALA_PARTS` ≥ 25; `DOOR_CLEAR` for its door; `PATH_REACH` to its door. Mark it in `CANDIDATES.md` as `needs designer review: cultural content`.
 - [ ] 111. **`lumbung_r8`: lumbung and pekarangan.** A rice barn (lumbung padi) on stilts, garden fences with toga herbs and chilli pots, a tempat jemur padi (drying mat on the ground) and a well-swept dirt yard around each of three houses. **CHECKS:** counts per kind; `PROPS_ON_GRASS` = 0 for the yard pads; `DOOR_CLEAR`.
 - [ ] 112. **`perahu_r8`: boats and river life.** Two small perahu at the river bank, a fishing net on poles, a bamboo landing stage and a stack of baskets (not in the water channel, keep the bridge span clear). **CHECKS:** counts; `BRIDGE_WALKABLE` unchanged; nothing intersects the river centreline within the bridge's 56 studs.

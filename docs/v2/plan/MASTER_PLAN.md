@@ -301,6 +301,12 @@ lorem/ipsum/dolor/"sit amet"/placeholder; long `id == en` strings (>=12 chars) e
 0 word-like player-facing strings to move, so no Strings.luau/src/client change
 (`h/2026-11-21-round9/CHECK_095.txt`). Designer's call on flagged copy.
 
+Item 96 COMPLETE (IconMap coverage): new pure-Lune `iconmap_manifest_spec.luau` — all 27 slots
+(12/2/5/8 families) resolve via non-zero `IconMap.candidateIds` (the zero `entry.id` is by design),
+every ID is recorded in the ASSET_MANIFEST.md icon CSV rows (55 parsed, 27/27 matched, 0 missing),
+0 duplicates within r2 and 0 r2/r3 overlap (`h/2026-11-21-round9/CHECK_096.txt`). No invented IDs.
+Suite **2676 tests**; `selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

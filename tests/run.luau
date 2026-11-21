@@ -71,6 +71,7 @@ local specs = {
 	require("./specs/nextgoal_spec"),
 	require("./specs/first_session_spec"),
 	require("./specs/iconmap_spec"),
+	require("./specs/iconmap_manifest_spec"),
 	require("./specs/texturemap_spec"),
 	require("./specs/soundmap_spec"),
 	require("./specs/candidate_gallery_spec"),

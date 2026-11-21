@@ -671,3 +671,27 @@ the CHECK evidence and tracker ticks. No place is saved or published.
    `require(game.ReplicatedStorage.Shared.LookDevReview).enable("animals_r8", game)` and shoot
    `hub_warung`, `river_rocks` and `sawah_above` from `docs/v2/visual/REVIEW_CAMERAS.md`. Re-read
    `LOOKDEV_LEAK 0` after disable; stop Play without saving. Visual yes/no stays the designer's.
+
+## Item-83 run — `flyers_r8` birds, butterflies, dragonflies (WORK_QUEUE section M)
+
+Run-note recipe. **No Studio result is claimed** by the implementation agent; the main session owns
+the CHECK evidence and tracker ticks. No place is saved or published.
+
+1. Inject at runtime (not saved): `ReplicatedStorage.Shared.ModelMapFlyersR8`, the changed
+   `Shared.LookDev` and `Shared.LookDevReview`, the new
+   `PlayerScripts.Client.World.LookDevFlyersR8`, and the changed
+   `tools/studio/review_check_r8.luau`.
+2. Start a fresh real Play session. The two item checks are READ-ONLY and need NO staged candidate:
+   they call the pure module's spawn/caps/kindCounts/stepAll with the live
+   `ServerScriptService.Server.World.MapSpec`.
+3. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the SERVER
+   VM (the Client VM cannot read MapSpec, so both FLYER_* lines FAIL there by design). Read
+   `FLYER_COUNT` (0 invalid tiers; per-tier caps 6 burung / 10 kupu / 4 Rendah..8 Tinggi capung,
+   at least one of each; detail carries per-tier counts and caps), then `FLYER_COST` (24 flyers,
+   3600 steps at 1/60 s, average `os.clock` step < 0.3 ms; detail carries total ms, steps and
+   flyer count). No 60-second real wait is involved.
+4. For a visual pass only, stage the client applier from the CLIENT datamodel with
+   `require(game.ReplicatedStorage.Shared.LookDevReview).enable("flyers_r8", game)` and shoot
+   `canonical_overview`, `hub_warung` and `bridge_south_bank` from `docs/v2/visual/REVIEW_CAMERAS.md`.
+   Re-read `LOOKDEV_LEAK 0` after disable; stop Play without saving. Visual yes/no stays the
+   designer's.

@@ -173,6 +173,14 @@ Y 0.5..22.5 above the 0.5 ground plane), `ANIMAL_COST 0.0068 <0.3ms/step`, `CAME
 scope. PERF_BUDGET 334/500 — equal to default, under the Sedang proxy. Suite **2580 tests**;
 `selene src` 0/0/0.
 
+Item 83 COMPLETE: `flyers_r8` stages procedural burung (6, high over the plaza), kupu-kupu (10, flower
+beds) and capung (4/6/8 by FidelityTier) — body + two sine-flapping wing Parts, no asset IDs, one
+client Heartbeat loop over a pure shared step. Real Studio Server-VM PASS on a deterministic 60 s sim
+`FLYER_COUNT PASS 0 invalid tiers` (all 3 tiers within per-kind caps; totals 20/22/24) and
+`FLYER_COST 0.0104 <0.3ms/step` (24 flyers), `CAMERA_CLEAR 0/42`
+(`h/2026-11-21-round9/CHECK_083.txt`). PERF_BUDGET 334/500 — equal to default, under the Sedang proxy.
+Suite **2591 tests**; `selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

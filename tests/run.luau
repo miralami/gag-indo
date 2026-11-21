@@ -191,6 +191,7 @@ local specs = {
 	require("./specs/streetfurn_r8_spec"),
 	require("./specs/spanduk_r8_spec"),
 	require("./specs/animals_r8_spec"),
+	require("./specs/flyers_r8_spec"),
 	require("./specs/review_cameras_o_spec"),
 }
 

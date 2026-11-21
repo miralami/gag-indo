@@ -43,6 +43,7 @@
 --   src/server/World/LookDevStreetFurnR8.luau -- candidate "streetfurn_r8" (road furniture, server-only)
 --   src/server/World/LookDevSpandukR8.luau -- candidate "spanduk_r8" (banners and signage, server-only)
 --   src/client/World/LookDevAnimalsR8.luau -- candidate "animals_r8" (village animals, client-only)
+--   src/client/World/LookDevFlyersR8.luau -- candidate "flyers_r8" (birds, butterflies, dragonflies, client-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -152,6 +153,7 @@ LookDev.IDS = {
 	"streetfurn_r8",
 	"spanduk_r8",
 	"animals_r8",
+	"flyers_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -948,6 +950,20 @@ LookDev.candidates = {
 		maxAnimals = 14,
 		animalCount = 11,
 	},
+
+	flyers_r8 = {
+		id = "flyers_r8",
+		title = "Village flyers — burung circling high, kupu-kupu by the flower beds and capung by the river (round 9, client-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Pure deterministic flight data in Shared.ModelMapFlyersR8; simple original Parts built
+		-- on the client and moved by ONE Heartbeat loop. No asset IDs. Per-tier caps follow
+		-- FidelityTier: Rendah 4 / Sedang 6 / Tinggi 8 capung, plus 6 burung and 10 kupu.
+		idsSource = "Shared.ModelMapFlyersR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		tier = "Tinggi",
+		maxFlyers = 24,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1146,6 +1162,15 @@ function LookDev.plan(id: string): any
 			id = id,
 			idsSource = c.idsSource,
 			render = c.render,
+		}
+	elseif id == "flyers_r8" then
+		local c = LookDev.candidates.flyers_r8
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			tier = c.tier,
+			maxFlyers = c.maxFlyers,
 		}
 	elseif id == "facades_r8" then
 		local c = LookDev.candidates.facades_r8

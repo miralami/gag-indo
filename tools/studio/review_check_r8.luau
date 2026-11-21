@@ -54,6 +54,11 @@
 -- ServerScriptService.Server.World.MapSpec the other MapSpec checks use. No candidate is staged, no
 -- folder is mutated, and the 60-second horizon is a deterministic pure simulation (no real wait).
 -- Missing module or MapSpec FAILs every animal line, never a skip.
+-- It also emits the item-83 flyers_r8 family: FLYER_COUNT and FLYER_COST. Both are READ-ONLY and
+-- run in the SERVER VM: they require pure Shared.ModelMapFlyersR8 and the same MapSpec as above.
+-- FLYER_COUNT spawns each FidelityTier tier and checks the per-kind cap (>=1 and <= cap for burung,
+-- kupu and capung); FLYER_COST runs the largest tier's deterministic 60-second sim with os.clock.
+-- No staging, no folder mutation and no real-time wait. Missing module FAILs both lines.
 -- It also emits the r8 water family (WORK_QUEUE item 76): WATER_SAFE and WATER_RESTORE. Both are
 -- CLIENT-only and mutate Terrain in one guarded enable/read/disable/compare cycle per variant,
 -- restoring the prior active candidate at the end. WATER_DEFAULT (WORK_QUEUE item 137) is a
@@ -210,6 +215,8 @@ local ORDER = {
 	"WATER_SAFE",
 	"WATER_RESTORE",
 	"CAMERA_CLEAR",
+	"FLYER_COUNT",
+	"FLYER_COST",
 	"ADDITIVE_STAGE",
 	"LOOKDEV_LEAK",
 }
@@ -5722,6 +5729,124 @@ emit(
 		animals = #AR8_STATES,
 		msPerStep = ar8MsPerStep,
 		reason = ar8Reason,
+	}
+)
+end
+
+do
+-- 9h-4. WORK_QUEUE section M item 83: flyers_r8. Two NEW READ-ONLY checks in the SERVER VM.
+-- MapSpec lives under ServerScriptService.Server.World and the shared flyer module is pure, so
+-- requiring either fails in the Client VM. No staging and no 60-second real-time wait.
+local FR8 = nil
+local okF8, f8Module = pcall(function()
+	return require(game.ReplicatedStorage.Shared.ModelMapFlyersR8)
+end)
+if okF8 and type(f8Module) == "table" then
+	FR8 = f8Module
+end
+local FR8_TIERS = FR8 and FR8.TIERS or { "Rendah", "Sedang", "Tinggi" }
+local fr8Tiers, fr8Bad = {}, {}
+local fr8Reason = nil
+if not FR8 then
+	fr8Reason = "Shared.ModelMapFlyersR8 not readable"
+elseif not mapSpecReady then
+	fr8Reason = "MapSpec not readable (Server VM required)"
+else
+	for _, tier in ipairs(FR8_TIERS) do
+		local okSpawn, spawned = pcall(function()
+			return FR8.spawn(MapSpec, tier)
+		end)
+		local okCaps, cap = pcall(function()
+			return FR8.caps(tier)
+		end)
+		local okCounts, counts = pcall(function()
+			if type(spawned) ~= "table" then
+				return nil
+			end
+			return FR8.kindCounts(spawned)
+		end)
+		fr8Tiers[tier] = {
+			counts = okCounts and type(counts) == "table" and counts or "ERR",
+			caps = type(cap) == "table" and cap or "ERR",
+			total = type(spawned) == "table" and #spawned or "ERR",
+		}
+		if
+			not okSpawn
+			or type(spawned) ~= "table"
+			or #spawned == 0
+			or not okCaps
+			or type(cap) ~= "table"
+			or not okCounts
+			or type(counts) ~= "table"
+		then
+			fr8Bad[#fr8Bad + 1] = tier .. ":spawn"
+		else
+			for _, kind in ipairs(FR8.KINDS or {}) do
+				local n, limit = counts[kind] or 0, cap[kind] or 0
+				if n < 1 or n > limit then
+					fr8Bad[#fr8Bad + 1] = string.format("%s:%s=%d/%d", tostring(tier), tostring(kind), n, limit)
+				end
+			end
+		end
+	end
+end
+emit(
+	"FLYER_COUNT",
+	FR8 ~= nil and #fr8Bad == 0,
+	#fr8Bad,
+	"0 invalid tiers",
+	{ tiers = fr8Tiers, failures = fr8Bad, reason = fr8Reason }
+)
+
+-- FLYER_COST: 60 seconds at 1/60 s on the largest tier's flyers, timed with os.clock.
+local FR8_BOUNDS, FR8_STATES = nil, {}
+if FR8 and mapSpecReady then
+	local okBounds, built = pcall(function()
+		return FR8.bounds(MapSpec)
+	end)
+	if okBounds and type(built) == "table" then
+		FR8_BOUNDS = built
+	end
+	local okSpawn, spawned = pcall(function()
+		return FR8.spawn(MapSpec, FR8_TIERS[#FR8_TIERS])
+	end)
+	if okSpawn and type(spawned) == "table" then
+		FR8_STATES = spawned
+	else
+		fr8Reason = "largest-tier spawn failed: " .. tostring(spawned)
+	end
+end
+local FR8_SECONDS = FR8 and FR8.SIM_SECONDS or 60
+local FR8_DT = FR8 and FR8.DT or (1 / 60)
+local fr8Steps = math.max(1, math.ceil(FR8_SECONDS / FR8_DT))
+local fr8Elapsed = 0
+local fr8Ok = FR8 ~= nil and FR8_BOUNDS ~= nil and #FR8_STATES > 0 and mapSpecReady
+if fr8Ok then
+	local started = os.clock()
+	local okSim, simErr = pcall(function()
+		for _ = 1, fr8Steps do
+			FR8.stepAll(FR8_STATES, FR8_DT, FR8_BOUNDS)
+		end
+	end)
+	fr8Elapsed = os.clock() - started
+	if not okSim then
+		fr8Ok = false
+		fr8Reason = "stepAll failed: " .. tostring(simErr)
+	end
+end
+local fr8Limit = FR8 and FR8.MAX_STEP_MS or 0.3
+local fr8Ms = fr8Ok and (fr8Elapsed * 1000 / fr8Steps) or math.huge
+emit(
+	"FLYER_COST",
+	fr8Ok and fr8Ms < fr8Limit,
+	math.floor(fr8Ms * 10000) / 10000,
+	"<" .. tostring(fr8Limit) .. "ms",
+	{
+		totalMs = math.floor(fr8Elapsed * 1000 * 100) / 100,
+		steps = fr8Steps,
+		flyers = #FR8_STATES,
+		msPerStep = fr8Ms,
+		reason = fr8Reason,
 	}
 )
 end

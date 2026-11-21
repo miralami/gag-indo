@@ -109,6 +109,7 @@ LookDevReview.paths = {
 	pasar_ground_r8 = { datamodel = "server", path = { "World", "LookDevPasarGroundR8" } },
 	musala_r8 = { datamodel = "server", path = { "World", "LookDevMusalaR8" } },
 	lumbung_r8 = { datamodel = "server", path = { "World", "LookDevLumbungR8" } },
+	perahu_r8 = { datamodel = "server", path = { "World", "LookDevPerahuR8" } },
 }
 
 function LookDevReview.pathsFor(id: string): any?

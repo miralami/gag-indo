@@ -1089,7 +1089,18 @@ Same rules as section M (candidates off by default, Studio PASS per item, no gam
   failed to stage -> `Plastic`, spec guard added; shared allowlist left intact — other modules use Leaf).
   Distinct check names (bare `DOOR_CLEAR`/`PROPS_ON_GRASS` owned by facades/r7 props). 2727 tests,
   selene 0/0/0. Candidate off by default; no shipping default changed. No new camera (item 133).
-- [ ] 112. **`perahu_r8`: boats and river life.** Two small perahu at the river bank, a fishing net on poles, a bamboo landing stage and a stack of baskets (not in the water channel, keep the bridge span clear). **CHECKS:** counts; `BRIDGE_WALKABLE` unchanged; nothing intersects the river centreline within the bridge's 56 studs.
+- [x] 112. **`perahu_r8`: boats and river life.** Two small perahu at the river bank, a fishing net on poles, a bamboo landing stage and a stack of baskets (not in the water channel, keep the bridge span clear). **CHECKS:** counts; `BRIDGE_WALKABLE` unchanged; nothing intersects the river centreline within the bridge's 56 studs.
+  Done 2026-11-22: NEW pure `ModelMapPerahuR8` (39 original Parts in 8 kinds: hull 6, gunwale 4, seat 4 —
+  two perahu; netframe 4 + netmesh 6 — fishing net on poles; stageplank 6 + stagepile 4 — bamboo landing
+  stage; basket 5 — stack of baskets; river centreline mirror `304 + 12 sin(2*pi*x/320)`, channel half 14,
+  bank offset 18, no asset IDs/invalid material tokens) + NEW server `LookDevPerahuR8` applier (anchored,
+  non-collidable, tagged, exact folder detach/restore, no terrain edit). New ID 84 (count literals 83->84
+  across 38 specs + 3 extra), review path, 2 harness checks, new spec, CANDIDATES pending row. Real Studio
+  fresh-Play Server-VM PASS (`CHECK_112.txt`, SEEN-IN-STUDIO): `PERAHU_PARTS` 39>=35 all kind counts match,
+  `PERAHU_RIVER_CLEAR` 0/39 overlaps within the 56-stud [-28,28] bridge crossing, 0 global channel hits,
+  synthetic violating box correctly flagged (non-vacuous), disable/re-enable PASS, zero perahu staging
+  warnings. `BRIDGE_WALKABLE` stays READ-ONLY and byte-identical. Distinct check names. 2736 tests,
+  selene 0/0/0. Candidate off by default; no shipping default changed. No new camera (item 133).
 - [ ] 113. **`irrigation_r8`: irrigation and field life.** Two scarecrows (orang-orangan sawah) with a woven hat and a ragged shirt, two bamboo irrigation channels with a thin water sheet, a bamboo clapper bird-scarer and a small stack of padi sheaves. **CHECKS:** counts; `SAWAH_TOPS` unchanged; the water sheets sit within 0.3 studs of the terrace top.
 - [ ] 114. **`kincir_r8`: water wheel.** A small wooden waterwheel beside the river that rotates slowly (one shared loop, 6 degrees per second). **CHECKS:** `KINCIR_ROT`: the wheel angle changes by 3–9 degrees over 1 s; one instance only; `disable()` stops and removes it.
 - [ ] 115. **`laundry_r8`: hanging laundry.** Washing lines with sarung, batik cloth and kebaya hanging between posts behind two houses, plus a hammock and a tikar under the porch. Use solid colours or simple patterned decals made from existing assets; no brand logos. **CHECKS:** counts; cloths do not intersect walls (`GetPartsInPart` is empty); `CLOTH_SWAY` is optional and tied to item 85 when present.

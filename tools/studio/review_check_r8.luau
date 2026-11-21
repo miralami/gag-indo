@@ -128,6 +128,14 @@
 -- GRADE_RESTORE requires every property and the Lighting descendant count to match the baseline
 -- after disable; GRADE_NO_DOF requires 0 depth-of-field effects at baseline and after each enable.
 -- Any missing effect/range or failed read FAILs loudly; all three always emit.
+-- Item 112 adds PERAHU_PARTS and PERAHU_RIVER_CLEAR (WORK_QUEUE section N, perahu_r8), both
+-- SERVER-side. PERAHU_PARTS counts the staged original-Part kinds against the pure data module.
+-- PERAHU_RIVER_CLEAR is mutating: it stages perahu_r8, reads every tagged part's rotation-aware XZ
+-- box and fails any box that intersects the water channel while its x-range is inside the bridge's
+-- 56-stud crossing interval (derived from MapSpec.BRIDGE.z1-z0, mapped to X around BRIDGE.x=0).
+-- The names are distinct: BRIDGE_WALKABLE (ORDER 205) stays READ-ONLY and byte-identical, and no
+-- river check or full_r9 entry is touched. Both lines FAIL at measured 0 when folder/data/MapSpec
+-- are missing; the prior candidate is restored on every path.
 -- Item 92 adds the mutating SERVER-only SOUND_LOADED, SOUND_VOLUME and SOUND_RESTORE trio, emitted
 -- from their own do...end scope just before LOOKDEV_LEAK. It stages sounds_r8 via an explicit
 -- SERVER applier require (saved-place boots may predate the module), then polls IsLoaded for at most
@@ -137,7 +145,7 @@
 -- SoundService/group/folder restore and the prior candidate back. All three always emit.
 -- All checks except LOOKDEV_LEAK, ADDITIVE_STAGE, WATER_SAFE, WATER_RESTORE, WIND_SET,
 -- SWAY_TWEENS, WIND_RESTORE, NIGHT_WINDOWS, NIGHT_LIGHTS, GRADE_SAFE, GRADE_RESTORE,
--- GRADE_NO_DOF, SOUND_LOADED, SOUND_VOLUME and SOUND_RESTORE are read-only.
+-- GRADE_NO_DOF, SOUND_LOADED, SOUND_VOLUME, SOUND_RESTORE and PERAHU_PARTS are read-only.
 -- The mutating checks call enable(id)/disable() and
 -- restore the prior active candidate at the end; ADDITIVE_STAGE uses enableAdditive(id)/
 -- disableAll(). All are safe to repeat.
@@ -265,6 +273,8 @@ local ORDER = {
 	"GRADE_SAFE",
 	"GRADE_RESTORE",
 	"GRADE_NO_DOF",
+	"PERAHU_PARTS",
+	"PERAHU_RIVER_CLEAR",
 	"PASAR_PAVING",
 	"PASAR_GROUND_LANE_CLEAR",
 	"SOUND_LOADED",
@@ -7422,6 +7432,285 @@ else
 			}
 		)
 		restoreLbPrior()
+	end
+end
+end
+
+do
+-- 9m. WORK_QUEUE section N item 112: perahu_r8. Two checks over the staged
+-- LookDevPerahuR8_perahu_r8 folder, run in the SERVER VM. PERAHU_PARTS counts the original Parts
+-- by kind against Shared.ModelMapPerahuR8.counts(). PERAHU_RIVER_CLEAR stages the candidate itself,
+-- reads every tagged part's rotation-aware XZ box and fails any box that meets the water channel
+-- while its x-range is inside the bridge's 56-stud crossing interval. The river runs along X and
+-- the bridge crosses along Z at x=0, so the 56-stud span (BRIDGE.z1-z0) is mapped to X:
+-- [BRIDGE.x - 28, BRIDGE.x + 28]. BRIDGE_WALKABLE (ORDER 205) and every river check stay READ-ONLY
+-- and byte-identical; these names are distinct and neither check touches the Terrain.
+local PH_FOLDER_FALLBACK = "LookDevPerahuR8_perahu_r8"
+local PH_ID = "perahu_r8"
+local PH_MIN_PARTS = 35
+local PH_FALLBACK_KINDS = {
+	"hull",
+	"gunwale",
+	"seat",
+	"netframe",
+	"netmesh",
+	"stageplank",
+	"stagepile",
+	"basket",
+}
+local PH_TOL = 1e-4
+
+local okPhModules, phModules = pcall(function()
+	return {
+		data = require(game.ReplicatedStorage.Shared.ModelMapPerahuR8),
+		look = require(game.ReplicatedStorage.Shared.LookDev),
+		review = require(game.ReplicatedStorage.Shared.LookDevReview),
+	}
+end)
+local phData: any? = nil
+if okPhModules and type(phModules) == "table" and type((phModules :: any).data) == "table" then
+	phData = (phModules :: any).data
+end
+local phExpected: any? = nil
+if phData and type((phData :: any).counts) == "function" then
+	local okCounts, counts = pcall(function()
+		return (phData :: any).counts()
+	end)
+	if okCounts and type(counts) == "table" and type(counts.total) == "number" then
+		phExpected = counts
+	end
+end
+
+local phFolderName = if phData then (phData :: any).folderName else PH_FOLDER_FALLBACK
+local function phFail(reason)
+	local kinds = PH_FALLBACK_KINDS
+	if phData and type((phData :: any).KINDS) == "table" then
+		kinds = (phData :: any).KINDS
+	end
+	local byKind = {}
+	for _, kind in ipairs(kinds) do
+		byKind[kind] = 0
+	end
+	local detail = {
+		reason = reason,
+		folderPresent = folderNamed(phFolderName) ~= nil,
+		tagged = 0,
+		byKind = byKind,
+		span = nil,
+		crossing = nil,
+		centreFnReady = false,
+		overlaps = -1,
+		antiVac = "folder / pure data / MapSpec required; missing input fails both checks",
+	}
+	emit("PERAHU_PARTS", false, 0, ">=" .. PH_MIN_PARTS, detail)
+	emit("PERAHU_RIVER_CLEAR", false, -1, 0, detail)
+end
+
+-- Exact XZ-overlap test for one part box against the union of channel corridors over the mapped
+-- crossing interval. centreZ is sinusoidal: checking both interval ends plus its stationary points
+-- (x = 80 + 160k) catches every crossing of the |z-centre| <= half band.
+local function phChannelOverlap(box: any, spanMin: number, spanMax: number, centreFn: any, half: number): any?
+	local lo, hi = math.max(box.minX, spanMin), math.min(box.maxX, spanMax)
+	if hi <= lo then
+		return false
+	end
+	local xs = { lo, hi }
+	local first, last = math.ceil((lo - 80) / 160), math.floor((hi - 80) / 160)
+	for k = first, last do
+		local sx = 80 + k * 160
+		if sx >= lo and sx <= hi then
+			xs[#xs + 1] = sx
+		end
+	end
+	for _, x in ipairs(xs) do
+		local okC, centre = pcall(centreFn, x)
+		if not okC or type(centre) ~= "number" then
+			return nil
+		end
+		if math.min(box.maxZ, centre + half) - math.max(box.minZ, centre - half) > PH_TOL then
+			return true
+		end
+	end
+	return false
+end
+
+local phRunService = service("RunService")
+local okPhServer, phIsServer = false, false
+if phRunService then
+	okPhServer, phIsServer = pcall(function()
+		return (phRunService :: any):IsServer()
+	end)
+end
+local phLook = okPhModules and (phModules :: any).look or nil
+local phReview = okPhModules and (phModules :: any).review or nil
+if
+	not phData
+	or not phExpected
+	or not mapSpecReady
+	or not okPhServer
+	or not phIsServer
+	or type(phLook) ~= "table"
+	or type(phLook.enable) ~= "function"
+	or type(phLook.disable) ~= "function"
+	or type(phReview) ~= "table"
+	or type(phReview.enable) ~= "function"
+	or type((phData :: any).KINDS) ~= "table"
+	or type((phData :: any).KIND) ~= "table"
+	or type((phData :: any).RIVER_HALF) ~= "number"
+	or type((phData :: any).BRIDGE_CROSS_MIN) ~= "number"
+	or type((phData :: any).BRIDGE_CROSS_MAX) ~= "number"
+	or type((phData :: any).riverCentreZ) ~= "function"
+	or type(MapSpec.BRIDGE) ~= "table"
+	or type(MapSpec.riverCentreZ) ~= "function"
+then
+	phFail("server VM / perahu modules / MapSpec / counts not readable")
+else
+	local okPrior, priorId = pcall(function()
+		return (phLook :: any).current and (phLook :: any).current() or nil
+	end)
+	if not okPrior then
+		priorId = nil
+	end
+	local function restorePhPrior()
+		pcall(function()
+			(phLook :: any).disable()
+		end)
+		if type(priorId) == "string" then
+			pcall(function()
+				(phLook :: any).enable(priorId)
+			end)
+		end
+	end
+	local okEnable, enabled, whyEnable = pcall(function()
+		return (phReview :: any).enable(PH_ID, game, { studio = true })
+	end)
+	if not okEnable or enabled == false then
+		restorePhPrior()
+		phFail("enable:" .. tostring(whyEnable or enabled))
+	else
+		local phFolder = folderNamed((phData :: any).folderName)
+		local tagged, byKind = {}, {}
+		for _, kind in ipairs((phData :: any).KINDS) do
+			byKind[kind] = 0
+		end
+		for _, inst in ipairs(descendantList(phFolder)) do
+			local okPart, isPart = pcall(function()
+				return (inst :: any):IsA("BasePart")
+			end)
+			local kind = attr(inst, (phData :: any).kindAttribute)
+			local stage = attr(inst, (phData :: any).stageAttribute)
+			if okPart and isPart and type(kind) == "string" and byKind[kind] ~= nil and stage == (phData :: any).familyId then
+				byKind[kind] += 1
+				tagged[#tagged + 1] = inst
+			end
+		end
+		local mismatch, expectedCounts = {}, (phExpected :: any)
+		for _, kind in ipairs((phData :: any).KINDS) do
+			if byKind[kind] ~= expectedCounts[kind] then
+				mismatch[#mismatch + 1] = kind .. "=" .. tostring(byKind[kind])
+			end
+		end
+		local partsOk = phFolder ~= nil
+			and #tagged > 0
+			and #tagged >= PH_MIN_PARTS
+			and #tagged == expectedCounts.total
+			and #mismatch == 0
+		emit(
+			"PERAHU_PARTS",
+			partsOk,
+			#tagged,
+			">=" .. PH_MIN_PARTS,
+			{
+				folderPresent = phFolder ~= nil,
+				tagged = #tagged,
+				byKind = byKind,
+				expected = expectedCounts,
+				byKindMismatch = mismatch,
+				antiVac = "all tagged Parts counted by kind; missing folder/data fails at 0",
+				reason = if partsOk then nil else "missing folder / wrong kind counts",
+			}
+		)
+
+		-- Derive the 56-stud crossing interval from the live bridge and cross-check the pure mirror.
+		local span, spanMin, spanMax = -1, nil, nil
+		local okSpan = false
+		local okSpanCall, spanResult, minResult, maxResult = pcall(function()
+			local bridge = (MapSpec :: any).BRIDGE
+			local length = bridge.z1 - bridge.z0
+			return length, bridge.x - length / 2, bridge.x + length / 2
+		end)
+		if okSpanCall and type(spanResult) == "number" and type(minResult) == "number" and type(maxResult) == "number" then
+			span, spanMin, spanMax = spanResult, minResult, maxResult
+			okSpan = spanResult > 0
+				and math.abs(spanResult - (phData :: any).BRIDGE_SPAN) < PH_TOL
+				and math.abs(minResult - (phData :: any).BRIDGE_CROSS_MIN) < PH_TOL
+				and math.abs(maxResult - (phData :: any).BRIDGE_CROSS_MAX) < PH_TOL
+		end
+		local centreFn, centreFnReady = nil, false
+		local okCentre, c = pcall(function()
+			return (MapSpec :: any).riverCentreZ(0)
+		end)
+		if okCentre and type(c) == "number" then
+			centreFn = (MapSpec :: any).riverCentreZ
+			centreFnReady = math.abs(c - (phData :: any).RIVER_CENTRE) < PH_TOL
+		end
+		local mapReady = okSpan and centreFnReady
+		local overlaps, offenders = -1, {}
+		if mapReady and phFolder ~= nil and #tagged > 0 then
+			overlaps = 0
+			for _, part in ipairs(tagged) do
+				local okBox, box = pcall(function()
+					local cf = (part :: any).CFrame
+					local size = (part :: any).Size
+					local hx, hy, hz = size.X / 2, size.Y / 2, size.Z / 2
+					local right, up, look = cf.RightVector, cf.UpVector, cf.LookVector
+					local ex = math.abs(right.X) * hx + math.abs(up.X) * hy + math.abs(look.X) * hz
+					local ez = math.abs(right.Z) * hx + math.abs(up.Z) * hy + math.abs(look.Z) * hz
+					return {
+						minX = cf.Position.X - ex,
+						maxX = cf.Position.X + ex,
+						minZ = cf.Position.Z - ez,
+						maxZ = cf.Position.Z + ez,
+					}
+				end)
+				local hit, why = false, "unreadable"
+				if okBox and box then
+					hit = phChannelOverlap(box, spanMin, spanMax, centreFn, (phData :: any).RIVER_HALF)
+					why = "channel/bridge overlap"
+				end
+				if hit == nil or hit == true then
+					overlaps += 1
+					local okName, name = pcall(function()
+						return (part :: any).Name
+					end)
+					offenders[#offenders + 1] = {
+						name = okName and name or "?",
+						box = if okBox then box else nil,
+						why = why,
+					}
+				end
+			end
+		end
+		local clearOk = mapReady and phFolder ~= nil and #tagged > 0 and overlaps == 0
+		emit(
+			"PERAHU_RIVER_CLEAR",
+			clearOk,
+			overlaps,
+			0,
+			{
+				folderPresent = phFolder ~= nil,
+				tagged = #tagged,
+				expected = expectedCounts.total,
+				span = span,
+				crossing = { min = spanMin, max = spanMax },
+				centreFnReady = centreFnReady,
+				overlaps = overlaps,
+				offenders = offenders,
+				antiVac = "every tagged Part tested (all CanCollide=false); exact total + map readability required",
+				reason = if clearOk then nil else "missing folder/data/map or part in channel within bridge span",
+			}
+		)
+		restorePhPrior()
 	end
 end
 end

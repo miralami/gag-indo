@@ -182,6 +182,7 @@ LookDev.IDS = {
 	"pasar_ground_r8",
 	"musala_r8",
 	"lumbung_r8",
+	"perahu_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -1197,6 +1198,20 @@ LookDev.candidates = {
 		doorH = 4.8,
 		doorD = 2,
 	},
+
+	perahu_r8 = {
+		id = "perahu_r8",
+		title = "Perahu and river life — two small boats, a pole-mounted fishing net, a bamboo landing stage and stacked baskets on the bank shelves, clear of the bridge span (round 10, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Original procedural Parts, no asset IDs and no terrain edit. Pure recipe in
+		-- Shared.ModelMapPerahuR8; positions come from the river centreline mirror and bank
+		-- offsets, with |x| >= 52 so the 56-stud bridge crossing stays clear. No new camera.
+		idsSource = "Shared.ModelMapPerahuR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		partCount = 39,
+		minParts = 35,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1511,6 +1526,15 @@ function LookDev.plan(id: string): any
 			doorW = c.doorW,
 			doorH = c.doorH,
 			doorD = c.doorD,
+		}
+	elseif id == "perahu_r8" then
+		local c = LookDev.candidates.perahu_r8
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			partCount = c.partCount,
+			minParts = c.minParts,
 		}
 	end
 	return nil

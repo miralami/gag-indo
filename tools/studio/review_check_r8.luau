@@ -338,6 +338,8 @@ local ORDER = {
 	"RAIN_EMITTERS",
 	"RAIN_OFF_CERAH",
 	"RAIN_COST",
+	"DAWN_PHASES_MONOTONIC",
+	"DAWN_SAFE",
 }
 
 local GRASS_Y = 4
@@ -10639,6 +10641,202 @@ local function runRainChecks()
 	})
 end
 runRainChecks()
+end
+
+-- 9v. WORK_QUEUE section N item 121: subuh_r8 dawn look. TWO MUTATING CLIENT checks appended
+-- LAST in ORDER. DAWN_PHASES_MONOTONIC proves three strict warm-up steps on top.R, its warmth
+-- (R-B) and luminance, with a bounded per-step jump and a strictly positive base jump. DAWN_SAFE
+-- reads the LIVE Lighting/effects/Clouds/lamp values at all four phase clocks through the
+-- override-first direct-write diagnostics (no 30 s tween wait), checks every band and confirms
+-- birds are inaudible before 06:00 (no Sound is staged). The prior candidate is re-enabled and
+-- the clock override cleared on EVERY path. Own do...end + inner function: near the 200-local
+-- cap. No existing check is touched.
+do
+local function dawnFailAll(reason)
+	emit("DAWN_PHASES_MONOTONIC", false, 0, 3, { reason = reason })
+	emit("DAWN_SAFE", false, 0, 4, { reason = reason })
+end
+
+local function runDawnChecks()
+	-- Own RunService gate: the shared isClient local is declared LATER in this harness. Sky tweens
+	-- the client atmosphere for 4 s on mount, so ONE bounded wait settles it before direct writes.
+	local okRun, run = pcall(function()
+		return game:GetService("RunService")
+	end)
+	local dawnIsClient = okRun and run and run:IsClient() or false
+	if not dawnIsClient then
+		dawnFailAll("client VM required")
+		return
+	end
+	task.wait(5)
+
+	local function dawnApplier()
+		local okLocal, localModule = pcall(function()
+			return require(game.Players.LocalPlayer.PlayerScripts.Client.World.LookDevSubuhR8)
+		end)
+		if okLocal and type(localModule) == "table" then
+			return localModule
+		end
+		local okDirect, directModule = pcall(function()
+			return require(game.PlayerScripts.Client.World.LookDevSubuhR8)
+		end)
+		return if okDirect then directModule else nil
+	end
+
+	local look, dawnMap, api = nil, nil, nil
+	local priorId = nil
+	local function cleanup()
+		-- Clear the check override first, then restore LIFO through LookDev and re-enable the
+		-- previous candidate. restore() also clears it, but no override may leak either way.
+		if api then
+			pcall(function()
+				api.clearClockForCheck()
+			end)
+		end
+		if look then
+			pcall(function()
+				look.disable()
+			end)
+		end
+		if look and priorId then
+			pcall(function()
+				look.enable(priorId, { studio = true })
+			end)
+		end
+	end
+	local function failAll(reason)
+		cleanup()
+		dawnFailAll(reason)
+	end
+
+	local okMods, mods = pcall(function()
+		return {
+			look = require(game.ReplicatedStorage.Shared.LookDev),
+			map = require(game.ReplicatedStorage.Shared.ModelMapSubuhR8),
+			-- Registration happens at module load; a saved place's boot script may predate this one.
+			applier = dawnApplier(),
+		}
+	end)
+	if
+		not okMods
+		or type(mods) ~= "table"
+		or type(mods.look) ~= "table"
+		or type(mods.look.enable) ~= "function"
+		or type(mods.look.disable) ~= "function"
+		or type(mods.look.current) ~= "function"
+		or type(mods.map) ~= "table"
+		or type(mods.map.PHASES) ~= "table"
+		or type(mods.map.safeRanges) ~= "table"
+		or type(mods.map.monotonic) ~= "function"
+		or type(mods.map.checkReadings) ~= "function"
+		or type(mods.map.birdsAudible) ~= "function"
+		or type(mods.applier) ~= "table"
+		or type(mods.applier.setClockForCheck) ~= "function"
+		or type(mods.applier.applyPhaseNowForCheck) ~= "function"
+		or type(mods.applier.clearClockForCheck) ~= "function"
+		or type(mods.applier.safeReadings) ~= "function"
+		or type(mods.applier.isApplied) ~= "function"
+		or type(mods.applier.phaseCount) ~= "function"
+		or type(mods.applier.appliedPhase) ~= "function"
+	then
+		failAll("modules unreadable: " .. tostring(mods))
+		return
+	end
+	look, dawnMap, api = mods.look, mods.map, mods.applier
+	local okPrior, current = pcall(function()
+		return look.current()
+	end)
+	if okPrior and type(current) == "string" then
+		priorId = current
+	end
+
+	local mono = dawnMap.monotonic()
+	local monoPass = type(mono) == "table"
+		and mono.pass == true
+		and mono.steps == 3
+		and type(mono.baseJump) == "number"
+		and mono.baseJump > 0
+		and type(mono.maxJump) == "number"
+		and type(mono.limit) == "number"
+		and mono.maxJump <= mono.limit
+		and type(mono.clocks) == "table"
+		and #mono.clocks == 4
+
+	local okEnable, enableResult = pcall(function()
+		return look.enable("subuh_r8", { studio = true })
+	end)
+	if not okEnable or enableResult == false then
+		failAll("enable failed: " .. tostring(enableResult))
+		return
+	end
+
+	local errors, readings, safeFails = {}, {}, {}
+	local safeCount, phaseCount = 0, #dawnMap.PHASES
+	for index, phase in ipairs(dawnMap.PHASES) do
+		local clock = phase.clock
+		local okWrite, wrote = pcall(function()
+			return api.setClockForCheck(clock) and api.applyPhaseNowForCheck(clock)
+		end)
+		if not okWrite or wrote ~= true then
+			errors[#errors + 1] = "phase " .. index .. " direct write:" .. tostring(wrote)
+		else
+			local okRead, live = pcall(function()
+				return api.safeReadings()
+			end)
+			if not okRead then
+				errors[#errors + 1] = "phase " .. index .. " readings:" .. tostring(live)
+			else
+				local fails = dawnMap.checkReadings(live)
+				if #fails == 0 then
+					safeCount += 1
+				else
+					safeFails[#safeFails + 1] = { clock = clock, failures = fails }
+				end
+				readings[#readings + 1] = { clock = clock, values = live, failures = fails }
+			end
+		end
+		pcall(function()
+			api.clearClockForCheck()
+		end)
+	end
+
+	-- No Sound is staged by this candidate: the bed is silent while subuh_r8 is active. The pure
+	-- predicate records the 06:00 boundary; no asset id and no bird volume is written anywhere.
+	local birdsBefore = dawnMap.birdsAudible(dawnMap.PHASES[#dawnMap.PHASES - 1].clock)
+	local birdsAtSix = dawnMap.birdsAudible(dawnMap.PHASES[#dawnMap.PHASES].clock)
+	local birdsPass = birdsBefore == false and birdsAtSix == true
+	local safePass = #errors == 0 and phaseCount == 4 and safeCount == 4 and birdsPass
+
+	cleanup()
+	emit(
+		"DAWN_PHASES_MONOTONIC",
+		monoPass and #errors == 0,
+		(if type(mono) == "table" then mono.steps else 0),
+		3,
+		{
+			clocks = if type(mono) == "table" then mono.clocks else {},
+			top = if type(mono) == "table" then mono.top else {},
+			warmth = if type(mono) == "table" then mono.warmth else {},
+			maxJump = if type(mono) == "table" then mono.maxJump else 0,
+			limit = if type(mono) == "table" then mono.limit else 0,
+			baseJump = if type(mono) == "table" then mono.baseJump else 0,
+			factor = if type(mono) == "table" then mono.factor else 0,
+			errors = errors,
+			restoredPrior = priorId,
+		}
+	)
+	emit("DAWN_SAFE", safePass, safeCount, 4, {
+		readings = readings,
+		bands = dawnMap.safeRanges,
+		birdsAudibleBeforeSix = birdsBefore,
+		birdsAudibleAtSix = birdsAtSix,
+		birdVolume = 0,
+		failures = safeFails,
+		errors = errors,
+		restoredPrior = priorId,
+	})
+end
+runDawnChecks()
 end
 
 -- 10. VEG_NEAR: dense near layer at the saved camera (45 studs, 70-degree cone). A model only

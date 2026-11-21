@@ -98,7 +98,7 @@ return function(t, Env)
 
 	t:describe("rain_r8 LookDev wiring", function()
 		t:it("ships candidate 94 with a descriptor, keyed plan and client path", function()
-			expect(#LookDev.IDS):toBe(94)
+			expect(#LookDev.IDS):toBe(95)
 			expect(LookDev.IDS[94]):toBe("rain_r8")
 			local candidate = LookDev.candidates.rain_r8
 			expect(candidate.id):toBe("rain_r8")
@@ -127,7 +127,7 @@ return function(t, Env)
 		t:it("appends RAIN_* last in ORDER and emits on every path", function()
 			expect(
 				harnessSrc:find(
-					'"SEATED_COUNT",\n\t"SEATED_ON_BENCH",\n\t"CROPS_STAGED",\n\t"SEASON_SAFE",\n\t"SEASON_RESTORE",\n\t"SEASON_DISTINCT",\n\t"RAIN_EMITTERS",\n\t"RAIN_OFF_CERAH",\n\t"RAIN_COST",\n}',
+					'"SEATED_COUNT",\n\t"SEATED_ON_BENCH",\n\t"CROPS_STAGED",\n\t"SEASON_SAFE",\n\t"SEASON_RESTORE",\n\t"SEASON_DISTINCT",\n\t"RAIN_EMITTERS",\n\t"RAIN_OFF_CERAH",\n\t"RAIN_COST",\n\t"DAWN_PHASES_MONOTONIC",\n\t"DAWN_SAFE",\n}',
 					1,
 					true
 				) ~= nil

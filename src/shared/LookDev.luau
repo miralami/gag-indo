@@ -61,6 +61,7 @@
 --   src/server/World/LookDevCropsShowcaseR8.luau -- candidate "crops_showcase_r8" (three crop stage-review plots, server-only)
 --   src/client/World/LookDevSeasonR8.luau -- candidates "season_r8_hujan/kemarau/panen" (seasonal looks, client-only)
 --   src/client/World/LookDevRainR8.luau -- candidate "rain_r8" (client rain ring and morning mist, client-only)
+--   src/client/World/LookDevSubuhR8.luau -- candidate "subuh_r8" (dawn blue-to-peach grade, low mist, first lamp glow, client-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -201,6 +202,7 @@ LookDev.IDS = {
 	"season_r8_kemarau",
 	"season_r8_panen",
 	"rain_r8",
+	"subuh_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -1369,6 +1371,21 @@ LookDev.candidates = {
 		maxEmitters = 3,
 		maxRate = 60,
 	},
+
+	subuh_r8 = {
+		id = "subuh_r8",
+		title = "Client-only dawn look — cool blue-to-peach ColorShift, thin mist and the first warm lamp glow before 06:00 (round 10, client-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Pure phase table and DAWN_SAFE bands in Shared.ModelMapSubuhR8. No Sound is staged, so
+		-- birds stay silent until 06:00 while this candidate is active.
+		idsSource = "Shared.ModelMapSubuhR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		phaseCount = 4,
+		tweenMin = 20,
+		tweenMax = 40,
+		birdsSilentUntil = 6,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1767,6 +1784,17 @@ function LookDev.plan(id: string): any
 			render = c.render,
 			maxEmitters = c.maxEmitters,
 			maxRate = c.maxRate,
+		}
+	elseif id == "subuh_r8" then
+		local c = LookDev.candidates.subuh_r8
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			phaseCount = c.phaseCount,
+			tweenMin = c.tweenMin,
+			tweenMax = c.tweenMax,
+			birdsSilentUntil = c.birdsSilentUntil,
 		}
 	end
 	return nil

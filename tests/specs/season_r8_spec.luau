@@ -256,7 +256,7 @@ return function(t, Env)
 
 	t:describe("season_r8 LookDev wiring", function()
 		t:it("ships candidates 91-93 with descriptors, keyed plans and client paths", function()
-			expect(#LookDev.IDS):toBe(94)
+			expect(#LookDev.IDS):toBe(95)
 			expect(LookDev.IDS[90]):toBe("crops_showcase_r8")
 			expect(LookDev.IDS[91]):toBe("season_r8_hujan")
 			expect(LookDev.IDS[92]):toBe("season_r8_kemarau")
@@ -292,7 +292,7 @@ return function(t, Env)
 		t:it("appends SEASON_SAFE/RESTORE/DISTINCT last in ORDER and emits on every path", function()
 			expect(
 				harnessSrc:find(
-					'"SEATED_COUNT",\n\t"SEATED_ON_BENCH",\n\t"CROPS_STAGED",\n\t"SEASON_SAFE",\n\t"SEASON_RESTORE",\n\t"SEASON_DISTINCT",\n\t"RAIN_EMITTERS",\n\t"RAIN_OFF_CERAH",\n\t"RAIN_COST",\n}',
+					'"SEATED_COUNT",\n\t"SEATED_ON_BENCH",\n\t"CROPS_STAGED",\n\t"SEASON_SAFE",\n\t"SEASON_RESTORE",\n\t"SEASON_DISTINCT",\n\t"RAIN_EMITTERS",\n\t"RAIN_OFF_CERAH",\n\t"RAIN_COST",\n\t"DAWN_PHASES_MONOTONIC",\n\t"DAWN_SAFE",\n}',
 					1,
 					true
 				) ~= nil
@@ -401,7 +401,7 @@ return function(t, Env)
 				"tests/specs/sky_map_r6_spec.luau",
 			}) do
 				local src = fs.readFile(path)
-				expect(src:find("expect(count):toBe(94)", 1, true) ~= nil, path):toBe(true)
+				expect(src:find("expect(count):toBe(95)", 1, true) ~= nil, path):toBe(true)
 			end
 		end)
 	end)

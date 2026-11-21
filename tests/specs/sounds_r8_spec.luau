@@ -97,7 +97,7 @@ return function(t, Env)
 
 	t:describe("sounds_r8 wiring", function()
 		t:it("adds one SERVER candidate with the six-bed descriptor and review path", function()
-			expect(#LookDev.IDS):toBe(94)
+			expect(#LookDev.IDS):toBe(95)
 			expect(LookDev.IDS[79]):toBe("sounds_r8")
 			expect(LookDev.IDS[8]):toBe("sounds")
 			local candidate = LookDev.candidates.sounds_r8

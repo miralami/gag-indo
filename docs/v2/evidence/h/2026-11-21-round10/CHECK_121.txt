@@ -1,0 +1,41 @@
+CHECK 121 — subuh_r8 dawn look (WORK_QUEUE section N, item 121)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Fresh Play, CLIENT DataModel. Place NOT saved, nothing published.
+
+== Target (verbatim) ==
+"**`subuh_r8`: dawn look.** A dawn (04:30-06:00) preset: cool blue-to-peach `ColorShift`, soft low mist, the first warm lamp glow, birds silent until 06:00. Follows the same tween rules as `DayCycle`. **CHECKS:** `DAWN_PHASES_MONOTONIC`; `DAWN_SAFE` ranges."
+
+== Implementation (OFF by default; no shipping default changed) ==
+- NEW `src/shared/ModelMapSubuhR8.luau`: pure data, no engine API / asset ID / 6+digit literal. 4 phases clocks {4.5, 5.0, 5.5, 6.0}: ColorShift_Top {76,66,112}->{120,104,126}->{178,154,138}->{235,198,152}, Bottom {92,80,96}->{112,96,88}, Ambient {66,70,108}->{104,96,96}, Brightness 1.2/1.4/1.6/1.8, FogEnd 1200/1366/1533/1700, Atmosphere Density 0.30/0.28/0.25/0.22, Clouds Cover 0.55/0.52/0.46/0.40. `monotonic()` measures Top.R increasing AND warmth (R-B) increasing; maxJump 58/255=0.2275 <= limit 1.25x159/255=0.7794, baseJump 0.6235>0 (non-vacuity). DAWN_SAFE = intersection never wider than DayCycle/grade/rain bands: Brightness 1.2..3.2, FogEnd 40..4000, byte RGB 0..255, Density 0.22..0.35, Haze 1.0..2.4, Cover 0.35..0.60, grade bands verbatim, lamp Shadows=false/Range<=30/Brightness<=3 (recipe 14/<=0.45). `BAND_EPSILON=1e-4` float32 endpoint tolerance (ponytail: ceiling documented). `birdsAudible(clock>=6)` records bird-silence boundary; no Sound staged, no ID invented. Pure colour classifiers `BYTE_COLOR_PROPS`/`FRACTION_COLOR_PROPS`/`normalizedColor(prop,triple)` (byte /255, fractional x1).
+- NEW CLIENT applier `src/client/World/LookDevSubuhR8.luau`: DayCycle tween rules — 30 s Sine/Out TweenInfo clamped 20..40, save-first, pcall TweenService:Create + setProps direct-write fallback, LIFO exact restore. `engineColor(prop,value)` builds real `Color3` for BOTH write paths (byte triples /255, TintColor fractional x1); no raw table reaches a Roblox colour property. `setProps` saveProp-before-write. ≤6 own PointLights at `DayCycleLive.lampPositions()`, Shadows=false, Range 14, Brightness 0->0.45 across 05:00-05:30, off by 06:00, own Folder destroyed on restore. Diagnostics: `setClockForCheck`, `applyPhaseNowForCheck` (cancel tweens, direct write — no 30 s wait), `clearClockForCheck`, `currentClock` (override->Lighting.ClockTime->12), `isApplied`, `phaseCount`, `appliedPhase`, `safeReadings`. No Terrain/DataStore/player/crop write, no Strings change, no camera.
+- `src/shared/LookDev.luau`: ID 95 appended (94 -> 95), descriptor + plan branch + header. `src/shared/LookDevReview.luau`: client path. `src/client/Main.client.luau`: boot require. `tools/studio/review_check_r8.luau`: ORDER tail appended `DAWN_PHASES_MONOTONIC`/`DAWN_SAFE` after `RAIN_COST` (all earlier ORDER literals byte-identical); new `-- 9v.` own do-block with client VM gate, client applier require, one bounded `task.wait(5)`, direct-write phase loop, fail-all + 2 pass emits, override cleared and prior candidate re-enabled every path. Count literals 94 -> 95 across 46 IDS + 4 mirrors; unrelated paving count `pasar_ground_r8_spec.luau expect(counts.total):toBe(94)` left intact (toBe94=1, toBe95=52). `tests/specs/subuh_r8_spec.luau` registered; `client_error_boundary_spec.luau` mock updated. `docs/v2/visual/CANDIDATES.md`: 1 pending row. No new camera, no Strings change.
+
+== TWO REAL BUGS FOUND AND FIXED (no check weakened, no band widened) ==
+BUG 1 — Color3 properties never written by the direct-write path. `setProps` assigned plain byte-triple tables to Color3 properties inside pcall -> silent no-op; every phase read topR=247/topB=166 (baseline) regardless of clock. `tweenProps` passed the same raw tables to TweenService:Create. FIX: `engineColor(prop,value)` converts all 7 colour props (FogColor, Ambient, OutdoorAmbient, ColorShift_Top/Bottom, Atmosphere.Color/Decay byte; TintColor fractional) to real `Color3.new` before either write path. Also fixed `pcall(TweenInfo.new, ...)` nil-global fault by wrapping in a function. Lune regression locks added.
+BUG 2 — float32 boundary false FAIL. At clock 6.0 `Atmosphere.Density=0.2199999988079071` (authored 0.22) failed band min 0.22 on exact float comparison; TintColor:B also failed from BUG 1 baseline. FIX: `BAND_EPSILON=1e-4` on numeric band comparisons (precision tolerance, NOT band widening — safeRanges unchanged). Lune non-vacuity lock: boundary 0.22-1e-5 passes, 0.21 fails.
+
+== Method (fresh Play, CLIENT VM; equivalent ad hoc execute_luau probe; whole harness cannot be injected with pre-set state) ==
+Modules synced from source (`Players.LocalPlayer.PlayerScripts.Client.World.LookDevSubuhR8` present, `#IDS==95`, last id `subuh_r8`). Real `LookDev.enable("subuh_r8",{studio=true})`; for each phase `setClockForCheck(clock)` + `applyPhaseNowForCheck(clock)` (cancel tweens, direct write); live Lighting/Atmosphere/Clouds/effects read from the running Client VM; `M.checkReadings(A.safeReadings())` used verbatim for the safe band verdict. Lamp PointLights enumerated under the candidate folder; `Shadows`/`Range`/`Brightness` checked against item-122 limits and the authored ramp. No place saved.
+
+== Verbatim check lines (final canonical fresh-Play run, both PASS) ==
+CHECK DAWN_PHASES_MONOTONIC PASS 3 3
+CHECK DAWN_SAFE PASS 4 4
+Phase readings (verbatim):
+  subuh_0430 bright=1.20 top=(76,66,112) dens=0.300 cover=0.550 lamps=6 lampB=0.000 fails=[] changed=true lampOk=true
+  subuh_0500 bright=1.40 top=(120,104,126) dens=0.280 cover=0.520 lamps=6 lampB=0.000 fails=[] changed=true lampOk=true
+  subuh_0530 bright=1.60 top=(178,154,138) dens=0.250 cover=0.460 lamps=6 lampB=0.450 fails=[] changed=true lampOk=true
+  pagi_0600  bright=1.80 top=(235,198,152) dens=0.220 cover=0.400 lamps=6 lampB=0.000 fails=[] changed=true lampOk=true
+4/4 phases changed to the authored endpoint (proof the direct-write path — the one the harness uses — actually writes colours), 0 band failures, 6 lamps each with Shadows=false/Range=14/Brightness<=0.45, warm glow present only at 05:30.
+
+== Non-vacuity / discrimination ==
+- Synthetic Brightness=100 in `safeReadings()` was flagged by `M.checkReadings` (band check not vacuous).
+- Synthetic corrupt phase `top.r=999` broke `M.monotonic().pass` (monotonic check not vacuous).
+- 1 s hold at clock 4.5: all read values unchanged (`held=true`) — direct writes are stable, no tween re-entry.
+- Exact restore: all snapshotted Lighting/Atmosphere/effects/Clouds values returned to baseline within 1e-4, folder destroyed, `isApplied()==false`, clock returned to baseline 16.23, Workspace descendant count back to baseline, `LookDev.current()` back to prior (`restored=true`). Tail confirm: `current` empty, `folder=false`, `applied=false`.
+- Bird silence: `birdsAudible(5.5)==false`, `birdsAudible(6)==true`; no Sound staged by this candidate; single-active LookDev means the off-by-default sounds_r8 bed cannot play while subuh_r8 is active (silence before 06:00 by omission). Aural quality not otherwise judged.
+
+== Validation / scope ==
+lune run tests/run.luau: All 2843 tests passed (including new colour-conversion, epsilon and count/ORDER locks). selene src: 0 errors / 0 warnings / 0 parse errors. stylua --check clean on all 56 changed/new Luau files. git diff --check clean. All existing checks byte-identical. Two pre-existing R7 catalog ContentId warnings (`rbxassetid://203785492`) appeared, unrelated to this candidate. Visual "dawn reads cool-blue-to-peach / mist reads soft / lamp reads warm" NOT judged — no screenshot pixels retained; no visual verdict claimed. No asset IDs invented, no publish, no place save.
+
+Status: SEEN-IN-STUDIO (fresh Client Play; DAWN_PHASES_MONOTONIC 3/3, DAWN_SAFE 4/4; two real runtime bugs fixed — raw-table Color3 writes and float32 band endpoint, plus nil TweenInfo pcall; synthetic brightness/phase discriminated, 1 s hold stable, exact restore + no override leak). No visual or aural verdict.

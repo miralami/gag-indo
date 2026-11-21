@@ -120,6 +120,7 @@ LookDevReview.paths = {
 	season_r8_kemarau = { datamodel = "client", path = { "World", "LookDevSeasonR8" } },
 	season_r8_panen = { datamodel = "client", path = { "World", "LookDevSeasonR8" } },
 	rain_r8 = { datamodel = "client", path = { "World", "LookDevRainR8" } },
+	subuh_r8 = { datamodel = "client", path = { "World", "LookDevSubuhR8" } },
 }
 
 function LookDevReview.pathsFor(id: string): any?

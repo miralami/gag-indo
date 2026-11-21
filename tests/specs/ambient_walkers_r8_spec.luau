@@ -103,7 +103,7 @@ return function(t, Env)
 
 	t:describe("ambient_walkers_r8 LookDev wiring", function()
 		t:it("registers candidate 73 with a server review path", function()
-			expect(#LookDev.IDS):toBe(94)
+			expect(#LookDev.IDS):toBe(95)
 			expect(LookDev.IDS[73]):toBe("ambient_walkers_r8")
 			expect(LookDev.isCandidate("ambient_walkers_r8")):toBe(true)
 			local candidate = LookDev.candidates.ambient_walkers_r8

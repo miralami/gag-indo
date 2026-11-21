@@ -42,6 +42,7 @@
 --   src/server/World/LookDevRocksR9.luau -- candidate "rocks_r9" (half-buried boulders and stones, server-only)
 --   src/server/World/LookDevStreetFurnR8.luau -- candidate "streetfurn_r8" (road furniture, server-only)
 --   src/server/World/LookDevSpandukR8.luau -- candidate "spanduk_r8" (banners and signage, server-only)
+--   src/client/World/LookDevAnimalsR8.luau -- candidate "animals_r8" (village animals, client-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -150,6 +151,7 @@ LookDev.IDS = {
 	"rocks_r9",
 	"streetfurn_r8",
 	"spanduk_r8",
+	"animals_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -933,6 +935,19 @@ LookDev.candidates = {
 		signCount = 4,
 		buntingStrings = 2,
 	},
+
+	animals_r8 = {
+		id = "animals_r8",
+		title = "Village animals — ayam by the warung, bebek by the river, kambing by the sawah and a kucing on a roof (round 9, client-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Pure deterministic wander data in Shared.ModelMapAnimalsR8; simple original Parts built
+		-- on the client and moved by ONE Heartbeat loop. No asset IDs, Rendah budget <= 14 animals.
+		idsSource = "Shared.ModelMapAnimalsR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		maxAnimals = 14,
+		animalCount = 11,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1124,6 +1139,7 @@ function LookDev.plan(id: string): any
 		or id == "rocks_r9"
 		or id == "streetfurn_r8"
 		or id == "spanduk_r8"
+		or id == "animals_r8"
 	then
 		local c = LookDev.candidates[id]
 		return {

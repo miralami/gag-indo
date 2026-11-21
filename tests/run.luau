@@ -190,6 +190,7 @@ local specs = {
 	require("./specs/rocks_r9_spec"),
 	require("./specs/streetfurn_r8_spec"),
 	require("./specs/spanduk_r8_spec"),
+	require("./specs/animals_r8_spec"),
 	require("./specs/review_cameras_o_spec"),
 }
 

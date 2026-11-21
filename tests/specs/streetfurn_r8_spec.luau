@@ -122,7 +122,7 @@ return function(t, Env)
 
 	t:describe("streetfurn_r8 Strings, LookDev wiring and review harness", function()
 		t:it("ships candidate 65 with Strings parity keys", function()
-			expect(#LookDev.IDS):toBe(66)
+			expect(#LookDev.IDS):toBe(67)
 			expect(LookDev.IDS[65]):toBe("streetfurn_r8")
 			local candidate = LookDev.candidates.streetfurn_r8
 			expect(candidate.id):toBe("streetfurn_r8")
@@ -152,7 +152,7 @@ return function(t, Env)
 		t:it("adds the three new checks next to the path family in ORDER", function()
 			expect(
 				harnessSrc:find(
-					'"PATH_EDGE",\n\t"STREETFURN",\n\t"STRINGS_PARITY",\n\t"STREETFURN_CLEAR",\n\t"SIGN_TEXT_PARITY",\n\t"SIGN_FACING",\n\t"PATH_CLEAR",\n\t"PATH_EDGE_OFFSET",\n\t"ROCK_COUNT",',
+					'"PATH_EDGE",\n\t"STREETFURN",\n\t"STRINGS_PARITY",\n\t"STREETFURN_CLEAR",\n\t"SIGN_TEXT_PARITY",\n\t"SIGN_FACING",\n\t"ANIMAL_COUNT",\n\t"ANIMAL_BOUNDS",\n\t"ANIMAL_COST",\n\t"PATH_CLEAR",\n\t"PATH_EDGE_OFFSET",\n\t"ROCK_COUNT",',
 					1,
 					true
 				) ~= nil

@@ -648,3 +648,26 @@ the CHECK evidence and tracker ticks. No place is saved or published.
    `docs/v2/visual/REVIEW_CAMERAS.md`, so shoot those review cameras when grading the board fronts.
 4. Re-read the guards `LOAD_FAILURES 0 0` and `LOOKDEV_LEAK 0`; stop Play without saving. Visual
    grading stays the designer's.
+
+## Item-82 run — `animals_r8` village animals (WORK_QUEUE section M)
+
+Run-note recipe. **No Studio result is claimed** by the implementation agent; the main session owns
+the CHECK evidence and tracker ticks. No place is saved or published.
+
+1. Inject at runtime (not saved): `ReplicatedStorage.Shared.ModelMapAnimalsR8`, the changed
+   `Shared.LookDev` and `Shared.LookDevReview`, the new
+   `PlayerScripts.Client.World.LookDevAnimalsR8`, and the changed
+   `tools/studio/review_check_r8.luau`.
+2. Start a fresh real Play session. The three item checks are READ-ONLY and need NO staged candidate:
+   they call the pure module's spawn/stepAll with the live `ServerScriptService.Server.World.MapSpec`.
+3. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the SERVER
+   VM (the Client VM cannot read MapSpec, so every ANIMAL_* line FAILs there by design). Read
+   `ANIMAL_COUNT` (1..14, per-kind counts 4 ayam / 4 bebek / 2 kambing / 1 kucing),
+   `ANIMAL_BOUNDS` (0 offenders over 3600 steps of 1/60 s; `|x|,|z| <= TERRAIN_HALF`,
+   `y >= GROUND_Y - 0.05`; detail carries min/max x/z/y and any offenders) and `ANIMAL_COST`
+   (average `os.clock` step < 0.3 ms; detail carries the total and step count). No 60-second real
+   wait is involved.
+4. For a visual pass only, stage the client applier from the CLIENT datamodel with
+   `require(game.ReplicatedStorage.Shared.LookDevReview).enable("animals_r8", game)` and shoot
+   `hub_warung`, `river_rocks` and `sawah_above` from `docs/v2/visual/REVIEW_CAMERAS.md`. Re-read
+   `LOOKDEV_LEAK 0` after disable; stop Play without saving. Visual yes/no stays the designer's.

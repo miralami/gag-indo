@@ -49,6 +49,11 @@
 -- and READ-ONLY, inspect only LookDevSpandukR8_spanduk_r8, and FAIL when the folder, Strings keys or
 -- the named ReviewCameras are missing. SIGN_FACING measures each staged sign board's LookVector
 -- (XZ) against the horizontal sign->camera direction and requires <= 30deg; the angle is not relaxed.
+-- It also emits the item-82 animals_r8 family: ANIMAL_COUNT, ANIMAL_BOUNDS and ANIMAL_COST. All three
+-- are READ-ONLY and run in the SERVER VM: they require pure Shared.ModelMapAnimalsR8 and the same
+-- ServerScriptService.Server.World.MapSpec the other MapSpec checks use. No candidate is staged, no
+-- folder is mutated, and the 60-second horizon is a deterministic pure simulation (no real wait).
+-- Missing module or MapSpec FAILs every animal line, never a skip.
 -- It also emits the r8 water family (WORK_QUEUE item 76): WATER_SAFE and WATER_RESTORE. Both are
 -- CLIENT-only and mutate Terrain in one guarded enable/read/disable/compare cycle per variant,
 -- restoring the prior active candidate at the end. WATER_DEFAULT (WORK_QUEUE item 137) is a
@@ -166,6 +171,9 @@ local ORDER = {
 	"STREETFURN_CLEAR",
 	"SIGN_TEXT_PARITY",
 	"SIGN_FACING",
+	"ANIMAL_COUNT",
+	"ANIMAL_BOUNDS",
+	"ANIMAL_COST",
 	"PATH_CLEAR",
 	"PATH_EDGE_OFFSET",
 	"ROCK_COUNT",
@@ -5558,6 +5566,163 @@ emit(
 	#sdAngles > 0 and math.floor(sdWorst * 100) / 100 or "ERR",
 	"<=" .. SD_MAX_ANGLE .. "deg",
 	{ checked = sdFacingChecked, angles = sdAngles, failures = sdFacingFails, reason = sdFacingReason }
+)
+end
+
+do
+-- 9h-3. WORK_QUEUE section M item 82: animals_r8. Three NEW READ-ONLY checks in the SERVER VM.
+-- MapSpec lives under ServerScriptService.Server.World and the shared animal module is pure, so
+-- requiring both fails in the Client VM. No staging, no folder mutation and no 60-second wait:
+-- the horizon is a deterministic stepAll() simulation measured with os.clock.
+local AR8_MODULE = nil
+local okAr8Module, ar8Module = pcall(function()
+	return require(game.ReplicatedStorage.Shared.ModelMapAnimalsR8)
+end)
+if okAr8Module and type(ar8Module) == "table" then
+	AR8_MODULE = ar8Module
+end
+local AR8_BOUNDS = nil
+if AR8_MODULE and mapSpecReady and type(AR8_MODULE.bounds) == "function" then
+	local okBounds, built = pcall(function()
+		return AR8_MODULE.bounds(MapSpec)
+	end)
+	if okBounds and type(built) == "table" then
+		AR8_BOUNDS = built
+	end
+end
+local AR8_STATES = {}
+local ar8Reason = nil
+if not AR8_MODULE then
+	ar8Reason = "Shared.ModelMapAnimalsR8 not readable"
+elseif not AR8_BOUNDS then
+	ar8Reason = "MapSpec bounds not readable (Server VM required)"
+else
+	local okSpawn, spawned = pcall(function()
+		return AR8_MODULE.spawn(MapSpec)
+	end)
+	if okSpawn and type(spawned) == "table" and #spawned > 0 then
+		AR8_STATES = spawned
+	else
+		ar8Reason = "spawn failed: " .. tostring(spawned)
+	end
+end
+
+-- ANIMAL_COUNT: 1..14 animals, each with a known kind. Detail carries per-kind counts.
+local ar8ValidKinds = 0
+local ar8Counts = {}
+if AR8_MODULE then
+	for _, kind in ipairs(AR8_MODULE.KINDS or {}) do
+		ar8Counts[kind] = 0
+	end
+end
+for _, state in ipairs(AR8_STATES) do
+	local kind = state.kind
+	if ar8Counts[kind] == nil then
+		ar8Counts[kind] = 0
+	end
+	ar8Counts[kind] += 1
+	local known = false
+	if AR8_MODULE then
+		for _, expected in ipairs(AR8_MODULE.KINDS or {}) do
+			if expected == kind then
+				known = true
+				break
+			end
+		end
+	end
+	if known then
+		ar8ValidKinds += 1
+	end
+end
+local ar8CountPass = AR8_MODULE ~= nil
+	and #AR8_STATES > 0
+	and #AR8_STATES <= AR8_MODULE.MAX_ANIMALS
+	and ar8ValidKinds == #AR8_STATES
+emit(
+	"ANIMAL_COUNT",
+	ar8CountPass,
+	#AR8_STATES,
+	"1.." .. tostring(AR8_MODULE and AR8_MODULE.MAX_ANIMALS or 14),
+	{ counts = ar8Counts, validKinds = ar8ValidKinds, reason = ar8Reason }
+)
+
+-- ANIMAL_BOUNDS + ANIMAL_COST: one 60-second deterministic sim (3600 steps at 1/60 s). Track every
+-- intermediate position, never only the final one; measure the whole loop with os.clock.
+local AR8_SECONDS = AR8_MODULE and AR8_MODULE.SIM_SECONDS or 60
+local AR8_DT = AR8_MODULE and AR8_MODULE.DT or (1 / 60)
+local AR8_TOL = AR8_MODULE and AR8_MODULE.BOUND_TOLERANCE or 0.05
+local ar8Steps = math.max(1, math.ceil(AR8_SECONDS / AR8_DT))
+local ar8MinX, ar8MaxX = math.huge, -math.huge
+local ar8MinZ, ar8MaxZ = math.huge, -math.huge
+local ar8MinY, ar8MaxY = math.huge, -math.huge
+local ar8Offenders = {}
+local function ar8Track()
+	for _, state in ipairs(AR8_STATES) do
+		local p = state.position
+		ar8MinX, ar8MaxX = math.min(ar8MinX, p.x), math.max(ar8MaxX, p.x)
+		ar8MinZ, ar8MaxZ = math.min(ar8MinZ, p.z), math.max(ar8MaxZ, p.z)
+		ar8MinY, ar8MaxY = math.min(ar8MinY, p.y), math.max(ar8MaxY, p.y)
+		if
+			math.abs(p.x) > MapSpec.TERRAIN_HALF + AR8_TOL
+			or math.abs(p.z) > MapSpec.TERRAIN_HALF + AR8_TOL
+			or p.y < MapSpec.GROUND_Y - AR8_TOL
+		then
+			if #ar8Offenders < 8 then
+				ar8Offenders[#ar8Offenders + 1] = string.format(
+					"%s@%.2f,%.2f,%.2f",
+					tostring(state.id),
+					p.x,
+					p.y,
+					p.z
+				)
+			end
+		end
+	end
+end
+local ar8Elapsed = 0
+local ar8SimOk = AR8_MODULE ~= nil and AR8_BOUNDS ~= nil and #AR8_STATES > 0 and mapSpecReady
+if ar8SimOk then
+	ar8Track()
+	local started = os.clock()
+	for _ = 1, ar8Steps do
+		AR8_MODULE.stepAll(AR8_STATES, AR8_DT, AR8_BOUNDS)
+		ar8Track()
+	end
+	ar8Elapsed = os.clock() - started
+end
+emit(
+	"ANIMAL_BOUNDS",
+	ar8SimOk and #ar8Offenders == 0,
+	#ar8Offenders,
+	0,
+	{
+		seconds = AR8_SECONDS,
+		dt = AR8_DT,
+		steps = ar8Steps,
+		tolerance = AR8_TOL,
+		minX = ar8MinX == math.huge and "ERR" or math.floor(ar8MinX * 100) / 100,
+		maxX = ar8MaxX == -math.huge and "ERR" or math.floor(ar8MaxX * 100) / 100,
+		minZ = ar8MinZ == math.huge and "ERR" or math.floor(ar8MinZ * 100) / 100,
+		maxZ = ar8MaxZ == -math.huge and "ERR" or math.floor(ar8MaxZ * 100) / 100,
+		minY = ar8MinY == math.huge and "ERR" or math.floor(ar8MinY * 100) / 100,
+		maxY = ar8MaxY == -math.huge and "ERR" or math.floor(ar8MaxY * 100) / 100,
+		offenders = ar8Offenders,
+		reason = ar8Reason,
+	}
+)
+local ar8MsPerStep = ar8SimOk and (ar8Elapsed * 1000 / ar8Steps) or math.huge
+emit(
+	"ANIMAL_COST",
+	ar8SimOk and ar8MsPerStep < (AR8_MODULE and AR8_MODULE.MAX_STEP_MS or 0.3),
+	math.floor(ar8MsPerStep * 10000) / 10000,
+	"<" .. tostring(AR8_MODULE and AR8_MODULE.MAX_STEP_MS or 0.3) .. "ms",
+	{
+		totalMs = math.floor(ar8Elapsed * 1000 * 100) / 100,
+		steps = ar8Steps,
+		animals = #AR8_STATES,
+		msPerStep = ar8MsPerStep,
+		reason = ar8Reason,
+	}
 )
 end
 

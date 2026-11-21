@@ -106,7 +106,7 @@ return function(t, Env)
 
 	t:describe("pasar_awnings_r8 LookDev wiring and review harness", function()
 		t:it("ships candidate 61 with a descriptor, plan and server review path", function()
-			expect(#LookDev.IDS):toBe(66)
+			expect(#LookDev.IDS):toBe(67)
 			expect(LookDev.IDS[61]):toBe("pasar_awnings_r8")
 			local candidate = LookDev.candidates.pasar_awnings_r8
 			expect(candidate.id):toBe("pasar_awnings_r8")

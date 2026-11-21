@@ -164,6 +164,15 @@ the new SIGN locals; fixed by scoping the two checks in a `do...end` block, no c
 PERF_BUDGET 359/500 staged — above the 334/500 default, under the Sedang proxy; FLAGGED, off by
 default. Suite **2570 tests**; `selene src` 0/0/0.
 
+Item 82 COMPLETE: `animals_r8` stages 11 simple-Part animals (4 ayam by the warung, 4 bebek by the
+river, 2 kambing near the sawah, 1 kucing on a roof) behind ONE client Heartbeat loop driving a pure
+shared step function with MapSpec-derived wander bands; no asset IDs. Real Studio Server-VM PASS on a
+deterministic 60 s sim (3600 steps) `ANIMAL_COUNT 11 1..14`, `ANIMAL_BOUNDS 0 offenders` (X ±400,
+Y 0.5..22.5 above the 0.5 ground plane), `ANIMAL_COST 0.0068 <0.3ms/step`, `CAMERA_CLEAR 0/42`
+(`h/2026-11-21-round9/CHECK_082.txt`). No real 60 s wait — deterministic sim in a `do...end` harness
+scope. PERF_BUDGET 334/500 — equal to default, under the Sedang proxy. Suite **2580 tests**;
+`selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

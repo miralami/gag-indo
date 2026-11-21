@@ -1036,7 +1036,18 @@ Same rules as section M (candidates off by default, Studio PASS per item, no gam
 
 #### N2. More village
 
-- [ ] 108. **`lapangan_r8`: the field.** The village field (lapangan) gets two goal posts, a flagpole with a red-white flag, bamboo benches along one side, a boundary of white-painted stones and a few sandy patches, using `MapSpec` for position. **CHECKS:** `LAPANGAN_PARTS` per kind; `PATH_REACH` for the field edge; the goal posts are sized against the 7.25-stud avatar (a 2.2-stud-tall-per-avatar-height ratio is fine; document the numbers you chose in the module).
+- [x] 108. **`lapangan_r8`: the field.** The village field (lapangan) gets two goal posts, a flagpole with a red-white flag, bamboo benches along one side, a boundary of white-painted stones and a few sandy patches, using `MapSpec` for position. **CHECKS:** `LAPANGAN_PARTS` per kind; `PATH_REACH` for the field edge; the goal posts are sized against the 7.25-stud avatar (a 2.2-stud-tall-per-avatar-height ratio is fine; document the numbers you chose in the module).
+  Done 2026-11-22: NEW pure `ModelMapLapanganR8` (MapSpec.LAPANGAN-local offsets, 54 original Parts:
+  goal 6, flagpole 3, bench 16, stone 24, sand 5) + NEW server `LookDevLapanganR8` applier
+  (anchored, non-collidable, save/detach/restore). Goal sizing documented in-module:
+  AVATAR_HEIGHT 7.25 x GOAL_RATIO 2.2 = GOAL_HEIGHT 15.95 studs; both goals structural. New ID 80
+  (36 specs count 79->80), review path, harness checks `LAPANGAN_PARTS`/`LAPANGAN_PATH_REACH`/
+  `LAPANGAN_GOAL_SIZE`, new spec + registration, CANDIDATES.md pending row. Real Studio fresh-Play
+  Server-VM PASS (`CHECK_108.txt`, `SEEN-IN-STUDIO`): per-kind counts all match, 0/5 field-edge
+  corridors blocked, goal bbox 15.94~15.95 (2 goals), PFS field-edge routes 4/4, restore/re-enable
+  PASS, anti-vacuity parts=54 corridors=5 goals=2. `LAPANGAN_PATH_REACH` name used instead of bare
+  `PATH_REACH` (that name belongs to the existing 6-hub read-only check). 2702 tests, selene 0/0/0.
+  Candidate off by default; no shipping default changed. No new camera (item 133 owns that).
 - [ ] 109. **`pasar_ground_r8`: Pasar ground.** Around the Pasar, flat paving stones and cobble patches (parts, `Material` Cobblestone/Slate, no terrain edit), drainage gutters along the building edges, and a cleared 6-stud walking lane between stalls. **CHECKS:** `PASAR_PAVING` ≥ 60 pieces; `LANE_CLEAR`: the 6-stud lane has no collidable parts; paving is within 0.15 studs of ground height so nobody trips.
 - [ ] 110. **`musala_r8`: musala (small prayer house).** A small musala with a green dome or tiered roof, a pengeras suara horn on a pole, a wudhu tap area and a shoe rack. Built from parts, modest in size, respectful. Place it with a clear approach on the village side of the ring road. **CHECKS:** `MUSALA_PARTS` ≥ 25; `DOOR_CLEAR` for its door; `PATH_REACH` to its door. Mark it in `CANDIDATES.md` as `needs designer review: cultural content`.
 - [ ] 111. **`lumbung_r8`: lumbung and pekarangan.** A rice barn (lumbung padi) on stilts, garden fences with toga herbs and chilli pots, a tempat jemur padi (drying mat on the ground) and a well-swept dirt yard around each of three houses. **CHECKS:** counts per kind; `PROPS_ON_GRASS` = 0 for the yard pads; `DOOR_CLEAR`.

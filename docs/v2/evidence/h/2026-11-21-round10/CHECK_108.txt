@@ -1,0 +1,81 @@
+CHECK 108 — lapangan_r8 village field (WORK_QUEUE section N, item 108)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Fresh Play, Server DataModel. Place NOT saved, nothing published.
+
+== Target (verbatim) ==
+"`lapangan_r8`: the field. The village field (lapangan) gets two goal posts, a flagpole with a
+red-white flag, bamboo benches along one side, a boundary of white-painted stones and a few sandy
+patches, using `MapSpec` for position. CHECKS: `LAPANGAN_PARTS` per kind; `PATH_REACH` for the field
+edge; the goal posts are sized against the 7.25-stud avatar (a 2.2-stud-tall-per-avatar-height
+ratio is fine; document the numbers you chose in the module)."
+
+== Implementation (all OFF by default; no shipping default changed) ==
+- NEW `src/shared/ModelMapLapanganR8.luau`: pure, engine-API-free MapSpec-derived data. Anchors are
+  LAPANGAN-LOCAL offsets; applier adds `MapSpec.LAPANGAN.x/.z`. Documents the goal sizing inline:
+  `AVATAR_HEIGHT = 7.25`, `GOAL_RATIO = 2.2`, `GOAL_HEIGHT = 15.95` studs; both goal Models are
+  protected structural pieces (2 posts + 1 crossbar each), never thinned. Exposes `counts()` and
+  five walking corridors (`west/east/north/south/road_south`).
+- NEW `src/server/World/LookDevLapanganR8.luau`: server applier, folder
+  `LookDevLapanganR8_lapangan_r8`; all 54 Parts anchored, `CanCollide=false`, tagged
+  `LapanganKind`/stage attribute; `apply`/`restore` save-detach-restore the prior folder; registers
+  candidate. No asset IDs, no brand marks, no terrain edit.
+- `src/shared/LookDev.luau`: `lapangan_r8` appended as ID 80 (79 -> 80); descriptor + plan branch.
+  `src/shared/LookDevReview.luau`: server path `{ "World", "LookDevLapanganR8" }`.
+- `tools/studio/review_check_r8.luau`: `ORDER` gets `LAPANGAN_PARTS`, `LAPANGAN_PATH_REACH`,
+  `LAPANGAN_GOAL_SIZE`; new `do...end` block at section `-- 9i. WORK_QUEUE section N item 108`
+  (line 6159+) with non-vacuous failure paths. `LAPANGAN_PATH_REACH` (distinct name: the existing
+  read-only `PATH_REACH` 6-hub check owns the bare name) builds the five data corridors via
+  `MapSpec.LAPANGAN`, checks 0 staged parts overlap them (`OVERLAP_TOL=0.05`), and fails on a
+  missing folder/data/MapSpec.
+- NEW `tests/specs/lapangan_r8_spec.luau` + registration in `tests/run.luau`.
+- 36 specs' `#LookDev.IDS == 79` literals bumped to 80 (all diff lines verified to be only 79->80).
+- `docs/v2/visual/CANDIDATES.md`: pending 6-column row, existing `REVIEW_ROUND9.md` render path.
+  No new review camera this item (item 133 owns camera additions).
+
+== Method (fresh Play, Server VM, single-active stage) ==
+`LookDevReview.enable("lapangan_r8", game, {studio=true})` returned true; staging folder present
+with 54 BaseParts. Read the real `ModelMapLapanganR8.counts()` and `MapSpec.LAPANGAN`/`ROAD`; counted
+tagged parts by `LapanganKind`, measured each goal Model with `GetBoundingBox()`, and scanned the
+five field-local corridors (translated by `MapSpec.LAPANGAN.x/.z`) for staged-part AABB overlap.
+The three check blocks in `review_check_r8.luau` were executed as an equivalent ad hoc execute_luau
+probe (item 103/105 precedent — the whole harness file cannot be injected with a pre-set candidate
+state). This item's `PATH_REACH` is the field-edge corridor check; a real `PathfindingService` route
+run was added as extra evidence.
+
+== Verbatim check lines (single canonical run, all PASS) ==\nKIND goal 6 6
+KIND flagpole 3 3
+KIND bench 16 16
+KIND stone 24 24
+KIND sand 5 5
+CHECK LAPANGAN_PARTS PASS counted expected
+CORRIDOR west blocked=0
+CORRIDOR east blocked=0
+CORRIDOR north blocked=0
+CORRIDOR south blocked=0
+CORRIDOR road_south blocked=0
+CHECK LAPANGAN_PATH_REACH PASS 0 0
+CHECK LAPANGAN_GOAL_SIZE PASS 15.94 15.95 models=2 heights=15.94,15.94
+CHECK ANTIVAC folder=true parts=54 tagged=54 corridors=5 goals=2 avatar=7.25 ratio=2.2
+
+Goal bbox measured 15.94 vs the documented 15.95 (crossbar top rounding), inside the harness's
+0.5-stud tolerance; both goals present; ratio 2.2 x the 7.25-stud avatar documented in the module.
+Measurement read 2 goals x 3 parts + 1 flagpole x 3 parts + 4 benches x 4 parts + 24 stones + 5
+sand patches = 54 parts; catalogue row corrected to 54.
+
+== Extra route + lifecycle evidence ==\nCHECK LAPANGAN_PFS_EDGE PASS 4 4
+CHECK LAPANGAN_RESTORE PASS folderAfterDisable=false folderAfterEnable=true
+Four `PathfindingService:CreatePath({AgentRadius=2, AgentHeight=5.5, AgentCanJump=false})` routes
+from `MapSpec.SPAWN` to west/east/north/south points just outside the field edge all returned
+`Enum.PathStatus.Success`. `disable` removed the folder; a second `enable` re-created it.
+
+== Validation / scope ==
+lune run tests/run.luau: All 2702 tests passed. selene src: 0 errors / 0 warnings / 0 parse
+errors. stylua --check clean on all changed Luau files. git diff --check clean (pre-existing
+LF->CRLF notices only). Play stopped after verification; no place saved, nothing published. No
+visual, copy or aural verdict. Candidate remains off by default; no shipping default changed.
+
+Status: SEEN-IN-STUDIO (fresh Play Server VM, lapangan_r8 staged; LAPANGAN_PARTS per-kind counts
+match, LAPANGAN_PATH_REACH 0/5 blocked, LAPANGAN_GOAL_SIZE 15.94~15.95 with 2.2x7.25 documented,
+PFS field-edge routes 4/4, restore/re-enable lifecycle PASS; anti-vacuity 54 tagged parts, 5
+corridors, 2 goals).

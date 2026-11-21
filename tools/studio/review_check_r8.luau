@@ -268,6 +268,9 @@ local ORDER = {
 	"SOUND_LOADED",
 	"SOUND_VOLUME",
 	"SOUND_RESTORE",
+	"LAPANGAN_PARTS",
+	"LAPANGAN_PATH_REACH",
+	"LAPANGAN_GOAL_SIZE",
 	"LOOKDEV_LEAK",
 }
 
@@ -6150,6 +6153,246 @@ emit(
 	"13 off / 20 on / 5 on",
 	{ readings = SR8_CLOCKS, reason = SR8_REASON }
 )
+end
+
+do
+-- 9i. WORK_QUEUE section N item 108: lapangan_r8. THREE checks over the staged
+-- LookDevLapanganR8_lapangan_r8 folder: LAPANGAN_PARTS counts every tagged part per kind against
+-- Shared.ModelMapLapanganR8.counts(); LAPANGAN_PATH_REACH builds five MapSpec.LAPANGAN/ROAD walking
+-- corridors and requires zero staged parts inside them (stricter than a collidable-only test
+-- because all staged parts are non-collidable by construction); LAPANGAN_GOAL_SIZE measures the two
+-- goal Models' bbox height against GOAL_HEIGHT = 15.95 with 0.5 stud tolerance. This block stages
+-- the candidate and restores the prior single candidate at the end; every failure path emits all
+-- three lines, so none is a vacuous pass.
+local LAPANGAN_FOLDER = "LookDevLapanganR8_lapangan_r8"
+local LAPANGAN_ID = "lapangan_r8"
+local LAPANGAN_GOAL_TOL = 0.5
+local LAPANGAN_FALLBACK_KINDS = { "goal", "flagpole", "bench", "stone", "sand" }
+
+local okLapanganModules, lapanganModules = pcall(function()
+	return {
+		data = require(game.ReplicatedStorage.Shared.ModelMapLapanganR8),
+		look = require(game.ReplicatedStorage.Shared.LookDev),
+		review = require(game.ReplicatedStorage.Shared.LookDevReview),
+	}
+end)
+local lapanganData: any? = nil
+if okLapanganModules and type(lapanganModules) == "table" and type(lapanganModules.data) == "table" then
+	lapanganData = lapanganModules.data
+end
+local lapanganExpected: any? = nil
+if lapanganData and type(lapanganData.counts) == "function" then
+	local okCounts, counts = pcall(function()
+		return (lapanganData :: any).counts()
+	end)
+	if okCounts and type(counts) == "table" then
+		lapanganExpected = counts
+	end
+end
+
+local function lapanganFail(reason)
+	local measuredParts, targetParts = {}, {}
+	local kinds = LAPANGAN_FALLBACK_KINDS
+	if lapanganData and type((lapanganData :: any).KINDS) == "table" then
+		kinds = (lapanganData :: any).KINDS
+	end
+	for _, kind in ipairs(kinds) do
+		measuredParts[#measuredParts + 1] = kind .. "=0"
+		targetParts[#targetParts + 1] = kind .. "=" .. tostring(lapanganExpected and lapanganExpected[kind] or "?")
+	end
+	local detail = { reason = reason, folderPresent = folderNamed(LAPANGAN_FOLDER) ~= nil }
+	emit("LAPANGAN_PARTS", false, table.concat(measuredParts, " "), table.concat(targetParts, " "), detail)
+	emit("LAPANGAN_PATH_REACH", false, 1, 0, detail)
+	emit("LAPANGAN_GOAL_SIZE", false, 0, lapanganData and (lapanganData :: any).GOAL_HEIGHT or 15.95, detail)
+end
+
+local lapanganRunService = service("RunService")
+local okLapanganServer, lapanganIsServer = false, false
+if lapanganRunService then
+	okLapanganServer, lapanganIsServer = pcall(function()
+		return (lapanganRunService :: any):IsServer()
+	end)
+end
+local lapanganLook = okLapanganModules and (lapanganModules :: any).look or nil
+local lapanganReview = okLapanganModules and (lapanganModules :: any).review or nil
+if
+	not lapanganData
+	or not lapanganExpected
+	or not okLapanganServer
+	or not lapanganIsServer
+	or type(lapanganLook) ~= "table"
+	or type(lapanganLook.enable) ~= "function"
+	or type(lapanganLook.disable) ~= "function"
+	or type(lapanganReview) ~= "table"
+	or type(lapanganReview.enable) ~= "function"
+then
+	lapanganFail("server VM / lapangan modules / counts not readable")
+else
+	local okPrior, priorId = pcall(function()
+		return (lapanganLook :: any).current and (lapanganLook :: any).current() or nil
+	end)
+	if not okPrior then
+		priorId = nil
+	end
+	local function restoreLapanganPrior()
+		pcall(function()
+			(lapanganLook :: any).disable()
+		end)
+		if type(priorId) == "string" then
+			pcall(function()
+				(lapanganLook :: any).enable(priorId)
+			end)
+		end
+	end
+	local okEnable, enabled, whyEnable = pcall(function()
+		return (lapanganReview :: any).enable("lapangan_r8", game, { studio = true })
+	end)
+	if not okEnable or enabled == false then
+		restoreLapanganPrior()
+		lapanganFail("enable:" .. tostring(whyEnable or enabled))
+	else
+		local lapanganFolder = folderNamed(LAPANGAN_FOLDER)
+		local taggedParts, goalModels = {}, {}
+		local countsByKind = {}
+		for _, kind in ipairs((lapanganData :: any).KINDS) do
+			countsByKind[kind] = 0
+		end
+		for _, inst in ipairs(descendantList(lapanganFolder)) do
+			local kind = attr(inst, (lapanganData :: any).kindAttribute)
+			if type(kind) == "string" and countsByKind[kind] ~= nil then
+				local okPart, isPart = pcall(function()
+					return (inst :: any):IsA("BasePart")
+				end)
+				if okPart and isPart then
+					countsByKind[kind] += 1
+					taggedParts[#taggedParts + 1] = inst
+				end
+			end
+			local okModel, isModel = pcall(function()
+				return (inst :: any):IsA("Model")
+			end)
+			if okModel and isModel and attr(inst, (lapanganData :: any).goalAttribute) == LAPANGAN_ID then
+				goalModels[#goalModels + 1] = inst
+			end
+		end
+		local measuredParts, targetParts = {}, {}
+		local partsPass = lapanganFolder ~= nil
+		for _, kind in ipairs((lapanganData :: any).KINDS) do
+			local got, want = countsByKind[kind] or 0, (lapanganExpected :: any)[kind] or 0
+			measuredParts[#measuredParts + 1] = kind .. "=" .. tostring(got)
+			targetParts[#targetParts + 1] = kind .. "=" .. tostring(want)
+			if got ~= want then
+				partsPass = false
+			end
+		end
+		emit(
+			"LAPANGAN_PARTS",
+			partsPass,
+			table.concat(measuredParts, " "),
+			table.concat(targetParts, " "),
+			{
+				folderPresent = lapanganFolder ~= nil,
+				parts = #taggedParts,
+				goals = #goalModels,
+				byKind = countsByKind,
+			}
+		)
+
+		-- MapSpec.LAPANGAN is axis-aligned; the pure rectangles are field-local, so add its centre.
+		local corridorBoxes = {}
+		local okCorridors, rows = pcall(function()
+			return (lapanganData :: any).corridors()
+		end)
+		local corridorsReady = okCorridors and type(rows) == "table" and #rows > 0 and mapSpecReady and type(MapSpec.LAPANGAN) == "table"
+		if corridorsReady then
+			for _, row in ipairs(rows) do
+				if
+					type(row) ~= "table"
+					or type(row.minX) ~= "number"
+					or type(row.maxX) ~= "number"
+					or type(row.minZ) ~= "number"
+					or type(row.maxZ) ~= "number"
+				then
+					corridorsReady = false
+					break
+				end
+				corridorBoxes[#corridorBoxes + 1] = {
+					name = tostring(row.name or #corridorBoxes + 1),
+					minX = MapSpec.LAPANGAN.x + row.minX,
+					maxX = MapSpec.LAPANGAN.x + row.maxX,
+					minZ = MapSpec.LAPANGAN.z + row.minZ,
+					maxZ = MapSpec.LAPANGAN.z + row.maxZ,
+				}
+			end
+		end
+		local blockedCorridors = 0
+		local blockedByCorridor = {}
+		if not corridorsReady or lapanganFolder == nil or #taggedParts == 0 or #corridorBoxes == 0 then
+			blockedCorridors = math.max(1, blockedCorridors)
+		else
+			for _, corridor in ipairs(corridorBoxes) do
+				blockedByCorridor[corridor.name] = 0
+				for _, part in ipairs(taggedParts) do
+					local box = bboxAABB(part)
+					if
+						box
+						and math.min(box.maxX, corridor.maxX) - math.max(box.minX, corridor.minX) > OVERLAP_TOL
+						and math.min(box.maxZ, corridor.maxZ) - math.max(box.minZ, corridor.minZ) > OVERLAP_TOL
+					then
+						blockedCorridors += 1
+						blockedByCorridor[corridor.name] += 1
+						break
+					end
+				end
+			end
+		end
+		emit(
+			"LAPANGAN_PATH_REACH",
+			corridorsReady and lapanganFolder ~= nil and #taggedParts > 0 and #corridorBoxes > 0 and blockedCorridors == 0,
+			blockedCorridors,
+			0,
+			{
+				folderPresent = lapanganFolder ~= nil,
+				parts = #taggedParts,
+				corridors = #corridorBoxes,
+				blockedByCorridor = blockedByCorridor,
+				reason = if corridorsReady then nil else "folder / data / MapSpec.LAPANGAN not readable",
+			}
+		)
+
+		local goalHeights = {}
+		for _, model in ipairs(goalModels) do
+			local size = bboxSize(model)
+			if size and type(size.Y) == "number" then
+				goalHeights[#goalHeights + 1] = size.Y
+			end
+		end
+		local goalHeightTarget = (lapanganData :: any).GOAL_HEIGHT
+		local goalPass = #goalModels == (lapanganExpected :: any).goals and #goalHeights == (lapanganExpected :: any).goals
+		local measuredGoalHeight = 0
+		for _, height in ipairs(goalHeights) do
+			measuredGoalHeight = math.max(measuredGoalHeight, height)
+			if math.abs(height - goalHeightTarget) > LAPANGAN_GOAL_TOL then
+				goalPass = false
+			end
+		end
+		emit(
+			"LAPANGAN_GOAL_SIZE",
+			goalPass,
+			math.floor(measuredGoalHeight * 100) / 100,
+			goalHeightTarget,
+			{
+				folderPresent = lapanganFolder ~= nil,
+				goalModels = #goalModels,
+				heights = goalHeights,
+				avatarHeight = (lapanganData :: any).AVATAR_HEIGHT,
+				ratio = (lapanganData :: any).GOAL_RATIO,
+				tolerance = LAPANGAN_GOAL_TOL,
+			}
+		)
+		restoreLapanganPrior()
+	end
+end
 end
 
 -- 10. VEG_NEAR: dense near layer at the saved camera (45 studs, 70-degree cone). A model only

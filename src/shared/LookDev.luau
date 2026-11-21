@@ -178,6 +178,7 @@ LookDev.IDS = {
 	"grade_r8_b",
 	"grade_r8_c",
 	"sounds_r8",
+	"lapangan_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -1131,6 +1132,20 @@ LookDev.candidates = {
 		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
 		soundCount = 6,
 	},
+
+	lapangan_r8 = {
+		id = "lapangan_r8",
+		title = "Village field — two goal frames, a red-white flagpole, bamboo benches, white boundary stones and sand patches (round 10, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Original procedural Parts, no asset IDs. Pure recipe in Shared.ModelMapLapanganR8,
+		-- placed from MapSpec.LAPANGAN outside the RoadSouth corridor. Goals are 2.2 x the
+		-- 7.25-stud avatar = 15.95 studs tall and are never thinned.
+		idsSource = "Shared.ModelMapLapanganR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		goalCount = 2,
+		goalHeight = 15.95,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1403,6 +1418,15 @@ function LookDev.plan(id: string): any
 			id = id,
 			idsSource = c.idsSource,
 			render = c.render,
+		}
+	elseif id == "lapangan_r8" then
+		local c = LookDev.candidates.lapangan_r8
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			goalCount = c.goalCount,
+			goalHeight = c.goalHeight,
 		}
 	end
 	return nil

@@ -92,6 +92,7 @@
 -- STATUS: every candidate below is a candidate AWAITING DESIGNER YES. None is approved or shipped.
 
 local RaidCutscene = require(script.Parent.Config.RaidCutscene)
+local TierThin = require(script.Parent.TierThin)
 
 local LookDev = {}
 
@@ -1459,7 +1460,11 @@ function LookDev.enable(id: string, opts: any?): (boolean, string?)
 	enabledId = id
 	local applier = appliers[id]
 	if applier then
-		local ok, err = pcall(applier.apply, LookDev.plan(id))
+		local plan = LookDev.plan(id)
+		if plan and table.find(TierThin.TIERS, opts.tier) then
+			plan.tier = TierThin.normalize(opts.tier)
+		end
+		local ok, err = pcall(applier.apply, plan)
 		if not ok then
 			return false, "applier failed: " .. tostring(err)
 		end
@@ -1508,7 +1513,11 @@ function LookDev.enableAdditive(id: string, opts: any?): (boolean, string?)
 	end
 	local applier = appliers[id]
 	if applier then
-		local ok, err = pcall(applier.apply, LookDev.plan(id))
+		local plan = LookDev.plan(id)
+		if plan and table.find(TierThin.TIERS, opts.tier) then
+			plan.tier = TierThin.normalize(opts.tier)
+		end
+		local ok, err = pcall(applier.apply, plan)
 		if not ok then
 			return false, "applier failed: " .. tostring(err)
 		end

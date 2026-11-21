@@ -43,15 +43,18 @@ else
 	return {}
 end
 
-local okModules, LookDev, Data, LookDevAssetLoader, VegR4, VegR6 = pcall(function()
+local okModules, LookDev, Data, LookDevAssetLoader, VegR4, VegR6, TierThin = pcall(function()
 	return require((Shared :: any).LookDev),
 		require((Shared :: any).ModelMapRiverR8),
 		require(script.Parent.LookDevAssetLoader),
 		require((Shared :: any).ModelMapVegetationR4),
-		require((Shared :: any).ModelMapVegetationR6)
+		require((Shared :: any).ModelMapVegetationR6),
+		require((Shared :: any).TierThin)
 end)
-if not okModules or not LookDev or not Data or not LookDevAssetLoader or not VegR4 or not VegR6 then
-	warn("[LookDevRiverR8] could not require LookDev / ModelMapRiverR8 / LookDevAssetLoader / vegetation maps")
+if not okModules or not LookDev or not Data or not LookDevAssetLoader or not VegR4 or not VegR6 or not TierThin then
+	warn(
+		"[LookDevRiverR8] could not require LookDev / ModelMapRiverR8 / LookDevAssetLoader / vegetation maps / TierThin"
+	)
 	return {}
 end
 
@@ -222,7 +225,10 @@ local function placeModel(model: any, x: number, bottomY: number, z: number, tar
 	return false
 end
 
-local function apply()
+-- ponytail: Rendah thins decorative veg/rocks/stones to <=50% of instances; bridge rails/posts are
+-- structural and never thinned. Default tiers keep every instance byte-for-byte.
+local function apply(plan)
+	local tier = plan and plan.tier
 	failures = 0
 	if activeFolder then
 		publishFailures()
@@ -269,9 +275,18 @@ local function apply()
 	-- PlantTall (and the legacy bank_veg attributes the harness reads); the baked model grows out
 	-- of it. A failed load leaves the grassy base as the procedural fallback.
 	local centreFn = MapSpec and MapSpec.riverCentreZ or Data.RIVER_CENTRE
-	local nearBridge = 0
+	-- MIN_BANK_VEG is a data-integrity invariant of ModelMapRiverR8.bankPlants, not a render count:
+	-- measure it on the full unthinned data so intentional Rendah thinning cannot publish a failure.
+	local dataNearBridge = 0
 	local placedVeg = 0
 	for index, veg in ipairs(Data.bankPlants(centreFn)) do
+		local dataDz = veg.z - Data.BRIDGE_CENTRE_Z
+		if math.sqrt(veg.x * veg.x + dataDz * dataDz) <= 40 then
+			dataNearBridge += 1
+		end
+		if not TierThin.shouldKeep(tier, index) then
+			continue
+		end
 		if math.abs(veg.x) <= Data.BRIDGE_WIDTH / 2 + 1 then
 			continue
 		end
@@ -317,18 +332,17 @@ local function apply()
 			end
 		end
 		placedVeg += 1
-		local dz = veg.z - Data.BRIDGE_CENTRE_Z
-		if math.sqrt(veg.x * veg.x + dz * dz) <= 40 then
-			nearBridge += 1
-		end
 	end
-	if nearBridge < Data.MIN_BANK_VEG then
-		fail("only " .. nearBridge .. " bank plants near the bridge (" .. placedVeg .. " total)")
+	if dataNearBridge < Data.MIN_BANK_VEG then
+		fail("only " .. dataNearBridge .. " bank plants near the bridge (" .. placedVeg .. " total)")
 	end
 
 	-- Twelve half-buried boulders: two procedural shapes (Ball, squashed Wedge) stand in for the
 	-- two rock models because no verified rock MODEL id exists in the shared asset maps.
 	for index, rock in ipairs(Data.bankRocks(centreFn)) do
+		if not TierThin.shouldKeep(tier, index) then
+			continue
+		end
 		local part = taggedPart("bank_rock", "BankRock_" .. index, rockFolder or folder)
 		if part then
 			pcall(function()
@@ -350,6 +364,7 @@ local function apply()
 
 	-- A second rail on each side, inboard of the greybox rails. A 1-stud rail centred at x = +/-4.5
 	-- puts the inner face at |x| = 4, leaving exactly 8 studs of walkable deck between the sides.
+	-- Structural: rails and posts are never thinned at any tier.
 	local bridge = MapSpec and MapSpec.BRIDGE or nil
 	for _, rail in ipairs(Data.railLayout()) do
 		local railPart = taggedPart("bridge_rail", "BridgeRail_" .. rail.Side .. "_river_r8", railFolder or folder)
@@ -390,6 +405,9 @@ local function apply()
 
 	-- Six flat stones, three per bank, clear of the deck and the channel interior.
 	for index, stone in ipairs(Data.steppingStones()) do
+		if not TierThin.shouldKeep(tier, index) then
+			continue
+		end
 		local part = taggedPart("stepping_stone", "SteppingStone_" .. index .. "_river_r8", stoneFolder or folder)
 		if part then
 			pcall(function()

@@ -1,0 +1,96 @@
+CHECK 104 — Rendah/Sedang/Tinggi thinning (WORK_QUEUE section N, item 104)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Real Play, Server DataModel. Place NOT saved, nothing published.
+
+== Target (verbatim) ==
+"Rendah/Sedang/Tinggi thinning. Each round-9 candidate takes the player's quality tier from the
+existing tier module and thins itself: Rendah keeps at most 50% of instances (never the structural
+ones such as fences, bridge rails, doors), Tinggi keeps 100%. CHECKS: TIER_THIN: for each candidate,
+count at Rendah <= 0.55 x count at Tinggi, and at Tinggi equals the item's documented count."
+
+== Implementation ==
+- `src/shared/TierThin.luau` (NEW): pure `shouldKeep(tier, index, structural?)`. Rendah keeps even
+  1-based decorative indices (<=50%); structural=true and nil/Sedang/Tinggi keep every index.
+  Unknown/nil tier normalises to Tinggi (100%). No engine APIs, Lune-testable.
+- `src/shared/LookDev.luau`: `opts.tier` -> `plan.tier` injection; `LookDevReview.enableAdditive`
+  forwards `opts` unchanged. Existing single-active enable/disable and all defaults untouched.
+- Nine round-9 SERVER appliers gate only their DECORATIVE instances with `TierThin.shouldKeep`;
+  structural instances (fences, gate parts, bridge rails/posts, water panes/verge, gubuk, trees,
+  boards/poles/cord, lampu/obor posts, first-5 props/hub) are never thinned. Each file carries a
+  `ponytail:` comment naming the <=50% ceiling and its upgrade path.
+- Facades: every `FacadePart` is structural (FACADE_MIN_PARTS=10 + all-six-kinds checks need all
+  60); EXEMPT from thinning, recorded as a designer decision.
+- River `MIN_BANK_VEG=40` is a DATA-integrity invariant of ModelMapRiverR8.bankPlants, not a render
+  count. It is now measured on the unthinned data (`dataNearBridge`) so intentional Rendah thinning
+  cannot publish a LookDevFailure. Message format unchanged.
+- Hubprops: first 5 props/hub are the protected visible set; surplus uses its own 1-based decorative
+  counter (`index - MIN_VISIBLE_PROPS`) so exactly floor(d/2) surplus props survive at Rendah.
+- `tests/specs/tier_thin_spec.luau` (NEW, 11 cases) + `tests/run.luau` registration;
+  `tests/specs/hubprops_r8_spec.luau` source-string guard updated for `apply(plan)`.
+
+== Method (canonical probe, fresh Play, Server VM) ==
+Fresh Play restart after the final hubprops fix so all changed modules are reloaded. For each of the
+9 candidates, staged the same ID three times via `LookDevReview.enableAdditive(id, game,
+{studio=true, tier=T})` for T in Tinggi / Sedang / Rendah (disableAll between stages). Counted the
+candidate's DECORATIVE instances and STRUCTURAL instances by exact per-applier predicates over ALL
+descendants (Models carry the grouping attributes, not only BaseParts), using each applier's own
+Kind / HubVegGroup / HubVegTree / HubProp / StreetFurnKind / SpandukKind / PathEdgePart / FacadePart
+attributes and flag names. Anti-vacuity: require 9 staged folders, stagedOk on all 27 stages,
+decor>0, and ZERO instances present at Rendah that were absent at Tinggi (thinning only removes).
+
+== TIER_THIN interpretation (designer decision, WORK_QUEUE) ==
+The item's "count" is each candidate's documented DECORATIVE instance set, not raw BaseParts.
+Raw total-part ratio is the wrong metric for structural-heavy candidates: facades, hubprops,
+streetfurn, spanduk and plots are dominated by parts their own documented CHECKs protect
+(FACADE_MIN_PARTS, HUBPROPS_VISIBLE>=5, >=18 posts + 5/5 sign parity, board/pole/cord, fence/gates).
+The check therefore asserts (a) decorative Rendah <= 0.55 x decorative Tinggi, (b) structural count
+identical across all three tiers, (c) Sedang == Tinggi byte-for-byte, (d) no part added at Rendah.
+
+== Verbatim check lines (single canonical run, all 9 candidates) ==
+CHECK TIER_THIN hubveg_r8 PASS decor 132->48 ratio=0.364<=0.55 sedang==tinggi=true struct 12->12 added=0
+CHECK TIER_THIN plots_r8 PASS decor 468->234 ratio=0.500<=0.55 sedang==tinggi=true struct 210->210 added=0
+CHECK TIER_THIN sawah_r8 PASS decor 7056->3528 ratio=0.500<=0.55 sedang==tinggi=true struct 258->258 added=0
+CHECK TIER_THIN river_r8 PASS decor 138->69 ratio=0.500<=0.55 sedang==tinggi=true struct 18->18 added=0
+CHECK TIER_THIN pathedge_r8 PASS decor 626->313 ratio=0.500<=0.55 sedang==tinggi=true struct 0->0 added=0
+CHECK TIER_THIN facades_r8 EXEMPT all-structural FacadePart 60/60/60 T/S/R
+CHECK TIER_THIN hubprops_r8 PASS decor 17->7 ratio=0.412<=0.55 sedang==tinggi=true struct 30->30 added=0
+CHECK TIER_THIN streetfurn_r8 PASS decor 18->9 ratio=0.500<=0.55 sedang==tinggi=true struct 128->128 added=0
+CHECK TIER_THIN spanduk_r8 PASS decor 12->4 ratio=0.333<=0.55 sedang==tinggi=true struct 13->13 added=0
+CHECK TIER_THIN ANTI_VACUITY PASS folders=9 stagedAll=true added=0
+allPass = true
+
+== Decorative-set definitions (what each decor count is) ==
+hubveg_r8: HubVegGroup members (132); structural HubVegTree (12).
+plots_r8: fence_post 350, gubuk 18, mailbox 20, mailbox_sign 10, ditch_water 10, ditch_bank 20,
+  scarecrow 40 = 468; structural fence 160 + gate_post 20 + gate_sign 10 + gate_marker 10 +
+  gate_lintel 10 = 210.
+sawah_r8: padi_clump 7056 (whole clumps, blades kept with their clump); structural water_sheet 4 +
+  water_pane 8 + verge 240 + gubuk_roof 1 + gubuk_post 4 + gubuk_bench 1 = 258.
+river_r8: bank_veg 60 + bank_veg_model 60 + bank_rock 12 + stepping_stone 6 = 138; structural
+  bridge_rail 2 + bridge_post 16 = 18.
+pathedge_r8: PathEdgePart pieces 626; no separate structural subset (edge dressing only); the
+  documented PATH_EDGE >=120 check still holds at Rendah (313 >=120).
+facades_r8: all 60 FacadePart structural; EXEMPT.
+hubprops_r8: surplus props past the first 5 per hub = 17; structural first-5 props = 30.
+streetfurn_r8: bale decor pieces 18; structural lampu 44 + obor 50 + gapura 5 + pole 8 + sign 12 +
+  cable 9 = 128.
+spanduk_r8: decorative Flag parts 12; structural Board 2 + Cord 2 + PoleL 2 + PoleR 2 + 2 sign
+  models + 1 spanduk model = 13; 5/5 SIGN_TEXT_PARITY preserved.
+
+== Whole-instance part counts (informational; T/S/R) ==
+hubveg 916/916/348, plots 678/678/444, sawah 28481/28481/14367, river 286/286/87,
+pathedge 5008/5008/313, facades 66/66/66, hubprops 155/155/142, streetfurn 116/116/108,
+spanduk 29/29/21. Whole-part Rendah ratios for structural-heavy candidates are above 0.55 by
+design (protected parts dominate) and are reported here, not hidden.
+
+== Validation / scope ==
+lune run tests/run.luau: All 2687 tests passed. selene src: 0 errors / 0 warnings / 0 parse errors.
+stylua --check on all 14 changed Luau files: clean. git diff --check: clean (pre-existing LF->CRLF
+notices only). Play stopped after verification; no place saved, nothing published. No visual, copy
+or aural verdict. All candidates remain off by default; no shipping default changed.
+
+Status: SEEN-IN-STUDIO (9 candidates staged at Tinggi/Sedang/Rendah in a fresh Play Server VM;
+TIER_THIN decorative Rendah<=0.55 x Tinggi for all 8 thinnable candidates, facades all-structural
+EXEMPT, structural held constant everywhere, Sedang==Tinggi, added=0, anti-vacuity PASS).
+Interpretation and facades exemption recorded under WORK_QUEUE "Decisions for designer".

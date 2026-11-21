@@ -387,7 +387,7 @@ return function(t, Env)
 			local restoreAt = string.find(applierSrc, "restore = function()", 1, true)
 			local restoreVoxAt = restoreAt and string.find(applierSrc, "restoreSavedVoxels()", restoreAt, true) or nil
 			expect(restoreVoxAt ~= nil):toBe(true)
-			local applyAt = string.find(applierSrc, "apply = function()", 1, true)
+			local applyAt = string.find(applierSrc, "apply = function(plan)", 1, true)
 			local applyVoxAt = applyAt and string.find(applierSrc, "restoreSavedVoxels()", applyAt, true) or nil
 			expect(applyVoxAt ~= nil):toBe(true)
 		end)

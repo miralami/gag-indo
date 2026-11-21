@@ -39,11 +39,11 @@ else
 	return {}
 end
 
-local okModules, LookDev, Data = pcall(function()
-	return require((Shared :: any).LookDev), require((Shared :: any).ModelMapSawahR8)
+local okModules, LookDev, Data, TierThin = pcall(function()
+	return require((Shared :: any).LookDev), require((Shared :: any).ModelMapSawahR8), require((Shared :: any).TierThin)
 end)
-if not okModules or not LookDev or not Data then
-	warn("[LookDevSawahR8] could not require LookDev / ModelMapSawahR8")
+if not okModules or not LookDev or not Data or not TierThin then
+	warn("[LookDevSawahR8] could not require LookDev / ModelMapSawahR8 / TierThin")
 	return {}
 end
 
@@ -160,8 +160,12 @@ local function place(part: any?, centre: { number }, size: { number }): boolean
 	return ok
 end
 
-local function apply()
+-- ponytail: Rendah keeps <=50% of decorative padi clumps and stepping stones; water sheets,
+-- terrace bunds and the gubuk are structural. Clumps keep all their blades when kept.
+local function apply(plan: any?)
 	failures = 0
+	local tier: any? = if plan then plan.tier else nil
+	local instanceIndex = 0
 	if activeFolder then
 		publishFailures()
 		return
@@ -231,19 +235,21 @@ local function apply()
 					fail("missing water folder for terrace " .. terrace)
 					continue
 				end
-				local part =
-					taggedPart("water_pane", "Pane_" .. terrace .. "_" .. Data.SIDES[sideIndex], terrace, water)
-				if part then
-					pcall(function()
-						part:SetAttribute("Side", Data.SIDES[sideIndex])
-						part.Material = Enum.Material.Glass
-						part.Transparency = Data.WATER_TRANSPARENCY
-						part.Color = Color3.fromRGB(Data.WATER_COLOR[1], Data.WATER_COLOR[2], Data.WATER_COLOR[3])
-						part.CastShadow = false
-					end)
-				end
-				if not place(part, pane.centre, pane.size) then
-					fail("could not place pane for terrace " .. terrace .. " " .. Data.SIDES[sideIndex])
+				if TierThin.shouldKeep(tier, instanceIndex + 1, true) then
+					local part =
+						taggedPart("water_pane", "Pane_" .. terrace .. "_" .. Data.SIDES[sideIndex], terrace, water)
+					if part then
+						pcall(function()
+							part:SetAttribute("Side", Data.SIDES[sideIndex])
+							part.Material = Enum.Material.Glass
+							part.Transparency = Data.WATER_TRANSPARENCY
+							part.Color = Color3.fromRGB(Data.WATER_COLOR[1], Data.WATER_COLOR[2], Data.WATER_COLOR[3])
+							part.CastShadow = false
+						end)
+					end
+					if not place(part, pane.centre, pane.size) then
+						fail("could not place pane for terrace " .. terrace .. " " .. Data.SIDES[sideIndex])
+					end
 				end
 			end
 		end
@@ -259,33 +265,36 @@ local function apply()
 	end
 	local clumps = Data.padiClumps(panes)
 	for _, clump in clumps do
-		local clumpModel = taggedClump(clump, clumpFolders[clump.terrace] or folder)
-		for bladeIndex = 1, math.min(clump.blades, #Data.PADI_BLADES) do
-			local blade = Data.PADI_BLADES[bladeIndex]
-			local part = taggedPart(
-				"padi_blade",
-				`Padi_{clump.terrace}_{clump.side}_{clump.id}_{bladeIndex}`,
-				clump.terrace,
-				clumpModel or folder
-			)
-			local centre = { clump.x + blade.dx, clump.y + blade.dy + blade.height / 2, clump.z + blade.dz }
-			if not place(part, centre, { Data.PADI_BLADE_WIDTH, blade.height, Data.PADI_BLADE_WIDTH }) then
-				fail("could not place padi blade " .. clump.id .. "/" .. bladeIndex)
-			end
-			if part then
-				pcall(function()
-					local red, green = 96, 168
-					if bladeIndex % 2 == 0 then
-						red, green = 76, 142
-					end
-					part.Material = Enum.Material.Grass
-					part.Color = Color3.fromRGB(red, green, 52)
-					part:SetAttribute("PadiPart", true)
-					part:SetAttribute("TerraceIndex", clump.terrace)
-					part:SetAttribute("PadiClump", clump.id)
-					part:SetAttribute("PadiRow", clump.row)
-					part:SetAttribute("Blade", bladeIndex)
-				end)
+		instanceIndex += 1
+		if TierThin.shouldKeep(tier, instanceIndex) then
+			local clumpModel = taggedClump(clump, clumpFolders[clump.terrace] or folder)
+			for bladeIndex = 1, math.min(clump.blades, #Data.PADI_BLADES) do
+				local blade = Data.PADI_BLADES[bladeIndex]
+				local part = taggedPart(
+					"padi_blade",
+					`Padi_{clump.terrace}_{clump.side}_{clump.id}_{bladeIndex}`,
+					clump.terrace,
+					clumpModel or folder
+				)
+				local centre = { clump.x + blade.dx, clump.y + blade.dy + blade.height / 2, clump.z + blade.dz }
+				if not place(part, centre, { Data.PADI_BLADE_WIDTH, blade.height, Data.PADI_BLADE_WIDTH }) then
+					fail("could not place padi blade " .. clump.id .. "/" .. bladeIndex)
+				end
+				if part then
+					pcall(function()
+						local red, green = 96, 168
+						if bladeIndex % 2 == 0 then
+							red, green = 76, 142
+						end
+						part.Material = Enum.Material.Grass
+						part.Color = Color3.fromRGB(red, green, 52)
+						part:SetAttribute("PadiPart", true)
+						part:SetAttribute("TerraceIndex", clump.terrace)
+						part:SetAttribute("PadiClump", clump.id)
+						part:SetAttribute("PadiRow", clump.row)
+						part:SetAttribute("Blade", bladeIndex)
+					end)
+				end
 			end
 		end
 	end
@@ -305,26 +314,28 @@ local function apply()
 		tuftIndex += 1
 		local terraceFolder = folder:FindFirstChild("Terrace_" .. tuft.terrace .. "_sawah_r8")
 		for blade, offset in ipairs(tuft.blades) do
-			local part = taggedPart(
-				"verge",
-				`Verge_{tuft.terrace}_{tuft.side}_{tuftIndex}_{blade}`,
-				tuft.terrace,
-				terraceFolder or folder
-			)
-			local height = Data.BLADE_HEIGHTS[blade]
-			local centre = { tuft.x + offset[1], tuft.y + height / 2 + offset[2], tuft.z + offset[3] }
-			if not place(part, centre, { 0.14, height, 0.14 }) then
-				fail("could not place verge blade " .. tuftIndex .. "/" .. blade)
-			end
-			if part then
-				pcall(function()
-					part.Material = Enum.Material.Grass
-					part.Color = Color3.fromRGB(92, 132, 58)
-					part:SetAttribute("Tuft", tuftIndex)
-					part:SetAttribute("Blade", blade)
-					part:SetAttribute("PadiPart", true)
-					part:SetAttribute("TerraceIndex", tuft.terrace)
-				end)
+			if TierThin.shouldKeep(tier, instanceIndex + 1, true) then
+				local part = taggedPart(
+					"verge",
+					`Verge_{tuft.terrace}_{tuft.side}_{tuftIndex}_{blade}`,
+					tuft.terrace,
+					terraceFolder or folder
+				)
+				local height = Data.BLADE_HEIGHTS[blade]
+				local centre = { tuft.x + offset[1], tuft.y + height / 2 + offset[2], tuft.z + offset[3] }
+				if not place(part, centre, { 0.14, height, 0.14 }) then
+					fail("could not place verge blade " .. tuftIndex .. "/" .. blade)
+				end
+				if part then
+					pcall(function()
+						part.Material = Enum.Material.Grass
+						part.Color = Color3.fromRGB(92, 132, 58)
+						part:SetAttribute("Tuft", tuftIndex)
+						part:SetAttribute("Blade", blade)
+						part:SetAttribute("PadiPart", true)
+						part:SetAttribute("TerraceIndex", tuft.terrace)
+					end)
+				end
 			end
 		end
 	end
@@ -341,32 +352,37 @@ local function apply()
 		end)
 	end
 	for index, piece in ipairs(Data.gubukParts()) do
-		local part = taggedPart(piece.kind, "Gubuk_" .. piece.kind .. "_" .. index, 2, hutFolder or folder)
-		if part then
-			pcall(function()
-				part:SetAttribute("Gubuk", 1)
-				part.Material = if piece.kind == "gubuk_roof" then Enum.Material.Fabric else Enum.Material.Wood
-				part.Color = if piece.kind == "gubuk_roof"
-					then Color3.fromRGB(146, 118, 58)
-					else Color3.fromRGB(110, 86, 48)
-			end)
-		end
-		local centre = { hut.x + piece.lx, (hut.y or GROUND_Y) + piece.ly, hut.z + piece.lz }
-		if not place(part, centre, piece.size) then
-			fail("could not place gubuk part " .. index)
+		if TierThin.shouldKeep(tier, instanceIndex + 1, true) then
+			local part = taggedPart(piece.kind, "Gubuk_" .. piece.kind .. "_" .. index, 2, hutFolder or folder)
+			if part then
+				pcall(function()
+					part:SetAttribute("Gubuk", 1)
+					part.Material = if piece.kind == "gubuk_roof" then Enum.Material.Fabric else Enum.Material.Wood
+					part.Color = if piece.kind == "gubuk_roof"
+						then Color3.fromRGB(146, 118, 58)
+						else Color3.fromRGB(110, 86, 48)
+				end)
+			end
+			local centre = { hut.x + piece.lx, (hut.y or GROUND_Y) + piece.ly, hut.z + piece.lz }
+			if not place(part, centre, piece.size) then
+				fail("could not place gubuk part " .. index)
+			end
 		end
 	end
 
 	for index, stone in ipairs(Data.steppingStones()) do
-		local part = taggedPart("stepping_stone", "SteppingStone_" .. index, stone.terrace, folder)
-		if part then
-			pcall(function()
-				part.Material = Enum.Material.Rock
-				part.Color = Color3.fromRGB(126, 122, 108)
-			end)
-		end
-		if not place(part, { stone.x, stone.y, stone.z }, stone.size) then
-			fail("could not place stepping stone " .. index)
+		instanceIndex += 1
+		if TierThin.shouldKeep(tier, instanceIndex) then
+			local part = taggedPart("stepping_stone", "SteppingStone_" .. index, stone.terrace, folder)
+			if part then
+				pcall(function()
+					part.Material = Enum.Material.Rock
+					part.Color = Color3.fromRGB(126, 122, 108)
+				end)
+			end
+			if not place(part, { stone.x, stone.y, stone.z }, stone.size) then
+				fail("could not place stepping stone " .. index)
+			end
 		end
 	end
 

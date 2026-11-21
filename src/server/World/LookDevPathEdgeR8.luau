@@ -43,14 +43,17 @@ else
 	return {}
 end
 
-local okModules, LookDev, Data, LookDevAssetLoader, VegR6 = pcall(function()
+local okModules, LookDev, Data, LookDevAssetLoader, VegR6, TierThin = pcall(function()
 	return require((Shared :: any).LookDev),
 		require((Shared :: any).ModelMapPathEdgeR8),
 		require(script.Parent.LookDevAssetLoader),
-		require((Shared :: any).ModelMapVegetationR6)
+		require((Shared :: any).ModelMapVegetationR6),
+		require((Shared :: any).TierThin)
 end)
-if not okModules or not LookDev or not Data or not LookDevAssetLoader or not VegR6 then
-	warn("[LookDevPathEdgeR8] could not require LookDev / ModelMapPathEdgeR8 / asset loader / vegetation map")
+if not okModules or not LookDev or not Data or not LookDevAssetLoader or not VegR6 or not TierThin then
+	warn(
+		"[LookDevPathEdgeR8] could not require LookDev / ModelMapPathEdgeR8 / asset loader / vegetation map / TierThin"
+	)
 	return {}
 end
 
@@ -308,7 +311,10 @@ local function addBladeFallback(part: any, x: number, z: number, bottomY: number
 	end
 end
 
-local function apply()
+-- ponytail: Rendah halves the decorative edge pieces (cap <=50%); the >=120 target still holds at
+-- the default tier, where every piece is staged.
+local function apply(plan)
+	local tier = plan and plan.tier
 	failures = 0
 	if activeFolder then
 		publishFailures()
@@ -363,6 +369,9 @@ local function apply()
 	local pathFolders: { [string]: any } = {}
 	local grassModels = taggedFolder("GrassModels_pathedge_r8", folder)
 	for index, piece in ipairs(pieces) do
+		if not TierThin.shouldKeep(tier, index) then
+			continue
+		end
 		local pathFolder = pathFolders[piece.path]
 		if not pathFolder then
 			pathFolder = taggedFolder(piece.path, folder)

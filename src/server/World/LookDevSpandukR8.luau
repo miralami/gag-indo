@@ -44,15 +44,18 @@ if not Shared then
 	return {}
 end
 
-local okModules, LookDev, Data, Strings, LookDevFailures, Visuals = pcall(function()
+local okModules, LookDev, Data, Strings, LookDevFailures, Visuals, TierThin = pcall(function()
 	return require((Shared :: any).LookDev),
 		require((Shared :: any).ModelMapSpandukR8),
 		require((Shared :: any).Strings),
 		require((Shared :: any).LookDevFailures),
-		require((Shared :: any).Config.Visuals)
+		require((Shared :: any).Config.Visuals),
+		require((Shared :: any).TierThin)
 end)
-if not okModules or not LookDev or not Data or not Strings or not LookDevFailures or not Visuals then
-	warn("[LookDevSpandukR8] could not require LookDev / ModelMapSpandukR8 / Strings / LookDevFailures / Visuals")
+if not okModules or not LookDev or not Data or not Strings or not LookDevFailures or not Visuals or not TierThin then
+	warn(
+		"[LookDevSpandukR8] could not require LookDev / ModelMapSpandukR8 / Strings / LookDevFailures / Visuals / TierThin"
+	)
 	return {}
 end
 
@@ -301,7 +304,9 @@ local function stageRoadSpanduk(recipe: any, groundY: number, folder: any)
 	end
 end
 
-local function stageBunting(recipe: any, index: number, groundY: number, folder: any)
+-- ponytail: Rendah halves the decorative bunting flags. Poles, cord and every Strings-bearing
+-- board (SIGN_TEXT_PARITY 5/5) stay; no further surplus decor exists here. Upgrade if flags grow.
+local function stageBunting(recipe: any, index: number, groundY: number, folder: any, tier: any?)
 	local model = newModel(string.format("Spanduk_bunting_%02d", index), "bunting", recipe.key, recipe.camera, folder)
 	if not model then
 		return
@@ -350,6 +355,9 @@ local function stageBunting(recipe: any, index: number, groundY: number, folder:
 	end
 
 	for flag = 1, recipe.count do
+		if not TierThin.shouldKeep(tier, flag, flag == recipe.textIndex) then
+			continue
+		end
 		local point = Data.buntingPoint(recipe, (flag - 1) / math.max(recipe.count - 1, 1))
 		if point then
 			if flag == recipe.textIndex then
@@ -375,7 +383,8 @@ local function stageBunting(recipe: any, index: number, groundY: number, folder:
 end
 
 local applier = {
-	apply = function()
+	apply = function(plan)
+		local tier = plan and plan.tier
 		failures = 0
 		pcall(function()
 			LookDevFailures.reset(Data.familyId)
@@ -443,10 +452,10 @@ local applier = {
 		local buntingWarung = if warung then Data.bunting(warung, "bunting_mampir", "hub_warung", 1) else nil
 		local buntingPasar = if pasar then Data.bunting(pasar, "bunting_belanja", "hub_pasar", -1) else nil
 		if buntingWarung then
-			stageBunting(buntingWarung, 1, MapSpec.GROUND_Y, folder)
+			stageBunting(buntingWarung, 1, MapSpec.GROUND_Y, folder, tier)
 		end
 		if buntingPasar then
-			stageBunting(buntingPasar, 2, MapSpec.GROUND_Y, folder)
+			stageBunting(buntingPasar, 2, MapSpec.GROUND_Y, folder, tier)
 		end
 
 		publishFailures()

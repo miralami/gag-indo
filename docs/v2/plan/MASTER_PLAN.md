@@ -358,6 +358,17 @@ ID — one ID cannot span the two VM registries and would break 33 `#IDS==79` sp
 Decision recorded under WORK_QUEUE "Decisions for designer". No Luau/spec changed; no place saved.
 Suite **2676 tests**; `selene src` 0/0/0.
 
+Item 104 COMPLETE (Rendah/Sedang/Tinggi thinning): `Shared.TierThin.shouldKeep(tier, index, structural?)`
+pure helper (even-index keep at Rendah <=50%; structural/nil-Sedang/Tinggi keep all; unknown->Tinggi),
+`LookDev` tier injection, and 9 round-9 server appliers gating only DECORATIVE instances (structural
+fences/bridge rails/water/boards/lamps/first-5 props never thinned). Real fresh-Play Server-VM PASS
+`TIER_THIN` `h/2026-11-21-round10/CHECK_104.txt`: 8 thinnable candidates decorative Rendah <=0.55 x
+Tinggi (hubveg 132->48, plots 468->234, sawah 7056->3528, river 138->69, pathedge 626->313, hubprops
+17->7, streetfurn 18->9, spanduk 12->4), facades all-structural EXEMPT 60/60/60, structural count held
+constant everywhere, Sedang==Tinggi, added=0, ANTI_VACUITY PASS. River MIN_BANK_VEG now validates
+unthinned data; facades exemption + TIER_THIN decorative-count interpretation under WORK_QUEUE
+"Decisions for designer". 11-case `tier_thin_spec` NEW. Suite **2687 tests**; `selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

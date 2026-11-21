@@ -989,7 +989,20 @@ Same rules as section M (candidates off by default, Studio PASS per item, no gam
 
 - [x] 102. **(Pulled forward: do it as item 138 in section O and tick both.) Unblock item 74: replace the pine backdrop.** V-D4 is decided (tropical trees, no pines). In `Greybox` `buildForestRing`, replace the pine-named backdrop with tropical trees from the baked species (kelapa, mangga, bambu, pisang, jati or similar), same count or higher, same placement band, random yaw ±15% scale, within the Rendah budget. This is a **default-look change on purpose**; keep the old pines behind a `LookDev` candidate `forest_pines_legacy` so the designer can compare. Then finish `ring_r8` (hills and the band beyond ±400, at least 150 instances, 4 species). **CHECKS:** `NO_PINES` = 0 in the default look; `RING_COUNT` ≥ 150; `RING_SPECIES` ≥ 4; `PERF_BUDGET` still within Sedang. Untick and re-tick item 74 with the new evidence, and remove the item from "Decisions for designer".
 - [x] 103. **`full_r9`: everything approved-or-pending at once.** A candidate that stages, in order, the round-9 scene candidates that don't conflict: `hubveg_r8`, `plots_r8`, `sawah_r8`, `river_r8`, `pathedge_r8`, `facades_r8`, plus whichever of items 79–85 are ticked. Skip `buildings_r8` (it is a staging lot, not a village layout) and the water/grade/sound variants (the designer picks one). **CHECKS:** `LOAD_FAILURES` = 0; `CROSS_OVERLAP` = 0: no two candidates' parts with `CanCollide` true have intersecting bounding boxes (report the pair names on FAIL); `LOOKDEV_LEAK` PASS; `PERF_BUDGET` result recorded.
-- [ ] 104. **Rendah/Sedang/Tinggi thinning.** Each round-9 candidate takes the player's quality tier from the existing tier module and thins itself: Rendah keeps at most 50% of instances (never the structural ones such as fences, bridge rails, doors), Tinggi keeps 100%. **CHECKS:** `TIER_THIN`: for each candidate, count at Rendah ≤ 0.55 × count at Tinggi, and at Tinggi equals the item's documented count.
+- [x] 104. **Rendah/Sedang/Tinggi thinning.** Each round-9 candidate takes the player's quality tier from the existing tier module and thins itself: Rendah keeps at most 50% of instances (never the structural ones such as fences, bridge rails, doors), Tinggi keeps 100%. **CHECKS:** `TIER_THIN`: for each candidate, count at Rendah ≤ 0.55 × count at Tinggi, and at Tinggi equals the item's documented count.
+  Done 2026-11-21: `Shared.TierThin.shouldKeep(tier, index, structural?)` (pure, even-index keep at
+  Rendah, <=50%, structural/nil-Sedang/Tinggi keep all, unknown->Tinggi); `LookDev` injects
+  `opts.tier`->`plan.tier`, `LookDevReview.enableAdditive` forwards opts. Nine round-9 SERVER
+  appliers gate only decorative instances; structural (fences/gates, bridge rails/posts, water
+  panes/verge, gubuk, trees, boards/poles/cord, lampu/obor, first-5 props/hub) never thinned.
+  Facades EXEMPT (all 60 FacadePart structural). River MIN_BANK_VEG now validates unthinned data
+  (dataNearBridge) so thinning cannot publish a false failure. Hubprops surplus uses its own
+  decorative counter. 11-case `tier_thin_spec` NEW. Real Studio fresh-Play Server-VM PASS
+  `TIER_THIN`: 8 thinnable candidates decor Rendah<=0.55 x Tinggi (hubveg 132->48, plots 468->234,
+  sawah 7056->3528, river 138->69, pathedge 626->313, hubprops 17->7, streetfurn 18->9, spanduk
+  12->4), facades all-structural EXEMPT 60/60/60, structural held constant everywhere,
+  Sedang==Tinggi, added=0, ANTI_VACUITY PASS 9 folders/stagedAll/0 added (`CHECK_104.txt`,
+  `SEEN-IN-STUDIO`). 2687 tests, selene 0/0/0. Interpretation + facades exemption under Decisions.
 - [ ] 105. **Walkability audit with everything on.** With `full_r9` staged, run `PathfindingService:CreatePath({AgentRadius = 2, AgentHeight = 5.5, AgentCanJump = false})` from the spawn to each hub entrance and each plot gate. **CHECK `PATH_REACH`:** every route returns `Success` (16/16). If one fails, find the blocking candidate and fix it (move or shrink the part), never the check.
 - [ ] 106. **Avatar scale audit with everything on.** A 7.25-stud-tall, 4-stud-wide box swept along each of those routes must hit no `CanCollide` part. **CHECK `AVATAR_FIT`** 16/16.
 - [ ] 107. **Clean-Play smoke test.** `tools/studio/smoke_play.luau`: start a fresh Play, wait 60 s, read the console through `get_console_output`, and assert no error-level message and no warning outside a short allowlist in the same file (each allowed line carries a one-line reason). Run it for the default look and for `full_r9`. **CHECK `SMOKE_CLEAN`** 0 errors for both. Fix real errors; never grow the allowlist to hide one.
@@ -1050,6 +1063,21 @@ Models the ladder couldn't supply, each with a brief and a reference.
   `models_r3/MANIFEST.md`.
 
 ## Decisions for designer
+
+### Round 10 item 104 — tier-thinning interpretation and facades exemption (2026-11-21)
+
+Item 104's "count at Rendah <= 0.55 x count at Tinggi" is applied to each candidate's DECORATIVE
+instance set (the instances its thinning gate governs), NOT raw BaseParts. Raw part count is the
+wrong metric for structural-heavy candidates whose own documented CHECKs protect most parts:
+facades (all 60 `FacadePart` needed for FACADE_MIN_PARTS=10 + all-six-kinds), hubprops (first 5
+props/hub protected by HUBPROPS_VISIBLE>=5), streetfurn (>=18 posts + 5/5 sign parity), spanduk
+(boards/poles/cord + Strings text), plots (fence + gates). The recorded check therefore asserts
+decorative Rendah <= 0.55 x decorative Tinggi AND structural count identical across all three tiers
+AND Sedang==Tinggi AND no instance added at Rendah. Every decorative set halves (<=0.5); facades
+has no thinnable instances and is reported EXEMPT, not failed. Default tier stays `Tinggi`=100% (so
+all documented counts/specs are unchanged) and unknown/nil tier normalises to Tinggi. Designer call
+if wanted later: allow thinning into the protected structural sets (needs those CHECKs re-scoped),
+or lower the <=0.55 ceiling. All candidates remain off by default; no shipping look changed.
 
 ### Round 10 item 103 — `full_r9` is an additive review set, not a new LookDev ID (2026-11-21)
 

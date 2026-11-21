@@ -38,11 +38,11 @@ else
 	return {}
 end
 
-local okModules, LookDev, Data = pcall(function()
-	return require((Shared :: any).LookDev), require((Shared :: any).ModelMapPlotsR8)
+local okModules, LookDev, Data, TierThin = pcall(function()
+	return require((Shared :: any).LookDev), require((Shared :: any).ModelMapPlotsR8), require((Shared :: any).TierThin)
 end)
-if not okModules or not LookDev or not Data then
-	warn("[LookDevPlotsR8] could not require LookDev / ModelMapPlotsR8")
+if not okModules or not LookDev or not Data or not TierThin then
+	warn("[LookDevPlotsR8] could not require LookDev / ModelMapPlotsR8 / TierThin")
 	return {}
 end
 
@@ -60,6 +60,11 @@ local FAMILY_ID = Data.id
 local activeFolder: any? = nil
 local savedFolder: any? = nil
 local failures = 0
+
+-- ponytail: Rendah keeps <=50% of decorative parts; fence rails, gate parts and gate markers are
+-- structural and always staged. Upgrade by making the protected set data-driven if it grows.
+local currentTier: any? = nil
+local instanceIndex = 0
 
 local BAMBOO = Color3.fromRGB(122, 106, 58) -- weathered bamboo, brown-green
 local POST_COLOR = Color3.fromRGB(96, 84, 46)
@@ -120,7 +125,23 @@ local function sizeOf(entry: any): Vector3?
 end
 
 -- Every staged entry is anchored, non-collidable and reverted by restore() with the whole folder.
-local function place(plotFolder: any, index: number, kind: string, name: string, cframe: CFrame, entry: any, opts: any?)
+local function place(
+	plotFolder: any,
+	index: number,
+	kind: string,
+	name: string,
+	cframe: CFrame,
+	entry: any,
+	opts: any?,
+	structural: boolean?
+)
+	local thinIndex = instanceIndex + 1
+	if not structural then
+		instanceIndex = thinIndex
+	end
+	if not TierThin.shouldKeep(currentTier, thinIndex, structural) then
+		return
+	end
 	local size = sizeOf(entry)
 	if not size then
 		fail("could not size " .. name .. " for plot " .. index)
@@ -197,8 +218,10 @@ local function plotFrame(index: number): (CFrame?, number, number)
 	return flat, width, depth
 end
 
-local function apply()
+local function apply(plan: any?)
 	failures = 0
+	currentTier = if plan then plan.tier else nil
+	instanceIndex = 0
 	if activeFolder then
 		publishFailures()
 		return
@@ -284,7 +307,9 @@ local function apply()
 					"fence",
 					`Fence_{index}_{segment.axis}_{segment.lx}_{segment.lz}_{rail.ly}`,
 					frame * CFrame.new(entry.lx, GROUND_Y + entry.ly, entry.lz),
-					entry
+					entry,
+					nil,
+					true
 				)
 			end
 		end
@@ -313,7 +338,8 @@ local function apply()
 				`Gate_{gatePart.kind}_{index}_{gatePart.lx}`,
 				frame * CFrame.new(gatePart.lx, GROUND_Y + gatePart.ly, gateZ + gatePart.lz),
 				gatePart,
-				opts
+				opts,
+				true
 			)
 		end
 
@@ -385,16 +411,18 @@ local function apply()
 			end
 		end
 
-		local marker = taggedPart(index, "gate_marker", "GateMarker_" .. index)
-		if marker then
-			pcall(function()
-				marker.Size = Vector3.new(1, 1, 1)
-				marker.CFrame = frame * CFrame.new(0, GROUND_Y, gateZ)
-				marker.Transparency = 1
-				marker.Parent = plotFolder
-			end)
-		else
-			fail("could not create gate marker for plot " .. index)
+		if TierThin.shouldKeep(currentTier, instanceIndex + 1, true) then
+			local marker = taggedPart(index, "gate_marker", "GateMarker_" .. index)
+			if marker then
+				pcall(function()
+					marker.Size = Vector3.new(1, 1, 1)
+					marker.CFrame = frame * CFrame.new(0, GROUND_Y, gateZ)
+					marker.Transparency = 1
+					marker.Parent = plotFolder
+				end)
+			else
+				fail("could not create gate marker for plot " .. index)
+			end
 		end
 	end
 	publishFailures()

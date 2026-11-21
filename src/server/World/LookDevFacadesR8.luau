@@ -39,13 +39,14 @@ else
 	return {}
 end
 
-local okModules, LookDev, Data, LookDevFailures = pcall(function()
+local okModules, LookDev, Data, LookDevFailures, TierThin = pcall(function()
 	return require((Shared :: any).LookDev),
 		require((Shared :: any).ModelMapFacadesR8),
-		require((Shared :: any).LookDevFailures)
+		require((Shared :: any).LookDevFailures),
+		require((Shared :: any).TierThin)
 end)
-if not okModules or not LookDev or not Data or not LookDevFailures then
-	warn("[LookDevFacadesR8] could not require LookDev / ModelMapFacadesR8 / LookDevFailures")
+if not okModules or not LookDev or not Data or not LookDevFailures or not TierThin then
+	warn("[LookDevFacadesR8] could not require LookDev / ModelMapFacadesR8 / LookDevFailures / TierThin")
 	return {}
 end
 
@@ -247,7 +248,9 @@ local function stageGauge(hub: any, hubKey: string, gauge: any, folder: any): bo
 	return true
 end
 
-local function stageHub(hubKey: string, entry: any, parent: any): boolean
+-- ponytail: every FacadePart is structural here — each hub has exactly 10 recipes and the harness
+-- FACADE_MIN_PARTS=10 + all-six-kinds checks need all of them; add surplus recipes before thinning.
+local function stageHub(hubKey: string, entry: any, parent: any, tier: any): boolean
 	if not MapSpec then
 		fail("missing MapSpec for " .. hubKey)
 		return false
@@ -284,9 +287,12 @@ local function stageHub(hubKey: string, entry: any, parent: any): boolean
 	end)
 
 	local ok = true
-	for _, recipe in ipairs(entry.parts) do
-		if not stageRecipe(hub, hubKey, recipe, folder, anchor) then
-			ok = false
+	for index, recipe in ipairs(entry.parts) do
+		-- structural=true: the facade detail and its door gauge stay at every tier.
+		if TierThin.shouldKeep(tier, index, true) then
+			if not stageRecipe(hub, hubKey, recipe, folder, anchor) then
+				ok = false
+			end
 		end
 	end
 	if not stageGauge(hub, hubKey, entry.gauge, folder) then
@@ -295,7 +301,8 @@ local function stageHub(hubKey: string, entry: any, parent: any): boolean
 	return ok
 end
 
-local function apply()
+local function apply(plan)
+	local tier = plan and plan.tier
 	failures = 0
 	clearActive()
 	local previous: any? = nil
@@ -322,7 +329,7 @@ local function apply()
 		if not entry then
 			fail("missing recipe for " .. hubKey)
 		else
-			stageHub(hubKey, entry, folder)
+			stageHub(hubKey, entry, folder, tier)
 		end
 	end
 	publishFailures()

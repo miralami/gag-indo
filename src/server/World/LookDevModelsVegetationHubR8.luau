@@ -36,13 +36,16 @@ else
 	return {}
 end
 
-local okModules, LookDev, Data, LookDevAssetLoader = pcall(function()
+local okModules, LookDev, Data, LookDevAssetLoader, TierThin = pcall(function()
 	return require((Shared :: any).LookDev),
 		require((Shared :: any).ModelMapVegetationHubR8),
-		require(script.Parent.LookDevAssetLoader)
+		require(script.Parent.LookDevAssetLoader),
+		require((Shared :: any).TierThin)
 end)
-if not okModules or not LookDev or not Data or not LookDevAssetLoader then
-	warn("[LookDevModelsVegetationHubR8] could not require LookDev / ModelMapVegetationHubR8 / LookDevAssetLoader")
+if not okModules or not LookDev or not Data or not LookDevAssetLoader or not TierThin then
+	warn(
+		"[LookDevModelsVegetationHubR8] could not require LookDev / ModelMapVegetationHubR8 / LookDevAssetLoader / TierThin"
+	)
 	return {}
 end
 
@@ -189,7 +192,9 @@ end
 -- Item-144 grouped slots: one anchor Model per pisang group / bamboo clump, with each culm or
 -- banana plant as its own tagged child Model. The harness counts children (not the empty anchor)
 -- and reads HubVegGroup / HubVegGroupKind / HubVegCulmHeight from them.
-local function stageGroup(slot: any, modelId: number, folder: any): number
+-- ponytail: Rendah keeps <=50% of decorative vegetation; the first two HubVegTree anchors per hub
+-- are structural. Upgrade by making protection data-driven if more protected kinds appear.
+local function stageGroup(slot: any, modelId: number, folder: any, tier: any?, counter: { value: number }): number
 	local anchor: any? = nil
 	local okAnchor, created = pcall(function()
 		return Instance.new("Model")
@@ -212,38 +217,42 @@ local function stageGroup(slot: any, modelId: number, folder: any): number
 
 	local placed = 0
 	for memberIndex, member in ipairs(slot.members or {}) do
-		local okLoad, memberModel = pcall(function()
-			return LookDevAssetLoader.get(modelId, FAMILY_ID)
-		end)
-		if not okLoad or not memberModel then
-			fail("group member load failed for " .. tostring(slot.group) .. " #" .. memberIndex)
-			continue
-		end
-		pcall(function()
-			memberModel.Name = "R8_" .. tostring(slot.hub) .. "_" .. tostring(slot.groupKind) .. "_" .. memberIndex
-			memberModel:SetAttribute("LookDevHubVegR8", FAMILY_ID)
-			memberModel:SetAttribute("Hub", slot.hub)
-			memberModel:SetAttribute("Species", slot.species)
-			memberModel:SetAttribute("HubVegGroup", slot.group)
-			memberModel:SetAttribute("HubVegGroupKind", slot.groupKind)
-			if slot.groupKind == "bambu" then
-				memberModel:SetAttribute("HubVegCulmHeight", member.targetHeight)
+		counter.value += 1
+		if TierThin.shouldKeep(tier, counter.value + 1) then
+			local okLoad, memberModel = pcall(function()
+				return LookDevAssetLoader.get(modelId, FAMILY_ID)
+			end)
+			if not okLoad or not memberModel then
+				fail("group member load failed for " .. tostring(slot.group) .. " #" .. memberIndex)
+				continue
 			end
-		end)
-		placeAndScale(memberModel, member)
-		pcall(function()
-			memberModel.Parent = anchor
-		end)
-		placed += 1
+			pcall(function()
+				memberModel.Name = "R8_" .. tostring(slot.hub) .. "_" .. tostring(slot.groupKind) .. "_" .. memberIndex
+				memberModel:SetAttribute("LookDevHubVegR8", FAMILY_ID)
+				memberModel:SetAttribute("Hub", slot.hub)
+				memberModel:SetAttribute("Species", slot.species)
+				memberModel:SetAttribute("HubVegGroup", slot.group)
+				memberModel:SetAttribute("HubVegGroupKind", slot.groupKind)
+				if slot.groupKind == "bambu" then
+					memberModel:SetAttribute("HubVegCulmHeight", member.targetHeight)
+				end
+			end)
+			placeAndScale(memberModel, member)
+			pcall(function()
+				memberModel.Parent = anchor
+			end)
+			placed += 1
+		end
 	end
-	if placed == 0 then
+	if placed == 0 and tier ~= "Rendah" then
 		fail("no group members placed for " .. tostring(slot.group))
 	end
 	return placed
 end
 
-local function apply()
+local function apply(plan: any?)
 	failures = 0
+	local tier: any? = if plan then plan.tier else nil
 	if activeFolder then
 		return
 	end
@@ -287,6 +296,8 @@ local function apply()
 	end
 
 	local placed = 0
+	local counter = { value = 0 }
+	local treeSeen = {}
 	for _, slot in ipairs(Data.slots()) do
 		local okSlot, allowed = pcall(function()
 			return Data.slotAllowed(slot, zones)
@@ -299,44 +310,54 @@ local function apply()
 			fail("no asset ID for " .. tostring(slot.hub) .. "/" .. tostring(slot.species))
 			continue
 		end
-		if slot.kind == "pisang_group" or slot.kind == "bambu_clump" then
-			placed += stageGroup(slot, modelId, folder)
-			continue
+		local structural = false
+		if slot.kind == "tree" then
+			treeSeen[slot.hub] = (treeSeen[slot.hub] or 0) + 1
+			structural = treeSeen[slot.hub] <= 2
 		end
-		-- Clone-first retrieval; the loader owns the LoadAsset fallback and its own counter.
-		local okLoad, model = pcall(function()
-			return LookDevAssetLoader.get(modelId, FAMILY_ID)
-		end)
-		if not okLoad or not model then
-			fail(
-				"load failed for "
-					.. tostring(slot.hub)
-					.. "/"
-					.. tostring(slot.species)
-					.. " (asset "
-					.. tostring(modelId)
-					.. "): "
-					.. tostring(model)
-			)
-			continue
+		if not structural then
+			counter.value += 1
 		end
-		pcall(function()
-			model.Name = "R8_" .. tostring(slot.hub) .. "_" .. tostring(slot.species) .. "_" .. slot.index
-			model:SetAttribute("LookDevHubVegR8", FAMILY_ID)
-			model:SetAttribute("Hub", slot.hub)
-			model:SetAttribute("Species", slot.species)
-			if slot.kind == "tree" then
-				model:SetAttribute("HubVegTree", true)
-				model:SetAttribute("HubVegTreeHeight", slot.targetHeight)
+		if TierThin.shouldKeep(tier, counter.value + 1, structural) then
+			if slot.kind == "pisang_group" or slot.kind == "bambu_clump" then
+				placed += stageGroup(slot, modelId, folder, tier, counter)
+			else
+				-- Clone-first retrieval; the loader owns the LoadAsset fallback and its own counter.
+				local okLoad, model = pcall(function()
+					return LookDevAssetLoader.get(modelId, FAMILY_ID)
+				end)
+				if not okLoad or not model then
+					fail(
+						"load failed for "
+							.. tostring(slot.hub)
+							.. "/"
+							.. tostring(slot.species)
+							.. " (asset "
+							.. tostring(modelId)
+							.. "): "
+							.. tostring(model)
+					)
+					continue
+				end
+				pcall(function()
+					model.Name = "R8_" .. tostring(slot.hub) .. "_" .. tostring(slot.species) .. "_" .. slot.index
+					model:SetAttribute("LookDevHubVegR8", FAMILY_ID)
+					model:SetAttribute("Hub", slot.hub)
+					model:SetAttribute("Species", slot.species)
+					if slot.kind == "tree" then
+						model:SetAttribute("HubVegTree", true)
+						model:SetAttribute("HubVegTreeHeight", slot.targetHeight)
+					end
+				end)
+				placeAndScale(model, slot)
+				pcall(function()
+					model.Parent = folder
+				end)
+				placed += 1
 			end
-		end)
-		placeAndScale(model, slot)
-		pcall(function()
-			model.Parent = folder
-		end)
-		placed += 1
+		end
 	end
-	if placed == 0 then
+	if placed == 0 and tier ~= "Rendah" then
 		fail("no per-hub vegetation placed; check the Edit-mode asset bake")
 	end
 	publishFailures()

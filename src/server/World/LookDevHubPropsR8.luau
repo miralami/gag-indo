@@ -51,14 +51,17 @@ if not Shared then
 	return {}
 end
 
-local okModules, LookDev, Data, LookDevAssetLoader, LookDevFailures = pcall(function()
+local okModules, LookDev, Data, LookDevAssetLoader, LookDevFailures, TierThin = pcall(function()
 	return require((Shared :: any).LookDev),
 		require((Shared :: any).ModelMapHubPropsR8),
 		require(script.Parent.LookDevAssetLoader),
-		require((Shared :: any).LookDevFailures)
+		require((Shared :: any).LookDevFailures),
+		require((Shared :: any).TierThin)
 end)
-if not okModules or not LookDev or not Data or not LookDevAssetLoader or not LookDevFailures then
-	warn("[LookDevHubPropsR8] could not require LookDev / ModelMapHubPropsR8 / LookDevAssetLoader / LookDevFailures")
+if not okModules or not LookDev or not Data or not LookDevAssetLoader or not LookDevFailures or not TierThin then
+	warn(
+		"[LookDevHubPropsR8] could not require LookDev / ModelMapHubPropsR8 / LookDevAssetLoader / LookDevFailures / TierThin"
+	)
 	return {}
 end
 
@@ -71,6 +74,10 @@ end
 local MapSpec: any? = if okSpec then loadedSpec else nil
 
 local LookDevHubPropsR8 = {}
+
+-- ponytail: Rendah thins only surplus props past the first 5 per hub (HUBPROPS_VISIBLE >=5 ceiling
+-- from CHECK_079); those first five are the protected visible set. Upgrade if the minimum rises.
+local MIN_VISIBLE_PROPS = 5
 
 local FAMILY_ID: string = Data.familyId
 local failures = 0
@@ -529,7 +536,7 @@ local function stageProcedural(hub: any, hubKey: string, recipe: any, folder: an
 	return true
 end
 
-local function stageHub(hubKey: string, folder: any): boolean
+local function stageHub(hubKey: string, folder: any, tier: any?): boolean
 	local entry = Data.recipes[hubKey]
 	if type(entry) ~= "table" or #entry < Data.minPropsPerHub or #entry > Data.maxPropsPerHub then
 		fail("missing or out-of-range recipe list for " .. hubKey)
@@ -557,7 +564,10 @@ local function stageHub(hubKey: string, folder: any): boolean
 	end)
 	local ok = true
 	local names = {} :: { [string]: boolean }
-	for _, recipe in ipairs(entry) do
+	for index, recipe in ipairs(entry) do
+		if index > MIN_VISIBLE_PROPS and not TierThin.shouldKeep(tier, index - MIN_VISIBLE_PROPS) then
+			continue
+		end
 		if type(recipe.name) ~= "string" or type(recipe.kind) ~= "string" or names[recipe.name] then
 			fail("duplicate or invalid recipe for " .. hubKey)
 			ok = false
@@ -577,7 +587,8 @@ local function stageHub(hubKey: string, folder: any): boolean
 end
 
 local applier = {
-	apply = function()
+	apply = function(plan)
+		local tier = plan and plan.tier
 		failures = 0
 		pcall(function()
 			LookDevFailures.reset(FAMILY_ID)
@@ -608,7 +619,7 @@ local applier = {
 		activeFolder = folder
 		track(folder)
 		for _, hubKey in ipairs(Data.HUB_KEYS) do
-			stageHub(hubKey, folder)
+			stageHub(hubKey, folder, tier)
 		end
 		publishFailures()
 	end,

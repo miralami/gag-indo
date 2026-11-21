@@ -43,14 +43,17 @@ if not Shared then
 	return {}
 end
 
-local okModules, LookDev, Data, Strings, LookDevFailures = pcall(function()
+local okModules, LookDev, Data, Strings, LookDevFailures, TierThin = pcall(function()
 	return require((Shared :: any).LookDev),
 		require((Shared :: any).ModelMapStreetFurnR8),
 		require((Shared :: any).Strings),
-		require((Shared :: any).LookDevFailures)
+		require((Shared :: any).LookDevFailures),
+		require((Shared :: any).TierThin)
 end)
-if not okModules or not LookDev or not Data or not Strings or not LookDevFailures then
-	warn("[LookDevStreetFurnR8] could not require LookDev / ModelMapStreetFurnR8 / Strings / LookDevFailures")
+if not okModules or not LookDev or not Data or not Strings or not LookDevFailures or not TierThin then
+	warn(
+		"[LookDevStreetFurnR8] could not require LookDev / ModelMapStreetFurnR8 / Strings / LookDevFailures / TierThin"
+	)
 	return {}
 end
 
@@ -359,8 +362,13 @@ local function stagePoles(groundY: number, folder: any)
 	end
 end
 
-local function stageBales(groundY: number, folder: any)
+-- ponytail: Rendah halves the two surplus decorative bale-bale shelters. Posts, signs, gapura,
+-- poles and cable are structural / Strings-bearing and never thin (CHECK_080: >=18 posts + all kinds).
+local function stageBales(groundY: number, folder: any, tier: any?)
 	for index, recipe in ipairs(Data.bales(MapSpec.PLAZA)) do
+		if not TierThin.shouldKeep(tier, index) then
+			continue
+		end
 		local model = newModel(string.format("StreetFurn_bale_%02d", index), "bale", false, folder)
 		if model then
 			local base = baseCFrame(recipe.x, recipe.z, recipe.yaw, groundY)
@@ -386,7 +394,8 @@ local function stageBales(groundY: number, folder: any)
 end
 
 local applier = {
-	apply = function()
+	apply = function(plan)
+		local tier = plan and plan.tier
 		failures = 0
 		pcall(function()
 			LookDevFailures.reset(Data.familyId)
@@ -419,7 +428,7 @@ local applier = {
 		stageSigns(MapSpec.GROUND_Y, folder)
 		stageGapura(MapSpec.GROUND_Y, folder)
 		stagePoles(MapSpec.GROUND_Y, folder)
-		stageBales(MapSpec.GROUND_Y, folder)
+		stageBales(MapSpec.GROUND_Y, folder, tier)
 		publishFailures()
 	end,
 

@@ -438,15 +438,43 @@ Marked here instead of being trusted from memory. Each is checked against
 
 - Whether MaterialService overrides re-skin existing Parts by base material without setting
   `MaterialVariant` on each, whether the same applies to Terrain, and the supported map sizes.
+  **Answer (access 2026-11-22):** Yes — `MaterialService:SetBaseMaterialOverride(baseMaterial, name)` (or Material Manager's "Set as Override") makes a `MaterialVariant` replace its base material globally; every existing Part of that base material re-skins with no per-part `MaterialVariant`. Applies to Terrain too: "Material overrides apply one custom material to every instance of a base material in a place, including terrain that uses that base material." One override per base material; multiple color variants on terrain need custom terrain materials (up to 62 paintable). Map sizes: no MaterialVariant-specific resolution cap is published — docs say only "Square textures work best"; the only published per-map caps are for `SurfaceAppearance` (`ColorMap` ≤1024px, Normal/Metalness/Roughness ≤256px), so treat as guidance, not a confirmed MaterialVariant limit.
+  Source: https://create.roblox.com/docs/parts/materials
+  Source: https://create.roblox.com/docs/reference/engine/classes/MaterialService
+  Source: https://create.roblox.com/docs/parts/custom-terrain-materials
+  Source: https://create.roblox.com/docs/marketplace/validation-system
 - How to make a reflective puddle: a decal is unlikely to carry reflectance, so expect a thin
   Part or `SurfaceAppearance`.
+  **Answer (access 2026-11-22):** Sky reflectance lives on `BasePart.Reflectance` (0–1; "may be ignored depending on the Material"), so the thin Part is the carrier. `Decal` has no `Reflectance` property — it can be made PBR via `RoughnessMapContent`/`MetalnessMapContent`/normal/emissive maps, which change highlight sharpness but do not add sky reflection. `SurfaceAppearance` likewise exposes only Color/Normal/Metalness/Roughness maps, no `Reflectance`. For real terrain water there is a separate `Terrain.WaterReflectance` (0–1, default 1).
+  Source: https://create.roblox.com/docs/reference/engine/classes/BasePart
+  Source: https://create.roblox.com/docs/reference/engine/classes/Decal
+  Source: https://create.roblox.com/docs/reference/engine/classes/SurfaceAppearance
+  Source: https://create.roblox.com/docs/reference/engine/classes/Terrain
 - At which quality levels `DepthOfFieldEffect`, local light shadows and `Atmosphere` haze are
   dropped by the engine on mobile.
+  **Answer (access 2026-11-22):** Only one hard threshold is public: the engine "eventually [disables] shadows altogether at quality levels below 4" (covers local-light shadows). No per-level or mobile-specific cutoff is documented for `DepthOfFieldEffect` or `Atmosphere` — docs say post effects may work "differently or not at all" at low QualityLevel, may differ on low-end devices, and that "the specific effects of quality level on the individual elements of the scene or individual rendering features are platform- and device-specific and can not be relied upon." Uncertainty: exact DoF/haze drop points remain device-dependent; hardware check required.
+  Source: https://create.roblox.com/docs/performance-optimization/improve
+  Source: https://create.roblox.com/docs/reference/engine/classes/PostEffect
+  Source: https://create.roblox.com/docs/reference/engine/enums/QualityLevel
+  Source: https://create.roblox.com/docs/reference/engine/classes/DepthOfFieldEffect
 - Current `Highlight` limits and cost on mobile (the 1 ms figure in `RESEARCH_VISUAL_TIPS.md` is
   from the docs as read 2026-11-14).
+  **Answer (access 2026-11-22):** Figure still current. Limit: 255 simultaneous `Highlight` instances per client; extras silently ignored; disabled highlights still occupy a slot (delete rather than disable). Cost: first visible highlight incurs most — "up to 1 millisecond of GPU time on mobile devices"; additional highlights show no significant impact. On mobile cost scales with screen coverage (other platforms flat); off-screen/disabled/fully transparent highlights cost nothing. Adding/removing triggers geometry rebuild and extra draw calls; property changes are lightweight. No newer figure found.
+  Source: https://create.roblox.com/docs/effects/highlighting
+  Source: https://create.roblox.com/docs/reference/engine/classes/Highlight
 - What `Workspace.GlobalWind` drives today (terrain grass, particles with wind drag, clouds).
+  **Answer (access 2026-11-22):** All three: direction/strength for terrain grass, dynamic clouds, and particles. Particles follow the vector only when the emitter has `WindAffectsDrag = true` and `Drag > 0`; `Fire` and `Smoke` follow by default. Reduce Motion accessibility setting lowers grass sway speed, not direction.
+  Source: https://create.roblox.com/docs/reference/engine/classes/Workspace
+  Source: https://create.roblox.com/docs/environment/global-wind
 - Whether a `LocalScript` can read the effective graphics quality when the player uses Automatic,
   or only the saved setting. `FidelityTier` assumes the worst case and measures frame time.
+  **Answer (access 2026-11-22):** Saved setting only. `UserGameSettings.SavedQualityLevel` returns `Automatic` when the user chose Automatic; `UserGameSettings.GraphicsQualityLevel` (the level actually in use) is RobloxScriptSecurity read, so a `LocalScript` cannot read it. Docs state: "There is currently no way for developers to reliably get the current graphics quality level of a user's machine." `FidelityTier`'s worst-case assumption stands.
+  Source: https://create.roblox.com/docs/reference/engine/classes/DataModel
+  Source: https://create.roblox.com/docs/reference/engine/classes/UserGameSettings
 - Flipbook particle layout options and texture size limits.
+  **Answer (access 2026-11-22):** Layouts (`ParticleEmitter.FlipbookLayout`): `None`, `Grid2x2` (4 frames), `Grid4x4` (16), `Grid8x8` (64), `Custom` (via `FlipbookSizeX`/`FlipbookSizeY`). Texture: playback requires a 1024×1024 texture; other sizes set `ParticleFlipbookTextureCompatible.NotCompatible` and disable playback. Include transparent spacing between frames (mip filtering may need more). On low-memory clients, likely older phones, the engine automatically deactivates flipbooks.
+  Source: https://create.roblox.com/docs/effects/particle-emitters
+  Source: https://create.roblox.com/docs/reference/engine/enums/ParticleFlipbookLayout
+  Source: https://create.roblox.com/docs/reference/engine/enums/ParticleFlipbookTextureCompatible
 - Cost of Future lighting against ShadowMap on mid-range phones: only a phone measurement answers
   this (already listed as unconfirmed in `RESEARCH_VISUAL_TIPS.md` §3.10).

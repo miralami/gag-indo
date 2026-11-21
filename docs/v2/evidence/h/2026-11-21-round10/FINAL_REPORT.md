@@ -118,3 +118,13 @@ Consolidated; no look, balance or layout decision was made by the agent. Each en
 - `stylua --check`: applied only to files changed by an item. Documented exception from `CHECK_124.txt`: five touched UI files are legacy CRLF and were already non-compliant at HEAD; formatting HEAD vs working tree differed only in the intended one-line edits, zero new violations; full reformat (144 unrelated lines) deliberately not done.
 - `git diff --check`: clean for this report.
 - HEAD `cd6f3ba`; branch `track/c-world-look`; working tree clean and in sync with `origin/track/c-world-look` (no ahead/behind). No Studio run, no visual verdict, no place save, no commit made for this report.
+
+## Addendum 2026-11-22 — item 135 refill and N7 (post-report)
+
+This report was written at item 134, before the item-135 refill. The lines above are the snapshot at that point (item 135 PENDING, HEAD `cd6f3ba`). The refill and its work closed afterwards, recorded here so the snapshot stays honest:
+
+- Item 134 COMPLETE — this report. Item 135 COMPLETE — re-read `BUGS.md` (0 open defects), `GATE1.md` (all remaining rows designer/hardware), `CANDIDATES.md` (45 pending checks already PASS), `VISUAL_MASTER_PLAN.md`; queued 17 agent-closable objective doc/evidence items and named the checked file for every non-closable layer.
+- N7 items 156-172 COMPLETE — 7 sourced engine-fact write-backs into `VISUAL_MASTER_PLAN.md` §11 (items 156-162; 7 answers, 21 `create.roblox.com` URLs, access 2026-11-22; what is not publicly documented is stated as such, never guessed) + 10 stale check-cell refreshes (items 163-172) in `CANDIDATES.md` and `CANDIDATE_INDEX.md`, each still starting `pending` with no visual/aural verdict granted. All cells mirror verbatim; `candidate_gallery_spec` + `candidate_index_spec` green.
+- Numbering: N7 was first queued as 136-152, colliding with the pre-existing section-O items 136-155. N7 was renumbered to 156-172 (and `DOC_FACT_136..142` to `DOC_FACT_156..162`); all 171 item numbers in `WORK_QUEUE.md` are now unique, 0 duplicates. The section-O items and their code/spec/evidence references are unchanged.
+- Gates after N7: `lune run tests/run.luau` All 2872 tests passed; `selene src` 0/0/0; `stylua --check` no changed Luau; `git diff --check` clean.
+- Still open (unchanged, not agent-closable): carryover BLOCKED items 4-16 and 106, Gate 1 G4/Q5, the 45 designer visual/aural verdicts in `CANDIDATES.md`, and L2/L7/L8/L10 + §11 bullet 8 in `VISUAL_MASTER_PLAN.md`. No visual verdict, no place save, no publish from N7.

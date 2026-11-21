@@ -57,6 +57,7 @@
 --   src/server/World/LookDevKincirR8.luau -- candidate "kincir_r8" (rotating river-bank waterwheel, server-only)
 --   src/server/World/LookDevLaundryR8.luau -- candidate "laundry_r8" (hanging laundry behind two houses, server-only)
 --   src/server/World/LookDevLayanganR8.luau -- candidate "layangan_r8" (four kites over the field, server-only)
+--   src/server/World/LookDevSeatedR8.luau -- candidate "seated_r8" (four seated R15 villagers at the Warung, server-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -191,6 +192,7 @@ LookDev.IDS = {
 	"kincir_r8",
 	"laundry_r8",
 	"layangan_r8",
+	"seated_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -1281,6 +1283,21 @@ LookDev.candidates = {
 		kiteCount = 4,
 		maxStepMs = 0.2,
 	},
+
+	seated_r8 = {
+		id = "seated_r8",
+		title = "Seated villagers — four catalog-dressed R15 villagers sitting on the Warung benches, with glasses and plates on the table (round 10, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Real R15 rigs from the verified ModelMapNpcsR7 catalog outfits; four Seat Parts above
+		-- the Warung bench tops drive Humanoid.Sit. Pure recipe in Shared.ModelMapSeatedR8; table
+		-- props are original cylinders with plain RGB colours and built-in materials. No asset IDs
+		-- beyond the existing R7 catalog, no decals, no Terrain edit and no new camera.
+		idsSource = "Shared.ModelMapSeatedR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		seatedCount = 4,
+		propCount = 8,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1643,6 +1660,15 @@ function LookDev.plan(id: string): any
 			minParts = c.minParts,
 			kiteCount = c.kiteCount,
 			maxStepMs = c.maxStepMs,
+		}
+	elseif id == "seated_r8" then
+		local c = LookDev.candidates.seated_r8
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			seatedCount = c.seatedCount,
+			propCount = c.propCount,
 		}
 	end
 	return nil

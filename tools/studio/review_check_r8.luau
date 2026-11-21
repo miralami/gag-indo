@@ -154,7 +154,8 @@
 -- All checks except LOOKDEV_LEAK, ADDITIVE_STAGE, WATER_SAFE, WATER_RESTORE, WIND_SET,
 -- SWAY_TWEENS, WIND_RESTORE, NIGHT_WINDOWS, NIGHT_LIGHTS, GRADE_SAFE, GRADE_RESTORE,
 -- GRADE_NO_DOF, SOUND_LOADED, SOUND_VOLUME, SOUND_RESTORE, PERAHU_PARTS, IRRIGATION_PARTS,
--- LAUNDRY_PARTS, LAUNDRY_CLOTH_CLEAR, KITE_COUNT, KITE_COST and KITE_STRING_CLEAR are read-only.
+-- LAUNDRY_PARTS, LAUNDRY_CLOTH_CLEAR, KITE_COUNT, KITE_COST, KITE_STRING_CLEAR, SEATED_COUNT and
+-- SEATED_ON_BENCH are read-only.
 -- IRRIGATION_WATER_ON_TERRACE joins the mutating set; it saves and restores the prior candidate.
 -- Item 114 adds KINCIR_ROT, a mutating SERVER block that stages kincir_r8, checks its one rotating
 -- root / one Heartbeat / 3..9-degree deterministic pump rate, disables it and re-enables it, then
@@ -171,6 +172,11 @@
 -- times a deterministic 3600-step applier pump, and raycasts each kite down to its anchor to prove
 -- no string crosses a collidable hub building. All three join the mutating set and are appended at
 -- the very END of ORDER; every failing path emits ALL THREE at measured 0 / ERR / 0.
+-- Item 117 adds SEATED_COUNT and SEATED_ON_BENCH, one mutating SERVER block that stages seated_r8,
+-- seats four catalog R15 rigs via real Seat Parts, waits a real 3 s and then probes representative
+-- body Parts for collidable Bench hits. Both join the mutating set and are appended at the very END
+-- of ORDER; every failing path emits BOTH at measured 0. No visual/material verdict, no Terrain
+-- write; all earlier checks, FLYER_COST, IDLE_COST and full_r9 stay READ-ONLY and byte-identical.
 -- The mutating checks call enable(id)/disable() and
 -- restore the prior active candidate at the end; ADDITIVE_STAGE uses enableAdditive(id)/
 -- disableAll(). All are safe to repeat.
@@ -323,6 +329,8 @@ local ORDER = {
 	"KITE_COUNT",
 	"KITE_COST",
 	"KITE_STRING_CLEAR",
+	"SEATED_COUNT",
+	"SEATED_ON_BENCH",
 }
 
 local GRASS_Y = 4
@@ -9106,6 +9114,461 @@ do
 					rayErrors = rayErrors,
 					antiVac = "4 matched kites / 4 rays / 6 hub Models / 0 collidable building hits",
 				})
+			end
+		end
+	end
+end
+
+do
+-- 9r. WORK_QUEUE section N item 117: seated_r8, four catalog R15 villagers seated on the two Warung
+-- benches. ONE mutating SERVER block emits SEATED_COUNT and SEATED_ON_BENCH. It stages seated_r8,
+-- waits a real 3 s, counts live Humanoid.Sit on real rig Models with a HumanoidRootPart, then probes
+-- representative body Parts of every rig for collidable Bench hits under the Warung Model. Every
+-- failing path emits BOTH checks at measured 0 and restores the prior candidate. No visual/material
+-- verdict and no Terrain write; all earlier checks, FLYER_COST, IDLE_COST and full_r9 stay READ-ONLY.
+	local SR_ID = "seated_r8"
+	local SR_FOLDER_FALLBACK = "LookDevSeatedR8_seated_r8"
+
+	local function srFail(reason, extra)
+		local detail = {
+			reason = reason,
+			folderPresent = folderNamed(SR_FOLDER_FALLBACK) ~= nil,
+			rigCount = 0,
+			seatCount = 0,
+			seatedCount = 0,
+			benchCount = 0,
+			probed = 0,
+			partsProbed = 0,
+			benchHits = 0,
+			antiVac = "1..4 real R15 rig Models with Humanoid + HumanoidRootPart, 4 Seats, 2 Bench parts, every rig probed, 0 Bench hits",
+		}
+		if type(extra) == "table" then
+			for key, value in pairs(extra) do
+				detail[key] = value
+			end
+		end
+		emit("SEATED_COUNT", false, 0, 4, detail)
+		emit("SEATED_ON_BENCH", false, 0, "0", detail)
+	end
+
+	local okSrModules, srModules = pcall(function()
+		return {
+			data = require(game.ReplicatedStorage.Shared.ModelMapSeatedR8),
+			look = require(game.ReplicatedStorage.Shared.LookDev),
+			review = require(game.ReplicatedStorage.Shared.LookDevReview),
+		}
+	end)
+	local srData, srLook, srReview = nil, nil, nil
+	if okSrModules and type(srModules) == "table" then
+		if type(srModules.data) == "table" then
+			srData = srModules.data
+		end
+		if type(srModules.look) == "table" then
+			srLook = srModules.look
+		end
+		if type(srModules.review) == "table" then
+			srReview = srModules.review
+		end
+	end
+	local srFolderName = SR_FOLDER_FALLBACK
+	if srData and type(srData.folderName) == "string" then
+		srFolderName = srData.folderName
+	end
+
+	local srRunService = service("RunService")
+	local srPlayers = service("Players")
+	local okSrServer, srIsServer = false, false
+	if srRunService then
+		okSrServer, srIsServer = pcall(function()
+			return (srRunService :: any):IsServer()
+		end)
+	end
+
+	-- Resolve the same applier instance LookDev.enable() registered, so diagnostics describe the
+	-- live staged rigs rather than a second require of the module.
+	local function srApplier(): any?
+		if not srReview or type((srReview :: any).resolveContainer) ~= "function" then
+			return nil
+		end
+		local ok, module = pcall(function()
+			local container = (srReview :: any).resolveContainer("server", game)
+			if not container then
+				return nil
+			end
+			local entry = (srReview :: any).paths and (srReview :: any).paths[SR_ID]
+			if type(entry) ~= "table" or type(entry.path) ~= "table" then
+				return nil
+			end
+			local node = container
+			for _, segment in ipairs(entry.path) do
+				node = node[segment]
+				if not node then
+					return nil
+				end
+			end
+			return require(node)
+		end)
+		if not ok or not module then
+			return nil
+		end
+		return module
+	end
+
+	if
+		not srData
+		or not srLook
+		or not srReview
+		or not srPlayers
+		or not okSrServer
+		or not srIsServer
+		or not mapSpecReady
+		or type(srLook.enable) ~= "function"
+		or type(srLook.disable) ~= "function"
+		or type(srLook.current) ~= "function"
+		or type(srReview.enable) ~= "function"
+		or type(srData.folderName) ~= "string"
+		or type(srData.familyId) ~= "string"
+		or type(srData.stageAttribute) ~= "string"
+		or type(srData.kindAttribute) ~= "string"
+		or type(srData.SEAT_KIND) ~= "string"
+		or type(srData.PROBE_PARTS) ~= "table"
+		or type(srData.OUTFITS) ~= "table"
+		or #srData.OUTFITS ~= 4
+		or type(srData.SITES) ~= "table"
+		or #srData.SITES ~= 4
+		or type(srData.WARUNG) ~= "table"
+		or type(srData.WARUNG.model) ~= "string"
+	then
+		srFail("server VM / seated data / LookDev / review / MapSpec not readable")
+	else
+		local applier = srApplier()
+		if
+			not applier
+			or type((applier :: any).rigs) ~= "function"
+			or type((applier :: any).seatCount) ~= "function"
+			or type((applier :: any).isApplied) ~= "function"
+			or type((applier :: any).sitStates) ~= "function"
+		then
+			srFail("seated applier diagnostics not readable")
+		else
+			local priorId = nil
+			local okPrior, value = pcall(function()
+				return (srLook :: any).current()
+			end)
+			if okPrior then
+				priorId = value
+			end
+			local function srRestorePrior()
+				pcall(function()
+					(srLook :: any).disable()
+				end)
+				if type(priorId) == "string" then
+					pcall(function()
+						(srLook :: any).enable(priorId)
+					end)
+				end
+			end
+			local okEnable, enabled, whyEnable = pcall(function()
+				return (srReview :: any).enable(SR_ID, game, { studio = true })
+			end)
+			if not okEnable or enabled == false then
+				srRestorePrior()
+				srFail("enable:" .. tostring(whyEnable or enabled))
+			else
+				local folders = {}
+				for _, inst in ipairs(childList(workspace)) do
+					local okName, name = pcall(function()
+						return (inst :: any).Name
+					end)
+					if okName and name == srFolderName then
+						folders[#folders + 1] = inst
+					end
+				end
+				local folder = folders[1]
+				local folderPresent = #folders == 1 and folderNamed(srFolderName) ~= nil
+
+				-- Real wait: the rigs are created by an async catalog call and Sit settles after the
+				-- engine has welded the accessory hierarchy. Read Sit only after 3 real seconds.
+				local okWait, waitError = pcall(function()
+					task.wait(3)
+				end)
+				if not okWait then
+					srRestorePrior()
+					srFail("real wait failed: " .. tostring(waitError))
+				else
+					local okRigs, apiRigs = pcall(function()
+						return (applier :: any).rigs()
+					end)
+					local okSeats, apiSeats = pcall(function()
+						return (applier :: any).seatCount()
+					end)
+					local okStates, apiStates = pcall(function()
+						return (applier :: any).sitStates()
+					end)
+					local okApplied, apiApplied = pcall(function()
+						return (applier :: any).isApplied()
+					end)
+					local rigs = (okRigs and type(apiRigs) == "table") and apiRigs or {}
+					local states = (okStates and type(apiStates) == "table") and apiStates or {}
+
+					local function srIn(list, item)
+						for _, candidate in ipairs(list) do
+							if candidate == item then
+								return true
+							end
+						end
+						return false
+					end
+
+					-- Anti-vacuity: only real R15 rig Models with a Humanoid AND a HumanoidRootPart
+					-- count. Dummy Parts or a folder with bare meshes cannot pass.
+					local tagged = {}
+					local seatParts = {}
+					if folder then
+						for _, inst in ipairs(descendantList(folder)) do
+							local okTagged = pcall(function()
+								return attr(inst, srData.stageAttribute) == srData.familyId
+							end)
+							if okTagged and attr(inst, srData.stageAttribute) == srData.familyId then
+								local okModel, isModel = pcall(function()
+									return (inst :: any):IsA("Model")
+								end)
+								if okModel and isModel then
+									local okHumanoid, humanoid = pcall(function()
+										return (inst :: any):FindFirstChildOfClass("Humanoid")
+									end)
+									local okRoot, root = pcall(function()
+										return (inst :: any):FindFirstChild("HumanoidRootPart")
+									end)
+									if okHumanoid and humanoid and okRoot and root then
+										tagged[#tagged + 1] = inst
+									end
+								end
+								local okPart, isPart = pcall(function()
+									return (inst :: any):IsA("BasePart")
+								end)
+								if okPart and isPart and attr(inst, srData.kindAttribute) == srData.SEAT_KIND then
+									seatParts[#seatParts + 1] = inst
+								end
+							end
+						end
+					end
+
+					local seatedCount = 0
+					local stateMismatch = false
+					local rigsMatched = true
+					for index, entry in ipairs(rigs) do
+						if type(entry) ~= "table" then
+							rigsMatched = false
+						else
+							local okModel = pcall(function()
+								return (entry.model :: any):IsA("Model")
+							end)
+							local okHumanoid = pcall(function()
+								return (entry.humanoid :: any):IsA("Humanoid")
+							end)
+							if
+								not okModel
+								or not okHumanoid
+								or not srIn(tagged, entry.model)
+								or not srIn(seatParts, entry.seat)
+							then
+								rigsMatched = false
+							end
+							local okLive, liveSit = pcall(function()
+								return (entry.humanoid :: any).Sit
+							end)
+							-- Count only a Sit that is still true after the real wait.
+							if okLive and liveSit == true then
+								seatedCount += 1
+							end
+							if states[index] ~= (okLive and liveSit == true) then
+								stateMismatch = true
+							end
+						end
+					end
+
+					local countPass = folderPresent
+						and #folders == 1
+						and #rigs >= 1
+						and #rigs <= 4
+						and #tagged == #rigs
+						and #seatParts == 4
+						and okSeats
+						and apiSeats == 4
+						and okApplied
+						and apiApplied == true
+						and #states == #rigs
+						and not stateMismatch
+						and rigsMatched
+						and seatedCount >= 1
+						and seatedCount <= 4
+
+					-- SEATED_ON_BENCH: a temporary Part at each representative body Part's real
+					-- CFrame/Size, with the probe, the staged folder and the owning rig excluded.
+					local world = nil
+					pcall(function()
+						world = workspace:FindFirstChild("World")
+					end)
+					local warung = nil
+					if world then
+						pcall(function()
+							warung = world:FindFirstChild(srData.WARUNG.model)
+						end)
+					end
+					local benchParts = {}
+					if warung then
+						for _, inst in ipairs(descendantList(warung)) do
+							local okBase, isBase = pcall(function()
+								return (inst :: any):IsA("BasePart")
+							end)
+							local okName, name = pcall(function()
+								return (inst :: any).Name
+							end)
+							local okCollide, collide = pcall(function()
+								return (inst :: any).CanCollide
+							end)
+							if okBase and isBase and okName and name == "Bench" and okCollide and collide == true then
+								benchParts[#benchParts + 1] = inst
+							end
+						end
+					end
+
+					local function srProbe(part, rig)
+						local probe, params = nil, nil
+						local okSetup, setupError = pcall(function()
+							probe = Instance.new("Part")
+							local size = part.Size
+							probe.Size = Vector3.new(size.X, size.Y, size.Z)
+							probe.CFrame = part.CFrame
+							probe.CanCollide = false
+							probe.Transparency = 1
+							probe.Anchored = false
+							probe.Parent = workspace
+							params = OverlapParams.new()
+							params.FilterType = Enum.RaycastFilterType.Exclude
+							local excludes = { probe }
+							if folder then
+								excludes[#excludes + 1] = folder
+							end
+							if rig then
+								excludes[#excludes + 1] = rig
+							end
+							params.FilterDescendantsInstances = excludes
+						end)
+						local function destroyProbe()
+							pcall(function()
+								if probe then
+									probe:Destroy()
+								end
+							end)
+						end
+						if not okSetup or not params then
+							destroyProbe()
+							return nil, tostring(setupError)
+						end
+						local okHits, hits = pcall(function()
+							return workspace:GetPartsInPart(probe, params)
+						end)
+						destroyProbe()
+						if not okHits or type(hits) ~= "table" then
+							return nil, "GetPartsInPart failed"
+						end
+						local hitsOnBench = 0
+						for _, hit in ipairs(hits) do
+							local okName, name = pcall(function()
+								return (hit :: any).Name
+							end)
+							local okCollide, collide = pcall(function()
+								return (hit :: any).CanCollide
+							end)
+							local okDesc, desc = pcall(function()
+								return (hit :: any):IsDescendantOf(warung)
+							end)
+							if okName and name == "Bench" and okCollide and collide == true and okDesc and desc then
+								hitsOnBench += 1
+							end
+						end
+						return hitsOnBench, nil
+					end
+
+					local probed, partsProbed, benchHits = 0, 0, 0
+					local probeErrors = {}
+					if countPass and warung then
+						for _, entry in ipairs(rigs) do
+							local rig = entry.model
+							local bodyParts = {}
+							local okDescendants, descendants = pcall(function()
+								return rig:GetDescendants()
+							end)
+							if okDescendants and descendants then
+								for _, partName in ipairs(srData.PROBE_PARTS) do
+									for _, part in ipairs(descendants) do
+										local okName, name = pcall(function()
+											return (part :: any).Name
+										end)
+										local okBase, isBase = pcall(function()
+											return (part :: any):IsA("BasePart")
+										end)
+										if okName and name == partName and okBase and isBase then
+											bodyParts[#bodyParts + 1] = part
+											break
+										end
+									end
+								end
+							end
+							local rigProbed = #bodyParts >= 4
+							for _, part in ipairs(bodyParts) do
+								local hits, err = srProbe(part, rig)
+								if type(hits) == "number" then
+									partsProbed += 1
+									benchHits += hits
+								else
+									rigProbed = false
+									probeErrors[#probeErrors + 1] = err
+								end
+							end
+							if rigProbed then
+								probed += 1
+							end
+						end
+					end
+					local benchPass = countPass
+						and folderPresent
+						and warung ~= nil
+						and #benchParts == 2
+						and probed == #rigs
+						and #probeErrors == 0
+						and benchHits == 0
+
+					srRestorePrior()
+					emit("SEATED_COUNT", countPass, seatedCount, 4, {
+						reason = if countPass then nil else "folder / rig / seat / Sit anti-vacuity failed",
+						folders = #folders,
+						folderPresent = folderPresent,
+						rigCount = #rigs,
+						taggedModels = #tagged,
+						seatCount = if okSeats then apiSeats else -1,
+						seatParts = #seatParts,
+						seatedCount = seatedCount,
+						sitStates = states,
+						stateMismatch = stateMismatch,
+						isApplied = if okApplied then apiApplied else false,
+						antiVac = "1..4 real R15 rig Models with Humanoid + HumanoidRootPart matched to 4 Seats; live Sit true after 3 s",
+					})
+					emit("SEATED_ON_BENCH", benchPass, benchHits, "0", {
+						reason = if benchPass then nil else "missing Warung / Bench parts or a seated body Part clips a Bench",
+						folderPresent = folderPresent,
+						warungPresent = warung ~= nil,
+						benchCount = #benchParts,
+						rigs = #rigs,
+						probed = probed,
+						partsProbed = partsProbed,
+						benchHits = benchHits,
+						probeErrors = probeErrors,
+						antiVac = "2 collidable Bench parts / all 4 rigs probed at representative body Parts / 0 Bench hits",
+					})
+				end
 			end
 		end
 	end

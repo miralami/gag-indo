@@ -1157,7 +1157,20 @@ Same rules as section M (candidates off by default, Studio PASS per item, no gam
   and part counts UNCHANGED. ORDER names appended last so all contiguous ORDER-literal assertions hold. All
   existing checks byte-identical. 2777 tests, selene 0/0/0. Candidate off by default; no shipping default
   changed. No new camera (item 133).
-- [ ] 117. **`seated_r8`: seated villagers at the warung.** Use `HumanoidDescription` NPCs (same catalog outfits as npcs_r7) seated on the warung benches with `Humanoid.Sit` driven by a `Seat`, and a few glasses and plates on the table. At most 4. **CHECKS:** `SEATED_COUNT` ≤ 4; each `Humanoid.Sit` is true after 3 s; none intersects the bench.
+- [x] 117. **`seated_r8`: seated villagers at the warung.** Use `HumanoidDescription` NPCs (same catalog outfits as npcs_r7) seated on the warung benches with `Humanoid.Sit` driven by a `Seat`, and a few glasses and plates on the table. At most 4. **CHECKS:** `SEATED_COUNT` ≤ 4; each `Humanoid.Sit` is true after 3 s; none intersects the bench.
+  Done 2026-11-22: NEW pure `ModelMapSeatedR8` (outfit KEYS only — exact R7 catalog IDs stay in ModelMapNpcsR7,
+  no new IDs; 4 seat sites at bench front edge z=-56.65, 4 glasses + 4 plates; 8 representative probe parts,
+  no engine API) + NEW server `LookDevSeatedR8` applier (real R15 rigs via `CreateHumanoidModelFromDescriptionAsync`
+  with sync fallback, R7 HumanoidDescription recipe, `seat:Sit` + fallback + one bounded 0.2s re-assert,
+  unanchored collidable rigs, exact folder/rig save-restore, diagnostics rigs/seatCount/isApplied/sitStates/props).
+  New ID 89 (count literals 88->89 across 42 specs + 3 extra; the two unrelated toBe(88) stay), review path,
+  2 harness checks (`SEATED_COUNT`, `SEATED_ON_BENCH`), new spec, CANDIDATES pending row. Real Studio fresh-Play
+  Server-VM PASS (`CHECK_117.txt`, SEEN-IN-STUDIO): `SEATED_COUNT` 4 real R15 rigs/4 Seats, all `Humanoid.Sit=true`
+  after real task.wait(3); `SEATED_ON_BENCH` 2 benches/4 rigs/32 probes/0 hits; synthetic old-Z clip correctly flagged;
+  4/4 props; disable/re-enable PASS. ONE REAL BUG FIXED: seats ON the bench made 8 lower-leg clips (benchHits=8) —
+  empirical dz sweep showed +1.0 Z clears, so zLift 0.35->1.35 (z -57.65->-56.65, at front edge), seat depth 0.8->1.4;
+  thresholds/PROBE_PARTS/counts UNCHANGED. All existing checks byte-identical. 2787 tests, selene 0/0/0.
+  Candidate off by default; no shipping default changed. No new camera (item 133).
 - [ ] 118. **`crops_showcase_r8`: crop review plots.** For the designer's review: one plot per growth stage (bibit, tumbuh, siap) showing all 12 crops in rows, and a camera for each in `REVIEW_CAMERAS.md`. No gameplay state is touched; it is staged geometry only. **CHECKS:** `CROPS_STAGED` = 36; `CROP_GROWTH` re-run.
 
 #### N3. Weather, seasons, atmosphere

@@ -47,6 +47,7 @@
 --   src/client/World/LookDevSmokeR8.luau -- candidate "smoke_r8" (chimney smoke, steam, night torches, client-only)
 --   src/client/World/LookDevWindR8.luau -- candidate "wind_r8" (gentle GlobalWind, sway tweens, tilt loop, client-only)
 --   src/server/World/LookDevModelsNpcsR8.luau -- candidate "npcs_r8" (five more catalog-dressed villager roles, server-only)
+--   src/server/World/LookDevNpcsIdleR8.luau -- candidate "npcs_idle_r8" (ten villagers with a real idle track + tiny sway, server-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -160,6 +161,7 @@ LookDev.IDS = {
 	"smoke_r8",
 	"wind_r8",
 	"npcs_r8",
+	"npcs_idle_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -1011,6 +1013,20 @@ LookDev.candidates = {
 		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
 		roleCount = 5,
 	},
+
+	npcs_idle_r8 = {
+		id = "npcs_idle_r8",
+		title = "Calm villager idle — real catalog Standing Idle track plus a <=1 degree shared breathing sway (round 9, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- The one real avatar-catalog Animation ID lives in Shared.ModelMapNpcsIdleR8 and is
+		-- recorded in ASSET_MANIFEST.md by the main session. Outfits are reused from R7/R8.
+		idsSource = "Shared.ModelMapNpcsIdleR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		villagerCount = 10,
+		maxSwayDeg = 1,
+		maxStepMs = 0.3,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1212,6 +1228,16 @@ function LookDev.plan(id: string): any
 			id = id,
 			idsSource = c.idsSource,
 			render = c.render,
+		}
+	elseif id == "npcs_idle_r8" then
+		local c = LookDev.candidates.npcs_idle_r8
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			villagerCount = c.villagerCount,
+			maxSwayDeg = c.maxSwayDeg,
+			maxStepMs = c.maxStepMs,
 		}
 	elseif id == "flyers_r8" then
 		local c = LookDev.candidates.flyers_r8

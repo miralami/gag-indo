@@ -1,0 +1,51 @@
+CHECK 87 — npcs_idle_r8 calm villager idle (WORK_QUEUE section M, item 87)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Edit runtime injection; place NOT saved, nothing published.
+
+== Setup ==
+Injected at runtime (not saved) into the EDIT datamodel: Shared.ModelMapNpcsR7, Shared.ModelMapNpcsR8,
+Shared.ModelMapNpcsIdleR8, updated Shared.LookDev / Shared.LookDevReview, and the server applier
+ServerScriptService.Server.World.LookDevNpcsIdleR8. Fresh real Play session. npcs_idle_r8 is a SERVER
+candidate: the whole tools/studio/review_check_r8.luau was pasted into execute_luau in the SERVER VM.
+The IDLE_* checks run their own staged enable/pump/disable cycle in a `do...end` scope (harness
+200-local-register limit) and restore the prior candidate afterwards.
+
+== Raw check lines (verbatim, SERVER VM) ==
+CHECK IDLE_TRACKS PASS 10 10
+CHECK IDLE_SWAY PASS 10 10
+CHECK IDLE_COST PASS 0.0018 <0.3ms
+CHECK LOAD_FAILURES PASS 0 0
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+CHECK CAMERA_CLEAR PASS 0 blocked/42 checked 0 blocked
+CHECK PERF_BUDGET PASS 334 500
+
+== Detail ==
+IDLE_TRACKS: 10 rigs staged, 10 Animators, 10 playing tracks, errors []. The animation is the real
+catalog asset 71483261700852 "Standing Idle" (AssetTypeId 61, creator unhoIygraiI), applied as
+rbxassetid://71483261700852 via Animator:LoadAnimation, Looped=true, Play(). Provenance recorded in
+docs/v2/visual/art/ASSET_MANIFEST.md. Before wiring, the same asset was independently probed in the
+Studio Server VM and its track reported IsPlaying=true. No invented ID. Outfits come from the two
+already-verified pure maps (ModelMapNpcsR7 + ModelMapNpcsR8, 5 roles each), two five-wide rows.
+
+IDLE_SWAY (state which: BOTH a real Animator track AND an active shared sway loop): after three
+pumps of the exact shared step() function the single Heartbeat loop was active (connectionCount=1,
+swayActive=true), and all 10 rigs' pivots were tilted within the <=1deg ceiling (tiltBound
+0.0001533). After disable(), the restore audit read by the harness reported count=10, mismatches=0,
+maxDelta=0 — all 10 base pivots restored exactly. One defect was found and fixed during this check:
+the applier's restore() called resetDiagnostics() at the end, wiping the audit before the harness
+read it (count=0); the trailing reset was removed (apply() still resets on the next enable). Re-run
+after the fix produced the PASS above.
+
+IDLE_COST: the harness measures the exact same pure step() function the Heartbeat loop calls, over
+a deterministic 3600-step / 60 s horizon for 10 villagers, with os.clock(): total 6.66 ms,
+0.00185 ms/step — well under the 0.3 ms/step ceiling. This is the measured Lua hot-path cost, not a
+guess; real engine animation cost is not separately measured.
+
+PERF_BUDGET 334/500 — equal to the default look, under the Sedang proxy (read after the candidate
+was disabled). No over-budget flag. All three new checks emit even on error, never skip; a missing
+rig/track/audit FAILs at measured <10 (or ERR for cost). No existing check weakened.
+
+Status: SEEN-IN-STUDIO (SERVER-VM staged enable/pump/disable cycle with real animation playback and
+measured per-frame cost). No place saved, nothing published. Visual yes/no remains the designer's —
+these checks prove track playback, sway, restore and cost, not that the idle looks calm.

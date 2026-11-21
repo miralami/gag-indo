@@ -138,6 +138,9 @@ local ORDER = {
 	"HATS",
 	"NPC8_ROLES",
 	"NPC8_OUTFITS",
+	"IDLE_TRACKS",
+	"IDLE_SWAY",
+	"IDLE_COST",
 	"PROPS_VISIBLE",
 	"PROPS_ON_GRASS",
 	"VEG_COUNT",
@@ -654,7 +657,7 @@ end)
 if not okModule or type(Failures) ~= "table" then
 	failureOk = false
 else
-	for _, id in ipairs({ "vegetation_r7", "npcs_r7", "props_r7", "npcs_r8" }) do
+	for _, id in ipairs({ "vegetation_r7", "npcs_r7", "props_r7", "npcs_r8", "npcs_idle_r8" }) do
 		local okGet, count = pcall(function()
 			return Failures.get(id)
 		end)
@@ -6983,6 +6986,221 @@ emit(
 	#STAGE_FOLDERS,
 	{ parts = stageParts, measured = table.concat(stageDetail, " "), leaked = stageLeaked, errors = stageErrors }
 )
+
+-- 12d. WORK_QUEUE item 87, npcs_idle_r8: SERVER-VM, MUTATING. Its own do...end scope (the harness
+-- already hit Luau's 200-local-register limit). One guarded enable/read/pump/disable cycle stages
+-- ten R15 villagers with a REAL catalog Standing Idle track (71483261700852) plus a shared <=1deg
+-- sine sway. IDLE_TRACKS requires all ten playing Animator tracks; IDLE_SWAY requires the single
+-- loop and at least one rig tilted away from its saved pivot, then verifies exact pivot restore;
+-- IDLE_COST runs the same pure 3600-step function the loop calls and measures os.clock ms/step.
+-- All three always emit, never skip; the prior active candidate is re-enabled at the end.
+do
+local function idleFail(reason)
+	emit("IDLE_TRACKS", false, 0, 10, { reason = reason })
+	emit("IDLE_SWAY", false, 0, 10, { reason = reason })
+	emit("IDLE_COST", false, "ERR", "<0.3ms", { reason = reason })
+end
+
+if not isServer then
+	idleFail("server VM required")
+else
+	local okModules, mods = pcall(function()
+		return {
+			look = require(game.ReplicatedStorage.Shared.LookDev),
+			review = require(game.ReplicatedStorage.Shared.LookDevReview),
+			map = require(game.ReplicatedStorage.Shared.ModelMapNpcsIdleR8),
+			applier = require(game.ServerScriptService.Server.World.LookDevNpcsIdleR8),
+		}
+	end)
+	if
+		not okModules
+		or type(mods) ~= "table"
+		or type(mods.look) ~= "table"
+		or type(mods.look.current) ~= "function"
+		or type(mods.look.enable) ~= "function"
+		or type(mods.look.disable) ~= "function"
+		or type(mods.review) ~= "table"
+		or type(mods.review.enable) ~= "function"
+		or type(mods.map) ~= "table"
+		or type(mods.map.step) ~= "function"
+		or type(mods.map.simulate) ~= "function"
+		or type(mods.map.entries) ~= "function"
+		or type(mods.applier) ~= "table"
+		or type(mods.applier.tracks) ~= "function"
+		or type(mods.applier.stageTargets) ~= "function"
+		or type(mods.applier.basePivot) ~= "function"
+		or type(mods.applier.swayActive) ~= "function"
+		or type(mods.applier.connectionCount) ~= "function"
+		or type(mods.applier.restoreAudit) ~= "function"
+		or type(mods.applier.pump) ~= "function"
+	then
+		idleFail("idle modules or applier diagnostics missing")
+	else
+		local look, review, map, applier = mods.look, mods.review, mods.map, mods.applier
+		local priorId = nil
+		local okCurrent, current = pcall(function()
+			return look.current()
+		end)
+		if okCurrent and type(current) == "string" then
+			priorId = current
+		end
+
+		-- Keep the staged work in its own function: the harness is one very long chunk and Luau
+		-- caps a single function at 200 registers.
+		local function runIdleStaged()
+		local okEnable, enabled, enableWhy = pcall(function()
+			return review.enable("npcs_idle_r8", game, { studio = true })
+		end)
+		if not okEnable or enabled == false then
+			idleFail("enable:" .. tostring(enableWhy or enabled))
+		else
+			local idleErrors, rigs, playing, withAnimator = {}, {}, 0, 0
+			local okTargets, staged = pcall(function()
+				return applier.stageTargets()
+			end)
+			if okTargets and type(staged) == "table" then
+				rigs = staged
+			else
+				idleErrors[#idleErrors + 1] = "stageTargets unreadable"
+			end
+			local okTracks, liveTracks = pcall(function()
+				return applier.tracks()
+			end)
+			if okTracks and type(liveTracks) == "table" then
+				for _, track in ipairs(liveTracks) do
+					local okPlaying, isPlaying = pcall(function()
+						return track.IsPlaying
+					end)
+					if okPlaying and isPlaying == true then
+						playing += 1
+					end
+				end
+			else
+				idleErrors[#idleErrors + 1] = "tracks unreadable"
+			end
+			for _, rig in ipairs(rigs) do
+				local okDesc, descendants = pcall(function()
+					return rig:GetDescendants()
+				end)
+				if okDesc and type(descendants) == "table" then
+					for _, descendant in ipairs(descendants) do
+						local okAnimator, isAnimator = pcall(function()
+							return descendant:IsA("Animator")
+						end)
+						if okAnimator and isAnimator then
+							withAnimator += 1
+							break
+						end
+					end
+				end
+			end
+			emit(
+				"IDLE_TRACKS",
+				#rigs == 10 and withAnimator == 10 and playing == 10 and #idleErrors == 0,
+				playing,
+				10,
+				{
+					rigs = #rigs,
+					animators = withAnimator,
+					errors = idleErrors,
+					animation = "real catalog animation " .. tostring(map.animationId) .. " " .. map.animationAsset,
+				}
+			)
+
+			-- Drive the exact shared loop function a few times; the real Heartbeat connection is
+			-- also checked. UpVector tilt is the observable sway (PivotTo keeps Position fixed).
+			local okPump = pcall(function()
+				for _ = 1, 3 do
+					applier.pump(1 / 60)
+				end
+			end)
+			local active, swayErrors = 0, {}
+			if not okPump then
+				swayErrors[#swayErrors + 1] = "pump failed"
+			end
+			local tiltBound = 1 - math.cos(math.rad(map.MAX_SWAY_DEG)) + 1e-6
+			for _, rig in ipairs(rigs) do
+				local base = applier.basePivot(rig)
+				local okPivot, pivot = pcall(function()
+					return rig:GetPivot()
+				end)
+				if base and okPivot and pivot then
+					local tilt = math.abs(pivot.UpVector.Y - base.UpVector.Y)
+					if tilt > 1e-6 and tilt <= tiltBound then
+						active += 1
+					end
+				else
+					swayErrors[#swayErrors + 1] = "pivot unreadable"
+				end
+			end
+			local okSwayLoop, swayActiveFlag = pcall(function()
+				return applier.swayActive()
+			end)
+			local okConn, connections = pcall(function()
+				return applier.connectionCount()
+			end)
+			local okDisable, disabled = pcall(function()
+				return look.disable()
+			end)
+			if not okDisable then
+				swayErrors[#swayErrors + 1] = "disable:" .. tostring(disabled)
+			end
+			local okAudit, audit = pcall(function()
+				return applier.restoreAudit()
+			end)
+			local restored = okDisable and okAudit and type(audit) == "table"
+				and audit.count == 10
+				and audit.mismatches == 0
+				and audit.maxDelta <= 1e-4
+			if not restored then
+				swayErrors[#swayErrors + 1] = "base pivots not restored"
+			end
+			emit(
+				"IDLE_SWAY",
+				okPump and okSwayLoop and swayActiveFlag == true and okConn and connections == 1
+					and active >= 1 and restored and #swayErrors == 0,
+				active,
+				10,
+				{
+					swayActive = swayActiveFlag,
+					heartbeats = connections,
+					maxSwayDeg = map.MAX_SWAY_DEG,
+					tiltBound = tiltBound,
+					restore = audit,
+					errors = swayErrors,
+				}
+			)
+
+			local simEntries = map.entries()
+			local steps = map.STEPS
+			local started = os.clock()
+			map.simulate(simEntries, map.SIM_SECONDS, map.DT)
+			local elapsed = os.clock() - started
+			local msPerStep = elapsed * 1000 / steps
+			emit(
+				"IDLE_COST",
+				msPerStep >= 0 and msPerStep < map.MAX_STEP_MS,
+				math.floor(msPerStep * 10000) / 10000,
+				"<" .. tostring(map.MAX_STEP_MS) .. "ms",
+				{
+					totalMs = math.floor(elapsed * 1000 * 100) / 100,
+					steps = steps,
+					villagers = #simEntries,
+					msPerStep = msPerStep,
+				}
+			)
+		end
+		end
+		runIdleStaged()
+
+		if priorId then
+			pcall(function()
+				return look.enable(priorId)
+			end)
+		end
+	end
+end
+end
 
 -- 13. LOOKDEV_LEAK: mutating, run last. For every LookDev.IDS entry, count workspace and
 -- Lighting descendants, enable(id), disable(), count again. PASS only when both counts are

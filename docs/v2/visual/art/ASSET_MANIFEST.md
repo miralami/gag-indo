@@ -612,6 +612,18 @@ distinct and every role has a hat. Pure data: `src/shared/ModelMapNpcsR8.luau`.
 proportions — these are scale properties, not asset IDs. Catalogue licence not re-read here; Roblox
 catalog terms apply. Visual yes/no is the designer's; this manifest only records provenance.
 
+### Idle animation (`npcs_idle_r8`, WORK_QUEUE section M item 87, 2026-11-21)
+
+| Role | Asset ID | Catalog type | Name (creator) |
+|---|---:|---|---|
+| villager idle | 71483261700852 | Animation (61) | Standing Idle (unhoIygraiI) |
+
+Found with the catalog search API (`keyword=standing+idle&limit=10`), Name/AssetTypeId/Creator
+re-read from `economy.roblox.com/v2/assets/71483261700852/details`. No ID was invented. Applied via
+`Animator:LoadAnimation(Animation)` with `rbxassetid://71483261700852`, `Looped = true`, `Play()`.
+Empirically proven to load and report `track.IsPlaying == true` on R15 rigs in the Studio Server VM
+on 2026-11-21 (before wiring). Catalogue licence not re-read here; Roblox catalog terms apply.
+
 ### buildings_r8 — six free Creator Store buildings (round 9, item 77, SERVER datamodel)
 
 WORK_QUEUE section M item 77. All six IDs came from real Creator Store `search_asset` (free-filter)

@@ -767,3 +767,32 @@ evidence, `CHECK_086.txt`, tracker ticks and the visual yes/no. No place is save
 4. Shoot the second row (z=14, x=-12..12, 6-stud spacing, same camera-facing yaw as `npcs_r7`)
    from the saved `Shared.ModelMapNpcsR8.savedCamera`, then call `LookDevReview.disable()` and
    re-read `LOOKDEV_LEAK 0`; stop Play without saving. Visual yes/no stays the designer's.
+
+## Item-87 run — `npcs_idle_r8` calm villager idle (WORK_QUEUE section M)
+
+Implementation-only run note. **No Studio result is claimed here**; the main session owns CHECK
+evidence, `CHECK_087.txt`, tracker ticks and the visual yes/no. No place is saved or published.
+
+1. Inject at runtime (not saved): `ReplicatedStorage.Shared.ModelMapNpcsIdleR8`, the changed
+   `Shared.LookDev` and `Shared.LookDevReview`, the new
+   `ServerScriptService.Server.World.LookDevNpcsIdleR8`, and the changed
+   `tools/studio/review_check_r8.luau`. The one real catalog ID is "Standing Idle",
+   `rbxassetid://71483261700852` (AssetTypeId 61); it is already recorded in
+   `docs/v2/visual/art/ASSET_MANIFEST.md` by the main session, agents never invent or re-source IDs.
+2. Start a fresh real Play session. `npcs_idle_r8` is a SERVER candidate and the new checks are
+   SERVER-ONLY and MUTATING: run the WHOLE `tools/studio/review_check_r8.luau` in the SERVER VM via
+   Studio MCP `execute_luau`. The `do -- 12d. WORK_QUEUE item 87` block stages via
+   `Review.enable("npcs_idle_r8", game, { studio = true })`, is self-contained (no dependency on
+   `npcs_r7`/`npcs_r8` being enabled), restores the prior candidate on error, and emits all three
+   checks even on failure.
+3. Read `IDLE_TRACKS` (10/10 rigs have an `Animator` with a playing, looped track whose
+   `AnimationId` is exactly `rbxassetid://71483261700852`), `IDLE_SWAY` (one shared `Heartbeat`
+   connection, upward-tilt <=1 degree after deterministic `pump(1/60)` ticks, and a clean restore
+   audit: 10 targets, 0 mismatches, maxDelta <=1e-4) and `IDLE_COST` (real 3600-step `os.clock`
+   measurement of the same pure `step()` the loop calls, <0.3 ms/step for 10 villagers; pure-Lune
+   baseline ~0.0108 ms/step). Missing rig/track/loop FAILs at measured 0, never a skip. Guard:
+   `LOAD_FAILURES 0 0` now sums `npcs_idle_r8` alongside `vegetation_r7`/`npcs_r7`/`props_r7`/`npcs_r8`.
+4. The 10 outfits come 5+5 from `ModelMapNpcsR7.catalog/roles/slots` and
+   `ModelMapNpcsR8.catalog/roles/slots` (two five-wide rows at z=8 and z=14). Shoot the staged
+   rows from the saved `Shared.ModelMapNpcsR8.savedCamera`, then call `LookDevReview.disable()` and
+   re-read `LOOKDEV_LEAK 0`; stop Play without saving. Visual yes/no stays the designer's.

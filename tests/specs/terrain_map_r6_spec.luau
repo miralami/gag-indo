@@ -365,7 +365,7 @@ return function(t, Env)
 			local env = Env.new()
 			local LookDev = env:require("shared/LookDev")
 			local Review = env:require("shared/LookDevReview")
-			expect(#LookDev.IDS):toBe(71)
+			expect(#LookDev.IDS):toBe(72)
 			expect(LookDev.IDS[38]):toBe("spawn_ground_r6")
 			expect(LookDev.IDS[39]):toBe("terrain_r6_a")
 			expect(LookDev.IDS[40]):toBe("terrain_r6_b")
@@ -373,7 +373,7 @@ return function(t, Env)
 			for _ in Review.paths do
 				count += 1
 			end
-			expect(count):toBe(71)
+			expect(count):toBe(72)
 			expect(count):toBe(#LookDev.IDS)
 			for _, id in CANDIDATES do
 				expect(LookDev.isCandidate(id)):toBe(true)

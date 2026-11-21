@@ -209,6 +209,16 @@ kid 0.8/1.2 vs adult 1/1). Real Studio SERVER-VM PASS `NPC8_ROLES 5/5` (each rig
 (`h/2026-11-21-round9/CHECK_086.txt`). PERF_BUDGET 420/500 — flagged, up from default 334 by the
 extra rigs, still under the Sedang proxy ceiling. Suite **2621 tests**; `selene src` 0/0/0.
 
+Item 87 COMPLETE: `npcs_idle_r8` gives 10 staged R15 villagers a calm idle — the real catalog
+animation 71483261700852 "Standing Idle" (type 61, recorded in `ASSET_MANIFEST.md`) plays on each
+`Animator`, plus one shared Heartbeat sine root sway <=1deg. Roles/outfits come from the verified
+`npcs_r7` + `npcs_r8` maps (5+5). Studio SERVER-VM PASS `IDLE_TRACKS 10/10` (10 playing tracks),
+`IDLE_SWAY 10/10` (one loop, all 10 base pivots restored, 0 mismatches), `IDLE_COST 0.0018ms/<0.3ms`
+(3600-step sim of the same hot-path step function), `LOAD_FAILURES 0`, `LOOKDEV_LEAK 0`,
+`CAMERA_CLEAR 0/42` (`h/2026-11-21-round9/CHECK_087.txt`). A restore-audit defect (trailing
+`resetDiagnostics()` wiped the audit) was found and fixed; re-run PASS. PERF_BUDGET 334/500, default.
+Suite **2632 tests**; `selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

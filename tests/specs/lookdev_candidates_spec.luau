@@ -16,7 +16,7 @@ return function(t, Env)
 	t:describe("LookDev candidates (candidate, awaiting designer yes)", function()
 		t:it("ships fifty-five candidates, all unapproved and cartoonish-realism", function()
 			local LookDev = fresh()
-			expect(#LookDev.IDS):toBe(55)
+			expect(#LookDev.IDS):toBe(56)
 			expect(LookDev.IDS[1]):toBe("plaza_lighting")
 			expect(LookDev.IDS[2]):toBe("police_walkin")
 			expect(LookDev.IDS[3]):toBe("icons")
@@ -72,6 +72,7 @@ return function(t, Env)
 			expect(LookDev.IDS[53]):toBe("water_r8_b")
 			expect(LookDev.IDS[54]):toBe("water_r8_c")
 			expect(LookDev.IDS[55]):toBe("buildings_r8")
+			expect(LookDev.IDS[56]):toBe("facades_r8")
 			for _, id in LookDev.IDS do
 				local c = LookDev.candidates[id]
 				expect(c.id):toBe(id)
@@ -118,6 +119,7 @@ return function(t, Env)
 					"src/server/World/LookDevModelsNpcsR5.luau",
 					"src/server/World/LookDevSpawnDressingR5.luau",
 					"src/shared/LookDevCorner.luau",
+					"src/server/World/LookDevFacadesR8.luau",
 				}
 			do
 				local src = fs.readFile(path)

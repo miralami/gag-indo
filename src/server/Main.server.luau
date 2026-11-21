@@ -130,5 +130,6 @@ pcall(require, script.Parent.World.LookDevSawahR8)
 pcall(require, script.Parent.World.LookDevRiverR8)
 pcall(require, script.Parent.World.LookDevPathEdgeR8)
 pcall(require, script.Parent.World.LookDevBuildingsR8)
+pcall(require, script.Parent.World.LookDevFacadesR8)
 
 print("[JuraganDesa] server started")

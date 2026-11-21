@@ -37,3 +37,13 @@ Ordered steps. No place is saved or published.
 2. `BLDG_VISIBLE` 4/6 — the former +Z camera rule put shipping `PosPolisi`/`RumahPakRT` parts between camera and row. A harness sweep of the same cone/raycast logic verified camera `(0,60,-200)` looking at `(0,16,28)` gives 6/6; other sampled positions failed. The camera rule is now signed `front=-228, up=60, lookY=16` (min-Z facade side). Harness cone, 6/6 target, raycast filters and site scan unchanged.
 
 Required fresh Play verification: re-inject `ModelMapBuildingsR8` and `LookDevBuildingsR8` (plus `review_check_r8.luau` if it changed); stop Play; start a fresh real Play session; confirm the six baked `BuildingSlot` folders under `ServerStorage.LookDevAssets`; stage via `LookDevReview.enable("buildings_r8", game)`; capture `BLDG_VISIBLE`, `BLDG_WIDTH`, `BLDG_DOOR`, `LOAD_FAILURES`, `LOOKDEV_LEAK` and `CAMERA_CLEAR`. No place save, no publish. Until that run is captured, no PASS is claimed.
+
+## 5. Item-78 run — facades_r8
+
+Ordered run notes. No Studio result is claimed; no place is saved or published.
+
+1. Stop Play. Inject the changed modules at runtime: `ReplicatedStorage.Shared.ModelMapFacadesR8`, `ReplicatedStorage.Shared.LookDev`, `ReplicatedStorage.Shared.LookDevReview`, `ServerScriptService.Server.Main.server`, `ServerScriptService.Server.World.LookDevFacadesR8`, and the new `tools/studio/review_check_r8.luau`.
+2. Start a FRESH real Play session in the SERVER datamodel. Do not reuse a session that staged another candidate.
+3. Stage with `require(game.ReplicatedStorage.Shared.LookDevReview).enable("facades_r8", game)`.
+4. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the SERVER VM. Capture `FACADE_PARTS` and `DOOR_CLEAR`, plus `LOAD_FAILURES` and `LOOKDEV_LEAK`. Exact targets: `FACADE_PARTS 6 6` (each hub folder has >=10 `FacadePart` Parts and all six `FacadeKind` values) and `DOOR_CLEAR 6 6` (each `FacadeDoorGauge` has the exact 7/10.5/2 pakrt or 6/9/2 other sizes, zero collidable hub parts and zero `FacadePart` hits in a rotation-aware `GetPartsInPart` probe at the gauge's exact Size/CFrame). A missing folder, per-hub folder, gauge or hub Model FAILs at measured 0, never a skip. Guards: `LOAD_FAILURES 0 0`, `LOOKDEV_LEAK 0 leaks`.
+5. Stop Play. No save, no publish. Visual yes/no is the designer's.

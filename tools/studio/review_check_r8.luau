@@ -25,6 +25,11 @@
 -- BLDG_VISIBLE counts staged building Models inside the review camera cone; BLDG_WIDTH measures
 -- each Model's world bounding-box width; BLDG_DOOR checks every DoorGauge for a >=7 clearance
 -- with zero collidable building geometry overlapping its volume (the real avatar-fit test).
+-- It also emits the r8 facades family (WORK_QUEUE item 78): FACADE_PARTS and DOOR_CLEAR. Both are
+-- SERVER-side and FAIL at measured 0 when the LookDevFacadesR8_facades_r8 folder or its gauge Parts
+-- are absent. FACADE_PARTS requires >=10 tagged decorative Parts and all six FacadeKind values per
+-- hub; DOOR_CLEAR uses a rotation-aware GetPartsInPart probe at each FacadeDoorGauge's exact Size and
+-- CFrame and requires zero collidable hub parts and zero FacadePart decorative hits.
 -- Client datamodel: same lines plus CLOUD_COVER (the client LocalScript owns Terrain.Clouds.Cover);
 -- the Server datamodel cannot observe that tween. Run client-owned candidates (water, grade,
 -- sounds, clouds) in the Client datamodel.
@@ -70,6 +75,8 @@ local ORDER = {
 	"BLDG_VISIBLE",
 	"BLDG_WIDTH",
 	"BLDG_DOOR",
+	"FACADE_PARTS",
+	"DOOR_CLEAR",
 	"VEG_NEAR",
 	"PROP_SIZE",
 	"CLOUD_COVER",
@@ -2315,6 +2322,299 @@ emit("BLDG_DOOR", bldgDoorOk == #BUILDING_SLOTS, bldgDoorOk, #BUILDING_SLOTS, {
 	folderPresent = buildingsFolder ~= nil,
 	minDoor = MIN_DOOR,
 	slots = bldgDoorDetail,
+})
+
+-- 9h. r8 facades family (WORK_QUEUE item 78). Two SERVER-side CHECK families over the staged
+-- LookDevFacadesR8_facades_r8 folder. A missing folder, per-hub folder, gauge, hub Model, or failed
+-- read is a FAIL at measured 0, never a skip. FACADE_PARTS counts tagged decorative Parts and checks
+-- that all six FacadeKind values are present in every hub. DOOR_CLEAR probes each gauge's exact
+-- oriented volume with workspace:GetPartsInPart (the BLDG_DOOR method) and requires zero collidable
+-- hub parts and zero FacadePart decorative hits. No target is weakened for a missing candidate.
+local FACADE_FOLDER = "LookDevFacadesR8_facades_r8"
+local FACADE_KINDS = {
+	"shuttered_window",
+	"porch_roof",
+	"ridge_cap",
+	"lantern_bracket",
+	"doorstep",
+	"eave",
+}
+local FACADE_MIN_PARTS = 10
+local FACADE_MODEL_NAMES = {
+	pasar = "Pasar",
+	gelap = "TengkulakGelap",
+	warung = "Warung",
+	ronda = "PosRonda",
+	polisi = "PosPolisi",
+	pakrt = "RumahPakRT",
+}
+-- Exact pure-data gauges: pakrt is the 7 x 10.5 map reference, the other five are 6 x 9.
+local FACADE_GAUGE_SIZES = {
+	pasar = { 6, 9, 2 },
+	gelap = { 6, 9, 2 },
+	warung = { 6, 9, 2 },
+	ronda = { 6, 9, 2 },
+	polisi = { 6, 9, 2 },
+	pakrt = { 7, 10.5, 2 },
+}
+
+-- Prefer the live pure-data module; the literal table above is the exact fallback if it cannot be
+-- read. Either way the numbers checked below are identical.
+local facadeData = nil
+pcall(function()
+	local okShared, shared = pcall(function()
+		return game:GetService("ReplicatedStorage"):FindFirstChild("Shared")
+	end)
+	if okShared and shared then
+		local okModule, module = pcall(function()
+			return shared:FindFirstChild("ModelMapFacadesR8")
+		end)
+		if okModule and module then
+			facadeData = require(module)
+		end
+	end
+end)
+
+local facadesFolder = folderNamed(FACADE_FOLDER)
+local facadeHubFolders = {}
+for _, child in ipairs(childList(facadesFolder)) do
+	local okFolder, isFolder = pcall(function()
+		return child:IsA("Folder")
+	end)
+	local key = attr(child, "HubKey")
+	if okFolder and isFolder and type(key) == "string" then
+		if facadeHubFolders[key] == nil then
+			facadeHubFolders[key] = child
+		end
+	end
+end
+
+local function facadeGaugeIn(folder, hubKey)
+	if not folder then
+		return nil
+	end
+	local ok, descendants = pcall(function()
+		return folder:GetDescendants()
+	end)
+	if not ok or type(descendants) ~= "table" then
+		return nil
+	end
+	for _, part in ipairs(descendants) do
+		local okPart, isPart = pcall(function()
+			return part:IsA("BasePart")
+		end)
+		local okName, name = pcall(function()
+			return part.Name
+		end)
+		if okPart and isPart and okName and name == "FacadeDoorGauge" and attr(part, "HubKey") == hubKey then
+			return part
+		end
+	end
+	return nil
+end
+
+-- FACADE_PARTS: every hub must have >= 10 tagged Parts and all six kinds.
+local facadePartsDetail = {}
+local facadePartsOk = 0
+for _, hubKey in ipairs(hubOrder) do
+	local folder = facadeHubFolders[hubKey]
+	local count = 0
+	local kinds = {}
+	local kindList = {}
+	if folder then
+		local ok, descendants = pcall(function()
+			return folder:GetDescendants()
+		end)
+		if ok and type(descendants) == "table" then
+			for _, part in ipairs(descendants) do
+				local okPart, isPart = pcall(function()
+					return part:IsA("BasePart")
+				end)
+				if okPart and isPart and attr(part, "FacadePart") == true then
+					count += 1
+					local kind = attr(part, "FacadeKind")
+					if type(kind) == "string" and not kinds[kind] then
+						kinds[kind] = true
+						kindList[#kindList + 1] = kind
+					end
+				end
+			end
+		end
+	end
+	local allKinds = true
+	for _, kind in ipairs(FACADE_KINDS) do
+		if not kinds[kind] then
+			allKinds = false
+		end
+	end
+	local pass = folder ~= nil and count >= FACADE_MIN_PARTS and allKinds
+	if pass then
+		facadePartsOk += 1
+	end
+	facadePartsDetail[hubKey] = {
+		folderPresent = folder ~= nil,
+		count = count,
+		kinds = kindList,
+		allKinds = allKinds,
+		pass = pass,
+	}
+end
+emit("FACADE_PARTS", facadePartsOk == #hubOrder, facadePartsOk, #hubOrder, {
+	folderPresent = facadesFolder ~= nil,
+	minParts = FACADE_MIN_PARTS,
+	kinds = FACADE_KINDS,
+	hubs = facadePartsDetail,
+})
+
+local function facadeHubModel(hubKey)
+	local wanted = FACADE_MODEL_NAMES[hubKey]
+	if facadeData and facadeData.hubs and facadeData.hubs[hubKey] then
+		wanted = facadeData.hubs[hubKey].model
+	end
+	if type(wanted) ~= "string" then
+		return nil
+	end
+	local ok, found = pcall(function()
+		local world = workspace:FindFirstChild("World")
+		local roots = world and { world, workspace } or { workspace }
+		for _, root in ipairs(roots) do
+			for _, instance in ipairs(root:GetDescendants()) do
+				if instance:IsA("Model") and instance.Name == wanted then
+					return instance
+				end
+			end
+		end
+		return nil
+	end)
+	return if ok then found else nil
+end
+
+-- DOOR_CLEAR: mirror BLDG_DOOR. The probe is an unparented Part until configured, then matches the
+-- gauge's exact Size/CFrame, excludes itself, and counts collidable hub geometry plus FacadeParts.
+local facadeDoorDetail = {}
+local facadeDoorOk = 0
+for _, hubKey in ipairs(hubOrder) do
+	local gauge = facadeGaugeIn(facadeHubFolders[hubKey], hubKey)
+	local model = facadeHubModel(hubKey)
+	local expected = FACADE_GAUGE_SIZES[hubKey]
+	if facadeData and facadeData.hubs and facadeData.hubs[hubKey] then
+		local g = facadeData.hubs[hubKey].gauge
+		if type(g) == "table" then
+			expected = { g.w, g.h, g.d }
+		end
+	end
+	local dims = {}
+	local dimsMatch = false
+	local hubCollisions, facadeHits = 0, 0
+	if gauge and expected then
+		local okDims, w, h, d = pcall(function()
+			local size = gauge.Size
+			return size.X, size.Y, size.Z
+		end)
+		local okAttrs, aw, ah, ad = pcall(function()
+			return gauge:GetAttribute("DoorW"), gauge:GetAttribute("DoorH"), gauge:GetAttribute("DoorD")
+		end)
+		if okDims then
+			dims = { w, h, d }
+		end
+		dimsMatch = okDims
+			and okAttrs
+			and type(w) == "number"
+			and type(h) == "number"
+			and type(d) == "number"
+			and math.abs(w - expected[1]) < 1e-6
+			and math.abs(h - expected[2]) < 1e-6
+			and math.abs(d - expected[3]) < 1e-6
+			and type(aw) == "number"
+			and type(ah) == "number"
+			and type(ad) == "number"
+			and math.abs(aw - expected[1]) < 1e-6
+			and math.abs(ah - expected[2]) < 1e-6
+			and math.abs(ad - expected[3]) < 1e-6
+		local okProbe, probe = pcall(function()
+			return Instance.new("Part")
+		end)
+		if not okProbe or not probe then
+			hubCollisions, facadeHits = -1, -1
+		else
+			local okSetup = pcall(function()
+				local size = gauge.Size
+				probe.Size = Vector3.new(size.X, size.Y, size.Z)
+				probe.CanCollide = false
+				probe.Transparency = 1
+				probe.Anchored = false
+				probe.CFrame = gauge.CFrame
+				probe.Parent = workspace
+			end)
+			local okParams, params = pcall(function()
+				local p = OverlapParams.new()
+				p.FilterType = Enum.RaycastFilterType.Exclude
+				p.FilterDescendantsInstances = { probe }
+				return p
+			end)
+			local okHits, hits = false, nil
+			if okSetup and okParams and params then
+				okHits, hits = pcall(function()
+					return workspace:GetPartsInPart(probe, params)
+				end)
+			end
+			if not okHits or type(hits) ~= "table" then
+				hubCollisions, facadeHits = -1, -1
+			else
+				for _, part in ipairs(hits) do
+					local okFacade, isFacade = pcall(function()
+						return part:GetAttribute("FacadePart") == true
+					end)
+					if okFacade and isFacade then
+						facadeHits += 1
+					end
+					local okDesc, descendant = pcall(function()
+						return model ~= nil and part:IsDescendantOf(model)
+					end)
+					local okCollide, collide = pcall(function()
+						return part.CanCollide
+					end)
+					local okSize, sx, sy = pcall(function()
+						return part.Size.X, part.Size.Y
+					end)
+					if
+						okDesc
+						and descendant
+						and okCollide
+						and collide == true
+						and okSize
+						and type(sx) == "number"
+						and type(sy) == "number"
+						and sx > 0.5
+						and sy > 1.5
+					then
+						hubCollisions += 1
+					end
+				end
+			end
+			pcall(function()
+				probe:Destroy()
+			end)
+		end
+	end
+	local pass = gauge ~= nil and model ~= nil and dimsMatch and hubCollisions == 0 and facadeHits == 0
+	if pass then
+		facadeDoorOk += 1
+	end
+	facadeDoorDetail[hubKey] = {
+		gaugePresent = gauge ~= nil,
+		hubModelPresent = model ~= nil,
+		expected = expected,
+		measured = dims,
+		dimsMatch = dimsMatch,
+		hubCollisions = hubCollisions,
+		facadeHits = facadeHits,
+		pass = pass,
+	}
+end
+emit("DOOR_CLEAR", facadeDoorOk == #hubOrder, facadeDoorOk, #hubOrder, {
+	folderPresent = facadesFolder ~= nil,
+	hubs = facadeDoorDetail,
 })
 
 -- 10. VEG_NEAR: dense near layer at the saved camera (45 studs, 70-degree cone). A model only

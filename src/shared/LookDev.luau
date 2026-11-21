@@ -40,6 +40,7 @@
 --   src/server/World/LookDevPlazaR9.luau -- candidate "plaza_r9" (central plaza dressing, server-only)
 --   src/server/World/LookDevRondaTowerR9.luau -- candidate "ronda_tower_r9" (Pos Ronda watchtower, server-only)
 --   src/server/World/LookDevRocksR9.luau -- candidate "rocks_r9" (half-buried boulders and stones, server-only)
+--   src/server/World/LookDevStreetFurnR8.luau -- candidate "streetfurn_r8" (road furniture, server-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -59,7 +60,7 @@
 --   LookDev.enable("textures_r4")
 --   LookDev.enable("sky_r4_a") -- or LookDev.enable("sky_r4_b") / LookDev.enable("sky_r4_c")
 --   LookDev.enable("sky_r6_a") -- or sky_r6_b / sky_r6_c / sky_r6_d / sky_r6_e / sky_r6_f
---   -- from the Server datamodel: LookDev.enable("buildings_r8") / LookDev.enable("facades_r8") / LookDev.enable("hubprops_r8") / LookDev.enable("hubs_real_r9") / LookDev.enable("plaza_r9") / LookDev.enable("ronda_tower_r9") / LookDev.enable("rocks_r9")
+--   -- from the Server datamodel: LookDev.enable("buildings_r8") / LookDev.enable("facades_r8") / LookDev.enable("hubprops_r8") / LookDev.enable("hubs_real_r9") / LookDev.enable("plaza_r9") / LookDev.enable("ronda_tower_r9") / LookDev.enable("rocks_r9") / LookDev.enable("streetfurn_r8")
 --   LookDev.enable("spawn_ground_r6")
 --   LookDev.enable("terrain_r6_a") -- or LookDev.enable("terrain_r6_b")
 --   -- server-only: LookDev.enable("buildings_r4") / LookDev.enable("vegetation_r4") / LookDev.enable("props_r4") / LookDev.enable("npcs_r4")
@@ -146,6 +147,7 @@ LookDev.IDS = {
 	"plaza_r9",
 	"ronda_tower_r9",
 	"rocks_r9",
+	"streetfurn_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -900,6 +902,21 @@ LookDev.candidates = {
 		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
 		minRocks = 25,
 	},
+
+	streetfurn_r8 = {
+		id = "streetfurn_r8",
+		title = "Street furniture — lampu/obor ring posts, three papan petunjuk, gapura, tiang listrik with a sagging cable and two bale-bale shelters (round 9, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Original procedural Parts, no asset IDs. Pure anchors/recipes in
+		-- Shared.ModelMapStreetFurnR8, all derived from MapSpec road geometry. Sign text comes
+		-- from Shared.Strings by key; grading is pending Studio review.
+		idsSource = "Shared.ModelMapStreetFurnR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		minPosts = 18,
+		signCount = 3,
+		baleCount = 2,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1089,6 +1106,7 @@ function LookDev.plan(id: string): any
 		or id == "plaza_r9"
 		or id == "ronda_tower_r9"
 		or id == "rocks_r9"
+		or id == "streetfurn_r8"
 	then
 		local c = LookDev.candidates[id]
 		return {

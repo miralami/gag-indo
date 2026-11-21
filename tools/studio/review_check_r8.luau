@@ -39,6 +39,12 @@
 -- tagged |Lateral| must be in [HalfWidth, HalfWidth + 3], its CFrame must agree with that lateral
 -- about CentreX/CentreZ, and the recorded centre must lie on a readable MapSpec centreline. A
 -- missing folder, tag or attribute FAILs at measured >= 1, never a vacuous pass.
+-- It also emits the item-80 streetfurn_r8 family: STREETFURN (per-kind counts of the tagged staged
+-- furniture), STRINGS_PARITY (the three signpost Strings keys have non-empty id and en) and
+-- STREETFURN_CLEAR (no staged part sits within 6 studs of a MapSpec road centreline, except the
+-- lampu/obor posts, gapura and pole line that are deliberately staged on the verge and tagged
+-- VergePost). All three are SERVER-side and READ-ONLY, reuse the PATH_CLEAR centreline tables and
+-- FAIL when the folder, tags, Strings or MapSpec are missing.
 -- It also emits the r8 water family (WORK_QUEUE item 76): WATER_SAFE and WATER_RESTORE. Both are
 -- CLIENT-only and mutate Terrain in one guarded enable/read/disable/compare cycle per variant,
 -- restoring the prior active candidate at the end. WATER_DEFAULT (WORK_QUEUE item 137) is a
@@ -150,6 +156,9 @@ local ORDER = {
 	"BRIDGE_RAILS",
 	"BRIDGE_WALKABLE",
 	"PATH_EDGE",
+	"STREETFURN",
+	"STRINGS_PARITY",
+	"STREETFURN_CLEAR",
 	"PATH_CLEAR",
 	"PATH_EDGE_OFFSET",
 	"ROCK_COUNT",
@@ -5087,6 +5096,212 @@ emit(
 		offenders = rockGateOffenders,
 		readErrors = rockGateErrors,
 		reason = rockGateReason,
+	}
+)
+
+-- 9h. WORK_QUEUE section M item 80: streetfurn_r8. Three NEW READ-ONLY checks over the staged
+-- LookDevStreetFurnR8_streetfurn_r8 folder. They reuse the PATH_CLEAR rectangle/chord tables and
+-- bboxAABB CFrame+Size math; VergePost-tagged fixtures are the only clearance exemption, because
+-- lampu/obor posts, the gapura and the pole line are DESIGNED to stand at the road verge.
+local SF_FOLDER = "LookDevStreetFurnR8_streetfurn_r8"
+local SF_KEY = "streetfurn_r8"
+local SF_CLEAR = 6
+local SF_MIN_POSTS = 18
+local SF_MIN_PER_POST_KIND = 8
+local SF_SIGN_EXPECTED = 3
+local SF_GAPURA_EXPECTED = 1
+local SF_POLE_MIN = 1
+local SF_CABLE_MIN = 1
+local SF_BALE_EXPECTED = 2
+
+local sfFolder = folderNamed(SF_FOLDER)
+local sfModels, sfParts = {}, {}
+local okSfDescendants, sfDescendants = pcall(function()
+	if not sfFolder then
+		return {}
+	end
+	return sfFolder:GetDescendants()
+end)
+if okSfDescendants and type(sfDescendants) == "table" then
+	for _, inst in ipairs(sfDescendants) do
+		if attr(inst, "StreetFurnR8") == SF_KEY then
+			local okModel, isModel = pcall(function()
+				return inst:IsA("Model")
+			end)
+			local okPart, isPart = pcall(function()
+				return inst:IsA("BasePart")
+			end)
+			if okModel and isModel then
+				sfModels[#sfModels + 1] = inst
+			elseif okPart and isPart then
+				sfParts[#sfParts + 1] = inst
+			end
+		end
+	end
+end
+
+local sfKindCounts = { lampu = 0, obor = 0, sign = 0, gapura = 0, pole = 0, cable = 0, bale = 0 }
+for _, model in ipairs(sfModels) do
+	local kind = attr(model, "StreetFurnKind")
+	kind = type(kind) == "string" and kind or "?"
+	sfKindCounts[kind] = (sfKindCounts[kind] or 0) + 1
+end
+local sfCableParts = 0
+for _, part in ipairs(sfParts) do
+	if attr(part, "StreetFurnKind") == "cable" then
+		sfCableParts += 1
+	end
+end
+local sfPostTotal = sfKindCounts.lampu + sfKindCounts.obor
+emit(
+	"STREETFURN",
+	sfFolder ~= nil
+		and sfPostTotal >= SF_MIN_POSTS
+		and sfKindCounts.lampu >= SF_MIN_PER_POST_KIND
+		and sfKindCounts.obor >= SF_MIN_PER_POST_KIND
+		and sfKindCounts.sign == SF_SIGN_EXPECTED
+		and sfKindCounts.gapura == SF_GAPURA_EXPECTED
+		and sfKindCounts.pole >= SF_POLE_MIN
+		and sfCableParts >= SF_CABLE_MIN
+		and sfKindCounts.bale == SF_BALE_EXPECTED,
+	sfPostTotal + sfKindCounts.sign + sfKindCounts.gapura + sfKindCounts.pole + sfCableParts + sfKindCounts.bale,
+	">=" .. SF_MIN_POSTS .. " posts + all kinds",
+	{
+		folderPresent = sfFolder ~= nil,
+		models = #sfModels,
+		parts = #sfParts,
+		perKind = sfKindCounts,
+		cableParts = sfCableParts,
+	}
+)
+
+-- STRINGS_PARITY: read the sign keys from Shared.Strings itself; no staged text literal is trusted.
+local SF_SIGN_KEYS = { "sign_pasar", "sign_sawah", "sign_balai" }
+local okSfStrings, sfStrings = pcall(function()
+	return require(game.ReplicatedStorage.Shared.Strings)
+end)
+local sfValidKeys, sfKeyDetail = 0, {}
+if okSfStrings and sfStrings and type(sfStrings.raw) == "table" then
+	for _, key in ipairs(SF_SIGN_KEYS) do
+		local entry = sfStrings.raw[key]
+		local valid = false
+		if type(entry) == "table" and type(entry.id) == "string" and type(entry.en) == "string" then
+			local id, en = entry.id, entry.en
+			valid = id ~= ""
+				and en ~= ""
+				and string.match(id, "^%s") == nil
+				and string.match(id, "%s$") == nil
+				and string.match(en, "^%s") == nil
+				and string.match(en, "%s$") == nil
+				and string.find(string.upper(id .. " " .. en), "TODO", 1, true) == nil
+				and id ~= en
+			if valid then
+				sfValidKeys += 1
+			end
+		else
+			valid = false
+		end
+		sfKeyDetail[#sfKeyDetail + 1] = { key = key, valid = valid }
+	end
+else
+	sfKeyDetail[#sfKeyDetail + 1] = {
+		key = "Shared.Strings",
+		valid = false,
+		reason = okSfStrings and "missing Strings.raw" or "Strings require failed",
+	}
+end
+emit(
+	"STRINGS_PARITY",
+	sfValidKeys == #SF_SIGN_KEYS,
+	sfValidKeys,
+	#SF_SIGN_KEYS,
+	{ keys = sfKeyDetail, stringsReadable = okSfStrings == true }
+)
+
+-- STREETFURN_CLEAR: distance from each non-exempt staged part's XZ AABB to a MapSpec road
+-- centreline. Rectangles cover the four arms and two continuations; ring chords use the same axes
+-- as PATH_CLEAR/ROCK_PATH_CLEAR. VergePost is set only on posts, gapura and the pole/cable line.
+local function sfAabbDistanceToRoad(box)
+	local best = math.huge
+	for _, rect in ipairs(pathRects) do
+		local gapX, gapZ
+		if rect.horizontal then
+			gapX = math.max(rect.x - rect.halfX - box.maxX, box.minX - (rect.x + rect.halfX), 0)
+			gapZ = math.max(box.minZ - rect.z, rect.z - box.maxZ, 0)
+		else
+			gapX = math.max(box.minX - rect.x, rect.x - box.maxX, 0)
+			gapZ = math.max(rect.z - rect.halfZ - box.maxZ, box.minZ - (rect.z + rect.halfZ), 0)
+		end
+		best = math.min(best, math.sqrt(gapX * gapX + gapZ * gapZ))
+	end
+	local centreX, centreZ = (box.minX + box.maxX) / 2, (box.minZ + box.maxZ) / 2
+	local halfX, halfZ = (box.maxX - box.minX) / 2, (box.maxZ - box.minZ) / 2
+	for _, seg in ipairs(pathSegments) do
+		local dx, dz = centreX - seg.x, centreZ - seg.z
+		local tangent = dx * seg.tx + dz * seg.tz
+		local perpendicular = dx * seg.nx + dz * seg.nz
+		local tangentExtent = math.abs(seg.tx) * halfX + math.abs(seg.tz) * halfZ
+		local normalExtent = math.abs(seg.nx) * halfX + math.abs(seg.nz) * halfZ
+		local along = math.max(math.abs(tangent) - seg.halfLen - tangentExtent, 0)
+		local across = math.max(math.abs(perpendicular) - normalExtent, 0)
+		best = math.min(best, math.sqrt(along * along + across * across))
+	end
+	return best
+end
+
+local sfOffenders, sfReadErrors = {}, {}
+local sfChecked, sfExempt, sfNearHits = 0, { lampu = 0, obor = 0, gapura = 0, pole = 0, cable = 0 }, 0
+for _, part in ipairs(sfParts) do
+	local kind = attr(part, "StreetFurnKind")
+	kind = type(kind) == "string" and kind or "?"
+	if attr(part, "VergePost") == true then
+		sfExempt[kind] = (sfExempt[kind] or 0) + 1
+	else
+		sfChecked += 1
+		local box = bboxAABB(part)
+		if not box then
+			sfReadErrors[#sfReadErrors + 1] = tostring(part.Name) .. ":aabb"
+		elseif pathMapReady then
+			local distance = sfAabbDistanceToRoad(box)
+			if distance < SF_CLEAR then
+				sfNearHits += 1
+				if #sfOffenders < 10 then
+					sfOffenders[#sfOffenders + 1] = string.format(
+						"%s:%s:%.2f,%.2f:d=%.2f",
+						kind,
+						tostring(part.Name),
+						(box.minX + box.maxX) / 2,
+						(box.minZ + box.maxZ) / 2,
+						distance
+					)
+				end
+			end
+		end
+	end
+end
+local sfClearReason = nil
+if not sfFolder then
+	sfClearReason = "staging folder missing"
+elseif not pathMapReady then
+	sfClearReason = pathMapReason or "MapSpec paths not readable"
+elseif sfChecked == 0 then
+	sfClearReason = "no non-exempt staged parts"
+end
+emit(
+	"STREETFURN_CLEAR",
+	sfFolder ~= nil and pathMapReady and sfChecked > 0 and sfNearHits == 0 and #sfReadErrors == 0,
+	sfNearHits + #sfReadErrors,
+	0,
+	{
+		folderPresent = sfFolder ~= nil,
+		checkedParts = sfChecked,
+		pathsChecked = pathMapReady and (#pathRects + #pathSegments) or 0,
+		clear = SF_CLEAR,
+		exempt = sfExempt,
+		exemptWhy = "lampu/obor posts, gapura and the pole/cable line are staged on the road verge by item 80",
+		offenders = sfOffenders,
+		readErrors = sfReadErrors,
+		reason = sfClearReason,
 	}
 )
 

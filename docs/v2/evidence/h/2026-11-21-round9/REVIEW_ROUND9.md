@@ -602,3 +602,26 @@ Base look: no candidate enabled — `spawn` and `canonical_overview` in the SERV
 The exact `CHECK_138`..`CHECK_151` set present on disk is CHECK_138, 139, 140, 141, 142, 143,
 144, 145, 146, 147, 148, 149, 150, 151 — 14 files, all listed above. No `CHECK_152`..`CHECK_155`
 file exists; main session writes those if needed.
+
+## Item-80 run — `streetfurn_r8` street furniture (WORK_QUEUE section M)
+
+Run-note recipe. **No Studio result is claimed** by the implementation agent; the main session owns
+the CHECK evidence and tracker ticks. No place is saved or published.
+
+1. Stop Play. Inject at runtime (not saved): `ReplicatedStorage.Shared.ModelMapStreetFurnR8`,
+   `ReplicatedStorage.Shared.Strings`, the changed `ReplicatedStorage.Shared.LookDev`,
+   `ReplicatedStorage.Shared.LookDevReview`, `ServerScriptService.Server.World.LookDevStreetFurnR8`
+   and the changed `tools/studio/review_check_r8.luau`.
+2. Start a FRESH real Play session in the SERVER datamodel. Stage ONLY this candidate from the
+   Server VM:
+   `require(game.ReplicatedStorage.Shared.LookDevReview).enable("streetfurn_r8", game)`.
+   Shoot `spawn` or `canonical_overview` from `docs/v2/visual/REVIEW_CAMERAS.md`.
+3. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the SERVER
+   VM. Read `STREETFURN` (per-kind counts: >=18 lampu+obor posts with >=8 of each, 3 signs,
+   1 gapura, >=1 pole line with >=1 cable part, 2 bale-bale), `STRINGS_PARITY` (3 valid `sign_*`
+   keys with non-empty `id` and `en`) and `STREETFURN_CLEAR` (0 non-exempt parts within 6 studs of
+   a MapSpec road centreline; the `VergePost` exemption covers only the lampu/obor posts, gapura and
+   pole/cable line, which are designed to stand on the verge). All three are READ-ONLY; a missing
+   folder, Strings key or MapSpec FAILs, never a skip.
+4. Re-read the guards `LOAD_FAILURES 0 0` and `LOOKDEV_LEAK 0`; stop Play without saving. Visual
+   grading stays the designer's.

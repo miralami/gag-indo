@@ -133,7 +133,10 @@ local S: { [string]: { id: string, en: string } } = {
 	tutorial_plant = { id = "Tanam bibit padi di petakmu", en = "Plant a rice seed in your plot" },
 	tutorial_harvest = { id = "Tunggu tumbuh, lalu panen", en = "Wait for it to grow, then harvest" },
 	tutorial_sell = { id = "Bawa hasil panen ke Pasar", en = "Bring your harvest to the Market" },
-	tutorial_buy = { id = "Buka HP → Toko Bibit, beli bibit baru", en = "Open your Phone → Seed Shop and buy seeds" },
+	tutorial_buy = {
+		id = "Buka HP → Toko Bibit, beli bibit baru",
+		en = "Open your Phone → Seed Shop and buy seeds",
+	},
 	tutorial_card_title = { id = "Panduan Juragan", en = "Village Guide" },
 
 	-- prompts
@@ -154,15 +157,33 @@ local S: { [string]: { id: string, en: string } } = {
 	prompt_warung_chat = { id = "Nongkrong", en = "Hang out" },
 
 	-- Harga Cabai Meroket (Events/CabaiEvent)
-	event_cabai_start = { id = "HARGA CABAI MEROKET! Cabai laku x%s selama 5 menit.", en = "CHILI PRICES SOAR! Chili sells at x%s for 5 minutes." },
+	event_cabai_start = {
+		id = "HARGA CABAI MEROKET! Cabai laku x%s selama 5 menit.",
+		en = "CHILI PRICES SOAR! Chili sells at x%s for 5 minutes.",
+	},
 	event_cabai_end = { id = "Harga cabai kembali normal.", en = "Chili prices are back to normal." },
 
 	-- warung flavor (World/WarungService)
-	warung_rumor_1 = { id = "Kata orang, tengkulak gelap itu bayar pakai uang kotak sabun.", en = "They say the black market pays in soap-box money." },
-	warung_rumor_2 = { id = "Kabar sore: panen Pak RT katanya nggak pernah kena hama. Kok bisa, ya?", en = "Evening news: Pak RT's harvest never gets pests. How, though?" },
-	warung_rumor_3 = { id = "Anak muda sekarang panen pakai aplikasi. Zaman memang beda.", en = "Kids these days harvest with an app. Different times." },
-	warung_rumor_4 = { id = "Kabar burung: ada yang jual hasil panen lewat jalan belakang.", en = "Rumor has it someone sells their harvest out the back." },
-	warung_vip = { id = "Kursi VIP: kopi tubruk + dangdut. Hidup Juragan!", en = "VIP seat: strong coffee and dangdut. Long live the Juragan!" },
+	warung_rumor_1 = {
+		id = "Kata orang, tengkulak gelap itu bayar pakai uang kotak sabun.",
+		en = "They say the black market pays in soap-box money.",
+	},
+	warung_rumor_2 = {
+		id = "Kabar sore: panen Pak RT katanya nggak pernah kena hama. Kok bisa, ya?",
+		en = "Evening news: Pak RT's harvest never gets pests. How, though?",
+	},
+	warung_rumor_3 = {
+		id = "Anak muda sekarang panen pakai aplikasi. Zaman memang beda.",
+		en = "Kids these days harvest with an app. Different times.",
+	},
+	warung_rumor_4 = {
+		id = "Kabar burung: ada yang jual hasil panen lewat jalan belakang.",
+		en = "Rumor has it someone sells their harvest out the back.",
+	},
+	warung_vip = {
+		id = "Kursi VIP: kopi tubruk + dangdut. Hidup Juragan!",
+		en = "VIP seat: strong coffee and dangdut. Long live the Juragan!",
+	},
 
 	-- tile labels
 	tile_ready = { id = "Siap panen!", en = "Ready!" },
@@ -177,7 +198,10 @@ local S: { [string]: { id: string, en: string } } = {
 	n_sold = { id = "Laku! +Rp %s", en = "Sold! +Rp %s" },
 	n_sold_gelap = { id = "Laku gelap! +Rp %s (+Sus)", en = "Sold black market! +Rp %s (+Sus)" },
 	n_nothing_to_sell = { id = "Karungmu kosong.", en = "Your sack is empty." },
-	n_hot_pasar = { id = "Hasil oplosan nggak berani dibeli Pasar. Coba tengkulak.", en = "The market won't touch oplosan produce. Try the black market." },
+	n_hot_pasar = {
+		id = "Hasil oplosan nggak berani dibeli Pasar. Coba tengkulak.",
+		en = "The market won't touch oplosan produce. Try the black market.",
+	},
 	n_not_enough_cash = { id = "Uangmu kurang, Pak.", en = "Not enough cash." },
 	n_no_seed = { id = "Bibit %s habis. Beli di Toko Bibit.", en = "Out of %s seeds. Buy more in the Seed Shop." },
 	n_rank_locked = { id = "Butuh pangkat %s.", en = "Needs rank %s." },
@@ -187,7 +211,10 @@ local S: { [string]: { id: string, en: string } } = {
 	n_shop_sold_out = { id = "Stok %s habis. Tunggu restock.", en = "%s is sold out. Wait for the restock." },
 	n_tile_bought = { id = "Petak baru dibeli!", en = "New tile bought!" },
 	n_seed_floor = { id = "Tetangga kasih bibit padi.", en = "A neighbour gave you a padi seed." },
-	n_sack_full = { id = "Karung penuh. Jual atau simpan ke gudang dulu.", en = "Your sack is full. Sell or store the harvest first." },
+	n_sack_full = {
+		id = "Karung penuh. Jual atau simpan ke gudang dulu.",
+		en = "Your sack is full. Sell or store the harvest first.",
+	},
 	n_gudang_full = { id = "Gudang penuh.", en = "The storehouse is full." },
 	n_gudang_nothing = { id = "Tidak ada hasil bersih untuk disimpan.", en = "No clean produce to store." },
 	n_gudang_empty = { id = "Gudang kosong.", en = "The storehouse is empty." },
@@ -195,16 +222,34 @@ local S: { [string]: { id: string, en: string } } = {
 	n_gudang_withdraw = { id = "%s hasil diambil dari gudang.", en = "%s items taken out." },
 	n_tool_bought = { id = "%s dibeli: %s.", en = "Bought %s: %s." },
 	n_tool_maxed = { id = "%s sudah maksimal.", en = "%s is already maxed." },
-	n_worker_hired = { id = "Buruh tani bekerja %s menit. Upah Rp %s + Rp %s/hasil.", en = "Farm hand hired for %s minutes. Fee Rp %s + Rp %s/item." },
+	n_worker_hired = {
+		id = "Buruh tani bekerja %s menit. Upah Rp %s + Rp %s/hasil.",
+		en = "Farm hand hired for %s minutes. Fee Rp %s + Rp %s/item.",
+	},
 	n_worker_busy = { id = "Buruhmu masih bekerja.", en = "Your farm hand is still working." },
-	n_worker_harvested = { id = "Buruh memanen %s hasil. Upah Rp %s.", en = "Farm hand harvested %s items. Wage Rp %s." },
+	n_worker_harvested = {
+		id = "Buruh memanen %s hasil. Upah Rp %s.",
+		en = "Farm hand harvested %s items. Wage Rp %s.",
+	},
 	n_worker_unpaid = { id = "Uangmu habis. Buruh pulang.", en = "Out of cash. The farm hand went home." },
-	n_worker_hired_auto = { id = "Auto-Panen aktif: buruh bekerja tanpa upah.", en = "Auto-Harvest active: the farm hand works without a wage." },
+	n_worker_hired_auto = {
+		id = "Auto-Panen aktif: buruh bekerja tanpa upah.",
+		en = "Auto-Harvest active: the farm hand works without a wage.",
+	},
 	n_crop_banjir = { id = "Banjir! Tanaman palawija %s terendam air.", en = "Flood! Palawija crop %s was drowned." },
-	n_crop_hama = { id = "Hama menyerang tanaman %s di musim pancaroba!", en = "Pests attacked crop %s during transition season!" },
-	n_crop_gagal = { id = "Gagal panen akibat kekeringan El Nino pada %s!", en = "Crop failure due to El Nino drought on %s!" },
+	n_crop_hama = {
+		id = "Hama menyerang tanaman %s di musim pancaroba!",
+		en = "Pests attacked crop %s during transition season!",
+	},
+	n_crop_gagal = {
+		id = "Gagal panen akibat kekeringan El Nino pada %s!",
+		en = "Crop failure due to El Nino drought on %s!",
+	},
 	n_tutorial_step = { id = "Langkah selesai: %s!", en = "Step complete: %s!" },
-	n_tutorial_finished = { id = "Panen perdana selesai! Selamat jadi Juragan Desa.", en = "First harvest complete! Welcome to the village, boss." },
+	n_tutorial_finished = {
+		id = "Panen perdana selesai! Selamat jadi Juragan Desa.",
+		en = "First harvest complete! Welcome to the village, boss.",
+	},
 	n_rank_up = { id = "Naik pangkat: %s!", en = "Rank up: %s!" },
 	n_still_growing = { id = "Belum siap, sabar ya.", en = "Not ready yet." },
 	n_welcome = { id = "Selamat datang di Desa Sukasogok!", en = "Welcome to Desa Sukasogok!" },
@@ -212,26 +257,47 @@ local S: { [string]: { id: string, en: string } } = {
 	n_busy = { id = "Tunggu sebentar ya.", en = "Hold on a moment." },
 
 	-- cheats
-	n_oplosan_ok = { id = "Pupuk oplosan! Panen lebih cepat, tapi jadi barang panas.", en = "Dodgy fertilizer! Faster harvest, but the crop is hot now." },
+	n_oplosan_ok = {
+		id = "Pupuk oplosan! Panen lebih cepat, tapi jadi barang panas.",
+		en = "Dodgy fertilizer! Faster harvest, but the crop is hot now.",
+	},
 	n_oplosan_fail = { id = "Nggak bisa dioplos sekarang.", en = "Can't fertilize that right now." },
 	n_steal_ok = { id = "Air tetangga dialirkan! (+%s Sus)", en = "Neighbor's water diverted! (+%s Sus)" },
 	n_steal_fail = { id = "Nggak ada air yang bisa dicuri di situ.", en = "There's no water to steal there." },
-	n_steal_cooldown = { id = "Tetangga itu sudah waspada. Tunggu dulu.", en = "That neighbor is watching now. Wait a bit." },
+	n_steal_cooldown = {
+		id = "Tetangga itu sudah waspada. Tunggu dulu.",
+		en = "That neighbor is watching now. Wait a bit.",
+	},
 	n_not_neighbor = { id = "Itu bukan tetangga sebelahmu.", en = "That's not your neighbor." },
 
 	-- law
 	n_sus_up = { id = "Sus +%s", en = "Sus +%s" },
-	n_gossip = { id = "Pak RT: “Kok cepet banget panennya ya…”", en = "Pak RT: “How is the harvest so fast…”" },
-	n_letter = { id = "Surat Panggilan! Pak RT mau ngobrol. (Sus %s)", en = "Summons letter! Pak RT wants a word. (Sus %s)" },
+	n_gossip = {
+		id = "Pak RT: “Kok cepet banget panennya ya…”",
+		en = "Pak RT: “How is the harvest so fast…”",
+	},
+	n_letter = {
+		id = "Surat Panggilan! Pak RT mau ngobrol. (Sus %s)",
+		en = "Summons letter! Pak RT wants a word. (Sus %s)",
+	},
 	n_caught = { id = "Kena razia! Nama baik -%s.", en = "Raided! Reputation -%s." },
 	n_confiscated = { id = "%s hasil oplosan disita!", en = "%s hot crops confiscated!" },
 	n_raid_came = { id = "OPERASI SAPU BERSIH!", en = "OPERATION CLEAN SWEEP!" },
 	n_raid_fine = { id = "Denda dibayar: Rp %s.", en = "Fine paid: Rp %s." },
-	n_raid_amplop_ok = { id = "Amplop diterima. “Ya sudahlah, Pak RT baik.”", en = "Envelope accepted. “Fine, Pak RT is a nice guy.”" },
-	n_raid_amplop_fail = { id = "“Amplop kurang tebal, Pak!” Denda x1,5: Rp %s", en = "“The envelope's too thin!” Fine x1.5: Rp %s" },
+	n_raid_amplop_ok = {
+		id = "Amplop diterima. “Ya sudahlah, Pak RT baik.”",
+		en = "Envelope accepted. “Fine, Pak RT is a nice guy.”",
+	},
+	n_raid_amplop_fail = {
+		id = "“Amplop kurang tebal, Pak!” Denda x1,5: Rp %s",
+		en = "“The envelope's too thin!” Fine x1.5: Rp %s",
+	},
 	n_raid_jail = { id = "Tidak bisa bayar. Pos Ronda %s detik.", en = "Can't pay. Guard post for %s seconds." },
 	n_raid_over = { id = "Razia selesai. Sus turun ke %s.", en = "Raid over. Sus dropped to %s." },
-	n_viral = { id = "VIRAL! Kamu dirazia. Amplop nggak bakal membantu.", en = "VIRAL! You're being raided. Bribes won't help." },
+	n_viral = {
+		id = "VIRAL! Kamu dirazia. Amplop nggak bakal membantu.",
+		en = "VIRAL! You're being raided. Bribes won't help.",
+	},
 	n_viral_case = { id = "Kasusmu viral, amplop tidak bisa.", en = "Your case is viral, no envelope can help." },
 	n_raid_active = { id = "Razia sedang berlangsung!", en = "A raid is already happening!" },
 
@@ -243,7 +309,10 @@ local S: { [string]: { id: string, en: string } } = {
 	n_record_hint = { id = "Rekam bukti? Buka HP.", en = "Record evidence? Open your phone." },
 	n_recorded = { id = "Bukti direkam. Antar ke Pos Polisi.", en = "Evidence recorded. Take it to the Police Post." },
 	n_report_ok = { id = "Laporan diterima! +Rp %s, +%s Nama Baik.", en = "Report accepted! +Rp %s, +%s Reputation." },
-	n_report_no_cash = { id = "Laporan diterima. Pelakunya sudah tidak punya uang.", en = "Report accepted. The cheater has no cash left." },
+	n_report_no_cash = {
+		id = "Laporan diterima. Pelakunya sudah tidak punya uang.",
+		en = "Report accepted. The cheater has no cash left.",
+	},
 	n_report_cooldown = { id = "Lapor terlalu sering, tunggu sebentar.", en = "Reporting too often, wait a moment." },
 	n_report_near = { id = "Lapor harus di Pos Polisi.", en = "Reports must be made at the Police Post." },
 	n_token_expired = { id = "Bukti kedaluwarsa.", en = "Evidence expired." },
@@ -303,18 +372,39 @@ local S: { [string]: { id: string, en: string } } = {
 	task_store_gudang = { id = "Simpan 5 hasil panen ke Gudang", en = "Store 5 crops in Storehouse" },
 	n_debt_already_active = { id = "Masih ada pinjaman yang belum lunas!", en = "You already have an active loan!" },
 	n_debt_limit_exceeded = { id = "Melebihi limit pinjaman (maks Rp %s)!", en = "Exceeds loan limit (max Rp %s)!" },
-	n_debt_borrowed = { id = "Pinjaman cair: Rp %s (Biaya Rp %s, Total Rp %s)", en = "Loan approved: Rp %s (Fee Rp %s, Total Rp %s)" },
+	n_debt_borrowed = {
+		id = "Pinjaman cair: Rp %s (Biaya Rp %s, Total Rp %s)",
+		en = "Loan approved: Rp %s (Fee Rp %s, Total Rp %s)",
+	},
 	n_debt_repaid = { id = "Bayar hutang Rp %s. Sisa hutang: Rp %s", en = "Repaid Rp %s. Remaining debt: Rp %s" },
 	n_debt_cleared = { id = "Pinjaman LUNAS! Bebas hutang BayarLater.", en = "Loan CLEARED! You are debt-free." },
-	n_debt_seized = { id = "Debt collector menyita hasil panen dari gudang senilai Rp %s! Sisa: Rp %s", en = "Debt collector seized Rp %s of crops from storehouse! Remaining: Rp %s" },
-	n_debt_overdue_warning = { id = "PERINGATAN: Pinjamanmu jatuh tempo! Segera lunasi.", en = "WARNING: Your loan is overdue! Repay immediately." },
-	n_debt_shamed = { id = "Debt collector menyebarkan datamu ke seluruh desa! Nama Baik -%s.", en = "Debt collector shamed you across the village! Reputation -%s." },
+	n_debt_seized = {
+		id = "Debt collector menyita hasil panen dari gudang senilai Rp %s! Sisa: Rp %s",
+		en = "Debt collector seized Rp %s of crops from storehouse! Remaining: Rp %s",
+	},
+	n_debt_overdue_warning = {
+		id = "PERINGATAN: Pinjamanmu jatuh tempo! Segera lunasi.",
+		en = "WARNING: Your loan is overdue! Repay immediately.",
+	},
+	n_debt_shamed = {
+		id = "Debt collector menyebarkan datamu ke seluruh desa! Nama Baik -%s.",
+		en = "Debt collector shamed you across the village! Reputation -%s.",
+	},
 	n_debt_raid = { id = "Tidak bisa pinjam saat razia!", en = "You can't borrow during a raid!" },
-	n_debt_spam = { id = "Pinjol: utangmu lewat jatuh tempo. Bayar sekarang!", en = "BayarLater: your loan is overdue. Pay now!" },
-	n_debt_shamed_public = { id = "%s menunggak pinjol! Jangan ditiru.", en = "%s is dodging a BayarLater loan! Don't copy." },
+	n_debt_spam = {
+		id = "Pinjol: utangmu lewat jatuh tempo. Bayar sekarang!",
+		en = "BayarLater: your loan is overdue. Pay now!",
+	},
+	n_debt_shamed_public = {
+		id = "%s menunggak pinjol! Jangan ditiru.",
+		en = "%s is dodging a BayarLater loan! Don't copy.",
+	},
 	n_debt_collector = { id = "Kolektor menunggu di petakmu.", en = "A debt collector is waiting at your plot." },
 	debt_collector_tag = { id = "Kolektor", en = "Collector" },
-	n_login_already_claimed = { id = "Hadiah harian sudah diambil hari ini.", en = "Daily reward already claimed today." },
+	n_login_already_claimed = {
+		id = "Hadiah harian sudah diambil hari ini.",
+		en = "Daily reward already claimed today.",
+	},
 	n_login_reward_cash = { id = "Hadiah absen: +Rp %s!", en = "Login reward: +Rp %s!" },
 	n_login_reward_seeds = { id = "Hadiah absen: +%s bibit %s!", en = "Login reward: +%s %s seeds!" },
 	n_login_reward_item = { id = "Hadiah absen: +%s %s!", en = "Login reward: +%s %s!" },
@@ -351,7 +441,10 @@ local S: { [string]: { id: string, en: string } } = {
 	n_cosmetic_equipped = { id = "%s dipakai.", en = "%s equipped." },
 	n_cosmetic_removed = { id = "%s dilepas.", en = "%s removed." },
 	n_water_ok = { id = "Tanaman %s disiram. +%s Nama Baik.", en = "Watered %s's crops. +%s Reputation." },
-	phone_help = { id = "Tips: curang itu cepat, tapi tetangga bisa ngerekam.", en = "Tip: cheating is fast, but neighbors can record you." },
+	phone_help = {
+		id = "Tips: curang itu cepat, tapi tetangga bisa ngerekam.",
+		en = "Tip: cheating is fast, but neighbors can record you.",
+	},
 
 	-- minigames
 	mg_mencangkul_title = { id = "MENCANGKUL", en = "HOEING" },
@@ -369,7 +462,10 @@ local S: { [string]: { id: string, en: string } } = {
 	raid_title = { id = "OPERASI SAPU BERSIH", en = "OPERATION CLEAN SWEEP" },
 	raid_subtitle = { id = "Polisi Desa datang ke ladangmu!", en = "The Village Police are at your farm!" },
 	raid_viral_title = { id = "VIRAL", en = "VIRAL" },
-	raid_viral_subtitle = { id = "Videonya sudah tersebar. Amplop tidak berlaku.", en = "The video is everywhere. No envelope will help." },
+	raid_viral_subtitle = {
+		id = "Videonya sudah tersebar. Amplop tidak berlaku.",
+		en = "The video is everywhere. No envelope will help.",
+	},
 	raid_choose = { id = "Apa yang kamu lakukan?", en = "What do you do?" },
 	raid_fine = { id = "Bayar Denda\nRp %s", en = "Pay the Fine\nRp %s" },
 	raid_amplop = { id = "Kasih Amplop\nRp %s (75%)", en = "Slip an Envelope\nRp %s (75%)" },
@@ -430,6 +526,11 @@ local S: { [string]: { id: string, en: string } } = {
 	tag_ordal = { id = "Ordal", en = "Ordal" },
 	plot_empty = { id = "Lahan Kosong", en = "Empty Plot" },
 	plot_owned = { id = "Lahan %s", en = "%s's Plot" },
+
+	-- street furniture (item 80: papan petunjuk signposts)
+	sign_pasar = { id = "Pasar", en = "Market" },
+	sign_sawah = { id = "Sawah", en = "Rice fields" },
+	sign_balai = { id = "Balai Desa", en = "Village Hall" },
 }
 
 local Strings = {}

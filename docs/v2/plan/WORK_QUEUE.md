@@ -1114,7 +1114,20 @@ Same rules as section M (candidates off by default, Studio PASS per item, no gam
   zero staging warnings. `SAWAH_TOPS` stays READ-ONLY and byte-identical (Part-only candidate cannot touch
   Terrain raycasts). ORDER names appended after LOOKDEV_LEAK so all 18 ORDER-literal assertions hold.
   2746 tests, selene 0/0/0. Candidate off by default; no shipping default changed. No new camera (item 133).
-- [ ] 114. **`kincir_r8`: water wheel.** A small wooden waterwheel beside the river that rotates slowly (one shared loop, 6 degrees per second). **CHECKS:** `KINCIR_ROT`: the wheel angle changes by 3–9 degrees over 1 s; one instance only; `disable()` stops and removes it.
+- [x] 114. **`kincir_r8`: water wheel.** A small wooden waterwheel beside the river that rotates slowly (one shared loop, 6 degrees per second). **CHECKS:** `KINCIR_ROT`: the wheel angle changes by 3–9 degrees over 1 s; one instance only; `disable()` stops and removes it.
+  Done 2026-11-22: NEW pure `ModelMapKincirR8` (21 original Parts: wheelroot 1, hub 1, axle 1, spoke 8,
+  blade 8, support 2; `DEG_PER_SEC=6`; river mirror + one bank site x=-68 z=310.33, nearest face 14 studs
+  from channel, clear of bridge [-28,28]; no asset IDs/invalid tokens) + NEW server `LookDevKincirR8`
+  applier (one shared Heartbeat loop turning all parts 6 deg/s, numeric `WheelAngle` attr, diagnostics
+  `wheelRoot()/connectionCount()/isApplied()/pump(dt)`, exact folder save/detach-restore, no terrain edit).
+  New ID 86 (count literals 85->86 across 39 specs + 3 extra), review path, ONE harness check `KINCIR_ROT`,
+  new spec, CANDIDATES pending row. Real Studio fresh-Play Server-VM PASS (`CHECK_114.txt`, SEEN-IN-STUDIO):
+  `KINCIR_ROT PASS 6.0000 3..9` with 1 folder/1 root/1 connection, real Heartbeat 6.0225 deg/1.024s,
+  CFrame moves, `disable()` removes all (0/0/0) and angle stays stable across 1 s, re-enable yields a fresh
+  rotating wheel with 6.0 pump delta. Non-vacuous (0/0/0 on teardown, synthetic 15 deg rejected); bank site
+  18 studs off centreline, nearest face 14, outside bridge span. All existing checks byte-identical.
+  ORDER name appended last so all 19 ORDER-literal assertions hold. 2756 tests, selene 0/0/0. Candidate
+  off by default; no shipping default changed. No new camera (item 133).
 - [ ] 115. **`laundry_r8`: hanging laundry.** Washing lines with sarung, batik cloth and kebaya hanging between posts behind two houses, plus a hammock and a tikar under the porch. Use solid colours or simple patterned decals made from existing assets; no brand logos. **CHECKS:** counts; cloths do not intersect walls (`GetPartsInPart` is empty); `CLOTH_SWAY` is optional and tied to item 85 when present.
 - [ ] 116. **`layangan_r8`: kites.** Four layangan (kites) flying at 60–90 studs of altitude near the field, each with a thin tail and a string (`Beam`) down to a small kid-sized point on the ground; they rock gently. **CHECKS:** `KITE_COUNT` = 4; `KITE_COST` under 0.2 ms per frame; strings don't pass through buildings (raycast from kite to anchor hits nothing).
 - [ ] 117. **`seated_r8`: seated villagers at the warung.** Use `HumanoidDescription` NPCs (same catalog outfits as npcs_r7) seated on the warung benches with `Humanoid.Sit` driven by a `Seat`, and a few glasses and plates on the table. At most 4. **CHECKS:** `SEATED_COUNT` ≤ 4; each `Humanoid.Sit` is true after 3 s; none intersects the bench.

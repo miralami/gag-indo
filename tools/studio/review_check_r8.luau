@@ -155,6 +155,9 @@
 -- SWAY_TWEENS, WIND_RESTORE, NIGHT_WINDOWS, NIGHT_LIGHTS, GRADE_SAFE, GRADE_RESTORE,
 -- GRADE_NO_DOF, SOUND_LOADED, SOUND_VOLUME, SOUND_RESTORE, PERAHU_PARTS and IRRIGATION_PARTS are read-only.
 -- IRRIGATION_WATER_ON_TERRACE joins the mutating set; it saves and restores the prior candidate.
+-- Item 114 adds KINCIR_ROT, a mutating SERVER block that stages kincir_r8, checks its one rotating
+-- root / one Heartbeat / 3..9-degree deterministic pump rate, disables it and re-enables it, then
+-- restores the prior candidate on every path. It is appended at the very END of ORDER.
 -- The mutating checks call enable(id)/disable() and
 -- restore the prior active candidate at the end; ADDITIVE_STAGE uses enableAdditive(id)/
 -- disableAll(). All are safe to repeat.
@@ -301,6 +304,7 @@ local ORDER = {
 	"LOOKDEV_LEAK",
 	"IRRIGATION_PARTS",
 	"IRRIGATION_WATER_ON_TERRACE",
+	"KINCIR_ROT",
 }
 
 local GRASS_Y = 4
@@ -7993,6 +7997,343 @@ do
 				}
 			)
 			restoreIrPrior()
+		end
+	end
+end
+
+do
+-- 9o. WORK_QUEUE section N item 114: kincir_r8, the rotating river-bank waterwheel. ONE mutating
+-- SERVER check, KINCIR_ROT. It stages the candidate itself, requires exactly one tagged wheelroot
+-- and one Heartbeat connection, drives the applier's own pump(1) to read a deterministic 3..9-degree
+-- step, disables the candidate (folder gone, loop disconnected), re-enables it and checks a fresh
+-- root with the same rate. The prior candidate is restored on every path. IRRIGATION_* and every
+-- earlier check, full_r9 and Terrain stay READ-ONLY and byte-identical. No CanCollide filter: all
+-- staged parts are non-collidable; the exact root/folder counts and data/service reads are the
+-- anti-vacuity guard. The name is appended after IRRIGATION_WATER_ON_TERRACE.
+	local KC_ID = "kincir_r8"
+	local KC_FOLDER_FALLBACK = "LookDevKincirR8_kincir_r8"
+	local KC_MIN, KC_MAX = 3, 9
+
+	local okKcModules, kcModules = pcall(function()
+		return {
+			data = require(game.ReplicatedStorage.Shared.ModelMapKincirR8),
+			look = require(game.ReplicatedStorage.Shared.LookDev),
+			review = require(game.ReplicatedStorage.Shared.LookDevReview),
+		}
+	end)
+	local kcData: any? = nil
+	local kcLook: any? = nil
+	local kcReview: any? = nil
+	if okKcModules and type(kcModules) == "table" then
+		if type((kcModules :: any).data) == "table" then
+			kcData = (kcModules :: any).data
+		end
+		if type((kcModules :: any).look) == "table" then
+			kcLook = (kcModules :: any).look
+		end
+		if type((kcModules :: any).review) == "table" then
+			kcReview = (kcModules :: any).review
+		end
+	end
+	local kcFolderName = KC_FOLDER_FALLBACK
+	if kcData and type((kcData :: any).folderName) == "string" then
+		kcFolderName = (kcData :: any).folderName
+	end
+	local kcStage: any? = if kcData then (kcData :: any).familyId else nil
+	local kcKind: any? = if kcData then (kcData :: any).kindAttribute else nil
+	local kcWheelKind: any? = if kcData and type((kcData :: any).KIND) == "table" then (kcData :: any).KIND.wheelroot else nil
+	local kcAngleAttr: any? = if kcData then (kcData :: any).angleAttribute else nil
+
+	local function kcFail(reason, extra)
+		local detail = {
+			reason = reason,
+			folderPresent = folderNamed(kcFolderName) ~= nil,
+			rootCount = 0,
+			connectionCount = -1,
+			t0 = nil,
+			t1 = nil,
+			delta = -1,
+			teardownOk = false,
+			reenableOk = false,
+			antiVac = "exact one tagged root + one folder + one Heartbeat connection + readable data/service/rate required; missing input fails",
+		}
+		if type(extra) == "table" then
+			for key, value in pairs(extra) do
+				detail[key] = value
+			end
+		end
+		emit("KINCIR_ROT", false, 0, "3..9", detail)
+	end
+
+	local kcRunService = service("RunService")
+	local okKcServer, kcIsServer = false, false
+	if kcRunService then
+		okKcServer, kcIsServer = pcall(function()
+			return (kcRunService :: any):IsServer()
+		end)
+	end
+
+	-- The review helper already resolves and requires the applier in this VM; reuse its path so
+	-- the diagnostics come from the SAME module instance that LookDev.enable() registered.
+	local function kcApplier(): any?
+		if not kcReview or type((kcReview :: any).resolveContainer) ~= "function" then
+			return nil
+		end
+		local ok, module = pcall(function()
+			local container = (kcReview :: any).resolveContainer("server", game)
+			if not container then
+				return nil
+			end
+			local entry = (kcReview :: any).paths and (kcReview :: any).paths[KC_ID]
+			if type(entry) ~= "table" or type(entry.path) ~= "table" then
+				return nil
+			end
+			local node = container
+			for _, segment in ipairs(entry.path) do
+				node = node[segment]
+				if not node then
+					return nil
+				end
+			end
+			return require(node)
+		end)
+		if not ok or not module then
+			return nil
+		end
+		return module
+	end
+
+	local function kcTaggedRoots()
+		local roots = {}
+		for _, inst in ipairs(descendantList(workspace)) do
+			local okPart, isPart = pcall(function()
+				return (inst :: any):IsA("BasePart")
+			end)
+			if
+				okPart
+				and isPart
+				and attr(inst, kcStage) == (kcData and (kcData :: any).familyId or nil)
+				and attr(inst, kcKind) == kcWheelKind
+			then
+				roots[#roots + 1] = inst
+			end
+		end
+		return roots
+	end
+
+	local function kcFolders()
+		local folders = {}
+		for _, inst in ipairs(childList(workspace)) do
+			local okName, name = pcall(function()
+				return (inst :: any).Name
+			end)
+			if okName and name == kcFolderName then
+				folders[#folders + 1] = inst
+			end
+		end
+		return folders
+	end
+
+	local function kcRate(applier, root)
+		local ok0, t0 = pcall(function()
+			return (root :: any):GetAttribute(kcAngleAttr)
+		end)
+		local okPump = pcall(function()
+			(applier :: any).pump(1)
+		end)
+		local ok1, t1 = pcall(function()
+			return (root :: any):GetAttribute(kcAngleAttr)
+		end)
+		if not ok0 or not ok1 or not okPump or type(t0) ~= "number" or type(t1) ~= "number" then
+			return -1, t0, t1
+		end
+		return ((t1 - t0 + 180) % 360) - 180, t0, t1
+	end
+
+	if
+		not kcData
+		or not kcLook
+		or not kcReview
+		or not okKcServer
+		or not kcIsServer
+		or type((kcLook :: any).enable) ~= "function"
+		or type((kcLook :: any).disable) ~= "function"
+		or type((kcLook :: any).current) ~= "function"
+		or type((kcReview :: any).enable) ~= "function"
+		or type(kcWheelKind) ~= "string"
+		or type(kcAngleAttr) ~= "string"
+		or type(kcStage) ~= "string"
+		or type(kcKind) ~= "string"
+		or type((kcData :: any).DEG_PER_SEC) ~= "number"
+		or (kcData :: any).DEG_PER_SEC ~= 6
+	then
+		kcFail("server VM / kincir data / LookDev / review modules not readable")
+	else
+		local applier = kcApplier()
+		if
+			not applier
+			or type((applier :: any).connectionCount) ~= "function"
+			or type((applier :: any).isApplied) ~= "function"
+			or type((applier :: any).wheelRoot) ~= "function"
+			or type((applier :: any).pump) ~= "function"
+		then
+			kcFail("kincir applier diagnostics not readable")
+		else
+			local okPrior, priorId = pcall(function()
+				return (kcLook :: any).current()
+			end)
+			if not okPrior then
+				priorId = nil
+			end
+			local function restoreKcPrior()
+				pcall(function()
+					(kcLook :: any).disable()
+				end)
+				if type(priorId) == "string" then
+					pcall(function()
+						(kcLook :: any).enable(priorId)
+					end)
+				end
+			end
+			local okEnable, enabled, whyEnable = pcall(function()
+				return (kcReview :: any).enable(KC_ID, game, { studio = true })
+			end)
+			if not okEnable or enabled == false then
+				restoreKcPrior()
+				kcFail("enable:" .. tostring(whyEnable or enabled))
+			else
+				local folders = kcFolders()
+				local roots = kcTaggedRoots()
+				local okConn, connCount = pcall(function()
+					return (applier :: any).connectionCount()
+				end)
+				local okApplied, isApplied = pcall(function()
+					return (applier :: any).isApplied()
+				end)
+				local okRoot, root = pcall(function()
+					return (applier :: any).wheelRoot()
+				end)
+				local detail = {
+					folderPresent = #folders == 1,
+					folders = #folders,
+					rootCount = #roots,
+					connectionCount = if okConn then connCount else -1,
+					isApplied = if okApplied then isApplied else false,
+					rootMatches = false,
+					t0 = nil,
+					t1 = nil,
+					delta = -1,
+					teardownOk = false,
+					reenableOk = false,
+					antiVac = "exact one folder/tagged root, one connection, readable attr and pump required",
+				}
+				if okRoot and root and #roots == 1 then
+					local okSame = pcall(function()
+						return roots[1] == root
+					end)
+					detail.rootMatches = okSame and roots[1] == root or false
+				end
+				if
+					#folders ~= 1
+					or #roots ~= 1
+					or not okConn
+					or connCount ~= 1
+					or not okApplied
+					or isApplied ~= true
+					or not okRoot
+					or not root
+					or not detail.rootMatches
+					or folderNamed(kcFolderName) == nil
+				then
+					restoreKcPrior()
+					kcFail("staging needs one folder, one tagged wheelroot and one Heartbeat", detail)
+				else
+					local delta, t0, t1 = kcRate(applier, root)
+					detail.t0, detail.t1, detail.delta = t0, t1, delta
+					if delta < KC_MIN or delta > KC_MAX then
+						restoreKcPrior()
+						kcFail("pump(1) delta outside 3..9", detail)
+					else
+						local okDisable = pcall(function()
+							(kcLook :: any).disable()
+						end)
+						local okConnAfter, connAfter = pcall(function()
+							return (applier :: any).connectionCount()
+						end)
+						local teardownOk = okDisable
+							and okConnAfter
+							and connAfter == 0
+							and #kcFolders() == 0
+							and #kcTaggedRoots() == 0
+							and folderNamed(kcFolderName) == nil
+						detail.teardownOk = teardownOk
+						detail.connectionCountAfter = if okConnAfter then connAfter else -1
+						if not teardownOk then
+							restoreKcPrior()
+							kcFail("disable did not remove folder/loop", detail)
+						else
+							local okEnable2, enabled2, whyEnable2 = pcall(function()
+								return (kcReview :: any).enable(KC_ID, game, { studio = true })
+							end)
+							local freshRoot = nil
+							if okEnable2 and enabled2 ~= false then
+								local okFresh, value = pcall(function()
+									return (applier :: any).wheelRoot()
+								end)
+								if okFresh then
+									freshRoot = value
+								end
+							end
+							local freshFolders, freshRoots = kcFolders(), kcTaggedRoots()
+							local okConn2, conn2 = pcall(function()
+								return (applier :: any).connectionCount()
+							end)
+							local freshDelta, t0b, t1b = -1, nil, nil
+							if freshRoot then
+								freshDelta, t0b, t1b = kcRate(applier, freshRoot)
+							end
+							local freshDistinct = false
+							if freshRoot and root then
+								local okDistinct = pcall(function()
+									return freshRoot ~= root
+								end)
+								freshDistinct = okDistinct and freshRoot ~= root or false
+							end
+							detail.reenableOk = okEnable2
+								and enabled2 ~= false
+								and freshDistinct
+								and #freshFolders == 1
+								and #freshRoots == 1
+								and okConn2
+								and conn2 == 1
+								and freshDelta >= KC_MIN
+								and freshDelta <= KC_MAX
+							detail.freshDelta = freshDelta
+							detail.freshT0 = t0b
+							detail.freshT1 = t1b
+							detail.freshRoots = #freshRoots
+							detail.freshFolders = #freshFolders
+							detail.freshConnectionCount = if okConn2 then conn2 else -1
+							local passed = detail.reenableOk
+							restoreKcPrior()
+							if passed then
+								emit("KINCIR_ROT", true, delta, "3..9", {
+									rootCount = 1,
+									connectionCount = 1,
+									t0 = t0,
+									t1 = t1,
+									delta = delta,
+									freshDelta = freshDelta,
+									teardownOk = true,
+									antiVac = detail.antiVac,
+								})
+							else
+								kcFail("re-enable did not yield one fresh wheel with a 3..9 pump step", detail)
+							end
+						end
+					end
+				end
+			end
 		end
 	end
 end

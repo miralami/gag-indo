@@ -51,6 +51,7 @@
 --   src/server/World/LookDevAmbientWalkersR8.luau -- candidate "ambient_walkers_r8" (eight ambient R15 strollers via NpcWalk, server-only)
 --   src/client/World/LookDevDayCycleR8.luau -- candidate "day_cycle_r8" (tuned golden-hour contrast, client-only)
 --   src/server/World/LookDevNightR8.luau -- candidate "night_r8" (warm night panes and Rendah glow, server-only)
+--   src/server/World/LookDevGradeR8.luau -- candidates "grade_r8_a/b/c" (tropical colour grades, server-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -72,6 +73,7 @@
 --   LookDev.enable("sky_r4_a") -- or LookDev.enable("sky_r4_b") / LookDev.enable("sky_r4_c")
 --   LookDev.enable("sky_r6_a") -- or sky_r6_b / sky_r6_c / sky_r6_d / sky_r6_e / sky_r6_f
 --   -- from the Server datamodel: LookDev.enable("buildings_r8") / LookDev.enable("facades_r8") / LookDev.enable("hubprops_r8") / LookDev.enable("hubs_real_r9") / LookDev.enable("plaza_r9") / LookDev.enable("ronda_tower_r9") / LookDev.enable("rocks_r9") / LookDev.enable("streetfurn_r8") / LookDev.enable("spanduk_r8") / LookDev.enable("night_r8")
+--   -- server-only colour grades: LookDev.enable("grade_r8_a") / LookDev.enable("grade_r8_b") / LookDev.enable("grade_r8_c")
 --   LookDev.enable("spawn_ground_r6")
 --   LookDev.enable("terrain_r6_a") -- or LookDev.enable("terrain_r6_b")
 --   -- server-only: LookDev.enable("buildings_r4") / LookDev.enable("vegetation_r4") / LookDev.enable("props_r4") / LookDev.enable("npcs_r4")
@@ -169,6 +171,9 @@ LookDev.IDS = {
 	"ambient_walkers_r8",
 	"day_cycle_r8",
 	"night_r8",
+	"grade_r8_a",
+	"grade_r8_b",
+	"grade_r8_c",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -1073,6 +1078,42 @@ LookDev.candidates = {
 		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
 		maxLights = 24,
 	},
+
+	grade_r8_a = {
+		id = "grade_r8_a",
+		title = "Warm golden tropical colour grade — Atmosphere, ColorCorrection, Bloom and SunRays only (round 9, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Four Lighting effects only, no asset IDs and no depth of field. Pure values and documented
+		-- safe ranges in Shared.ModelMapGradeR8 / docs/v2/visual/GRADE_R8.md.
+		idsSource = "Shared.ModelMapGradeR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		noDof = true,
+	},
+
+	grade_r8_b = {
+		id = "grade_r8_b",
+		title = "Fresh green tropical colour grade — Atmosphere, ColorCorrection, Bloom and SunRays only (round 9, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Four Lighting effects only, no asset IDs and no depth of field. Pure values and documented
+		-- safe ranges in Shared.ModelMapGradeR8 / docs/v2/visual/GRADE_R8.md.
+		idsSource = "Shared.ModelMapGradeR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		noDof = true,
+	},
+
+	grade_r8_c = {
+		id = "grade_r8_c",
+		title = "Hazy humid tropical colour grade — Atmosphere, ColorCorrection, Bloom and SunRays only (round 9, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Four Lighting effects only, no asset IDs and no depth of field. Pure values and documented
+		-- safe ranges in Shared.ModelMapGradeR8 / docs/v2/visual/GRADE_R8.md.
+		idsSource = "Shared.ModelMapGradeR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		noDof = true,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1272,6 +1313,9 @@ function LookDev.plan(id: string): any
 		or id == "water_r8_a"
 		or id == "water_r8_b"
 		or id == "water_r8_c"
+		or id == "grade_r8_a"
+		or id == "grade_r8_b"
+		or id == "grade_r8_c"
 		or id == "blocks_r9"
 		or id == "hubs_real_r9"
 		or id == "pasar_awnings_r8"

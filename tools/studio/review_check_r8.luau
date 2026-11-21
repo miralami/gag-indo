@@ -121,6 +121,13 @@
 -- staged panes and PointLights, then clears the override, disables and re-enables the prior candidate.
 -- NIGHT_WINDOWS requires >=12 lit at 20:00 and 0 at 13:00; NIGHT_LIGHTS requires 1..24 enabled
 -- shadowless lights. Missing folder/module or any read error FAILs loudly; both lines always emit.
+-- Item 91 adds the mutating SERVER-only GRADE_SAFE, GRADE_RESTORE and GRADE_NO_DOF trio, emitted
+-- from their own do...end scope just before LOOKDEV_LEAK. It enables grade_r8_a/b/c in turn and
+-- reads the live Lighting effects on the SERVER (effects created here replicate to clients).
+-- GRADE_SAFE compares every touched value against ModelMapGradeR8.safeRanges inclusive;
+-- GRADE_RESTORE requires every property and the Lighting descendant count to match the baseline
+-- after disable; GRADE_NO_DOF requires 0 depth-of-field effects at baseline and after each enable.
+-- Any missing effect/range or failed read FAILs loudly; all three always emit.
 -- All checks except LOOKDEV_LEAK, ADDITIVE_STAGE, WATER_SAFE, WATER_RESTORE, WIND_SET,
 -- SWAY_TWEENS and WIND_RESTORE are read-only. The mutating checks call enable(id)/disable() and
 -- restore the prior active candidate at the end; ADDITIVE_STAGE uses enableAdditive(id)/
@@ -246,6 +253,9 @@ local ORDER = {
 	"DAY_MAGHRIB_UNCHANGED",
 	"NIGHT_WINDOWS",
 	"NIGHT_LIGHTS",
+	"GRADE_SAFE",
+	"GRADE_RESTORE",
+	"GRADE_NO_DOF",
 	"LOOKDEV_LEAK",
 }
 
@@ -7698,6 +7708,337 @@ emit(
 		errors = nightErrors,
 	}
 )
+end
+
+-- 12h. Item 91: grade_r8_a/b/c. Own do...end scope (the harness is near the 200-local cap).
+-- Three MUTATING, SERVER-only checks: enable each grade, read the live Lighting effects on the
+-- SERVER (effects created there replicate to clients), compare to the documented safeRanges,
+-- disable, then compare every touched property and the Lighting descendant count to the baseline.
+-- GRADE_NO_DOF counts depth-of-field effects at baseline and after each enable. All three always
+-- emit; a missing effect/range or a failed read FAILs loudly, never skips.
+do
+-- The whole grade cycle lives in its own function so its locals get a fresh 200-register budget.
+local function runGradeChecks()
+local gradeErrors, gradeReadings, gradeSafeFails, gradeRestoreFails = {}, {}, {}, {}
+local gradeLook, gradeMap, gradePriorId = nil, nil, nil
+local safeCount, restoredCount, dofChecked, dofViolations = 0, 0, 0, 0
+
+local function gradeFail(reason)
+	gradeErrors[#gradeErrors + 1] = reason
+end
+local okGradeLook, lookValue = pcall(function()
+	return require(game.ReplicatedStorage.Shared.LookDev)
+end)
+if
+	okGradeLook
+	and type(lookValue) == "table"
+	and type(lookValue.enable) == "function"
+	and type(lookValue.disable) == "function"
+	and type(lookValue.current) == "function"
+then
+	gradeLook = lookValue
+else
+	gradeFail("LookDev unreadable")
+end
+local okGradeMap, mapValue = pcall(function()
+	return require(game.ReplicatedStorage.Shared.ModelMapGradeR8)
+end)
+if
+	okGradeMap
+	and type(mapValue) == "table"
+	and type(mapValue.order) == "table"
+	and type(mapValue.properties) == "table"
+	and type(mapValue.safeRanges) == "table"
+	and type(mapValue.TOUCHED_EFFECTS) == "table"
+then
+	gradeMap = mapValue
+else
+	gradeFail("pure grade model unreadable")
+end
+-- The appliers register with LookDev only when the module is loaded. The saved place's boot script
+-- may predate this candidate, so require it here explicitly; without this, enable() is a silent
+-- no-op and GRADE_SAFE would compare unchanged baseline values for all three variants.
+local okApplier, applierValue = pcall(function()
+	return require(game.ServerScriptService.Server.World.LookDevGradeR8)
+end)
+if
+	not okApplier
+	or type(applierValue) ~= "table"
+	or type(applierValue.appliers) ~= "table"
+then
+	gradeFail("server applier unreadable: " .. tostring(applierValue))
+end
+
+local function countLightingDesc()
+	local ok, list = pcall(function()
+		return Lighting:GetDescendants()
+	end)
+	if not ok or type(list) ~= "table" then
+		return nil
+	end
+	return #list
+end
+
+local function countDof()
+	local ok, effect = pcall(function()
+		return Lighting:FindFirstChildOfClass("DepthOfFieldEffect")
+	end)
+	if not ok then
+		return nil
+	end
+	return if effect then 1 else 0
+end
+
+local function readEffects(allowMissing)
+	local snapshot = {}
+	for _, className in ipairs(gradeMap.TOUCHED_EFFECTS) do
+		local okFind, effect = pcall(function()
+			return Lighting:FindFirstChildOfClass(className)
+		end)
+		if not okFind then
+			return nil, className .. ":find:" .. tostring(effect)
+		end
+		if not effect then
+			if allowMissing then
+				continue
+			end
+			return nil, className .. ":missing"
+		end
+		local props = {}
+		for _, prop in ipairs(gradeMap.properties[className]) do
+			local okRead, value = pcall(function()
+				return effect[prop]
+			end)
+			if not okRead then
+				return nil, className .. "." .. prop .. ":read:" .. tostring(value)
+			end
+			props[prop] = value
+		end
+		snapshot[className] = props
+	end
+	return snapshot
+end
+
+local function equalValue(before, after)
+	if typeof(before) == "Color3" or typeof(after) == "Color3" then
+		if typeof(before) ~= "Color3" or typeof(after) ~= "Color3" then
+			return false
+		end
+		return before.R == after.R and before.G == after.G and before.B == after.B
+	end
+	return before == after
+end
+
+local function equalSnapshot(before, after)
+	if before == nil or after == nil then
+		return before == after
+	end
+	for _, className in ipairs(gradeMap.TOUCHED_EFFECTS) do
+		local a, b = before[className], after[className]
+		if (a == nil) ~= (b == nil) then
+			return false, className .. ":presence"
+		end
+		if a then
+			for _, prop in ipairs(gradeMap.properties[className]) do
+				if not equalValue(a[prop], b[prop]) then
+					return false, className .. "." .. prop
+				end
+			end
+		end
+	end
+	return true
+end
+
+local function numberInRange(range, value)
+	if type(range) ~= "table" or type(range.min) ~= "number" or type(range.max) ~= "number" then
+		return false, "missing range"
+	end
+	if type(value) ~= "number" or value ~= value then
+		return false, "not a number"
+	end
+	if value < range.min or value > range.max then
+		return false, tostring(value)
+	end
+	return true
+end
+
+local function inRange(className, prop, value)
+	local ranges = gradeMap.safeRanges[className]
+	if type(ranges) ~= "table" then
+		return false, "missing effect range"
+	end
+	local range = ranges[prop]
+	if prop == "TintColor" or prop == "Color" or prop == "Decay" then
+		if typeof(value) ~= "Color3" then
+			return false, "type=" .. typeof(value)
+		end
+		local scale = if prop == "TintColor" then 1 else 255
+		for _, channel in ipairs({ "R", "G", "B" }) do
+			local ok, why = numberInRange(range and range[channel], value[channel] * scale)
+			if not ok then
+				return false, channel .. "=" .. tostring(why)
+			end
+		end
+		if className == "Atmosphere" and prop == "Color" and not (value.R >= value.G and value.G >= value.B) then
+			return false, "not warm white"
+		end
+		if className == "Atmosphere" and prop == "Decay" and not (value.B >= value.G and value.G >= value.R) then
+			return false, "not light blue"
+		end
+		return true
+	end
+	local ok, why = numberInRange(range, value)
+	if not ok then
+		return false, tostring(why)
+	end
+	return true
+end
+
+if gradeLook then
+	local okCurrent, current = pcall(function()
+		return gradeLook.current()
+	end)
+	if okCurrent and type(current) == "string" then
+		gradePriorId = current
+	end
+end
+
+local baseline, baselineErr = readEffects(true)
+local baselineDesc = countLightingDesc()
+local baselineDof = countDof()
+if not baseline then
+	gradeFail("baseline:" .. tostring(baselineErr))
+end
+if not baselineDesc then
+	gradeFail("baseline Lighting descendant count unreadable")
+end
+if baselineDof == nil then
+	gradeFail("baseline depth-of-field count unreadable")
+else
+	dofChecked += 1
+	if baselineDof ~= 0 then
+		dofViolations += 1
+	end
+end
+
+if gradeLook and gradeMap and baseline then
+	for _, key in ipairs(gradeMap.order) do
+		local id = gradeMap.idPrefix .. key
+		local okEnable, enabled, enableErr = pcall(function()
+			return gradeLook.enable(id, { studio = true })
+		end)
+		if not okEnable or enabled == false then
+			gradeFail(id .. ":enable:" .. tostring(enableErr or enabled))
+		else
+			local applied, appliedErr = readEffects(false)
+			if not applied then
+				gradeFail(id .. ":read:" .. tostring(appliedErr))
+			else
+				local safe = true
+				for _, className in ipairs(gradeMap.TOUCHED_EFFECTS) do
+					for _, prop in ipairs(gradeMap.properties[className]) do
+						local inBand, why = inRange(className, prop, applied[className][prop])
+						gradeReadings[#gradeReadings + 1] = id
+							.. "."
+							.. className
+							.. "."
+							.. prop
+							.. "="
+							.. tostring(applied[className][prop])
+						if not inBand then
+							safe = false
+							gradeSafeFails[#gradeSafeFails + 1] = id
+								.. "."
+								.. className
+								.. "."
+								.. prop
+								.. ":"
+								.. tostring(why)
+						end
+					end
+				end
+				if safe then
+					safeCount += 1
+				end
+			end
+			local dof = countDof()
+			dofChecked += 1
+			if dof == nil then
+				gradeFail(id .. ":depth-of-field count unreadable")
+				dofViolations += 1
+			elseif dof ~= 0 then
+				dofViolations += 1
+			end
+		end
+
+		local okDisable, disabled = pcall(function()
+			return gradeLook.disable()
+		end)
+		if not okDisable then
+			gradeFail(id .. ":disable:" .. tostring(disabled))
+		end
+		local after, afterErr = readEffects(true)
+		local afterDesc = countLightingDesc()
+		if not after then
+			gradeFail(id .. ":read-after:" .. tostring(afterErr))
+		else
+			local same, why = equalSnapshot(baseline, after)
+			if not same or afterDesc ~= baselineDesc or not okDisable then
+				local reason = if not same
+					then tostring(why)
+					elseif afterDesc ~= baselineDesc then "descendants " .. tostring(baselineDesc) .. "->" .. tostring(afterDesc)
+					else "disable failed"
+				gradeRestoreFails[#gradeRestoreFails + 1] = id .. ":" .. reason
+			else
+				restoredCount += 1
+			end
+		end
+	end
+end
+
+if gradePriorId and gradeLook then
+	local okRestore, restored = pcall(function()
+		return gradeLook.enable(gradePriorId, { studio = true })
+	end)
+	if not okRestore or restored == false then
+		gradeFail("restore-prior:" .. gradePriorId .. ":" .. tostring(restored))
+	end
+end
+
+local gradeVariantCount = if gradeMap then #gradeMap.order else 3
+emit(
+	"GRADE_SAFE",
+	#gradeErrors == 0 and gradeVariantCount > 0 and safeCount == gradeVariantCount,
+	safeCount,
+	gradeVariantCount,
+	{
+		readings = gradeReadings,
+		failures = gradeSafeFails,
+		errors = gradeErrors,
+		restoredPrior = gradePriorId,
+	}
+)
+emit(
+	"GRADE_RESTORE",
+	#gradeErrors == 0 and gradeVariantCount > 0 and restoredCount == gradeVariantCount,
+	restoredCount,
+	gradeVariantCount,
+	{
+		baselineDescendants = baselineDesc,
+		failures = gradeRestoreFails,
+		errors = gradeErrors,
+		restoredPrior = gradePriorId,
+	}
+)
+emit(
+	"GRADE_NO_DOF",
+	#gradeErrors == 0 and dofChecked == gradeVariantCount + 1 and dofViolations == 0,
+	dofViolations,
+	0,
+	{ checked = dofChecked, errors = gradeErrors }
+)
+end
+runGradeChecks()
 end
 
 -- 13. LOOKDEV_LEAK: mutating, run last. For every LookDev.IDS entry, count workspace and

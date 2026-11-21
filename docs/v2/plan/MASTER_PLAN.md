@@ -251,6 +251,17 @@ Rendah PointLights (6 street posts + 6 torches, Range 14, Brightness 0.6), all g
 listener/override restore. Visual yes/no remains the designer's. Suite **2659 tests**;
 `selene src` 0/0/0.
 
+Item 91 COMPLETE: `grade_r8_a/b/c` are three OFF-by-default SERVER colour grades (warm golden, fresh
+green, hazy humid) touching only Atmosphere/ColorCorrection/Bloom/SunRays, never depth of field.
+Inclusive numeric safe ranges documented in `visual/GRADE_R8.md` (established now — none existed).
+Studio SERVER-VM PASS `GRADE_SAFE 3/3` (45 distinct live readings, all inside documented ranges),
+`GRADE_RESTORE 3/3` (all 15 properties + Lighting descendant count exact after disable),
+`GRADE_NO_DOF 0/0` (4 checks), `LOAD_FAILURES 0`, `LOOKDEV_LEAK 0`, `CAMERA_CLEAR 0/42`,
+`PERF_BUDGET 334/500` (`h/2026-11-21-round9/CHECK_091.txt`). First run FAILed vacuously (all variants
+read unchanged baseline) because the injected applier was never required so registration never ran;
+the harness now requires it explicitly (spec-locked), no range/threshold weakened; re-run PASS.
+Visual yes/no remains the designer's. Suite **2666 tests**; `selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

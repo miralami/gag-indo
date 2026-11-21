@@ -573,3 +573,23 @@ These are real avatar-catalog items found with the catalog search API. NPCs wear
 | polisi | 122271821782451 | Hat | Police Cap (FIREBRAND!) |
 
 Approved by the designer on 2026-11-21: row A for all roles and batik B2 for Pak RT. Evidence: `h/2026-11-21-catalog-outfits/`.
+
+### buildings_r8 — six free Creator Store buildings (round 9, item 77, SERVER datamodel)
+
+WORK_QUEUE section M item 77. All six IDs came from real Creator Store `search_asset` (free-filter)
+results; none was invented. They are already baked live in
+`ServerStorage.LookDevAssets.<id>` (scripts stripped, one Model child each) by
+`tools/studio/bake_lookdev_assets.luau`; the applier uses clone-first loading. No place was saved and
+nothing was published. Asset `10019841237` was rejected (no clear ground-floor opening) and is not
+listed. Pure data: `src/shared/ModelMapBuildingsR8.luau`; applier:
+`src/server/World/LookDevBuildingsR8.luau`. Licence was not re-read here — Creator Store terms apply.
+All are LookDev candidates behind `buildings_r8`, off by default; look grading is pending.
+
+| Slot | Asset ID | Name | Creator | Source | Licence note | Approved by |
+|---|---|---|---|---|---|---|
+| indonesian_house | 81909711760416 | indonesian_house | Dagelan_Smg | Creator Store, free | Creator Store free model; Roblox Creator Store terms; licence not re-read here | designer to confirm |
+| rumah_4 | 140621903274156 | rumah_4 | Dagelan_Smg | Creator Store, free | Creator Store free model; Roblox Creator Store terms; licence not re-read here | designer to confirm |
+| rumah_joglo | 4820552419 | rumah_joglo | Annovaire | Creator Store, free | Creator Store free model; Roblox Creator Store terms; licence not re-read here | designer to confirm |
+| pendopo_jawa | 136417251697510 | pendopo_jawa | Pramadhita_wira | Creator Store, free | Creator Store free model; Roblox Creator Store terms; licence not re-read here | designer to confirm |
+| warung_penyetan | 118767493095408 | warung_penyetan | Voltcho1354 | Creator Store, free | Creator Store free model; Roblox Creator Store terms; licence not re-read here | designer to confirm |
+| nipa_hut | 167594119 | nipa_hut | SanchettaSam ("Nipa Hut Set") | Creator Store, free | Creator Store free model; Roblox Creator Store terms; licence not re-read here | designer to confirm |

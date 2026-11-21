@@ -107,7 +107,7 @@ return function(t, Env)
 
 	t:describe("pathedge_r8 server LookDev wiring", function()
 		t:it("registers candidate 51 with a plan and a server review path", function()
-			expect(#LookDev.IDS):toBe(54)
+			expect(#LookDev.IDS):toBe(55)
 			expect(LookDev.IDS[51]):toBe("pathedge_r8")
 			expect(LookDev.candidates.pathedge_r8.status):toBe("candidate, awaiting designer yes")
 			expect(LookDev.candidates.pathedge_r8.idsSource):toBe("Shared.ModelMapPathEdgeR8")

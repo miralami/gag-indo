@@ -55,6 +55,14 @@ local IDS: { number } = {
 	4951145641, -- Cangkul (was alat_tani 109848917287023)
 	10506531785, -- Gerobak (was 119426685469058)
 	85094565897097, -- bamboo fence, reused for pagar_bambu (was 103341007913673)
+	-- buildings_r8 (WORK_QUEUE section M item 77): six free Creator Store buildings,
+	-- already baked live in ServerStorage.LookDevAssets (scripts stripped, one Model child each).
+	81909711760416, -- indonesian_house (Dagelan_Smg)
+	140621903274156, -- rumah_4 (Dagelan_Smg)
+	4820552419, -- rumah_joglo (Annovaire); staged at scale 0.75
+	136417251697510, -- pendopo_jawa (Pramadhita_wira)
+	118767493095408, -- warung_penyetan (Voltcho1354)
+	167594119, -- nipa_hut (SanchettaSam, "Nipa Hut Set")
 }
 
 local function stripScripts(root: Instance)

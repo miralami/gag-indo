@@ -20,6 +20,11 @@
 -- It also emits the r8 water family (WORK_QUEUE item 76): WATER_SAFE and WATER_RESTORE. Both are
 -- CLIENT-only and mutate Terrain in one guarded enable/read/disable/compare cycle per variant,
 -- restoring the prior active candidate at the end.
+-- It also emits the r8 buildings family (WORK_QUEUE item 77): BLDG_VISIBLE, BLDG_WIDTH and
+-- BLDG_DOOR. All three FAIL at measured 0 when the buildings_r8 candidate is not staged.
+-- BLDG_VISIBLE counts staged building Models inside the review camera cone; BLDG_WIDTH measures
+-- each Model's world bounding-box width; BLDG_DOOR checks every DoorGauge for a >=7 clearance
+-- with zero collidable building geometry overlapping its volume (the real avatar-fit test).
 -- Client datamodel: same lines plus CLOUD_COVER (the client LocalScript owns Terrain.Clouds.Cover);
 -- the Server datamodel cannot observe that tween. Run client-owned candidates (water, grade,
 -- sounds, clouds) in the Client datamodel.
@@ -62,6 +67,9 @@ local ORDER = {
 	"BRIDGE_WALKABLE",
 	"PATH_EDGE",
 	"PATH_CLEAR",
+	"BLDG_VISIBLE",
+	"BLDG_WIDTH",
+	"BLDG_DOOR",
 	"VEG_NEAR",
 	"PROP_SIZE",
 	"CLOUD_COVER",
@@ -2038,6 +2046,276 @@ emit(
 	0,
 	clearDetail
 )
+
+-- 9g. r8 buildings family (WORK_QUEUE item 77). Three CHECK families over the staged
+-- LookDevBuildingsR8_buildings_r8 folder: BLDG_VISIBLE (six building Models inside the review
+-- camera cone), BLDG_WIDTH (each world bbox width in [12,60]) and BLDG_DOOR (each DoorGauge >=7
+-- tall with zero collidable building geometry overlapping its volume — the avatar-fit test).
+-- Every game API is pcall-guarded; a missing folder / camera / model / gauge / failed read is a
+-- FAIL at measured 0, never a skip.
+local BUILDINGS_FOLDER = "LookDevBuildingsR8_buildings_r8"
+local BUILDINGS_KEY = "buildings_r8"
+local BUILDING_SLOTS = {
+	"indonesian_house",
+	"rumah_4",
+	"rumah_joglo",
+	"pendopo_jawa",
+	"warung_penyetan",
+	"nipa_hut",
+}
+local BLDG_MIN_WIDTH, BLDG_MAX_WIDTH = 12, 60
+local MIN_DOOR = 7
+
+local buildingsFolder = folderNamed(BUILDINGS_FOLDER)
+local buildingsBySlot = {}
+local buildingModels = {}
+for _, model in ipairs(childList(buildingsFolder)) do
+	local okModel, isModel = pcall(function()
+		return model:IsA("Model")
+	end)
+	if okModel and isModel and attr(model, "LookDevBuildingsR8") == BUILDINGS_KEY then
+		local slot = attr(model, "BuildingSlot")
+		if type(slot) == "string" then
+			if buildingsBySlot[slot] == nil then
+				buildingsBySlot[slot] = model
+			end
+			buildingModels[#buildingModels + 1] = model
+		end
+	end
+end
+
+-- BLDG_VISIBLE: reuse the r7 cone helpers (CONE_COS + one occlusion ray per subject).
+-- A missing folder, camera attribute or CFrame gives visibleCount 0, hence a FAIL at 0.
+local bldgEye = asVector3(attr(buildingsFolder, "ReviewCameraPos"))
+local bldgLook = asVector3(attr(buildingsFolder, "ReviewLookAt"))
+local bldgCameraCF = nil
+if bldgEye and bldgLook then
+	local okCF, cf = pcall(function()
+		return CFrame.lookAt(bldgEye, bldgLook)
+	end)
+	if okCF then
+		bldgCameraCF = cf
+	end
+end
+local bldgVisibleCount = visibleCount(buildingModels, bldgCameraCF)
+local bldgVisibleBySlot = {}
+for _, slot in ipairs(BUILDING_SLOTS) do
+	bldgVisibleBySlot[slot] = false
+end
+if bldgCameraCF then
+	local eye = bldgCameraCF.Position
+	local lookAt = eye + bldgCameraCF.LookVector
+	for _, slot in ipairs(BUILDING_SLOTS) do
+		local subject = buildingsBySlot[slot]
+		local centre = subject and bboxCentre(subject) or nil
+		bldgVisibleBySlot[slot] = subject ~= nil and centre ~= nil and visibleFrom(subject, centre, eye, lookAt)
+	end
+end
+emit("BLDG_VISIBLE", bldgVisibleCount == #BUILDING_SLOTS, bldgVisibleCount, #BUILDING_SLOTS, {
+	folderPresent = buildingsFolder ~= nil,
+	eye = bldgEye and { bldgEye.X, bldgEye.Y, bldgEye.Z } or nil,
+	lookAt = bldgLook and { bldgLook.X, bldgLook.Y, bldgLook.Z } or nil,
+	slots = bldgVisibleBySlot,
+})
+
+-- BLDG_WIDTH: measure each staged Model's world GetBoundingBox().Size.X; no hardcoded widths.
+-- A missing model or failed bbox read leaves that slot out of range.
+local bldgWidthDetail = {}
+local bldgWidthOk = 0
+for _, slot in ipairs(BUILDING_SLOTS) do
+	local model = buildingsBySlot[slot]
+	local size = model and bboxSize(model) or nil
+	local width = size and size.X or nil
+	local inRange = type(width) == "number" and width >= BLDG_MIN_WIDTH and width <= BLDG_MAX_WIDTH
+	if inRange then
+		bldgWidthOk += 1
+	end
+	bldgWidthDetail[slot] = {
+		width = type(width) == "number" and math.floor(width * 100) / 100 or nil,
+		inRange = inRange,
+	}
+end
+emit("BLDG_WIDTH", bldgWidthOk == #BUILDING_SLOTS, bldgWidthOk, #BUILDING_SLOTS, {
+	folderPresent = buildingsFolder ~= nil,
+	range = { BLDG_MIN_WIDTH, BLDG_MAX_WIDTH },
+	slots = bldgWidthDetail,
+})
+
+-- Full 3D world AABB from a BasePart's Size/CFrame using the VectorToWorldSpace absolute-extent
+-- technique. The 1.5-stud door offset is already baked into the gauge CFrame by the applier, so
+-- this is a raw extent computation with no extra offset.
+local function partAABB3D(part)
+	local ok, box = pcall(function()
+		local cf = part.CFrame
+		local size = part.Size
+		local ax = cf:VectorToWorldSpace(Vector3.new(size.X / 2, 0, 0))
+		local ay = cf:VectorToWorldSpace(Vector3.new(0, size.Y / 2, 0))
+		local az = cf:VectorToWorldSpace(Vector3.new(0, 0, size.Z / 2))
+		local ex = math.abs(ax.X) + math.abs(ay.X) + math.abs(az.X)
+		local ey = math.abs(ax.Y) + math.abs(ay.Y) + math.abs(az.Y)
+		local ez = math.abs(ax.Z) + math.abs(ay.Z) + math.abs(az.Z)
+		local p = cf.Position
+		return {
+			minX = p.X - ex,
+			maxX = p.X + ex,
+			minY = p.Y - ey,
+			maxY = p.Y + ey,
+			minZ = p.Z - ez,
+			maxZ = p.Z + ez,
+		}
+	end)
+	if ok and type(box) == "table" then
+		return box
+	end
+	return nil
+end
+
+-- Raw AABB intersection: touching faces are not an overlap.
+local function aabb3DOverlap(a, b)
+	return a.minX < b.maxX
+		and a.maxX > b.minX
+		and a.minY < b.maxY
+		and a.maxY > b.minY
+		and a.minZ < b.maxZ
+		and a.maxZ > b.minZ
+end
+
+-- The DoorGauge must be a direct child of its own staged building Model, tagged and slot-matched.
+local function doorGaugeFor(model, slot)
+	if not model then
+		return nil
+	end
+	local okChildren, children = pcall(function()
+		return model:GetChildren()
+	end)
+	if not okChildren or type(children) ~= "table" then
+		return nil
+	end
+	for _, child in ipairs(children) do
+		local okName, name = pcall(function()
+			return child.Name
+		end)
+		if
+			okName
+			and name == "DoorGauge"
+			and attr(child, "LookDevBuildingsR8") == BUILDINGS_KEY
+			and attr(child, "BuildingSlot") == slot
+			and attr(child, "GaugeKind") == "DoorClearance"
+		then
+			local okPart, isPart = pcall(function()
+				return child:IsA("BasePart")
+			end)
+			if okPart and isPart then
+				return child
+			end
+		end
+	end
+	return nil
+end
+
+-- BLDG_DOOR: a slot passes only when its gauge is >=7 tall AND rotation-aware
+-- workspace:GetPartsInPart finds zero collidable building parts with Size.X > 0.5 and
+-- Size.Y > 1.5 intersecting the gauge volume. World AABBs of rotated roof panels (joglo Union,
+-- pendopo Unions) false-positive on the 7x7.25x2 gauge even though their real geometry misses it;
+-- GetPartsInPart tests the actual oriented shape. This is a correctness fix, NOT a relaxed target:
+-- measured stays the integer count of passing gauges out of 6; overlaps = -1 means read failure.
+local bldgDoorDetail = {}
+local bldgDoorOk = 0
+for _, slot in ipairs(BUILDING_SLOTS) do
+	local model = buildingsBySlot[slot]
+	local gauge = doorGaugeFor(model, slot)
+	local height, facade = nil, nil
+	local overlaps = 0
+	local pass = false
+	if gauge then
+		local okHeight, h = pcall(function()
+			return gauge.Size.Y
+		end)
+		if okHeight and type(h) == "number" then
+			height = h
+		end
+		local okFacade, f = pcall(function()
+			return gauge:GetAttribute("Facade")
+		end)
+		if okFacade and (f == "front" or f == "back") then
+			facade = f
+		end
+		local okProbe, probe = pcall(function()
+			return Instance.new("Part")
+		end)
+		if not okProbe or not probe then
+			overlaps = -1
+		else
+			local okSetup = pcall(function()
+				local size = gauge.Size
+				probe.Size = Vector3.new(size.X, size.Y, size.Z) -- the gauge's actual Size
+				probe.CanCollide = false
+				probe.Transparency = 1
+				probe.Anchored = false
+				probe.CFrame = gauge.CFrame
+				probe.Parent = workspace
+			end)
+			local okParams, params = pcall(function()
+				local p = OverlapParams.new()
+				p.FilterType = Enum.RaycastFilterType.Exclude
+				p.FilterDescendantsInstances = { probe }
+				return p
+			end)
+			local okHits, hits = false, nil
+			if okSetup and okParams and params then
+				okHits, hits = pcall(function()
+					return workspace:GetPartsInPart(probe, params)
+				end)
+			end
+			if not okHits or type(hits) ~= "table" then
+				overlaps = -1
+			else
+				for _, part in ipairs(hits) do
+					local okDesc, descendant = pcall(function()
+						return part:IsDescendantOf(model)
+					end)
+					local okCollide, collide = pcall(function()
+						return part.CanCollide
+					end)
+					local okSize, sx, sy = pcall(function()
+						return part.Size.X, part.Size.Y
+					end)
+					if
+						okDesc
+						and descendant
+						and okCollide
+						and collide == true
+						and okSize
+						and type(sx) == "number"
+						and type(sy) == "number"
+						and sx > 0.5
+						and sy > 1.5
+					then
+						overlaps += 1
+					end
+				end
+			end
+			pcall(function()
+				probe:Destroy()
+			end)
+		end
+		pass = type(height) == "number" and height >= MIN_DOOR and overlaps == 0
+	end
+	if pass then
+		bldgDoorOk += 1
+	end
+	bldgDoorDetail[slot] = {
+		gaugeHeight = type(height) == "number" and math.floor(height * 100) / 100 or nil,
+		overlaps = overlaps,
+		facade = facade,
+		pass = pass,
+	}
+end
+emit("BLDG_DOOR", bldgDoorOk == #BUILDING_SLOTS, bldgDoorOk, #BUILDING_SLOTS, {
+	folderPresent = buildingsFolder ~= nil,
+	minDoor = MIN_DOOR,
+	slots = bldgDoorDetail,
+})
 
 -- 10. VEG_NEAR: dense near layer at the saved camera (45 studs, 70-degree cone). A model only
 -- counts when its bbox centre is inside the cone AND its bbox is >=2 studs tall; species and

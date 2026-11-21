@@ -20,3 +20,20 @@ Start a fresh real Play session after the bake. Paste the WHOLE file into Studio
 ## 3. Reading CHECK lines
 
 Every line is `CHECK <name> PASS|FAIL <measured> <target>`. `PASS` means `measured` met `target`; `measured` may be a number or a formatted string. `FAIL` is an objective failure, not a visual verdict. The call returns `{ order = ..., checks = ..., byName = ... }`; each check carries its raw `detail`.
+
+## 4. Item-77 run — buildings_r8 (WORK_QUEUE section M)
+
+Ordered steps. No place is saved or published.
+
+1. Stop Play. Because Rojo has not synced the new/changed modules, inject them into the Edit datamodel at runtime (not saved to the place): `ReplicatedStorage.Shared.ModelMapBuildingsR8` and the changed `ReplicatedStorage.Shared.LookDev`, `ReplicatedStorage.Shared.LookDevReview`; and `ServerScriptService.Server.Main.server` plus `ServerScriptService.Server.World.LookDevBuildingsR8`. Confirm the six baked building folders for the `BuildingSlot` set exist under `ServerStorage.LookDevAssets` — `LookDevAssetLoader` needs them, so a missing folder is a load failure rather than a geometry result.
+2. Start a FRESH real Play session after the injection (do not reuse a session that already staged another candidate).
+3. In the SERVER datamodel, stage via `require(game.ReplicatedStorage.Shared.LookDevReview).enable("buildings_r8", game)`.
+4. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the SERVER VM. Capture `BLDG_VISIBLE`, `BLDG_WIDTH` and `BLDG_DOOR` plus the guards `LOAD_FAILURES` and `LOOKDEV_LEAK`. Targets: 6/6 building Models inside the review-camera cone, 6/6 world bbox widths in [12,60], 6/6 DoorGauges with `Size.Y >= 7` and zero collidable building geometry intersecting the gauge's oriented volume (`GetPartsInPart`); guards 0 load failures and 0 leaks. A missing folder, camera attribute, model or gauge FAILs at measured 0 — never a skip.
+5. Stop Play without saving. `CAMERA_CLEAR` is SERVER-only (`ReviewCameras` requires MapSpec from `ServerScriptService`, so it is skipped in the Client VM). The Client-VM cloud/water lines (`CLOUD_COVER`, `WATER_SAFE`, `WATER_RESTORE`) are out of scope for this server-side run.
+
+**Fix note (2026-11-21, run notes only — no Studio result claimed).** Earlier live Studio runs showed 20-stud centre spacing caused neighbour occlusion (`BLDG_VISIBLE` 4/6) and world-AABB door overlap false-positives on rotated roof panels (`BLDG_DOOR` 3/6); those were addressed by 20 studs of clear gap with gap-derived centres, a model-free 340x80 site scan, and rotation-aware `GetPartsInPart` for gauge placement and the harness check. Two further root causes are now confirmed:
+
+1. `BLDG_DOOR` 3/6 — `apply()` staged the model before parenting it into the Workspace folder, so `GetPartsInPart` saw zero building parts and the first ladder candidate always won. The applier now sets `model.Name` and `model.Parent = folder` **before** `stage(...)`; a parenting failure counts a failure and `continue`s, never staging an unparented model. Gauge ladder, probe, harness and CanCollide/Size filters unchanged; no building `CanCollide` cleared.
+2. `BLDG_VISIBLE` 4/6 — the former +Z camera rule put shipping `PosPolisi`/`RumahPakRT` parts between camera and row. A harness sweep of the same cone/raycast logic verified camera `(0,60,-200)` looking at `(0,16,28)` gives 6/6; other sampled positions failed. The camera rule is now signed `front=-228, up=60, lookY=16` (min-Z facade side). Harness cone, 6/6 target, raycast filters and site scan unchanged.
+
+Required fresh Play verification: re-inject `ModelMapBuildingsR8` and `LookDevBuildingsR8` (plus `review_check_r8.luau` if it changed); stop Play; start a fresh real Play session; confirm the six baked `BuildingSlot` folders under `ServerStorage.LookDevAssets`; stage via `LookDevReview.enable("buildings_r8", game)`; capture `BLDG_VISIBLE`, `BLDG_WIDTH`, `BLDG_DOOR`, `LOAD_FAILURES`, `LOOKDEV_LEAK` and `CAMERA_CLEAR`. No place save, no publish. Until that run is captured, no PASS is claimed.

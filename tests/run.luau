@@ -199,6 +199,7 @@ local specs = {
 	require("./specs/npcs_idle_r8_spec"),
 	require("./specs/ambient_walkers_r8_spec"),
 	require("./specs/day_cycle_r8_spec"),
+	require("./specs/night_r8_spec"),
 }
 
 -- `--timing` prints a full per-spec table; without it only the slowest rows print. The first

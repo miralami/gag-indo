@@ -100,6 +100,7 @@ LookDevReview.paths = {
 	npcs_idle_r8 = { datamodel = "server", path = { "World", "LookDevNpcsIdleR8" } },
 	ambient_walkers_r8 = { datamodel = "server", path = { "World", "LookDevAmbientWalkersR8" } },
 	day_cycle_r8 = { datamodel = "client", path = { "World", "LookDevDayCycleR8" } },
+	night_r8 = { datamodel = "server", path = { "World", "LookDevNightR8" } },
 }
 
 function LookDevReview.pathsFor(id: string): any?

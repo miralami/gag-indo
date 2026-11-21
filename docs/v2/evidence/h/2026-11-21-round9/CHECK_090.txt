@@ -1,0 +1,44 @@
+CHECK 90 — night_r8 warm night windows and lamps (WORK_QUEUE section M5, item 90)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Edit runtime injection; place NOT saved, nothing published.
+
+== Setup ==
+Injected at runtime (not saved) into the EDIT datamodel: Shared.ModelMapNightR8, updated
+Shared.LookDev / Shared.LookDevReview (75 ids), and server applier
+ServerScriptService.Server.World.LookDevNightR8. Fresh real Play session. night_r8 is a SERVER
+candidate: the whole tools/studio/review_check_r8.luau was pasted into execute_luau in the SERVER VM.
+The two NIGHT_* checks run their own staged enable/read/disable cycle in a `do...end` scope and
+restore the prior candidate afterwards. The applier's setClockForCheck(20|13) drives the SAME gate as
+the live Lighting.ClockTime path — it does NOT write to Lighting.ClockTime.
+
+== Raw check lines (verbatim, SERVER VM) ==
+CHECK NIGHT_WINDOWS PASS 16 12
+CHECK NIGHT_LIGHTS PASS 12 24
+CHECK LOAD_FAILURES PASS 0 0
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+CHECK CAMERA_CLEAR PASS 0 blocked/42 checked 0 blocked
+CHECK PERF_BUDGET PASS 334 500
+
+== Detail (verbatim) ==
+NIGHT_WINDOWS: 16 window panes staged in folder LookDevNightR8_night_r8, hex #FFCB7A,
+clockAtCheck 20. At clock 20 all 16 panes carry Material Neon, warm Color3(255/203/122) and
+attribute Lit=true (16 lit >= 12). At clock 13 the same gate yields 0 lit (0 panes warm/Lit). errors [].
+12 shutter-window anchors (two per MapSpec hub from the ModelMapFacadesR8 recipe) plus the four real
+Pak RT WindowGlass positions = 16 panes; no existing part was overwritten. Panes are anchored,
+CanCollide=false, CastShadow=false, so the check reaches >=12 without weakening its threshold.
+
+NIGHT_LIGHTS: 12 enabled shadowless PointLights (6 street posts at the Rendah DayCycleLive positions
++ 6 hub torches), Range 14, Brightness 0.6, Shadows=false for all (shadowOffenders 0). 12 <= MAX_LIGHTS
+24 (Rendah lamp budget proxy, shadows off); errors []. At clock 13 all are disabled (litLightCount 0).
+
+PERF_BUDGET 334/500 — equal to the default look, under the Sedang proxy (read after the candidate was
+disabled). No over-budget flag. LOAD_FAILURES 0, LOOKDEV_LEAK 0, CAMERA_CLEAR 0/42. Both NIGHT_*
+checks emit even on error, never skip; a missing folder/pane/light FAILs at measured < threshold with
+the reason in detail. disable() destroys the staged folder, disconnects the ClockTime listener, clears
+the clock override and restores the prior candidate exactly. No interaction, dialogue or gameplay hook.
+
+Status: SEEN-IN-STUDIO (SERVER-VM staged enable/read/disable cycle measuring the real staged panes and
+lights at both clocks; deterministic clock override, no real Lighting write). No place saved, nothing
+published. Visual yes/no remains the designer's — these checks prove the warm-material colour, the
+20:00-on / 13:00-off gate and the shadowless lamp budget, not that the night scene looks good.

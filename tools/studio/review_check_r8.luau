@@ -115,6 +115,12 @@
 -- requires each staged folder to still hold its tagged parts, then calls disableAll() again.
 -- LOOKDEV_LEAK runs after it and proves no folders leaked.
 --
+-- Item 90 adds the mutating SERVER-only NIGHT_WINDOWS and NIGHT_LIGHTS pair, emitted from their own
+-- do...end scope just before LOOKDEV_LEAK. It stages night_r8, drives the applier's deterministic
+-- setClockForCheck(20) / setClockForCheck(13) override (never mutating Lighting.ClockTime), reads the
+-- staged panes and PointLights, then clears the override, disables and re-enables the prior candidate.
+-- NIGHT_WINDOWS requires >=12 lit at 20:00 and 0 at 13:00; NIGHT_LIGHTS requires 1..24 enabled
+-- shadowless lights. Missing folder/module or any read error FAILs loudly; both lines always emit.
 -- All checks except LOOKDEV_LEAK, ADDITIVE_STAGE, WATER_SAFE, WATER_RESTORE, WIND_SET,
 -- SWAY_TWEENS and WIND_RESTORE are read-only. The mutating checks call enable(id)/disable() and
 -- restore the prior active candidate at the end; ADDITIVE_STAGE uses enableAdditive(id)/
@@ -238,6 +244,8 @@ local ORDER = {
 	"DAY_PHASES_MONOTONIC",
 	"DAY_1600_CONTRAST",
 	"DAY_MAGHRIB_UNCHANGED",
+	"NIGHT_WINDOWS",
+	"NIGHT_LIGHTS",
 	"LOOKDEV_LEAK",
 }
 
@@ -7501,6 +7509,195 @@ else
 		reason = okMaghrib and nil or tostring(unchanged),
 	})
 end
+end
+
+-- 12g. Item 90: night_r8. Own do...end scope (the harness is near the 200-local-register cap).
+-- Both lines are MUTATING and SERVER-only: stage night_r8, use the applier's deterministic clock
+-- override for 20:00 and 13:00, read the real staged parts, then restore the prior candidate.
+do
+local nightErrors = {}
+local nightModel, nightApplier, nightLook = nil, nil, nil
+local okNightModel, modelValue = pcall(function()
+	return require(game.ReplicatedStorage.Shared.ModelMapNightR8)
+end)
+if okNightModel and type(modelValue) == "table" then
+	nightModel = modelValue
+else
+	nightErrors[#nightErrors + 1] = "pure model unreadable"
+end
+local okNightApplier, applierValue = pcall(function()
+	return require(game.ServerScriptService.Server.World.LookDevNightR8)
+end)
+if
+	okNightApplier
+	and type(applierValue) == "table"
+	and type(applierValue.setClockForCheck) == "function"
+	and type(applierValue.clearClockForCheck) == "function"
+	and type(applierValue.diagnostics) == "function"
+then
+	nightApplier = applierValue
+else
+	nightErrors[#nightErrors + 1] = "server applier unreadable"
+end
+local okNightLook, lookValue = pcall(function()
+	return require(game.ReplicatedStorage.Shared.LookDev)
+end)
+if okNightLook and type(lookValue) == "table" and type(lookValue.enable) == "function" then
+	nightLook = lookValue
+else
+	nightErrors[#nightErrors + 1] = "LookDev unreadable"
+end
+
+local lit20, lit13, windowParts, glowLights, shadowOffenders = 0, 0, 0, 0, 0
+local nightPriorId = nil
+local nightClockAtCheck = "ERR"
+
+local function measureNight(folder)
+	local lit, parts, lights, shadows = 0, 0, 0, 0
+	local okDesc, descendants = pcall(function()
+		return folder:GetDescendants()
+	end)
+	if not okDesc or type(descendants) ~= "table" then
+		nightErrors[#nightErrors + 1] = "folder descendants unreadable"
+		return lit, parts, lights, shadows
+	end
+	for _, instance in ipairs(descendants) do
+		if attr(instance, "NightR8") == "window" then
+			parts += 1
+			local okMat, material = pcall(function()
+				return instance.Material
+			end)
+			local okCol, colour = pcall(function()
+				return instance.Color
+			end)
+			local warm = false
+			if okMat and okCol and material == Enum.Material.Neon then
+				local okChannels, r, g, b = pcall(function()
+					return colour.R, colour.G, colour.B
+				end)
+				if okChannels then
+					-- #FFCB7A -> normalized 1, 203/255, 122/255; small tolerance for float storage.
+					warm = math.abs(r - 1) <= 0.02
+						and math.abs(g - 203 / 255) <= 0.02
+						and math.abs(b - 122 / 255) <= 0.02
+				end
+			end
+			if warm and attr(instance, "Lit") == true then
+				lit += 1
+			end
+		end
+		local okLight, isLight = pcall(function()
+			return instance:IsA("PointLight")
+		end)
+		if okLight and isLight then
+			local okEnabled, enabledNow = pcall(function()
+				return instance.Enabled
+			end)
+			if okEnabled and enabledNow == true then
+				lights += 1
+			end
+			local okShadows, castsShadows = pcall(function()
+				return instance.Shadows
+			end)
+			if okShadows and castsShadows == true then
+				shadows += 1
+			end
+		end
+	end
+	return lit, parts, lights, shadows
+end
+
+local function runNightStaged()
+	local okCur, current = pcall(function()
+		return nightLook.current()
+	end)
+	if okCur and type(current) == "string" then
+		nightPriorId = current
+	end
+	local okEnable, enabled, why = pcall(function()
+		return nightLook.enable("night_r8", { studio = true })
+	end)
+	if not okEnable or enabled == false then
+		nightErrors[#nightErrors + 1] = "enable:" .. tostring(why or enabled)
+		return
+	end
+	local ok20 = pcall(function()
+		return nightApplier.setClockForCheck(20)
+	end)
+	if not ok20 then
+		nightErrors[#nightErrors + 1] = "setClockForCheck(20) failed"
+		return
+	end
+	local okDiag, diag = pcall(function()
+		return nightApplier.diagnostics()
+	end)
+	if okDiag and type(diag) == "table" then
+		nightClockAtCheck = tostring(diag.clock)
+	else
+		nightErrors[#nightErrors + 1] = "diagnostics unreadable"
+	end
+	local okFind, stagedFolder = pcall(function()
+		return workspace:FindFirstChild(nightModel.folder)
+	end)
+	if not okFind or not stagedFolder then
+		nightErrors[#nightErrors + 1] = "staging folder missing"
+		return
+	end
+	lit20, windowParts, glowLights, shadowOffenders = measureNight(stagedFolder)
+	local ok13 = pcall(function()
+		return nightApplier.setClockForCheck(13)
+	end)
+	if not ok13 then
+		nightErrors[#nightErrors + 1] = "setClockForCheck(13) failed"
+		return
+	end
+	lit13 = measureNight(stagedFolder)
+end
+
+local okRun, runErr = pcall(runNightStaged)
+if not okRun then
+	nightErrors[#nightErrors + 1] = "run:" .. tostring(runErr)
+end
+pcall(function()
+	return nightApplier and nightApplier.clearClockForCheck()
+end)
+if nightLook then
+	pcall(function()
+		return nightLook.disable()
+	end)
+	if nightPriorId then
+		pcall(function()
+			return nightLook.enable(nightPriorId)
+		end)
+	end
+end
+
+local nightReady = #nightErrors == 0 and windowParts >= 12 and glowLights >= 1
+emit(
+	"NIGHT_WINDOWS",
+	nightReady and lit20 >= 12 and lit13 == 0,
+	lit20,
+	12,
+	{
+		lit13 = lit13,
+		panes = windowParts,
+		clockAtCheck = nightClockAtCheck,
+		hex = nightModel and nightModel.WINDOW_COLOR_HEX or nil,
+		errors = nightErrors,
+	}
+)
+emit(
+	"NIGHT_LIGHTS",
+	nightReady and glowLights >= 1 and glowLights <= 24 and shadowOffenders == 0,
+	glowLights,
+	24,
+	{
+		shadowOffenders = shadowOffenders,
+		clockAtCheck = nightClockAtCheck,
+		budget = nightModel and nightModel.MAX_LIGHTS or nil,
+		errors = nightErrors,
+	}
+)
 end
 
 -- 13. LOOKDEV_LEAK: mutating, run last. For every LookDev.IDS entry, count workspace and

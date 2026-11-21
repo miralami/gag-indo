@@ -219,7 +219,7 @@ return function(t, Env)
 
 	t:describe("buildings_r8 registry, review, bake and handoff", function()
 		t:it("ships candidate 55 with a plan and a server review path", function()
-			expect(#LookDev.IDS):toBe(74)
+			expect(#LookDev.IDS):toBe(75)
 			expect(LookDev.IDS[55]):toBe("buildings_r8")
 			expect(LookDev.candidates.buildings_r8.status):toBe("candidate, awaiting designer yes")
 			expect(LookDev.candidates.buildings_r8.idsSource):toBe("Shared.ModelMapBuildingsR8")

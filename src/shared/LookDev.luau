@@ -50,6 +50,7 @@
 --   src/server/World/LookDevNpcsIdleR8.luau -- candidate "npcs_idle_r8" (ten villagers with a real idle track + tiny sway, server-only)
 --   src/server/World/LookDevAmbientWalkersR8.luau -- candidate "ambient_walkers_r8" (eight ambient R15 strollers via NpcWalk, server-only)
 --   src/client/World/LookDevDayCycleR8.luau -- candidate "day_cycle_r8" (tuned golden-hour contrast, client-only)
+--   src/server/World/LookDevNightR8.luau -- candidate "night_r8" (warm night panes and Rendah glow, server-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -70,7 +71,7 @@
 --   LookDev.enable("textures_r4")
 --   LookDev.enable("sky_r4_a") -- or LookDev.enable("sky_r4_b") / LookDev.enable("sky_r4_c")
 --   LookDev.enable("sky_r6_a") -- or sky_r6_b / sky_r6_c / sky_r6_d / sky_r6_e / sky_r6_f
---   -- from the Server datamodel: LookDev.enable("buildings_r8") / LookDev.enable("facades_r8") / LookDev.enable("hubprops_r8") / LookDev.enable("hubs_real_r9") / LookDev.enable("plaza_r9") / LookDev.enable("ronda_tower_r9") / LookDev.enable("rocks_r9") / LookDev.enable("streetfurn_r8") / LookDev.enable("spanduk_r8")
+--   -- from the Server datamodel: LookDev.enable("buildings_r8") / LookDev.enable("facades_r8") / LookDev.enable("hubprops_r8") / LookDev.enable("hubs_real_r9") / LookDev.enable("plaza_r9") / LookDev.enable("ronda_tower_r9") / LookDev.enable("rocks_r9") / LookDev.enable("streetfurn_r8") / LookDev.enable("spanduk_r8") / LookDev.enable("night_r8")
 --   LookDev.enable("spawn_ground_r6")
 --   LookDev.enable("terrain_r6_a") -- or LookDev.enable("terrain_r6_b")
 --   -- server-only: LookDev.enable("buildings_r4") / LookDev.enable("vegetation_r4") / LookDev.enable("props_r4") / LookDev.enable("npcs_r4")
@@ -167,6 +168,7 @@ LookDev.IDS = {
 	"npcs_idle_r8",
 	"ambient_walkers_r8",
 	"day_cycle_r8",
+	"night_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -1058,6 +1060,19 @@ LookDev.candidates = {
 		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
 		shadowSoftness = 0.45,
 	},
+
+	night_r8 = {
+		id = "night_r8",
+		title = "Warm night windows and lamps — 16 Neon panes (#FFCB7A), 6 street posts and 6 torches within the Rendah lamp budget (round 9, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Original Parts and shadowless PointLights only, no asset IDs. Pure pane/lamp records in
+		-- Shared.ModelMapNightR8; the SERVER applier owns the ClockTime gate and the deterministic
+		-- setClockForCheck(20/13) override used by the harness.
+		idsSource = "Shared.ModelMapNightR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		maxLights = 24,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1166,6 +1181,14 @@ function LookDev.plan(id: string): any
 			idsSource = c.idsSource,
 			render = c.render,
 			shadowSoftness = c.shadowSoftness,
+		}
+	elseif id == "night_r8" then
+		local c = LookDev.candidates.night_r8
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			maxLights = c.maxLights,
 		}
 	elseif id == "icons_r3" then
 		local c = LookDev.candidates.icons_r3

@@ -241,6 +241,16 @@ measured 2.16->2.71) was found and fixed via pcall duck-typed channel reads + `b
 `baseJump > 0` non-vacuity guards — checks made stricter, no threshold weakened; re-run PASS. Visual
 yes/no remains the designer's. Suite **2653 tests**; `selene src` 0/0/0.
 
+Item 90 COMPLETE: `night_r8` is an OFF-by-default SERVER candidate staging 16 warm window panes
+(`Neon`, `#FFCB7A`; 12 facade-window anchors + Pak RT's 4 real glass positions) and 12 shadowless
+Rendah PointLights (6 street posts + 6 torches, Range 14, Brightness 0.6), all gated by
+`Lighting.ClockTime` through one shared gate with a deterministic `setClockForCheck(20|13)` override
+(never writes real Lighting). Studio SERVER-VM PASS `NIGHT_WINDOWS 16 >=12` (16 lit at 20:00, 0 at
+13:00), `NIGHT_LIGHTS 12 <=24` (0 shadow offenders), `LOAD_FAILURES 0`, `LOOKDEV_LEAK 0`,
+`CAMERA_CLEAR 0/42`, `PERF_BUDGET 334/500` (`h/2026-11-21-round9/CHECK_090.txt`). Exact folder/
+listener/override restore. Visual yes/no remains the designer's. Suite **2659 tests**;
+`selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

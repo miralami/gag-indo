@@ -179,3 +179,23 @@ the CHECK evidence and tracker ticks. No place is saved or published.
    across (not along) its Z-running ridge; all six caps were 25.6–51.2 studs. Caps are now 10 studs
    and pakrt's runs along local Z; pakrt's `FacadeEave_L` also moved 1.5 studs inward to stay inside
    hub bbox + 3. Visual grading remains the designer's.
+
+## 11. Item-140 run — `sawah_r8` padi redo (WORK_QUEUE section O)
+
+Run-note recipe. **No Studio result is claimed** by the implementation agent; the main session owns
+the CHECK evidence and tracker ticks. No place is saved or published.
+
+1. Stop Play. Inject at runtime (not saved) the changed `ReplicatedStorage.Shared.ModelMapSawahR8`,
+   `ServerScriptService.Server.World.LookDevSawahR8` and the changed
+   `tools/studio/review_check_r8.luau`. The applier is already booted by `Main.server`.
+2. Start a FRESH real Play session in the SERVER datamodel. Stage ONLY `sawah_r8` from the Server VM:
+   `require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("sawah_r8", game)`.
+3. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the SERVER VM.
+   Read `TUFT_SHAPE` (target `0` oversized PadiPart parts), `PADI_ROWS` (target `10`, minimum distinct
+   `PadiRow` ids per terrace), `PADI_CLUMPS` (target `250`, minimum distinct `PadiClump` ids per
+   terrace) and `SAWAH_GREEN` (target `40`, minimum percentage of a 20x8 grid per terrace hit by a
+   PadiPart from the `sawah_above` camera). The four checks are READ-ONLY and stage nothing.
+4. Re-read the guards `SAWAH_TOPS` (target `0.5`), `SAWAH_WATER` (`4 sheets`), `SAWAH_VERGE`
+   (`>=40`) and `GUBUK` (`1`) in the same run; all must stay PASS. A missing folder, camera or
+   Raycast FAILs with a reason in `detail.reason`, never a skip. No target is weakened.
+5. Stop Play without saving. Visual grading — does the band read as padi? — stays the designer's.

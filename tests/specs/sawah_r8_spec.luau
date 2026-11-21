@@ -1,7 +1,8 @@
 --!nocheck
--- WORK_QUEUE section M item 72: sawah_r8 terrace dressing. Pure-data contract plus the server
--- LookDev wiring. No Studio claim: CHECK_72.txt and the visual verdict belong to the main session.
--- The applier uses procedural Parts only, so there are no asset IDs to validate.
+-- WORK_QUEUE section M item 72, rebuilt in section O item 140: sawah_r8 terrace dressing. Pure-data
+-- contract for dense padi rows/clumps plus the server LookDev wiring and the four new read-only
+-- harness checks. No Studio claim: the CHECK_* evidence and the visual verdict belong to the main
+-- session. The applier uses procedural Parts only, so there are no asset IDs to validate.
 
 local fs = require("@lune/fs")
 
@@ -71,6 +72,72 @@ return function(t, Env)
 			end
 			local other = Env.new():require("shared/ModelMapSawahR8")
 			expect(other.vergeTufts(panes)):toEqual(tufts)
+		end)
+
+		t:it("grows deterministic padi rows of small clumps on all four terraces", function()
+			expect(Data.PADI_ROWS_MIN):toBe(10)
+			expect(Data.PADI_CLUMPS_MIN):toBe(250)
+			expect(Data.PADI_CLUMP_WIDTH):toBe(1.5)
+			expect(Data.PADI_MAX_PART):toBe(2.5)
+			expect(Data.ROW_SPACING):toBe(2)
+			expect(Data.ROW_SPACING > Data.PADI_CLUMP_WIDTH):toBe(true) -- water visible between rows
+
+			local rows = Data.padiRows(panes)
+			local clumps = Data.padiClumps(panes)
+			local rowsByTerrace, clumpsByTerrace = {}, {}
+			local rowsByPane = {}
+			for _, row in ipairs(rows) do
+				rowsByTerrace[row.terrace] = (rowsByTerrace[row.terrace] or 0) + 1
+				local paneKey = row.terrace .. ":" .. row.side
+				rowsByPane[paneKey] = rowsByPane[paneKey] or {}
+				table.insert(rowsByPane[paneKey], row)
+				local pair = Data.waterPanes(panes, row.terrace)
+				local pane = if row.side == "west" then pair[1] else pair[2]
+				expect(row.x >= pane.centre[1] - pane.size[1] / 2):toBe(true)
+				expect(row.x <= pane.centre[1] + pane.size[1] / 2):toBe(true)
+			end
+			local clumpsByRow = {}
+			for _, clump in ipairs(clumps) do
+				clumpsByTerrace[clump.terrace] = (clumpsByTerrace[clump.terrace] or 0) + 1
+				expect(clump.blades >= 3 and clump.blades <= 5):toBe(true)
+				expect(clump.y > 0):toBe(true)
+				clumpsByRow[clump.row] = clumpsByRow[clump.row] or {}
+				table.insert(clumpsByRow[clump.row], clump)
+				local row = rows[clump.row]
+				expect(row ~= nil):toBe(true)
+				expect(clump.z >= row.z0 and clump.z <= row.z1):toBe(true)
+				expect(near(clump.x, row.x)):toBe(true)
+			end
+			for _, index in ipairs(terraces) do
+				expect((rowsByTerrace[index] or 0) >= Data.PADI_ROWS_MIN):toBe(true)
+				expect((clumpsByTerrace[index] or 0) >= Data.PADI_CLUMPS_MIN):toBe(true)
+			end
+			for _, list in pairs(rowsByPane) do
+				table.sort(list, function(a, b)
+					return a.x < b.x
+				end)
+				for index = 2, #list do
+					expect(near(list[index].x - list[index - 1].x, Data.ROW_SPACING)):toBe(true)
+				end
+			end
+			for _, list in pairs(clumpsByRow) do
+				table.sort(list, function(a, b)
+					return a.z < b.z
+				end)
+				for index = 2, #list do
+					expect(near(list[index].z - list[index - 1].z, Data.ROW_SPACING)):toBe(true)
+				end
+			end
+			local widest = 0
+			for _, blade in ipairs(Data.PADI_BLADES) do
+				widest = math.max(widest, math.abs(blade.dx))
+				expect(blade.height > 0 and blade.height <= Data.PADI_MAX_PART):toBe(true)
+			end
+			expect(widest * 2 + Data.PADI_BLADE_WIDTH <= Data.PADI_CLUMP_WIDTH):toBe(true)
+			local other = Env.new():require("shared/ModelMapSawahR8")
+			expect(other.padiRows(panes)):toEqual(rows)
+			expect(other.padiClumps(panes)):toEqual(clumps)
+			expect(Data.waterPanes(panes, 1)[1].size[3] > Data.PADI_CLUMP_WIDTH):toBe(true)
 		end)
 
 		t:it("builds exactly one hut on terrace 2 clear of the water and ramp", function()
@@ -149,6 +216,60 @@ return function(t, Env)
 			expect(string.find(applier, "rbxassetid://%d") ~= nil):toBe(false)
 			local main = fs.readFile("src/server/Main.server.luau")
 			expect(string.find(main, "pcall(require, script.Parent.World.LookDevSawahR8)", 1, true) ~= nil):toBe(true)
+		end)
+
+		t:it("tags every padi part and keeps the applier reversible", function()
+			local applier = fs.readFile("src/server/World/LookDevSawahR8.luau")
+			expect(string.find(applier, "Data.padiClumps(panes)", 1, true) ~= nil):toBe(true)
+			expect(string.find(applier, 'SetAttribute("PadiPart", true)', 1, true) ~= nil):toBe(true)
+			expect(string.find(applier, 'SetAttribute("TerraceIndex", clump.terrace)', 1, true) ~= nil):toBe(true)
+			expect(string.find(applier, 'SetAttribute("PadiClump", clump.id)', 1, true) ~= nil):toBe(true)
+			expect(string.find(applier, 'SetAttribute("PadiRow", clump.row)', 1, true) ~= nil):toBe(true)
+			expect(string.find(applier, 'SetAttribute("TerraceIndex", tuft.terrace)', 1, true) ~= nil):toBe(true)
+			expect(string.find(applier, "Data.PADI_BLADE_WIDTH", 1, true) ~= nil):toBe(true)
+			expect(string.find(applier, "activeFolder:Destroy()", 1, true) ~= nil):toBe(true)
+			expect(string.find(applier, "rbxassetid://%d") ~= nil):toBe(false)
+		end)
+
+		t:it("registers the four item-140 checks in ORDER with their targets", function()
+			local harness = fs.readFile("tools/studio/review_check_r8.luau")
+			local start = string.find(harness, "local ORDER = {", 1, true)
+			expect(start ~= nil):toBe(true)
+			local finish = string.find(harness, "\n}", start, true)
+			expect(finish ~= nil):toBe(true)
+			local order = string.sub(harness, start, finish)
+			local gubuk = string.find(order, '"GUBUK"', 1, true)
+			local river = string.find(order, '"RIVER_BANK_VEG"', 1, true)
+			expect(gubuk ~= nil and river ~= nil):toBe(true)
+			local previous = gubuk
+			for _, name in ipairs({ "TUFT_SHAPE", "PADI_ROWS", "PADI_CLUMPS", "SAWAH_GREEN" }) do
+				local at = string.find(order, '"' .. name .. '"', 1, true)
+				expect(at ~= nil):toBe(true)
+				expect(at > previous and at < river):toBe(true)
+				previous = at
+			end
+			local function emitTarget(name, target)
+				local at = string.find(harness, 'emit("' .. name .. '"', 1, true)
+				expect(at ~= nil):toBe(true)
+				local compact = string.gsub(string.sub(harness, at, at + 300), "%s", "")
+				expect(string.find(compact, "," .. target .. ",", 1, true) ~= nil):toBe(true)
+			end
+			emitTarget("TUFT_SHAPE", "0")
+			emitTarget("PADI_ROWS", "10")
+			emitTarget("PADI_CLUMPS", "250")
+			emitTarget("SAWAH_GREEN", "40")
+
+			local blockStart = string.find(harness, "-- 9d-2. WORK_QUEUE section O item 140", 1, true)
+			local blockEnd = string.find(harness, "-- 9e. r8 river family", blockStart, true)
+			expect(blockStart ~= nil and blockEnd ~= nil):toBe(true)
+			local block = string.sub(harness, blockStart, blockEnd)
+			expect(string.find(block, "enable(", 1, true) == nil):toBe(true)
+			expect(string.find(block, "sawah_above", 1, true) ~= nil):toBe(true)
+			expect(string.find(block, "workspace:Raycast", 1, true) ~= nil):toBe(true)
+			expect(string.find(block, 'attr(hit.Instance, "PadiPart") == true', 1, true) ~= nil):toBe(true)
+			expect(string.find(block, 'part:IsA("BasePart")', 1, true) ~= nil):toBe(true)
+			expect(string.find(block, '"PadiClump"', 1, true) ~= nil):toBe(true)
+			expect(string.find(block, '"PadiRow"', 1, true) ~= nil):toBe(true)
 		end)
 	end)
 end

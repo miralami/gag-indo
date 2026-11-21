@@ -28,6 +28,12 @@ pakrt's left eave moved 1.5 studs inward. New `FACADE_STRAY` check PASS `0 0` ac
 `FACADE_PARTS 6 6` and `DOOR_CLEAR 6 6` unchanged (`h/2026-11-21-round9/CHECK_139.txt`). Suite
 **2468 tests**; `selene src` 0/0/0.
 
+Item 140 COMPLETE: sawah terraces now stage real padi rows (2-stud spacing, 3-5-blade clumps) instead
+of flat verge bars. Real Studio staged-Play PASS `TUFT_SHAPE 0 0`, `PADI_ROWS 294 10`,
+`PADI_CLUMPS 1764 250`, `SAWAH_GREEN 76 40`, `SAWAH_TOPS 0 0.5`, `SAWAH_WATER 4 4`, `GUBUK 1 1`
+(`h/2026-11-21-round9/CHECK_140.txt`). The 35,520 staged parts exist only while this OFF-by-default
+candidate is on; default PERF_BUDGET stays 334/500. Suite **2471 tests**; `selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

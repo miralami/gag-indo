@@ -12,6 +12,11 @@
 -- PLOT_FENCE and GATE_CLEAR. Both FAIL when the plots_r8 candidate is not staged.
 -- It also emits the r8 sawah family (WORK_QUEUE item 72): SAWAH_TOPS, SAWAH_WATER,
 -- SAWAH_VERGE and GUBUK. All four FAIL when the sawah_r8 candidate is not staged.
+-- Item 140 adds four READ-ONLY checks beside that block: TUFT_SHAPE (no PadiPart part longer than
+-- 2.5 studs), PADI_ROWS (minimum distinct PadiRow ids per terrace), PADI_CLUMPS (minimum distinct
+-- PadiClump ids per terrace) and SAWAH_GREEN (20x8 grid per terrace sampled from sawah_above by
+-- downward rays, Include-filtered to PadiPart parts). All four FAIL at measured 0 when no candidate
+-- is staged; a missing camera/Raycast is a FAIL with a reason, never a skip.
 -- It also emits the r8 river family (WORK_QUEUE item 73): RIVER_BANK_VEG, BRIDGE_RAILS and
 -- BRIDGE_WALKABLE. All three FAIL at measured 0 when the river_r8 candidate is not staged or
 -- MapSpec.BRIDGE cannot be read (the Client VM cannot read MapSpec).
@@ -95,6 +100,10 @@ local ORDER = {
 	"SAWAH_WATER",
 	"SAWAH_VERGE",
 	"GUBUK",
+	"TUFT_SHAPE",
+	"PADI_ROWS",
+	"PADI_CLUMPS",
+	"SAWAH_GREEN",
 	"RIVER_BANK_VEG",
 	"BRIDGE_RAILS",
 	"BRIDGE_WALKABLE",
@@ -1706,6 +1715,250 @@ emit("GUBUK", gubukPass, #roofs, 1, {
 	folderPresent = sawahFolder ~= nil,
 	reason = gubukReason,
 })
+
+-- 9d-2. WORK_QUEUE section O item 140: four READ-ONLY checks on the new padi dressing. The caller
+-- stages sawah_r8 exactly as for SAWAH_TOPS; nothing here enables, disables or mutates anything.
+-- Method notes:
+--   TUFT_SHAPE  every instance with PadiPart == true has all three Size axes <= 2.5.
+--   PADI_ROWS   a row is one X column of clumps; each clump's numeric PadiRow is its row id. The
+--               MINIMUM count of distinct PadiRow ids over terraces 1..4 decides.
+--   PADI_CLUMPS a clump is a Model with a numeric PadiClump id, shared by its blade Parts. The
+--               MINIMUM count of distinct PadiClump ids over terraces 1..4 decides, so 3-5 blades
+--               cannot inflate the count.
+--   SAWAH_GREEN for each terrace, a 20 x 8 grid (10 X columns per water pane x 8 Z rows) is sampled
+--               inside the two panes. From the sawah_above ReviewCamera eye, one ray is cast per
+--               sample toward the sample point (all samples are below the eye); the ray uses an
+--               Include filter on the staged sawah folder and PASSES only when the first hit is a
+--               PadiPart. The MINIMUM integer percentage over terraces 1..4 decides. Missing
+--               camera, MapSpec, folder, RaycastParams or Raycast, or any ray error, is a FAIL with
+--               a reason in the detail — never a skip and never a vacuous pass.
+local PADI_MAX_PART = 2.5
+local GREEN_COLUMNS_PER_PANE, GREEN_ROWS = 10, 8
+local TUFT_SHAPE_TOTAL = 0
+local PADI_ROWS_TOTAL = 10
+local PADI_CLUMPS_TOTAL = 250
+local SAWAH_GREEN_TOTAL = 40
+
+local padiParts = {}
+local shapeOffenders, shapeErrors = {}, 0
+for _, part in ipairs(sawahParts) do
+	if attr(part, "PadiPart") == true then
+		padiParts[#padiParts + 1] = part
+		-- The clump Model carries PadiPart for grouping but has no Size property; only BaseParts
+		-- (the blades and bund tufts) are measured by TUFT_SHAPE.
+		local okPart, isPart = pcall(function()
+			return part:IsA("BasePart")
+		end)
+		if not okPart then
+			shapeErrors += 1
+		elseif isPart then
+			local okSize, size = pcall(function()
+				return part.Size
+			end)
+			if not okSize or typeof(size) ~= "Vector3" then
+				shapeErrors += 1
+			elseif size.X > PADI_MAX_PART or size.Y > PADI_MAX_PART or size.Z > PADI_MAX_PART then
+				local okName, name = pcall(function()
+					return part.Name
+				end)
+				shapeOffenders[#shapeOffenders + 1] = (okName and tostring(name) or "?")
+					.. ":"
+					.. string.format("%.2f/%.2f/%.2f", size.X, size.Y, size.Z)
+			end
+		end
+	end
+end
+local shapeDetail = {
+	method = "all PadiPart instances: Size.X/Y/Z <= 2.5",
+	padiParts = #padiParts,
+	readErrors = shapeErrors,
+	sample = shapeOffenders,
+	folderPresent = sawahFolder ~= nil,
+}
+if #padiParts == 0 then
+	shapeDetail.reason = "sawah_r8 folder or PadiPart parts absent"
+end
+local tuftShapePass = sawahFolder ~= nil and #padiParts > 0 and shapeErrors == 0 and #shapeOffenders == 0
+emit("TUFT_SHAPE", tuftShapePass, #shapeOffenders, 0, shapeDetail)
+
+local rowsByTerrace, clumpsByTerrace = {}, {}
+for terrace = 1, 4 do
+	rowsByTerrace[terrace] = {}
+	clumpsByTerrace[terrace] = {}
+end
+for _, part in ipairs(padiParts) do
+	local terrace = attr(part, "TerraceIndex")
+	local row = attr(part, "PadiRow")
+	local clump = attr(part, "PadiClump")
+	if type(terrace) == "number" and rowsByTerrace[terrace] then
+		if type(row) == "number" then
+			rowsByTerrace[terrace][row] = true
+		end
+		if type(clump) == "number" then
+			clumpsByTerrace[terrace][clump] = true
+		end
+	end
+end
+local function distinctCount(set)
+	local n = 0
+	for _ in pairs(set) do
+		n += 1
+	end
+	return n
+end
+local rowCounts, clumpCounts, rowParts, clumpParts = {}, {}, {}, {}
+local minRows, minClumps = math.huge, math.huge
+for terrace = 1, 4 do
+	rowCounts[terrace] = distinctCount(rowsByTerrace[terrace])
+	clumpCounts[terrace] = distinctCount(clumpsByTerrace[terrace])
+	rowParts[#rowParts + 1] = "T" .. terrace .. ":" .. rowCounts[terrace]
+	clumpParts[#clumpParts + 1] = "T" .. terrace .. ":" .. clumpCounts[terrace]
+	minRows = math.min(minRows, rowCounts[terrace])
+	minClumps = math.min(minClumps, clumpCounts[terrace])
+end
+if minRows == math.huge then
+	minRows = 0
+end
+if minClumps == math.huge then
+	minClumps = 0
+end
+emit("PADI_ROWS", minRows >= PADI_ROWS_TOTAL, minRows, 10, {
+	method = "MINIMUM distinct numeric PadiRow ids per terrace (one X column of clumps per row)",
+	perTerrace = rowCounts,
+	detail = table.concat(rowParts, " "),
+	padiParts = #padiParts,
+})
+emit("PADI_CLUMPS", minClumps >= PADI_CLUMPS_TOTAL, minClumps, 250, {
+	method = "MINIMUM distinct numeric PadiClump ids per terrace (shared by that clump's blades)",
+	perTerrace = clumpCounts,
+	detail = table.concat(clumpParts, " "),
+	padiParts = #padiParts,
+})
+
+-- SAWAH_GREEN: camera + Raycast are mandatory. The Client VM cannot require ReviewCameras (it
+-- requires MapSpec from ServerScriptService with WaitForChild), so it records a FAIL reason here.
+local greenServer = false
+local greenRun = service("RunService")
+if greenRun then
+	local okServer, flag = pcall(function()
+		return greenRun:IsServer()
+	end)
+	if okServer then
+		greenServer = flag
+	end
+end
+local greenEye = nil
+local greenReason = nil
+if not greenServer then
+	greenReason = "ReviewCameras / sawah_above camera unavailable (Server VM required)"
+elseif not sawahMapReady then
+	greenReason = sawahMapReason or "MapSpec not readable"
+elseif not sawahFolder then
+	greenReason = "sawah_r8 staging folder absent"
+elseif #padiParts == 0 then
+	greenReason = "no PadiPart parts staged"
+else
+	local okGreenCam, Cameras = pcall(function()
+		return require(game.ReplicatedStorage.Shared.ReviewCameras)
+	end)
+	if not okGreenCam or type(Cameras) ~= "table" or type(Cameras.all) ~= "function" then
+		greenReason = "ReviewCameras not readable"
+	else
+		for _, camera in ipairs(Cameras.all()) do
+			if camera.name == "sawah_above" then
+				greenEye = asVector3(camera.position)
+				break
+			end
+		end
+		if not greenEye then
+			greenReason = "sawah_above camera missing or bad coords"
+		end
+	end
+end
+
+local greenPcts, greenSamples, greenHits, greenErrors = {}, {}, {}, 0
+local greenOk = false
+if greenEye and sawahMapReady and sawahFolder then
+	local okPanes, greenPanes = pcall(function()
+		return SawahMapSpec.paddyWater()
+	end)
+	local okParams, params = pcall(function()
+		local p = RaycastParams.new()
+		p.FilterType = Enum.RaycastFilterType.Include
+		p.FilterDescendantsInstances = { sawahFolder }
+		p.IgnoreWater = false
+		return p
+	end)
+	if not okPanes or type(greenPanes) ~= "table" or #greenPanes < 8 then
+		greenReason = "paddyWater panes not readable"
+	elseif not okParams or not params then
+		greenReason = "RaycastParams unavailable"
+	else
+		for terrace = 1, 4 do
+			local pair = { greenPanes[(terrace - 1) * 2 + 1], greenPanes[terrace * 2] }
+			local hits, samples = 0, 0
+			for _, pane in ipairs(pair) do
+				if
+					type(pane) == "table"
+					and type(pane.centre) == "table"
+					and type(pane.size) == "table"
+					and type(pane.top) == "number"
+				then
+					local x0 = pane.centre[1] - pane.size[1] / 2
+					local z0 = pane.centre[3] - pane.size[3] / 2
+					for column = 1, GREEN_COLUMNS_PER_PANE do
+						local x = x0 + (column - 0.5) * pane.size[1] / GREEN_COLUMNS_PER_PANE
+						for row = 1, GREEN_ROWS do
+							local z = z0 + (row - 0.5) * pane.size[3] / GREEN_ROWS
+							local sample = Vector3.new(x, pane.top + 0.2, z)
+							local delta = sample - greenEye
+							samples += 1
+							local okRay, hit = pcall(function()
+								return workspace:Raycast(greenEye, delta.Unit * (delta.Magnitude + 2), params)
+							end)
+							if not okRay then
+								greenErrors += 1
+							elseif hit and hit.Instance and attr(hit.Instance, "PadiPart") == true then
+								hits += 1
+							end
+						end
+					end
+				end
+			end
+			greenSamples[terrace] = samples
+			greenHits[terrace] = hits
+			greenPcts[terrace] = samples > 0 and math.floor(hits * 100 / samples) or 0
+		end
+		greenOk = greenErrors == 0
+			and greenSamples[1] > 0
+			and greenSamples[2] > 0
+			and greenSamples[3] > 0
+			and greenSamples[4] > 0
+	end
+elseif not greenReason then
+	greenReason = "camera, MapSpec or folder unavailable"
+end
+
+local greenWorst = 100
+for terrace = 1, 4 do
+	greenWorst = math.min(greenWorst, greenPcts[terrace] or 0)
+end
+if not greenOk then
+	greenWorst = 0
+end
+local greenDetail = {
+	method = "20x8 grid per terrace (10 X columns per pane x 8 Z rows), sawah_above eye, downward rays, Include sawah folder, first hit PadiPart",
+	perTerrace = greenPcts,
+	hits = greenHits,
+	samples = greenSamples,
+	rayErrors = greenErrors,
+	camera = greenEye and { greenEye.X, greenEye.Y, greenEye.Z } or nil,
+	grid = { GREEN_COLUMNS_PER_PANE * 2, GREEN_ROWS },
+	padiParts = #padiParts,
+	folderPresent = sawahFolder ~= nil,
+	reason = greenReason,
+}
+emit("SAWAH_GREEN", greenOk and greenWorst >= SAWAH_GREEN_TOTAL, greenWorst, 40, greenDetail)
 
 -- 9e. r8 river family (WORK_QUEUE item 73). Three CHECK families over the staged
 -- LookDevRiverR8_river_r8 folder, all read around MapSpec.BRIDGE (bridge centre + deck span):

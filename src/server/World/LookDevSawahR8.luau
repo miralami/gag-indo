@@ -1,12 +1,14 @@
 --!strict
 -- LookDevSawahR8: SERVER-ONLY applier for the OFF-BY-DEFAULT "sawah_r8" candidate
--- (WORK_QUEUE section M item 72). Terrace dressing: one muddy water sheet per terrace, alang-alang
--- verge tufts on the bunds, one small field hut on terrace 2 and stepping stones between terraces.
+-- (WORK_QUEUE section M item 72, rebuilt in section O item 140). Terrace dressing: one muddy water
+-- sheet per terrace, dense padi rows of small clumps (3-5 thin blades each), a grassy bund, one
+-- small field hut on terrace 2 and stepping stones between terraces.
 --
 -- PROCEDURAL PARTS, NO ASSET IDS. Terrain, greybox, padi rows and terrace tops are never touched:
 -- every piece is a plain Part built from Shared.ModelMapSawahR8 and MapSpec.paddyWater(). All Parts
 -- are anchored, non-collidable, tagged, and removed by restore() (which reattaches any prior
--- folder). Enable from the Studio Server command bar:
+-- folder). Padi clumps are Models carrying PadiPart / TerraceIndex / PadiClump / PadiRow; every
+-- blade and every bund tuft is also a PadiPart. Enable from the Studio Server command bar:
 --   require(game.ReplicatedStorage.Shared.LookDevReview).enable("sawah_r8", game)
 
 local function service(name: string): any?
@@ -119,6 +121,34 @@ local function taggedPart(kind: string, name: string, terrace: number, parent: a
 	return part
 end
 
+-- One clump Model per deterministic padi clump. Its numeric PadiClump id is shared by its blades,
+-- so a harness counting DISTINCT ids never counts a blade as a second clump.
+local function taggedClump(clump: any, parent: any): any?
+	local model: any? = nil
+	local ok, created = pcall(function()
+		return Instance.new("Model")
+	end)
+	if ok and created then
+		model = created
+	end
+	if not model then
+		return nil
+	end
+	pcall(function()
+		model.Name = "PadiClump_" .. clump.terrace .. "_" .. clump.id
+		model:SetAttribute("LookDevSawahR8", FAMILY_ID)
+		model:SetAttribute("Terrace", clump.terrace)
+		model:SetAttribute("TerraceIndex", clump.terrace)
+		model:SetAttribute("Kind", "padi_clump")
+		model:SetAttribute("PadiPart", true)
+		model:SetAttribute("PadiClump", clump.id)
+		model:SetAttribute("PadiRow", clump.row)
+		model:SetAttribute("PadiSide", clump.side)
+		model.Parent = parent
+	end)
+	return model
+end
+
 local function place(part: any?, centre: { number }, size: { number }): boolean
 	if not part then
 		return false
@@ -219,7 +249,57 @@ local function apply()
 		end
 	end
 
-	-- Verge blades on the bunds: three thin alang-alang Parts per deterministic tuft.
+	-- Padi rows: one clump column every ROW_SPACING studs along each water pane, clumps spaced the
+	-- same distance across the pane. Each clump is a Model holding 3-5 thin blades (clump width
+	-- <= 1.5 studs, blade <= 2.5 studs); the 0.5-stud gap keeps the water sheet visible.
+	local clumpFolders = {}
+	for _, terrace in Data.terraceIndices() do
+		local terraceFolder = folder:FindFirstChild("Terrace_" .. terrace .. "_sawah_r8")
+		clumpFolders[terrace] = taggedFolder("Padi_" .. terrace, terrace, terraceFolder or folder)
+	end
+	local clumps = Data.padiClumps(panes)
+	for _, clump in clumps do
+		local clumpModel = taggedClump(clump, clumpFolders[clump.terrace] or folder)
+		for bladeIndex = 1, math.min(clump.blades, #Data.PADI_BLADES) do
+			local blade = Data.PADI_BLADES[bladeIndex]
+			local part = taggedPart(
+				"padi_blade",
+				`Padi_{clump.terrace}_{clump.side}_{clump.id}_{bladeIndex}`,
+				clump.terrace,
+				clumpModel or folder
+			)
+			local centre = { clump.x + blade.dx, clump.y + blade.dy + blade.height / 2, clump.z + blade.dz }
+			if not place(part, centre, { Data.PADI_BLADE_WIDTH, blade.height, Data.PADI_BLADE_WIDTH }) then
+				fail("could not place padi blade " .. clump.id .. "/" .. bladeIndex)
+			end
+			if part then
+				pcall(function()
+					local red, green = 96, 168
+					if bladeIndex % 2 == 0 then
+						red, green = 76, 142
+					end
+					part.Material = Enum.Material.Grass
+					part.Color = Color3.fromRGB(red, green, 52)
+					part:SetAttribute("PadiPart", true)
+					part:SetAttribute("TerraceIndex", clump.terrace)
+					part:SetAttribute("PadiClump", clump.id)
+					part:SetAttribute("PadiRow", clump.row)
+					part:SetAttribute("Blade", bladeIndex)
+				end)
+			end
+		end
+	end
+	local clumpsByTerrace = {}
+	for _, clump in clumps do
+		clumpsByTerrace[clump.terrace] = (clumpsByTerrace[clump.terrace] or 0) + 1
+	end
+	for _, terrace in Data.terraceIndices() do
+		if (clumpsByTerrace[terrace] or 0) < Data.PADI_CLUMPS_MIN then
+			fail("only " .. (clumpsByTerrace[terrace] or 0) .. " padi clumps on terrace " .. terrace)
+		end
+	end
+
+	-- Grassy bund: short alang-alang blades just outside each pane's water rectangle.
 	local tuftIndex = 0
 	for _, tuft in Data.vergeTufts(panes) do
 		tuftIndex += 1
@@ -242,6 +322,8 @@ local function apply()
 					part.Color = Color3.fromRGB(92, 132, 58)
 					part:SetAttribute("Tuft", tuftIndex)
 					part:SetAttribute("Blade", blade)
+					part:SetAttribute("PadiPart", true)
+					part:SetAttribute("TerraceIndex", tuft.terrace)
 				end)
 			end
 		end

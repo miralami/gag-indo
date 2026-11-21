@@ -186,7 +186,7 @@ return function(t, Env)
 
 	t:describe("water_r8 registry, review and handoff", function()
 		t:it("ships candidates 52-54 with plans, client review paths and a boot require", function()
-			expect(#LookDev.IDS):toBe(90)
+			expect(#LookDev.IDS):toBe(93)
 			for index, id in ipairs(CANDIDATES) do
 				expect(LookDev.IDS[51 + index]):toBe(id)
 				expect(LookDev.candidates[id].status):toBe("candidate, awaiting designer yes")

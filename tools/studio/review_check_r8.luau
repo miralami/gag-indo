@@ -332,6 +332,9 @@ local ORDER = {
 	"SEATED_COUNT",
 	"SEATED_ON_BENCH",
 	"CROPS_STAGED",
+	"SEASON_SAFE",
+	"SEASON_RESTORE",
+	"SEASON_DISTINCT",
 }
 
 local GRASS_Y = 4
@@ -9898,6 +9901,434 @@ do
 			end
 		end
 	end
+end
+
+-- 9t. WORK_QUEUE section N item 119: season_r8_* seasonal look. THREE MUTATING CLIENT checks.
+-- SEASON_SAFE reads every touched Lighting/Atmosphere/Clouds value after each enable against the
+-- pure season-safe ranges. SEASON_RESTORE compares every touched value, tinted decor colour and the
+-- Workspace descendant count to the captured baseline after each disable. SEASON_DISTINCT computes
+-- the item's pairwise >=10% clause from pure data (target 2 differing values per pair). The prior
+-- candidate id is captured and re-enabled on EVERY path. Own do...end + inner function: the harness
+-- is near the 200-local cap. No existing check is touched.
+do
+local function seasonFailAll(reason)
+	emit("SEASON_SAFE", false, 0, 3, { reason = reason })
+	emit("SEASON_RESTORE", false, 0, 3, { reason = reason })
+	emit("SEASON_DISTINCT", false, 0, 2, { reason = reason })
+end
+
+local function runSeasonChecks()
+	-- Own RunService gate: the shared isClient local is declared LATER in this harness. Clouds and
+	-- Atmosphere exist only in the Client VM (Sky creates them), and Sky tweens Cover for 4 s on
+	-- mount, so ONE bounded wait settles it before the baseline is captured. No polling loop.
+	local okRun, run = pcall(function()
+		return game:GetService("RunService")
+	end)
+	local seasonIsClient = okRun and run and run:IsClient() or false
+	if not seasonIsClient then
+		seasonFailAll("client VM required")
+		return
+	end
+	task.wait(5)
+	-- Client container exactly as LookDevReview.resolveContainer("client", game): LocalPlayer's
+	-- PlayerScripts.Client, with the harness-friendly game.PlayerScripts.Client fallback.
+	local function seasonApplier()
+		local okLocal, localModule = pcall(function()
+			return require(game.Players.LocalPlayer.PlayerScripts.Client.World.LookDevSeasonR8)
+		end)
+		if okLocal and type(localModule) == "table" then
+			return localModule
+		end
+		local okDirect, directModule = pcall(function()
+			return require(game.PlayerScripts.Client.World.LookDevSeasonR8)
+		end)
+		return if okDirect then directModule else nil
+	end
+	local okMods, mods = pcall(function()
+		return {
+			look = require(game.ReplicatedStorage.Shared.LookDev),
+			map = require(game.ReplicatedStorage.Shared.ModelMapSeasonR8),
+			-- Registration happens at module load; a saved place's boot script may predate this one.
+			applier = seasonApplier(),
+		}
+	end)
+	if
+		not okMods
+		or type(mods) ~= "table"
+		or type(mods.look) ~= "table"
+		or type(mods.look.enable) ~= "function"
+		or type(mods.look.disable) ~= "function"
+		or type(mods.look.current) ~= "function"
+		or type(mods.map) ~= "table"
+		or type(mods.map.order) ~= "table"
+		or type(mods.map.safeRanges) ~= "table"
+		or type(mods.applier) ~= "table"
+		or type(mods.applier.appliedKey) ~= "function"
+		or type(mods.applier.isApplied) ~= "function"
+	then
+		seasonFailAll("modules unreadable: " .. tostring(mods))
+		return
+	end
+	local look, seasonMap, seasonApi = mods.look, mods.map, mods.applier
+	local Workspace = workspace -- harness has no uppercase Workspace local
+	local errors, readings, safeFails, restoreFails = {}, {}, {}, {}
+	local safeCount, restoredCount = 0, 0
+
+	local function seasonFail(reason)
+		errors[#errors + 1] = reason
+	end
+	local function readProp(className, prop)
+		if className == "Lighting" then
+			return pcall(function()
+				return Lighting[prop]
+			end)
+		end
+		if className == "Atmosphere" then
+			return pcall(function()
+				local effect = Lighting:FindFirstChildOfClass("Atmosphere")
+				return if effect then effect[prop] else nil
+			end)
+		end
+		return pcall(function()
+			local terrain = Workspace:FindFirstChild("Terrain")
+			local clouds = if terrain then terrain:FindFirstChildOfClass("Clouds") else nil
+			return if clouds then clouds[prop] else nil
+		end)
+	end
+	local function snapshotAll()
+		local out = {}
+		for _, className in ipairs({ "Lighting", "Atmosphere", "Clouds" }) do
+			out[className] = {}
+			for _, prop in ipairs(seasonMap.properties[className]) do
+				local ok, value = readProp(className, prop)
+				if not ok then
+					seasonFail("baseline:" .. className .. "." .. prop .. ":" .. tostring(value))
+				end
+				out[className][prop] = value
+			end
+		end
+		return out
+	end
+	local function equalVal(a, b)
+		if typeof(a) == "Color3" or typeof(b) == "Color3" then
+			if typeof(a) ~= "Color3" or typeof(b) ~= "Color3" then
+				return false
+			end
+			return a.R == b.R and a.G == b.G and a.B == b.B
+		end
+		return a == b
+	end
+	local function equalSnapshot(a, b)
+		for _, className in ipairs({ "Lighting", "Atmosphere", "Clouds" }) do
+			for _, prop in ipairs(seasonMap.properties[className]) do
+				if not equalVal(a[className][prop], b[className][prop]) then
+					return false, className .. "." .. prop
+				end
+			end
+		end
+		return true
+	end
+	local function inBand(range, value)
+		if type(range) ~= "table" or type(range.min) ~= "number" or type(value) ~= "number" then
+			return false, "bad range"
+		end
+		if value < range.min or value > range.max then
+			return false, tostring(value)
+		end
+		return true
+	end
+	local function valueInBand(className, prop, value, ranges)
+		local range = ranges and ranges[prop]
+		if prop == "Color" or prop == "Decay" or prop == "Ambient" or prop == "OutdoorAmbient"
+			or prop == "ColorShift_Top" or prop == "ColorShift_Bottom" or prop == "FogColor" then
+			if typeof(value) ~= "Color3" then
+				return false, "type=" .. typeof(value)
+			end
+			for _, channel in ipairs({ "R", "G", "B" }) do
+				local ok, why = inBand(range and range[channel], value[channel] * 255)
+				if not ok then
+					return false, channel .. "=" .. tostring(why)
+				end
+			end
+			if className == "Atmosphere" and prop == "Color"
+				and not (value.R >= value.G and value.G >= value.B) then
+				return false, "not warm white"
+			end
+			if className == "Atmosphere" and prop == "Decay"
+				and not (value.B >= value.G and value.G >= value.R) then
+				return false, "not light blue"
+			end
+			return true
+		end
+		return inBand(range, value)
+	end
+	local function matchingParts(selector)
+		local found = {}
+		local okList, list = pcall(function()
+			return Workspace:GetDescendants()
+		end)
+		if not okList or type(list) ~= "table" then
+			return found
+		end
+		for _, instance in ipairs(list) do
+			if #found >= selector.max then
+				break
+			end
+			local okPart, isPart = pcall(function()
+				return instance:IsA("BasePart")
+			end)
+			if okPart and isPart then
+				local use = true
+				if selector.namePrefix then
+					local okName, name = pcall(function()
+						return instance.Name
+					end)
+					use = okName and string.sub(name, 1, #selector.namePrefix) == selector.namePrefix
+				end
+				if use then
+					local okAttr, value = pcall(function()
+						return instance:GetAttribute(selector.attribute)
+					end)
+					use = okAttr and value ~= nil
+				end
+				if use then
+					found[#found + 1] = instance
+				end
+			end
+		end
+		return found
+	end
+	local function decorSnapshot()
+		local out = {}
+		for _, selector in ipairs(seasonMap.TINT_SELECTORS) do
+			for index, part in ipairs(matchingParts(selector)) do
+				local okColor, color = pcall(function()
+					return part.Color
+				end)
+				if okColor then
+					out[selector.key .. ":" .. index] = color
+				end
+			end
+		end
+		return out
+	end
+	local function equalDecor(a, b)
+		for key, color in pairs(a) do
+			if not equalVal(color, b[key]) then
+				return false, key
+			end
+		end
+		for key in pairs(b) do
+			if a[key] == nil then
+				return false, key .. ":added"
+			end
+		end
+		return true
+	end
+	local function countDesc()
+		local ok, list = pcall(function()
+			return Workspace:GetDescendants()
+		end)
+		return if ok and type(list) == "table" then #list else nil
+	end
+	local function puddleFolder()
+		local ok, folder = pcall(function()
+			return Workspace:FindFirstChild(seasonMap.PUDDLE_FOLDER)
+		end)
+		return if ok then folder else nil
+	end
+	local function flatten(value, out)
+		if type(value) == "table" then
+			for _, channel in ipairs({ "r", "g", "b" }) do
+				if type(value[channel]) == "number" then
+					out[#out + 1] = value[channel]
+				end
+			end
+		elseif type(value) == "number" then
+			out[#out + 1] = value
+		end
+	end
+	local function numbersFor(key)
+		local out, values = {}, seasonMap.valuesFor(key)
+		for _, className in ipairs({ "Lighting", "Atmosphere", "Clouds" }) do
+			for _, prop in ipairs(seasonMap.properties[className]) do
+				flatten(values[className][prop], out)
+			end
+		end
+		local tints = seasonMap.tintsFor(key)
+		for _, selector in ipairs(seasonMap.TINT_SELECTORS) do
+			flatten(tints[selector.key], out)
+		end
+		return out
+	end
+	local function diffCount(a, b)
+		local count = 0
+		for index, left in ipairs(a) do
+			local right = b[index]
+			local scale = math.max(math.abs(left), math.abs(right), 0.001)
+			if math.abs(left - right) / scale * 100 >= seasonMap.DISTINCT_PCT then
+				count += 1
+			end
+		end
+		return count
+	end
+
+	local priorId = nil
+	local okPrior, current = pcall(function()
+		return look.current()
+	end)
+	if okPrior and type(current) == "string" then
+		priorId = current
+	end
+	local baseline = snapshotAll()
+	local baseDecor = decorSnapshot()
+	local baseDesc = countDesc()
+	local basePuddles = puddleFolder() ~= nil
+	local variantCount = #seasonMap.order
+	if not baseDesc then
+		seasonFail("baseline Workspace descendant count unreadable")
+	end
+
+	for _, key in ipairs(seasonMap.order) do
+		local id = seasonMap.idPrefix .. key
+		local okEnable, enabled, enableErr = pcall(function()
+			return look.enable(id, { studio = true })
+		end)
+		if not okEnable or enabled == false then
+			seasonFail(id .. ":enable:" .. tostring(enableErr or enabled))
+		else
+			local safe = true
+			for _, className in ipairs({ "Lighting", "Atmosphere", "Clouds" }) do
+				for _, prop in ipairs(seasonMap.properties[className]) do
+					local okRead, value = readProp(className, prop)
+					readings[#readings + 1] = id .. "." .. className .. "." .. prop .. "=" .. tostring(value)
+					if not okRead then
+						safe = false
+						safeFails[#safeFails + 1] = id .. "." .. className .. "." .. prop .. ":read"
+					else
+						local inBandNow, why = valueInBand(
+							className,
+							prop,
+							value,
+							seasonMap.safeRanges[className]
+						)
+						if not inBandNow then
+							safe = false
+							safeFails[#safeFails + 1] = id .. "." .. className .. "." .. prop .. ":" .. tostring(why)
+						end
+					end
+				end
+			end
+			local appliedKey = seasonApi.appliedKey()
+			if appliedKey ~= key or seasonApi.isApplied() ~= true then
+				safe = false
+				safeFails[#safeFails + 1] = id .. ":plan-key:" .. tostring(appliedKey)
+			end
+			if seasonMap.puddlesFor(key) > 0 then
+				local folder = puddleFolder()
+				local sheets = 0
+				if folder then
+					local okChildren, children = pcall(function()
+						return folder:GetChildren()
+					end)
+					if okChildren then
+						sheets = #children
+					end
+				end
+				if sheets ~= #seasonMap.PUDDLE_SHEETS then
+					safe = false
+					safeFails[#safeFails + 1] = id .. ":puddle-sheets:" .. sheets
+				end
+			end
+			if safe then
+				safeCount += 1
+			end
+		end
+
+		local okDisable, disabled = pcall(function()
+			return look.disable()
+		end)
+		if not okDisable then
+			seasonFail(id .. ":disable:" .. tostring(disabled))
+		end
+		local after = snapshotAll()
+		local same, why = equalSnapshot(baseline, after)
+		local sameDecor, decorWhy = equalDecor(baseDecor, decorSnapshot())
+		local afterDesc = countDesc()
+		local afterPuddles = puddleFolder() ~= nil
+		if not same or not sameDecor or afterDesc ~= baseDesc or afterPuddles ~= basePuddles or not okDisable then
+			local reason = if not same
+				then tostring(why)
+				elseif not sameDecor then "decor:" .. tostring(decorWhy)
+				elseif afterDesc ~= baseDesc then "descendants " .. tostring(baseDesc) .. "->" .. tostring(afterDesc)
+				elseif afterPuddles ~= basePuddles then "puddle folder persisted"
+				else "disable failed"
+			restoreFails[#restoreFails + 1] = id .. ":" .. reason
+		else
+			restoredCount += 1
+		end
+	end
+
+	local minDiff = math.huge
+	local pairCounts = {}
+	for index = 1, #seasonMap.order - 1 do
+		for other = index + 1, #seasonMap.order do
+			local left, right = seasonMap.order[index], seasonMap.order[other]
+			local count = diffCount(numbersFor(left), numbersFor(right))
+			pairCounts[left .. "-" .. right] = count
+			if count < minDiff then
+				minDiff = count
+			end
+		end
+	end
+	if minDiff == math.huge then
+		minDiff = 0
+	end
+
+	if priorId then
+		local okRestore, restored = pcall(function()
+			return look.enable(priorId, { studio = true })
+		end)
+		if not okRestore or restored == false then
+			seasonFail("restore-prior:" .. priorId .. ":" .. tostring(restored))
+		end
+	end
+
+	emit(
+		"SEASON_SAFE",
+		#errors == 0 and variantCount > 0 and safeCount == variantCount,
+		safeCount,
+		variantCount,
+		{ readings = readings, failures = safeFails, errors = errors, restoredPrior = priorId }
+	)
+	emit(
+		"SEASON_RESTORE",
+		#errors == 0 and variantCount > 0 and restoredCount == variantCount,
+		restoredCount,
+		variantCount,
+		{
+			baselineDescendants = baseDesc,
+			tintedBaseline = #baseDecor,
+			failures = restoreFails,
+			errors = errors,
+			restoredPrior = priorId,
+		}
+	)
+	emit(
+		"SEASON_DISTINCT",
+		#errors == 0 and minDiff >= seasonMap.DISTINCT_TARGET,
+		minDiff,
+		seasonMap.DISTINCT_TARGET,
+		{
+			pairs = pairCounts,
+			pct = seasonMap.DISTINCT_PCT,
+			valuesPerPreset = #numbersFor(seasonMap.order[1]),
+			errors = errors,
+			restoredPrior = priorId,
+		}
+	)
+end
+runSeasonChecks()
 end
 
 -- 10. VEG_NEAR: dense near layer at the saved camera (45 studs, 70-degree cone). A model only

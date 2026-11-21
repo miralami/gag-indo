@@ -59,6 +59,7 @@
 --   src/server/World/LookDevLayanganR8.luau -- candidate "layangan_r8" (four kites over the field, server-only)
 --   src/server/World/LookDevSeatedR8.luau -- candidate "seated_r8" (four seated R15 villagers at the Warung, server-only)
 --   src/server/World/LookDevCropsShowcaseR8.luau -- candidate "crops_showcase_r8" (three crop stage-review plots, server-only)
+--   src/client/World/LookDevSeasonR8.luau -- candidates "season_r8_hujan/kemarau/panen" (seasonal looks, client-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -195,6 +196,9 @@ LookDev.IDS = {
 	"layangan_r8",
 	"seated_r8",
 	"crops_showcase_r8",
+	"season_r8_hujan",
+	"season_r8_kemarau",
+	"season_r8_panen",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -1315,6 +1319,41 @@ LookDev.candidates = {
 		stageCount = 3,
 		cropCount = 12,
 	},
+
+	season_r8_hujan = {
+		id = "season_r8_hujan",
+		title = "Wet-season look — cooler wet-ground tint, six extra puddle sheets and a wetter cloud grade (round 10, client-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Tied to Config.Seasons.sky.hujan field names; pure values and documented season-safe
+		-- ranges in Shared.ModelMapSeasonR8. Lighting, Atmosphere, Clouds and tinted existing decor
+		-- only; no asset IDs, no Terrain write and no player-facing text.
+		idsSource = "Shared.ModelMapSeasonR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		seasonKey = "hujan",
+	},
+
+	season_r8_kemarau = {
+		id = "season_r8_kemarau",
+		title = "Dry-season look — dry-grass tint, lower Clouds Cover and heavier haze (round 10, client-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Tied to Config.Seasons.sky.kemarau field names; same narrow scope as the other two looks.
+		idsSource = "Shared.ModelMapSeasonR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		seasonKey = "kemarau",
+	},
+
+	season_r8_panen = {
+		id = "season_r8_panen",
+		title = "Golden harvest look — golden-padi tint and warmer light, a standalone look with no panen musim (round 10, client-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Golden-padi intent borrowed from Config.Seasons.sky.pancaroba; no runtime season write.
+		idsSource = "Shared.ModelMapSeasonR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		seasonKey = "panen",
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1695,6 +1734,15 @@ function LookDev.plan(id: string): any
 			render = c.render,
 			stageCount = c.stageCount,
 			cropCount = c.cropCount,
+		}
+	elseif id == "season_r8_hujan" or id == "season_r8_kemarau" or id == "season_r8_panen" then
+		local c = LookDev.candidates[id]
+		return {
+			id = id,
+			key = c.seasonKey,
+			seasonKey = c.seasonKey,
+			idsSource = c.idsSource,
+			render = c.render,
 		}
 	end
 	return nil

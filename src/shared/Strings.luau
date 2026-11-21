@@ -531,6 +531,14 @@ local S: { [string]: { id: string, en: string } } = {
 	sign_pasar = { id = "Pasar", en = "Market" },
 	sign_sawah = { id = "Sawah", en = "Rice fields" },
 	sign_balai = { id = "Balai Desa", en = "Village Hall" },
+
+	-- spanduk / signage (item 81: banners, warung/pasar signs and bunting). Generic invented names
+	-- only; no real brand or trademark. Text rendered from these keys via Strings.get on the sign.
+	spanduk_selamat_datang = { id = "Selamat Datang", en = "Welcome" },
+	sign_warung = { id = "Warung Bu Sari", en = "Bu Sari Shop" },
+	spanduk_pasar = { id = "Pasar Desa", en = "Village Market" },
+	bunting_mampir = { id = "Mampir", en = "Drop By" },
+	bunting_belanja = { id = "Belanja", en = "Shop Here" },
 }
 
 local Strings = {}

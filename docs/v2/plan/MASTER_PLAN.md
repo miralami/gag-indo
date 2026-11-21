@@ -153,6 +153,17 @@ mismatch; fixed by renaming the recipe key + a spec guard, re-verified green. PE
 — above the 334/500 default but under the Sedang proxy (500); FLAGGED, keep off by default. Suite
 **2558 tests**; `selene src` 0/0/0.
 
+Item 81 COMPLETE: `spanduk_r8` stages Warung and Pasar signs, a south-road-crossing spanduk and two
+bunting strings — 5 signed Models + 2 bunting strings of original Parts, no asset IDs, no real brand.
+Sign text rendered via `Strings.get` with the existing `Visuals.fonts` (no Text literals); 5 new Strings
+keys (`spanduk_selamat_datang`, `sign_warung`, `spanduk_pasar`, `bunting_mampir`, `bunting_belanja`).
+Real Studio staged-Play PASS `SIGN_TEXT_PARITY 5 5` (all keys id+en valid), `SIGN_FACING 0 <=30deg`
+(5 signs, worst 0deg toward hub_warung/hub_pasar/canonical_overview), `LOOKDEV_LEAK 0`, `CAMERA_CLEAR
+0/42` (`h/2026-11-21-round9/CHECK_081.txt`). Harness crossed Luau's 200-register top-level limit with
+the new SIGN locals; fixed by scoping the two checks in a `do...end` block, no check weakened.
+PERF_BUDGET 359/500 staged — above the 334/500 default, under the Sedang proxy; FLAGGED, off by
+default. Suite **2570 tests**; `selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

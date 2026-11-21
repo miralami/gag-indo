@@ -45,6 +45,10 @@
 -- lampu/obor posts, gapura and pole line that are deliberately staged on the verge and tagged
 -- VergePost). All three are SERVER-side and READ-ONLY, reuse the PATH_CLEAR centreline tables and
 -- FAIL when the folder, tags, Strings or MapSpec are missing.
+-- It also emits the item-81 spanduk_r8 family: SIGN_TEXT_PARITY and SIGN_FACING. Both are SERVER-side
+-- and READ-ONLY, inspect only LookDevSpandukR8_spanduk_r8, and FAIL when the folder, Strings keys or
+-- the named ReviewCameras are missing. SIGN_FACING measures each staged sign board's LookVector
+-- (XZ) against the horizontal sign->camera direction and requires <= 30deg; the angle is not relaxed.
 -- It also emits the r8 water family (WORK_QUEUE item 76): WATER_SAFE and WATER_RESTORE. Both are
 -- CLIENT-only and mutate Terrain in one guarded enable/read/disable/compare cycle per variant,
 -- restoring the prior active candidate at the end. WATER_DEFAULT (WORK_QUEUE item 137) is a
@@ -111,6 +115,7 @@
 --
 -- Grass cell: y = 4 (4-stud Region3 spanning y ~= 2..6) for both beds and props.
 
+-- stylua: ignore start
 local ORDER = {
 	"LOAD_FAILURES",
 	"NO_PINES",
@@ -159,6 +164,8 @@ local ORDER = {
 	"STREETFURN",
 	"STRINGS_PARITY",
 	"STREETFURN_CLEAR",
+	"SIGN_TEXT_PARITY",
+	"SIGN_FACING",
 	"PATH_CLEAR",
 	"PATH_EDGE_OFFSET",
 	"ROCK_COUNT",
@@ -654,6 +661,7 @@ end
 -- evidence/h/2026-11-19-budget-check/REPORT.md (pasar baseline 335 parts; current default 334).
 -- The default forest sits at 260-460 studs, outside the census.
 -- A failed workspace read is a recorded FAIL, never a vacuous pass.
+do
 local pineOffenders, pineCount, forestCount = {}, 0, 0
 local forestSpecies, speciesList = {}, {}
 local perfParts, perfReadErrors = 0, 0
@@ -726,6 +734,7 @@ emit("PERF_BUDGET", okScene and perfReadErrors == 0 and perfParts <= 500, perfPa
 	readErrors = perfReadErrors,
 	reference = "VISUAL_MASTER_PLAN section 6 under about 500 draw calls",
 })
+end
 
 -- 2. SKY_DEFAULT: fresh Play, no enable call. Accept asset URL or plain integer form.
 local skyFtId = FALLBACK_SKY_FT
@@ -797,6 +806,7 @@ emit("GRASS_ON_BEDS", #grassFailures == 0, #grassFailures, 0, {
 })
 
 -- 4. HATS: each of four required roles needs >=1 Accessory descendant; missing rig = 0.
+do
 local npcFolder = folderNamed("LookDevModelsNpcsR7_npcs_r7")
 local accessories = {}
 local rigs = {}
@@ -838,6 +848,7 @@ emit(
 	#HAT_ROLES,
 	{ accessories = accessories, rigs = rigs, folderPresent = npcFolder ~= nil }
 )
+end
 
 -- 5/6. PROPS_VISIBLE and PROPS_ON_GRASS: six fixed slots from the tagged folder.
 local propFolder = folderNamed("LookDevModelsPropsR7_props_r7")
@@ -850,6 +861,7 @@ for _, model in ipairs(childList(propFolder)) do
 		end
 	end
 end
+do
 local propEye = asVector3(attr(propFolder, "ReviewCameraPos"))
 local propLook = asVector3(attr(propFolder, "ReviewLookAt"))
 local propCameraCF = nil
@@ -901,6 +913,7 @@ emit("PROPS_VISIBLE", visibleCountValue == #PROP_SLOTS, visibleCountValue, #PROP
 	slots = propDetail,
 })
 emit("PROPS_ON_GRASS", onGrassCount == 0, onGrassCount, 0, { voxelY = GRASS_Y, slots = propDetail })
+end
 
 -- 7/8. VEG_COUNT and VEG_SPECIES: fixed camera, 100 studs, 70-degree cone.
 local vegFolder = folderNamed("LookDevModelsVegetationR7_vegetation_r7")
@@ -938,6 +951,7 @@ emit("VEG_SPECIES", #speciesNames >= 8, #speciesNames, 8, { species = speciesNam
 -- surface against points 6 studs outside the 5.6-stud bed radius. Four cardinal samples, using
 -- the closest outside height, so natural slope cannot fake a failure; the old FillBlock mound
 -- was 4 studs tall across the whole 12x12 bed, so every outside sample stayed at grade.
+do
 local bedRadius = 5.6
 local okBedMap, BedMap = pcall(function()
 	return require(game.ReplicatedStorage.Shared.SpawnGroundMapR6)
@@ -976,6 +990,7 @@ emit("BED_FLUSH", #flushFailures == 0, math.floor(worstFlush * 100) / 100, 0.5, 
 	outside = outsideDist,
 	failed = flushFailures,
 })
+end
 
 -- 9b. r8 hub-vegetation family (WORK_QUEUE item 70). Three CHECK families over the staged
 -- LookDevModelsVegetationHubR8_hubveg_r8 folder. Hub keys come from MapSpec.HUB_ORDER (fallback
@@ -1360,6 +1375,7 @@ emit(
 	{ zones = #zones, staged = #staged, unreadable = unreadable, offenders = offenders, reason = dataReason }
 )
 
+do
 -- PATH_REACH (section-O item 144, READ-ONLY). Six-hub-door subset only: for every MapSpec hub a
 -- 6-stud lane runs from the documented local +Z facade plane outward 24 studs toward the road.
 -- All six hub yaws are multiples of 90 degrees, so the four local corners fold to an exact world
@@ -1635,11 +1651,13 @@ emit("AVATAR_FIT", avatarErrors == 0 and unreadableParts == 0 and avatarBlocked 
 	unreadable = unreadableParts,
 	reason = if avatarErrors > 0 then "blocks folder / lanes not readable" else nil,
 })
+end
 
 -- HUB_FIT (section-O item 147, READ-ONLY). Each staged hubs_real_r9 building must sit inside its
 -- MapSpec hub footprint grown by HUBS_REAL_MARGIN studs on each side, and every mapped hub must
 -- have a staged building. A missing folder / tag / MapSpec / unreadable bbox FAILs at measured 6,
 -- never a vacuous pass. The greybox restore is graded separately by LOOKDEV_LEAK (see recipe §18).
+do
 local HUBS_REAL_FOLDER = "LookDevHubsRealR9_hubs_real_r9"
 local HUBS_REAL_MARGIN = 2
 local hubsRealFolder = folderNamed(HUBS_REAL_FOLDER)
@@ -1702,6 +1720,7 @@ emit("HUB_FIT", hubsRealMeasured == 0, hubsRealMeasured, 0, {
 	missing = hubsRealMissing,
 	reason = if hubsRealUnreadable > 0 then "hubs_real_r9 folder / MapSpec / bbox not readable" else nil,
 })
+end
 
 -- 9c. r8 plots family (WORK_QUEUE item 71). Two CHECK families over the staged
 -- LookDevPlotsR8_plots_r8 folder. PLOT_FENCE counts fence segments per plot (min decides, never
@@ -1786,6 +1805,7 @@ for _, part in ipairs(plotParts) do
 		}
 	end
 end
+do
 local gateOffenders = {}
 local gateErrors = {}
 local gateHits = 0
@@ -1873,6 +1893,7 @@ emit(
 	"0",
 	gateDetail
 )
+end
 
 -- 9c-2. PLOT_FENCE_VISIBLE (WORK_QUEUE item 143). READ-ONLY and SERVER-only: ReviewCameras
 -- requires MapSpec from ServerScriptService. For each plot i, use plot_aerial_NN's eye and cast
@@ -1884,6 +1905,7 @@ emit(
 -- obstruction. Terrain, trees, buildings and other world geometry still count as opaque blockers.
 -- A missing camera, staging folder, ray, unreadable transparency or zero segments is a FAIL at
 -- measured 0.
+do
 local PLOT_FENCE_VISIBLE_MIN = 70
 local visibleRun = service("RunService")
 local visibleServer = false
@@ -2075,6 +2097,7 @@ emit("PLOT_FENCE_VISIBLE", visibleOk, visiblePercent, ">=" .. PLOT_FENCE_VISIBLE
 	reasons = visibleDetail,
 	reason = visibleReason,
 })
+end
 
 -- 9d. r8 sawah family (WORK_QUEUE item 72). Four CHECK families over the staged
 -- LookDevSawahR8_sawah_r8 folder: SAWAH_TOPS (Terrain-only raycasts at the eight
@@ -2082,6 +2105,7 @@ emit("PLOT_FENCE_VISIBLE", visibleOk, visiblePercent, ">=" .. PLOT_FENCE_VISIBLE
 -- SAWAH_VERGE (>=40 verge tufts) and GUBUK (one terrace-2 roof with four posts + one bench
 -- sharing its Gubuk id). Every game API is pcall-guarded; a missing folder, MapSpec, Terrain or
 -- failed read is a FAIL, never a skip.
+do
 local SAWAH_FOLDER = "LookDevSawahR8_sawah_r8"
 local SAWAH_KEY = "sawah_r8"
 local SAWAH_TOP_TOL = 0.5
@@ -2647,6 +2671,7 @@ local greenDetail = {
 	reason = greenReason,
 }
 emit("SAWAH_GREEN", greenOk and greenWorst >= SAWAH_GREEN_TOTAL, greenWorst, 40, greenDetail)
+end
 
 -- 9e. r8 river family (WORK_QUEUE item 73, redone in item 141). Five CHECK families over the staged
 -- LookDevRiverR8_river_r8 folder, all read around MapSpec.BRIDGE (bridge centre + deck span):
@@ -2660,6 +2685,7 @@ emit("SAWAH_GREEN", greenOk and greenWorst >= SAWAH_GREEN_TOTAL, greenWorst, 40,
 -- is used: plant/rock geometry is read from each Part's own CFrame + Size.
 -- MapSpec lives under ServerScriptService.Server.World; the require is pcall-guarded and the
 -- Client VM cannot read it. Every game API read below is pcall-wrapped.
+do
 local RIVER_FOLDER = "LookDevRiverR8_river_r8"
 local RIVER_KEY = "river_r8"
 local RIVER_BANK_VEG_RADIUS = 40
@@ -2993,6 +3019,7 @@ if not riverMapReady then
 	walkDetail.reason = riverMapReason
 end
 emit("BRIDGE_WALKABLE", walkPass, math.floor(walkableWidth * 100) / 100, ">=" .. WALK_WIDTH_MIN, walkDetail)
+end
 
 -- 9f. r8 path-edge family (WORK_QUEUE item 75). Two CHECK families over the staged
 -- LookDevPathEdgeR8_pathedge_r8 folder: PATH_EDGE (part count) and PATH_CLEAR (no staged part sits
@@ -3234,6 +3261,7 @@ emit(
 -- [HalfWidth, HalfWidth + PATH_EDGE_GROW]; its CFrame distance from the recorded CentreX/CentreZ
 -- must agree, and that centre must sit on a real road arm, continuation or ring chord. A missing
 -- folder, tag or numeric attribute is an offender, never a skip. No candidate is staged here.
+do
 local PATH_EDGE_GROW = 3
 local PATH_EDGE_TOL = 0.25
 
@@ -3344,6 +3372,7 @@ elseif offsetStructural then
 	offsetDetail.reason = "no candidate parts"
 end
 emit("PATH_EDGE_OFFSET", offsetPass, offsetMeasured, 0, offsetDetail)
+end
 
 -- 9g. r8 buildings family (WORK_QUEUE item 77). Three CHECK families over the staged
 -- LookDevBuildingsR8_buildings_r8 folder: BLDG_VISIBLE (six building Models inside the review
@@ -3351,6 +3380,7 @@ emit("PATH_EDGE_OFFSET", offsetPass, offsetMeasured, 0, offsetDetail)
 -- tall with zero collidable building geometry overlapping its volume — the avatar-fit test).
 -- Every game API is pcall-guarded; a missing folder / camera / model / gauge / failed read is a
 -- FAIL at measured 0, never a skip.
+do
 local BUILDINGS_FOLDER = "LookDevBuildingsR8_buildings_r8"
 local BUILDINGS_KEY = "buildings_r8"
 local BUILDING_SLOTS = {
@@ -3366,109 +3396,111 @@ local MIN_DOOR = 7
 
 local buildingsFolder = folderNamed(BUILDINGS_FOLDER)
 local buildingsBySlot = {}
-local buildingModels = {}
-for _, model in ipairs(childList(buildingsFolder)) do
-	local okModel, isModel = pcall(function()
-		return model:IsA("Model")
-	end)
-	if okModel and isModel and attr(model, "LookDevBuildingsR8") == BUILDINGS_KEY then
-		local slot = attr(model, "BuildingSlot")
-		if type(slot) == "string" then
-			if buildingsBySlot[slot] == nil then
-				buildingsBySlot[slot] = model
+do
+	local buildingModels = {}
+	for _, model in ipairs(childList(buildingsFolder)) do
+		local okModel, isModel = pcall(function()
+			return model:IsA("Model")
+		end)
+		if okModel and isModel and attr(model, "LookDevBuildingsR8") == BUILDINGS_KEY then
+			local slot = attr(model, "BuildingSlot")
+			if type(slot) == "string" then
+				if buildingsBySlot[slot] == nil then
+					buildingsBySlot[slot] = model
+				end
+				buildingModels[#buildingModels + 1] = model
 			end
-			buildingModels[#buildingModels + 1] = model
 		end
 	end
-end
 
--- BLDG_VISIBLE: reuse the r7 cone helpers (CONE_COS + one occlusion ray per subject).
--- A missing folder, camera attribute or CFrame gives visibleCount 0, hence a FAIL at 0.
-local bldgEye = asVector3(attr(buildingsFolder, "ReviewCameraPos"))
-local bldgLook = asVector3(attr(buildingsFolder, "ReviewLookAt"))
-local bldgCameraCF = nil
-if bldgEye and bldgLook then
-	local okCF, cf = pcall(function()
-		return CFrame.lookAt(bldgEye, bldgLook)
-	end)
-	if okCF then
-		bldgCameraCF = cf
+	-- BLDG_VISIBLE: reuse the r7 cone helpers (CONE_COS + one occlusion ray per subject).
+	-- A missing folder, camera attribute or CFrame gives visibleCount 0, hence a FAIL at 0.
+	local bldgEye = asVector3(attr(buildingsFolder, "ReviewCameraPos"))
+	local bldgLook = asVector3(attr(buildingsFolder, "ReviewLookAt"))
+	local bldgCameraCF = nil
+	if bldgEye and bldgLook then
+		local okCF, cf = pcall(function()
+			return CFrame.lookAt(bldgEye, bldgLook)
+		end)
+		if okCF then
+			bldgCameraCF = cf
+		end
 	end
-end
-local bldgVisibleCount = visibleCount(buildingModels, bldgCameraCF)
-local bldgVisibleBySlot = {}
-for _, slot in ipairs(BUILDING_SLOTS) do
-	bldgVisibleBySlot[slot] = false
-end
-if bldgCameraCF then
-	local eye = bldgCameraCF.Position
-	local lookAt = eye + bldgCameraCF.LookVector
+	local bldgVisibleCount = visibleCount(buildingModels, bldgCameraCF)
+	local bldgVisibleBySlot = {}
 	for _, slot in ipairs(BUILDING_SLOTS) do
-		local subject = buildingsBySlot[slot]
-		local centre = subject and bboxCentre(subject) or nil
-		bldgVisibleBySlot[slot] = subject ~= nil and centre ~= nil and visibleFrom(subject, centre, eye, lookAt)
+		bldgVisibleBySlot[slot] = false
 	end
-end
-emit("BLDG_VISIBLE", bldgVisibleCount == #BUILDING_SLOTS, bldgVisibleCount, #BUILDING_SLOTS, {
-	folderPresent = buildingsFolder ~= nil,
-	eye = bldgEye and { bldgEye.X, bldgEye.Y, bldgEye.Z } or nil,
-	lookAt = bldgLook and { bldgLook.X, bldgLook.Y, bldgLook.Z } or nil,
-	slots = bldgVisibleBySlot,
-})
-
--- PIVOT_GROUND (WORK_QUEUE item 146; READ-ONLY). Kit convention: pivot at the ground base,
--- footprint centre, facing -Z. This grades only the Y equality (0.2-stud tolerance); X/Z and
--- facing are stage-time conventions documented in docs/v2/visual/art/BUILDING_KIT.md.
--- GetBoundingBox is exposed on Model in this Studio; bboxCentre/bboxSize carry the CFrame+Size
--- corner-math fallback. A missing folder, unreadable pivot or zero staged Models FAIL at 6.
-local PIVOT_TOL = 0.2
-local pivotDetail = {}
-local pivotFailures = 0
-for _, slot in ipairs(BUILDING_SLOTS) do
-	local model = buildingsBySlot[slot]
-	local pivotY, bottomY = nil, nil
-	if model then
-		local okPivot, pivot = pcall(function()
-			return model:GetPivot()
-		end)
-		if okPivot and pivot then
-			pivotY = pivot.Position.Y
+	if bldgCameraCF then
+		local eye = bldgCameraCF.Position
+		local lookAt = eye + bldgCameraCF.LookVector
+		for _, slot in ipairs(BUILDING_SLOTS) do
+			local subject = buildingsBySlot[slot]
+			local centre = subject and bboxCentre(subject) or nil
+			bldgVisibleBySlot[slot] = subject ~= nil and centre ~= nil and visibleFrom(subject, centre, eye, lookAt)
 		end
-		local okBox, boxCF, boxSize = pcall(function()
-			return model:GetBoundingBox()
-		end)
-		if okBox and boxCF and boxSize and boxSize.Y > 0 then
-			bottomY = boxCF.Position.Y - boxSize.Y / 2
-		else
-			local centre, size = bboxCentre(model), bboxSize(model)
-			if centre and size and size.Y > 0 then
-				bottomY = centre.Y - size.Y / 2
+	end
+	emit("BLDG_VISIBLE", bldgVisibleCount == #BUILDING_SLOTS, bldgVisibleCount, #BUILDING_SLOTS, {
+		folderPresent = buildingsFolder ~= nil,
+		eye = bldgEye and { bldgEye.X, bldgEye.Y, bldgEye.Z } or nil,
+		lookAt = bldgLook and { bldgLook.X, bldgLook.Y, bldgLook.Z } or nil,
+		slots = bldgVisibleBySlot,
+	})
+
+	-- PIVOT_GROUND (WORK_QUEUE item 146; READ-ONLY). Kit convention: pivot at the ground base,
+	-- footprint centre, facing -Z. This grades only the Y equality (0.2-stud tolerance); X/Z and
+	-- facing are stage-time conventions documented in docs/v2/visual/art/BUILDING_KIT.md.
+	-- GetBoundingBox is exposed on Model in this Studio; bboxCentre/bboxSize carry the CFrame+Size
+	-- corner-math fallback. A missing folder, unreadable pivot or zero staged Models FAIL at 6.
+	local PIVOT_TOL = 0.2
+	local pivotDetail = {}
+	local pivotFailures = 0
+	for _, slot in ipairs(BUILDING_SLOTS) do
+		local model = buildingsBySlot[slot]
+		local pivotY, bottomY = nil, nil
+		if model then
+			local okPivot, pivot = pcall(function()
+				return model:GetPivot()
+			end)
+			if okPivot and pivot then
+				pivotY = pivot.Position.Y
+			end
+			local okBox, boxCF, boxSize = pcall(function()
+				return model:GetBoundingBox()
+			end)
+			if okBox and boxCF and boxSize and boxSize.Y > 0 then
+				bottomY = boxCF.Position.Y - boxSize.Y / 2
+			else
+				local centre, size = bboxCentre(model), bboxSize(model)
+				if centre and size and size.Y > 0 then
+					bottomY = centre.Y - size.Y / 2
+				end
 			end
 		end
+		local delta = nil
+		if type(pivotY) == "number" and type(bottomY) == "number" then
+			delta = math.abs(pivotY - bottomY)
+		end
+		local pass = delta ~= nil and delta <= PIVOT_TOL
+		if not pass then
+			pivotFailures += 1
+		end
+		pivotDetail[slot] = {
+			pivotY = pivotY,
+			bottomY = bottomY,
+			delta = type(delta) == "number" and math.floor(delta * 1000) / 1000 or nil,
+			pass = pass,
+		}
 	end
-	local delta = nil
-	if type(pivotY) == "number" and type(bottomY) == "number" then
-		delta = math.abs(pivotY - bottomY)
-	end
-	local pass = delta ~= nil and delta <= PIVOT_TOL
-	if not pass then
-		pivotFailures += 1
-	end
-	pivotDetail[slot] = {
-		pivotY = pivotY,
-		bottomY = bottomY,
-		delta = type(delta) == "number" and math.floor(delta * 1000) / 1000 or nil,
-		pass = pass,
-	}
+	local pivotReadable = buildingsFolder ~= nil and #buildingModels > 0
+	local pivotMeasured = if pivotReadable then pivotFailures else #BUILDING_SLOTS
+	emit("PIVOT_GROUND", pivotReadable and pivotFailures == 0, pivotMeasured, 0, {
+		folderPresent = buildingsFolder ~= nil,
+		staged = #buildingModels,
+		tolerance = PIVOT_TOL,
+		slots = pivotDetail,
+	})
 end
-local pivotReadable = buildingsFolder ~= nil and #buildingModels > 0
-local pivotMeasured = if pivotReadable then pivotFailures else #BUILDING_SLOTS
-emit("PIVOT_GROUND", pivotReadable and pivotFailures == 0, pivotMeasured, 0, {
-	folderPresent = buildingsFolder ~= nil,
-	staged = #buildingModels,
-	tolerance = PIVOT_TOL,
-	slots = pivotDetail,
-})
 
 -- BLDG_WIDTH: measure each staged Model's world GetBoundingBox().Size.X; no hardcoded widths.
 -- A missing model or failed bbox read leaves that slot out of range.
@@ -3668,6 +3700,7 @@ emit("BLDG_DOOR", bldgDoorOk == #BUILDING_SLOTS, bldgDoorOk, #BUILDING_SLOTS, {
 	minDoor = MIN_DOOR,
 	slots = bldgDoorDetail,
 })
+end
 
 -- 9h. r8 facades family (WORK_QUEUE item 78). Two SERVER-side CHECK families over the staged
 -- LookDevFacadesR8_facades_r8 folder. A missing folder, per-hub folder, gauge, hub Model, or failed
@@ -3675,6 +3708,7 @@ emit("BLDG_DOOR", bldgDoorOk == #BUILDING_SLOTS, bldgDoorOk, #BUILDING_SLOTS, {
 -- that all six FacadeKind values are present in every hub. DOOR_CLEAR probes each gauge's exact
 -- oriented volume with workspace:GetPartsInPart (the BLDG_DOOR method) and requires zero collidable
 -- hub parts and zero FacadePart decorative hits. No target is weakened for a missing candidate.
+do
 local FACADE_FOLDER = "LookDevFacadesR8_facades_r8"
 local FACADE_KINDS = {
 	"shuttered_window",
@@ -4140,10 +4174,12 @@ emit("FACADE_STRAY", facadeStrayCount == 0, facadeStrayCount, 0, {
 	ridgeHeadroom = FACADE_RIDGE_HEADROOM,
 	offenders = facadeStrayOffenders,
 })
+end
 
 -- 9i. r8 hub props family (WORK_QUEUE item 79). SERVER-only: ReviewCameras requires MapSpec from
 -- ServerScriptService.Server.World, so the Client VM cannot read it. Both checks FAIL at measured 0
 -- (visible) / measured >0 (grass) when the staging folder or a hub camera is missing — never a skip.
+do
 local HUBPROPS_FOLDER = "LookDevHubPropsR8_hubprops_r8"
 local HUBPROPS_MIN_VISIBLE = 5
 local hubPropsFolder = folderNamed(HUBPROPS_FOLDER)
@@ -4238,6 +4274,7 @@ emit("HUBPROPS_ON_GRASS", hubPropsFolder ~= nil and hubPropsGrass == 0, hubProps
 	voxelY = GRASS_Y,
 	hubs = hubPropsDetail,
 })
+end
 
 -- STALLS / AWNING_STRIPES / LANE_CLEAR / PASAR_AWNING_ON_GRASS (WORK_QUEUE item 148, all
 -- READ-ONLY). They stage nothing and inspect only the pasar_awnings_r8 folder. No part-lane
@@ -4576,6 +4613,7 @@ emit(
 )
 
 -- World XZ rectangles from plaza-local lane data. Plaza is axis-aligned in MapSpec, so no yaw.
+do
 local laneBoxes, corridorBoxes = {}, {}
 local lanesReady = plazaReady
 	and mapSpecReady
@@ -4690,6 +4728,7 @@ emit(
 		reason = if lanesReady then nil else "folder / data / MapSpec.PLAZA not readable",
 	}
 )
+end
 
 -- 9h. WORK_QUEUE section O item 150: the OFF-BY-DEFAULT ronda_tower_r9 candidate. Three NEW
 -- READ-ONLY checks over the staged LookDevRondaTowerR9_ronda_tower_r9 folder. TOWER_HEIGHT reads
@@ -4697,6 +4736,7 @@ emit(
 -- TowerLeg Parts' collective XZ AABB (8x8 brief + 1 tolerance). TOWER_PATH_CLEAR intersects every
 -- staged Part's CFrame+Size AABB with the SAME MapSpec path table built for PATH_CLEAR. Missing
 -- folder / model / MapSpec is a FAIL, never a skip. LOOKDEV_LEAK stays the shared restore proof.
+do
 local TOWER_FOLDER = "LookDevRondaTowerR9_ronda_tower_r9"
 local TOWER_ID = "ronda_tower_r9"
 local TOWER_HEIGHT_MIN, TOWER_HEIGHT_MAX = 28, 32
@@ -4704,89 +4744,91 @@ local TOWER_BASE_MAX = 9 -- 8x8 brief plus 1 stud tolerance
 
 local towerFolder = folderNamed(TOWER_FOLDER)
 local towerParts = {}
-local towerModel = nil
-local towerReadErrors = {}
-for _, inst in ipairs(descendantList(towerFolder)) do
-	local okPart, isPart = pcall(function()
-		return inst:IsA("BasePart")
-	end)
-	if attr(inst, "RondaTower") == TOWER_ID then
-		if okPart and isPart then
-			towerParts[#towerParts + 1] = inst
-		else
-			local okModel, isModel = pcall(function()
-				return inst:IsA("Model")
-			end)
-			if okModel and isModel and not towerModel then
-				towerModel = inst
+do
+	local towerModel = nil
+	local towerReadErrors = {}
+	for _, inst in ipairs(descendantList(towerFolder)) do
+		local okPart, isPart = pcall(function()
+			return inst:IsA("BasePart")
+		end)
+		if attr(inst, "RondaTower") == TOWER_ID then
+			if okPart and isPart then
+				towerParts[#towerParts + 1] = inst
+			else
+				local okModel, isModel = pcall(function()
+					return inst:IsA("Model")
+				end)
+				if okModel and isModel and not towerModel then
+					towerModel = inst
+				end
 			end
 		end
 	end
-end
 
--- TOWER_HEIGHT: world Model bbox height, NOT the greybox tower's 36-stud MapSpec height.
-local towerHeight = 0
-local heightReadOk = false
-if towerModel then
-	local size = bboxSize(towerModel)
-	if size and size.Y > 0 then
-		towerHeight = size.Y
-		heightReadOk = true
-	else
-		towerReadErrors[#towerReadErrors + 1] = "bbox"
-	end
-end
-emit(
-	"TOWER_HEIGHT",
-	heightReadOk and towerHeight >= TOWER_HEIGHT_MIN and towerHeight <= TOWER_HEIGHT_MAX,
-	math.floor(towerHeight * 100 + 0.5) / 100,
-	"28..32",
-	{
-		folderPresent = towerFolder ~= nil,
-		modelFound = towerModel ~= nil,
-		readErrors = towerReadErrors,
-	}
-)
-
--- TOWER_BASE: collective AABB of the four TowerLeg Parts, including their own sizes.
-local towerLegs = {}
-for _, part in ipairs(towerParts) do
-	if attr(part, "TowerLeg") == true then
-		towerLegs[#towerLegs + 1] = part
-	end
-end
-local baseWidth, baseDepth = 0, 0
-local baseReadOk = #towerLegs > 0
-if baseReadOk then
-	local minX, maxX, minZ, maxZ = math.huge, -math.huge, math.huge, -math.huge
-	for _, leg in ipairs(towerLegs) do
-		local box = bboxAABB(leg)
-		if box then
-			minX, maxX = math.min(minX, box.minX), math.max(maxX, box.maxX)
-			minZ, maxZ = math.min(minZ, box.minZ), math.max(maxZ, box.maxZ)
+	-- TOWER_HEIGHT: world Model bbox height, NOT the greybox tower's 36-stud MapSpec height.
+	local towerHeight = 0
+	local heightReadOk = false
+	if towerModel then
+		local size = bboxSize(towerModel)
+		if size and size.Y > 0 then
+			towerHeight = size.Y
+			heightReadOk = true
 		else
-			baseReadOk = false
-			towerReadErrors[#towerReadErrors + 1] = "leg-cframe"
+			towerReadErrors[#towerReadErrors + 1] = "bbox"
 		end
 	end
-	if baseReadOk then
-		baseWidth, baseDepth = maxX - minX, maxZ - minZ
+	emit(
+		"TOWER_HEIGHT",
+		heightReadOk and towerHeight >= TOWER_HEIGHT_MIN and towerHeight <= TOWER_HEIGHT_MAX,
+		math.floor(towerHeight * 100 + 0.5) / 100,
+		"28..32",
+		{
+			folderPresent = towerFolder ~= nil,
+			modelFound = towerModel ~= nil,
+			readErrors = towerReadErrors,
+		}
+	)
+
+	-- TOWER_BASE: collective AABB of the four TowerLeg Parts, including their own sizes.
+	local towerLegs = {}
+	for _, part in ipairs(towerParts) do
+		if attr(part, "TowerLeg") == true then
+			towerLegs[#towerLegs + 1] = part
+		end
 	end
+	local baseWidth, baseDepth = 0, 0
+	local baseReadOk = #towerLegs > 0
+	if baseReadOk then
+		local minX, maxX, minZ, maxZ = math.huge, -math.huge, math.huge, -math.huge
+		for _, leg in ipairs(towerLegs) do
+			local box = bboxAABB(leg)
+			if box then
+				minX, maxX = math.min(minX, box.minX), math.max(maxX, box.maxX)
+				minZ, maxZ = math.min(minZ, box.minZ), math.max(maxZ, box.maxZ)
+			else
+				baseReadOk = false
+				towerReadErrors[#towerReadErrors + 1] = "leg-cframe"
+			end
+		end
+		if baseReadOk then
+			baseWidth, baseDepth = maxX - minX, maxZ - minZ
+		end
+	end
+	local towerBaseFootprint = math.max(baseWidth, baseDepth)
+	emit(
+		"TOWER_BASE",
+		baseReadOk and towerBaseFootprint <= TOWER_BASE_MAX,
+		math.floor(towerBaseFootprint * 100 + 0.5) / 100,
+		"<=" .. TOWER_BASE_MAX,
+		{
+			folderPresent = towerFolder ~= nil,
+			legs = #towerLegs,
+			width = math.floor(baseWidth * 100 + 0.5) / 100,
+			depth = math.floor(baseDepth * 100 + 0.5) / 100,
+			readErrors = towerReadErrors,
+		}
+	)
 end
-local towerBaseFootprint = math.max(baseWidth, baseDepth)
-emit(
-	"TOWER_BASE",
-	baseReadOk and towerBaseFootprint <= TOWER_BASE_MAX,
-	math.floor(towerBaseFootprint * 100 + 0.5) / 100,
-	"<=" .. TOWER_BASE_MAX,
-	{
-		folderPresent = towerFolder ~= nil,
-		legs = #towerLegs,
-		width = math.floor(baseWidth * 100 + 0.5) / 100,
-		depth = math.floor(baseDepth * 100 + 0.5) / 100,
-		readErrors = towerReadErrors,
-	}
-)
 
 -- TOWER_PATH_CLEAR: no staged tower Part's XZ AABB touches a MapSpec road arm, continuation or
 -- ring chord. Arms/continuations are full rectangles; ring chords use PATH_CLEAR's CENTRAL_HALF
@@ -4867,12 +4909,14 @@ emit(
 		reason = towerPathReason,
 	}
 )
+end
 
 -- 9g. WORK_QUEUE section O item 151: rocks_r9. Four NEW READ-ONLY checks over the staged
 -- LookDevRocksR9_rocks_r9 folder. ROCK_PATH_CLEAR reuses pathRects/pathSegments from PATH_CLEAR and
 -- the same CFrame+Size AABB math (GetBoundingBox is Model-only here). ROCK_GATE_CLEAR reads the real
 -- plot gate markers when staged, then tagged PlotAnchor parts, then Config.Game.plotCenter; zero
 -- readable gates is a FAIL, never a vacuous pass. The existing PATH_CLEAR / GATE_CLEAR are untouched.
+do
 local ROCK_FOLDER = "LookDevRocksR9_rocks_r9"
 local ROCK_KEY = "rocks_r9"
 local ROCK_MIN = 25
@@ -5007,183 +5051,355 @@ emit(
 
 -- Prefer the real gate markers from plots_r8. Fall back to live PlotAnchor parts (their -Z side
 -- is the entrance), then to Config.Game.plotCenter + ModelMapPlotsR8 plot depth.
-local rockGates = {}
-for _, part in ipairs(plotParts) do
-	if attr(part, "Kind") == "gate_marker" then
-		local okPos, pos = pcall(function()
-			return part.CFrame.Position
-		end)
-		if okPos then
-			rockGates[#rockGates + 1] = { x = pos.X, z = pos.Z, source = "marker" }
-		end
-	end
-end
-if #rockGates == 0 then
-	for _, anchor in ipairs(taggedNear("PlotAnchor", Vector3.new(0, 0, 0), math.huge)) do
-		local okGate, x, z = pcall(function()
-			local cf, size = anchor:GetPivot(), anchor.Size
-			local gate = cf * CFrame.new(0, 0, -(size.Z / 2 + 3))
-			return gate.Position.X, gate.Position.Z
-		end)
-		if okGate then
-			rockGates[#rockGates + 1] = { x = x, z = z, source = "PlotAnchor" }
-		end
-	end
-end
-if #rockGates == 0 then
-	local okFallback, Plots, Game = pcall(function()
-		return require(game.ReplicatedStorage.Shared.ModelMapPlotsR8),
-			require(game.ReplicatedStorage.Shared.Config.Game)
-	end)
-	if okFallback and Plots and Game then
-		for index = 1, Plots.PLOT_COUNT do
-			local okCentre, x, z = pcall(Game.plotCenter, index)
-			if okCentre and type(x) == "number" and type(z) == "number" then
-				local frame = CFrame.lookAt(Vector3.new(x, 0, z), Vector3.zero)
-				local gate = frame * CFrame.new(0, 0, -(Plots.PLOT_DEPTH / 2 + 3))
-				rockGates[#rockGates + 1] = { x = gate.Position.X, z = gate.Position.Z, source = "plotCenter" }
+do
+	local rockGates = {}
+	for _, part in ipairs(plotParts) do
+		if attr(part, "Kind") == "gate_marker" then
+			local okPos, pos = pcall(function()
+				return part.CFrame.Position
+			end)
+			if okPos then
+				rockGates[#rockGates + 1] = { x = pos.X, z = pos.Z, source = "marker" }
 			end
 		end
 	end
-end
-
-local rockGateOffenders, rockGateErrors = {}, {}
-local rockGateHits, rockGateReadErrors = 0, 0
-local gateSource = rockGates[1] and rockGates[1].source or "none"
-for _, model in ipairs(rockModels) do
-	local centre = bboxCentre(model)
-	if not centre then
-		rockGateReadErrors += 1
-		if #rockGateErrors < 10 then
-			rockGateErrors[#rockGateErrors + 1] = tostring(model.Name) .. ":bbox"
+	if #rockGates == 0 then
+		for _, anchor in ipairs(taggedNear("PlotAnchor", Vector3.new(0, 0, 0), math.huge)) do
+			local okGate, x, z = pcall(function()
+				local cf, size = anchor:GetPivot(), anchor.Size
+				local gate = cf * CFrame.new(0, 0, -(size.Z / 2 + 3))
+				return gate.Position.X, gate.Position.Z
+			end)
+			if okGate then
+				rockGates[#rockGates + 1] = { x = x, z = z, source = "PlotAnchor" }
+			end
 		end
-	else
-		for index, gate in ipairs(rockGates) do
-			local dx, dz = centre.X - gate.x, centre.Z - gate.z
-			if dx * dx + dz * dz < ROCK_GATE_CLEAR * ROCK_GATE_CLEAR then
-				rockGateHits += 1
-				if #rockGateOffenders < 10 then
-					rockGateOffenders[#rockGateOffenders + 1] =
-						string.format("gate%d:%s:%.2f,%.2f", index, tostring(model.Name), centre.X, centre.Z)
+	end
+	if #rockGates == 0 then
+		local okFallback, Plots, Game = pcall(function()
+			return require(game.ReplicatedStorage.Shared.ModelMapPlotsR8),
+				require(game.ReplicatedStorage.Shared.Config.Game)
+		end)
+		if okFallback and Plots and Game then
+			for index = 1, Plots.PLOT_COUNT do
+				local okCentre, x, z = pcall(Game.plotCenter, index)
+				if okCentre and type(x) == "number" and type(z) == "number" then
+					local frame = CFrame.lookAt(Vector3.new(x, 0, z), Vector3.zero)
+					local gate = frame * CFrame.new(0, 0, -(Plots.PLOT_DEPTH / 2 + 3))
+					rockGates[#rockGates + 1] = { x = gate.Position.X, z = gate.Position.Z, source = "plotCenter" }
 				end
-				break
 			end
 		end
 	end
+
+	local rockGateOffenders, rockGateErrors = {}, {}
+	local rockGateHits, rockGateReadErrors = 0, 0
+	local gateSource = rockGates[1] and rockGates[1].source or "none"
+	for _, model in ipairs(rockModels) do
+		local centre = bboxCentre(model)
+		if not centre then
+			rockGateReadErrors += 1
+			if #rockGateErrors < 10 then
+				rockGateErrors[#rockGateErrors + 1] = tostring(model.Name) .. ":bbox"
+			end
+		else
+			for index, gate in ipairs(rockGates) do
+				local dx, dz = centre.X - gate.x, centre.Z - gate.z
+				if dx * dx + dz * dz < ROCK_GATE_CLEAR * ROCK_GATE_CLEAR then
+					rockGateHits += 1
+					if #rockGateOffenders < 10 then
+						rockGateOffenders[#rockGateOffenders + 1] =
+							string.format("gate%d:%s:%.2f,%.2f", index, tostring(model.Name), centre.X, centre.Z)
+					end
+					break
+				end
+			end
+		end
+	end
+	local rockGateReason = nil
+	if not rockFolder then
+		rockGateReason = "staging folder missing"
+	elseif #rockGates < ROCK_GATE_EXPECTED then
+		rockGateReason = "only " .. #rockGates .. "/" .. ROCK_GATE_EXPECTED .. " plot gates readable"
+	elseif #rockModels == 0 then
+		rockGateReason = "no staged rock models"
+	end
+	emit(
+		"ROCK_GATE_CLEAR",
+		rockFolder ~= nil
+			and #rockModels > 0
+			and #rockGates >= ROCK_GATE_EXPECTED
+			and rockGateHits == 0
+			and rockGateReadErrors == 0,
+		rockGateHits + rockGateReadErrors,
+		0,
+		{
+			gates = #rockGates,
+			gateSource = gateSource,
+			clear = ROCK_GATE_CLEAR,
+			models = #rockModels,
+			offenders = rockGateOffenders,
+			readErrors = rockGateErrors,
+			reason = rockGateReason,
+		}
+	)
 end
-local rockGateReason = nil
-if not rockFolder then
-	rockGateReason = "staging folder missing"
-elseif #rockGates < ROCK_GATE_EXPECTED then
-	rockGateReason = "only " .. #rockGates .. "/" .. ROCK_GATE_EXPECTED .. " plot gates readable"
-elseif #rockModels == 0 then
-	rockGateReason = "no staged rock models"
-end
-emit(
-	"ROCK_GATE_CLEAR",
-	rockFolder ~= nil
-		and #rockModels > 0
-		and #rockGates >= ROCK_GATE_EXPECTED
-		and rockGateHits == 0
-		and rockGateReadErrors == 0,
-	rockGateHits + rockGateReadErrors,
-	0,
-	{
-		gates = #rockGates,
-		gateSource = gateSource,
-		clear = ROCK_GATE_CLEAR,
-		models = #rockModels,
-		offenders = rockGateOffenders,
-		readErrors = rockGateErrors,
-		reason = rockGateReason,
-	}
-)
 
 -- 9h. WORK_QUEUE section M item 80: streetfurn_r8. Three NEW READ-ONLY checks over the staged
 -- LookDevStreetFurnR8_streetfurn_r8 folder. They reuse the PATH_CLEAR rectangle/chord tables and
 -- bboxAABB CFrame+Size math; VergePost-tagged fixtures are the only clearance exemption, because
 -- lampu/obor posts, the gapura and the pole line are DESIGNED to stand at the road verge.
-local SF_FOLDER = "LookDevStreetFurnR8_streetfurn_r8"
-local SF_KEY = "streetfurn_r8"
-local SF_CLEAR = 6
-local SF_MIN_POSTS = 18
-local SF_MIN_PER_POST_KIND = 8
-local SF_SIGN_EXPECTED = 3
-local SF_GAPURA_EXPECTED = 1
-local SF_POLE_MIN = 1
-local SF_CABLE_MIN = 1
-local SF_BALE_EXPECTED = 2
+do
+	local SF_FOLDER = "LookDevStreetFurnR8_streetfurn_r8"
+	local SF_KEY = "streetfurn_r8"
+	local SF_CLEAR = 6
+	local SF_MIN_POSTS = 18
+	local SF_MIN_PER_POST_KIND = 8
+	local SF_SIGN_EXPECTED = 3
+	local SF_GAPURA_EXPECTED = 1
+	local SF_POLE_MIN = 1
+	local SF_CABLE_MIN = 1
+	local SF_BALE_EXPECTED = 2
 
-local sfFolder = folderNamed(SF_FOLDER)
-local sfModels, sfParts = {}, {}
-local okSfDescendants, sfDescendants = pcall(function()
+	local sfFolder = folderNamed(SF_FOLDER)
+	local sfModels, sfParts = {}, {}
+	local okSfDescendants, sfDescendants = pcall(function()
+		if not sfFolder then
+			return {}
+		end
+		return sfFolder:GetDescendants()
+	end)
+	if okSfDescendants and type(sfDescendants) == "table" then
+		for _, inst in ipairs(sfDescendants) do
+			if attr(inst, "StreetFurnR8") == SF_KEY then
+				local okModel, isModel = pcall(function()
+					return inst:IsA("Model")
+				end)
+				local okPart, isPart = pcall(function()
+					return inst:IsA("BasePart")
+				end)
+				if okModel and isModel then
+					sfModels[#sfModels + 1] = inst
+				elseif okPart and isPart then
+					sfParts[#sfParts + 1] = inst
+				end
+			end
+		end
+	end
+
+	local sfKindCounts = { lampu = 0, obor = 0, sign = 0, gapura = 0, pole = 0, cable = 0, bale = 0 }
+	for _, model in ipairs(sfModels) do
+		local kind = attr(model, "StreetFurnKind")
+		kind = type(kind) == "string" and kind or "?"
+		sfKindCounts[kind] = (sfKindCounts[kind] or 0) + 1
+	end
+	local sfCableParts = 0
+	for _, part in ipairs(sfParts) do
+		if attr(part, "StreetFurnKind") == "cable" then
+			sfCableParts += 1
+		end
+	end
+	local sfPostTotal = sfKindCounts.lampu + sfKindCounts.obor
+	emit(
+		"STREETFURN",
+		sfFolder ~= nil
+			and sfPostTotal >= SF_MIN_POSTS
+			and sfKindCounts.lampu >= SF_MIN_PER_POST_KIND
+			and sfKindCounts.obor >= SF_MIN_PER_POST_KIND
+			and sfKindCounts.sign == SF_SIGN_EXPECTED
+			and sfKindCounts.gapura == SF_GAPURA_EXPECTED
+			and sfKindCounts.pole >= SF_POLE_MIN
+			and sfCableParts >= SF_CABLE_MIN
+			and sfKindCounts.bale == SF_BALE_EXPECTED,
+		sfPostTotal + sfKindCounts.sign + sfKindCounts.gapura + sfKindCounts.pole + sfCableParts + sfKindCounts.bale,
+		">=" .. SF_MIN_POSTS .. " posts + all kinds",
+		{
+			folderPresent = sfFolder ~= nil,
+			models = #sfModels,
+			parts = #sfParts,
+			perKind = sfKindCounts,
+			cableParts = sfCableParts,
+		}
+	)
+
+	-- STRINGS_PARITY: read the sign keys from Shared.Strings itself; no staged text literal is trusted.
+	local SF_SIGN_KEYS = { "sign_pasar", "sign_sawah", "sign_balai" }
+	local okSfStrings, sfStrings = pcall(function()
+		return require(game.ReplicatedStorage.Shared.Strings)
+	end)
+	local sfValidKeys, sfKeyDetail = 0, {}
+	if okSfStrings and sfStrings and type(sfStrings.raw) == "table" then
+		for _, key in ipairs(SF_SIGN_KEYS) do
+			local entry = sfStrings.raw[key]
+			local valid = false
+			if type(entry) == "table" and type(entry.id) == "string" and type(entry.en) == "string" then
+				local id, en = entry.id, entry.en
+				valid = id ~= ""
+					and en ~= ""
+					and string.match(id, "^%s") == nil
+					and string.match(id, "%s$") == nil
+					and string.match(en, "^%s") == nil
+					and string.match(en, "%s$") == nil
+					and string.find(string.upper(id .. " " .. en), "TODO", 1, true) == nil
+					and id ~= en
+				if valid then
+					sfValidKeys += 1
+				end
+			else
+				valid = false
+			end
+			sfKeyDetail[#sfKeyDetail + 1] = { key = key, valid = valid }
+		end
+	else
+		sfKeyDetail[#sfKeyDetail + 1] = {
+			key = "Shared.Strings",
+			valid = false,
+			reason = okSfStrings and "missing Strings.raw" or "Strings require failed",
+		}
+	end
+	emit(
+		"STRINGS_PARITY",
+		sfValidKeys == #SF_SIGN_KEYS,
+		sfValidKeys,
+		#SF_SIGN_KEYS,
+		{ keys = sfKeyDetail, stringsReadable = okSfStrings == true }
+	)
+
+	-- STREETFURN_CLEAR: distance from each non-exempt staged part's XZ AABB to a MapSpec road
+	-- centreline. Rectangles cover the four arms and two continuations; ring chords use the same axes
+	-- as PATH_CLEAR/ROCK_PATH_CLEAR. VergePost is set only on posts, gapura and the pole/cable line.
+	local function sfAabbDistanceToRoad(box)
+		local best = math.huge
+		for _, rect in ipairs(pathRects) do
+			local gapX, gapZ
+			if rect.horizontal then
+				gapX = math.max(rect.x - rect.halfX - box.maxX, box.minX - (rect.x + rect.halfX), 0)
+				gapZ = math.max(box.minZ - rect.z, rect.z - box.maxZ, 0)
+			else
+				gapX = math.max(box.minX - rect.x, rect.x - box.maxX, 0)
+				gapZ = math.max(rect.z - rect.halfZ - box.maxZ, box.minZ - (rect.z + rect.halfZ), 0)
+			end
+			best = math.min(best, math.sqrt(gapX * gapX + gapZ * gapZ))
+		end
+		local centreX, centreZ = (box.minX + box.maxX) / 2, (box.minZ + box.maxZ) / 2
+		local halfX, halfZ = (box.maxX - box.minX) / 2, (box.maxZ - box.minZ) / 2
+		for _, seg in ipairs(pathSegments) do
+			local dx, dz = centreX - seg.x, centreZ - seg.z
+			local tangent = dx * seg.tx + dz * seg.tz
+			local perpendicular = dx * seg.nx + dz * seg.nz
+			local tangentExtent = math.abs(seg.tx) * halfX + math.abs(seg.tz) * halfZ
+			local normalExtent = math.abs(seg.nx) * halfX + math.abs(seg.nz) * halfZ
+			local along = math.max(math.abs(tangent) - seg.halfLen - tangentExtent, 0)
+			local across = math.max(math.abs(perpendicular) - normalExtent, 0)
+			best = math.min(best, math.sqrt(along * along + across * across))
+		end
+		return best
+	end
+
+	local sfOffenders, sfReadErrors = {}, {}
+	local sfChecked, sfExempt, sfNearHits = 0, { lampu = 0, obor = 0, gapura = 0, pole = 0, cable = 0 }, 0
+	for _, part in ipairs(sfParts) do
+		local kind = attr(part, "StreetFurnKind")
+		kind = type(kind) == "string" and kind or "?"
+		if attr(part, "VergePost") == true then
+			sfExempt[kind] = (sfExempt[kind] or 0) + 1
+		else
+			sfChecked += 1
+			local box = bboxAABB(part)
+			if not box then
+				sfReadErrors[#sfReadErrors + 1] = tostring(part.Name) .. ":aabb"
+			elseif pathMapReady then
+				local distance = sfAabbDistanceToRoad(box)
+				if distance < SF_CLEAR then
+					sfNearHits += 1
+					if #sfOffenders < 10 then
+						sfOffenders[#sfOffenders + 1] = string.format(
+							"%s:%s:%.2f,%.2f:d=%.2f",
+							kind,
+							tostring(part.Name),
+							(box.minX + box.maxX) / 2,
+							(box.minZ + box.maxZ) / 2,
+							distance
+						)
+					end
+				end
+			end
+		end
+	end
+	local sfClearReason = nil
 	if not sfFolder then
+		sfClearReason = "staging folder missing"
+	elseif not pathMapReady then
+		sfClearReason = pathMapReason or "MapSpec paths not readable"
+	elseif sfChecked == 0 then
+		sfClearReason = "no non-exempt staged parts"
+	end
+	emit(
+		"STREETFURN_CLEAR",
+		sfFolder ~= nil and pathMapReady and sfChecked > 0 and sfNearHits == 0 and #sfReadErrors == 0,
+		sfNearHits + #sfReadErrors,
+		0,
+		{
+			folderPresent = sfFolder ~= nil,
+			checkedParts = sfChecked,
+			pathsChecked = pathMapReady and (#pathRects + #pathSegments) or 0,
+			clear = SF_CLEAR,
+			exempt = sfExempt,
+			exemptWhy = "lampu/obor posts, gapura and the pole/cable line are staged on the road verge by item 80",
+			offenders = sfOffenders,
+			readErrors = sfReadErrors,
+			reason = sfClearReason,
+		}
+	)
+end
+
+do
+-- 9h-2. WORK_QUEUE section M item 81: spanduk_r8. Two NEW READ-ONLY checks over the staged
+-- LookDevSpandukR8_spanduk_r8 folder. SIGN_TEXT_PARITY reads every item-81 Strings key (plus the
+-- staged SignKey attributes) from Shared.Strings; SIGN_FACING measures each staged sign board's
+-- board LookVector against the horizontal direction to its named approach camera. Both FAIL when
+-- the folder, tags, Strings or ReviewCameras (Server VM) are missing; no check is weakened.
+local SD_FOLDER = "LookDevSpandukR8_spanduk_r8"
+local SD_KEY = "spanduk_r8"
+local SD_EXPECTED_KEYS = {
+	"spanduk_selamat_datang",
+	"sign_warung",
+	"spanduk_pasar",
+	"bunting_mampir",
+	"bunting_belanja",
+}
+local SD_MAX_ANGLE = 30
+
+local sdFolder = folderNamed(SD_FOLDER)
+local sdModels = {}
+local okSd, sdDescendants = pcall(function()
+	if not sdFolder then
 		return {}
 	end
-	return sfFolder:GetDescendants()
+	return sdFolder:GetDescendants()
 end)
-if okSfDescendants and type(sfDescendants) == "table" then
-	for _, inst in ipairs(sfDescendants) do
-		if attr(inst, "StreetFurnR8") == SF_KEY then
+if okSd and type(sdDescendants) == "table" then
+	for _, inst in ipairs(sdDescendants) do
+		if attr(inst, "SpandukR8") == SD_KEY then
 			local okModel, isModel = pcall(function()
 				return inst:IsA("Model")
 			end)
-			local okPart, isPart = pcall(function()
-				return inst:IsA("BasePart")
-			end)
 			if okModel and isModel then
-				sfModels[#sfModels + 1] = inst
-			elseif okPart and isPart then
-				sfParts[#sfParts + 1] = inst
+				sdModels[#sdModels + 1] = inst
 			end
 		end
 	end
 end
 
-local sfKindCounts = { lampu = 0, obor = 0, sign = 0, gapura = 0, pole = 0, cable = 0, bale = 0 }
-for _, model in ipairs(sfModels) do
-	local kind = attr(model, "StreetFurnKind")
-	kind = type(kind) == "string" and kind or "?"
-	sfKindCounts[kind] = (sfKindCounts[kind] or 0) + 1
-end
-local sfCableParts = 0
-for _, part in ipairs(sfParts) do
-	if attr(part, "StreetFurnKind") == "cable" then
-		sfCableParts += 1
-	end
-end
-local sfPostTotal = sfKindCounts.lampu + sfKindCounts.obor
-emit(
-	"STREETFURN",
-	sfFolder ~= nil
-		and sfPostTotal >= SF_MIN_POSTS
-		and sfKindCounts.lampu >= SF_MIN_PER_POST_KIND
-		and sfKindCounts.obor >= SF_MIN_PER_POST_KIND
-		and sfKindCounts.sign == SF_SIGN_EXPECTED
-		and sfKindCounts.gapura == SF_GAPURA_EXPECTED
-		and sfKindCounts.pole >= SF_POLE_MIN
-		and sfCableParts >= SF_CABLE_MIN
-		and sfKindCounts.bale == SF_BALE_EXPECTED,
-	sfPostTotal + sfKindCounts.sign + sfKindCounts.gapura + sfKindCounts.pole + sfCableParts + sfKindCounts.bale,
-	">=" .. SF_MIN_POSTS .. " posts + all kinds",
-	{
-		folderPresent = sfFolder ~= nil,
-		models = #sfModels,
-		parts = #sfParts,
-		perKind = sfKindCounts,
-		cableParts = sfCableParts,
-	}
-)
-
--- STRINGS_PARITY: read the sign keys from Shared.Strings itself; no staged text literal is trusted.
-local SF_SIGN_KEYS = { "sign_pasar", "sign_sawah", "sign_balai" }
-local okSfStrings, sfStrings = pcall(function()
+-- SIGN_TEXT_PARITY: every expected Strings key has a non-empty id AND en, every staged sign's
+-- SignKey is one of those keys, and at least one sign is staged. No staged text literal is trusted.
+local okSdStrings, sdStrings = pcall(function()
 	return require(game.ReplicatedStorage.Shared.Strings)
 end)
-local sfValidKeys, sfKeyDetail = 0, {}
-if okSfStrings and sfStrings and type(sfStrings.raw) == "table" then
-	for _, key in ipairs(SF_SIGN_KEYS) do
-		local entry = sfStrings.raw[key]
+local sdValidKeys, sdKeyDetail = 0, {}
+if okSdStrings and sdStrings and type(sdStrings.raw) == "table" then
+	for _, key in ipairs(SD_EXPECTED_KEYS) do
+		local entry = sdStrings.raw[key]
 		local valid = false
 		if type(entry) == "table" and type(entry.id) == "string" and type(entry.en) == "string" then
 			local id, en = entry.id, entry.en
@@ -5196,114 +5412,154 @@ if okSfStrings and sfStrings and type(sfStrings.raw) == "table" then
 				and string.find(string.upper(id .. " " .. en), "TODO", 1, true) == nil
 				and id ~= en
 			if valid then
-				sfValidKeys += 1
+				sdValidKeys += 1
 			end
-		else
-			valid = false
 		end
-		sfKeyDetail[#sfKeyDetail + 1] = { key = key, valid = valid }
+		sdKeyDetail[#sdKeyDetail + 1] = { key = key, valid = valid }
 	end
 else
-	sfKeyDetail[#sfKeyDetail + 1] = {
+	sdKeyDetail[#sdKeyDetail + 1] = {
 		key = "Shared.Strings",
 		valid = false,
-		reason = okSfStrings and "missing Strings.raw" or "Strings require failed",
+		reason = okSdStrings and "missing Strings.raw" or "Strings require failed",
 	}
 end
+local sdStagedKeys, sdUnknownKeys = {}, {}
+local sdSignCount = 0
+for _, model in ipairs(sdModels) do
+	if attr(model, "ApproachCamera") then
+		sdSignCount += 1
+		local key = attr(model, "SignKey")
+		if type(key) == "string" then
+			sdStagedKeys[#sdStagedKeys + 1] = key
+			local known = false
+			for _, expected in ipairs(SD_EXPECTED_KEYS) do
+				if expected == key then
+					known = true
+					break
+				end
+			end
+			if not known then
+				sdUnknownKeys[#sdUnknownKeys + 1] = key
+			end
+		end
+	end
+end
 emit(
-	"STRINGS_PARITY",
-	sfValidKeys == #SF_SIGN_KEYS,
-	sfValidKeys,
-	#SF_SIGN_KEYS,
-	{ keys = sfKeyDetail, stringsReadable = okSfStrings == true }
+	"SIGN_TEXT_PARITY",
+	okSdStrings == true
+		and sdFolder ~= nil
+		and sdSignCount > 0
+		and sdValidKeys == #SD_EXPECTED_KEYS
+		and #sdUnknownKeys == 0,
+	sdValidKeys,
+	#SD_EXPECTED_KEYS,
+	{
+		keys = sdKeyDetail,
+		stagedKeys = sdStagedKeys,
+		unknownStagedKeys = sdUnknownKeys,
+		stagedSigns = sdSignCount,
+		stringsReadable = okSdStrings == true,
+	}
 )
 
--- STREETFURN_CLEAR: distance from each non-exempt staged part's XZ AABB to a MapSpec road
--- centreline. Rectangles cover the four arms and two continuations; ring chords use the same axes
--- as PATH_CLEAR/ROCK_PATH_CLEAR. VergePost is set only on posts, gapura and the pole/cable line.
-local function sfAabbDistanceToRoad(box)
-	local best = math.huge
-	for _, rect in ipairs(pathRects) do
-		local gapX, gapZ
-		if rect.horizontal then
-			gapX = math.max(rect.x - rect.halfX - box.maxX, box.minX - (rect.x + rect.halfX), 0)
-			gapZ = math.max(box.minZ - rect.z, rect.z - box.maxZ, 0)
-		else
-			gapX = math.max(box.minX - rect.x, rect.x - box.maxX, 0)
-			gapZ = math.max(rect.z - rect.halfZ - box.maxZ, box.minZ - (rect.z + rect.halfZ), 0)
-		end
-		best = math.min(best, math.sqrt(gapX * gapX + gapZ * gapZ))
+-- SIGN_FACING: for each staged sign Model with an ApproachCamera attribute, require that named
+-- camera to be readable (Server VM), take the board's front normal from its cf.LookVector
+-- projected to XZ, and require the angle to the horizontal sign->camera direction to be <= 30deg.
+local sdServer = false
+do
+	local okRs, rs = pcall(function()
+		return game:GetService("RunService")
+	end)
+	if okRs and rs then
+		local okFlag, flag = pcall(function()
+			return rs:IsServer()
+		end)
+		sdServer = okFlag and flag == true
 	end
-	local centreX, centreZ = (box.minX + box.maxX) / 2, (box.minZ + box.maxZ) / 2
-	local halfX, halfZ = (box.maxX - box.minX) / 2, (box.maxZ - box.minZ) / 2
-	for _, seg in ipairs(pathSegments) do
-		local dx, dz = centreX - seg.x, centreZ - seg.z
-		local tangent = dx * seg.tx + dz * seg.tz
-		local perpendicular = dx * seg.nx + dz * seg.nz
-		local tangentExtent = math.abs(seg.tx) * halfX + math.abs(seg.tz) * halfZ
-		local normalExtent = math.abs(seg.nx) * halfX + math.abs(seg.nz) * halfZ
-		local along = math.max(math.abs(tangent) - seg.halfLen - tangentExtent, 0)
-		local across = math.max(math.abs(perpendicular) - normalExtent, 0)
-		best = math.min(best, math.sqrt(along * along + across * across))
-	end
-	return best
+end
+local okSdCameras, sdCameras = false, nil
+if sdServer then
+	okSdCameras, sdCameras = pcall(function()
+		return require(game.ReplicatedStorage.Shared.ReviewCameras)
+	end)
 end
 
-local sfOffenders, sfReadErrors = {}, {}
-local sfChecked, sfExempt, sfNearHits = 0, { lampu = 0, obor = 0, gapura = 0, pole = 0, cable = 0 }, 0
-for _, part in ipairs(sfParts) do
-	local kind = attr(part, "StreetFurnKind")
-	kind = type(kind) == "string" and kind or "?"
-	if attr(part, "VergePost") == true then
-		sfExempt[kind] = (sfExempt[kind] or 0) + 1
-	else
-		sfChecked += 1
-		local box = bboxAABB(part)
-		if not box then
-			sfReadErrors[#sfReadErrors + 1] = tostring(part.Name) .. ":aabb"
-		elseif pathMapReady then
-			local distance = sfAabbDistanceToRoad(box)
-			if distance < SF_CLEAR then
-				sfNearHits += 1
-				if #sfOffenders < 10 then
-					sfOffenders[#sfOffenders + 1] = string.format(
-						"%s:%s:%.2f,%.2f:d=%.2f",
-						kind,
-						tostring(part.Name),
-						(box.minX + box.maxX) / 2,
-						(box.minZ + box.maxZ) / 2,
-						distance
-					)
+local sdAngles, sdFacingFails = {}, {}
+local sdFacingChecked = 0
+for _, model in ipairs(sdModels) do
+	local camName = attr(model, "ApproachCamera")
+	if type(camName) == "string" and camName ~= "" then
+		sdFacingChecked += 1
+		local centre = bboxCentre(model)
+		local board = nil
+		for _, child in ipairs(descendantList(model)) do
+			local okPart, isPart = pcall(function()
+				return child:IsA("BasePart")
+			end)
+			if okPart and isPart and child.Name == "Board" then
+				board = child
+				break
+			end
+		end
+		local camera = nil
+		if okSdCameras and sdCameras and type(sdCameras.get) == "function" then
+			local okGet, got = pcall(function()
+				return sdCameras.get(camName)
+			end)
+			if okGet then
+				camera = got
+			end
+		end
+		local eye = camera and asVector3(camera.position) or nil
+		local angle = nil
+		if board and centre and eye then
+			local okCf, cf = pcall(function()
+				return board.CFrame
+			end)
+			if okCf and cf then
+				local look = cf.LookVector
+				local nx, nz = look.X, look.Z
+				local nlen = math.sqrt(nx * nx + nz * nz)
+				local dx, dz = eye.X - centre.X, eye.Z - centre.Z
+				local dlen = math.sqrt(dx * dx + dz * dz)
+				if nlen > 1e-6 and dlen > 1e-6 then
+					local dot = (nx * dx + nz * dz) / (nlen * dlen)
+					dot = math.max(-1, math.min(1, dot))
+					angle = math.deg(math.acos(dot))
 				end
 			end
 		end
+		if angle == nil then
+			sdFacingFails[#sdFacingFails + 1] = camName .. ":unreadable"
+		else
+			sdAngles[#sdAngles + 1] = { camera = camName, angle = math.floor(angle * 100) / 100 }
+			if angle > SD_MAX_ANGLE then
+				sdFacingFails[#sdFacingFails + 1] = string.format("%s:%.1f", camName, angle)
+			end
+		end
 	end
 end
-local sfClearReason = nil
-if not sfFolder then
-	sfClearReason = "staging folder missing"
-elseif not pathMapReady then
-	sfClearReason = pathMapReason or "MapSpec paths not readable"
-elseif sfChecked == 0 then
-	sfClearReason = "no non-exempt staged parts"
+local sdWorst = 0
+for _, entry in ipairs(sdAngles) do
+	sdWorst = math.max(sdWorst, entry.angle)
+end
+local sdFacingReason = nil
+if not sdFolder then
+	sdFacingReason = "staging folder missing"
+elseif not sdServer or not okSdCameras then
+	sdFacingReason = "ReviewCameras not readable (Server VM required)"
+elseif sdFacingChecked == 0 then
+	sdFacingReason = "no staged sign with ApproachCamera"
 end
 emit(
-	"STREETFURN_CLEAR",
-	sfFolder ~= nil and pathMapReady and sfChecked > 0 and sfNearHits == 0 and #sfReadErrors == 0,
-	sfNearHits + #sfReadErrors,
-	0,
-	{
-		folderPresent = sfFolder ~= nil,
-		checkedParts = sfChecked,
-		pathsChecked = pathMapReady and (#pathRects + #pathSegments) or 0,
-		clear = SF_CLEAR,
-		exempt = sfExempt,
-		exemptWhy = "lampu/obor posts, gapura and the pole/cable line are staged on the road verge by item 80",
-		offenders = sfOffenders,
-		readErrors = sfReadErrors,
-		reason = sfClearReason,
-	}
+	"SIGN_FACING",
+	sdFolder ~= nil and sdServer and okSdCameras and sdFacingChecked > 0 and #sdFacingFails == 0,
+	#sdAngles > 0 and math.floor(sdWorst * 100) / 100 or "ERR",
+	"<=" .. SD_MAX_ANGLE .. "deg",
+	{ checked = sdFacingChecked, angles = sdAngles, failures = sdFacingFails, reason = sdFacingReason }
 )
+end
 
 -- 10. VEG_NEAR: dense near layer at the saved camera (45 studs, 70-degree cone). A model only
 -- counts when its bbox centre is inside the cone AND its bbox is >=2 studs tall; species and
@@ -5338,6 +5594,7 @@ emit(
 	">=25 inst/>=6 sp/0 small",
 	{ radius = NEAR_RADIUS, minHeight = NEAR_MIN_HEIGHT, folderPresent = vegFolder ~= nil, undersized = nearUndersized }
 )
+end
 
 -- 11. PROP_SIZE: the three round-8 replacement models at real size. gerobak and pagar are
 -- measured by their longest horizontal axis (max of bbox X/Z); cangkul by its bbox height.
@@ -6041,3 +6298,4 @@ for _, result in ipairs(results) do
 end
 
 return { order = ORDER, checks = results, byName = byName }
+-- stylua: ignore end

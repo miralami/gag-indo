@@ -1,0 +1,47 @@
+CHECK 81 — spanduk_r8 banners and signage (WORK_QUEUE section M, item 81)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Edit runtime injection; place NOT saved, nothing published.
+
+== Setup ==
+Injected Shared.ModelMapSpandukR8, updated Shared.Strings/LookDev/LookDevReview/ReviewCameras, and
+ServerScriptService.Server.World.LookDevSpandukR8 into the EDIT datamodel (all SET). Fresh Play.
+Harness tools/studio/review_check_r8.luau pasted into execute_luau (Server VM); staging and read in
+one call because the harness disables all candidates at the end.
+
+== Harness compile note (recorded for traceability) ==
+First harness version hit Luau's 200-register top-level limit ("Out of local registers ... greenRun")
+after the ~25 new item-81 SIGN locals were added. Fixed by wrapping the SIGN_TEXT_PARITY/SIGN_FACING
+section in its own `do ... end` scope; no check logic weakened. The harness now compiles; Lune parse
+reaches the expected runtime `game`-nil error (Studio has the real game). Suite 2570 tests green.
+
+== Raw check lines (verbatim, spanduk_r8 staged) ==
+CHECK SIGN_TEXT_PARITY PASS 5 5
+CHECK SIGN_FACING PASS 0 <=30deg
+CHECK LOAD_FAILURES PASS 0 0
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+CHECK CAMERA_CLEAR PASS 0 blocked/42 checked 0 blocked
+CHECK PERF_BUDGET PASS 359 500
+
+== Detail ==
+SIGN_TEXT_PARITY: Shared.Strings readable; 5 expected keys each with valid non-empty `id` AND `en`
+(no leading/trailing whitespace, no TODO, id != en): spanduk_selamat_datang (Selamat Datang/Welcome),
+sign_warung (Warung Bu Sari/Bu Sari Shop), spanduk_pasar (Pasar Desa/Village Market), bunting_mampir
+(Mampir/Drop By), bunting_belanja (Belanja/Shop Here). 5 staged signs carry SignKey attrs, all known,
+unknownStagedKeys []. No generic text literal is written to any Text property — sign text rendered
+via Strings.get(lang, key) with the existing UI fonts (Enum.Font[Visuals.fonts.display/body]).
+
+SIGN_FACING: 5 staged sign Models with ApproachCamera attrs checked; worst angle 0deg (<=30):
+hub_warung 0, hub_pasar 0, canonical_overview 0, hub_warung 0, hub_pasar 0. Board front normal
+(LookVector projected to XZ) vs horizontal sign->camera-eye direction; failures []. Method on apply:
+CFrame.lookAt(boardPos, cameraEyeAtSameY) so the board front points at its approach camera. No check
+weakened — a sign off by >30deg or an unreadable camera FAILs at >0/ERR.
+
+Original Parts only, no asset IDs, no real brand logos (generic invented Indonesian names). All
+positions derived from MapSpec (HUBS warung/pasar, south road ring/arm, PLAZA). Road-crossing spanduk
+and bunting raised above avatar headroom. Candidate OFF by default; PERF_BUDGET 359/500 staged — above
+the 334/500 default but under the Sedang proxy (500). CANDIDATES.md records the flag; default look
+unchanged. LOOKDEV_LEAK 0 proves no folder leak on disable.
+
+Status: SEEN-IN-STUDIO. No place saved, nothing published. Visual grading remains the designer's —
+the facing check proves geometry only, not that a sign looks good.

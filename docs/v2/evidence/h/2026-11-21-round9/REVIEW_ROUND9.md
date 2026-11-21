@@ -625,3 +625,26 @@ the CHECK evidence and tracker ticks. No place is saved or published.
    folder, Strings key or MapSpec FAILs, never a skip.
 4. Re-read the guards `LOAD_FAILURES 0 0` and `LOOKDEV_LEAK 0`; stop Play without saving. Visual
    grading stays the designer's.
+
+## Item-81 run — `spanduk_r8` banners and signage (WORK_QUEUE section M)
+
+Run-note recipe. **No Studio result is claimed** by the implementation agent; the main session owns
+the CHECK evidence and tracker ticks. No place is saved or published.
+
+1. Stop Play. Inject at runtime (not saved): `ReplicatedStorage.Shared.ModelMapSpandukR8`,
+   `ReplicatedStorage.Shared.Strings`, the changed `ReplicatedStorage.Shared.LookDev`,
+   `ReplicatedStorage.Shared.LookDevReview`, `ReplicatedStorage.Shared.ReviewCameras`,
+   `ServerScriptService.Server.World.LookDevSpandukR8`, the changed `ServerScriptService.Server.Main.server`
+   and the changed `tools/studio/review_check_r8.luau`.
+2. Start a FRESH real Play session in the SERVER datamodel. Stage ONLY this candidate from the
+   Server VM:
+   `require(game.ReplicatedStorage.Shared.LookDevReview).enable("spanduk_r8", game)`.
+3. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the SERVER
+   VM. Read `SIGN_TEXT_PARITY` (5/5 item-81 `Strings.raw` keys with non-empty `id` and `en`, every
+   staged `SignKey` known, staged signs > 0) and `SIGN_FACING` (each staged sign board's `LookVector`
+   projected to XZ must be within <= 30deg of the horizontal sign->approach-camera direction; a
+   missing folder, Strings key or ReviewCameras read FAILs at measured 0/ERR, never a skip). Both are
+   SERVER-side and READ-ONLY; `SIGN_FACING` uses `hub_warung` / `hub_pasar` / `canonical_overview` from
+   `docs/v2/visual/REVIEW_CAMERAS.md`, so shoot those review cameras when grading the board fronts.
+4. Re-read the guards `LOAD_FAILURES 0 0` and `LOOKDEV_LEAK 0`; stop Play without saving. Visual
+   grading stays the designer's.

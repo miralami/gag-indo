@@ -159,3 +159,23 @@ the CHECK evidence and the tracker ticks. No place is saved or published.
    look with the candidate staged.
 5. Stop Play without saving. Visual yes/no stays the designer's; this recipe reports objective
    counts only.
+
+## 10. Item-139 run — `facades_r8` stray pole
+
+Run-note recipe. **No Studio result is claimed** by the implementation agent; the main session owns
+the CHECK evidence and tracker ticks. No place is saved or published.
+
+1. Stop Play. Inject at runtime (not saved) the changed `ReplicatedStorage.Shared.ModelMapFacadesR8`
+   and `tools/studio/review_check_r8.luau`.
+2. Start a FRESH real Play session in the SERVER datamodel. Stage ONLY `facades_r8` from the Server VM:
+   `require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("facades_r8", game)`.
+3. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the SERVER VM.
+   Read `FACADE_STRAY`, `FACADE_PARTS` and `DOOR_CLEAR`. Expected:
+   `CHECK FACADE_STRAY PASS 0 0` (every tagged `FacadePart` bbox inside its hub Model bbox grown 3,
+   top <= hub ridge + 1, no side > 12), `CHECK FACADE_PARTS PASS 6 6`, `CHECK DOOR_CLEAR PASS 6 6`.
+   `FACADE_STRAY` is READ-ONLY; a missing folder, gauge or hub Model FAILs with the offender in
+   `detail.offenders`, never a vacuous pass.
+4. Stop Play without saving. Fixed in data: `FacadeRidgeCap` on pakrt was a 38.4-stud gold bar laid
+   across (not along) its Z-running ridge; all six caps were 25.6–51.2 studs. Caps are now 10 studs
+   and pakrt's runs along local Z; pakrt's `FacadeEave_L` also moved 1.5 studs inward to stay inside
+   hub bbox + 3. Visual grading remains the designer's.

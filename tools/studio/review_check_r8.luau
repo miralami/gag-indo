@@ -31,7 +31,11 @@
 -- SERVER-side and FAIL at measured 0 when the LookDevFacadesR8_facades_r8 folder or its gauge Parts
 -- are absent. FACADE_PARTS requires >=10 tagged decorative Parts and all six FacadeKind values per
 -- hub; DOOR_CLEAR uses a rotation-aware GetPartsInPart probe at each FacadeDoorGauge's exact Size and
--- CFrame and requires zero collidable hub parts and zero FacadePart decorative hits.
+-- CFrame and requires zero collidable hub parts and zero FacadePart decorative hits. FACADE_STRAY
+-- (WORK_QUEUE item 139) is READ-ONLY: each tagged Part's CFrame+Size corner AABB must fit its hub
+-- Model's bbox grown 3 studs, stay at most 1 stud above the ridge, and have no side longer than 12. The
+-- ridge is facadeData's per-hub `ridge` (above MapSpec.GROUND_Y) with the hub Model bbox top as the
+-- fallback when the data module is missing. Missing folder, gauge, hub or read FAILs at measured >= 1.
 -- It also emits the r8 hub-props family (WORK_QUEUE item 79): HUBPROPS_VISIBLE and
 -- HUBPROPS_ON_GRASS. Both are SERVER-side and FAIL when the LookDevHubPropsR8_hubprops_r8 folder or
 -- any hub_* ReviewCameras camera is absent. HUBPROPS_VISIBLE measures the MINIMUM number of tagged
@@ -41,9 +45,9 @@
 -- RING_COUNT, RING_SPECIES and PERF_BUDGET. All four are READ-ONLY and stage no candidate, so they
 -- grade the shipping tropical backdrop itself. NO_PINES counts workspace descendants whose Name
 -- contains "Pine"; RING_COUNT counts ForestTree==true instances; RING_SPECIES counts distinct
--- ForestSpecies strings; PERF_BUDGET counts BaseParts within 150 studs of spawn as the
--- VISUAL_MASTER_PLAN §6 "under about 500 draw calls" proxy (the forest at 260-460 studs is outside
--- the spawn view).
+-- ForestSpecies strings; PERF_BUDGET counts BaseParts within 100 studs of (0,0,0) as the
+-- VISUAL_MASTER_PLAN §6 "under about 500 draw calls" proxy, matching the recorded census method in
+-- evidence/h/2026-11-19-budget-check/REPORT.md (the forest at 260-460 studs is outside it).
 -- Client datamodel: same lines plus CLOUD_COVER (the client LocalScript owns Terrain.Clouds.Cover);
 -- the Server datamodel cannot observe that tween. Run client-owned candidates (water, grade,
 -- sounds, clouds) in the Client datamodel.
@@ -101,6 +105,7 @@ local ORDER = {
 	"BLDG_DOOR",
 	"FACADE_PARTS",
 	"DOOR_CLEAR",
+	"FACADE_STRAY",
 	"HUBPROPS_VISIBLE",
 	"HUBPROPS_ON_GRASS",
 	"VEG_NEAR",
@@ -2726,6 +2731,185 @@ end
 emit("DOOR_CLEAR", facadeDoorOk == #hubOrder, facadeDoorOk, #hubOrder, {
 	folderPresent = facadesFolder ~= nil,
 	hubs = facadeDoorDetail,
+})
+
+-- FACADE_STRAY (WORK_QUEUE item 139). READ-ONLY; the caller stages facades_r8. Three rules per tagged
+-- Part: its rotation-aware world AABB (eight local Size corners transformed by CFrame; GetBoundingBox
+-- is unavailable in this Studio/MCP environment) fits the hub Model bbox grown 3 on every axis, its top
+-- is <= ridge + 1, and no bbox side is longer than 12. Ridge = facadeData.hubs[key].ridge above
+-- MapSpec.GROUND_Y; if that data cannot be read, the hub Model bbox top is the documented fallback.
+-- A missing folder, gauge, hub Model or failed bbox read is an offence, never a vacuous pass.
+local FACADE_GROW = 3
+local FACADE_MAX_SIDE = 12
+local FACADE_RIDGE_HEADROOM = 1
+local FACADE_EPS = 1e-3
+
+local function facadeBBox(instance)
+	local ok, cf, size = pcall(function()
+		return instance.CFrame, instance.Size
+	end)
+	if not ok or not cf or not size then
+		return nil
+	end
+	local hx, hy, hz = size.X / 2, size.Y / 2, size.Z / 2
+	local minX, minY, minZ = math.huge, math.huge, math.huge
+	local maxX, maxY, maxZ = -math.huge, -math.huge, -math.huge
+	for _, sx in ipairs({ -hx, hx }) do
+		for _, sy in ipairs({ -hy, hy }) do
+			for _, sz in ipairs({ -hz, hz }) do
+				local p = cf * Vector3.new(sx, sy, sz)
+				minX = math.min(minX, p.X)
+				maxX = math.max(maxX, p.X)
+				minY = math.min(minY, p.Y)
+				maxY = math.max(maxY, p.Y)
+				minZ = math.min(minZ, p.Z)
+				maxZ = math.max(maxZ, p.Z)
+			end
+		end
+	end
+	if minX == math.huge then
+		return nil
+	end
+	return {
+		minX = minX,
+		maxX = maxX,
+		minY = minY,
+		maxY = maxY,
+		minZ = minZ,
+		maxZ = maxZ,
+		longest = math.max(size.X, size.Y, size.Z),
+	}
+end
+
+-- A Model has no CFrame/Size of its own: union the corner AABBs of its descendant BaseParts.
+local function facadeModelBBox(model)
+	local ok, descendants = pcall(function()
+		return model:GetDescendants()
+	end)
+	if not ok or type(descendants) ~= "table" then
+		return nil
+	end
+	local minX, minY, minZ = math.huge, math.huge, math.huge
+	local maxX, maxY, maxZ = -math.huge, -math.huge, -math.huge
+	local readable = false
+	for _, child in ipairs(descendants) do
+		local okPart, isPart = pcall(function()
+			return child:IsA("BasePart")
+		end)
+		if okPart and isPart then
+			local box = facadeBBox(child)
+			if box then
+				readable = true
+				minX = math.min(minX, box.minX)
+				maxX = math.max(maxX, box.maxX)
+				minY = math.min(minY, box.minY)
+				maxY = math.max(maxY, box.maxY)
+				minZ = math.min(minZ, box.minZ)
+				maxZ = math.max(maxZ, box.maxZ)
+			end
+		end
+	end
+	if not readable then
+		return nil
+	end
+	return {
+		minX = minX,
+		maxX = maxX,
+		minY = minY,
+		maxY = maxY,
+		minZ = minZ,
+		maxZ = maxZ,
+		longest = math.max(maxX - minX, maxY - minY, maxZ - minZ),
+	}
+end
+
+local facadeStrayOffenders = {}
+local facadeStrayCount = 0
+local function facadeStrayOffend(message)
+	facadeStrayCount += 1
+	facadeStrayOffenders[#facadeStrayOffenders + 1] = message
+end
+
+local facadeGroundY = nil
+if MapSpec and type(MapSpec.GROUND_Y) == "number" then
+	facadeGroundY = MapSpec.GROUND_Y
+end
+
+for _, hubKey in ipairs(hubOrder) do
+	local folder = facadeHubFolders[hubKey]
+	local model = facadeHubModel(hubKey)
+	local gauge = facadeGaugeIn(folder, hubKey)
+	if not folder then
+		facadeStrayOffend(hubKey .. ": missing staging folder")
+	end
+	if not gauge then
+		facadeStrayOffend(hubKey .. ": missing FacadeDoorGauge")
+	end
+	if not model then
+		facadeStrayOffend(hubKey .. ": missing hub Model " .. tostring(FACADE_MODEL_NAMES[hubKey]))
+	end
+	if folder and model then
+		local hubBox = facadeModelBBox(model)
+		if not hubBox then
+			facadeStrayOffend(hubKey .. ": hub Model bbox unreadable")
+		else
+			local ridgeY = hubBox.maxY
+			local entry = facadeData and facadeData.hubs and facadeData.hubs[hubKey] or nil
+			if entry and type(entry.ridge) == "number" and facadeGroundY then
+				ridgeY = facadeGroundY + entry.ridge
+			end
+			local okParts, descendants = pcall(function()
+				return folder:GetDescendants()
+			end)
+			if not okParts or type(descendants) ~= "table" then
+				facadeStrayOffend(hubKey .. ": staged parts unreadable")
+			else
+				for _, part in ipairs(descendants) do
+					local okPart, isPart = pcall(function()
+						return part:IsA("BasePart")
+					end)
+					if okPart and isPart and attr(part, "FacadePart") == true then
+						local okName, value = pcall(function()
+							return part.Name
+						end)
+						local partName = if okName and type(value) == "string" then value else "unnamed"
+						local partBox = facadeBBox(part)
+						if not partBox then
+							facadeStrayOffend(hubKey .. " " .. partName .. ": bbox unreadable")
+						else
+							local rules = {}
+							if
+								partBox.minX < hubBox.minX - FACADE_GROW - FACADE_EPS
+								or partBox.maxX > hubBox.maxX + FACADE_GROW + FACADE_EPS
+								or partBox.minY < hubBox.minY - FACADE_GROW - FACADE_EPS
+								or partBox.maxY > hubBox.maxY + FACADE_GROW + FACADE_EPS
+								or partBox.minZ < hubBox.minZ - FACADE_GROW - FACADE_EPS
+								or partBox.maxZ > hubBox.maxZ + FACADE_GROW + FACADE_EPS
+							then
+								rules[#rules + 1] = "outside hub bbox+3"
+							end
+							if partBox.maxY > ridgeY + FACADE_RIDGE_HEADROOM + FACADE_EPS then
+								rules[#rules + 1] = "top>ridge+1"
+							end
+							if partBox.longest > FACADE_MAX_SIDE + FACADE_EPS then
+								rules[#rules + 1] = "side>12"
+							end
+							for _, rule in ipairs(rules) do
+								facadeStrayOffend(hubKey .. " " .. partName .. ": " .. rule)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+emit("FACADE_STRAY", facadeStrayCount == 0, facadeStrayCount, 0, {
+	folderPresent = facadesFolder ~= nil,
+	grow = FACADE_GROW,
+	maxSide = FACADE_MAX_SIDE,
+	ridgeHeadroom = FACADE_RIDGE_HEADROOM,
+	offenders = facadeStrayOffenders,
 })
 
 -- 9i. r8 hub props family (WORK_QUEUE item 79). SERVER-only: ReviewCameras requires MapSpec from

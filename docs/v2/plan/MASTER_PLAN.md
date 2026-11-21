@@ -22,6 +22,12 @@ the target 500 was not changed. Old pines stay OFF by default behind `LookDev.ID
 `forest_pines_legacy`, which stages 83 pines and restores all 272 tropical trees exactly.
 Items 74/102/138 ticked; the item-74 Decisions block is retired. Suite **2467 tests**; `selene src` 0/0/0.
 
+Item 139 COMPLETE: the stray yellow pole was `FacadeRidgeCap` (25.6–51.2 studs from `width * 0.8`;
+pakrt 38.4, laid across its Z-running ridge). Caps are now 10 studs, pakrt's cap turned along Z, and
+pakrt's left eave moved 1.5 studs inward. New `FACADE_STRAY` check PASS `0 0` across all six hubs;
+`FACADE_PARTS 6 6` and `DOOR_CLEAR 6 6` unchanged (`h/2026-11-21-round9/CHECK_139.txt`). Suite
+**2468 tests**; `selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

@@ -78,6 +78,28 @@ return function(t, Env)
 			end
 		end)
 
+		t:it("keeps every recipe inside its hub + 3, below ridge + 1 and at most 12 studs", function()
+			local GROW, MAX_SIDE, HEADROOM = 3, 12, 1
+			for _, key in ipairs(HUB_KEYS) do
+				local entry = Data.hubs[key]
+				-- Local-frame Greybox bbox: wall + spanduk overhang in X, eave/awning in Z, ridge trim in Y.
+				local halfX = entry.width / 2 + 1.2
+				local minZ, maxZ = -entry.depth / 2 - 3.3, entry.depth / 2 + 6
+				for _, recipe in ipairs(entry.parts) do
+					local pitch = math.rad(recipe.pitch or 0)
+					local c, s = math.cos(pitch), math.sin(pitch)
+					-- The applier turns about local Z: CFrame.Angles(0, 0, pitch).
+					local sx = math.abs(recipe.size[1] * c) + math.abs(recipe.size[2] * s)
+					local sy = math.abs(recipe.size[1] * s) + math.abs(recipe.size[2] * c)
+					local sz = recipe.size[3]
+					expect(sx <= MAX_SIDE and sy <= MAX_SIDE and sz <= MAX_SIDE):toBe(true)
+					expect(recipe.lx - sx / 2 >= -halfX - GROW and recipe.lx + sx / 2 <= halfX + GROW):toBe(true)
+					expect(recipe.lz - sz / 2 >= minZ - GROW and recipe.lz + sz / 2 <= maxZ + GROW):toBe(true)
+					expect(recipe.y + sy / 2 <= entry.ridge + HEADROOM):toBe(true)
+				end
+			end
+		end)
+
 		t:it("uses the exact 7x10.5 pakrt gauge and 6x9 for the other five", function()
 			for _, key in ipairs(HUB_KEYS) do
 				local g = Data.hubs[key].gauge
@@ -149,6 +171,10 @@ return function(t, Env)
 		t:it("registers FACADE_PARTS and DOOR_CLEAR with unweakened targets", function()
 			expect(harnessSrc:find('"FACADE_PARTS"', 1, true) ~= nil):toBe(true)
 			expect(harnessSrc:find('"DOOR_CLEAR"', 1, true) ~= nil):toBe(true)
+			expect(harnessSrc:find('"DOOR_CLEAR",%s+"FACADE_STRAY"') ~= nil):toBe(true)
+			expect(harnessSrc:find('emit("FACADE_STRAY", facadeStrayCount == 0, facadeStrayCount, 0,', 1, true) ~= nil):toBe(
+				true
+			)
 			expect(harnessSrc:find("FACADE_MIN_PARTS = 10", 1, true) ~= nil):toBe(true)
 			expect(harnessSrc:find("workspace:GetPartsInPart(probe, params)", 1, true) ~= nil):toBe(true)
 			expect(harnessSrc:find("Enum.RaycastFilterType.Exclude", 1, true) ~= nil):toBe(true)

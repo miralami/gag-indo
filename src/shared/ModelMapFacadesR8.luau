@@ -39,12 +39,12 @@ local SIDE_TAGS = { "L", "R" }
 
 -- Every recipe is relative to the gauge centre (gx, gz) or to the hub footprint (halfD). `y` is an
 -- offset above MapSpec.GROUND_Y. `pitch` is an optional local-X tilt in degrees for the porch roof.
-local function recipes(gx: number, gz: number, halfD: number, ridge: number, width: number, gauge: any): { any }
+local function recipes(gx: number, gz: number, halfD: number, ridge: number, gauge: any, ridgeAlongZ: boolean?): { any }
 	local top = gauge.base + gauge.h -- gauge head, above ground
 	local shutterX = gauge.w / 2 + 6
 	local porchX = gauge.w / 2 + 7
 	local bracketX = gauge.w / 2 + 5
-	local eaveX = gauge.w / 2 + 10
+	local eaveX = 12 -- item 139: the old 13/13.5 pushed pakrt's left eave outside hub bbox + 3
 	local out = {} :: { any }
 
 	local function add(
@@ -115,7 +115,10 @@ local function recipes(gx: number, gz: number, halfD: number, ridge: number, wid
 			"Wood"
 		)
 	end
-	add("FacadeRidgeCap", "ridge_cap", 0, 0, ridge + 0.6, { width * 0.8, 0.6, 1.2 }, { 176, 142, 72 }, "Metal")
+	-- item 139: width * 0.8 was 25.6..51.2 studs on the six hubs — a floating diagonal pole. A 10-stud
+	-- cap fits every hub; pakrt's gable ridge runs along local Z, so its cap is turned to match.
+	local capSize = if ridgeAlongZ then { 1.2, 0.6, 10 } else { 10, 0.6, 1.2 }
+	add("FacadeRidgeCap", "ridge_cap", 0, 0, ridge + 0.6, capSize, { 176, 142, 72 }, "Metal")
 	add(
 		"FacadeDoorstep",
 		"doorstep",
@@ -129,14 +132,14 @@ local function recipes(gx: number, gz: number, halfD: number, ridge: number, wid
 	return out
 end
 
-local function hub(model: string, width: number, depth: number, ridge: number, gauge: any): any
+local function hub(model: string, width: number, depth: number, ridge: number, gauge: any, ridgeAlongZ: boolean?): any
 	return {
 		model = model,
 		width = width,
 		depth = depth,
 		ridge = ridge,
 		gauge = gauge,
-		parts = recipes(gauge.lx, gauge.lz, depth / 2, ridge, width, gauge),
+		parts = recipes(gauge.lx, gauge.lz, depth / 2, ridge, gauge, ridgeAlongZ),
 	}
 end
 
@@ -149,7 +152,7 @@ ModelMapFacadesR8.hubs = {
 	warung = hub("Warung", 52, 44, 24, { w = 6, h = 9, d = 2, lx = 0, lz = 23, base = 0.85 }),
 	ronda = hub("PosRonda", 44, 40, 16, { w = 6, h = 9, d = 2, lx = 0, lz = 17, base = 1.75 }),
 	polisi = hub("PosPolisi", 48, 44, 24, { w = 6, h = 9, d = 2, lx = 0, lz = 23, base = 0.85 }),
-	pakrt = hub("RumahPakRT", 48, 34, 32.6, { w = 7, h = 10.5, d = 2, lx = -13, lz = 10.5, base = 0.85 }),
+	pakrt = hub("RumahPakRT", 48, 34, 32.6, { w = 7, h = 10.5, d = 2, lx = -13, lz = 10.5, base = 0.85 }, true),
 }
 
 ModelMapFacadesR8.HUB_KEYS = { "pasar", "gelap", "warung", "ronda", "polisi", "pakrt" }

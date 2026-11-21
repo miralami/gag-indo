@@ -1,0 +1,71 @@
+CHECK 105 — Walkability audit with everything on (WORK_QUEUE section N, item 105)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Real Play, Server DataModel. Place NOT saved, nothing published.
+
+== Target (verbatim) ==
+"Walkability audit with everything on. With `full_r9` staged, run
+`PathfindingService:CreatePath({AgentRadius = 2, AgentHeight = 5.5, AgentCanJump = false})` from the
+spawn to each hub entrance and each plot gate. CHECK `PATH_REACH`: every route returns `Success`
+(16/16). If one fails, find the blocking candidate and fix it (move or shrink the part), never the
+check."
+
+== Method ==
+Fresh Play, Server VM. Staged all 13 full_r9 candidates via
+`LookDevReview.enableAdditive(id, game, {studio=true})` (13 calls in CHECK_103 order), disableAll
+between runs. Origin = `MapSpec.SPAWN` (0, 0.5, 28). Six hub-door targets from `MapSpec.hubPoint`
+(door coords, live in the Server VM). Ten plot-gate targets read from the staged `GateMarker_<i>`
+parts (attributes `Kind="gate_marker"`, `PlotIndex=i`) in the `plots_r8` folder — authoritative
+live positions, not hardcoded. For each of the 16 routes:
+`path = PathfindingService:CreatePath({AgentRadius=2, AgentHeight=5.5, AgentCanJump=false})`,
+`path:ComputeAsync(spawn, target)` (pcall-guarded), pass iff
+`path.Status == Enum.PathStatus.Success`. Anti-vacuity: require 13/13 staged, 13 staged folders,
+>0 staged parts, all 10 GateMarkers present, and 16 routes actually attempted; a missing target,
+staging failure or short route count fails the check.
+
+Note: every full_r9 lookdev part is intentionally CanCollide=false (CHECK_103: 0 collidable of
+35,949 parts), so pathfinding sees terrain geometry only. A blocking candidate would have to add
+collidable geometry; none does. The literal check still ran 16 real ComputeAsync calls against the
+fully staged world and is reported with the staging anti-vacuity guard, not as a vacuous pass.
+
+== Verbatim check lines — RUN 1 (all 16 routes, live gate markers) ==
+ROUTE hub1 Success Enum.PathStatus.Success
+ROUTE hub2 Success Enum.PathStatus.Success
+ROUTE hub3 Success Enum.PathStatus.Success
+ROUTE hub4 Success Enum.PathStatus.Success
+ROUTE hub5 Success Enum.PathStatus.Success
+ROUTE hub6 Success Enum.PathStatus.Success
+ROUTE gate1 Success Enum.PathStatus.Success
+ROUTE gate2 Success Enum.PathStatus.Success
+ROUTE gate3 Success Enum.PathStatus.Success
+ROUTE gate4 Success Enum.PathStatus.Success
+ROUTE gate5 Success Enum.PathStatus.Success
+ROUTE gate6 Success Enum.PathStatus.Success
+ROUTE gate7 Success Enum.PathStatus.Success
+ROUTE gate8 Success Enum.PathStatus.Success
+ROUTE gate9 Success Enum.PathStatus.Success
+ROUTE gate10 Success Enum.PathStatus.Success
+CHECK PATH_REACH PASS 16 16
+CHECK ANTIVAC staged=13 folders=13 parts=35949 markers=10 routes=16
+
+== Verbatim check line — RUN 2 (independent fresh staging, determinism re-check) ==
+CHECK PATH_REACH PASS 16 16 | staged=13 parts=37633 markers=10 routes=16
+Identical route result (16/16). Run 2's `parts=37633` is an unfiltered scan of ALL workspace Folders
+(informational only); run 1's `parts=35949` counts only the 13 staged candidate folders, matching
+CHECK_103. Both runs: 13 staged, 10 markers, 16 routes, 0 failures.
+
+== Outcome ==
+All 16 routes Success. No blocking candidate found, so no part was moved or shrunk and no check was
+weakened. No Luau source, spec or harness changed by this item. The existing READ-ONLY `PATH_REACH`
+emit in review_check_r8.luau:1531-1624 is a different 6-hub AABB lane check, not item 105; item 105's
+route check was run ad hoc in execute_luau (item 103 precedent for ad hoc evidence checks).
+
+== Validation / scope ==
+No source change: gates unchanged from item 104 (lune run tests/run.luau All 2687 tests passed,
+selene src 0/0/0). Play stopped after verification; no place saved, nothing published. No visual,
+copy or aural verdict. All candidates remain off by default.
+
+Status: SEEN-IN-STUDIO (full_r9 staged in a fresh Play Server VM; 16/16 PathfindingService routes
+Success with AgentRadius=2/AgentHeight=5.5/AgentCanJump=false, spawn -> 6 hub doors + 10 live
+GateMarker plot gates; anti-vacuity 13 staged / 13 folders / 35949 parts / 10 markers / 16 routes;
+two deterministic runs).

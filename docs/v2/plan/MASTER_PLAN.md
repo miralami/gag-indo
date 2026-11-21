@@ -369,6 +369,14 @@ constant everywhere, Sedang==Tinggi, added=0, ANTI_VACUITY PASS. River MIN_BANK_
 unthinned data; facades exemption + TIER_THIN decorative-count interpretation under WORK_QUEUE
 "Decisions for designer". 11-case `tier_thin_spec` NEW. Suite **2687 tests**; `selene src` 0/0/0.
 
+Item 105 COMPLETE (walkability audit): fresh Play Server VM, all 13 full_r9 candidates staged,
+16 `PathfindingService:CreatePath({AgentRadius=2, AgentHeight=5.5, AgentCanJump=false})` routes from
+`MapSpec.SPAWN` to 6 hub doors + 10 live staged `GateMarker` plot gates. Real Studio PASS
+`h/2026-11-21-round10/CHECK_105.txt`: `CHECK PATH_REACH PASS 16 16`, anti-vacuity staged=13
+folders=13 parts=35949 markers=10 routes=16, two deterministic runs. No blocker found -> no part
+moved or shrunk, no check weakened; no source/spec/harness change (still **2687 tests**, selene
+0/0/0). All lookdev parts CanCollide=false by design, so the guard proves real staging + routes.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

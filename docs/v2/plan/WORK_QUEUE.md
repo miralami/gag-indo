@@ -1003,7 +1003,15 @@ Same rules as section M (candidates off by default, Studio PASS per item, no gam
   12->4), facades all-structural EXEMPT 60/60/60, structural held constant everywhere,
   Sedang==Tinggi, added=0, ANTI_VACUITY PASS 9 folders/stagedAll/0 added (`CHECK_104.txt`,
   `SEEN-IN-STUDIO`). 2687 tests, selene 0/0/0. Interpretation + facades exemption under Decisions.
-- [ ] 105. **Walkability audit with everything on.** With `full_r9` staged, run `PathfindingService:CreatePath({AgentRadius = 2, AgentHeight = 5.5, AgentCanJump = false})` from the spawn to each hub entrance and each plot gate. **CHECK `PATH_REACH`:** every route returns `Success` (16/16). If one fails, find the blocking candidate and fix it (move or shrink the part), never the check.
+- [x] 105. **Walkability audit with everything on.** With `full_r9` staged, run `PathfindingService:CreatePath({AgentRadius = 2, AgentHeight = 5.5, AgentCanJump = false})` from the spawn to each hub entrance and each plot gate. **CHECK `PATH_REACH`:** every route returns `Success` (16/16). If one fails, find the blocking candidate and fix it (move or shrink the part), never the check.
+  Done 2026-11-21: fresh Play Server VM, all 13 full_r9 candidates staged, spawn `MapSpec.SPAWN`
+  (0,0.5,28) -> 6 live hub doors + 10 live staged `GateMarker` plot gates, agent
+  {AgentRadius=2, AgentHeight=5.5, AgentCanJump=false}. Real Studio PASS `PATH_REACH 16 16`
+  (all 16 `ComputeAsync` routes `Enum.PathStatus.Success`), anti-vacuity staged=13 folders=13
+  parts=35949 markers=10 routes=16, two deterministic runs (`CHECK_105.txt`, `SEEN-IN-STUDIO`).
+  No blocker found, so no part moved/shrunk; no source, spec or harness changed (gates unchanged
+  from item 104: 2687 tests, selene 0/0/0). All lookdev parts CanCollide=false by design, so the
+  guard proves staging/routes rather than trusting a vacuous pass.
 - [ ] 106. **Avatar scale audit with everything on.** A 7.25-stud-tall, 4-stud-wide box swept along each of those routes must hit no `CanCollide` part. **CHECK `AVATAR_FIT`** 16/16.
 - [ ] 107. **Clean-Play smoke test.** `tools/studio/smoke_play.luau`: start a fresh Play, wait 60 s, read the console through `get_console_output`, and assert no error-level message and no warning outside a short allowlist in the same file (each allowed line carries a one-line reason). Run it for the default look and for `full_r9`. **CHECK `SMOKE_CLEAN`** 0 errors for both. Fix real errors; never grow the allowlist to hide one.
 

@@ -1,0 +1,89 @@
+CHECK 99 — Gate 1 evidence sweep (WORK_QUEUE item 99)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Real Play, Server DataModel. Place NOT saved, nothing published.
+
+== Target (verbatim) ==
+"**Gate 1 evidence sweep.** Go through `GATE1.md` and `BUGS.md`. For each row marked `LUNE-ONLY`
+or `UNVERIFIED` that Studio Play can prove with `execute_luau` (no human input needed), run it and
+save the output under `docs/v2/evidence/`. Change a status to `SEEN-IN-STUDIO` only with a file
+behind it; leave the rest and note why."
+
+== Method ==
+The Lune specs (tests/specs/*) run under a mock loader (Env/Fakes) — not runnable in Studio. But three
+BUG fixes are PURE functions on the real shipped modules; they were driven in a real Play Server VM
+with the exact damaged inputs from their Lune spec cases, and the result observed. Each ran twice in
+the same session (two separate execute_luau calls) — identical output. Modules resolved in the real
+DataModel: ReplicatedStorage.Shared.Produce, ServerScriptService.Server.Live.LiveConfig,
+ServerScriptService.Server.Data.PlayerData (CURRENT_VERSION 3). All three require()'d cleanly.
+
+== Verbatim check lines (real Play, Server VM, run 1) ==
+CHECK BUG014 PASS
+CHECK BUG017 PASS
+CHECK BUG018 PASS
+
+== Verbatim check lines (run 2, determinism re-check) ==
+CHECK BUG014 PASS
+CHECK BUG017 PASS
+CHECK BUG018 PASS
+
+== Raw observations (run 1) ==
+BUG014 — Produce.snapshot with sack["bad|biasa|"]=42, sack["alsoBad|biasa|"]="corrupt", and a valid
+  padi stack whose .traits="not-a-table": ok=true, valid stack count==1 copied, both non-table
+  stacks skipped (nil), bad traits did not throw and defaulted to an empty table. All 6 sub-checks
+  true. (Mirror of produce_spec.luau's two BUG-014 cases.)
+
+BUG017 — LiveConfig.sanitize({updatedAt=<NaN|+inf|-inf|-5|1234.5>}): NaN/+inf/-inf/-5 all rejected
+  (updatedAt nil), finite 1234.5 kept, all calls no-throw. Finite-guard half proven. The OTHER half
+  of BUG-017 — isStale() ordering in load()/subscribe() — is a local function reached only through
+  DataStore/MessagingService callbacks; proving it needs the Lune service mocks and would mutate
+  live config attributes (LiveConfig.apply writes ReplicatedStorage attributes). NOT run in Studio.
+
+BUG018 — PlayerData.migrate({version=1, harvest.padi={count="oops",hotCount={},qualitySum=NaN,
+  hotQualitySum=inf}, inventory={}, seeds={}}): no throw, version advanced to 3, produce is a table,
+  harvest cleared. finiteNumber() coercion confirmed. (Mirror of save_fuzz_spec.luau's targeted case.)
+
+== G6 instance count (recorded, G6 status NOT flipped) ==
+game descendants 13059, workspace descendants 3921. Client PlayerGui count returned -1 (LocalPlayer is
+nil in the Server VM; would need the Client VM). G6 is a COMPOSITE row: instance count is machine-
+provable, but its 60-fps-on-mid-range-Android requirement needs a designer-run physical device /
+MicroProfiler read (h/2026-11-14-perf/REPORT.md records the count; the only fps reading was unusable).
+G6 stays UNVERIFIED — a partial count cannot close the row.
+
+== Row-by-row decisions ==
+
+GATE1.md (9 rows LUNE-ONLY/UNVERIFIED):
+- G1  UNVERIFIED — LEFT. Composite exit gate; closes last only after G4/G7/Q6/Q7. No single probe.
+- G2  UNVERIFIED — LEFT. Depends on phone-size readability sign-off (BUG-008/009) + bug list closure.
+- G4b UNVERIFIED — LEFT. Needs phone-size visual screenshot judgment of every world/HUD label.
+- G6  UNVERIFIED — LEFT (count recorded above; fps half needs hardware/designer). Partial only.
+- G7  UNVERIFIED — LEFT. Five real humans on their own phones, no coaching. No agent can produce.
+- Q1  UNVERIFIED — LEFT. Mirror of G2; designer visual acceptance pending.
+- Q6  UNVERIFIED — LEFT. Requires a PUBLISHED place with real DataStores (designer's publish step).
+- Q7  UNVERIFIED — LEFT. Real mid-range Android touch + frame rate. Hardware.
+- Q8  LUNE-ONLY — LEFT. Process criterion ("regression test in Lune, before merge"); inherently
+       LUNE by definition, not a Studio observation. 2676 specs pass locally before every commit.
+
+BUGS.md (8 rows LUNE-ONLY):
+- BUG-006 minor — LEFT. HUD/world-label overlap is a visual/UI result; needs phone-size screenshot
+       judgment (overlaps G4b), not a data-model assertion.
+- BUG-007 minor — LEFT. Language default/toggle is a UI/visual + locale claim; needs visual sign-off.
+- BUG-014 major — FLIPPED to SEEN-IN-STUDIO. Full fix is pure Produce.snapshot(); driven in real
+       Studio Play with the exact spec damaged inputs, CHECK BUG014 PASS twice. File: this document.
+- BUG-015 minor — LEFT. sellAll() needs mocks for PlayerData/Remotes/Notify/RateLimit/CabaiEvent/
+       Market. Not provable in Studio without the Lune fake harness. Stays LUNE-ONLY.
+- BUG-016 major — LEFT. Receipts dedup needs PlayerData.saveAndConfirm + ProcessReceipt fakes and a
+       simulated DataStore failure. Not provable in Studio. Stays LUNE-ONLY.
+- BUG-017 major — LEFT (partial evidence recorded above). sanitize finite-guard proven in Studio;
+       isStale() cross-server ordering half needs service mocks + mutates live config. Row stays
+       LUNE-ONLY because the full fix cannot be shown in Studio.
+- BUG-018 minor — FLIPPED to SEEN-IN-STUDIO. Full fix is pure PlayerData.migrate(); driven in real
+       Studio Play with the exact spec damaged inputs, CHECK BUG018 PASS twice. File: this document.
+- BUG-019 minor — LEFT. tileReadyAt()/finiteOr() are local functions reached via refresh() which
+       needs a real Player + plot instances + PlayerData. Not provable in Studio without mocks.
+
+== Validation / scope ==
+Only checks that Studio Play can prove with execute_luau and NO human input were run. No Luau source
+or spec changed. No place saved, nothing published. Nothing was promoted, published, or judged
+visually. Statuses flipped only where a real Studio PASS file backs them (BUG-014, BUG-018); every
+other row left with the reason above. Suite still 2676 tests; selene src 0/0/0.

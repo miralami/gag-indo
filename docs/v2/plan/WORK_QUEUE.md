@@ -971,7 +971,7 @@ The designer reviews the results one candidate at a time afterwards, so produce 
 - [x] 96. **IconMap coverage.** A spec that every `IconMap` slot resolves to a non-zero asset ID recorded in `ASSET_MANIFEST.md`, and that no ID appears twice by mistake.
 - [x] 97. **Perf budget table.** Measure and record in `docs/v2/visual/PERF_R9.md`: instances, parts, `MeshPart` triangle estimate and `ParticleEmitter` count for the default look and for each candidate enabled alone on top of it. **CHECK `PERF_BUDGET`:** the default look is within the Sedang tier budget in `VISUAL_MASTER_PLAN.md` §6. Flag, never hide, any candidate over budget.
 - [x] 98. **`LOOKDEV_LEAK` sweep.** Run the leak check from item 68 over **every** candidate in `LookDev.IDS` and save the output in `CHECK_98.txt`. Fix every leak in the candidate's `restore`/`disable`. Any candidate that can't be fixed in two attempts is marked `BLOCKED` with the delta.
-- [ ] 99. **Gate 1 evidence sweep.** Go through `GATE1.md` and `BUGS.md`. For each row marked `LUNE-ONLY` or `UNVERIFIED` that Studio Play can prove with `execute_luau` (no human input needed), run it and save the output under `docs/v2/evidence/`. Change a status to `SEEN-IN-STUDIO` only with a file behind it; leave the rest and note why.
+- [x] 99. **Gate 1 evidence sweep.** Go through `GATE1.md` and `BUGS.md`. For each row marked `LUNE-ONLY` or `UNVERIFIED` that Studio Play can prove with `execute_luau` (no human input needed), run it and save the output under `docs/v2/evidence/`. Change a status to `SEEN-IN-STUDIO` only with a file behind it; leave the rest and note why.
 
 #### M7. Handoff
 

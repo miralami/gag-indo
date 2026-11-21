@@ -330,6 +330,15 @@ recorded in `h/2026-11-21-round9/CHECK_098.txt`. Hardened `spawn_ground_r6_spec`
 source-string assertion passed WITH the leak). 1 leak, 1 fix; no candidate hit the two-attempt BLOCKED
 threshold. Suite **2676 tests**; `selene src` 0/0/0; stylua clean; diff clean.
 
+Item 99 COMPLETE (Gate 1 evidence sweep): went through GATE1.md + BUGS.md LUNE-ONLY/UNVERIFIED rows.
+Real Play Server VM drove pure shipped functions with the exact spec damaged inputs; verbatim `CHECK
+BUG014 PASS` / `CHECK BUG018 PASS` twice each, recorded in `h/2026-11-21-round9/CHECK_099.txt`. Flipped
+BUG-014 (Produce.snapshot) + BUG-018 (PlayerData.migrate) to SEEN-IN-STUDIO — full fix is a pure function
+provable with no human input. LEFT with reasons: BUG-017 (sanitize half proven, isStale ordering needs
+service mocks), BUG-015/016/019 (need Player/Remote/DataStore mocks), BUG-006/007 (visual sign-off), all
+GATE1 rows (G1/G2/Q1 composite, G4b phone-visual, G6 fps half needs hardware + count recorded 13059/3921,
+G7 five humans, Q6 published place, Q7 real device, Q8 inherently LUNE process gate). No Luau/spec changed.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

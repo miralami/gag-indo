@@ -307,6 +307,17 @@ every ID is recorded in the ASSET_MANIFEST.md icon CSV rows (55 parsed, 27/27 ma
 0 duplicates within r2 and 0 r2/r3 overlap (`h/2026-11-21-round9/CHECK_096.txt`). No invented IDs.
 Suite **2676 tests**; `selene src` 0/0/0.
 
+Item 97 COMPLETE (perf budget table): live dual-VM census (fresh default + all 79 candidates staged
+alone via `enable`, deltas self-correcting against recorded `pre`; deterministic on repeats) recorded
+in `visual/PERF_R9.md` + `h/2026-11-21-round9/CHECK_097.txt`. Verbatim `CHECK PERF_BUDGET PASS 334 500`
+(default within Sedang ~500 draw-call proxy; 3921 inst / 1713 parts / 299 MeshParts / 66,248 prim tris
+/ 0 emitters). MeshPart triangle count not exposed to Luau — reported as separate count, no invented
+triangle figures; `smoke_r8` live emitters 0 here (MapSpec server-only; pure-data 9 from item 84).
+8 over-budget candidates FLAGGED never hidden (pathedge_r8 1146, buildings_r8 1740, hubveg_r8 799,
+hubs_real_r9 692, pasar_awnings_r8 558, vegetation_r7 584, npcs_idle_r8 505, crops 673) — all
+off by default; reproduces prior CHECK_142/144/147/148 flags. Heavy sawah_r8 (408k prim tris / 30k
+parts, outside spawn census) noted. No default change, no visual verdict. No Luau source/spec changed.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

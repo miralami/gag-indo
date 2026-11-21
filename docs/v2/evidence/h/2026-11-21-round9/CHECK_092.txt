@@ -1,0 +1,63 @@
+CHECK 92 — sounds_r8 ambient sound beds (WORK_QUEUE section M5, item 92)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Edit runtime injection; place NOT saved, nothing published.
+
+== Asset provenance (real IDs only, no invention) ==
+Six free Creator Store audio assets were sourced via Studio MCP search_asset
+(scope=creator_store, assetType=Audio, priceFilter=free). Each was VERIFIED loading in a fresh Play VM
+in BOTH the Client and Server datamodels (Sound.IsLoaded = true, real TimeLength read, no
+"not authorized") BEFORE being recorded in docs/v2/visual/art/ASSET_MANIFEST.md. These are real
+Creator Store IDs; none was invented, no shipping Config/Audio.sounds slot was changed. Aural
+yes/no is the designer's.
+  jangkrik  = 9114894498   Jungle Insects 1 (SFX)                        ProSoundEffects 46.016 s
+  ayam      = 9114370190   Farm Animals Dog Barking Rooster Crows 2 SFX  ProSoundEffects 51.604 s
+  birds     = 9112750044   Birds Quiet And Tranquil 1 (SFX)              ProSoundEffects 36.009 s
+  river     = 9118187543   River Water 1 (SFX)                           ProSoundEffects 27.019 s
+  wind      = 116565742544806  The Wind (Ambience Version)               APMOfficial      96.752 s
+  kentongan = 9046655769   Oriental Gong 4 - Remastered                  APMOfficial      21.107 s
+
+== Setup ==
+Injected at runtime (not saved) into the EDIT datamodel: Shared.ModelMapSoundsR8, updated
+Shared.LookDev / Shared.LookDevReview (79 ids), and the server applier
+ServerScriptService.Server.World.LookDevSoundsR8. Fresh real Play session. sounds_r8 is a SERVER
+candidate (the main session verified Sound.IsLoaded becomes true in the Server VM too, so the
+server-VM harness observes the staged Sounds directly). The whole tools/studio/review_check_r8.luau
+was pasted into execute_luau in the SERVER VM; SOUND_* run in one own `do...end` scope and restore
+the prior candidate at the end. The harness explicitly requires the applier (registration happens
+at module load; a saved place's boot script may predate these candidates).
+
+== Raw check lines (verbatim, SERVER VM) ==
+CHECK SOUND_LOADED PASS 6 6
+CHECK SOUND_VOLUME PASS 6 6
+CHECK SOUND_RESTORE PASS 1 1
+CHECK LOAD_FAILURES PASS 0 0
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+CHECK CAMERA_CLEAR PASS 0 blocked/42 checked 0 blocked
+CHECK PERF_BUDGET PASS 334 500
+
+== Detail (verbatim) ==
+SOUND_LOADED: 6 staged Sounds, timeout 10 s, all IsLoaded true in elapsed 0.51 s. Per-bed lengths:
+jangkrik=true/46.016 ayam=true/51.604 birds=true/36.009 river=true/27.019 wind=true/96.752
+kentongan=true/21.107. Roblox exposes NO "not authorized" signal for Sound; an unauthorized or
+moderated asset simply never sets IsLoaded. The bounded <=10 s poll (with task.wait, never freezing)
+is therefore the only available proxy: FAIL if any bed stays unloaded. All six loaded, errors [].
+proxy note recorded verbatim: "never-loaded IsLoaded is the only available not-authorized signal".
+
+SOUND_VOLUME: 6 staged Sounds, maxVolume 0.5, maxRollOff 80, groupName JD_sounds_r8, 0 offenders.
+Each Sound is parented to a tiny invisible anchored CanCollide=false Part (positional audio), carries
+Volume <= 0.5 and RollOffMaxDistance <= 80, and is assigned to the shared JD_sounds_r8 SoundGroup.
+All six pass; errors []. Thresholds MAX_VOLUME=0.5, MAX_ROLLOFF=80 are declared in the pure model.
+
+SOUND_RESTORE: baseline SoundService-descendant count 0 -> afterDescendants 0; createdGroup
+JD_sounds_r8 destroyed on disable; failures [], errors []. disable() stops and destroys every Sound,
+Part, the staging folder and the created group (only if this applier created it), and restores any
+prior folder exactly. Idempotent. LOAD_FAILURES 0, LOOKDEV_LEAK 0, CAMERA_CLEAR 0/42.
+
+PERF_BUDGET 334/500 — read after the candidate was disabled, equal to the default look, under the
+Sedang proxy. No over-budget flag. No interaction, dialogue or gameplay hook; candidate OFF by default.
+
+Status: SEEN-IN-STUDIO (SERVER-VM staged enable/read/disable cycle: six real Creator Store IDs all
+loaded with real lengths, positional/capped/grouped properties verified, exact restore). No place
+saved, nothing published. The aural yes/no (whether the beds read as a kampung soundscape) remains
+the designer's — these checks prove load, caps, positional grouping and restore, not how it sounds.

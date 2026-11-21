@@ -262,6 +262,18 @@ read unchanged baseline) because the injected applier was never required so regi
 the harness now requires it explicitly (spec-locked), no range/threshold weakened; re-run PASS.
 Visual yes/no remains the designer's. Suite **2666 tests**; `selene src` 0/0/0.
 
+Item 92 COMPLETE: `sounds_r8` is an OFF-by-default SERVER candidate staging six real free Creator
+Store audio beds (jangkrik night, ayam + birds day, river + wind always, kentongan event) — each a
+tiny invisible anchored Part hosting one looped positional Sound, Volume <= 0.5, RollOffMaxDistance
+<= 80, all in one `JD_sounds_r8` SoundGroup. Six IDs sourced via Studio MCP `search_asset`, each
+verified `IsLoaded=true` (real TimeLength, no `not authorized`) in BOTH Play VMs and recorded in
+`visual/art/ASSET_MANIFEST.md`; no ID invented, no shipping audio slot changed. Studio SERVER-VM PASS
+`SOUND_LOADED 6/6` (all loaded in 0.51 s with lengths; the <=10 s IsLoaded poll is the only available
+not-authorized proxy), `SOUND_VOLUME 6/6` (max vol 0.5, rolloff 80, 0 offenders), `SOUND_RESTORE 1/1`
+(all Sounds/Parts/group destroyed, exact restore), `LOAD_FAILURES 0`, `LOOKDEV_LEAK 0`,
+`CAMERA_CLEAR 0/42`, `PERF_BUDGET 334/500` (`h/2026-11-21-round9/CHECK_092.txt`). Aural yes/no
+remains the designer's. Suite **2672 tests**; `selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

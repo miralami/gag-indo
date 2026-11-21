@@ -52,6 +52,7 @@
 --   src/client/World/LookDevDayCycleR8.luau -- candidate "day_cycle_r8" (tuned golden-hour contrast, client-only)
 --   src/server/World/LookDevNightR8.luau -- candidate "night_r8" (warm night panes and Rendah glow, server-only)
 --   src/server/World/LookDevGradeR8.luau -- candidates "grade_r8_a/b/c" (tropical colour grades, server-only)
+--   src/server/World/LookDevSoundsR8.luau -- candidate "sounds_r8" (six positional Creator Store beds, server-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -74,6 +75,7 @@
 --   LookDev.enable("sky_r6_a") -- or sky_r6_b / sky_r6_c / sky_r6_d / sky_r6_e / sky_r6_f
 --   -- from the Server datamodel: LookDev.enable("buildings_r8") / LookDev.enable("facades_r8") / LookDev.enable("hubprops_r8") / LookDev.enable("hubs_real_r9") / LookDev.enable("plaza_r9") / LookDev.enable("ronda_tower_r9") / LookDev.enable("rocks_r9") / LookDev.enable("streetfurn_r8") / LookDev.enable("spanduk_r8") / LookDev.enable("night_r8")
 --   -- server-only colour grades: LookDev.enable("grade_r8_a") / LookDev.enable("grade_r8_b") / LookDev.enable("grade_r8_c")
+--   -- server-only ambient beds: LookDev.enable("sounds_r8")
 --   LookDev.enable("spawn_ground_r6")
 --   LookDev.enable("terrain_r6_a") -- or LookDev.enable("terrain_r6_b")
 --   -- server-only: LookDev.enable("buildings_r4") / LookDev.enable("vegetation_r4") / LookDev.enable("props_r4") / LookDev.enable("npcs_r4")
@@ -174,6 +176,7 @@ LookDev.IDS = {
 	"grade_r8_a",
 	"grade_r8_b",
 	"grade_r8_c",
+	"sounds_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -1114,6 +1117,19 @@ LookDev.candidates = {
 		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
 		noDof = true,
 	},
+
+	sounds_r8 = {
+		id = "sounds_r8",
+		title = "Ambient sound beds — jangkrik by night, ayam + birds by day, river + wind always, kentongan event (round 9, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Six real free Creator Store audio IDs live in Shared.ModelMapSoundsR8 and are recorded in
+		-- ASSET_MANIFEST.md. The SERVER applier stages positional Sounds in JD_sounds_r8, Volume <=
+		-- 0.5 and RollOffMaxDistance <= 80. Aural grading stays the designer's.
+		idsSource = "Shared.ModelMapSoundsR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		soundCount = 6,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1191,8 +1207,8 @@ function LookDev.plan(id: string): any
 			render = c.render,
 			hubCount = c.hubCount,
 		}
-	elseif id == "sounds" then
-		local c = LookDev.candidates.sounds
+	elseif id == "sounds" or id == "sounds_r8" then
+		local c = LookDev.candidates[id]
 		return {
 			id = id,
 			idsSource = c.idsSource,

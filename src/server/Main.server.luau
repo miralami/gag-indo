@@ -133,6 +133,7 @@ pcall(require, script.Parent.World.LookDevBuildingsR8)
 pcall(require, script.Parent.World.LookDevFacadesR8)
 pcall(require, script.Parent.World.LookDevNightR8)
 pcall(require, script.Parent.World.LookDevGradeR8)
+pcall(require, script.Parent.World.LookDevSoundsR8)
 pcall(require, script.Parent.World.LookDevHubPropsR8)
 pcall(require, script.Parent.World.LookDevForestPinesLegacy)
 

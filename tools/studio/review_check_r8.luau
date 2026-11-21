@@ -128,8 +128,17 @@
 -- GRADE_RESTORE requires every property and the Lighting descendant count to match the baseline
 -- after disable; GRADE_NO_DOF requires 0 depth-of-field effects at baseline and after each enable.
 -- Any missing effect/range or failed read FAILs loudly; all three always emit.
+-- Item 92 adds the mutating SERVER-only SOUND_LOADED, SOUND_VOLUME and SOUND_RESTORE trio, emitted
+-- from their own do...end scope just before LOOKDEV_LEAK. It stages sounds_r8 via an explicit
+-- SERVER applier require (saved-place boots may predate the module), then polls IsLoaded for at most
+-- Shared.ModelMapSoundsR8.LOAD_TIMEOUT_S seconds. "not authorized" has no Luau signal, so a bed
+-- that never loads is the only available proxy. SOUND_VOLUME also requires positional Sounds in a
+-- SoundGroup with Volume <= 0.5 and RollOffMaxDistance <= 80; SOUND_RESTORE requires exact
+-- SoundService/group/folder restore and the prior candidate back. All three always emit.
 -- All checks except LOOKDEV_LEAK, ADDITIVE_STAGE, WATER_SAFE, WATER_RESTORE, WIND_SET,
--- SWAY_TWEENS and WIND_RESTORE are read-only. The mutating checks call enable(id)/disable() and
+-- SWAY_TWEENS, WIND_RESTORE, NIGHT_WINDOWS, NIGHT_LIGHTS, GRADE_SAFE, GRADE_RESTORE,
+-- GRADE_NO_DOF, SOUND_LOADED, SOUND_VOLUME and SOUND_RESTORE are read-only.
+-- The mutating checks call enable(id)/disable() and
 -- restore the prior active candidate at the end; ADDITIVE_STAGE uses enableAdditive(id)/
 -- disableAll(). All are safe to repeat.
 -- Every line is
@@ -256,6 +265,9 @@ local ORDER = {
 	"GRADE_SAFE",
 	"GRADE_RESTORE",
 	"GRADE_NO_DOF",
+	"SOUND_LOADED",
+	"SOUND_VOLUME",
+	"SOUND_RESTORE",
 	"LOOKDEV_LEAK",
 }
 
@@ -8039,6 +8051,341 @@ emit(
 )
 end
 runGradeChecks()
+end
+
+-- 12i. Item 92: sounds_r8. Own do...end scope with an inner function (the harness is near the
+-- 200-local-register cap). MUTATING SERVER-only: enable the candidate, poll IsLoaded for at most
+-- Data.LOAD_TIMEOUT_S seconds (no "not authorized" Luau signal exists — never-loaded is the proxy),
+-- read Volume/RollOffMaxDistance/SoundGroup/parent on all six beds, disable, and require exact
+-- SoundService/group/folder restore plus the prior candidate. All three lines always emit.
+do
+local function soundFailAll(reason)
+	emit("SOUND_LOADED", false, 0, 6, { reason = reason })
+	emit("SOUND_VOLUME", false, 0, 6, { reason = reason })
+	emit("SOUND_RESTORE", false, 0, 1, { reason = reason })
+end
+
+local function runSoundChecks()
+	if not isServer then
+		soundFailAll("server VM required")
+		return
+	end
+	local okModules, mods = pcall(function()
+		return {
+			look = require(game.ReplicatedStorage.Shared.LookDev),
+			map = require(game.ReplicatedStorage.Shared.ModelMapSoundsR8),
+			soundService = game:GetService("SoundService"),
+			-- The appliers register at module load; a saved place's boot script may predate this one.
+			applier = require(game.ServerScriptService.Server.World.LookDevSoundsR8),
+		}
+	end)
+	if
+		not okModules
+		or type(mods) ~= "table"
+		or type(mods.look) ~= "table"
+		or type(mods.look.enable) ~= "function"
+		or type(mods.look.current) ~= "function"
+		or type(mods.map) ~= "table"
+		or type(mods.map.BEDS) ~= "table"
+		or type(mods.map.folder) ~= "string"
+		or type(mods.map.groupName) ~= "string"
+		or type(mods.applier) ~= "table"
+	then
+		soundFailAll("modules unreadable: " .. tostring(mods))
+		return
+	end
+	local Look, Data = mods.look, mods.map
+	local errors = {}
+	local function soundFail(reason)
+		errors[#errors + 1] = reason
+	end
+
+	local okCur, current = pcall(function()
+		return Look.current()
+	end)
+	local priorId = if okCur and type(current) == "string" then current else nil
+	local function disableActive()
+		pcall(function()
+			return Look.disable()
+		end)
+	end
+	local function restorePrior()
+		if not priorId then
+			return
+		end
+		pcall(function()
+			return Look.enable(priorId, { studio = true })
+		end)
+	end
+
+	local function groupNames()
+		local okList, list = pcall(function()
+			return mods.soundService:GetChildren()
+		end)
+		local names = {}
+		if okList and type(list) == "table" then
+			for _, inst in ipairs(list) do
+				local okGroup, isGroup = pcall(function()
+					return inst:IsA("SoundGroup")
+				end)
+				if okGroup and isGroup then
+					names[#names + 1] = inst.Name
+				end
+			end
+		end
+		table.sort(names)
+		return names
+	end
+
+	local function soundDescCount()
+		local okList, list = pcall(function()
+			return mods.soundService:GetDescendants()
+		end)
+		if okList and type(list) == "table" then
+			return #list
+		end
+		return nil
+	end
+
+	disableActive()
+	local baselineDesc = soundDescCount()
+	local baselineGroups = groupNames()
+	local baselineKey = table.concat(baselineGroups, "|")
+	if baselineDesc == nil then
+		soundFail("baseline SoundService descendants unreadable")
+	end
+	local okBaselineFolder, baselineFolder = pcall(function()
+		return workspace:FindFirstChild(Data.folder)
+	end)
+	if not okBaselineFolder then
+		soundFail("baseline folder read failed")
+	end
+
+	local okEnable, enabled, enableErr = pcall(function()
+		return Look.enable(Data.id, { studio = true })
+	end)
+	if not okEnable or enabled == false then
+		soundFail("enable:" .. tostring(enableErr or enabled))
+	end
+
+	local sounds = {}
+	local okFolder, stagedFolder = pcall(function()
+		return workspace:FindFirstChild(Data.folder)
+	end)
+	if not okFolder or not stagedFolder then
+		soundFail("staged folder missing")
+	else
+		local okDesc, descendants = pcall(function()
+			return stagedFolder:GetDescendants()
+		end)
+		if not okDesc or type(descendants) ~= "table" then
+			soundFail("staged descendants unreadable")
+		else
+			for _, inst in ipairs(descendants) do
+				local okSound, isSound = pcall(function()
+					return inst:IsA("Sound")
+				end)
+				if okSound and isSound then
+					sounds[#sounds + 1] = inst
+				end
+			end
+		end
+	end
+
+	local function soundByKey(key)
+		for _, sound in ipairs(sounds) do
+			local okName, name = pcall(function()
+				return sound.Name
+			end)
+			if okName and name == key then
+				return sound
+			end
+		end
+		return nil
+	end
+
+	local expected = #Data.BEDS
+	local timeout = type(Data.LOAD_TIMEOUT_S) == "number" and Data.LOAD_TIMEOUT_S or 10
+	local started = os.clock()
+	local loadedCount, detail = 0, {}
+	while true do
+		loadedCount = 0
+		detail = {}
+		for _, bed in ipairs(Data.BEDS) do
+			local sound = soundByKey(bed.key)
+			local loaded, length = false, nil
+			if sound then
+				local okLoad, value = pcall(function()
+					return sound.IsLoaded
+				end)
+				if okLoad then
+					loaded = value == true
+				end
+				local okLength, seconds = pcall(function()
+					return sound.TimeLength
+				end)
+				if okLength then
+					length = seconds
+				end
+			end
+			if loaded then
+				loadedCount += 1
+			end
+			detail[#detail + 1] = bed.key
+				.. "="
+				.. tostring(loaded)
+				.. "/"
+				.. (type(length) == "number" and string.format("%.3f", length) or "no-length")
+		end
+		local elapsed = os.clock() - started
+		if loadedCount == expected or elapsed >= timeout then
+			break
+		end
+		pcall(function()
+			task.wait(0.25)
+		end)
+	end
+	local elapsed = os.clock() - started
+	emit(
+		"SOUND_LOADED",
+		#errors == 0 and #sounds >= expected and loadedCount == expected,
+		loadedCount,
+		expected,
+		{
+			beds = expected,
+			stagedSounds = #sounds,
+			elapsed = math.floor(elapsed * 100) / 100,
+			timeout = timeout,
+			detail = table.concat(detail, " "),
+			errors = errors,
+			proxy = "never-loaded IsLoaded is the only available not-authorized signal",
+		}
+	)
+
+	local compliant, offenders = 0, {}
+	for _, bed in ipairs(Data.BEDS) do
+		local sound = soundByKey(bed.key)
+		if sound then
+			local okRead, volume, rollOff, soundGroup, parent = pcall(function()
+				return sound.Volume, sound.RollOffMaxDistance, sound.SoundGroup, sound.Parent
+			end)
+			local positional = false
+			if okRead and parent then
+				local okParent, isPositional = pcall(function()
+					return parent:IsA("BasePart") or parent:IsA("Attachment")
+				end)
+				positional = okParent and isPositional == true
+			end
+			if
+				okRead
+				and type(volume) == "number"
+				and volume <= Data.MAX_VOLUME
+				and type(rollOff) == "number"
+				and rollOff <= Data.MAX_ROLLOFF
+				and soundGroup ~= nil
+				and positional
+			then
+				compliant += 1
+			else
+				offenders[#offenders + 1] = bed.key
+					.. ":volume="
+					.. tostring(volume)
+					.. ",rollOff="
+					.. tostring(rollOff)
+					.. ",group="
+					.. tostring(soundGroup ~= nil)
+					.. ",positional="
+					.. tostring(positional)
+			end
+		else
+			offenders[#offenders + 1] = bed.key .. ":missing"
+		end
+	end
+	emit(
+		"SOUND_VOLUME",
+		#errors == 0 and #sounds >= expected and compliant == expected and #offenders == 0,
+		compliant,
+		expected,
+		{
+			maxVolume = Data.MAX_VOLUME,
+			maxRollOff = Data.MAX_ROLLOFF,
+			groupName = Data.groupName,
+			stagedSounds = #sounds,
+			offenders = offenders,
+			errors = errors,
+		}
+	)
+
+	local captured = {}
+	for _, sound in ipairs(sounds) do
+		captured[#captured + 1] = sound
+	end
+	local okDisable, disabled = pcall(function()
+		return Look.disable()
+	end)
+	if not okDisable then
+		soundFail("disable:" .. tostring(disabled))
+	end
+	local restoreFails = {}
+	local afterDesc = soundDescCount()
+	if afterDesc ~= baselineDesc then
+		restoreFails[#restoreFails + 1] = "descendants " .. tostring(baselineDesc) .. "->" .. tostring(afterDesc)
+	end
+	local afterGroups = groupNames()
+	if table.concat(afterGroups, "|") ~= baselineKey then
+		restoreFails[#restoreFails + 1] = "groups " .. baselineKey .. "->" .. table.concat(afterGroups, "|")
+	end
+	local okAfterFolder, afterFolder = pcall(function()
+		return workspace:FindFirstChild(Data.folder)
+	end)
+	if not okAfterFolder then
+		restoreFails[#restoreFails + 1] = "folder-read"
+	elseif (baselineFolder ~= nil) ~= (afterFolder ~= nil) then
+		restoreFails[#restoreFails + 1] = "folder-restored=" .. tostring(afterFolder ~= nil)
+	end
+	for _, sound in ipairs(captured) do
+		local okParent, parent = pcall(function()
+			return sound.Parent
+		end)
+		if not okParent or parent ~= nil then
+			restoreFails[#restoreFails + 1] = "sound-parent=" .. tostring(okParent and parent or "read-error")
+		end
+		local okPlaying, playing = pcall(function()
+			return sound.IsPlaying
+		end)
+		if not okPlaying or playing == true then
+			restoreFails[#restoreFails + 1] = "sound-playing"
+		end
+	end
+	local okCurAfter, currentAfter = pcall(function()
+		return Look.current()
+	end)
+	if not okCurAfter or currentAfter ~= nil then
+		restoreFails[#restoreFails + 1] = "still-enabled"
+	end
+	restorePrior()
+	local okRestored, restoredId = pcall(function()
+		return Look.current()
+	end)
+	if not okRestored or restoredId ~= priorId then
+		restoreFails[#restoreFails + 1] = "prior=" .. tostring(priorId)
+	end
+	emit(
+		"SOUND_RESTORE",
+		#errors == 0 and #restoreFails == 0,
+		#restoreFails == 0 and 1 or 0,
+		1,
+		{
+			baselineDescendants = baselineDesc,
+			afterDescendants = afterDesc,
+			createdGroup = Data.groupName,
+			prior = priorId,
+			failures = restoreFails,
+			errors = errors,
+		}
+	)
+end
+runSoundChecks()
 end
 
 -- 13. LOOKDEV_LEAK: mutating, run last. For every LookDev.IDS entry, count workspace and

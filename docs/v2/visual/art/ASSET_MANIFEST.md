@@ -25,6 +25,20 @@ MCP `search_asset` (Creator Store, free filter) and each was loaded in a Play So
 | `sting_rankup` | 3120909354 | Level_up | thienbao2109 | 2.38 s | Creator Store, free | same (verified `IsLoaded = true` on 2026-11-14) | designer to confirm |
 | `sting_raid` | 127714289075929 | Police Siren Sound Effect | FusionFire97 | 4.46 s | Creator Store, free | same (verified `IsLoaded = true` on 2026-11-14) | designer to confirm |
 | `sting_jail` | 127714289075929 | Police Siren Sound Effect | FusionFire97 | 4.46 s | Creator Store, free | same (verified `IsLoaded = true` on 2026-11-14) | designer to confirm |
+| `sfx_jangkrik` | 9114894498 | Jungle Insects 1 (SFX) | ProSoundEffects | 46.016 s | Creator Store, free | Creator Store audio for use in Roblox experiences; terms are Roblox's, not re-read here; verified `IsLoaded = true`, len 46.016 s in Client Play VM on 2026-11-21 | designer to confirm |
+| `sfx_ayam` | 9114370190 | Farm Animals Dog Barking Rooster Crows 2 (SFX) | ProSoundEffects | 51.604 s | Creator Store, free | same (verified `IsLoaded = true`, len 51.604 s in Client Play VM on 2026-11-21) | designer to confirm |
+| `sfx_birds` | 9112750044 | Birds Quiet And Tranquil 1 (SFX) | ProSoundEffects | 36.009 s | Creator Store, free | same (verified `IsLoaded = true`, len 36.009 s in Client Play VM on 2026-11-21) | designer to confirm |
+| `sfx_river` | 9118187543 | River Water 1 (SFX) | ProSoundEffects | 27.019 s | Creator Store, free | same (verified `IsLoaded = true`, len 27.019 s in Client Play VM on 2026-11-21) | designer to confirm |
+| `sfx_wind` | 116565742544806 | The Wind (Ambience Version) | APMOfficial | 96.752 s | Creator Store, free | same (verified `IsLoaded = true`, len 96.752 s in Client Play VM on 2026-11-21) | designer to confirm |
+| `sfx_kentongan` | 9046655769 | Oriental Gong 4 - Remastered | APMOfficial | 21.107 s | Creator Store, free | same (verified `IsLoaded = true`, len 21.107 s in Client Play VM on 2026-11-21) | designer to confirm |
+
+The six `sfx_*` rows were added in round 9 item 92 (2026-11-21) after a fresh Creator Store free-audio
+`search_asset` (Studio MCP, `scope=creator_store`, `assetType=Audio`, `priceFilter=free`). Each ID was
+verified loading in a fresh Client Play VM (`Sound.IsLoaded = true`, `TimeLength` read, no
+`not authorized`) before being recorded here. **All six are LookDev candidates awaiting designer
+yes/no** — they are applied only by the off-by-default `sounds_r8` candidate; no shipping
+`Config/Audio.sounds` slot was changed. No ID was invented. Evidence
+`docs/v2/evidence/h/2026-11-21-round9/CHECK_092.txt`.
 
 `music_sawah` and `music_hutan` were added in round 2 item 9 (2026-11-19) after a fresh Creator Store
 free-audio search. Both were verified loading in a Play VM (`IsLoaded = true`, lengths read) before

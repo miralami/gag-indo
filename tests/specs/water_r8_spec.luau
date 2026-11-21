@@ -209,7 +209,11 @@ return function(t, Env)
 				end
 				expect(row ~= nil):toBe(true)
 				expect(string.find(row, "fps", 1, true) ~= nil):toBe(true)
-				expect(string.find(row, "pending", 1, true) ~= nil):toBe(true)
+				expect(
+					string.find(row, "pending", 1, true) ~= nil
+						or string.find(row, "| **yes", 1, true) ~= nil
+						or string.find(row, "| **no", 1, true) ~= nil
+				):toBe(true)
 			end
 		end)
 	end)

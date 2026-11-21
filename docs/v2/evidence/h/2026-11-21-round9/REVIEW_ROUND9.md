@@ -110,3 +110,26 @@ or evidence CHECK file is written by the implementation agent; the main session 
    `CAMERA_CLEAR 0 blocked/26 checked` should still PASS.
 5. Stop Play without saving. `ADDITIVE_STAGE` is SERVER-only: in the Client VM it emits
    `CHECK ADDITIVE_STAGE FAIL 0 3` rather than staging. Visual yes/no is the designer's.
+
+## 8. Item-137 run — `water_r8_a` shipping default (WORK_QUEUE section O)
+
+Ordered run recipe. **No Studio result is claimed** by the implementation agent; the main session
+owns the CHECK evidence. No place is saved or published.
+
+1. Stop Play. Inject at runtime (not saved): `ReplicatedStorage.Shared.ModelMapWaterR8`,
+   `StarterPlayerScripts.Client.World.Water`, the changed `StarterPlayerScripts.Client.Main.client`,
+   and the changed `tools/studio/review_check_r8.luau`. No LookDev module is changed: the default
+   write path is independent of `LookDevWaterR8.appliers.a`, which keeps its own save/restore.
+2. Start a FRESH real Play session in the CLIENT datamodel. Do NOT call `LookDev.enable(...)`,
+   `LookDevReview.enable(...)` or stage any candidate. `Main.client` applies variant A at boot
+   through `guarded("Water.mount", ...)`, right after `guarded("Sky.mount", ...)`.
+3. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the CLIENT
+   VM. Expect `CHECK WATER_DEFAULT PASS 5 5`: all five Terrain water properties match
+   `ModelMapWaterR8.valuesFor("a")` (WaterColor per 8-bit channel rounded; numeric props within
+   0.01). `WATER_DEFAULT` is READ-ONLY and never enables a candidate. A missing Terrain or map
+   FAILs at `0 5` with the reason in `detail.reason`; partial matches list `detail.mismatches`.
+4. In the SAME run, read `CHECK WATER_SAFE PASS 3 3` and `CHECK WATER_RESTORE PASS 3 3`. The
+   existing mutating cycle enables/disables a/b/c and restores the prior active candidate. With no
+   candidate staged, its baseline is the boot-applied A default, so each applier's own previous-value
+   snapshot must restore to A — including `water_r8_b`. No weakening of either target.
+5. Stop Play without saving. `WATER_DEFAULT`, `WATER_SAFE` and `WATER_RESTORE` are CLIENT-only.

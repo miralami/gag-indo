@@ -176,6 +176,7 @@ local specs = {
 	require("./specs/river_r8_spec"),
 	require("./specs/pathedge_r8_spec"),
 	require("./specs/water_r8_spec"),
+	require("./specs/water_default_spec"),
 	require("./specs/buildings_r8_spec"),
 	require("./specs/facades_r8_spec"),
 	require("./specs/hubprops_r8_spec"),

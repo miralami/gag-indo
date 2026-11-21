@@ -19,7 +19,9 @@
 -- when the pathedge_r8 candidate is not staged or MapSpec's road geometry cannot be read.
 -- It also emits the r8 water family (WORK_QUEUE item 76): WATER_SAFE and WATER_RESTORE. Both are
 -- CLIENT-only and mutate Terrain in one guarded enable/read/disable/compare cycle per variant,
--- restoring the prior active candidate at the end.
+-- restoring the prior active candidate at the end. WATER_DEFAULT (WORK_QUEUE item 137) is a
+-- CLIENT-only, READ-ONLY check emitted before them: with no candidate enabled it compares all
+-- five Terrain water properties against water_r8_a's values. It never enables a candidate.
 -- It also emits the r8 buildings family (WORK_QUEUE item 77): BLDG_VISIBLE, BLDG_WIDTH and
 -- BLDG_DOOR. All three FAIL at measured 0 when the buildings_r8 candidate is not staged.
 -- BLDG_VISIBLE counts staged building Models inside the review camera cone; BLDG_WIDTH measures
@@ -93,6 +95,7 @@ local ORDER = {
 	"VEG_NEAR",
 	"PROP_SIZE",
 	"CLOUD_COVER",
+	"WATER_DEFAULT",
 	"WATER_SAFE",
 	"WATER_RESTORE",
 	"CAMERA_CLEAR",
@@ -2837,6 +2840,92 @@ if isClient then
 		"0.4-0.6",
 		{ cover = cover, clockTime = clockTime, cloudPresent = cloud ~= nil }
 	)
+end
+
+-- 12a-pre. WATER_DEFAULT (WORK_QUEUE item 137): CLIENT only and READ-ONLY. In a fresh Play with
+-- no candidate enabled, the boot-applied water_r8_a default must be on Terrain. No enable call
+-- is made here; the later WATER_SAFE/WATER_RESTORE block owns all mutation.
+if isClient then
+	local function defaultFail(reason)
+		emit("WATER_DEFAULT", false, 0, 5, { reason = reason })
+	end
+
+	local okDefaultMap, defaultMap = pcall(function()
+		return require(game.ReplicatedStorage.Shared.ModelMapWaterR8)
+	end)
+	if
+		not okDefaultMap
+		or type(defaultMap) ~= "table"
+		or type(defaultMap.valuesFor) ~= "function"
+		or type(defaultMap.properties) ~= "table"
+	then
+		defaultFail("water map not readable")
+	else
+		local okValues, expected = pcall(function()
+			return defaultMap.valuesFor("a")
+		end)
+		if not okValues or type(expected) ~= "table" or type(expected.WaterColor) ~= "table" then
+			defaultFail("variant a values not readable")
+		else
+			local okTerrain, terrain = pcall(function()
+				return workspace:FindFirstChildOfClass("Terrain")
+			end)
+			if not okTerrain or not terrain then
+				defaultFail("Terrain missing")
+			else
+				local function channel255(component: number): number
+					return math.floor(component * 255 + 0.5)
+				end
+
+				local matched, readings, mismatches = 0, {}, {}
+				for _, property in ipairs(defaultMap.properties) do
+					local okRead, value = pcall(function()
+						return terrain[property]
+					end)
+					if not okRead then
+						mismatches[#mismatches + 1] = property .. ":read:" .. tostring(value)
+					else
+						local equal = false
+						local target = expected[property]
+						if property == "WaterColor" then
+							if typeof(value) == "Color3" and type(target) == "table" then
+								equal = channel255(value.R) == target.r
+									and channel255(value.G) == target.g
+									and channel255(value.B) == target.b
+								readings[#readings + 1] = property
+									.. "=("
+									.. channel255(value.R)
+									.. ","
+									.. channel255(value.G)
+									.. ","
+									.. channel255(value.B)
+									.. ")"
+							else
+								readings[#readings + 1] = property .. ":type=" .. typeof(value)
+							end
+						else
+							if type(value) == "number" and type(target) == "number" then
+								equal = math.abs(value - target) <= 0.01
+							end
+							readings[#readings + 1] = property .. "=" .. tostring(value)
+						end
+						if equal then
+							matched += 1
+						else
+							mismatches[#mismatches + 1] = property .. "=" .. tostring(value)
+						end
+					end
+				end
+				emit(
+					"WATER_DEFAULT",
+					matched == 5,
+					matched,
+					5,
+					{ variant = "water_r8_a", readings = readings, mismatches = mismatches, noEnable = true }
+				)
+			end
+		end
+	end
 end
 
 -- 12a. WATER_SAFE / WATER_RESTORE (WORK_QUEUE item 76): CLIENT only. One mutating cycle over

@@ -796,3 +796,33 @@ evidence, `CHECK_087.txt`, tracker ticks and the visual yes/no. No place is save
    `ModelMapNpcsR8.catalog/roles/slots` (two five-wide rows at z=8 and z=14). Shoot the staged
    rows from the saved `Shared.ModelMapNpcsR8.savedCamera`, then call `LookDevReview.disable()` and
    re-read `LOOKDEV_LEAK 0`; stop Play without saving. Visual yes/no stays the designer's.
+
+## Item-88 run — `ambient_walkers_r8` ambient strollers (WORK_QUEUE section M)
+
+Implementation-only SERVER-VM recipe. **No Studio result is claimed here**; the main session owns
+`CHECK_088.txt`, the tracker tick and the visual yes/no. No place is saved or published.
+
+1. Inject at runtime (not saved): the new `Shared.ModelMapAmbientWalkersR8`, the changed
+   `Shared.LookDev` / `Shared.LookDevReview`, the new
+   `ServerScriptService.Server.World.LookDevAmbientWalkersR8`, and the changed
+   `tools/studio/review_check_r8.luau`. No asset IDs are involved — the rigs are plain R15
+   `HumanoidDescription` bodies with skin colours only, so `ASSET_MANIFEST.md` is untouched.
+2. Start a fresh real Play session and paste the WHOLE `tools/studio/review_check_r8.luau` into
+   Studio MCP `execute_luau` in the SERVER VM. The `do -- 12e. WORK_QUEUE item 88` block is
+   self-contained: it stages via `review.enable("ambient_walkers_r8", game, { studio = true })`,
+   reads all five checks, disables and re-enables the prior candidate. All five emit even on error.
+3. `WALKER_SPEED` reads `Humanoid.WalkSpeed` live from every staged rig (0 < rigs <= 8, every speed
+   <= 8; target emitted is 8). `WALKER_MOVE` is the live "via `NpcWalk`" proof: after enabling, the
+   harness lets the real `task.spawn` loops run ten real `task.wait(0.05)` steps, then compares each
+   rig's `GetPivot().Position` with the saved base pivot; PASS iff at least one rig moved >0.05
+   studs (measured movedCount / rigCount).
+4. `WALKER_WAYPOINTS`, `WALKER_STUCK` and `WALKER_ROAD` all read ONE pure
+   `ModelMapAmbientWalkersR8.simulate(90, routes())` run — the 90-second horizon is a deterministic
+   1800-step sim, NOT a real 90-second wait, because the real `NpcWalk.walkTo` yields via
+   `task.wait(0.05)` on every step. The sim mirrors NpcWalk's lerp, 0.5-stud arrival snap, 0.05-stud
+   stall threshold and waypoint wrap. Targets: every walker >=3 waypoints reached (min emitted / 3),
+   max continuous stuck <=10 s (emitted / 10), max deviation from a road corridor <=8 studs
+   (emitted / 8). Lune baseline: 8 walkers, min 3 reached, 0 s stuck, 0 studs deviation.
+5. Read the guard `LOAD_FAILURES 0 0` (the list now sums `ambient_walkers_r8` too). Call
+   `LookDevReview.disable()` and re-read `LOOKDEV_LEAK 0`; stop Play without saving. Visual yes/no
+   stays the designer's.

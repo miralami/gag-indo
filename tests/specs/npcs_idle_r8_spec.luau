@@ -123,7 +123,7 @@ return function(t, Env)
 
 	t:describe("npcs_idle_r8 LookDev and applier wiring", function()
 		t:it("registers candidate 72 with a server review path", function()
-			expect(#LookDev.IDS):toBe(72)
+			expect(#LookDev.IDS):toBe(73)
 			expect(LookDev.IDS[72]):toBe("npcs_idle_r8")
 			expect(LookDev.isCandidate("npcs_idle_r8")):toBe(true)
 			local candidate = LookDev.candidates.npcs_idle_r8
@@ -186,8 +186,11 @@ return function(t, Env)
 
 		t:it("proves playing tracks, sway, restore and real per-frame cost", function()
 			expect(
-				harness:find('ipairs({ "vegetation_r7", "npcs_r7", "props_r7", "npcs_r8", "npcs_idle_r8" })', 1, true)
-					~= nil
+				harness:find(
+					'ipairs({ "vegetation_r7", "npcs_r7", "props_r7", "npcs_r8", "npcs_idle_r8", "ambient_walkers_r8" })',
+					1,
+					true
+				) ~= nil
 			):toBe(true)
 			expect(harness:find("track.IsPlaying", 1, true) ~= nil):toBe(true)
 			expect(harness:find("applier.connectionCount()", 1, true) ~= nil):toBe(true)

@@ -143,8 +143,11 @@ return function(t, Env)
 			expect(harness:find('"NPC8_ROLES"', 1, true) ~= nil):toBe(true)
 			expect(harness:find('"NPC8_OUTFITS"', 1, true) ~= nil):toBe(true)
 			expect(
-				harness:find('ipairs({ "vegetation_r7", "npcs_r7", "props_r7", "npcs_r8", "npcs_idle_r8" })', 1, true)
-					~= nil
+				harness:find(
+					'ipairs({ "vegetation_r7", "npcs_r7", "props_r7", "npcs_r8", "npcs_idle_r8", "ambient_walkers_r8" })',
+					1,
+					true
+				) ~= nil
 			):toBe(true)
 			expect(harness:find("LookDevModelsNpcsR8_npcs_r8", 1, true) ~= nil):toBe(true)
 			expect(harness:find("Own do...end scope", 1, true) ~= nil):toBe(true)
@@ -152,7 +155,7 @@ return function(t, Env)
 		end)
 
 		t:it("registers candidate 71 with its server review path", function()
-			expect(#LookDev.IDS):toBe(72)
+			expect(#LookDev.IDS):toBe(73)
 			expect(LookDev.IDS[71]):toBe("npcs_r8")
 			expect(LookDev.isCandidate("npcs_r8")):toBe(true)
 			local plan = LookDev.plan("npcs_r8")

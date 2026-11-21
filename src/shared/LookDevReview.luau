@@ -98,6 +98,7 @@ LookDevReview.paths = {
 	wind_r8 = { datamodel = "client", path = { "World", "LookDevWindR8" } },
 	npcs_r8 = { datamodel = "server", path = { "World", "LookDevModelsNpcsR8" } },
 	npcs_idle_r8 = { datamodel = "server", path = { "World", "LookDevNpcsIdleR8" } },
+	ambient_walkers_r8 = { datamodel = "server", path = { "World", "LookDevAmbientWalkersR8" } },
 }
 
 function LookDevReview.pathsFor(id: string): any?

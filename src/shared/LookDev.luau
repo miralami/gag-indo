@@ -48,6 +48,7 @@
 --   src/client/World/LookDevWindR8.luau -- candidate "wind_r8" (gentle GlobalWind, sway tweens, tilt loop, client-only)
 --   src/server/World/LookDevModelsNpcsR8.luau -- candidate "npcs_r8" (five more catalog-dressed villager roles, server-only)
 --   src/server/World/LookDevNpcsIdleR8.luau -- candidate "npcs_idle_r8" (ten villagers with a real idle track + tiny sway, server-only)
+--   src/server/World/LookDevAmbientWalkersR8.luau -- candidate "ambient_walkers_r8" (eight ambient R15 strollers via NpcWalk, server-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -162,6 +163,7 @@ LookDev.IDS = {
 	"wind_r8",
 	"npcs_r8",
 	"npcs_idle_r8",
+	"ambient_walkers_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -1027,6 +1029,20 @@ LookDev.candidates = {
 		maxSwayDeg = 1,
 		maxStepMs = 0.3,
 	},
+
+	ambient_walkers_r8 = {
+		id = "ambient_walkers_r8",
+		title = "Ambient strollers — up to 8 plain R15 villagers walking looped road routes via NpcWalk (round 9, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Pure routes + 90 s deterministic walk sim in Shared.ModelMapAmbientWalkersR8. No asset
+		-- IDs, no interaction/dialogue/gameplay. Ambient only; grading is pending Studio review.
+		idsSource = "Shared.ModelMapAmbientWalkersR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		maxWalkers = 8,
+		walkSpeed = 6,
+		simSeconds = 90,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1238,6 +1254,16 @@ function LookDev.plan(id: string): any
 			villagerCount = c.villagerCount,
 			maxSwayDeg = c.maxSwayDeg,
 			maxStepMs = c.maxStepMs,
+		}
+	elseif id == "ambient_walkers_r8" then
+		local c = LookDev.candidates.ambient_walkers_r8
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			maxWalkers = c.maxWalkers,
+			walkSpeed = c.walkSpeed,
+			simSeconds = c.simSeconds,
 		}
 	elseif id == "flyers_r8" then
 		local c = LookDev.candidates.flyers_r8

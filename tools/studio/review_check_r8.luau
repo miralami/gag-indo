@@ -141,6 +141,11 @@ local ORDER = {
 	"IDLE_TRACKS",
 	"IDLE_SWAY",
 	"IDLE_COST",
+	"WALKER_SPEED",
+	"WALKER_MOVE",
+	"WALKER_WAYPOINTS",
+	"WALKER_STUCK",
+	"WALKER_ROAD",
 	"PROPS_VISIBLE",
 	"PROPS_ON_GRASS",
 	"VEG_COUNT",
@@ -657,7 +662,7 @@ end)
 if not okModule or type(Failures) ~= "table" then
 	failureOk = false
 else
-	for _, id in ipairs({ "vegetation_r7", "npcs_r7", "props_r7", "npcs_r8", "npcs_idle_r8" }) do
+	for _, id in ipairs({ "vegetation_r7", "npcs_r7", "props_r7", "npcs_r8", "npcs_idle_r8", "ambient_walkers_r8" }) do
 		local okGet, count = pcall(function()
 			return Failures.get(id)
 		end)
@@ -7193,6 +7198,217 @@ else
 		end
 		runIdleStaged()
 
+		if priorId then
+			pcall(function()
+				return look.enable(priorId)
+			end)
+		end
+	end
+end
+end
+
+-- 12e. WORK_QUEUE item 88, ambient_walkers_r8: SERVER-VM, MUTATING. Its own do...end scope (the
+-- harness already hit Luau's 200-local-register limit). One guarded enable/read/disable cycle
+-- stages up to 8 plain R15 strollers driven by the REAL NpcWalk.walkTo loop. WALKER_SPEED reads
+-- each live rig's Humanoid.WalkSpeed; WALKER_MOVE lets the real loops run up to 6 s (polling until
+-- one full waypoint leg completes, the shortest is ~3 s) then measures displacement from each saved
+-- base pivot (proof the loop is actually wired);
+-- WALKER_WAYPOINTS/STUCK/ROAD run the pure 90 s deterministic sim (NpcWalk yields via task.wait,
+-- so real 90 s cannot be pumped synchronously). All five always emit, never skip, and the prior
+-- active candidate is re-enabled at the end.
+do
+local function walkerFail(reason)
+	emit("WALKER_SPEED", false, 0, 8, { reason = reason })
+	emit("WALKER_MOVE", false, 0, ">=1", { reason = reason })
+	emit("WALKER_WAYPOINTS", false, 0, 3, { reason = reason })
+	emit("WALKER_STUCK", false, "ERR", 10, { reason = reason })
+	emit("WALKER_ROAD", false, "ERR", 8, { reason = reason })
+end
+
+if not isServer then
+	walkerFail("server VM required")
+else
+	local okModules, mods = pcall(function()
+		return {
+			look = require(game.ReplicatedStorage.Shared.LookDev),
+			review = require(game.ReplicatedStorage.Shared.LookDevReview),
+			map = require(game.ReplicatedStorage.Shared.ModelMapAmbientWalkersR8),
+			applier = require(game.ServerScriptService.Server.World.LookDevAmbientWalkersR8),
+		}
+	end)
+	if
+		not okModules
+		or type(mods) ~= "table"
+		or type(mods.look) ~= "table"
+		or type(mods.look.current) ~= "function"
+		or type(mods.look.enable) ~= "function"
+		or type(mods.look.disable) ~= "function"
+		or type(mods.review) ~= "table"
+		or type(mods.review.enable) ~= "function"
+		or type(mods.map) ~= "table"
+		or type(mods.map.routes) ~= "function"
+		or type(mods.map.simulate) ~= "function"
+		or type(mods.map.routes()) ~= "table"
+		or type(mods.applier) ~= "table"
+		or type(mods.applier.walkers) ~= "function"
+		or type(mods.applier.walkSpeed) ~= "function"
+		or type(mods.applier.basePivot) ~= "function"
+		or type(mods.applier.loopCount) ~= "function"
+	then
+		walkerFail("walker modules or applier diagnostics missing")
+	else
+		local look, review, map, applier = mods.look, mods.review, mods.map, mods.applier
+		local priorId = nil
+		local okCurrent, current = pcall(function()
+			return look.current()
+		end)
+		if okCurrent and type(current) == "string" then
+			priorId = current
+		end
+
+		-- Keep the staged work in its own function: the harness is one very long chunk and Luau
+		-- caps a single function at 200 registers.
+		local function runWalkersStaged()
+		local okEnable, enabled, enableWhy = pcall(function()
+			return review.enable("ambient_walkers_r8", game, { studio = true })
+		end)
+		if not okEnable or enabled == false then
+			walkerFail("enable:" .. tostring(enableWhy or enabled))
+		else
+			local rigs, speedErrors = {}, {}
+			local okTargets, staged = pcall(function()
+				return applier.walkers()
+			end)
+			if okTargets and type(staged) == "table" then
+				rigs = staged
+			else
+				speedErrors[#speedErrors + 1] = "walkers unreadable"
+			end
+			local folderPresent = false
+			pcall(function()
+				folderPresent = game.Workspace:FindFirstChild(map.folder) ~= nil
+			end)
+			if not folderPresent then
+				speedErrors[#speedErrors + 1] = "staging folder missing"
+			end
+			local maxSpeed = 0
+			for _, rig in ipairs(rigs) do
+				local okSpeed, speed = pcall(function()
+					return applier.walkSpeed(rig)
+				end)
+				if not okSpeed or type(speed) ~= "number" then
+					speedErrors[#speedErrors + 1] = "WalkSpeed unreadable"
+				elseif speed > maxSpeed then
+					maxSpeed = speed
+				end
+			end
+			emit(
+				"WALKER_SPEED",
+				#rigs > 0 and #rigs <= map.MAX_WALKERS and folderPresent and maxSpeed <= 8 and #speedErrors == 0,
+				maxSpeed,
+				8,
+				{ rigs = #rigs, folder = map.folder, errors = speedErrors }
+			)
+
+			-- The real NpcWalk loops run in task.spawn threads; a short REAL wait proves movement.
+			local bases, moveErrors = {}, {}
+			for _, rig in ipairs(rigs) do
+				local okBase, base = pcall(function()
+					return applier.basePivot(rig)
+				end)
+				if okBase and base then
+					bases[rig] = base
+				else
+					moveErrors[#moveErrors + 1] = "base pivot unreadable"
+				end
+			end
+			-- NpcWalk.walkTo yields task.wait(0.05) per step; the shortest waypoint leg is ~3 s real
+			-- time, so poll up to 6 s until at least one full leg completes (loopCount > 0). Rigs
+			-- move from the first step, so displacement is visible well before the first arrival.
+			local okWait = pcall(function()
+				for _ = 1, 120 do
+					if applier.loopCount() > 0 then
+						break
+					end
+					task.wait(0.05)
+				end
+			end)
+			if not okWait then
+				moveErrors[#moveErrors + 1] = "real wait failed"
+			end
+			local moved = 0
+			for _, rig in ipairs(rigs) do
+				local base = bases[rig]
+				local okPivot, pivot = pcall(function()
+					return rig:GetPivot()
+				end)
+				if base and okPivot and pivot then
+					if (pivot.Position - base.Position).Magnitude > 0.05 then
+						moved += 1
+					end
+				else
+					moveErrors[#moveErrors + 1] = "pivot unreadable"
+				end
+			end
+			local okLoops, loops = pcall(function()
+				return applier.loopCount()
+			end)
+			emit(
+				"WALKER_MOVE",
+				okLoops and loops > 0 and moved >= 1 and #moveErrors == 0,
+				moved,
+				#rigs,
+				{ loops = loops, rigs = #rigs, errors = moveErrors }
+			)
+
+			-- One pure 90 s sim drives the last three checks; no real-time wait is possible here.
+			local okSim, sim = pcall(function()
+				return map.simulate(map.SIM_SECONDS, map.routes())
+			end)
+			local simOk = okSim and type(sim) == "table" and type(sim.walkers) == "table"
+				and #sim.walkers == map.MAX_WALKERS
+			local detail = {}
+			if simOk then
+				for _, walkerResult in ipairs(sim.walkers) do
+					detail[#detail + 1] = string.format(
+						"%s=%d/%.3f/%.3f",
+						tostring(walkerResult.name),
+						walkerResult.waypointsReached,
+						walkerResult.maxStuckSeconds,
+						walkerResult.maxRoadDeviation
+					)
+				end
+			else
+				detail[#detail + 1] = "sim failed: " .. tostring(sim)
+			end
+			emit(
+				"WALKER_WAYPOINTS",
+				simOk and sim.minWaypointsReached >= 3,
+				simOk and sim.minWaypointsReached or 0,
+				3,
+				{ walkers = detail, seconds = map.SIM_SECONDS }
+			)
+			emit(
+				"WALKER_STUCK",
+				simOk and sim.maxStuckSeconds <= map.MAX_STUCK_SECONDS,
+				simOk and sim.maxStuckSeconds or "ERR",
+				map.MAX_STUCK_SECONDS,
+				{ walkers = detail }
+			)
+			emit(
+				"WALKER_ROAD",
+				simOk and sim.maxRoadDeviation <= map.MAX_ROAD_DEVIATION,
+				simOk and sim.maxRoadDeviation or "ERR",
+				map.MAX_ROAD_DEVIATION,
+				{ walkers = detail }
+			)
+		end
+		end
+		runWalkersStaged()
+
+		pcall(function()
+			return look.disable()
+		end)
 		if priorId then
 			pcall(function()
 				return look.enable(priorId)

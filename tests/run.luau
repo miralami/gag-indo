@@ -197,6 +197,7 @@ local specs = {
 	require("./specs/wind_r8_spec"),
 	require("./specs/review_cameras_o_spec"),
 	require("./specs/npcs_idle_r8_spec"),
+	require("./specs/ambient_walkers_r8_spec"),
 }
 
 -- `--timing` prints a full per-spec table; without it only the slowest rows print. The first

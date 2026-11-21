@@ -219,6 +219,16 @@ animation 71483261700852 "Standing Idle" (type 61, recorded in `ASSET_MANIFEST.m
 `resetDiagnostics()` wiped the audit) was found and fixed; re-run PASS. PERF_BUDGET 334/500, default.
 Suite **2632 tests**; `selene src` 0/0/0.
 
+Item 88 COMPLETE: `ambient_walkers_r8` stages up to 8 plain R15 villagers (no catalog outfit/asset ID)
+on looped MapSpec road routes, driven by the REAL `NpcWalk.walkTo` in cancellable task.spawn loops —
+ambient only: no interaction, dialogue or gameplay. `Humanoid.WalkSpeed` 6 <= 8. Studio SERVER-VM PASS
+`WALKER_SPEED 6/8`, `WALKER_MOVE 8/8` (all rigs displaced live via NpcWalk; loopCount 1 after first
+waypoint leg), `WALKER_WAYPOINTS 3/3`, `WALKER_STUCK 0/10s`, `WALKER_ROAD 0/8studs` (pure 90 s / 1800-step
+sim of the same step math; NpcWalk yields via task.wait so real 90 s cannot be pumped), `LOAD_FAILURES 0`,
+`LOOKDEV_LEAK 0`, `CAMERA_CLEAR 0/42` (`h/2026-11-21-round9/CHECK_088.txt`). A harness observation-window
+defect (0.5 s < shortest ~3 s waypoint leg) was fixed to a 6 s bounded poll; assertion unchanged; re-run
+PASS. PERF_BUDGET 334/500, default. Suite **2642 tests**; `selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

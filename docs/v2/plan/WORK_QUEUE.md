@@ -1101,7 +1101,19 @@ Same rules as section M (candidates off by default, Studio PASS per item, no gam
   synthetic violating box correctly flagged (non-vacuous), disable/re-enable PASS, zero perahu staging
   warnings. `BRIDGE_WALKABLE` stays READ-ONLY and byte-identical. Distinct check names. 2736 tests,
   selene 0/0/0. Candidate off by default; no shipping default changed. No new camera (item 133).
-- [ ] 113. **`irrigation_r8`: irrigation and field life.** Two scarecrows (orang-orangan sawah) with a woven hat and a ragged shirt, two bamboo irrigation channels with a thin water sheet, a bamboo clapper bird-scarer and a small stack of padi sheaves. **CHECKS:** counts; `SAWAH_TOPS` unchanged; the water sheets sit within 0.3 studs of the terrace top.
+- [x] 113. **`irrigation_r8`: irrigation and field life.** Two scarecrows (orang-orangan sawah) with a woven hat and a ragged shirt, two bamboo irrigation channels with a thin water sheet, a bamboo clapper bird-scarer and a small stack of padi sheaves. **CHECKS:** counts; `SAWAH_TOPS` unchanged; the water sheets sit within 0.3 studs of the terrace top.
+  Done 2026-11-22: NEW pure `ModelMapIrrigationR8` (50 original Parts in 9 kinds: scarecpole 2, crossbar 2,
+  shirt 10, head 2, hat 6 — two scarecrows; flume 12 + watersheet 2 — two bamboo channels; clapper 6;
+  sheaf 8; terrace tops/bands mirror MapSpec.TERRACES, water sheet tops = terrace.top+0.25 <= 0.3, no
+  asset IDs/invalid material tokens) + NEW server `LookDevIrrigationR8` applier (anchored, non-collidable,
+  `Terrace` number attr, exact folder save/detach-restore, NO Terrain read/write). New ID 85 (count literals
+  84->85 across 38 specs + 3 extra), review path, 2 harness checks, new spec, CANDIDATES pending row. Real
+  Studio fresh-Play Server-VM PASS (`CHECK_113.txt`, SEEN-IN-STUDIO): `IRRIGATION_PARTS` 50>=40 all kind
+  counts match, `IRRIGATION_WATER_ON_TERRACE` 0 failed / 2 sheets / worst delta 0.25 <= 0.3 (live MapSpec
+  tops 8.50 & 16.50), synthetic bad sheet 0.90 correctly flagged (non-vacuous), disable/re-enable PASS,
+  zero staging warnings. `SAWAH_TOPS` stays READ-ONLY and byte-identical (Part-only candidate cannot touch
+  Terrain raycasts). ORDER names appended after LOOKDEV_LEAK so all 18 ORDER-literal assertions hold.
+  2746 tests, selene 0/0/0. Candidate off by default; no shipping default changed. No new camera (item 133).
 - [ ] 114. **`kincir_r8`: water wheel.** A small wooden waterwheel beside the river that rotates slowly (one shared loop, 6 degrees per second). **CHECKS:** `KINCIR_ROT`: the wheel angle changes by 3–9 degrees over 1 s; one instance only; `disable()` stops and removes it.
 - [ ] 115. **`laundry_r8`: hanging laundry.** Washing lines with sarung, batik cloth and kebaya hanging between posts behind two houses, plus a hammock and a tikar under the porch. Use solid colours or simple patterned decals made from existing assets; no brand logos. **CHECKS:** counts; cloths do not intersect walls (`GetPartsInPart` is empty); `CLOTH_SWAY` is optional and tied to item 85 when present.
 - [ ] 116. **`layangan_r8`: kites.** Four layangan (kites) flying at 60–90 studs of altitude near the field, each with a thin tail and a string (`Beam`) down to a small kid-sized point on the ground; they rock gently. **CHECKS:** `KITE_COUNT` = 4; `KITE_COST` under 0.2 ms per frame; strings don't pass through buildings (raycast from kite to anchor hits nothing).

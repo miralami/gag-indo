@@ -1,0 +1,95 @@
+CHECK 113 — irrigation_r8 irrigation and field life (WORK_QUEUE section N, item 113)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Fresh Play, Server DataModel. Place NOT saved, nothing published.
+
+== Target (verbatim) ==
+"**`irrigation_r8`: irrigation and field life.** Two scarecrows (orang-orangan sawah) with a woven hat
+and a ragged shirt, two bamboo irrigation channels with a thin water sheet, a bamboo clapper bird-scarer
+and a small stack of padi sheaves. **CHECKS:** counts; `SAWAH_TOPS` unchanged; the water sheets sit
+within 0.3 studs of the terrace top."
+
+== Implementation (all OFF by default; no shipping default changed) ==
+- NEW `src/shared/ModelMapIrrigationR8.luau`: pure, engine-API-free data. 50 original Parts in 9 kinds:
+  scarecpole 2, crossbar 2, shirt 10, head 2, hat 6 (two orang-orangan sawah, 11 Parts each — pole,
+  crossbar, 5 ragged-shirt pieces, head, 3-layer flattened woven hat), flume 12 + watersheet 2 (two
+  bamboo irrigation channels, 7 Parts each — trough floor, 2 walls, 3 ribs, 1 translucent water sheet),
+  clapper 6 (bamboo bird-scarer: foot, pivot, crosspiece, arm, blade, cord), sheaf 8 (small pyramid stack
+  of 6 padi bundles + 2 tie bands). Plain RGB via Color3, valid built-in material tokens (Wood,
+  WoodPlanks, Fabric, SmoothPlastic, Cardboard, Water) — neither stale Painted nor stale Leaf used;
+  no asset IDs, no brand, no terrain edit, no engine API. Terrace tops/bands mirror MapSpec.TERRACES
+  (tops 4.5/8.5/12.5/16.5); each water sheet is centred 0.2 above its terrace top with thickness 0.1,
+  so its top surface is terrace.top + 0.25 studs (inside the 0.3 tolerance). Every recipe carries its
+  owning 1..4 Terrace index; the harness resolves the live top from MapSpec.TERRACES with a z-band
+  fallback. Positions from pure SITES table (scarecrow_a -120/-320 t1, scarecrow_b 140/-352 t3,
+  channel_a -170/-336 t2, channel_b 170/-368 t4, clapper 120/-320 t1, sheaves -150/-352 t3).
+- NEW `src/server/World/LookDevIrrigationR8.luau`: pcall-guarded server applier, folder
+  `LookDevIrrigationR8_irrigation_r8`; all 50 Parts `Anchored=true`, `CanCollide=false`, tagged stage +
+  `IrrigationKind` + owning `Terrace` (number attribute); exact prior-folder save/detach-restore;
+  `LookDev.register(Data.familyId, applier)`. NO Terrain read/write anywhere — verified by source scan
+  (no Terrain/ReadVoxels/WriteVoxels/FillBlock). Only Destroy for cleanup and SetAttribute for tags.
+- `src/shared/LookDev.luau`: `irrigation_r8` appended as ID 85 (84 -> 85); descriptor + plan branch.
+  `src/shared/LookDevReview.luau`: server path `{ "World", "LookDevIrrigationR8" }`.
+- `tools/studio/review_check_r8.luau`: ORDER gets `IRRIGATION_PARTS`, `IRRIGATION_WATER_ON_TERRACE`
+  (appended AFTER `LOOKDEV_LEAK` at the end of ORDER, so every contiguous ORDER-literal assertion in
+  18 specs stays intact). New `do...end` block at section `-- 9n. WORK_QUEUE section N item 113`
+  (line 7730+). `IRRIGATION_PARTS` counts tagged parts by kind vs `ModelMapIrrigationR8.counts()`
+  (total, min, per-kind). `IRRIGATION_WATER_ON_TERRACE` is mutating: saves the prior candidate, stages
+  irrigation, reads EVERY tagged watersheet's `CFrame.Position` + `Size`, resolves the live terrace top
+  from `MapSpec.TERRACES[terraceAttr]` (z-band fallback), and fails any sheet whose top face
+  (`pos.Y + size.Y/2`) is more than 0.3 studs from that top. No CanCollide filter (all staged parts are
+  non-collidable). PASS only if MapSpec ready ∧ folder present ∧ watersheet count > 0 AND exactly the
+  expected 2 ∧ worst delta within tol ∧ 0 failed; all-FAIL paths emit both checks at measured 0; prior
+  candidate restored on every path. `SAWAH_TOPS` (ORDER 201, block ~2349-2410, multiline emit at 2404)
+  is READ-ONLY and BYTE-IDENTICAL — no diff hunk touches that region; the only harness diffs are two
+  added explanatory comments, the 2 ORDER names, and the new 9n block. SAWAH_WATER, all river checks
+  and full_r9 untouched.
+- NEW `tests/specs/irrigation_r8_spec.luau` + registration in `tests/run.luau`: locks counts/MIN_PARTS,
+  valid material tokens (forbid both stale tokens), terrace-top mirror + water-sheet delta <= 0.3,
+  `#IDS==85`/`IDS[85]`, Review path, plan, ORDER strings + emit for both distinct names, SAWAH_TOPS
+  still present/untouched, applier strings, no asset IDs, CANDIDATES pending row.
+- Count literals bumped 84 -> 85 across 38 specs plus 3 extra count literals
+  (`review_round3_bugfix_spec`, `sky_map_r6_spec`, `terrain_map_r6_spec`); every changed spec diff line
+  was verified to be only a count literal. Index-locked `IDS[n]` checks intact.
+- `docs/v2/visual/CANDIDATES.md`: pending 6-column row, verdict `pending - review in Studio`, existing
+  `REVIEW_ROUND9.md` render path. No new camera (item 133 owns camera additions).
+
+== Method (fresh Play, Server VM, single-active stage) ==
+`LookDevReview.enable("irrigation_r8", game, {studio=true})` returned true; the staging folder held 50
+BaseParts matching `ModelMapIrrigationR8.counts()` per kind, ZERO irrigation-specific warnings. The two
+check blocks in `review_check_r8.luau` were executed as an equivalent ad hoc execute_luau probe (item
+103/105/108..112 precedent — the whole harness file cannot be injected with a pre-set candidate state),
+using the live `MapSpec.TERRACES` tops and the tagged water sheets' real Part geometry. A synthetic
+bad sheet, per-sheet delta dump and disable/re-enable lifecycle were added as extra evidence.
+
+== Verbatim check lines (single canonical run, all PASS) ==
+CHECK IRRIGATION_PARTS PASS 50 >=40 kinds=scarecpole=2 crossbar=2 shirt=10 head=2 hat=6 flume=12 watersheet=2 clapper=6 sheaf=8
+CHECK IRRIGATION_WATER_ON_TERRACE PASS failed=0 sheets=2 worstDelta=0.25 tol=0.3 mapReady=true
+  Irrigation_channel_a_watersheet terrace=2 topY=8.75 terraceTop=8.50 delta=0.25
+  Irrigation_channel_b_watersheet terrace=4 topY=16.75 terraceTop=16.50 delta=0.25
+All 50 tagged parts counted by kind, total >= 40, every kind exact. Both water sheets resolved to the
+live MapSpec terrace top via the Terrace attribute: top surfaces 8.75 vs 8.50 and 16.75 vs 16.50,
+deltas 0.25 each, within the 0.3 tolerance, 0 failed. Exact watersheet count (2) required — non-vacuous.
+
+== Non-vacuity / discrimination evidence ==
+DISCRIM badSheetDelta=0.90 flagged=true (expect true)
+DISCRIM actualSheetDelta=0.25 flagged=false (expect false)
+A synthetic sheet 0.9 studs above its terrace top is flagged (the check would FAIL a real violation);
+the actual staged sheets at 0.25 are not flagged. All staged parts are CanCollide=false, so a
+collidable-only test would have been vacuous; the check tests every tagged watersheet.
+
+== Lifecycle evidence ==
+CHECK IRRIGATION_RESTORE PASS gone=true back=true parts=50
+`disable` removed the folder; a second `enable` re-created it with all 50 parts; `disableAll` at end.
+Source scan confirmed no Terrain read/write, so `SAWAH_TOPS` (Terrain-only raycasts) cannot be affected.
+
+== Validation / scope ==
+lune run tests/run.luau: All 2746 tests passed. selene src: 0 errors / 0 warnings / 0 parse errors.
+stylua --check clean on all changed Luau files. git diff --check clean. Play stopped after verification;
+no place saved, nothing published. No visual, copy or aural verdict. Candidate off by default; no
+shipping default changed. No asset IDs, no brand marks, no terrain edit, no new camera.
+`SAWAH_TOPS` unchanged (read-only, byte-identical block + multiline emit).
+
+Status: SEEN-IN-STUDIO (fresh Play Server VM, irrigation_r8 staged; IRRIGATION_PARTS 50>=40 all counts
+match, IRRIGATION_WATER_ON_TERRACE 0 failed / 2 sheets / worst delta 0.25 <= 0.3, synthetic violation
+correctly flagged, disable/re-enable PASS, zero irrigation staging warnings, no Terrain writes).

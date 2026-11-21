@@ -53,6 +53,7 @@
 --   src/server/World/LookDevNightR8.luau -- candidate "night_r8" (warm night panes and Rendah glow, server-only)
 --   src/server/World/LookDevGradeR8.luau -- candidates "grade_r8_a/b/c" (tropical colour grades, server-only)
 --   src/server/World/LookDevSoundsR8.luau -- candidate "sounds_r8" (six positional Creator Store beds, server-only)
+--   src/server/World/LookDevIrrigationR8.luau -- candidate "irrigation_r8" (sawah irrigation and field life, server-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -183,6 +184,7 @@ LookDev.IDS = {
 	"musala_r8",
 	"lumbung_r8",
 	"perahu_r8",
+	"irrigation_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -1212,6 +1214,20 @@ LookDev.candidates = {
 		partCount = 39,
 		minParts = 35,
 	},
+
+	irrigation_r8 = {
+		id = "irrigation_r8",
+		title = "Irrigation and field life — two orang-orangan sawah, two bamboo flumes with thin water sheets, a clapper bird-scarer and stacked padi sheaves on the sawah terraces (round 10, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Original procedural Parts, no asset IDs and no terrain edit. Pure recipe in
+		-- Shared.ModelMapIrrigationR8; terrace tops/bands mirror MapSpec.TERRACES. Each water sheet
+		-- top sits 0.25 studs above its terrace top (<= 0.3). SAWAH_TOPS is untouched. No new camera.
+		idsSource = "Shared.ModelMapIrrigationR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		partCount = 50,
+		minParts = 40,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1529,6 +1545,15 @@ function LookDev.plan(id: string): any
 		}
 	elseif id == "perahu_r8" then
 		local c = LookDev.candidates.perahu_r8
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			partCount = c.partCount,
+			minParts = c.minParts,
+		}
+	elseif id == "irrigation_r8" then
+		local c = LookDev.candidates.irrigation_r8
 		return {
 			id = id,
 			idsSource = c.idsSource,

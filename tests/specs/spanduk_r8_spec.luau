@@ -96,7 +96,7 @@ return function(t, Env, Fakes)
 
 	t:describe("spanduk_r8 Strings, LookDev wiring and review harness", function()
 		t:it("ships candidate 66 with Strings parity keys", function()
-			expect(#LookDev.IDS):toBe(84)
+			expect(#LookDev.IDS):toBe(85)
 			expect(LookDev.IDS[66]):toBe("spanduk_r8")
 			local candidate = LookDev.candidates.spanduk_r8
 			expect(candidate.id):toBe("spanduk_r8")

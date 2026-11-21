@@ -136,6 +136,14 @@
 -- The names are distinct: BRIDGE_WALKABLE (ORDER 205) stays READ-ONLY and byte-identical, and no
 -- river check or full_r9 entry is touched. Both lines FAIL at measured 0 when folder/data/MapSpec
 -- are missing; the prior candidate is restored on every path.
+-- Item 113 adds IRRIGATION_PARTS and IRRIGATION_WATER_ON_TERRACE (WORK_QUEUE section N,
+-- irrigation_r8), both SERVER-side and appended at the very END of ORDER after LOOKDEV_LEAK so
+-- every existing contiguous ORDER literal stays byte-identical. IRRIGATION_PARTS counts the staged
+-- original-Part kinds against Shared.ModelMapIrrigationR8.counts(). IRRIGATION_WATER_ON_TERRACE is
+-- mutating: it stages irrigation_r8, reads every tagged watersheet's CFrame+Size top face and
+-- requires its distance to the live MapSpec.TERRACES top (Terrace attribute, z-band fallback) to be
+-- <= 0.3 studs. No CanCollide filter, no Terrain write; SAWAH_TOPS / SAWAH_WATER / river checks and
+-- full_r9 stay READ-ONLY and byte-identical. All-FAIL paths emit BOTH new names at measured 0.
 -- Item 92 adds the mutating SERVER-only SOUND_LOADED, SOUND_VOLUME and SOUND_RESTORE trio, emitted
 -- from their own do...end scope just before LOOKDEV_LEAK. It stages sounds_r8 via an explicit
 -- SERVER applier require (saved-place boots may predate the module), then polls IsLoaded for at most
@@ -145,7 +153,8 @@
 -- SoundService/group/folder restore and the prior candidate back. All three always emit.
 -- All checks except LOOKDEV_LEAK, ADDITIVE_STAGE, WATER_SAFE, WATER_RESTORE, WIND_SET,
 -- SWAY_TWEENS, WIND_RESTORE, NIGHT_WINDOWS, NIGHT_LIGHTS, GRADE_SAFE, GRADE_RESTORE,
--- GRADE_NO_DOF, SOUND_LOADED, SOUND_VOLUME, SOUND_RESTORE and PERAHU_PARTS are read-only.
+-- GRADE_NO_DOF, SOUND_LOADED, SOUND_VOLUME, SOUND_RESTORE, PERAHU_PARTS and IRRIGATION_PARTS are read-only.
+-- IRRIGATION_WATER_ON_TERRACE joins the mutating set; it saves and restores the prior candidate.
 -- The mutating checks call enable(id)/disable() and
 -- restore the prior active candidate at the end; ADDITIVE_STAGE uses enableAdditive(id)/
 -- disableAll(). All are safe to repeat.
@@ -290,6 +299,8 @@ local ORDER = {
 	"LUMBUNG_DOOR_CLEAR",
 	"LUMBUNG_PROPS_ON_GRASS",
 	"LOOKDEV_LEAK",
+	"IRRIGATION_PARTS",
+	"IRRIGATION_WATER_ON_TERRACE",
 }
 
 local GRASS_Y = 4
@@ -7713,6 +7724,277 @@ else
 		restorePhPrior()
 	end
 end
+end
+
+do
+-- 9n. WORK_QUEUE section N item 113: irrigation_r8. Two checks over the staged
+-- LookDevIrrigationR8_irrigation_r8 folder, run in the SERVER VM. IRRIGATION_PARTS counts the
+-- original Parts by kind against Shared.ModelMapIrrigationR8.counts(). IRRIGATION_WATER_ON_TERRACE
+-- stages the candidate itself, reads each tagged watersheet's CFrame.Position + Size, resolves the
+-- terrace top from MapSpec.TERRACES by the Terrace attribute (z-band fallback) and fails any top
+-- face more than 0.3 studs from that top. SAWAH_TOPS, SAWAH_WATER, every river check and full_r9
+-- are READ-ONLY and byte-identical. The two names are distinct and appended after LOOKDEV_LEAK;
+-- neither check reads or writes Terrain.
+	local IR_FOLDER_FALLBACK = "LookDevIrrigationR8_irrigation_r8"
+	local IR_ID = "irrigation_r8"
+	local IR_MIN_PARTS = 40
+	local IR_TOL = 0.3
+	local IR_FALLBACK_KINDS = {
+		"scarecpole",
+		"crossbar",
+		"shirt",
+		"head",
+		"hat",
+		"flume",
+		"watersheet",
+		"clapper",
+		"sheaf",
+	}
+
+	local okIrModules, irModules = pcall(function()
+		return {
+			data = require(game.ReplicatedStorage.Shared.ModelMapIrrigationR8),
+			look = require(game.ReplicatedStorage.Shared.LookDev),
+			review = require(game.ReplicatedStorage.Shared.LookDevReview),
+		}
+	end)
+	local irData: any? = nil
+	if okIrModules and type(irModules) == "table" and type((irModules :: any).data) == "table" then
+		irData = (irModules :: any).data
+	end
+	local irExpected: any? = nil
+	if irData and type((irData :: any).counts) == "function" then
+		local okCounts, counts = pcall(function()
+			return (irData :: any).counts()
+		end)
+		if okCounts and type(counts) == "table" and type(counts.total) == "number" then
+			irExpected = counts
+		end
+	end
+	local irFolderName = if irData then (irData :: any).folderName else IR_FOLDER_FALLBACK
+
+	local function irFail(reason)
+		local kinds = IR_FALLBACK_KINDS
+		if irData and type((irData :: any).KINDS) == "table" then
+			kinds = (irData :: any).KINDS
+		end
+		local byKind = {}
+		for _, kind in ipairs(kinds) do
+			byKind[kind] = 0
+		end
+		local detail = {
+			reason = reason,
+			folderPresent = folderNamed(irFolderName) ~= nil,
+			tagged = 0,
+			byKind = byKind,
+			mapReady = false,
+			sheets = 0,
+			worstDelta = -1,
+			failed = {},
+			antiVac = "folder / pure data / MapSpec / exact watersheet count required; missing input fails both checks",
+		}
+		emit("IRRIGATION_PARTS", false, 0, ">=" .. IR_MIN_PARTS, detail)
+		emit("IRRIGATION_WATER_ON_TERRACE", false, -1, 0, detail)
+	end
+
+	local irRunService = service("RunService")
+	local okIrServer, irIsServer = false, false
+	if irRunService then
+		okIrServer, irIsServer = pcall(function()
+			return (irRunService :: any):IsServer()
+		end)
+	end
+	local irLook = okIrModules and (irModules :: any).look or nil
+	local irReview = okIrModules and (irModules :: any).review or nil
+	local terracesReady = mapSpecReady
+		and type(MapSpec.TERRACES) == "table"
+		and #MapSpec.TERRACES > 0
+	if terracesReady then
+		for _, terrace in ipairs(MapSpec.TERRACES) do
+			if type(terrace) ~= "table" or type(terrace.top) ~= "number" then
+				terracesReady = false
+			end
+		end
+	end
+	if
+		not irData
+		or not irExpected
+		or not terracesReady
+		or not okIrServer
+		or not irIsServer
+		or type(irLook) ~= "table"
+		or type(irLook.enable) ~= "function"
+		or type(irLook.disable) ~= "function"
+		or type(irReview) ~= "table"
+		or type(irReview.enable) ~= "function"
+		or type((irData :: any).KINDS) ~= "table"
+		or type((irData :: any).KIND) ~= "table"
+		or type((irData :: any).WATERSHEET_KIND) ~= "string"
+		or type((irData :: any).terraceAttribute) ~= "string"
+		or type((irData :: any).WATER_TOL) ~= "number"
+	then
+		irFail("server VM / irrigation modules / MapSpec TERRACES / counts not readable")
+	else
+		local okPrior, priorId = pcall(function()
+			return (irLook :: any).current and (irLook :: any).current() or nil
+		end)
+		if not okPrior then
+			priorId = nil
+		end
+		local function restoreIrPrior()
+			pcall(function()
+				(irLook :: any).disable()
+			end)
+			if type(priorId) == "string" then
+				pcall(function()
+					(irLook :: any).enable(priorId)
+				end)
+			end
+		end
+		local okEnable, enabled, whyEnable = pcall(function()
+			return (irReview :: any).enable(IR_ID, game, { studio = true })
+		end)
+		if not okEnable or enabled == false then
+			restoreIrPrior()
+			irFail("enable:" .. tostring(whyEnable or enabled))
+		else
+			local irFolder = folderNamed((irData :: any).folderName)
+			local tagged, watersheets, byKind = {}, {}, {}
+			for _, kind in ipairs((irData :: any).KINDS) do
+				byKind[kind] = 0
+			end
+			for _, inst in ipairs(descendantList(irFolder)) do
+				local okPart, isPart = pcall(function()
+					return (inst :: any):IsA("BasePart")
+				end)
+				local kind = attr(inst, (irData :: any).kindAttribute)
+				local stage = attr(inst, (irData :: any).stageAttribute)
+				if
+					okPart
+					and isPart
+					and type(kind) == "string"
+					and byKind[kind] ~= nil
+					and stage == (irData :: any).familyId
+				then
+					byKind[kind] += 1
+					tagged[#tagged + 1] = inst
+					if kind == (irData :: any).WATERSHEET_KIND then
+						watersheets[#watersheets + 1] = inst
+					end
+				end
+			end
+			local mismatch, expectedCounts = {}, (irExpected :: any)
+			for _, kind in ipairs((irData :: any).KINDS) do
+				if byKind[kind] ~= expectedCounts[kind] then
+					mismatch[#mismatch + 1] = kind .. "=" .. tostring(byKind[kind])
+				end
+			end
+			local partsOk = irFolder ~= nil
+				and #tagged > 0
+				and #tagged >= IR_MIN_PARTS
+				and #tagged == expectedCounts.total
+				and #mismatch == 0
+			emit(
+				"IRRIGATION_PARTS",
+				partsOk,
+				#tagged,
+				">=" .. IR_MIN_PARTS,
+				{
+					folderPresent = irFolder ~= nil,
+					tagged = #tagged,
+					byKind = byKind,
+					expected = expectedCounts,
+					byKindMismatch = mismatch,
+					antiVac = "all tagged Parts counted by kind; missing folder/data fails at 0",
+					reason = if partsOk then nil else "missing folder / wrong kind counts",
+				}
+			)
+
+			-- Water height: resolve the live MapSpec top for every tagged sheet. No CanCollide filter:
+			-- every staged part is non-collidable, so only the exact tag + count + map read count.
+			local worstDelta, failed = -1, {}
+			for _, sheet in ipairs(watersheets) do
+				local okRead, pos, size = pcall(function()
+					return (sheet :: any).CFrame.Position, (sheet :: any).Size
+				end)
+				local terraceIndex = attr(sheet, (irData :: any).terraceAttribute)
+				local topY = if okRead and pos and size then pos.Y + size.Y / 2 else nil
+				local terraceTop = nil
+				if
+					type(terraceIndex) == "number"
+					and terraceIndex >= 1
+					and terraceIndex <= #MapSpec.TERRACES
+					and math.floor(terraceIndex) == terraceIndex
+				then
+					local terrace = MapSpec.TERRACES[terraceIndex]
+					if type(terrace) == "table" and type(terrace.top) == "number" then
+						terraceTop = terrace.top
+					end
+				end
+				if terraceTop == nil and okRead and pos then
+					for _, terrace in ipairs(MapSpec.TERRACES) do
+						if
+							type(terrace) == "table"
+							and type(terrace.z0) == "number"
+							and type(terrace.z1) == "number"
+							and pos.Z >= terrace.z0
+							and pos.Z <= terrace.z1
+						then
+							terraceTop = terrace.top
+							break
+						end
+					end
+				end
+				local delta = -1
+				if topY ~= nil and terraceTop ~= nil then
+					delta = math.abs(topY - terraceTop)
+					if delta > worstDelta then
+						worstDelta = delta
+					end
+				end
+				if delta < 0 or delta > IR_TOL then
+					local okName, name = pcall(function()
+						return (sheet :: any).Name
+					end)
+					failed[#failed + 1] = {
+						name = okName and name or "?",
+						topY = topY,
+						terrace = terraceIndex,
+						terraceTop = terraceTop,
+						delta = delta,
+					}
+				end
+			end
+			local expectedSheets = expectedCounts[(irData :: any).WATERSHEET_KIND]
+			local waterOk = terracesReady
+				and irFolder ~= nil
+				and #watersheets > 0
+				and type(expectedSheets) == "number"
+				and #watersheets == expectedSheets
+				and worstDelta >= 0
+				and #failed == 0
+			emit(
+				"IRRIGATION_WATER_ON_TERRACE",
+				waterOk,
+				#failed,
+				0,
+				{
+					mapReady = terracesReady,
+					folderPresent = irFolder ~= nil,
+					sheets = #watersheets,
+					expectedSheets = expectedSheets,
+					worstDelta = worstDelta,
+					tolerance = IR_TOL,
+					failed = failed,
+					antiVac = "every tagged watersheet tested (all CanCollide=false); exact count + MapSpec readability required",
+					reason = if waterOk
+						then nil
+						else "missing folder/data/map or a sheet top > 0.3 from its terrace top",
+				}
+			)
+			restoreIrPrior()
+		end
+	end
 end
 
 -- 10. VEG_NEAR: dense near layer at the saved camera (45 studs, 70-degree cone). A model only

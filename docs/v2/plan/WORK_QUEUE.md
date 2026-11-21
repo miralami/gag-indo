@@ -965,7 +965,7 @@ The designer reviews the results one candidate at a time afterwards, so produce 
 
 #### M6. Audits and hygiene
 
-- [ ] 93. **Crop stage audit.** For all 12 crops × 3 stages (bibit, tumbuh, siap), measure `GetBoundingBox` and write a table. **CHECK `CROP_GROWTH`:** height grows from stage to stage (at least 15% each) and each is within 0.5–6 studs. Fix any crop that fails by rescaling in the model map, never by weakening the check.
+- [x] 93. **Crop stage audit.** For all 12 crops × 3 stages (bibit, tumbuh, siap), measure `GetBoundingBox` and write a table. **CHECK `CROP_GROWTH`:** height grows from stage to stage (at least 15% each) and each is within 0.5–6 studs. Fix any crop that fails by rescaling in the model map, never by weakening the check.
 - [ ] 94. **Icon audit.** A script (`tools/icon_audit.py` or Luau): for every icon PNG, check size, alpha coverage (between 15% and 85%) and flag near-duplicates by perceptual hash. Report `tier_biasa` with numbers only (the `icons` verdict said to fix it). Don't judge looks.
 - [ ] 95. **Strings audit.** Add or extend a spec so that every `Strings.luau` key has a non-empty `id` and `en`, no leftover `TODO`/`lorem`/placeholder text, and no `id == en` for long strings (flag, don't fail, for loanwords). Grep `src/client` for hardcoded player-facing string literals in `Text =` assignments and move them into `Strings.luau`.
 - [ ] 96. **IconMap coverage.** A spec that every `IconMap` slot resolves to a non-zero asset ID recorded in `ASSET_MANIFEST.md`, and that no ID appears twice by mistake.

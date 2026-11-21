@@ -274,6 +274,16 @@ not-authorized proxy), `SOUND_VOLUME 6/6` (max vol 0.5, rolloff 80, 0 offenders)
 `CAMERA_CLEAR 0/42`, `PERF_BUDGET 334/500` (`h/2026-11-21-round9/CHECK_092.txt`). Aural yes/no
 remains the designer's. Suite **2672 tests**; `selene src` 0/0/0.
 
+Item 93 COMPLETE (crop stage audit): live CLIENT-VM `Model:GetBoundingBox()` over all 12 crops x 3
+stages (36 models), with staged parts anchored in the same call to freeze physics drift (two
+identical runs). Verbatim `CHECK CROP_GROWTH PASS 12 12` — every stage within 0.5..6 studs and both
+growth gaps >= 15% (`h/2026-11-21-round9/CHECK_093.txt`, full 36-row table). One defect found and
+fixed BY RESCALING THE MODEL MAP, never by weakening the check: bawang bibit was 0.412 studs (<0.5)
+with stem size[2] 0.8; `CropModelCandidates.archetypes.bawang.stem.size[2]` 0.8 -> 1.4 lifts bibit to
+0.615 (0.615/1.147/1.579, g1 86.3%, g2 37.6%). `crop_growth_check.luau` (engine-only check) and
+`crop_growth_audit_spec.luau` (locks thresholds 0.5/6/15 and the 1.4 rescale) added. Audit + data fix
+only; no look/default change, no visual verdict. Suite **2672 tests**; `selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

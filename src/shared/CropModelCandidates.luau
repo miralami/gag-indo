@@ -46,7 +46,10 @@ CropModelCandidates.archetypes = {
 		fruit = { shape = "Cylinder", size = { 0.6, 1.2, 0.6 }, color = "kunyit", count = 2, radius = 0.34, y = 0.65 },
 	},
 	bawang = {
-		stem = { shape = "Sphere", size = { 0.95, 0.8, 0.95 }, color = "ungu" },
+		-- Rescaled 2026-11-21 (WORK_QUEUE item 93): the 0.8 stem made bibit's LIVE GetBoundingBox
+		-- only ~0.412 studs (< the 0.5 floor). 1.4 lifts bibit to ~0.62 studs while keeping all
+		-- three stages inside 0.5..6 and both growth gaps >= 15%. No check threshold was weakened.
+		stem = { shape = "Sphere", size = { 0.95, 1.4, 0.95 }, color = "ungu" },
 		leaf = { shape = "Cylinder", size = { 0.16, 1.9, 0.16 }, color = "daun", count = 5, radius = 0.22, y = 1.0 },
 	},
 	cabai = {
@@ -93,8 +96,18 @@ CropModelCandidates.archetypes = {
 
 -- Crop ids in config order (kept in sync with Config/Crops.order).
 CropModelCandidates.cropIds = {
-	"padi", "singkong", "jagung", "bawang", "cabai", "tembakau",
-	"kopi", "tebu", "kakao", "cengkeh", "durian", "sawit",
+	"padi",
+	"singkong",
+	"jagung",
+	"bawang",
+	"cabai",
+	"tembakau",
+	"kopi",
+	"tebu",
+	"kakao",
+	"cengkeh",
+	"durian",
+	"sawit",
 }
 
 local function scaled(base: { number }, factor: number): { number }

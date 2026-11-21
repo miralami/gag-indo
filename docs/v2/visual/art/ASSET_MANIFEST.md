@@ -401,6 +401,14 @@ Source: `docs/v2/visual/art/models_r4/vegetation/{MANIFEST.md,upload_manifest.js
 | mangga | 103132734600778 | https://poly.pizza/m/ekCgu7iLrz2 | Poly by Google | CC BY 3.0 (Creative Commons Attribution) | "Balsa tree" by Poly by Google, CC BY 3.0, via Poly Pizza (https://poly.pizza/m/ekCgu7iLrz2) |
 | shrubs | 116666781655827 | https://poly.pizza/m/aMGUklRjpyo | Poly by Google | CC BY 3.0 (Creative Commons Attribution) | "Shrub" by Poly by Google, CC BY 3.0, via Poly Pizza (https://poly.pizza/m/aMGUklRjpyo) |
 
+#### Default tropical forest (WORK_QUEUE item 138)
+
+The shipping `BackgroundForest` reuses exactly four verified `vegetation_r4` IDs above — `kelapa`
+95769944522207, `pisang` 119293239911242, `bambu` 130965811347980 and `mangga` 103132734600778 —
+through `Shared.ModelMapForestR9`. No new asset IDs, no new licences and no new attributions: the
+CC BY 3.0 credits in the table apply unchanged. `shrubs` is not used by the forest; the procedural
+fallback uses original parts only.
+
 
 ### `props_r4` — 7 Model IDs, CC0 / CC BY 3.0 textured props (SERVER datamodel)
 

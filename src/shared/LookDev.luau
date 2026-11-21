@@ -135,6 +135,7 @@ LookDev.IDS = {
 	"buildings_r8",
 	"facades_r8",
 	"hubprops_r8",
+	"forest_pines_legacy",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -806,6 +807,17 @@ LookDev.candidates = {
 		render = "docs/v2/visual/art/models_r8/hubprops/README.md",
 		hubCount = 6,
 	},
+
+	forest_pines_legacy = {
+		id = "forest_pines_legacy",
+		title = "Original pine backdrop — old pine ring restored for comparison against the tropical default (round 10, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Procedural parts / the baked Realistic Pine Tree template, no new asset IDs. The server
+		-- applier hides the default tropical forest and restores the exact original forest on disable.
+		idsSource = "Shared.ModelMapForestR9",
+		render = "docs/v2/visual/art/models_r8/forest/README.md",
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1011,6 +1023,13 @@ function LookDev.plan(id: string): any
 			idsSource = c.idsSource,
 			render = c.render,
 			hubCount = c.hubCount,
+		}
+	elseif id == "forest_pines_legacy" then
+		local c = LookDev.candidates.forest_pines_legacy
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
 		}
 	end
 	return nil

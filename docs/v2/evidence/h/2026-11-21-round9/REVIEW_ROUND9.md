@@ -133,3 +133,29 @@ owns the CHECK evidence. No place is saved or published.
    candidate staged, its baseline is the boot-applied A default, so each applier's own previous-value
    snapshot must restore to A — including `water_r8_b`. No weakening of either target.
 5. Stop Play without saving. `WATER_DEFAULT`, `WATER_SAFE` and `WATER_RESTORE` are CLIENT-only.
+
+## 9. Item-138 run — tropical default forest (WORK_QUEUE section O)
+
+Ordered recipe. **No Studio result is claimed by the implementation agent**; the main session owns
+the CHECK evidence and the tracker ticks. No place is saved or published.
+
+1. Stop Play. Inject at runtime (not saved): `ReplicatedStorage.Shared.ModelMapForestR9` and the
+   changed `ServerScriptService.Server.World.Greybox`, plus the changed
+   `tools/studio/review_check_r8.luau`.
+2. Start a FRESH real Play session in the SERVER datamodel. Do NOT call `LookDev.enable(...)`,
+   `LookDevReview.enable(...)` or stage any candidate: this change is the shipping default. At boot
+   `Greybox.buildBackgroundForest` fills `BackgroundForest` with
+   `Tropical_<species>_<angle>_<layer>` Models carrying `ForestTree = true` and
+   `ForestSpecies = <species>`.
+3. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the SERVER
+   VM. Expect `CHECK NO_PINES PASS 0 0` (no Name with the pine substring anywhere in the workspace),
+   `CHECK RING_COUNT PASS <n> 250` (at least 250 `ForestTree` trees in `BackgroundForest`),
+   `CHECK RING_SPECIES PASS 4 4` (kelapa, mangga, pisang, bambu all present), and read
+   `CHECK PERF_BUDGET ...` as the recorded cost. A missing folder or unreadable attribute FAILs at
+   0 — never a skip. No target is weakened.
+4. For comparison only, use a SEPARATE fresh Play and stage `forest_pines_legacy` via
+   `require(game.ReplicatedStorage.Shared.LookDevReview).enable("forest_pines_legacy", game)`;
+   re-read the same lines to see the old backdrop, then `disableAll()`. Do not grade the default
+   look with the candidate staged.
+5. Stop Play without saving. Visual yes/no stays the designer's; this recipe reports objective
+   counts only.

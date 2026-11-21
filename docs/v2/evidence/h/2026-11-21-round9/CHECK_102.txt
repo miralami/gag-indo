@@ -1,0 +1,23 @@
+CHECK 102 — unblock item 74 by replacing the pine backdrop (done as section O item 138)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Fresh Play, Server datamodel, default look (LookDev.current() = nil).
+Full setup, detail and candidate round-trip: see CHECK_138.txt in this folder.
+
+== Raw check lines (verbatim) ==
+CHECK NO_PINES PASS 0 0
+CHECK RING_COUNT PASS 272 250
+CHECK RING_SPECIES PASS 4 4
+CHECK PERF_BUDGET PASS 334 500
+
+== Scope closed ==
+- Default BackgroundForest is now tropical (272 trees, 4 species: bambu/kelapa/mangga/pisang),
+  placed in the ring band 260-380 and the hills/beyond-400 band 400-460.
+- Stale top-level pine forest baked into the saved place is destroyed at build time.
+- V-D4 honoured: no pines in the default look, whole workspace.
+- Old pines kept OFF by default behind LookDev.IDS[58] forest_pines_legacy for designer comparison.
+- RING_COUNT >= 150 and RING_SPECIES >= 4 (item 74) exceeded: 272 / 4.
+- PERF_BUDGET within Sedang: 334 <= 500 using the recorded 100-stud census method.
+- No check weakened; the perf proxy was ALIGNED to the documented 2026-11-19 method, target kept 500.
+
+Status: SEEN-IN-STUDIO. No place saved, nothing published.

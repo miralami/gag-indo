@@ -37,6 +37,13 @@
 -- any hub_* ReviewCameras camera is absent. HUBPROPS_VISIBLE measures the MINIMUM number of tagged
 -- props visible from their own hub camera (target >=5 in all six hubs); HUBPROPS_ON_GRASS counts
 -- props whose Terrain voxel at GRASS_Y is Grass (target 0).
+-- It also emits the O-section DEFAULT-LOOK forest checks (WORK_QUEUE item 138): NO_PINES,
+-- RING_COUNT, RING_SPECIES and PERF_BUDGET. All four are READ-ONLY and stage no candidate, so they
+-- grade the shipping tropical backdrop itself. NO_PINES counts workspace descendants whose Name
+-- contains "Pine"; RING_COUNT counts ForestTree==true instances; RING_SPECIES counts distinct
+-- ForestSpecies strings; PERF_BUDGET counts BaseParts within 150 studs of spawn as the
+-- VISUAL_MASTER_PLAN §6 "under about 500 draw calls" proxy (the forest at 260-460 studs is outside
+-- the spawn view).
 -- Client datamodel: same lines plus CLOUD_COVER (the client LocalScript owns Terrain.Clouds.Cover);
 -- the Server datamodel cannot observe that tween. Run client-owned candidates (water, grade,
 -- sounds, clouds) in the Client datamodel.
@@ -58,6 +65,10 @@
 
 local ORDER = {
 	"LOAD_FAILURES",
+	"NO_PINES",
+	"RING_COUNT",
+	"RING_SPECIES",
+	"PERF_BUDGET",
 	"SKY_DEFAULT",
 	"GRASS_ON_BEDS",
 	"HATS",
@@ -533,6 +544,89 @@ if failureOk then
 else
 	emit("LOAD_FAILURES", false, "ERR", 0, { reason = "LookDevFailures not readable" })
 end
+
+-- 1b. O-section default-look forest checks (WORK_QUEUE item 138). READ-ONLY: no candidate is
+-- enabled or staged here. NO_PINES is the CHECK_74 rule: count workspace descendants whose Name
+-- contains "Pine" (case-sensitive substring), PASS iff zero. RING_COUNT counts descendants with
+-- ForestTree == true (PASS iff >=250); RING_SPECIES counts the distinct ForestSpecies strings on
+-- those trees (PASS iff >=4). PERF_BUDGET is the spawn-view draw-call proxy for VISUAL_MASTER_PLAN
+-- §6 "under about 500 draw calls": count BaseParts whose world position is within 100 studs of
+-- (0,0,0), PASS iff <=500. That is the recorded census method in
+-- evidence/h/2026-11-19-budget-check/REPORT.md (pasar baseline 335 parts; current default 334).
+-- The default forest sits at 260-460 studs, outside the census.
+-- A failed workspace read is a recorded FAIL, never a vacuous pass.
+local pineOffenders, pineCount, forestCount = {}, 0, 0
+local forestSpecies, speciesList = {}, {}
+local perfParts, perfReadErrors = 0, 0
+local okScene, sceneDescendants = pcall(function()
+	return workspace:GetDescendants()
+end)
+if type(sceneDescendants) ~= "table" then
+	okScene = false
+	sceneDescendants = {}
+end
+for _, inst in ipairs(sceneDescendants) do
+	local okName, name = pcall(function()
+		return inst.Name
+	end)
+	if okName and type(name) == "string" and string.find(name, "Pine", 1, true) then
+		pineCount += 1
+		if #pineOffenders < 10 then
+			pineOffenders[#pineOffenders + 1] = name
+		end
+	end
+
+	if attr(inst, "ForestTree") == true then
+		forestCount += 1
+		local species = attr(inst, "ForestSpecies")
+		if type(species) == "string" and species ~= "" and not forestSpecies[species] then
+			forestSpecies[species] = true
+			speciesList[#speciesList + 1] = species
+		end
+	end
+
+	local okPart, isPart = pcall(function()
+		return inst:IsA("BasePart")
+	end)
+	if okPart and isPart then
+		local okCentre, centre = pcall(function()
+			return select(1, inst:GetBoundingBox()).Position
+		end)
+		if not okCentre or typeof(centre) ~= "Vector3" then
+			okCentre, centre = pcall(function()
+				return inst.CFrame.Position
+			end)
+		end
+		if okCentre and typeof(centre) == "Vector3" then
+			if centre.X * centre.X + centre.Y * centre.Y + centre.Z * centre.Z <= 100 * 100 then
+				perfParts += 1
+			end
+		else
+			perfReadErrors += 1
+		end
+	elseif not okPart then
+		perfReadErrors += 1
+	end
+end
+table.sort(speciesList)
+emit("NO_PINES", okScene and pineCount == 0, pineCount, 0, {
+	measurement = "workspace descendants whose Name contains 'Pine'",
+	sample = pineOffenders,
+	readError = not okScene,
+})
+emit("RING_COUNT", okScene and forestCount >= 250, forestCount, 250, {
+	measurement = "workspace descendants with ForestTree == true",
+	readError = not okScene,
+})
+emit("RING_SPECIES", okScene and #speciesList >= 4, #speciesList, 4, {
+	species = speciesList,
+	readError = not okScene,
+})
+emit("PERF_BUDGET", okScene and perfReadErrors == 0 and perfParts <= 500, perfParts, 500, {
+	proxy = "spawn-view BasePart count within 100 studs of (0,0,0)",
+	readErrors = perfReadErrors,
+	reference = "VISUAL_MASTER_PLAN section 6 under about 500 draw calls",
+})
 
 -- 2. SKY_DEFAULT: fresh Play, no enable call. Accept asset URL or plain integer form.
 local skyFtId = FALLBACK_SKY_FT

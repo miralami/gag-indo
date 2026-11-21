@@ -392,3 +392,32 @@ hub → building matches are the PROPOSAL in `docs/v2/visual/art/BUILDING_KIT.md
 
 6. Stop Play without saving. Visual grading — does each real building read as its hub at that
    scale, and should the PROPOSAL mapping be kept? — stays the designer's.
+
+## 19. Item-148 run — `pasar_awnings_r8` lapak stalls and awnings (WORK_QUEUE section O)
+
+Run-note recipe. **No Studio result is claimed** by the implementation agent; the main session owns
+the CHECK evidence, tracker ticks and any visual verdict. No place is saved or published.
+
+1. Stop Play. Inject at runtime (not saved): `ReplicatedStorage.Shared.ModelMapPasarAwningsR8`,
+   the changed `ReplicatedStorage.Shared.LookDev` and `LookDevReview`,
+   `ServerScriptService.Server.World.LookDevPasarAwningsR8`, and the changed
+   `tools/studio/review_check_r8.luau`. No asset ID is introduced: every stall is original Parts.
+2. Start a FRESH real Play session in the SERVER datamodel. Stage ONLY this candidate:
+   `require(game.ReplicatedStorage.Shared.LookDevReview).enable("pasar_awnings_r8", game)`.
+   Twelve `PasarStall_` Models appear in `LookDevPasarAwningsR8_pasar_awnings_r8`, each with
+   `PasarStall = true`; six `AwningStripe` Parts per stall carry `StripeColour`
+   `red`/`white`/`blue` (72 total). A Ground voxel pad is snapshotted and painted under every stall.
+3. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the SERVER
+   VM. Read the four new READ-ONLY lines: `CHECK STALLS >=10` (count of tagged Models),
+   `CHECK AWNING_STRIPES >=30` (count of valid striped Parts), `CHECK LANE_CLEAR 0 0` (zero staged
+   parts whose CFrame+Size AABB intersects the 6-stud lane rectangle in the pure data module), and
+   `CHECK PASAR_AWNING_ON_GRASS 0 0` (Terrain voxel at `GRASS_Y=4` under each stall is not Grass).
+   A missing folder, tag, lane data or unreadable MapSpec FAILs at measured 0/1, never a skip.
+   The grass line is named `PASAR_AWNING_ON_GRASS` so it cannot collide with r7's `PROPS_ON_GRASS`.
+4. Call `require(game.ReplicatedStorage.Shared.LookDevReview).disable()` and re-run
+   `LOOKDEV_LEAK`: the staged folder must be gone and every saved voxel region written back byte-for-
+   byte. Capture `LOAD_FAILURES 0 0` and `LOOKDEV_LEAK 0 leaks` as the shared guards.
+5. Stop Play without saving. Record staged `PERF_BUDGET` if the main session measures it; the
+   candidate is off by default and the default look is untouched. Visual grading — do the stalls read
+   as a canonical Pasar and do the stripes read as red/white/blue without a brand? — stays the
+   designer's.

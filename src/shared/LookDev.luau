@@ -139,6 +139,7 @@ LookDev.IDS = {
 	"forest_pines_legacy",
 	"blocks_r9",
 	"hubs_real_r9",
+	"pasar_awnings_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -843,6 +844,18 @@ LookDev.candidates = {
 		render = "docs/v2/evidence/h/2026-11-21-round9/CHECK_147.txt",
 		hubCount = 6,
 	},
+
+	pasar_awnings_r8 = {
+		id = "pasar_awnings_r8",
+		title = "Pasar lapak stalls with striped red/white/blue awnings, goods and lamps (round 9, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Original procedural Parts, no asset IDs. Pure stall/stripe/lane recipe in
+		-- Shared.ModelMapPasarAwningsR8. Ground voxel pads are painted under every stall.
+		idsSource = "Shared.ModelMapPasarAwningsR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		stallCount = 10,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1028,6 +1041,7 @@ function LookDev.plan(id: string): any
 		or id == "water_r8_c"
 		or id == "blocks_r9"
 		or id == "hubs_real_r9"
+		or id == "pasar_awnings_r8"
 	then
 		local c = LookDev.candidates[id]
 		return {

@@ -67,6 +67,11 @@
 -- any hub_* ReviewCameras camera is absent. HUBPROPS_VISIBLE measures the MINIMUM number of tagged
 -- props visible from their own hub camera (target >=5 in all six hubs); HUBPROPS_ON_GRASS counts
 -- props whose Terrain voxel at GRASS_Y is Grass (target 0).
+-- It also emits the O-section pasar_awnings_r8 family (WORK_QUEUE item 148): STALLS,
+-- AWNING_STRIPES, LANE_CLEAR and PASAR_AWNING_ON_GRASS. All four are SERVER-side and READ-ONLY;
+-- they inspect only LookDevPasarAwningsR8_pasar_awnings_r8 and FAIL when the folder, tags, lane data
+-- or MapSpec are missing. LANE_CLEAR uses the 6-stud lane rectangle from the pure data module and
+-- per-Part CFrame+Size AABBs; PASAR_AWNING_ON_GRASS samples GRASS_Y=4 under each staged stall.
 -- It also emits the O-section DEFAULT-LOOK forest checks (WORK_QUEUE item 138): NO_PINES,
 -- RING_COUNT, RING_SPECIES and PERF_BUDGET. All four are READ-ONLY and stage no candidate, so they
 -- grade the shipping tropical backdrop itself. NO_PINES counts workspace descendants whose Name
@@ -149,6 +154,10 @@ local ORDER = {
 	"FACADE_STRAY",
 	"HUBPROPS_VISIBLE",
 	"HUBPROPS_ON_GRASS",
+	"STALLS",
+	"AWNING_STRIPES",
+	"LANE_CLEAR",
+	"PASAR_AWNING_ON_GRASS",
 	"VEG_NEAR",
 	"PROP_SIZE",
 	"CLOUD_COVER",
@@ -4198,6 +4207,154 @@ emit("HUBPROPS_ON_GRASS", hubPropsFolder ~= nil and hubPropsGrass == 0, hubProps
 	folderPresent = hubPropsFolder ~= nil,
 	voxelY = GRASS_Y,
 	hubs = hubPropsDetail,
+})
+
+-- STALLS / AWNING_STRIPES / LANE_CLEAR / PASAR_AWNING_ON_GRASS (WORK_QUEUE item 148, all
+-- READ-ONLY). They stage nothing and inspect only the pasar_awnings_r8 folder. No part-lane
+-- intersection uses GetPartsInPart: every staged part is non-collidable by construction, so the
+-- audit uses explicit per-Part CFrame+Size AABBs against the lane rectangle in the pure data module.
+local AWNING_FOLDER = "LookDevPasarAwningsR8_pasar_awnings_r8"
+local awningFolder = folderNamed(AWNING_FOLDER)
+local okAwningData, AwningData = pcall(function()
+	return require(game.ReplicatedStorage.Shared.ModelMapPasarAwningsR8)
+end)
+if not okAwningData or type(AwningData) ~= "table" then
+	AwningData = nil
+end
+local minStalls = if AwningData and type(AwningData.MIN_STALLS) == "number" then AwningData.MIN_STALLS else 10
+local minStripes = if AwningData and type(AwningData.MIN_STRIPES) == "number" then AwningData.MIN_STRIPES else 30
+local stallModels, awningStripes = {}, {}
+for _, inst in ipairs(descendantList(awningFolder)) do
+	local okModel, isModel = pcall(function()
+		return inst:IsA("Model")
+	end)
+	if okModel and isModel and attr(inst, "PasarStall") == true then
+		stallModels[#stallModels + 1] = inst
+	end
+	if attr(inst, "AwningStripe") == true then
+		local colour = attr(inst, "StripeColour")
+		if colour == "red" or colour == "white" or colour == "blue" then
+			awningStripes[#awningStripes + 1] = { inst = inst, colour = colour }
+		end
+	end
+end
+emit("STALLS", awningFolder ~= nil and #stallModels >= minStalls, #stallModels, ">=" .. minStalls, {
+	folderPresent = awningFolder ~= nil,
+	stalls = #stallModels,
+	dataPresent = AwningData ~= nil,
+})
+local stripeColours = { red = 0, white = 0, blue = 0 }
+for _, stripe in ipairs(awningStripes) do
+	stripeColours[stripe.colour] += 1
+end
+emit(
+	"AWNING_STRIPES",
+	awningFolder ~= nil and #awningStripes >= minStripes,
+	#awningStripes,
+	">=" .. minStripes,
+	{ folderPresent = awningFolder ~= nil, colours = stripeColours }
+)
+
+local laneBox, laneWidth = nil, nil
+local laneReady = awningFolder ~= nil
+	and AwningData ~= nil
+	and mapSpecReady
+	and type(AwningData.lane) == "function"
+	and type(AwningData.stalls) == "function"
+	and type(MapSpec.hub) == "function"
+	and type(MapSpec.hubPoint) == "function"
+if laneReady then
+	local okLane, lane = pcall(function()
+		return AwningData.lane()
+	end)
+	local okHub, hub = pcall(function()
+		return MapSpec.hub("pasar")
+	end)
+	laneReady = okLane
+		and okHub
+		and hub ~= nil
+		and type(lane) == "table"
+		and type(lane.lx) == "number"
+		and type(lane.lz) == "number"
+		and type(lane.width) == "number"
+		and type(lane.depth) == "number"
+	if laneReady then
+		laneWidth = lane.width
+		local minX, maxX, minZ, maxZ = math.huge, -math.huge, math.huge, -math.huge
+		for _, corner in ipairs({
+			{ lane.lx - lane.width / 2, lane.lz - lane.depth / 2 },
+			{ lane.lx + lane.width / 2, lane.lz - lane.depth / 2 },
+			{ lane.lx - lane.width / 2, lane.lz + lane.depth / 2 },
+			{ lane.lx + lane.width / 2, lane.lz + lane.depth / 2 },
+		}) do
+			local okPoint, x, z = pcall(function()
+				return MapSpec.hubPoint(hub, corner[1], corner[2])
+			end)
+			if not okPoint or type(x) ~= "number" or type(z) ~= "number" then
+				laneReady = false
+				break
+			end
+			minX, maxX = math.min(minX, x), math.max(maxX, x)
+			minZ, maxZ = math.min(minZ, z), math.max(maxZ, z)
+		end
+		if laneReady and minX < maxX and minZ < maxZ then
+			laneBox = { minX = minX, maxX = maxX, minZ = minZ, maxZ = maxZ }
+		end
+	end
+end
+local laneBlockers = 0
+if not laneBox then
+	laneBlockers = 1
+else
+	for _, stall in ipairs(stallModels) do
+		for _, part in ipairs(descendantList(stall)) do
+			local okPart, isPart = pcall(function()
+				return part:IsA("BasePart")
+			end)
+			if okPart and isPart then
+				local okTransparency, transparency = pcall(function()
+					return part.Transparency
+				end)
+				local box = bboxAABB(part)
+				if box and okTransparency and type(transparency) == "number" and transparency < 1 then
+					local ox = math.min(box.maxX, laneBox.maxX) - math.max(box.minX, laneBox.minX)
+					local oz = math.min(box.maxZ, laneBox.maxZ) - math.max(box.minZ, laneBox.minZ)
+					if ox > OVERLAP_TOL and oz > OVERLAP_TOL then
+						laneBlockers += 1
+					end
+				end
+			end
+		end
+	end
+end
+emit("LANE_CLEAR", laneBox ~= nil and laneBlockers == 0, laneBlockers, 0, {
+	folderPresent = awningFolder ~= nil,
+	lane = laneBox,
+	laneWidth = laneWidth,
+	blockingParts = laneBlockers,
+})
+
+local awningGrass = 0
+local awningStallDetail = {}
+for _, stall in ipairs(stallModels) do
+	local centre = bboxCentre(stall)
+	local grassy = not centre or grassAt({ x = centre.X, z = centre.Z })
+	if grassy then
+		awningGrass += 1
+	end
+	awningStallDetail[#awningStallDetail + 1] = {
+		id = attr(stall, "StallId"),
+		onGrass = grassy,
+		centre = centre and { centre.X, centre.Y, centre.Z } or nil,
+	}
+end
+if not awningFolder or #stallModels == 0 then
+	awningGrass = math.max(awningGrass, 1) -- a missing folder cannot pass a 0-target
+end
+emit("PASAR_AWNING_ON_GRASS", awningFolder ~= nil and awningGrass == 0, awningGrass, 0, {
+	folderPresent = awningFolder ~= nil,
+	voxelY = GRASS_Y,
+	stalls = awningStallDetail,
 })
 
 -- 10. VEG_NEAR: dense near layer at the saved camera (45 studs, 70-degree cone). A model only

@@ -94,6 +94,15 @@ with the documented additive set both PASS — no check weakened. PERF_BUDGET FL
 692/500 alone, 1206/500 additive (facades+hubveg+hubs_real), over the Sedang proxy; item has no perf
 clause, default look 334/500. Suite **2506 tests**; `selene src` 0/0/0.
 
+Item 148 COMPLETE: `pasar_awnings_r8` stages 12 procedural lapak stalls (72 alternating red/white/blue
+stripe Parts, counters, produce crates, baskets, hanging cloth, lamps) around the Pasar, built from
+original Parts with no asset IDs or real brand. Real Studio staged-Play PASS `STALLS 12 >=10`,
+`AWNING_STRIPES 72 >=30`, `LANE_CLEAR 0 0` (6-stud lane), `PASAR_AWNING_ON_GRASS 0 0`, `CAMERA_CLEAR 0/36`
+(`h/2026-11-21-round9/CHECK_148.txt`). Each stall has a Ground voxel pad (ReadVoxels snapshot -> FillBlock
+-> WriteVoxels LIFO restore); restore verified byte-for-byte, LOOKDEV_LEAK 0. PERF_BUDGET FLAGGED not
+hidden: 558/500 over the Sedang proxy; item has no perf clause, default look 334/500. Suite **2515 tests**;
+`selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

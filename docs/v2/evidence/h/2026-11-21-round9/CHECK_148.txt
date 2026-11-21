@@ -1,0 +1,41 @@
+CHECK 148 — pasar_awnings_r8 Pasar stalls and awnings (WORK_QUEUE section O, item 148)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Edit runtime injection; place NOT saved, nothing published.
+
+== Setup ==
+Injected new Shared.ModelMapPasarAwningsR8, updated Shared.LookDev + Shared.LookDevReview, and new
+ServerScriptService.Server.World.LookDevPasarAwningsR8 into the EDIT datamodel (all SET). Fresh Play.
+Harness tools/studio/review_check_r8.luau pasted into execute_luau (Server VM); staging and read in
+one call because the harness disables all candidates at the end.
+
+== Raw check lines (verbatim, pasar_awnings_r8 staged) ==
+CHECK STALLS PASS 12 >=10
+CHECK AWNING_STRIPES PASS 72 >=30
+CHECK LANE_CLEAR PASS 0 0
+CHECK PASAR_AWNING_ON_GRASS PASS 0 0
+CHECK LOAD_FAILURES PASS 0 0
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+CHECK CAMERA_CLEAR PASS 0 blocked/36 checked 0 blocked
+CHECK PERF_BUDGET FAIL 558 500
+
+== Detail ==
+12 procedural lapak stalls (8 front row + 2 west + 2 east) built from ORIGINAL Parts — no asset IDs,
+no real brand. 72 awning stripe Parts, alternating red/white/blue (24 each), all tagged AwningStripe
+with StripeColour. Each stall has a counter, crates of vegetables, baskets, hanging cloth and a lamp.
+Positions derived from MapSpec.hub("pasar") + hubPoint, no literal world coords.
+
+LANE_CLEAR: 6-stud lane (local Pasar lx=0, lz=33, width 76, depth 6 -> world AABB x -102..-26,
+z -34..-28). 0 visible staged parts intersect the lane (per-Part CFrame+Size AABB, overlap tolerance),
+target 0. Missing folder/lane data/MapSpec => FAIL.
+
+PASAR_AWNING_ON_GRASS: 0 of 12 stalls sample as Grass at GRASS_Y=4. Each stall has a Ground voxel pad
+painted under its footprint via ReadVoxels snapshot -> FillBlock Ground -> WriteVoxels LIFO restore
+(mirrors LookDevHubPropsR8). Pad restore verified: sampled material cells at three stall footprints
+before stage / staged / after disable were IDENTICAL (no terrain drift; e.g. y=-4 cell Ground in all
+three states, y=0/y=4 Air in all three). LOOKDEV_LEAK 0 proves no folder leak.
+
+PERF_BUDGET recorded, FLAGGED not hidden: 558/500, over the Sedang proxy. Item 148 has no perf
+clause; no check weakened; default look stays 334/500. CANDIDATES.md records the flag.
+
+Status: SEEN-IN-STUDIO. No place saved, nothing published. Visual grading remains the designer's.

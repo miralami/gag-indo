@@ -180,6 +180,7 @@ LookDev.IDS = {
 	"sounds_r8",
 	"lapangan_r8",
 	"pasar_ground_r8",
+	"musala_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -207,7 +208,7 @@ local BUILTIN_MATERIALS = {
 	Paper = true,
 	SmoothPlastic = true,
 	Plastic = true,
-	Painted = true,
+	-- Stale Painted entry removed: not a real engine material in Studio; old token broke staging.
 	Metal = true,
 	Water = true,
 	Ice = true,
@@ -1161,6 +1162,23 @@ LookDev.candidates = {
 		pavingCount = 76,
 		pavingTolerance = 0.15,
 	},
+
+	musala_r8 = {
+		id = "musala_r8",
+		title = "Musala — small prayer house with a green tiered roof, pengeras suara horn, wudhu taps and shoe rack, on the village side of the ring (round 10, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Original procedural Parts, no asset IDs and no terrain edit. Pure recipe in
+		-- Shared.ModelMapMusalaR8; the site is derived from MapSpec.ROAD constants (inner side of
+		-- the ring, r 120 at 30 degrees, clear approach). Needs designer review: cultural content.
+		idsSource = "Shared.ModelMapMusalaR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		partCount = 49,
+		minParts = 25,
+		doorW = 3,
+		doorH = 5.4,
+		doorD = 2,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1451,6 +1469,18 @@ function LookDev.plan(id: string): any
 			render = c.render,
 			pavingCount = c.pavingCount,
 			pavingTolerance = c.pavingTolerance,
+		}
+	elseif id == "musala_r8" then
+		local c = LookDev.candidates.musala_r8
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			partCount = c.partCount,
+			minParts = c.minParts,
+			doorW = c.doorW,
+			doorH = c.doorH,
+			doorD = c.doorD,
 		}
 	end
 	return nil

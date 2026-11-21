@@ -1,0 +1,105 @@
+CHECK 110 — musala_r8 small prayer house (WORK_QUEUE section N, item 110)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Fresh Play, Server DataModel. Place NOT saved, nothing published.
+
+== Target (verbatim) ==
+"**`musala_r8`: musala (small prayer house).** A small musala with a green dome or tiered roof, a
+pengeras suara horn on a pole, a wudhu tap area and a shoe rack. Built from parts, modest in size,
+respectful. Place it with a clear approach on the village side of the ring road. **CHECKS:**
+`MUSALA_PARTS` >= 25; `DOOR_CLEAR` for its door; `PATH_REACH` to its door. Mark it in
+`CANDIDATES.md` as `needs designer review: cultural content`."
+
+== Implementation (all OFF by default; no shipping default changed) ==
+- NEW `src/shared/ModelMapMusalaR8.luau`: pure, engine-API-free data. 49 architecture Parts (base
+  3, wall 6, post 4, door 3, window 6, roof 4, horn 6, wudhu 7, shoes 10) plus 1 invisible door
+  gauge. Green tiered roof via plain RGB (111,138,63 / 86,112,48) — no asset IDs, no brand marks,
+  no terrain edit. Site derivation is pure math from `MapSpec.ROAD`: ringCentre 144, ringWidth 12 →
+  inner edge r 138, inset 18 → centre r 120 at 30 degrees → (60, 103.92), yaw 30; local +Z (door)
+  points radially outward toward the ring. Documented clear of RoadSouth, LAPANGAN, PLAZA and the
+  pakrt hub keep-out.
+- NEW `src/server/World/LookDevMusalaR8.luau`: pcall-guarded server applier, folder
+  `LookDevMusalaR8_musala_r8`; all staged parts `Anchored=true`, `CanCollide=false`, tagged stage +
+  `MusalaKind`; exact folder save/detach-restore on disable; `LookDev.register(Data.familyId, applier)`.
+- `src/shared/LookDev.luau`: `musala_r8` appended as ID 82 (81 -> 82); descriptor + plan branch.
+  `src/shared/LookDevReview.luau`: server path `{ "World", "LookDevMusalaR8" }`.
+- `tools/studio/review_check_r8.luau`: ORDER gets `MUSALA_PARTS`, `MUSALA_DOOR_CLEAR`,
+  `MUSALA_PATH_REACH`; new `do...end` block at section `-- 9k. WORK_QUEUE section N item 110`
+  (line 6671+) with all-FAIL paths. The item text's bare `DOOR_CLEAR` and `PATH_REACH` names are
+  TAKEN (facades block 4028-4154; six-hub read-only check 1536-1629), so this item emits distinct
+  names; both existing checks are untouched. `MUSALA_DOOR_CLEAR` stages an invisible
+  `door_gauge` Part, verifies exact Size + DoorW/H/D attrs + pose, then calls
+  `workspace:GetPartBoundsInBox` with `OverlapParams{CollisionGroup="Default", Exclude=folder}` and
+  counts only collidable hits from the SHIPPING world (non-vacuity: gauge present once, dims + pose
+  match, API succeeded). `MUSALA_PATH_REACH` tests EVERY tagged part (including the gauge) against
+  the 6.7..14 local approach lane in SITE-LOCAL coordinates (see bugs below).
+- NEW `tests/specs/musala_r8_spec.luau` + registration in `tests/run.luau`: locks counts,
+  `MIN_PARTS=25`, door dims, green RGB, `#IDS==82`, `IDS[82]`, Review path, plan, harness ORDER/emit
+  names (distinct, not bare), applier strings, no asset IDs, CANDIDATES verdict.
+- 38 count literals across 36 files bumped 81 -> 82 (35 `#LookDev.IDS):toBe(81)` plus
+  `review_round3_bugfix_spec:299`, `sky_map_r6_spec:452`, `terrain_map_r6_spec:376`). Every changed
+  spec diff line was verified to be only a count/ORDER/verdict string update, not a weakened guard.
+  Index-locked `IDS[n]` checks left intact.
+- `docs/v2/visual/CANDIDATES.md`: pending 6-column row whose verdict is exactly
+  `needs designer review: cultural content` — a NEW gallery value, explicitly requested by item 110.
+  `candidate_gallery_spec` was taught that one narrow prefix (still rejects arbitrary verdicts).
+  No new review camera (item 133 owns camera additions). No cultural/aesthetic verdict by an agent.
+
+== THREE REAL ERRORS FOUND AND FIXED (none allowlisted or check-weakened) ==
+1. First stage attempt built only 37/50 parts: 13 parts (6 walls, 4 roof tiers, 3 window panes)
+   warned `[LookDevMusalaR8] could not stage part <id> for <kind>`. Root cause: those recipes used
+   material token `Painted`, which is NOT a member of Roblox's Enum.Material in this Studio, even
+   though `LookDev.BUILTIN_MATERIALS` listed it. FIXED: all four musala tokens -> `Plastic` (colour
+   still comes from Color3, so the green roof reads the same), the stale `Painted` allowlist entry
+   was removed, and `musala_r8_spec` now forbids that token. A fresh Play then staged all 50 parts
+   with ZERO musala warnings.
+2. `MUSALA_DOOR_CLEAR` pose check initially FAILED: Roblox `CFrame.LookVector` is a Part's local
+   -Z, but the harness compared it directly against the outward (+Z) direction. FIXED: compare
+   `-LookVector` to the outward radial direction, with a comment and a spec guard, so the check
+   tests the real door orientation instead of failing a correct staging.
+3. `MUSALA_PATH_REACH` initially reported 17 false blockers: the kit is yaw-rotated, so world-axis
+   AABBs (`bboxAABB`) are much larger than the real footprints (base platform, roof tiers, etc.).
+   FIXED: transform each tagged part back into the SITE-LOCAL frame (inverse yaw, project its basis
+   onto local +X/+Z) and compare its local XZ box to `Data.CORRIDOR` with `OVERLAP_TOL=0.05`. This
+   keeps the check strict — it still tests every staged part and still requires zero overlaps —
+   while measuring in the frame the geometry was authored in. Spec guards lock both fixes.
+
+== Method (fresh Play, Server VM, single-active stage) ==
+`LookDevReview.enable("musala_r8", game, {studio=true})` returned true; the staging folder held 50
+BaseParts (49 architecture + 1 invisible gauge) matching `ModelMapMusalaR8.counts()` per kind. The
+three check blocks in `review_check_r8.luau` were executed as an equivalent ad hoc execute_luau probe
+(item 103/105/108/109 precedent — the whole harness file cannot be injected with a pre-set candidate
+state). A real PathfindingService pair of routes and a disable/re-enable lifecycle run were added.
+
+== Verbatim check lines (single canonical run, all PASS) ==
+CHECK MUSALA_PARTS PASS 49 >=25 kinds=base=3 wall=6 post=4 door=3 window=6 roof=4 horn=6 wudhu=7 shoes=10
+CHECK MUSALA_DOOR_CLEAR PASS gauges=1 dims=true pose=true api=true hits=0
+CHECK MUSALA_PATH_REACH PASS overlaps=0 parts=50 frame=site-local corridor=-2.0..2.0/6.7..14.0
+SITE x=60.00 z=103.92 yaw=30 r=120 groundY=0.50 door=3.0x5.4x2.0 rotLook=(0.50,0.87)
+
+Door gauge present exactly once, Size 3 x 5.4 x 2 with matching DoorW/H/D attributes, pose correct
+(after bug 2 fix), `GetPartBoundsInBox` succeeded, 0 collidable shipping-world hits. The approach
+lane spans local x -2..2, z 6.7..14 (door outward to r 134, inside the ring edge r 138); all 50
+tagged parts were tested and none overlaps. Rotated look vector (0.50, 0.87) confirms the door faces
+radially toward the ring.
+
+== Extra route + lifecycle evidence ==
+CHECK MUSALA_PFS_APPROACH PASS Enum.PathStatus.Success spawn -> ring-side approach
+CHECK MUSALA_PFS_DOOR PASS Enum.PathStatus.Success approach -> door
+CHECK MUSALA_RESTORE PASS gone=true back=true parts=50
+Two `PathfindingService:CreatePath({AgentRadius=2, AgentHeight=5.5, AgentCanJump=false})` routes
+reached the ring-side approach point and then the door. `disable` removed the folder; a second
+`enable` re-created it with all 50 parts.
+
+== Validation / scope ==
+lune run tests/run.luau: All 2718 tests passed. selene src: 0 errors / 0 warnings / 0 parse errors.
+stylua --check clean on all changed Luau files. git diff --check clean (pre-existing LF->CRLF notices
+only). Play stopped after verification; no place saved, nothing published. No visual, copy or aural
+verdict — the designer verdict is `needs designer review: cultural content`, exactly as item 110
+requires. Candidate remains off by default; no shipping default changed. No terrain edit, no asset
+IDs, no brand marks.
+
+Status: SEEN-IN-STUDIO (fresh Play Server VM, musala_r8 staged; MUSALA_PARTS 49>=25 with all per-kind
+counts matching, MUSALA_DOOR_CLEAR gauge dims/pose/API OK with 0 collidable hits,
+MUSALA_PATH_REACH 0/50 overlaps in site-local frame, PFS approach + door routes PASS,
+disable/re-enable PASS; zero staging warnings after the material fix).

@@ -1059,7 +1059,21 @@ Same rules as section M (candidates off by default, Studio PASS per item, no gam
   tested, non-vacuous), PFS lane-crossing route PASS, disable/re-enable PASS. Used distinct name
   `PASAR_GROUND_LANE_CLEAR` — item 148 owns bare `LANE_CLEAR`; its check untouched. 2710 tests,
   selene 0/0/0. Candidate off by default; no shipping default changed. No new camera (item 133).
-- [ ] 110. **`musala_r8`: musala (small prayer house).** A small musala with a green dome or tiered roof, a pengeras suara horn on a pole, a wudhu tap area and a shoe rack. Built from parts, modest in size, respectful. Place it with a clear approach on the village side of the ring road. **CHECKS:** `MUSALA_PARTS` ≥ 25; `DOOR_CLEAR` for its door; `PATH_REACH` to its door. Mark it in `CANDIDATES.md` as `needs designer review: cultural content`.
+- [x] 110. **`musala_r8`: musala (small prayer house).** A small musala with a green dome or tiered roof, a pengeras suara horn on a pole, a wudhu tap area and a shoe rack. Built from parts, modest in size, respectful. Place it with a clear approach on the village side of the ring road. **CHECKS:** `MUSALA_PARTS` ≥ 25; `DOOR_CLEAR` for its door; `PATH_REACH` to its door. Mark it in `CANDIDATES.md` as `needs designer review: cultural content`.
+  Done 2026-11-22: NEW pure `ModelMapMusalaR8` (49 original Parts + 1 invisible door gauge; MapSpec.ROAD
+  site derivation r 120 @ 30deg -> centre (60,103.92), yaw 30, door radial-out toward ring; green
+  RGB tiered roof, pengeras suara horn, wudhu area, shoe rack; no terrain edit/asset IDs) + NEW server
+  `LookDevMusalaR8` applier (anchored, non-collidable, save/detach/restore). New ID 82 (38 count
+  literals 81->82), review path, 3 harness checks, new spec, CANDIDATES row verdict exactly
+  `needs designer review: cultural content` (new gallery value; narrow spec allowance only).
+  Real Studio fresh-Play Server-VM PASS (`CHECK_110.txt`, `SEEN-IN-STUDIO`): `MUSALA_PARTS` 49>=25,
+  `MUSALA_DOOR_CLEAR` gauge dims/pose/API OK 0 collidable hits, `MUSALA_PATH_REACH` 0/50 overlaps
+  (site-local frame), PFS spawn->approach->door routes PASS, disable/re-enable PASS. Three real
+  errors fixed, none hidden: invalid material `Painted` (13 parts failed to stage -> `Plastic`, stale
+  allowlist entry removed, spec guard); harness LookVector sign (local -Z, compare `-LookVector`);
+  world-AABB false positives on the yaw-rotated kit (lane now measured site-local). Distinct check
+  names `MUSALA_DOOR_CLEAR`/`MUSALA_PATH_REACH` — the facades DOOR_CLEAR and six-hub PATH_REACH
+  checks own the bare names. 2718 tests, selene 0/0/0. Candidate off by default; no shipping default changed.
 - [ ] 111. **`lumbung_r8`: lumbung and pekarangan.** A rice barn (lumbung padi) on stilts, garden fences with toga herbs and chilli pots, a tempat jemur padi (drying mat on the ground) and a well-swept dirt yard around each of three houses. **CHECKS:** counts per kind; `PROPS_ON_GRASS` = 0 for the yard pads; `DOOR_CLEAR`.
 - [ ] 112. **`perahu_r8`: boats and river life.** Two small perahu at the river bank, a fishing net on poles, a bamboo landing stage and a stack of baskets (not in the water channel, keep the bridge span clear). **CHECKS:** counts; `BRIDGE_WALKABLE` unchanged; nothing intersects the river centreline within the bridge's 56 studs.
 - [ ] 113. **`irrigation_r8`: irrigation and field life.** Two scarecrows (orang-orangan sawah) with a woven hat and a ragged shirt, two bamboo irrigation channels with a thin water sheet, a bamboo clapper bird-scarer and a small stack of padi sheaves. **CHECKS:** counts; `SAWAH_TOPS` unchanged; the water sheets sit within 0.3 studs of the terrace top.

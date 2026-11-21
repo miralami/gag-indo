@@ -273,6 +273,9 @@ local ORDER = {
 	"LAPANGAN_PARTS",
 	"LAPANGAN_PATH_REACH",
 	"LAPANGAN_GOAL_SIZE",
+	"MUSALA_PARTS",
+	"MUSALA_DOOR_CLEAR",
+	"MUSALA_PATH_REACH",
 	"LOOKDEV_LEAK",
 }
 
@@ -6660,6 +6663,371 @@ else
 			}
 		)
 		restorePgPrior()
+	end
+end
+end
+
+do
+-- 9k. WORK_QUEUE section N item 110: musala_r8. THREE checks over the staged
+-- LookDevMusalaR8_musala_r8 folder, run in the SERVER VM. MUSALA_PARTS counts architecture Parts
+-- by kind against Shared.ModelMapMusalaR8.counts() (invisible door gauge excluded). MUSALA_DOOR_CLEAR
+-- stages one tagged MusalaDoorGauge at the door CFrame and counts collidable SHIPPING-world hits
+-- with GetPartBoundsInBox (all musala parts are non-collidable, so the test is about blockers, not
+-- self-overlap). MUSALA_PATH_REACH maps the pure local approach corridor from the door outward to
+-- the ring and tests EVERY tagged musala AABB, collidable or not; a collidable-only corridor test
+-- would be vacuous. Naming: bare DOOR_CLEAR already belongs to the six facades (ORDER 226) and bare
+-- PATH_REACH to the six-hub read-only veg check (ORDER 185), so these are distinct names. Every
+-- failure path emits ALL THREE lines FAIL. No full_r9 list, existing check or shipping default is
+-- touched; there is no visual verdict here.
+local MS_FOLDER_FALLBACK = "LookDevMusalaR8_musala_r8"
+local MS_ID = "musala_r8"
+local MS_MIN_PARTS = 25
+local MS_GAUGE_FALLBACK = "MusalaDoorGauge"
+local MS_FALLBACK_DIMS = { 3, 5.4, 2 }
+local MS_FALLBACK_KINDS = { "base", "wall", "post", "door", "window", "roof", "horn", "wudhu", "shoes" }
+
+local okMsModules, msModules = pcall(function()
+	return {
+		data = require(game.ReplicatedStorage.Shared.ModelMapMusalaR8),
+		look = require(game.ReplicatedStorage.Shared.LookDev),
+		review = require(game.ReplicatedStorage.Shared.LookDevReview),
+	}
+end)
+local msData: any? = nil
+if okMsModules and type(msModules) == "table" and type((msModules :: any).data) == "table" then
+	msData = (msModules :: any).data
+end
+local msExpected: any? = nil
+if msData and type((msData :: any).counts) == "function" then
+	local okCounts, counts = pcall(function()
+		return (msData :: any).counts()
+	end)
+	if okCounts and type(counts) == "table" and type(counts.total) == "number" then
+		msExpected = counts
+	end
+end
+
+local function msFail(reason)
+	local kinds = MS_FALLBACK_KINDS
+	if msData and type((msData :: any).KINDS) == "table" then
+		kinds = (msData :: any).KINDS
+	end
+	local byKind, targets = {}, {}
+	for _, kind in ipairs(kinds) do
+		byKind[#byKind + 1] = kind .. "=0"
+		targets[#targets + 1] = kind .. "=?"
+	end
+	local detail = {
+		reason = reason,
+		folderPresent = folderNamed(if msData then (msData :: any).folderName else MS_FOLDER_FALLBACK) ~= nil,
+		parts = 0,
+		byKind = table.concat(byKind, " "),
+		kindTargets = table.concat(targets, " "),
+		gauge = 0,
+		collidableHits = -1,
+		corridorOverlaps = -1,
+		antiVac = "all tagged parts tested; none collidable by design",
+	}
+	emit("MUSALA_PARTS", false, 0, ">=" .. MS_MIN_PARTS, detail)
+	emit("MUSALA_DOOR_CLEAR", false, 0, 0, detail)
+	emit("MUSALA_PATH_REACH", false, 1, 0, detail)
+end
+
+local msRunService = service("RunService")
+local okMsServer, msIsServer = false, false
+if msRunService then
+	okMsServer, msIsServer = pcall(function()
+		return (msRunService :: any):IsServer()
+	end)
+end
+local msLook = okMsModules and (msModules :: any).look or nil
+local msReview = okMsModules and (msModules :: any).review or nil
+if
+	not msData
+	or not msExpected
+	or not mapSpecReady
+	or not okMsServer
+	or not msIsServer
+	or type(msLook) ~= "table"
+	or type(msLook.enable) ~= "function"
+	or type(msLook.disable) ~= "function"
+	or type(msReview) ~= "table"
+	or type(msReview.enable) ~= "function"
+	or type((msData :: any).KINDS) ~= "table"
+	or type((msData :: any).KIND) ~= "table"
+	or type((msData :: any).centre) ~= "function"
+	or type((msData :: any).sitePoint) ~= "function"
+	or type((msData :: any).corridorCorners) ~= "function"
+	or type((msData :: any).gaugeDims) ~= "function"
+then
+	msFail("server VM / musala modules / MapSpec / counts not readable")
+else
+	local okPrior, priorId = pcall(function()
+		return (msLook :: any).current and (msLook :: any).current() or nil
+	end)
+	if not okPrior then
+		priorId = nil
+	end
+	local function restoreMsPrior()
+		pcall(function()
+			(msLook :: any).disable()
+		end)
+		if type(priorId) == "string" then
+			pcall(function()
+				(msLook :: any).enable(priorId)
+			end)
+		end
+	end
+	local okEnable, enabled, whyEnable = pcall(function()
+		return (msReview :: any).enable(MS_ID, game, { studio = true })
+	end)
+	if not okEnable or enabled == false then
+		restoreMsPrior()
+		msFail("enable:" .. tostring(whyEnable or enabled))
+	else
+		local msFolder = folderNamed((msData :: any).folderName)
+		local tagged, allTagged, gauges = {}, {}, {}
+		local countsByKind = {}
+		for _, kind in ipairs((msData :: any).KINDS) do
+			countsByKind[kind] = 0
+		end
+		for _, inst in ipairs(descendantList(msFolder)) do
+			local okPart, isPart = pcall(function()
+				return (inst :: any):IsA("BasePart")
+			end)
+			local kind = attr(inst, (msData :: any).kindAttribute)
+			local stage = attr(inst, (msData :: any).stageAttribute)
+			if okPart and isPart and type(kind) == "string" and stage == (msData :: any).familyId then
+				allTagged[#allTagged + 1] = inst
+				if kind == (msData :: any).KIND.gauge then
+					gauges[#gauges + 1] = inst
+				elseif countsByKind[kind] ~= nil then
+					countsByKind[kind] += 1
+					tagged[#tagged + 1] = inst
+				end
+			end
+		end
+		local byKindMismatch = {}
+		local expectedCounts = (msExpected :: any)
+		for _, kind in ipairs((msData :: any).KINDS) do
+			if countsByKind[kind] ~= expectedCounts[kind] then
+				byKindMismatch[#byKindMismatch + 1] = kind .. "=" .. tostring(countsByKind[kind])
+			end
+		end
+		local partsOk = msFolder ~= nil
+			and #tagged >= MS_MIN_PARTS
+			and #tagged == expectedCounts.total
+			and #byKindMismatch == 0
+		emit(
+			"MUSALA_PARTS",
+			partsOk,
+			#tagged,
+			">=" .. MS_MIN_PARTS,
+			{
+				folderPresent = msFolder ~= nil,
+				parts = #tagged,
+				byKind = countsByKind,
+				expected = expectedCounts,
+				byKindMismatch = byKindMismatch,
+				gauges = #gauges,
+				antiVac = "architecture tagged Parts only; door gauge excluded",
+			}
+		)
+
+		-- Pure site: MapSpec.ROAD constants -> centre/yaw; MapSpec.GROUND_Y -> centre.y only.
+		local road = if type(MapSpec.ROAD) == "table" then MapSpec.ROAD else nil
+		local groundY = if type(MapSpec.GROUND_Y) == "number" then MapSpec.GROUND_Y else 0.5
+		local centre = (msData :: any).centre(road)
+		centre.y = groundY
+
+		-- Door gauge: exactly one, exact Size + DoorW/H/D attributes, exact site pose, then a
+		-- collidable-only SHIPPING-world overlap probe excluding every musala folder descendant.
+		local expectedDims = (msData :: any).gaugeDims()
+		if type(expectedDims) ~= "table" or #expectedDims ~= 3 then
+			expectedDims = MS_FALLBACK_DIMS
+		end
+		local gauge = gauges[1]
+		local dimsMatch, poseMatch = false, false
+		local measuredDims = {}
+		if #gauges == 1 and gauge then
+			local okDims, w, h, d = pcall(function()
+				local size = (gauge :: any).Size
+				return size.X, size.Y, size.Z
+			end)
+			local okAttrs, aw, ah, ad = pcall(function()
+				return (gauge :: any):GetAttribute((msData :: any).doorWidthAttribute),
+					(gauge :: any):GetAttribute((msData :: any).doorHeightAttribute),
+					(gauge :: any):GetAttribute((msData :: any).doorDepthAttribute)
+			end)
+			if okDims then
+				measuredDims = { w, h, d }
+			end
+			dimsMatch = okDims
+				and okAttrs
+				and type(w) == "number"
+				and type(h) == "number"
+				and type(d) == "number"
+				and type(aw) == "number"
+				and type(ah) == "number"
+				and type(ad) == "number"
+				and math.abs(w - expectedDims[1]) < 1e-4
+				and math.abs(h - expectedDims[2]) < 1e-4
+				and math.abs(d - expectedDims[3]) < 1e-4
+				and math.abs(aw - expectedDims[1]) < 1e-4
+				and math.abs(ah - expectedDims[2]) < 1e-4
+				and math.abs(ad - expectedDims[3]) < 1e-4
+			local okDoor, dx, dy, dz = pcall(function()
+				return (msData :: any).sitePoint(
+					centre,
+					centre.yaw,
+					(msData :: any).DOOR.lx,
+					(msData :: any).DOOR.ly,
+					(msData :: any).DOOR.lz
+				)
+			end)
+			local okPose, px, py, pz, lookX, lookZ = false, 0, 0, 0, 0, 0
+			if gauge then
+				okPose, px, py, pz, lookX, lookZ = pcall(function()
+					local cf = (gauge :: any).CFrame
+					return cf.Position.X, cf.Position.Y, cf.Position.Z, cf.LookVector.X, cf.LookVector.Z
+				end)
+			end
+			poseMatch = okDoor
+				and okPose
+				and type(dx) == "number"
+				and type(dy) == "number"
+				and type(dz) == "number"
+				and math.abs(px - dx) < 1e-3
+				and math.abs(py - dy) < 1e-3
+				and math.abs(pz - dz) < 1e-3
+				-- Roblox LookVector is a Part's local -Z. Staging rotates local +Z radially
+				-- outward, so -LookVector (not LookVector) must match that outward direction.
+				and math.abs(-lookX - math.sin(math.rad(centre.yaw))) < 1e-3
+				and math.abs(-lookZ - math.cos(math.rad(centre.yaw))) < 1e-3
+		end
+		local collidableHits, apiOk = -1, false
+		if #gauges == 1 and dimsMatch and poseMatch then
+			local okParams, params = pcall(function()
+				local p = OverlapParams.new()
+				p.CollisionGroup = "Default"
+				p.FilterType = Enum.RaycastFilterType.Exclude
+				p.FilterDescendantsInstances = { msFolder }
+				return p
+			end)
+			local okHits, hits = false, nil
+			if okParams and params then
+				okHits, hits = pcall(function()
+					return workspace:GetPartBoundsInBox((gauge :: any).CFrame, (gauge :: any).Size, params)
+				end)
+			end
+			if okHits and type(hits) == "table" then
+				collidableHits = 0
+				apiOk = true
+				for _, hit in ipairs(hits) do
+					local okDesc, descendant = pcall(function()
+						return msFolder ~= nil and (hit :: any):IsDescendantOf(msFolder)
+					end)
+					local okCollide, collide = pcall(function()
+						return (hit :: any).CanCollide
+					end)
+					if (not okDesc or descendant == false) and okCollide and collide == true then
+						collidableHits += 1
+					end
+				end
+			end
+		end
+		emit(
+			"MUSALA_DOOR_CLEAR",
+			#gauges == 1 and dimsMatch and poseMatch and apiOk and collidableHits == 0,
+			collidableHits,
+			0,
+			{
+				folderPresent = msFolder ~= nil,
+				gauges = #gauges,
+				expectedDims = expectedDims,
+				measuredDims = measuredDims,
+				dimsMatch = dimsMatch,
+				poseMatch = poseMatch,
+				apiOk = apiOk,
+				collidableHits = collidableHits,
+				site = { x = centre.x, y = centre.y, z = centre.z, yaw = centre.yaw },
+				measuredSurface = "door gauge GetPartBoundsInBox, collidable shipping geometry only",
+			}
+		)
+
+		-- The approach lane is tested in SITE-LOCAL space. The whole musala is rotated by
+		-- centre.yaw, so a world-axis AABB of a rotated slab is larger than its real footprint and
+		-- false-positives (base platform, roof tiers, etc.). Convert each tagged part back into the
+		-- site frame and compare its local XZ box to Data.CORRIDOR. Every tagged part, including the
+		-- gauge, is tested, so non-collidable staging cannot make the check vacuous.
+		local corridor, corridorReady = nil, msFolder ~= nil and #allTagged > 0
+		if corridorReady then
+			local okCorr, c = pcall(function()
+				return (msData :: any).CORRIDOR
+			end)
+			corridorReady = okCorr
+				and type(c) == "table"
+				and type(c.minLx) == "number"
+				and type(c.maxLx) == "number"
+				and type(c.minLz) == "number"
+				and type(c.maxLz) == "number"
+				and c.maxLx > c.minLx
+				and c.maxLz > c.minLz
+			if corridorReady then
+				corridor = { minX = c.minLx, maxX = c.maxLx, minZ = c.minLz, maxZ = c.maxLz }
+			end
+		end
+		local cosYaw, sinYaw = math.cos(math.rad(centre.yaw)), math.sin(math.rad(centre.yaw))
+		local overlaps = -1
+		if corridorReady and corridor then
+			overlaps = 0
+			for _, part in ipairs(allTagged) do
+				local okBox, box = pcall(function()
+					local cf = (part :: any).CFrame
+					local size = (part :: any).Size
+					local dx, dz = cf.Position.X - centre.x, cf.Position.Z - centre.z
+					-- Inverse of sitePoint's XZ rotation.
+					local lx = dx * cosYaw - dz * sinYaw
+					local lz = dx * sinYaw + dz * cosYaw
+					local hx, hy, hz = size.X / 2, size.Y / 2, size.Z / 2
+					local right, up, look = cf.RightVector, cf.UpVector, cf.LookVector
+					-- Site-local +X maps to world (cos, 0, -sin); +Z maps to (sin, 0, cos).
+					local ex = math.abs(right.X * cosYaw - right.Z * sinYaw) * hx
+						+ math.abs(up.X * cosYaw - up.Z * sinYaw) * hy
+						+ math.abs(look.X * cosYaw - look.Z * sinYaw) * hz
+					local ez = math.abs(right.X * sinYaw + right.Z * cosYaw) * hx
+						+ math.abs(up.X * sinYaw + up.Z * cosYaw) * hy
+						+ math.abs(look.X * sinYaw + look.Z * cosYaw) * hz
+					return { minX = lx - ex, maxX = lx + ex, minZ = lz - ez, maxZ = lz + ez }
+				end)
+				if
+					okBox
+					and box
+					and math.min(box.maxX, corridor.maxX) - math.max(box.minX, corridor.minX) > OVERLAP_TOL
+					and math.min(box.maxZ, corridor.maxZ) - math.max(box.minZ, corridor.minZ) > OVERLAP_TOL
+				then
+					overlaps += 1
+				end
+			end
+		end
+		emit(
+			"MUSALA_PATH_REACH",
+			corridorReady and corridor ~= nil and overlaps == 0,
+			overlaps,
+			0,
+			{
+				folderPresent = msFolder ~= nil,
+				taggedParts = #allTagged,
+				corridor = corridor,
+				blockingParts = overlaps,
+				site = { x = centre.x, y = centre.y, z = centre.z, yaw = centre.yaw },
+				outerRadius = centre.radius + (msData :: any).CORRIDOR.maxLz,
+				ringInner = if road then road.ringCentre - road.ringWidth / 2 else nil,
+				antiVac = "all tagged parts tested; none collidable by design",
+				reason = if corridorReady then nil else "folder / data / MapSpec.ROAD not readable",
+			}
+		)
+		restoreMsPrior()
 	end
 end
 end

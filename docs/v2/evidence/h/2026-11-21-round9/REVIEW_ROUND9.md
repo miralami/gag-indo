@@ -719,3 +719,28 @@ CHECK evidence, tracker ticks and the visual verdict. No place is saved or publi
    `hub_warung`, `hub_pasar` and `canonical_overview` from `docs/v2/visual/REVIEW_CAMERAS.md`.
    Re-read `LOOKDEV_LEAK 0` after disable; stop Play without saving. Visual yes/no stays the
    designer's.
+
+## Item-85 run — `wind_r8` gentle wind and sway (WORK_QUEUE section M)
+
+Run-note recipe. **No Studio result is claimed** by the implementation agent; the main session owns
+CHECK evidence, tracker ticks and the visual verdict. No place is saved or published.
+
+1. Inject at runtime (not saved): `ReplicatedStorage.Shared.ModelMapWindR8`, the changed
+   `Shared.LookDev` and `Shared.LookDevReview`, the new
+   `PlayerScripts.Client.World.LookDevWindR8`, and the changed
+   `tools/studio/review_check_r8.luau`.
+2. Start a fresh real Play session. Three checks are CLIENT-ONLY and MUTATING: run the WHOLE
+   `tools/studio/review_check_r8.luau` in the CLIENT VM via Studio MCP `execute_luau`, not the
+   Server VM. The `do -- 12a-wind` block guards each check with `isClient`, enables `wind_r8` through
+   `LookDevReview.enable("wind_r8", game)`, reads while staged, disables, compares, and restores any
+   prior active candidate; all three still emit on error.
+3. Read `WIND_SET` (magnitude > 0 and <= 12; expect ~2.92 from `(2.5, 0, 1.5)`), `SWAY_TWEENS`
+   (0 < count <= 30; expect 10 jemuran/sign tweens), and `WIND_RESTORE` (0 mismatches; compares the
+   captured baseline `workspace.GlobalWind` and every staged Part `CFrame` / Model pivot against the
+   applier's saved originals at 1e-4 tolerance, after `disable()` destroys the folder). Targets are
+   `0 < M <= 12`, `30`, and `0`; a missing module or failed enable FAILs at measured -1/1, never a skip.
+4. For a visual pass only, stage again from the CLIENT datamodel with
+   `require(game.ReplicatedStorage.Shared.LookDevReview).enable("wind_r8", game)`; shoot
+   `hub_warung`, `hub_pasar` and `canonical_overview` from `docs/v2/visual/REVIEW_CAMERAS.md` and
+   watch the cloths/signs sway and the pisang/bambu lean. Call `LookDevReview.disable()` and re-read
+   `LOOKDEV_LEAK 0`; stop Play without saving. Visual yes/no stays the designer's.

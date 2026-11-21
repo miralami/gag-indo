@@ -432,7 +432,7 @@ return function(t, Env, _Fakes)
 			local env = Env.new()
 			local LookDev = env:require("shared/LookDev")
 			local Review = env:require("shared/LookDevReview")
-			expect(#LookDev.IDS):toBe(69)
+			expect(#LookDev.IDS):toBe(70)
 			for _, key in ipairs({ "a", "b", "c", "d", "e", "f" }) do
 				local id = "sky_r6_" .. key
 				expect(LookDev.isCandidate(id)):toBe(true)
@@ -449,7 +449,7 @@ return function(t, Env, _Fakes)
 			for _ in Review.paths do
 				count += 1
 			end
-			expect(count):toBe(69)
+			expect(count):toBe(70)
 			expect(count):toBe(#LookDev.IDS)
 		end)
 

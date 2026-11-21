@@ -115,9 +115,10 @@
 -- requires each staged folder to still hold its tagged parts, then calls disableAll() again.
 -- LOOKDEV_LEAK runs after it and proves no folders leaked.
 --
--- All checks except LOOKDEV_LEAK, ADDITIVE_STAGE, WATER_SAFE and WATER_RESTORE are read-only. The
--- first, third and fourth call enable(id)/disable() and restore the prior active candidate at the
--- end; ADDITIVE_STAGE uses enableAdditive(id)/disableAll(). All are safe to repeat.
+-- All checks except LOOKDEV_LEAK, ADDITIVE_STAGE, WATER_SAFE, WATER_RESTORE, WIND_SET,
+-- SWAY_TWEENS and WIND_RESTORE are read-only. The mutating checks call enable(id)/disable() and
+-- restore the prior active candidate at the end; ADDITIVE_STAGE uses enableAdditive(id)/
+-- disableAll(). All are safe to repeat.
 -- Every line is
 --   CHECK <name> PASS|FAIL <measured> <target>
 -- and the file returns a results table. A missing folder, attribute, service or failed read is a
@@ -214,6 +215,9 @@ local ORDER = {
 	"WATER_DEFAULT",
 	"WATER_SAFE",
 	"WATER_RESTORE",
+	"WIND_SET",
+	"SWAY_TWEENS",
+	"WIND_RESTORE",
 	"CAMERA_CLEAR",
 	"FLYER_COUNT",
 	"FLYER_COST",
@@ -6434,6 +6438,264 @@ if isClient then
 							restoredPrior = priorId,
 						}
 					)
+				end
+			end
+		end
+	end
+end
+
+do -- 12a-wind. WORK_QUEUE section M item 85 (CLIENT, MUTATING): one enable/read/disable cycle.
+	-- WIND_SET measures the live workspace.GlobalWind; SWAY_TWEENS reads the applier diagnostic;
+	-- WIND_RESTORE compares the captured baseline and every staged target's saved CFrame/pivot
+	-- after disable. All three emit even on error; a prior active candidate is re-enabled at the end.
+	local function windFail(reason)
+		emit("WIND_SET", false, -1, "0 < M <= 12", { reason = reason })
+		emit("SWAY_TWEENS", false, -1, 30, { reason = reason })
+		emit("WIND_RESTORE", false, 1, 0, { reason = reason })
+	end
+
+	if isClient then
+		local okModules, modules = pcall(function()
+			return {
+				look = require(game.ReplicatedStorage.Shared.LookDev),
+				review = require(game.ReplicatedStorage.Shared.LookDevReview),
+				map = require(game.ReplicatedStorage.Shared.ModelMapWindR8),
+			}
+		end)
+		if not okModules or type(modules) ~= "table" then
+			windFail("wind modules not readable")
+		else
+			local look, review, map = modules.look, modules.review, modules.map
+			if
+				type(look) ~= "table"
+				or type(look.enable) ~= "function"
+				or type(look.disable) ~= "function"
+				or type(look.current) ~= "function"
+				or type(review) ~= "table"
+				or type(review.enable) ~= "function"
+				or type(review.pathsFor) ~= "function"
+				or type(review.resolveContainer) ~= "function"
+				or type(map) ~= "table"
+				or type(map.MAX_WIND) ~= "number"
+				or type(map.MAX_TWEENS) ~= "number"
+			then
+				windFail("wind map or LookDev API incomplete")
+			else
+				local okWorkspace, workspaceService = pcall(function()
+					return game:GetService("Workspace")
+				end)
+				if not okWorkspace or not workspaceService then
+					windFail("Workspace missing")
+				else
+					local okBaseline, baseline = pcall(function()
+						return workspaceService.GlobalWind
+					end)
+					if not okBaseline or typeof(baseline) ~= "Vector3" then
+						windFail("GlobalWind baseline read failed")
+					else
+						local priorId = nil
+						local okCurrent, current = pcall(function()
+							return look.current()
+						end)
+						if okCurrent and type(current) == "string" then
+							priorId = current
+						end
+
+						local function frameOf(target)
+							if typeof(target) ~= "Instance" then
+								return nil
+							end
+							local okFrame, frame = pcall(function()
+								if target:IsA("Model") then
+									return target:GetPivot()
+								elseif target:IsA("BasePart") then
+									return target.CFrame
+								end
+								return nil
+							end)
+							return if okFrame then frame else nil
+						end
+
+						local function windMatches(a, b)
+							if typeof(a) ~= "Vector3" or typeof(b) ~= "Vector3" then
+								return false
+							end
+							return math.abs(a.X - b.X) <= 1e-4
+								and math.abs(a.Y - b.Y) <= 1e-4
+								and math.abs(a.Z - b.Z) <= 1e-4
+						end
+
+						local function frameMatches(a, b)
+							if typeof(a) ~= "CFrame" or typeof(b) ~= "CFrame" then
+								return false
+							end
+							local okComponents, ac, bc = pcall(function()
+								return { a:GetComponents() }, { b:GetComponents() }
+							end)
+							if not okComponents or #ac ~= 12 or #bc ~= 12 then
+								return false
+							end
+							for index = 1, 12 do
+								if math.abs(ac[index] - bc[index]) > 1e-4 then
+									return false
+								end
+							end
+							return true
+						end
+
+						local windAfter, tweenCount, tiltActive = nil, -1, false
+						local savedTargets, errors = {}, {}
+						local okCycle, cycleErr = pcall(function()
+							local okEnable, enabled, why = review.enable("wind_r8", game)
+							if not okEnable or enabled == false then
+								error("enable:" .. tostring(why or enabled))
+							end
+							local okAfter, value = pcall(function()
+								return workspaceService.GlobalWind
+							end)
+							if not okAfter then
+								error("read-after-enable:" .. tostring(value))
+							end
+							windAfter = value
+
+							local entry = review.pathsFor("wind_r8")
+							if not entry then
+								error("no review path for wind_r8")
+							end
+							local container = review.resolveContainer("client", game)
+							if not container then
+								error("no client container")
+							end
+							local node = container
+							for _, segment in ipairs(entry.path) do
+								node = node[segment]
+								if not node then
+									error("missing applier module " .. tostring(segment))
+								end
+							end
+							local applier = require(node)
+							if
+								type(applier) ~= "table"
+								or type(applier.tweenCount) ~= "function"
+								or type(applier.stageTargets) ~= "function"
+								or type(applier.baseCFrame) ~= "function"
+								or type(applier.tiltActive) ~= "function"
+							then
+								error("applier diagnostics incomplete")
+							end
+							tweenCount = applier.tweenCount()
+							tiltActive = applier.tiltActive()
+							local stage = applier.stageTargets()
+							for _, target in ipairs(stage) do
+								local base = applier.baseCFrame(target)
+								if typeof(base) ~= "CFrame" then
+									error("missing saved base CFrame")
+								end
+								savedTargets[#savedTargets + 1] = { target = target, base = base }
+							end
+							if #savedTargets == 0 then
+								error("no staged targets")
+							end
+						end)
+						if not okCycle then
+							errors[#errors + 1] = tostring(cycleErr)
+						end
+
+						local okDisable, disableErr = pcall(function()
+							return look.disable()
+						end)
+						if not okDisable then
+							errors[#errors + 1] = "disable:" .. tostring(disableErr)
+						end
+						local okAfter, afterWind = pcall(function()
+							return workspaceService.GlobalWind
+						end)
+						if not okAfter then
+							errors[#errors + 1] = "read-after-disable:" .. tostring(afterWind)
+						end
+
+						local magnitude = -1
+						if typeof(windAfter) == "Vector3" then
+							magnitude = math.sqrt(windAfter.X ^ 2 + windAfter.Y ^ 2 + windAfter.Z ^ 2)
+						end
+						local windPass = magnitude > 0 and magnitude <= map.MAX_WIND
+
+						local mismatches = {}
+						for _, entry in ipairs(savedTargets) do
+							local current = frameOf(entry.target)
+							if not frameMatches(entry.base, current) then
+								mismatches[#mismatches + 1] = tostring(entry.target) .. ":CFrame"
+							end
+						end
+						local windRestored = windMatches(baseline, afterWind)
+						if not windRestored then
+							mismatches[#mismatches + 1] = "GlobalWind"
+						end
+
+						if priorId then
+							local okRestore, restored = pcall(function()
+								return look.enable(priorId)
+							end)
+							if not okRestore or restored == false then
+								errors[#errors + 1] = "restore:" .. priorId .. ":" .. tostring(restored)
+							end
+						end
+
+						emit(
+							"WIND_SET",
+							okCycle and windPass,
+							magnitude,
+							"0 < M <= 12",
+							{
+								vector = typeof(windAfter) == "Vector3"
+										and string.format(
+											"(%.3f,%.3f,%.3f)",
+											windAfter.X,
+											windAfter.Y,
+											windAfter.Z
+										)
+									or "nil",
+								magnitude = magnitude,
+								baseline = string.format("(%.3f,%.3f,%.3f)", baseline.X, baseline.Y, baseline.Z),
+								errors = errors,
+							}
+						)
+						emit(
+							"SWAY_TWEENS",
+							okCycle and tweenCount > 0 and tweenCount <= map.MAX_TWEENS,
+							tweenCount,
+							30,
+							{
+								count = tweenCount,
+								maxTweens = map.MAX_TWEENS,
+								targetCount = #savedTargets,
+								tiltActive = tiltActive,
+								errors = errors,
+							}
+						)
+						emit(
+							"WIND_RESTORE",
+							#errors == 0 and #mismatches == 0 and okCycle and okDisable,
+							#mismatches,
+							0,
+							{
+								mismatches = mismatches,
+								windBefore = string.format("(%.3f,%.3f,%.3f)", baseline.X, baseline.Y, baseline.Z),
+								windAfter = typeof(afterWind) == "Vector3"
+										and string.format(
+											"(%.3f,%.3f,%.3f)",
+											afterWind.X,
+											afterWind.Y,
+											afterWind.Z
+										)
+									or "nil",
+								targetCount = #savedTargets,
+								baseSource = "applier.savedCFrames",
+								errors = errors,
+								restoredPrior = priorId,
+							}
+						)
+					end
 				end
 			end
 		end

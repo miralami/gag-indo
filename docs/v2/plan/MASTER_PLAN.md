@@ -188,6 +188,16 @@ Heartbeat flicker + ClockTime night gate. Real Studio Server-VM pure-data PASS `
 `CAMERA_CLEAR 0/42` (`h/2026-11-21-round9/CHECK_084.txt`). PERF_BUDGET 334/500 — equal to default, under
 the Sedang proxy. Suite **2601 tests**; `selene src` 0/0/0.
 
+Item 85 COMPLETE: `wind_r8` sets a gentle `workspace.GlobalWind` (magnitude 2.92 <= 12), sways 6
+jemuran cloths + 4 hanging sign boards with 10 capped TweenService tweens, and leans 6 pisang/bambu
+Models from ONE Heartbeat sine loop (Euler X -3.5..-2.7deg within +/-4), original Parts, MapSpec hubs,
+no asset IDs; the existing gameplay `Wind.luau` is untouched. Real Studio CLIENT-VM MUTATING cycle
+PASS `WIND_SET 2.92/<=12`, `SWAY_TWEENS 10/<=30`, `WIND_RESTORE 0 mismatches` (16 targets + GlobalWind
+restored exactly), `LOOKDEV_LEAK 0`, `CAMERA_CLEAR 0/42`
+(`h/2026-11-21-round9/CHECK_085.txt`). MapSpec+Ground injected into the Client datamodel at runtime
+(ServerScriptService does not replicate Edit->Client); place not saved. PERF_BUDGET 334/500 — equal to
+default, under the Sedang proxy. Suite **2611 tests**; `selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

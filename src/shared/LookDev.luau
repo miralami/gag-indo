@@ -45,6 +45,7 @@
 --   src/client/World/LookDevAnimalsR8.luau -- candidate "animals_r8" (village animals, client-only)
 --   src/client/World/LookDevFlyersR8.luau -- candidate "flyers_r8" (birds, butterflies, dragonflies, client-only)
 --   src/client/World/LookDevSmokeR8.luau -- candidate "smoke_r8" (chimney smoke, steam, night torches, client-only)
+--   src/client/World/LookDevWindR8.luau -- candidate "wind_r8" (gentle GlobalWind, sway tweens, tilt loop, client-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -156,6 +157,7 @@ LookDev.IDS = {
 	"animals_r8",
 	"flyers_r8",
 	"smoke_r8",
+	"wind_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -979,6 +981,21 @@ LookDev.candidates = {
 		maxEmitters = 12,
 		maxLights = 24,
 	},
+
+	wind_r8 = {
+		id = "wind_r8",
+		title = "Gentle wind — GlobalWind breeze, swaying jemuran and signs, slow pisang/bambu tilt (round 9, client-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Original Parts and a handful of TweenService tweens only, no asset IDs. Pure breeze,
+		-- sway-tween and tilt data live in Shared.ModelMapWindR8; the client applier owns all
+		-- mutation, one Heartbeat loop and exact CFrame/GlobalWind restore.
+		idsSource = "Shared.ModelMapWindR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		maxWind = 12,
+		maxTweens = 30,
+		maxTiltDeg = 4,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1172,6 +1189,7 @@ function LookDev.plan(id: string): any
 		or id == "spanduk_r8"
 		or id == "animals_r8"
 		or id == "smoke_r8"
+		or id == "wind_r8"
 	then
 		local c = LookDev.candidates[id]
 		return {

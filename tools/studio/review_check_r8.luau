@@ -172,6 +172,9 @@ local ORDER = {
 	"PLAZA_SHADE_TREE",
 	"PLAZA_LANE_CLEAR",
 	"PLAZA_PATH_REACH",
+	"TOWER_HEIGHT",
+	"TOWER_BASE",
+	"TOWER_PATH_CLEAR",
 	"VEG_NEAR",
 	"PROP_SIZE",
 	"CLOUD_COVER",
@@ -4672,6 +4675,183 @@ emit(
 		corridors = #corridorBoxes,
 		blockedByCorridor = plazaBlockersByCorridor,
 		reason = if lanesReady then nil else "folder / data / MapSpec.PLAZA not readable",
+	}
+)
+
+-- 9h. WORK_QUEUE section O item 150: the OFF-BY-DEFAULT ronda_tower_r9 candidate. Three NEW
+-- READ-ONLY checks over the staged LookDevRondaTowerR9_ronda_tower_r9 folder. TOWER_HEIGHT reads
+-- the staged Model's world GetBoundingBox Y size (28..32 inclusive). TOWER_BASE measures the four
+-- TowerLeg Parts' collective XZ AABB (8x8 brief + 1 tolerance). TOWER_PATH_CLEAR intersects every
+-- staged Part's CFrame+Size AABB with the SAME MapSpec path table built for PATH_CLEAR. Missing
+-- folder / model / MapSpec is a FAIL, never a skip. LOOKDEV_LEAK stays the shared restore proof.
+local TOWER_FOLDER = "LookDevRondaTowerR9_ronda_tower_r9"
+local TOWER_ID = "ronda_tower_r9"
+local TOWER_HEIGHT_MIN, TOWER_HEIGHT_MAX = 28, 32
+local TOWER_BASE_MAX = 9 -- 8x8 brief plus 1 stud tolerance
+
+local towerFolder = folderNamed(TOWER_FOLDER)
+local towerParts = {}
+local towerModel = nil
+local towerReadErrors = {}
+for _, inst in ipairs(descendantList(towerFolder)) do
+	local okPart, isPart = pcall(function()
+		return inst:IsA("BasePart")
+	end)
+	if attr(inst, "RondaTower") == TOWER_ID then
+		if okPart and isPart then
+			towerParts[#towerParts + 1] = inst
+		else
+			local okModel, isModel = pcall(function()
+				return inst:IsA("Model")
+			end)
+			if okModel and isModel and not towerModel then
+				towerModel = inst
+			end
+		end
+	end
+end
+
+-- TOWER_HEIGHT: world Model bbox height, NOT the greybox tower's 36-stud MapSpec height.
+local towerHeight = 0
+local heightReadOk = false
+if towerModel then
+	local size = bboxSize(towerModel)
+	if size and size.Y > 0 then
+		towerHeight = size.Y
+		heightReadOk = true
+	else
+		towerReadErrors[#towerReadErrors + 1] = "bbox"
+	end
+end
+emit(
+	"TOWER_HEIGHT",
+	heightReadOk and towerHeight >= TOWER_HEIGHT_MIN and towerHeight <= TOWER_HEIGHT_MAX,
+	math.floor(towerHeight * 100 + 0.5) / 100,
+	"28..32",
+	{
+		folderPresent = towerFolder ~= nil,
+		modelFound = towerModel ~= nil,
+		readErrors = towerReadErrors,
+	}
+)
+
+-- TOWER_BASE: collective AABB of the four TowerLeg Parts, including their own sizes.
+local towerLegs = {}
+for _, part in ipairs(towerParts) do
+	if attr(part, "TowerLeg") == true then
+		towerLegs[#towerLegs + 1] = part
+	end
+end
+local baseWidth, baseDepth = 0, 0
+local baseReadOk = #towerLegs > 0
+if baseReadOk then
+	local minX, maxX, minZ, maxZ = math.huge, -math.huge, math.huge, -math.huge
+	for _, leg in ipairs(towerLegs) do
+		local box = bboxAABB(leg)
+		if box then
+			minX, maxX = math.min(minX, box.minX), math.max(maxX, box.maxX)
+			minZ, maxZ = math.min(minZ, box.minZ), math.max(maxZ, box.maxZ)
+		else
+			baseReadOk = false
+			towerReadErrors[#towerReadErrors + 1] = "leg-cframe"
+		end
+	end
+	if baseReadOk then
+		baseWidth, baseDepth = maxX - minX, maxZ - minZ
+	end
+end
+local towerBaseFootprint = math.max(baseWidth, baseDepth)
+emit(
+	"TOWER_BASE",
+	baseReadOk and towerBaseFootprint <= TOWER_BASE_MAX,
+	math.floor(towerBaseFootprint * 100 + 0.5) / 100,
+	"<=" .. TOWER_BASE_MAX,
+	{
+		folderPresent = towerFolder ~= nil,
+		legs = #towerLegs,
+		width = math.floor(baseWidth * 100 + 0.5) / 100,
+		depth = math.floor(baseDepth * 100 + 0.5) / 100,
+		readErrors = towerReadErrors,
+	}
+)
+
+-- TOWER_PATH_CLEAR: no staged tower Part's XZ AABB touches a MapSpec road arm, continuation or
+-- ring chord. Arms/continuations are full rectangles; ring chords use PATH_CLEAR's CENTRAL_HALF
+-- corridor with the same chord axes and half-length. Exact AABB-overlap, no raycast or visual grade.
+local function towerAabbHitsPath(box)
+	for _, rect in ipairs(pathRects) do
+		if
+			box.maxX > rect.x - rect.halfX
+			and box.minX < rect.x + rect.halfX
+			and box.maxZ > rect.z - rect.halfZ
+			and box.minZ < rect.z + rect.halfZ
+		then
+			return rect.name
+		end
+	end
+	local centreX, centreZ = (box.minX + box.maxX) / 2, (box.minZ + box.maxZ) / 2
+	local halfX, halfZ = (box.maxX - box.minX) / 2, (box.maxZ - box.minZ) / 2
+	for index, seg in ipairs(pathSegments) do
+		local dx, dz = centreX - seg.x, centreZ - seg.z
+		local tangent = dx * seg.tx + dz * seg.tz
+		local perpendicular = dx * seg.nx + dz * seg.nz
+		local tangentExtent = math.abs(seg.tx) * halfX + math.abs(seg.tz) * halfZ
+		local normalExtent = math.abs(seg.nx) * halfX + math.abs(seg.nz) * halfZ
+		if
+			math.abs(tangent) < seg.halfLen + tangentExtent
+			and math.abs(perpendicular) < CENTRAL_HALF + normalExtent
+		then
+			return "RingRoad:" .. index
+		end
+	end
+	return nil
+end
+
+local towerPathOverlaps, towerReadErrorCount = 0, 0
+local towerPathOffenders, towerPathReadErrors = {}, {}
+for _, part in ipairs(towerParts) do
+	local box = bboxAABB(part)
+	if not box then
+		towerReadErrorCount += 1
+		if #towerPathReadErrors < 10 then
+			towerPathReadErrors[#towerPathReadErrors + 1] = tostring(part.Name) .. ":cframe"
+		end
+	elseif pathMapReady then
+		local hit = towerAabbHitsPath(box)
+		if hit then
+			towerPathOverlaps += 1
+			if #towerPathOffenders < 10 then
+				towerPathOffenders[#towerPathOffenders + 1] = string.format(
+					"%s:%s:%.2f,%.2f",
+					hit,
+					tostring(part.Name),
+					(box.minX + box.maxX) / 2,
+					(box.minZ + box.maxZ) / 2
+				)
+			end
+		end
+	end
+end
+local towerPathReason = nil
+if not towerFolder then
+	towerPathReason = "staging folder missing"
+elseif not pathMapReady then
+	towerPathReason = pathMapReason or "MapSpec paths not readable"
+elseif #towerParts == 0 then
+	towerPathReason = "no staged tower parts"
+end
+emit(
+	"TOWER_PATH_CLEAR",
+	towerFolder ~= nil and pathMapReady and #towerParts > 0 and towerPathOverlaps == 0 and towerReadErrorCount == 0,
+	towerPathOverlaps + towerReadErrorCount,
+	0,
+	{
+		folderPresent = towerFolder ~= nil,
+		parts = #towerParts,
+		pathsChecked = pathMapReady and (#pathRects + #pathSegments) or 0,
+		offenders = towerPathOffenders,
+		readErrors = towerPathReadErrors,
+		reason = towerPathReason,
 	}
 )
 

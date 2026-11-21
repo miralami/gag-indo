@@ -112,6 +112,14 @@ MapSpec.PLAZA. Real Studio staged-Play PASS `PLAZA_FOUNTAIN 1/1`, `PLAZA_BENCHES
 (`h/2026-11-21-round9/CHECK_149.txt`). PERF_BUDGET 404/500 — under the Sedang proxy; default look
 334/500. Suite **2524 tests**; `selene src` 0/0/0.
 
+Item 150 COMPLETE: `ronda_tower_r9` stages a bamboo Pos Ronda watchtower at MapSpec.RONDA_TOWER,
+height 30 studs (brief 28-32), 7.7x7.7 base (brief 8x8 + 1), with deck, pitched roof, kentongan and
+ladder — all 24 original Parts, no asset IDs, greybox untouched. Position from RECONCILIATION.md row
+6 decision "MAP_SPEC position, brief height". Real Studio staged-Play PASS `TOWER_HEIGHT 30 28..32`,
+`TOWER_BASE 7.7 <=9`, `TOWER_PATH_CLEAR 0 0` (0 of 24 parts over 62 MapSpec paths), `LOOKDEV_LEAK 0`
+(`h/2026-11-21-round9/CHECK_150.txt`). PERF_BUDGET 334/500 — equal to default, under the Sedang
+proxy. Suite **2532 tests**; `selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

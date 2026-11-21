@@ -186,6 +186,7 @@ local specs = {
 	require("./specs/hubs_real_r9_spec"),
 	require("./specs/pasar_awnings_r8_spec"),
 	require("./specs/plaza_r9_spec"),
+	require("./specs/ronda_tower_r9_spec"),
 }
 
 -- `--timing` prints a full per-spec table; without it only the slowest rows print. The first

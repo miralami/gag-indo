@@ -456,3 +456,34 @@ the CHECK evidence, tracker ticks and any visual verdict. No place is saved or p
    the Sedang proxy without weakening any target.
 5. Stop Play without saving. Visual grading — does the fountain/bunting/umbrella/bench/tree set read
    as the canonical Lapangan? — stays the designer's.
+
+## 21. Item-150 run — `ronda_tower_r9` Pos Ronda watchtower (WORK_QUEUE section O)
+
+Run-note recipe. **No Studio result is claimed** by the implementation agent; the main session owns
+the CHECK evidence and tracker ticks, and the designer owns the visual yes/no. No place is saved or
+published.
+
+1. Stop Play. Inject at runtime (not saved): `ReplicatedStorage.Shared.ModelMapRondaTowerR9`, the
+   changed `ReplicatedStorage.Shared.LookDev` and `LookDevReview`,
+   `ServerScriptService.Server.World.LookDevRondaTowerR9`, and the changed
+   `tools/studio/review_check_r8.luau`. No asset ID is introduced: the tower is 24 original Parts
+   (4 bamboo legs, deck, 2 roof panels, kentongan + slit, 2 ladder rails + 13 rungs). The greybox
+   tower stays visible underneath; `LOOKDEV_LEAK` covers folder cleanup, not greybox hiding.
+2. Start a FRESH real Play session in the SERVER datamodel. Stage ONLY this candidate:
+   `require(game.ReplicatedStorage.Shared.LookDevReview).enable("ronda_tower_r9", game)`. One
+   `RondaTower` Model appears inside `LookDevRondaTowerR9_ronda_tower_r9` at
+   `MapSpec.RONDA_TOWER.x/.z` on `MapSpec.GROUND_Y`; the recipe height is 30 studs, the four
+   `TowerLeg` Parts span 7.7x7.7 studs, and the kentongan and ladder are tagged at the top/side.
+3. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the SERVER
+   VM. Read the three new READ-ONLY lines: `CHECK TOWER_HEIGHT 30 28..32` (staged Model world
+   `GetBoundingBox` Y size, inclusive 28-32), `CHECK TOWER_BASE 7.7 <=9` (four legs' collective
+   CFrame+Size XZ AABB, 8x8 brief + 1 tolerance), `CHECK TOWER_PATH_CLEAR 0 0` (no staged Part AABB
+   intersects a MapSpec road arm, continuation or ring chord; the SAME path table as `PATH_CLEAR`).
+   A missing folder/model/MapSpec FAILs at measured 0 height or base and a positive overlap count —
+   never a vacuous pass. These are AABB clearances, not a PathfindingService audit.
+4. Call `require(game.ReplicatedStorage.Shared.LookDevReview).disable()` and re-run `LOOKDEV_LEAK`:
+   the staged folder must be gone and any prior folder re-parented. Capture `LOAD_FAILURES 0 0` and
+   `LOOKDEV_LEAK 0 leaks` as the shared guards. Read staged `PERF_BUDGET` if measured; record and
+   flag over the Sedang proxy without weakening any target.
+5. Stop Play without saving. Visual grading — does the tower read as the canonical bamboo Pos Ronda
+   with kentongan and ladder at the brief height? — stays the designer's.

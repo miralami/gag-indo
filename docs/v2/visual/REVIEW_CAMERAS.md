@@ -1,7 +1,7 @@
 # Review cameras (WORK_QUEUE section M item 69)
 
 Registry: `src/shared/ReviewCameras.luau` (`ReviewCameras.all()`, `.get(name)`, `.names()`).
-42 named cameras. Coordinates are computed at load from `src/server/World/MapSpec.luau` (hub centres,
+45 named cameras. Coordinates are computed at load from `src/server/World/MapSpec.luau` (hub centres,
 footprints, road ring, bridge, terraces, hill edge, spawn), `src/shared/Config/Game.luau` (plot-ring
 angles/radius) and `ModelMapVegetationR7.savedCamera` (the current saved spawn camera). No hand-typed
 world coordinates. `ReviewCameras.clearDistance` is the 6-stud `CAMERA_CLEAR` ray length.
@@ -58,6 +58,9 @@ Shots and verdicts belong under `docs/v2/evidence/h/<date>-round9/`.
 | `spawn_night` | Client | Spawn framing under the night lighting preset. |
 | `pasar_golden` | Client | Pasar framing under the golden-hour lighting preset. |
 | `pasar_night` | Client | Pasar framing under the night lighting preset. |
+| `crop_bibit` | Server | Item-118 `crops_showcase_r8` bibit stage plot: the 12 seedling crop Models in the first row at the MapSpec Lapangan field. |
+| `crop_tumbuh` | Server | Item-118 `crops_showcase_r8` tumbuh stage plot: the 12 growing crop Models in the second row at the MapSpec Lapangan field. |
+| `crop_siap` | Server | Item-118 `crops_showcase_r8` siap stage plot: the 12 mature crop Models in the third row at the MapSpec Lapangan field. |
 
 ## Notes
 

@@ -331,6 +331,7 @@ local ORDER = {
 	"KITE_STRING_CLEAR",
 	"SEATED_COUNT",
 	"SEATED_ON_BENCH",
+	"CROPS_STAGED",
 }
 
 local GRASS_Y = 4
@@ -9569,6 +9570,331 @@ do
 						antiVac = "2 collidable Bench parts / all 4 rigs probed at representative body Parts / 0 Bench hits",
 					})
 				end
+			end
+		end
+	end
+end
+
+do
+-- 9s. WORK_QUEUE section N item 118: crops_showcase_r8, three stage plots (bibit, tumbuh, siap)
+-- with all 12 crops in a row per plot. ONE mutating SERVER block emits CROPS_STAGED. It stages the
+-- candidate, then counts only tagged Models named with the crop+stage convention inside the staged
+-- folder, requires 3 stage plots each holding 12 distinct crops, and rejects any staged state-holding
+-- object. Every failing path emits CROPS_STAGED at measured 0 and restores the prior candidate.
+-- No Terrain read/write and no visual verdict; all earlier checks, FLYER_COST, IDLE_COST and full_r9
+-- stay READ-ONLY.
+	local CS_ID = "crops_showcase_r8"
+	local CS_FOLDER_FALLBACK = "LookDevCropsShowcaseR8_crops_showcase_r8"
+
+	local function csFail(reason, extra)
+		local detail = {
+			reason = reason,
+			folderPresent = folderNamed(CS_FOLDER_FALLBACK) ~= nil,
+			plots = 0,
+			taggedCrops = 0,
+			duplicates = 0,
+			parts = 0,
+			stateObjects = 0,
+			antiVac = "1 staged folder / 3 named stage plots x 12 named crop Models / 36 total / 0 state objects",
+		}
+		if type(extra) == "table" then
+			for key, value in pairs(extra) do
+				detail[key] = value
+			end
+		end
+		emit("CROPS_STAGED", false, 0, 36, detail)
+	end
+
+	local okCsModules, csModules = pcall(function()
+		return {
+			data = require(game.ReplicatedStorage.Shared.ModelMapCropsShowcaseR8),
+			look = require(game.ReplicatedStorage.Shared.LookDev),
+			review = require(game.ReplicatedStorage.Shared.LookDevReview),
+		}
+	end)
+	local csData, csLook, csReview = nil, nil, nil
+	if okCsModules and type(csModules) == "table" then
+		if type(csModules.data) == "table" then
+			csData = csModules.data
+		end
+		if type(csModules.look) == "table" then
+			csLook = csModules.look
+		end
+		if type(csModules.review) == "table" then
+			csReview = csModules.review
+		end
+	end
+	local csFolderName = CS_FOLDER_FALLBACK
+	if csData and type(csData.folderName) == "string" then
+		csFolderName = csData.folderName
+	end
+
+	local csRunService = service("RunService")
+	local okCsServer, csIsServer = false, false
+	if csRunService then
+		okCsServer, csIsServer = pcall(function()
+			return (csRunService :: any):IsServer()
+		end)
+	end
+
+	-- Resolve the SAME applier instance LookDev.enable() registered, so diagnostics describe the
+	-- live staged geometry rather than a second require of the module.
+	local function csApplier(): any?
+		if not csReview or type((csReview :: any).resolveContainer) ~= "function" then
+			return nil
+		end
+		local ok, module = pcall(function()
+			local container = (csReview :: any).resolveContainer("server", game)
+			if not container then
+				return nil
+			end
+			local entry = (csReview :: any).paths and (csReview :: any).paths[CS_ID]
+			if type(entry) ~= "table" or type(entry.path) ~= "table" then
+				return nil
+			end
+			local node = container
+			for _, segment in ipairs(entry.path) do
+				node = node[segment]
+				if not node then
+					return nil
+				end
+			end
+			return require(node)
+		end)
+		if not ok or not module then
+			return nil
+		end
+		return module
+	end
+
+	if
+		not csData
+		or not csLook
+		or not csReview
+		or not okCsServer
+		or not csIsServer
+		or not mapSpecReady
+		or type(csLook.enable) ~= "function"
+		or type(csLook.disable) ~= "function"
+		or type(csLook.current) ~= "function"
+		or type(csReview.enable) ~= "function"
+		or type(csData.folderName) ~= "string"
+		or type(csData.familyId) ~= "string"
+		or type(csData.stageAttribute) ~= "string"
+		or type(csData.kindAttribute) ~= "string"
+		or type(csData.CROP_PREFIX) ~= "string"
+		or type(csData.CROPS) ~= "table"
+		or #csData.CROPS ~= 12
+		or type(csData.STAGES) ~= "table"
+		or #csData.STAGES ~= 3
+		or type(csData.PLOTS) ~= "table"
+		or #csData.PLOTS ~= 3
+		or type(csData.COUNTS) ~= "table"
+		or csData.COUNTS.models ~= 36
+		or type(csData.PLOT_KIND) ~= "string"
+		or type(csData.CROP_KIND) ~= "string"
+	then
+		csFail("server VM / crop data / LookDev / review / MapSpec not readable")
+	else
+		local applier = csApplier()
+		if
+			not applier
+			or type((applier :: any).plotModels) ~= "function"
+			or type((applier :: any).cropModels) ~= "function"
+			or type((applier :: any).counts) ~= "function"
+			or type((applier :: any).isApplied) ~= "function"
+		then
+			csFail("crops showcase applier diagnostics not readable")
+		else
+			local priorId = nil
+			local okPrior, value = pcall(function()
+				return (csLook :: any).current()
+			end)
+			if okPrior then
+				priorId = value
+			end
+			local priorFolderExisted = folderNamed(csFolderName) ~= nil
+			local function csRestorePrior()
+				pcall(function()
+					(csLook :: any).disable()
+				end)
+				if type(priorId) == "string" then
+					pcall(function()
+						(csLook :: any).enable(priorId)
+					end)
+				end
+			end
+			local okEnable, enabled, whyEnable = pcall(function()
+				return (csReview :: any).enable(CS_ID, game, { studio = true })
+			end)
+			if not okEnable or enabled == false then
+				csRestorePrior()
+				csFail("enable:" .. tostring(whyEnable or enabled))
+			else
+				local folders = {}
+				for _, inst in ipairs(childList(workspace)) do
+					local okName, name = pcall(function()
+						return (inst :: any).Name
+					end)
+					if okName and name == csFolderName then
+						folders[#folders + 1] = inst
+					end
+				end
+				local folder = folders[1]
+				local folderPresent = #folders == 1 and folderNamed(csFolderName) ~= nil
+
+				local okPlots, apiPlots = pcall(function()
+					return (applier :: any).plotModels()
+				end)
+				local okCrops, apiCrops = pcall(function()
+					return (applier :: any).cropModels()
+				end)
+				local okCounts, apiCounts = pcall(function()
+					return (applier :: any).counts()
+				end)
+				local okApplied, apiApplied = pcall(function()
+					return (applier :: any).isApplied()
+				end)
+
+				local expected = {}
+				for _, crop in ipairs(csData.CROPS) do
+					for _, stage in ipairs(csData.STAGES) do
+						expected[csData.CROP_PREFIX .. crop .. "_" .. stage] = { crop = crop, stage = stage }
+					end
+				end
+
+				-- Anti-vacuity: only tagged MODELS with an exact crop+stage name count. A dummy Part,
+				-- a bare mesh, a wrong name or a crop staged twice cannot pass.
+				local taggedCrops, plotModels = {}, {}
+				local stateObjects, partCount, duplicates = 0, 0, 0
+				local stageCounts, cropNamesSeen = {}, {}
+				if folder then
+					for _, inst in ipairs(descendantList(folder)) do
+						local okTagged = pcall(function()
+							return attr(inst, csData.stageAttribute) == csData.familyId
+						end)
+						if okTagged and attr(inst, csData.stageAttribute) == csData.familyId then
+							local okBase, isBase = pcall(function()
+								return (inst :: any):IsA("BasePart")
+							end)
+							if okBase and isBase then
+								partCount += 1
+							end
+							local okModel, isModel = pcall(function()
+								return (inst :: any):IsA("Model")
+							end)
+							if okModel and isModel then
+								local okName, name = pcall(function()
+									return (inst :: any).Name
+								end)
+								local kind = attr(inst, csData.kindAttribute)
+								if okName and kind == csData.CROP_KIND and expected[name] then
+									if cropNamesSeen[name] then
+										duplicates += 1
+									end
+									cropNamesSeen[name] = true
+									taggedCrops[#taggedCrops + 1] = inst
+									stageCounts[expected[name].stage] = (stageCounts[expected[name].stage] or 0) + 1
+								elseif okName and kind == csData.PLOT_KIND then
+									plotModels[#plotModels + 1] = inst
+								end
+							end
+							-- No Script, ValueBase or Remote object may be staged: geometry only.
+							local okState, isState = pcall(function()
+								return (inst :: any):IsA("ValueBase")
+									or (inst :: any):IsA("LuaSourceContainer")
+									or (inst :: any):IsA("RemoteEvent")
+									or (inst :: any):IsA("RemoteFunction")
+							end)
+							if okState and isState then
+								stateObjects += 1
+							end
+						end
+					end
+				end
+
+				local plotShapeOk = true
+				for _, plot in ipairs(csData.PLOTS) do
+					local found = nil
+					for _, model in ipairs(plotModels) do
+						local okName, name = pcall(function()
+							return (model :: any).Name
+						end)
+						if okName and name == "Plot_" .. plot.stage then
+							found = model
+							break
+						end
+					end
+					if not found then
+						plotShapeOk = false
+					else
+						local cropsHere, namesHere = 0, {}
+						for _, child in ipairs(childList(found)) do
+							local kind = attr(child, csData.kindAttribute)
+							if kind == csData.CROP_KIND then
+								local okName, name = pcall(function()
+									return (child :: any).Name
+								end)
+								if
+									okName
+									and expected[name]
+									and expected[name].stage == plot.stage
+									and not namesHere[name]
+								then
+									namesHere[name] = true
+									cropsHere += 1
+								end
+							end
+						end
+						if cropsHere ~= csData.COUNTS.crops then
+							plotShapeOk = false
+						end
+					end
+				end
+
+				csRestorePrior()
+				local leftover = folderNamed(csFolderName) ~= nil
+				local restoreOk = leftover == priorFolderExisted
+				local measured = #taggedCrops
+				local csPass = folderPresent
+					and #folders == 1
+					and #plotModels == csData.COUNTS.plots
+					and plotShapeOk
+					and measured == csData.COUNTS.models
+					and duplicates == 0
+					and partCount >= 303
+					and partCount <= 340
+					and stateObjects == 0
+					and okPlots
+					and type(apiPlots) == "table"
+					and #apiPlots == 3
+					and okCrops
+					and type(apiCrops) == "table"
+					and #apiCrops == 36
+					and okCounts
+					and type(apiCounts) == "table"
+					and apiCounts.plots == 3
+					and apiCounts.models == 36
+					and okApplied
+					and apiApplied == true
+					and restoreOk
+				emit("CROPS_STAGED", csPass, measured, 36, {
+					reason = if csPass then nil else "folder / plot / crop-model / anti-vacuity check failed",
+					folders = #folders,
+					folderPresent = folderPresent,
+					plots = #plotModels,
+					stageCounts = stageCounts,
+					taggedCrops = #taggedCrops,
+					duplicates = duplicates,
+					apiPlots = if okPlots and type(apiPlots) == "table" then #apiPlots else -1,
+					apiCrops = if okCrops and type(apiCrops) == "table" then #apiCrops else -1,
+					apiModels = if okCounts and type(apiCounts) == "table" then apiCounts.models else -1,
+					parts = partCount,
+					stateObjects = stateObjects,
+					isApplied = if okApplied then apiApplied else false,
+					restoreOk = restoreOk,
+					antiVac = "1 staged folder / 3 named stage plots x 12 named crop Models / 36 total / 0 state objects",
+				})
 			end
 		end
 	end

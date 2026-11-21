@@ -58,6 +58,7 @@
 --   src/server/World/LookDevLaundryR8.luau -- candidate "laundry_r8" (hanging laundry behind two houses, server-only)
 --   src/server/World/LookDevLayanganR8.luau -- candidate "layangan_r8" (four kites over the field, server-only)
 --   src/server/World/LookDevSeatedR8.luau -- candidate "seated_r8" (four seated R15 villagers at the Warung, server-only)
+--   src/server/World/LookDevCropsShowcaseR8.luau -- candidate "crops_showcase_r8" (three crop stage-review plots, server-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -193,6 +194,7 @@ LookDev.IDS = {
 	"laundry_r8",
 	"layangan_r8",
 	"seated_r8",
+	"crops_showcase_r8",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -1298,6 +1300,21 @@ LookDev.candidates = {
 		seatedCount = 4,
 		propCount = 8,
 	},
+
+	crops_showcase_r8 = {
+		id = "crops_showcase_r8",
+		title = "Crop review plots — one stage plot each for bibit, tumbuh and siap, all 12 crops in a row, with one camera per plot (round 10, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Pure stage/layout/colour data in Shared.ModelMapCropsShowcaseR8; the 36 crop Models are
+		-- built from the existing Shared.CropModelCandidates.partsFor recipes as original Parts with
+		-- plain RGB colours and built-in materials. No asset IDs, no decals, no Terrain edit and no
+		-- gameplay state writes. Stage geometry only, off by default, staged at MapSpec.LAPANGAN.
+		idsSource = "Shared.ModelMapCropsShowcaseR8",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		stageCount = 3,
+		cropCount = 12,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1669,6 +1686,15 @@ function LookDev.plan(id: string): any
 			render = c.render,
 			seatedCount = c.seatedCount,
 			propCount = c.propCount,
+		}
+	elseif id == "crops_showcase_r8" then
+		local c = LookDev.candidates.crops_showcase_r8
+		return {
+			id = id,
+			idsSource = c.idsSource,
+			render = c.render,
+			stageCount = c.stageCount,
+			cropCount = c.cropCount,
 		}
 	end
 	return nil

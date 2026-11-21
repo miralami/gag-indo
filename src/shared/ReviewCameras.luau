@@ -14,6 +14,7 @@
 local MapSpec = require(game:GetService("ServerScriptService"):WaitForChild("Server").World.MapSpec)
 local Game = require(script.Parent.Config.Game)
 local VegR7 = require(script.Parent.ModelMapVegetationR7)
+local CropsShowcase: any = require(script.Parent.ModelMapCropsShowcaseR8)
 
 export type Vec3 = { number }
 export type ReviewCamera = {
@@ -278,6 +279,40 @@ add("spawn_golden", spawnEye, spawnLook, "Client", "Spawn at golden hour: warm l
 add("spawn_night", spawnEye, spawnLook, "Client", "Spawn at night: lanterns, sky and dark-road legibility.")
 add("pasar_golden", pasarEye, pasarLook, "Client", "Pasar at golden hour: awnings, stalls and spanduk in warm light.")
 add("pasar_night", pasarEye, pasarLook, "Client", "Pasar at night: lantern and stall lighting.")
+
+-- WORK_QUEUE section N item 118: one camera per crops_showcase_r8 stage plot. Plot centres share the
+-- stage offsets the server applier uses, relative to MapSpec.LAPANGAN; the eye stands 22 studs south
+-- and 12 studs above the ground plane, aimed at the row centre 3 studs up, clear of the other plots.
+local function cropPlotCamera(zOffset: number): (Vec3, Vec3)
+	local centreZ = MapSpec.LAPANGAN.z + zOffset
+	local offset = CropsShowcase.CAMERA
+	return vec(MapSpec.LAPANGAN.x, MapSpec.GROUND_Y + offset.rise, centreZ - offset.standoff),
+		vec(MapSpec.LAPANGAN.x, MapSpec.GROUND_Y + offset.lookRise, centreZ)
+end
+local cropBibitEye, cropBibitLook = cropPlotCamera(CropsShowcase.PLOTS[1].zOffset)
+local cropTumbuhEye, cropTumbuhLook = cropPlotCamera(CropsShowcase.PLOTS[2].zOffset)
+local cropSiapEye, cropSiapLook = cropPlotCamera(CropsShowcase.PLOTS[3].zOffset)
+add(
+	"crop_bibit",
+	cropBibitEye,
+	cropBibitLook,
+	"Server",
+	"Item-118 crops_showcase_r8 bibit plot: 12 crop Models in a row at the MapSpec Lapangan field."
+)
+add(
+	"crop_tumbuh",
+	cropTumbuhEye,
+	cropTumbuhLook,
+	"Server",
+	"Item-118 crops_showcase_r8 tumbuh plot: 12 crop Models in a row at the MapSpec Lapangan field."
+)
+add(
+	"crop_siap",
+	cropSiapEye,
+	cropSiapLook,
+	"Server",
+	"Item-118 crops_showcase_r8 siap plot: 12 crop Models in a row at the MapSpec Lapangan field."
+)
 
 local byName: { [string]: ReviewCamera } = {}
 for _, camera in cameras do

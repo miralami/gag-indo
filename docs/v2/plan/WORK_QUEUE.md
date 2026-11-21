@@ -1171,7 +1171,21 @@ Same rules as section M (candidates off by default, Studio PASS per item, no gam
   empirical dz sweep showed +1.0 Z clears, so zLift 0.35->1.35 (z -57.65->-56.65, at front edge), seat depth 0.8->1.4;
   thresholds/PROBE_PARTS/counts UNCHANGED. All existing checks byte-identical. 2787 tests, selene 0/0/0.
   Candidate off by default; no shipping default changed. No new camera (item 133).
-- [ ] 118. **`crops_showcase_r8`: crop review plots.** For the designer's review: one plot per growth stage (bibit, tumbuh, siap) showing all 12 crops in rows, and a camera for each in `REVIEW_CAMERAS.md`. No gameplay state is touched; it is staged geometry only. **CHECKS:** `CROPS_STAGED` = 36; `CROP_GROWTH` re-run.
+- [x] 118. **`crops_showcase_r8`: crop review plots.** For the designer's review: one plot per growth stage (bibit, tumbuh, siap) showing all 12 crops in rows, and a camera for each in `REVIEW_CAMERAS.md`. No gameplay state is touched; it is staged geometry only. **CHECKS:** `CROPS_STAGED` = 36; `CROP_GROWTH` re-run.
+  Done 2026-11-22: NEW pure `ModelMapCropsShowcaseR8` (12 exact Config/Crops ids, stages bibit/tumbuh/siap, 3 plots at
+  MapSpec.LAPANGAN z 80/96/112, 12 crops/row x -24.75..24.75 step 4.5, built-in tokens only, no IDs/engine API) +
+  NEW server `LookDevCropsShowcaseR8` applier (3 stage Models + 36 crop Models from `CropModelCandidates.partsFor`,
+  306 original Parts anchored/non-collidable, NO DataStore/player/crop-state writes, exact folder save/restore,
+  diagnostics plotModels/cropModels/counts/partCount/isApplied). New ID 90 (count literals 89->90 across 44 specs +
+  3 extra), review path, 1 harness check `CROPS_STAGED`, new spec, CANDIDATES pending row. 3 Server review cameras
+  `crop_bibit`/`crop_tumbuh`/`crop_siap` added to BOTH `ReviewCameras.luau` (MapSpec-derived) and `REVIEW_CAMERAS.md`
+  (registry/doc entries only, no in-game Camera staged); item 133 also names these — no duplication later. Real Studio
+  fresh-Play PASS (`CHECK_118.txt`, SEEN-IN-STUDIO): `CROPS_STAGED` 36 Models/3 plots/12 per stage/306 Parts/0 state
+  objects, `CAMERA_CLEAR` 45 cameras/0 blocked incl. 3 new, synthetic destroyed-crop discriminated (36->35),
+  disable/re-enable PASS. Standalone verbatim `crop_growth_check.luau` re-run in FRESH Client VM (runtime-injected,
+  not saved) PASS `CHECK CROP_GROWTH PASS 12 12`, thresholds 0.5/6.0/15% untouched. All existing checks byte-identical.
+  2798 tests, selene 0/0/0. Candidate off by default; no shipping default changed. Designer decision: camera framing is
+  a safe MapSpec-derived default; no screenshot claim.
 
 #### N3. Weather, seasons, atmosphere
 

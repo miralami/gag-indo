@@ -152,6 +152,10 @@ local ORDER = {
 	"PATH_EDGE",
 	"PATH_CLEAR",
 	"PATH_EDGE_OFFSET",
+	"ROCK_COUNT",
+	"ROCK_SPECIES",
+	"ROCK_PATH_CLEAR",
+	"ROCK_GATE_CLEAR",
 	"BLDG_VISIBLE",
 	"PIVOT_GROUND",
 	"BLDG_WIDTH",
@@ -4852,6 +4856,237 @@ emit(
 		offenders = towerPathOffenders,
 		readErrors = towerPathReadErrors,
 		reason = towerPathReason,
+	}
+)
+
+-- 9g. WORK_QUEUE section O item 151: rocks_r9. Four NEW READ-ONLY checks over the staged
+-- LookDevRocksR9_rocks_r9 folder. ROCK_PATH_CLEAR reuses pathRects/pathSegments from PATH_CLEAR and
+-- the same CFrame+Size AABB math (GetBoundingBox is Model-only here). ROCK_GATE_CLEAR reads the real
+-- plot gate markers when staged, then tagged PlotAnchor parts, then Config.Game.plotCenter; zero
+-- readable gates is a FAIL, never a vacuous pass. The existing PATH_CLEAR / GATE_CLEAR are untouched.
+local ROCK_FOLDER = "LookDevRocksR9_rocks_r9"
+local ROCK_KEY = "rocks_r9"
+local ROCK_MIN = 25
+local ROCK_SPECIES_MIN = 2
+local ROCK_GATE_CLEAR = 2
+local ROCK_GATE_EXPECTED = 10
+
+local rockFolder = folderNamed(ROCK_FOLDER)
+local rockModels, rockParts = {}, {}
+local okRocks, rockDescendants = pcall(function()
+	if not rockFolder then
+		return {}
+	end
+	return rockFolder:GetDescendants()
+end)
+if okRocks and type(rockDescendants) == "table" then
+	for _, inst in ipairs(rockDescendants) do
+		if attr(inst, "RockR9") == ROCK_KEY then
+			local okModel, isModel = pcall(function()
+				return inst:IsA("Model")
+			end)
+			local okPart, isPart = pcall(function()
+				return inst:IsA("BasePart")
+			end)
+			if okModel and isModel then
+				rockModels[#rockModels + 1] = inst
+			elseif okPart and isPart then
+				rockParts[#rockParts + 1] = inst
+			end
+		end
+	end
+end
+
+local rockKindCounts = {}
+for _, model in ipairs(rockModels) do
+	local kind = attr(model, "RockKind")
+	kind = type(kind) == "string" and kind or "?"
+	rockKindCounts[kind] = (rockKindCounts[kind] or 0) + 1
+end
+emit(
+	"ROCK_COUNT",
+	rockFolder ~= nil and #rockModels >= ROCK_MIN,
+	#rockModels,
+	">=" .. ROCK_MIN,
+	{ models = #rockModels, parts = #rockParts, perKind = rockKindCounts, folderPresent = rockFolder ~= nil }
+)
+local species = 0
+for _ in pairs(rockKindCounts) do
+	species += 1
+end
+emit(
+	"ROCK_SPECIES",
+	species >= ROCK_SPECIES_MIN,
+	species,
+	">=" .. ROCK_SPECIES_MIN,
+	{ kinds = rockKindCounts, models = #rockModels }
+)
+
+local function rockHitsPath(box)
+	for _, rect in ipairs(pathRects) do
+		if
+			box.maxX > rect.x - rect.halfX
+			and box.minX < rect.x + rect.halfX
+			and box.maxZ > rect.z - rect.halfZ
+			and box.minZ < rect.z + rect.halfZ
+		then
+			return rect.name
+		end
+	end
+	local centreX, centreZ = (box.minX + box.maxX) / 2, (box.minZ + box.maxZ) / 2
+	local halfX, halfZ = (box.maxX - box.minX) / 2, (box.maxZ - box.minZ) / 2
+	for index, seg in ipairs(pathSegments) do
+		local dx, dz = centreX - seg.x, centreZ - seg.z
+		local tangent = dx * seg.tx + dz * seg.tz
+		local normal = dx * seg.nx + dz * seg.nz
+		local tangentExtent = math.abs(seg.tx) * halfX + math.abs(seg.tz) * halfZ
+		local normalExtent = math.abs(seg.nx) * halfX + math.abs(seg.nz) * halfZ
+		if math.abs(tangent) < seg.halfLen + tangentExtent and math.abs(normal) < CENTRAL_HALF + normalExtent then
+			return "RingRoad:" .. index
+		end
+	end
+	return nil
+end
+
+local rockPathOverlaps, rockPathReadErrors = 0, 0
+local rockPathOffenders, rockPathErrorNames = {}, {}
+for _, part in ipairs(rockParts) do
+	local box = bboxAABB(part)
+	if not box then
+		rockPathReadErrors += 1
+		if #rockPathErrorNames < 10 then
+			rockPathErrorNames[#rockPathErrorNames + 1] = tostring(part.Name) .. ":aabb"
+		end
+	elseif pathMapReady then
+		local hit = rockHitsPath(box)
+		if hit then
+			rockPathOverlaps += 1
+			if #rockPathOffenders < 10 then
+				rockPathOffenders[#rockPathOffenders + 1] = string.format(
+					"%s:%s:%.2f,%.2f",
+					hit,
+					tostring(part.Name),
+					(box.minX + box.maxX) / 2,
+					(box.minZ + box.maxZ) / 2
+				)
+			end
+		end
+	end
+end
+local rockPathReason = nil
+if not rockFolder then
+	rockPathReason = "staging folder missing"
+elseif not pathMapReady then
+	rockPathReason = pathMapReason or "MapSpec paths not readable"
+elseif #rockParts == 0 then
+	rockPathReason = "no staged rock parts"
+end
+emit(
+	"ROCK_PATH_CLEAR",
+	rockFolder ~= nil and pathMapReady and #rockParts > 0 and rockPathOverlaps == 0 and rockPathReadErrors == 0,
+	rockPathOverlaps + rockPathReadErrors,
+	0,
+	{
+		folderPresent = rockFolder ~= nil,
+		parts = #rockParts,
+		pathsChecked = pathMapReady and (#pathRects + #pathSegments) or 0,
+		offenders = rockPathOffenders,
+		readErrors = rockPathErrorNames,
+		reason = rockPathReason,
+	}
+)
+
+-- Prefer the real gate markers from plots_r8. Fall back to live PlotAnchor parts (their -Z side
+-- is the entrance), then to Config.Game.plotCenter + ModelMapPlotsR8 plot depth.
+local rockGates = {}
+for _, part in ipairs(plotParts) do
+	if attr(part, "Kind") == "gate_marker" then
+		local okPos, pos = pcall(function()
+			return part.CFrame.Position
+		end)
+		if okPos then
+			rockGates[#rockGates + 1] = { x = pos.X, z = pos.Z, source = "marker" }
+		end
+	end
+end
+if #rockGates == 0 then
+	for _, anchor in ipairs(taggedNear("PlotAnchor", Vector3.new(0, 0, 0), math.huge)) do
+		local okGate, x, z = pcall(function()
+			local cf, size = anchor:GetPivot(), anchor.Size
+			local gate = cf * CFrame.new(0, 0, -(size.Z / 2 + 3))
+			return gate.Position.X, gate.Position.Z
+		end)
+		if okGate then
+			rockGates[#rockGates + 1] = { x = x, z = z, source = "PlotAnchor" }
+		end
+	end
+end
+if #rockGates == 0 then
+	local okFallback, Plots, Game = pcall(function()
+		return require(game.ReplicatedStorage.Shared.ModelMapPlotsR8),
+			require(game.ReplicatedStorage.Shared.Config.Game)
+	end)
+	if okFallback and Plots and Game then
+		for index = 1, Plots.PLOT_COUNT do
+			local okCentre, x, z = pcall(Game.plotCenter, index)
+			if okCentre and type(x) == "number" and type(z) == "number" then
+				local frame = CFrame.lookAt(Vector3.new(x, 0, z), Vector3.zero)
+				local gate = frame * CFrame.new(0, 0, -(Plots.PLOT_DEPTH / 2 + 3))
+				rockGates[#rockGates + 1] = { x = gate.Position.X, z = gate.Position.Z, source = "plotCenter" }
+			end
+		end
+	end
+end
+
+local rockGateOffenders, rockGateErrors = {}, {}
+local rockGateHits, rockGateReadErrors = 0, 0
+local gateSource = rockGates[1] and rockGates[1].source or "none"
+for _, model in ipairs(rockModels) do
+	local centre = bboxCentre(model)
+	if not centre then
+		rockGateReadErrors += 1
+		if #rockGateErrors < 10 then
+			rockGateErrors[#rockGateErrors + 1] = tostring(model.Name) .. ":bbox"
+		end
+	else
+		for index, gate in ipairs(rockGates) do
+			local dx, dz = centre.X - gate.x, centre.Z - gate.z
+			if dx * dx + dz * dz < ROCK_GATE_CLEAR * ROCK_GATE_CLEAR then
+				rockGateHits += 1
+				if #rockGateOffenders < 10 then
+					rockGateOffenders[#rockGateOffenders + 1] =
+						string.format("gate%d:%s:%.2f,%.2f", index, tostring(model.Name), centre.X, centre.Z)
+				end
+				break
+			end
+		end
+	end
+end
+local rockGateReason = nil
+if not rockFolder then
+	rockGateReason = "staging folder missing"
+elseif #rockGates < ROCK_GATE_EXPECTED then
+	rockGateReason = "only " .. #rockGates .. "/" .. ROCK_GATE_EXPECTED .. " plot gates readable"
+elseif #rockModels == 0 then
+	rockGateReason = "no staged rock models"
+end
+emit(
+	"ROCK_GATE_CLEAR",
+	rockFolder ~= nil
+		and #rockModels > 0
+		and #rockGates >= ROCK_GATE_EXPECTED
+		and rockGateHits == 0
+		and rockGateReadErrors == 0,
+	rockGateHits + rockGateReadErrors,
+	0,
+	{
+		gates = #rockGates,
+		gateSource = gateSource,
+		clear = ROCK_GATE_CLEAR,
+		models = #rockModels,
+		offenders = rockGateOffenders,
+		readErrors = rockGateErrors,
+		reason = rockGateReason,
 	}
 )
 

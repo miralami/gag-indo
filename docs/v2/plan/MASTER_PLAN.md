@@ -120,6 +120,14 @@ ladder — all 24 original Parts, no asset IDs, greybox untouched. Position from
 (`h/2026-11-21-round9/CHECK_150.txt`). PERF_BUDGET 334/500 — equal to default, under the Sedang
 proxy. Suite **2532 tests**; `selene src` 0/0/0.
 
+Item 151 COMPLETE: `rocks_r9` scatters 48 half-buried rocks in three procedural shapes (16 each:
+round/wedge/cluster stand-ins, no verified rock model id exists), bands 24 river-bank / 12 hill-foot /
+12 field-edge, 1.6-3.6 studs, no asset IDs. Real Studio staged-Play PASS `ROCK_COUNT 48 >=25`,
+`ROCK_SPECIES 3 >=2`, `ROCK_PATH_CLEAR 0 0` (0 of 80 parts over 62 MapSpec paths), `ROCK_GATE_CLEAR 0 0`
+(0 of 48 rocks within 2 studs of 10 plot gates, plotCenter source), `CAMERA_CLEAR 0/36`
+(`h/2026-11-21-round9/CHECK_151.txt`). PERF_BUDGET 334/500 — equal to default, under the Sedang proxy.
+Suite **2541 tests**; `selene src` 0/0/0.
+
 **Long-run 2026-11-20 — WORK_QUEUE section K items 53–60 COMPLETE (round 7, hard Studio PASS
 ticking):** item 53 check harness `tools/studio/review_check_r7.luau` runs in the real Play Server VM
 and prints exactly eight `CHECK <name> PASS|FAIL <measured> <target>` lines; documented in

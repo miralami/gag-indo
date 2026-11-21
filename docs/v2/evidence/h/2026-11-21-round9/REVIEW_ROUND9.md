@@ -487,3 +487,35 @@ published.
    flag over the Sedang proxy without weakening any target.
 5. Stop Play without saving. Visual grading — does the tower read as the canonical bamboo Pos Ronda
    with kentongan and ladder at the brief height? — stays the designer's.
+
+## 22. Item-151 run — `rocks_r9` boulders and stones (WORK_QUEUE section O)
+
+Run-note recipe. **No Studio result is claimed** by the implementation agent; the main session owns
+the CHECK evidence and tracker ticks, and the designer owns the visual yes/no. No place is saved or
+published.
+
+1. Stop Play. Inject at runtime (not saved): `ReplicatedStorage.Shared.ModelMapRocksR9`, the changed
+   `ReplicatedStorage.Shared.LookDev` and `LookDevReview`,
+   `ServerScriptService.Server.World.LookDevRocksR9`, and the changed
+   `tools/studio/review_check_r8.luau`. No asset ID is introduced: three procedural Part shapes
+   (Ball, squashed Wedge, three-ball cluster) stand in for rock models because no verified rock
+   MODEL id exists in the shared asset maps.
+2. Start a FRESH real Play session in the SERVER datamodel. Stage ONLY this candidate:
+   `require(game.ReplicatedStorage.Shared.LookDevReview).enable("rocks_r9", game)`. The applier reads
+   live gate positions first from staged `plots_r8` `gate_marker` Parts, then from tagged
+   `PlotAnchor` parts, then from `Config.Game.plotCenter`; unreadable gates abort staging, so a run
+   without any readable plot gates FAILs rather than passing vacuously.
+3. Paste the WHOLE `tools/studio/review_check_r8.luau` into Studio MCP `execute_luau` in the SERVER
+   VM. Read four new READ-ONLY lines: `CHECK ROCK_COUNT 48 >=25` (tagged `RockR9` Models in
+   `LookDevRocksR9_rocks_r9`), `CHECK ROCK_SPECIES 3 >=2` (distinct `RockKind` values),
+   `CHECK ROCK_PATH_CLEAR 0 0` (no staged Part CFrame+Size AABB touches a MapSpec road arm,
+   continuation or ring chord — the SAME path table as `PATH_CLEAR`) and `CHECK ROCK_GATE_CLEAR 0 0`
+   (no rock Model bbox centre within 2 studs of a plot gate). Missing folder, gates or MapSpec FAIL;
+   no check is vacuous. These are AABB/XZ clearances, not a visual grade. The existing `PATH_CLEAR`
+   and `GATE_CLEAR` lines belong to earlier items and are unchanged.
+4. Call `require(game.ReplicatedStorage.Shared.LookDevReview).disable()` and re-run `LOOKDEV_LEAK`:
+   the staged folder must be gone and any prior folder re-parented. Capture `LOAD_FAILURES 0 0` and
+   `LOOKDEV_LEAK 0 leaks` as the shared guards. Read staged `PERF_BUDGET` if measured; record and
+   flag over the Sedang proxy without weakening any target.
+5. Stop Play without saving. Visual grading — do the boulders read as natural half-buried stones
+   along the river, hill foot and field edges? — stays the designer's.

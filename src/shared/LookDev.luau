@@ -39,6 +39,7 @@
 --   src/server/World/LookDevHubsRealR9.luau -- candidate "hubs_real_r9" (real buildings on six hubs, server-only)
 --   src/server/World/LookDevPlazaR9.luau -- candidate "plaza_r9" (central plaza dressing, server-only)
 --   src/server/World/LookDevRondaTowerR9.luau -- candidate "ronda_tower_r9" (Pos Ronda watchtower, server-only)
+--   src/server/World/LookDevRocksR9.luau -- candidate "rocks_r9" (half-buried boulders and stones, server-only)
 -- Each registers itself with LookDev.register() at boot. Model families MUST be enabled from the
 -- Server datamodel: InsertService:LoadAsset is blocked on the client. Enable from the Studio command bar:
 --   require(game.ReplicatedStorage.Shared.LookDev).enable("plaza_lighting")
@@ -58,7 +59,7 @@
 --   LookDev.enable("textures_r4")
 --   LookDev.enable("sky_r4_a") -- or LookDev.enable("sky_r4_b") / LookDev.enable("sky_r4_c")
 --   LookDev.enable("sky_r6_a") -- or sky_r6_b / sky_r6_c / sky_r6_d / sky_r6_e / sky_r6_f
---   -- from the Server datamodel: LookDev.enable("buildings_r8") / LookDev.enable("facades_r8") / LookDev.enable("hubprops_r8") / LookDev.enable("hubs_real_r9") / LookDev.enable("plaza_r9") / LookDev.enable("ronda_tower_r9")
+--   -- from the Server datamodel: LookDev.enable("buildings_r8") / LookDev.enable("facades_r8") / LookDev.enable("hubprops_r8") / LookDev.enable("hubs_real_r9") / LookDev.enable("plaza_r9") / LookDev.enable("ronda_tower_r9") / LookDev.enable("rocks_r9")
 --   LookDev.enable("spawn_ground_r6")
 --   LookDev.enable("terrain_r6_a") -- or LookDev.enable("terrain_r6_b")
 --   -- server-only: LookDev.enable("buildings_r4") / LookDev.enable("vegetation_r4") / LookDev.enable("props_r4") / LookDev.enable("npcs_r4")
@@ -144,6 +145,7 @@ LookDev.IDS = {
 	"pasar_awnings_r8",
 	"plaza_r9",
 	"ronda_tower_r9",
+	"rocks_r9",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -886,6 +888,18 @@ LookDev.candidates = {
 		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
 		height = 30,
 	},
+
+	rocks_r9 = {
+		id = "rocks_r9",
+		title = "Half-buried boulders and stones — three procedural rock shapes along the river banks, hill foot and field edges (round 9, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		-- Original procedural Parts, no asset IDs (no verified rock model exists). Pure
+		-- slot/shape/exclusion data in Shared.ModelMapRocksR9, placed from MapSpec geometry.
+		idsSource = "Shared.ModelMapRocksR9",
+		render = "docs/v2/evidence/h/2026-11-21-round9/REVIEW_ROUND9.md",
+		minRocks = 25,
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1074,6 +1088,7 @@ function LookDev.plan(id: string): any
 		or id == "pasar_awnings_r8"
 		or id == "plaza_r9"
 		or id == "ronda_tower_r9"
+		or id == "rocks_r9"
 	then
 		local c = LookDev.candidates[id]
 		return {

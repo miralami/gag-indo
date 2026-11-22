@@ -1,0 +1,43 @@
+CHECK 198 - distant mountains and a volcano (WORK_QUEUE SPRINT 1 item 198)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2
+Place: Development-Juragan-Desa. Play only (Server VM, check). Place NOT saved, nothing published.
+Rojo-synced: repo src/ changes present in the live place before the run.
+
+== Wiring ==
+Candidate "mountains_r10" (OFF by default). Pure data src/shared/ModelMapMountainsR10.luau (5 far-ring
+Wedge/Ball mountain descriptors at radius 520-632 plus one translucent smoke Ball, load-time asserts
+on count/distance/colour), server applier src/server/World/LookDevMountainsR10.luau (anchored
+non-collidable tagged Parts, destroy-only restore), 5-case LUNE spec, tools/studio/check_q198.luau.
+LookDev IDS[110] / descriptor / plan OR-chain, LookDevReview.path, Main.server boot require,
+tests/run.luau registration, CANDIDATES.md + CANDIDATE_INDEX.md rows, 50-spec count mirror 109->110.
+No asset IDs, no terrain sculpt, no visual verdict.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK MOUNTAINS PASS 6 3
+CHECK MOUNTAIN_FAR PASS 0 0
+CHECK NO_COLLISION PASS 0 0
+CHECK PERF_BUDGET PASS 361 500
+
+== Notes / measurements ==
+- MOUNTAINS 6/3: before staging 0 Mountain-tagged parts; after enableAdditive 6 (5 mountains + 1
+  smoke Ball). All anchored, non-collidable, tagged Mountain=true and LookDevStage=mountains_r10.
+- MOUNTAIN_FAR 0/0: 0 staged Mountain parts closer than 450 studs to origin.
+- NO_COLLISION 0/0: 0 staged Mountain parts with CanCollide=true.
+- PERF_BUDGET 361/500: BasePart centres within 100 studs of origin, 0 read errors; staged mountains
+  sit far outside that proxy radius so they add 0 to the census.
+- Load failures 0. Check ran in SERVER VM with enableAdditive("mountains_r10", game); disableAll()
+  in the same call restored the place. Play stopped after the run.
+
+== Non-vacuity / calibration ==
+Fresh Play, inject before the AFTER measurement: one opaque Anchored part at origin with
+CanCollide=true and attribute Mountain=true, plus 200 small parts inside the proxy radius. Same
+harness, same session:
+CHECK MOUNTAINS PASS 7 3
+CHECK MOUNTAIN_FAR FAIL 1 0
+CHECK NO_COLLISION FAIL 1 0
+CHECK PERF_BUDGET FAIL 544 500
+So three of the four checks demonstrably FAIL on injected bad state; MOUNTAINS' non-vacuity is the
+0 -> 6 before/after delta. The visual yes/no stays the designer's.
+
+Status: SEEN-IN-STUDIO.

@@ -118,5 +118,6 @@ on any drift between this table and those sources; it never edits CANDIDATES.md.
 | `ground_variation_r10` | ground_variation | server | — | pending — review in Studio | `src/server/World/LookDevGroundVariationR10.luau` |
 | `paths_curved_r10` | paths_curved | server | — | pending — review in Studio | `src/server/World/LookDevPathsCurvedR10.luau` |
 | `horizon_fill_r10` | horizon_fill | server | — | pending — review in Studio | `src/server/World/LookDevHorizonFillR10.luau` |
+| `mountains_r10` | mountains | server | — | pending — review in Studio | `src/server/World/LookDevMountainsR10.luau` |
 
-Rows: 109. Missing from CANDIDATES.md: none. Missing from LookDevReview.paths: none.
+Rows: 110. Missing from CANDIDATES.md: none. Missing from LookDevReview.paths: none.

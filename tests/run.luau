@@ -225,6 +225,7 @@ local specs = {
 	require("./specs/ground_variation_r10_spec"),
 	require("./specs/paths_curved_r10_spec"),
 	require("./specs/horizon_fill_r10_spec"),
+	require("./specs/mountains_r10_spec"),
 	require("./specs/visual_risk_audit_spec"),
 	require("./specs/ronda_tower_r9_spec"),
 	require("./specs/rocks_r9_spec"),

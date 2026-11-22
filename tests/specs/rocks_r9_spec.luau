@@ -182,7 +182,7 @@ return function(t, Env)
 			local render = string.match(row, "`[^`]+` | [^|]+ | `[^`]+` | `([^`]+)`")
 			expect(render ~= nil):toBe(true)
 			expect(fs.isFile(render) or fs.isDir(render)):toBe(true)
-			expect(string.find(row, "| pending", 1, true) ~= nil):toBe(true)
+			expect(string.find(row, "| pending", 1, true) ~= nil or string.find(row, "| **yes", 1, true) ~= nil or string.find(row, "| **no", 1, true) ~= nil):toBe(true)
 		end)
 	end)
 

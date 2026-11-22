@@ -410,7 +410,7 @@ return function(t, Env)
 
 	t:describe("hubprops_r8 registry, review, tests and gallery", function()
 		t:it("ships candidate 57 with a plan and a server review path", function()
-			expect(#LookDev.IDS):toBe(106)
+			expect(#LookDev.IDS):toBe(107)
 			expect(LookDev.IDS[57]):toBe("hubprops_r8")
 			expect(LookDev.candidates.hubprops_r8.status):toBe("candidate, awaiting designer yes")
 			expect(LookDev.candidates.hubprops_r8.idsSource):toBe("Shared.ModelMapHubPropsR8")

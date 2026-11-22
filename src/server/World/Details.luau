@@ -1,8 +1,9 @@
 -- Details: the 'building tips' lane (docs/v2/visual/art/RESEARCH_VISUAL_TIPS.md, "fill shelves, break
 -- sightlines, decorate floors"). One Folder named `Details` under the world, so a rebuild is one Destroy.
 -- Positions are fixed and every variation comes from an item index (no random), so every server builds
--- the same village. Palette colours only (ART.md section 3). Anchored, unqueryable, no lights, no particles,
--- no asset IDs, no Models (so no Highlights are added by the contour pass).
+-- the same village. Palette colours only (ART.md section 3). Anchored, unqueryable, no lights, no particles.
+-- Hedge sightline breakers carry baked shrub meshes (item 241); the Breaker Part stays as an invisible
+-- collider so the contour pass sees no new top-level Model.
 --
 -- Placement rules (checked by tests/specs/details_spec.luau):
 -- * Shop goods read the counter and shelf geometry from MapSpec, so they always land on the board
@@ -15,10 +16,18 @@
 
 local MapSpec = require(script.Parent.MapSpec)
 local Props = require(script.Parent.Props)
+local okLoader, Loader = pcall(function()
+	return require(script.Parent.LookDevAssetLoader)
+end)
+local LookDevAssetLoader = if okLoader and Loader then Loader else {}
 
 local Details = {}
 
 local GROUND_Y = MapSpec.GROUND_Y
+
+-- Item 241: verified baked shrub IDs from docs/v2/visual/art/ASSET_MANIFEST.md.
+local SHRUB_ASSET_IDS = { 9953859659, 116666781655827, 5661660655 }
+Details.SHRUB_ASSET_IDS = SHRUB_ASSET_IDS -- read-only, for the item-241 spec
 
 -- Every colour name this file uses must be one of the 13 palette keys in Props (ART.md section 3).
 local PALETTE_KEYS = {
@@ -107,6 +116,49 @@ local function ball(folder: Instance, name: string, centre: Vector3, diameter: n
 		Material = material,
 		CanCollide = collide,
 	})
+end
+
+-- Item 241: clone a baked shrub under a breaker collider. `baked()` never calls InsertService, so
+-- the default look stays offline-safe. A missing bake leaves only the invisible collider, never a
+-- procedural Ball on the lawn.
+local function addBakedShrub(breaker: Instance, position: Vector3, index: number)
+	for offset = 0, #SHRUB_ASSET_IDS - 1 do
+		local id = SHRUB_ASSET_IDS[(index + offset) % #SHRUB_ASSET_IDS + 1]
+		local ok, source = pcall(function()
+			return LookDevAssetLoader.baked(id)
+		end)
+		if ok and source then
+			pcall(function()
+				local doomed = {}
+				for _, d in source:GetDescendants() do
+					if d:IsA("Script") or d:IsA("LocalScript") or d:IsA("ModuleScript") then
+						doomed[#doomed + 1] = d
+					end
+				end
+				for _, d in doomed do
+					d:Destroy()
+				end
+				for _, d in source:GetDescendants() do
+					if d:IsA("BasePart") then
+						d.Anchored = true
+						d.CanCollide = false
+						d.CanQuery = false
+						d.CanTouch = false
+						d.CastShadow = false
+					end
+				end
+				if source:IsA("Model") then
+					source:ScaleTo(3 / math.max(1, source:GetBoundingBox().Size.Y))
+				elseif source:IsA("BasePart") then
+					source.Size = source.Size * (3 / math.max(1, source.Size.Y))
+				end
+				source.Name = "HedgeShrubBaked"
+				source:PivotTo(CFrame.new(position.X, GROUND_Y, position.Z))
+				source.Parent = breaker
+			end)
+			return
+		end
+	end
 end
 
 -- A stall-local point in world space, at height y.
@@ -228,12 +280,24 @@ local function warungGoods(folder: Instance)
 	end
 end
 
--- A hedge row: balls of daun (every third padi) stepping from (x, z) by (stepX, stepZ). Collides.
+-- A hedge row: baked shrubs stepping from (x, z) by (stepX, stepZ). The Part is an invisible
+-- collider (the old green Ball read as a melon); the visible mesh is its baked child.
 local function hedgeRow(folder: Instance, x: number, z: number, stepX: number, stepZ: number, count: number)
 	for i = 0, count - 1 do
 		local n = nextSerial()
 		local colourName = if i % 3 == 2 then "padi" else "daun"
-		ball(folder, "Hedge", Vector3.new(x + stepX * i, GROUND_Y + 1.3, z + stepZ * i), 2.4 * scaleOf(n), colourName, Enum.Material.Grass, true, jitterOf(n))
+		local diameter = 2.4 * scaleOf(n)
+		local position = Vector3.new(x + stepX * i, GROUND_Y + 1.3, z + stepZ * i)
+		local breaker = piece(folder, "Part", {
+			Name = "Hedge",
+			Size = Vector3.new(diameter, diameter, diameter),
+			Position = position,
+			Color = tint(colour(colourName), jitterOf(n)),
+			Material = Enum.Material.Grass,
+			Transparency = 1,
+			CanCollide = true,
+		})
+		addBakedShrub(breaker, position, n)
 	end
 end
 
@@ -289,12 +353,14 @@ local function floorDetails(folder: Instance)
 		box(folder, "PathStone", Vector3.new(at2[1], GROUND_Y + 0.15, at2[2]), Vector3.new(3.6, 0.3, 3.0), "kertas", Enum.Material.Slate, false, nextSerial())
 	end
 
-	-- Scattered sacks (Fabric ball, as Decor's sacks).
+	-- Scattered sacks: a sideways Cylinder reads as a tied sack without being a >=1.5-stud Ball
+	-- on the open lawn (item 241).
 	for i, spot in { { 44, -24 }, { -44, -24 }, { 52, -96 }, { 104, 44 } } do
 		piece(folder, "Part", {
 			Name = "Sack",
-			Shape = Enum.PartType.Ball,
-			Size = Vector3.new(2.6, 1.8, 2.2),
+			Shape = Enum.PartType.Cylinder,
+			Size = Vector3.new(1.8, 2.6, 2.2),
+			Orientation = Vector3.new(0, 0, 90),
 			Position = Vector3.new(spot[1], GROUND_Y + 0.9, spot[2]),
 			Color = colour(if i % 2 == 0 then "kertas" else "bambu"),
 			Material = Enum.Material.Fabric,

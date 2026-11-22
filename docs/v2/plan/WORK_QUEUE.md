@@ -8,6 +8,11 @@
 > 4. Per item: `lune run tests/run.luau` passes (check the exit code), `selene src` is 0/0/0, stylua only on files you changed, then a topical commit with no attribution lines, the tracker "Last updated" line updated in the same commit, and push to `main` (the working branch since 2026-11-22; `track/c-world-look` is retired). Stage files by name, never `git add -A`.
 > 5. The main session (Claude, with Studio screenshots) does the visual review afterwards. Stop only when every item is ticked or `BLOCKED`, then write the final report: commits, blocked items, decisions list.
 
+
+> **SPRINT 1 (2026-11-23, set by the designer; overrides step 2 and 5 above until it is done).** Work exactly these items in this order and nothing else: **216, 217, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207**, then item **S1-STOP** below. Do not start 208 or later, do not run the refill item 227, do not add new items. Designer choices go to "Decisions for designer"; two failed attempts mean `BLOCKED — <FAIL line>` and you move on.
+>
+> - [ ] **S1-STOP. Capture the sprint review pack, then stop.** In Studio (Play, ClockTime 13, `LookDevReview.disableAll()` then `enableAdditive(id, game)` from the SERVER datamodel, one candidate at a time), take a `screen_capture` of every candidate made in this sprint from its review camera, plus `canonical_overview` and `spawn` with no candidate on. Save the images under `docs/v2/evidence/h/2026-11-23-sprint1/shots/NN_<id>.jpg` and build `docs/v2/evidence/h/2026-11-23-sprint1/REVIEW_SPRINT1.html` in the same style as `h/2026-11-22-review-round10/REVIEW_ROUND10_STUDIO.html`: images embedded as base64 JPEG (max 1200 px), one card per shot with an Indonesian caption saying what was built and its CHECK lines, plus a **Ya / Tidak / Tunda** radio and a comment box per candidate and a "Salin hasil" button that copies all votes as text. Leave verdicts to the designer; do not write any verdict into `CANDIDATES.md`. Then write `docs/v2/evidence/h/2026-11-23-sprint1/SPRINT1_REPORT.md` (commits, PASS/BLOCKED per item, decisions list), tick this line, commit, push and **stop the run**.
+
 Live since 2026-11-19 (`e6da076`). Rounds 1 and 2 are archived in `WORK_QUEUE_ROUND1.md` and
 `WORK_QUEUE_ROUND2.md`.
 

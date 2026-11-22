@@ -1,0 +1,37 @@
+CHECK 207 - teal water in plot ditches (WORK_QUEUE SPRINT 1 item 207)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2
+Place: Development-Juragan-Desa. Play only (Server VM, check). Place NOT saved, nothing published.
+Rojo-synced: repo src/ changes present in the live place before each run.
+
+== Wiring ==
+Candidate "ditch_water_r10" (OFF by default). Pure data src/shared/ModelMapDitchWaterR10.luau (10 plots
+x 2 thin translucent Glass strips following the 2-stud ditch, colour {r=48,g=124,b=104} copied verbatim
+from ModelMapWaterR8.variants.a (shipping water), COLOR_TOLERANCE 12, yaw math.atan2(px,pz) to match
+each plot's frame, load-time asserts), server applier src/server/World/LookDevDitchWaterR10.luau
+(anchored non-collidable DitchWater/plot tagged Parts, destroy-only restore), 6-case LUNE spec,
+tools/studio/check_q207.luau. LookDev IDS[119] / descriptor / plan OR-chain, LookDevReview path,
+Main.server boot require, tests/run.luau registration, CANDIDATES.md + CANDIDATE_INDEX.md rows,
+50-spec count mirror 118->119. plots_r8 default and Terrain untouched. No asset IDs, no visual verdict.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK DITCH_WATER PASS 10 10
+CHECK DITCH_COLOR PASS 0 0
+
+== Notes / measurements ==
+- DITCH_WATER 10/10: all 10 plots have >=1 staged DitchWater-tagged strip (20 Parts total, 2 per plot),
+  0 before, 0 load failures. Strips are rotated to each plot's yaw (math.atan2(px,pz)) so they follow
+  the 2-stud ditch.
+- DITCH_COLOR 0/0: 0 staged parts more than 12 per channel from the live reference teal read from
+  ModelMapWaterR8.variants.a.values.WaterColor, before and after, 0 read errors, 0 load failures.
+- Check ran with enableAdditive("ditch_water_r10", game) in SERVER VM; disableAll() in the same call
+  restored the place. Play stopped after the run.
+
+== Non-vacuity / calibration ==
+Runtime-only injection between the harness's BEFORE/AFTER anchors (repo file untouched): delete plot 1's
+strips and retint plot 2's strips to (255,0,0). Same harness, same session:
+CHECK DITCH_WATER FAIL 9 10
+CHECK DITCH_COLOR FAIL 1 0
+Both checks demonstrably FAIL on injected bad state. Visual yes/no stays the designer's.
+
+Status: SEEN-IN-STUDIO.

@@ -127,5 +127,6 @@ on any drift between this table and those sources; it never edits CANDIDATES.md.
 | `bamboo_bridge_r10` | bamboo_bridge | server | — | pending — review in Studio | `src/server/World/LookDevBambooBridgeR10.luau` |
 | `furrows_r10` | furrows | server | — | pending — review in Studio | `src/server/World/LookDevFurrowsR10.luau` |
 | `crop_stages_r10` | crop_stages | server | — | pending — review in Studio | `src/server/World/LookDevCropStagesR10.luau` |
+| `ditch_water_r10` | ditch_water | server | — | pending — review in Studio | `src/server/World/LookDevDitchWaterR10.luau` |
 
-Rows: 118. Missing from CANDIDATES.md: none. Missing from LookDevReview.paths: none.
+Rows: 119. Missing from CANDIDATES.md: none. Missing from LookDevReview.paths: none.

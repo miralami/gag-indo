@@ -143,7 +143,7 @@ return function(t, Env)
 
 	t:describe("day_cycle_r8 wiring", function()
 		t:it("ships candidate 74 with a client review path", function()
-			expect(#LookDev.IDS):toBe(118)
+			expect(#LookDev.IDS):toBe(119)
 			expect(LookDev.IDS[74]):toBe("day_cycle_r8")
 			local candidate = LookDev.candidates.day_cycle_r8
 			expect(candidate.id):toBe("day_cycle_r8")

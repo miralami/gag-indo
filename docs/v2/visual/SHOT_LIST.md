@@ -30,3 +30,21 @@ the evidence paths are **not** visual verdicts. Camera names and datamodels come
 Notes: every camera above is in `docs/v2/visual/REVIEW_CAMERAS.md` except the `buildings_r8` row
 camera, which is stored on its staged folder. `CAMERA_CLEAR` belongs to the main session's Studio
 run; no visual pass/fail is recorded here.
+
+## Section P re-review pack (WORK_QUEUE item 184, 2026-11-22)
+
+Same staging rules as above; all CHECK paths below are under `docs/v2/evidence/h/2026-11-22-round10/`.
+Item 183 is excluded: it is a stray-workspace check, not a scene-fix shot. Counts are not visual verdicts.
+
+| Shot | Candidate / state | Datamodel | Camera | CHECK evidence path |
+|---|---|---|---|---|
+| 173 | `facades_r8` | Server | `ronda_tower`, `ronda_tower_wide` (context) | `docs/v2/evidence/h/2026-11-22-round10/CHECK_173.txt` |
+| 174 | `river_r8` | Server | `river_rocks` | `docs/v2/evidence/h/2026-11-22-round10/CHECK_174.txt` |
+| 175 | `plaza_r9` | Server | `plaza_centre` | `docs/v2/evidence/h/2026-11-22-round10/CHECK_175.txt` |
+| 176 | `rocks_r9` | Server | `river_rocks` | `docs/v2/evidence/h/2026-11-22-round10/CHECK_176.txt` |
+| 177 | `pathedge_r8` | Server | `spawn` | `docs/v2/evidence/h/2026-11-22-round10/CHECK_177.txt` |
+| 178 | `sawah_r8` | Server | `sawah_above`, `sawah_below` | `docs/v2/evidence/h/2026-11-22-round10/CHECK_178.txt` |
+| 179 | `pasar_awnings_r8` + `pasar_ground_r8` | Server | `pasar_awnings` | `docs/v2/evidence/h/2026-11-22-round10/CHECK_179.txt` |
+| 180 | No candidate — camera-only fix | Server | `ronda_tower`, `ronda_tower_wide` | `docs/v2/evidence/h/2026-11-22-round10/CHECK_180.txt` |
+| 181 | `plots_r8` | Server | `plot_aerial_01` | `docs/v2/evidence/h/2026-11-22-round10/CHECK_181.txt` |
+| 182 | `blocks_r9` | Server | `canonical_overview`, `canonical_overview_left`, `canonical_overview_right` | `docs/v2/evidence/h/2026-11-22-round10/CHECK_182.txt` |

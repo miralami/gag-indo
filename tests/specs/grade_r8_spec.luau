@@ -150,7 +150,7 @@ return function(t, Env)
 
 	t:describe("grade_r8 wiring", function()
 		t:it("ships three more candidates with SERVER review paths", function()
-			expect(#LookDev.IDS):toBe(114)
+			expect(#LookDev.IDS):toBe(115)
 			expect(LookDev.IDS[76]):toBe("grade_r8_a")
 			expect(LookDev.IDS[77]):toBe("grade_r8_b")
 			expect(LookDev.IDS[78]):toBe("grade_r8_c")

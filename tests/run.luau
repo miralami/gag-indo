@@ -230,6 +230,7 @@ local specs = {
 	require("./specs/kampung_r10_spec"),
 	require("./specs/road_fence_r10_spec"),
 	require("./specs/lamps_r10_spec"),
+	require("./specs/signposts_r10_spec"),
 	require("./specs/visual_risk_audit_spec"),
 	require("./specs/ronda_tower_r9_spec"),
 	require("./specs/rocks_r9_spec"),

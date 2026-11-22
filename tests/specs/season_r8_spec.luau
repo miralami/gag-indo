@@ -256,7 +256,7 @@ return function(t, Env)
 
 	t:describe("season_r8 LookDev wiring", function()
 		t:it("ships candidates 91-93 with descriptors, keyed plans and client paths", function()
-			expect(#LookDev.IDS):toBe(114)
+			expect(#LookDev.IDS):toBe(115)
 			expect(LookDev.IDS[90]):toBe("crops_showcase_r8")
 			expect(LookDev.IDS[91]):toBe("season_r8_hujan")
 			expect(LookDev.IDS[92]):toBe("season_r8_kemarau")
@@ -394,14 +394,14 @@ return function(t, Env)
 			expect(gallerySrc:find("no DataStore/player/crop state", 1, true) ~= nil):toBe(true)
 		end)
 
-		t:it("bumped only the IDS-count mirrors to 114", function()
+		t:it("bumped only the IDS-count mirrors to 115", function()
 			for _, path in ipairs({
 				"tests/specs/review_round3_bugfix_spec.luau",
 				"tests/specs/terrain_map_r6_spec.luau",
 				"tests/specs/sky_map_r6_spec.luau",
 			}) do
 				local src = fs.readFile(path)
-				expect(src:find("expect(count):toBe(114)", 1, true) ~= nil, path):toBe(true)
+				expect(src:find("expect(count):toBe(115)", 1, true) ~= nil, path):toBe(true)
 			end
 		end)
 	end)

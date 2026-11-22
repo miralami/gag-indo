@@ -1,0 +1,40 @@
+CHECK 203 - junction signposts, papan petunjuk (WORK_QUEUE SPRINT 1 item 203)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2
+Place: Development-Juragan-Desa. Play only (Server VM, check). Place NOT saved, nothing published.
+Rojo-synced: repo src/ changes present in the live place before each run.
+
+== Wiring ==
+Candidate "signposts_r10" (OFF by default). Pure data src/shared/ModelMapSignpostsR10.luau (4 signs at
+the main junctions radius 144, wooden post+board descriptors, textKey, fontSizePx 18, READ_MIN_PX 14,
+load-time asserts), server applier src/server/World/LookDevSignpostsR10.luau (anchored non-collidable
+tagged Parts, SurfaceGui Front + TextLabel at TextSize 18 with id text from Strings, destroy-only
+restore), 6-case LUNE spec, tools/studio/check_q203.luau. Four player-facing keys added to
+src/shared/Strings.luau with id and en variants: signpost_pasar, signpost_plot, signpost_sungai,
+signpost_sawah. LookDev IDS[115] / descriptor / plan OR-chain, LookDevReview path, Main.server boot
+require, tests/run.luau registration, CANDIDATES.md + CANDIDATE_INDEX.md rows, 50-spec mirror 114->115.
+No asset IDs, no visual verdict.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK SIGNPOSTS PASS 4 4
+CHECK SIGN_TEXT_IN_STRINGS PASS 4 4
+CHECK SIGN_READABLE PASS 4 4
+
+== Notes / measurements ==
+- SIGNPOSTS 4/4: 4 distinct "sign" groups tagged Signpost=true staged (8 Parts: post + board each),
+  0 before, 0 read errors.
+- SIGN_TEXT_IN_STRINGS 4/4: all 4 staged textKey values have a non-empty id and en in Shared.Strings.raw.
+- SIGN_READABLE 4/4: all 4 staged TextLabels have TextSize 18 >= READ_MIN_PX 14, 0 before, 0 read errors.
+- Check ran with enableAdditive("signposts_r10", game) in SERVER VM; disableAll() in the same call
+  restored the place. Play stopped after the run.
+
+== Non-vacuity / calibration ==
+Runtime-only injection between the harness's BEFORE/AFTER anchors (repo file untouched): blank the `en`
+variant of signpost_pasar in the live Strings table, destroy the sign-1 group, and set every staged
+TextLabel's TextSize to 10. Same harness, same session:
+CHECK SIGNPOSTS FAIL 3 4
+CHECK SIGN_TEXT_IN_STRINGS FAIL 3 4
+CHECK SIGN_READABLE FAIL 0 4
+All three checks demonstrably FAIL on injected bad state. Visual yes/no stays the designer's.
+
+Status: SEEN-IN-STUDIO.

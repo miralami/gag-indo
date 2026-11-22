@@ -1,0 +1,64 @@
+CHECK 191 - rebuild sawah_r8 padi clumps with the real baked 3D padi model (section Q item 191, uses item 187 bake)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Play mode, Server VM. Place NOT saved, nothing published.
+Candidate sawah_r8 OFF by default; staged only inside the check via enableAdditive, disableAll cleanup.
+
+== Setup ==
+The real free Creator Store padi model from item 187 is already baked scripts-stripped into
+ServerStorage.LookDevAssets.13286158859 (0 scripts, 1 MeshPart, no place save):
+  - 13286158859 "Meshes/rice2" (Polyslayer1), free Creator Store. Lone MeshPart,
+    Asset MeshId rbxassetid://13182519043, measured bbox Size = 1.073 x 3.515 x 1.511 studs.
+The ID is recorded in ASSET_MANIFEST.md section Q (no unused marker: wired in src by item 191).
+No ID invented; exact search_asset + GetObjects measurements are in CHECK_187.txt.
+Changed sources injected into the Edit datamodel (Rojo connection stale) via multi_edit:
+  src/shared/ModelMapSawahR8.luau     -> ReplicatedStorage.Shared.ModelMapSawahR8
+  src/server/World/LookDevSawahR8.luau -> ServerScriptService.Server.World.LookDevSawahR8
+Fresh Play, Server VM. tools/studio/check_q191.luau (equivalent compact inline copy) pasted whole
+into execute_luau. The applier loads the baked padi via LookDevAssetLoader.get, strips scripts,
+computes the world AABB from every BasePart CFrame/Size corner, scales component-wise so the clump
+footprint is 1.4 x 1.5 studs and height is 1.7..2.3 studs, applies a deterministic per-clump yaw,
+colours terraces 3/4 with the yellower GrowthStage=2 swatch, and tags every baked BasePart with
+PadiPart / TerraceIndex / PadiClump / PadiRow / PadiSide / PadiAssetId / GrowthStage. Water panes,
+rounded Grass bunds (item 178), verge tufts, gubuk and stepping stones are unchanged.
+
+== Raw check lines (verbatim, fresh Play, staged sawah_r8) ==
+CHECK PADI_IS_MODEL PASS 7056 1
+CHECK PADI_STAGES PASS 2 2
+CHECK PADI_ROWS PASS 294 10
+CHECK BUND_SHAPE PASS 0 0
+CHECK SAWAH_GREEN PASS 70 40
+CHECK SAWAH_TOPS PASS 0 0.5
+CHECK PERF_BUDGET PASS 338 500
+
+== Notes / measurements ==
+- 7056 baked padi MeshParts staged; 294 distinct PadiRow ids (min over terraces 1..4), so one
+  clump column every ~2 studs on each water pane as item 191 requires.
+- PADI_IS_MODEL 7056: staged MeshParts with PadiPart==true and PadiAssetId==13286158859, with a
+  baked folder under ServerStorage.LookDevAssets.13286158859. Procedural blades cannot pass.
+- PADI_STAGES 2: distinct numeric GrowthStage values (1 for terraces 1/2, 2 = yellower for 3/4).
+- SAWAH_GREEN 70%: MINIMUM per-terrace fraction of a 20x8 grid of rays from the `sawah_above`
+  ReviewCamera whose first hit (Include filter on the staged folder) is a PadiPart. >= 40 required.
+  The 3D padi reads as denser green from above than the old thin blades.
+- BUND_SHAPE 0 bad: every Bund part is WedgePart or Shape=Cylinder (item 178 rounded grass bunds);
+  zero flat Blocks. SAWAH_TOPS 0/0.5: all 8 paddyWater pane centres' Terrain ray hits match the
+  terrace tops (terrain-only regression, unchanged). PERF_BUDGET 338/500: BaseParts within 100
+  studs of origin (proxy), unchanged from the item-190 baseline.
+- No NPC outfits, terrain sculpt, chosen sky or ground touched. No visual verdict claimed.
+- Default look unchanged; sawah_r8 stays behind LookDev until item 226.
+- Code-mode note: Studio MCP execute_luau cannot read the local harness file, so an equivalent
+  compact inline copy of tools/studio/check_q191.luau was run; it emits the same 7 CHECK lines.
+
+== Non-vacuity / calibration (undeweakened checks) ==
+Each mutation applied to the LIVE staged geometry in a fresh Play session, then the SAME check
+re-run; the intended check FAILs while the other six stay PASS:
+1. PADI_IS_MODEL: SetAttribute(PadiAssetId, nil) on every PadiPart -> FAIL 0 1.
+2. PADI_STAGES: SetAttribute(GrowthStage, 1) on every PadiPart -> FAIL 1 2.
+3. PADI_ROWS: SetAttribute(PadiRow, nil) on every PadiPart -> FAIL 0 10.
+4. SAWAH_GREEN: Set CanQuery=false on every PadiPart so camera rays pass through -> FAIL 0 40.
+5. BUND_SHAPE: SetAttribute(Bund, nil) on every bund so the staged folder has no bunds -> FAIL 1 0.
+Pre-change (thin-blade) applier would additionally give PADI_IS_MODEL FAIL 0: no MeshPart carries
+PadiAssetId. SAWAH_TOPS / PERF_BUDGET are carried regression checks (already calibrated on the
+item-140/178 paths) and were not re-mutated here.
+
+Status: SEEN-IN-STUDIO.

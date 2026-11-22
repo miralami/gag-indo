@@ -1,15 +1,16 @@
 --!strict
 -- ModelMapSawahR8: pure data for the OFF-BY-DEFAULT "sawah_r8" LookDev candidate
--- (WORK_QUEUE section M item 72, rebuilt in section O item 140). Terrace dressing: muddy water
--- sheets, dense rows of small padi clumps (clusters of thin blades), a grassy bund on each terrace
--- edge, one small field hut on terrace 2 and a few stepping stones between terraces.
+-- (WORK_QUEUE section M item 72, rebuilt in section O item 140; padi rebuilt in section Q item 191).
+-- Terrace dressing: muddy water sheets, dense rows of padi clumps staged from the real baked
+-- Creator Store rice model (numeric ID below), a grassy bund on each terrace edge, one small field
+-- hut on terrace 2 and a few stepping stones between terraces.
 --
--- Pure data/functions only: no Roblox APIs, no Instances, no Enums, no asset IDs. Procedural Parts
--- are built by src/server/World/LookDevSawahR8.luau, so no uploaded asset ID exists or is needed.
--- Terrace bands and water panes mirror MapSpec; panes are passed in so this module stays pure.
+-- Pure data/functions only: no Roblox APIs, no Instances, no Enums, no rbxassetid:// literals. The
+-- one numeric asset ID is PADI_ASSET_ID, resolved by the applier via LookDevAssetLoader. Terrace
+-- bands and water panes mirror MapSpec; panes are passed in so this module stays pure.
 -- A row is one X column of clumps; rows are spaced ROW_SPACING studs along the terrace's long
--- axis, clumps inside a row are spaced ROW_SPACING studs across the pane. The 0.5-stud gap left by
--- the 1.5-stud clumps keeps the water sheet visible between them.
+-- axis, clumps inside a row are spaced ROW_SPACING studs across the pane. The gap left by the
+-- 1.4 x 1.5-stud clumps keeps the water sheet visible between them.
 
 local ModelMapSawahR8 = {}
 
@@ -24,6 +25,20 @@ ModelMapSawahR8.PADI_CLUMP_WIDTH = 1.5
 ModelMapSawahR8.PADI_MAX_PART = 2.5
 ModelMapSawahR8.ROW_SPACING = 2
 ModelMapSawahR8.PADI_BLADE_WIDTH = 0.12
+-- Item 191: real baked Creator Store rice clump, scaled to this footprint/height per clump.
+ModelMapSawahR8.PADI_ASSET_ID = 13286158859
+ModelMapSawahR8.PADI_ASSET_ID_ATTRIBUTE = "PadiAssetId"
+ModelMapSawahR8.PADI_STAGE_ATTRIBUTE = "GrowthStage"
+ModelMapSawahR8.PADI_HEIGHT_MIN = 1.7
+ModelMapSawahR8.PADI_HEIGHT_MAX = 2.3
+ModelMapSawahR8.PADI_FOOTPRINT_X = 1.4
+ModelMapSawahR8.PADI_FOOTPRINT_Z = 1.5
+ModelMapSawahR8.PADI_STAGES = 2
+ModelMapSawahR8.PADI_YELLOW_STAGE = 2
+ModelMapSawahR8.PADI_STAGE_COLOURS = {
+	[1] = { 96, 168, 52 },
+	[2] = { 186, 176, 64 },
+}
 -- Item 178: a rounded, grass-green bund along each pane edge. The colour is the terrain Grass
 -- colour set by Greybox/Landscape (#6f8a3f); the diameter is below the 1.5-stud flat-top ceiling.
 ModelMapSawahR8.BUND_COLOR = { 111, 138, 63 }
@@ -45,6 +60,7 @@ ModelMapSawahR8.BLADE_OFFSETS = {
 	{ 0.35, 0, 0 },
 }
 ModelMapSawahR8.BLADE_HEIGHTS = { 1.6, 2.1, 1.4 }
+-- ponytail: legacy blade layout retained for the item-140/178 spec contracts; remove when those specs retire.
 -- Five thin blades, first 3..5 used per clump. X span including blade width is 1.22 <= 1.5.
 ModelMapSawahR8.PADI_BLADES = {
 	{ dx = -0.55, dy = 0, dz = 0, height = 1.7 },
@@ -117,6 +133,23 @@ end
 -- exceeds PADI_MAX_PART and the full clump stays inside PADI_CLUMP_WIDTH.
 function ModelMapSawahR8.padiBladeCount(clumpId: number): number
 	return 3 + clumpId % 3
+end
+
+-- Item 191: deterministic per-clump staging values. Terraces 3 and 4 are the yellow growth stage.
+function ModelMapSawahR8.padiStage(terrace: number): number
+	if terrace == 3 or terrace == 4 then
+		return ModelMapSawahR8.PADI_YELLOW_STAGE
+	end
+	return 1
+end
+
+function ModelMapSawahR8.padiHeight(clumpId: number): number
+	local span = ModelMapSawahR8.PADI_HEIGHT_MAX - ModelMapSawahR8.PADI_HEIGHT_MIN
+	return ModelMapSawahR8.PADI_HEIGHT_MIN + (clumpId * 37 % 101) / 101 * span
+end
+
+function ModelMapSawahR8.padiYaw(clumpId: number): number
+	return (clumpId * 61 % 211) / 211 * math.pi * 2
 end
 
 function ModelMapSawahR8.padiClumps(panes: any): { any }

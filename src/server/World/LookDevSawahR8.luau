@@ -1,14 +1,17 @@
 --!strict
 -- LookDevSawahR8: SERVER-ONLY applier for the OFF-BY-DEFAULT "sawah_r8" candidate
--- (WORK_QUEUE section M item 72, rebuilt in section O item 140). Terrace dressing: one muddy water
--- sheet per terrace, dense padi rows of small clumps (3-5 thin blades each), a grassy bund, one
--- small field hut on terrace 2 and stepping stones between terraces.
+-- (WORK_QUEUE section M item 72, rebuilt in section O item 140; padi rebuilt in section Q item 191).
+-- Terrace dressing: one muddy water sheet per terrace, dense padi rows, a grassy bund, one small
+-- field hut on terrace 2 and stepping stones between terraces.
 --
--- PROCEDURAL PARTS, NO ASSET IDS. Terrain, greybox, padi rows and terrace tops are never touched:
--- every piece is a plain Part built from Shared.ModelMapSawahR8 and MapSpec.paddyWater(). All Parts
--- are anchored, non-collidable, tagged, and removed by restore() (which reattaches any prior
--- folder). Padi clumps are Models carrying PadiPart / TerraceIndex / PadiClump / PadiRow; every
--- blade and every bund tuft is also a PadiPart. Enable from the Studio Server command bar:
+-- BAKED PADI MODEL, NO PROCEDURAL BLADES. Water, bunds, verge, hut and stones are plain Parts from
+-- Shared.ModelMapSawahR8 and MapSpec.paddyWater(); padi clumps stage the real baked Creator Store
+-- rice model fetched clone-first via LookDevAssetLoader (numeric ID in Shared.ModelMapSawahR8).
+-- A failed baked load fails loudly and leaves the tagged clump Model empty: no fake geometry.
+-- Terrain, greybox and terrace tops are never touched. All Parts are anchored, non-collidable,
+-- tagged, and removed by restore() (which reattaches any prior folder). Padi clumps are Models
+-- carrying PadiPart / TerraceIndex / PadiClump / PadiRow; each baked BasePart and every bund tuft
+-- is also a PadiPart. Enable from the Studio Server command bar:
 --   require(game.ReplicatedStorage.Shared.LookDevReview).enable("sawah_r8", game)
 
 local function service(name: string): any?
@@ -39,11 +42,14 @@ else
 	return {}
 end
 
-local okModules, LookDev, Data, TierThin = pcall(function()
-	return require((Shared :: any).LookDev), require((Shared :: any).ModelMapSawahR8), require((Shared :: any).TierThin)
+local okModules, LookDev, Data, LookDevAssetLoader, TierThin = pcall(function()
+	return require((Shared :: any).LookDev),
+		require((Shared :: any).ModelMapSawahR8),
+		require(script.Parent.LookDevAssetLoader),
+		require((Shared :: any).TierThin)
 end)
-if not okModules or not LookDev or not Data or not TierThin then
-	warn("[LookDevSawahR8] could not require LookDev / ModelMapSawahR8 / TierThin")
+if not okModules or not LookDev or not Data or not LookDevAssetLoader or not TierThin then
+	warn("[LookDevSawahR8] could not require LookDev / ModelMapSawahR8 / asset loader / TierThin")
 	return {}
 end
 
@@ -60,10 +66,11 @@ local LookDevSawahR8 = {}
 local FAMILY_ID = Data.id
 local activeFolder: any? = nil
 local savedFolder: any? = nil
+local loadedPadiModels: { any } = {}
 local failures = 0
 
--- Procedural parts, no asset IDs: a clean apply publishes 0. The counter only moves if staging
--- itself fails, and is published on every exit path for the Studio reads.
+-- Baked padi: a clean apply publishes 0. The counter only moves if staging itself fails, and is
+-- published on every exit path for the Studio reads.
 local function publishFailures()
 	pcall(function()
 		require(game.ReplicatedStorage.Shared.LookDevFailures).set(FAMILY_ID, failures)
@@ -160,10 +167,99 @@ local function place(part: any?, centre: { number }, size: { number }): boolean
 	return ok
 end
 
+-- World AABB from every descendant BasePart's CFrame + Size corners. No GetBoundingBox on Part.
+local function bounds(root: any): (Vector3?, Vector3?)
+	local mins: Vector3? = nil
+	local maxs: Vector3? = nil
+	local function account(part: any)
+		local ok, cf, sz = pcall(function()
+			return part.CFrame, part.Size
+		end)
+		if not ok or not cf or not sz then
+			return
+		end
+		for _, sx in ipairs({ -1, 1 }) do
+			for _, sy in ipairs({ -1, 1 }) do
+				for _, sz2 in ipairs({ -1, 1 }) do
+					local okCorner, corner = pcall(function()
+						return cf * Vector3.new(sx * sz.X / 2, sy * sz.Y / 2, sz2 * sz.Z / 2)
+					end)
+					if okCorner and corner then
+						if not mins then
+							mins, maxs = corner, corner
+						else
+							mins = Vector3.new(
+								math.min(mins.X, corner.X),
+								math.min(mins.Y, corner.Y),
+								math.min(mins.Z, corner.Z)
+							)
+							maxs = Vector3.new(
+								math.max(maxs.X, corner.X),
+								math.max(maxs.Y, corner.Y),
+								math.max(maxs.Z, corner.Z)
+							)
+						end
+					end
+				end
+			end
+		end
+	end
+	local okRoot, isPart = pcall(function()
+		return root:IsA("BasePart")
+	end)
+	if okRoot and isPart then
+		account(root)
+	end
+	local okDesc, descendants = pcall(function()
+		return root:GetDescendants()
+	end)
+	if okDesc and descendants then
+		for _, inst in ipairs(descendants) do
+			local okPart, part = pcall(function()
+				return inst:IsA("BasePart")
+			end)
+			if okPart and part then
+				account(inst)
+			end
+		end
+	end
+	if not mins or not maxs then
+		return nil, nil
+	end
+	return (mins + maxs) / 2, maxs - mins
+end
+
+-- Item 191: real baked BaseParts (asset itself if a BasePart, plus descendants), scripts stripped.
+local function padiBaseParts(root: any): { any }
+	local out = {}
+	local okRoot, isPart = pcall(function()
+		return root:IsA("BasePart")
+	end)
+	if okRoot and isPart then
+		out[#out + 1] = root
+	end
+	local okDesc, descendants = pcall(function()
+		return root:GetDescendants()
+	end)
+	if okDesc and descendants then
+		for _, instance in ipairs(descendants) do
+			pcall(function()
+				if instance:IsA("Script") or instance:IsA("LocalScript") or instance:IsA("ModuleScript") then
+					instance:Destroy()
+				elseif instance:IsA("BasePart") then
+					out[#out + 1] = instance
+				end
+			end)
+		end
+	end
+	return out
+end
+
 -- ponytail: Rendah keeps <=50% of decorative padi clumps and stepping stones; water sheets,
 -- terrace bunds and the gubuk are structural. Clumps keep all their blades when kept.
 local function apply(plan: any?)
 	failures = 0
+	loadedPadiModels = {}
 	local tier: any? = if plan then plan.tier else nil
 	local instanceIndex = 0
 	if activeFolder then
@@ -288,8 +384,8 @@ local function apply(plan: any?)
 	end
 
 	-- Padi rows: one clump column every ROW_SPACING studs along each water pane, clumps spaced the
-	-- same distance across the pane. Each clump is a Model holding 3-5 thin blades (clump width
-	-- <= 1.5 studs, blade <= 2.5 studs); the 0.5-stud gap keeps the water sheet visible.
+	-- same distance across the pane. Each clump is a tagged Model holding the real baked rice model,
+	-- scaled to PADI_FOOTPRINT_X x PADI_FOOTPRINT_Z and PADI_HEIGHT_MIN..MAX (all axes <= 2.5).
 	local clumpFolders = {}
 	for _, terrace in Data.terraceIndices() do
 		local terraceFolder = folder:FindFirstChild("Terrace_" .. terrace .. "_sawah_r8")
@@ -300,33 +396,55 @@ local function apply(plan: any?)
 		instanceIndex += 1
 		if TierThin.shouldKeep(tier, instanceIndex) then
 			local clumpModel = taggedClump(clump, clumpFolders[clump.terrace] or folder)
-			for bladeIndex = 1, math.min(clump.blades, #Data.PADI_BLADES) do
-				local blade = Data.PADI_BLADES[bladeIndex]
-				local part = taggedPart(
-					"padi_blade",
-					`Padi_{clump.terrace}_{clump.side}_{clump.id}_{bladeIndex}`,
-					clump.terrace,
-					clumpModel or folder
-				)
-				local centre = { clump.x + blade.dx, clump.y + blade.dy + blade.height / 2, clump.z + blade.dz }
-				if not place(part, centre, { Data.PADI_BLADE_WIDTH, blade.height, Data.PADI_BLADE_WIDTH }) then
-					fail("could not place padi blade " .. clump.id .. "/" .. bladeIndex)
+			local stage = Data.padiStage(clump.terrace)
+			local okLoad, asset = pcall(function()
+				return LookDevAssetLoader.get(Data.PADI_ASSET_ID, FAMILY_ID)
+			end)
+			if not okLoad or not asset then
+				fail("baked padi unavailable for clump " .. clump.id .. " asset " .. tostring(Data.PADI_ASSET_ID))
+				continue
+			end
+			loadedPadiModels[#loadedPadiModels + 1] = asset
+			local centre, size = bounds(asset)
+			if not centre or not size or size.Y <= 0 then
+				fail("invalid baked padi bounds for clump " .. clump.id)
+				continue
+			end
+			local height = Data.padiHeight(clump.id)
+			local sx = Data.PADI_FOOTPRINT_X / size.X
+			local sy = height / size.Y
+			local sz = Data.PADI_FOOTPRINT_Z / size.Z
+			local yawCF = CFrame.Angles(0, Data.padiYaw(clump.id), 0)
+			local target = Vector3.new(clump.x, clump.y + height / 2, clump.z)
+			local colour = Data.PADI_STAGE_COLOURS[stage]
+			-- Item 191: stamp PadiAssetId and GrowthStage via the Data attribute constants.
+			local bakedParts = padiBaseParts(asset)
+			if #bakedParts == 0 then
+				fail("baked padi has no BasePart for clump " .. clump.id)
+				continue
+			end
+			local okStage = pcall(function()
+				for _, baked in ipairs(bakedParts) do
+					local cf, partSize = baked.CFrame, baked.Size
+					local offset = cf.Position - centre
+					local scaled = Vector3.new(offset.X * sx, offset.Y * sy, offset.Z * sz)
+					baked.Size = Vector3.new(partSize.X * sx, partSize.Y * sy, partSize.Z * sz)
+					baked.CFrame = CFrame.new(target + yawCF * scaled) * yawCF * cf.Rotation
+					baked.Anchored = true
+					baked.CanCollide = false
+					baked.Color = Color3.fromRGB(colour[1], colour[2], colour[3])
+					baked:SetAttribute("PadiPart", true)
+					baked:SetAttribute("TerraceIndex", clump.terrace)
+					baked:SetAttribute("PadiClump", clump.id)
+					baked:SetAttribute("PadiRow", clump.row)
+					baked:SetAttribute("PadiSide", clump.side)
+					baked:SetAttribute(Data.PADI_ASSET_ID_ATTRIBUTE, Data.PADI_ASSET_ID)
+					baked:SetAttribute(Data.PADI_STAGE_ATTRIBUTE, stage)
+					baked.Parent = clumpModel or folder
 				end
-				if part then
-					pcall(function()
-						local red, green = 96, 168
-						if bladeIndex % 2 == 0 then
-							red, green = 76, 142
-						end
-						part.Material = Enum.Material.Grass
-						part.Color = Color3.fromRGB(red, green, 52)
-						part:SetAttribute("PadiPart", true)
-						part:SetAttribute("TerraceIndex", clump.terrace)
-						part:SetAttribute("PadiClump", clump.id)
-						part:SetAttribute("PadiRow", clump.row)
-						part:SetAttribute("Blade", bladeIndex)
-					end)
-				end
+			end)
+			if not okStage then
+				fail("could not stage baked padi for clump " .. clump.id)
 			end
 		end
 	end
@@ -426,6 +544,12 @@ local function apply(plan: any?)
 end
 
 local function restore()
+	for _, model in ipairs(loadedPadiModels) do
+		pcall(function()
+			model:Destroy()
+		end)
+	end
+	loadedPadiModels = {}
 	if activeFolder then
 		pcall(function()
 			activeFolder:Destroy()

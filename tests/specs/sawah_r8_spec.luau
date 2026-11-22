@@ -1,8 +1,8 @@
 --!nocheck
--- WORK_QUEUE section M item 72, rebuilt in section O item 140: sawah_r8 terrace dressing. Pure-data
--- contract for dense padi rows/clumps plus the server LookDev wiring and the four new read-only
--- harness checks. No Studio claim: the CHECK_* evidence and the visual verdict belong to the main
--- session. The applier uses procedural Parts only, so there are no asset IDs to validate.
+-- WORK_QUEUE section M item 72, rebuilt in section O item 140; padi rebuilt in section Q item 191:
+-- sawah_r8 terrace dressing. Pure-data contract for dense padi rows/clumps plus the server LookDev
+-- wiring, the baked Creator Store padi contract and the four read-only harness checks. No Studio
+-- claim: the CHECK_* evidence and the visual verdict belong to the main session.
 
 local fs = require("@lune/fs")
 
@@ -179,8 +179,9 @@ return function(t, Env)
 			expect(other.gubukParts()):toEqual(Data.gubukParts())
 			expect(other.steppingStones()):toEqual(Data.steppingStones())
 			local src = fs.readFile("src/shared/ModelMapSawahR8.luau")
+			local remaining = string.gsub(src, tostring(Data.PADI_ASSET_ID), "")
 			expect(string.find(src, "rbxassetid://%d") ~= nil):toBe(false)
-			expect(string.find(src, "%d%d%d%d%d%d%d") ~= nil):toBe(false)
+			expect(string.find(remaining, "%d%d%d%d%d%d%d") ~= nil):toBe(false)
 			expect(string.find(src, "game.", 1, true) ~= nil):toBe(false)
 			expect(string.find(src, "Instance.new", 1, true) ~= nil):toBe(false)
 			expect(string.find(src, "Enum.", 1, true) ~= nil):toBe(false)
@@ -202,7 +203,7 @@ return function(t, Env)
 
 		t:it("stages tagged non-collidable procedural parts and restores only its own folder", function()
 			local applier = fs.readFile("src/server/World/LookDevSawahR8.luau")
-			expect(string.find(applier, "PROCEDURAL PARTS, NO ASSET IDS", 1, true) ~= nil):toBe(true)
+			expect(string.find(applier, "BAKED PADI MODEL, NO PROCEDURAL BLADES", 1, true) ~= nil):toBe(true)
 			expect(string.find(applier, "MapSpec.paddyWater()", 1, true) ~= nil):toBe(true)
 			expect(string.find(applier, "LookDev.register(FAMILY_ID", 1, true) ~= nil):toBe(true)
 			expect(string.find(applier, "LookDevFailures).set(FAMILY_ID, failures)", 1, true) ~= nil):toBe(true)
@@ -226,7 +227,10 @@ return function(t, Env)
 			expect(string.find(applier, 'SetAttribute("PadiClump", clump.id)', 1, true) ~= nil):toBe(true)
 			expect(string.find(applier, 'SetAttribute("PadiRow", clump.row)', 1, true) ~= nil):toBe(true)
 			expect(string.find(applier, 'SetAttribute("TerraceIndex", tuft.terrace)', 1, true) ~= nil):toBe(true)
-			expect(string.find(applier, "Data.PADI_BLADE_WIDTH", 1, true) ~= nil):toBe(true)
+			expect(string.find(applier, "LookDevAssetLoader.get(", 1, true) ~= nil):toBe(true)
+			expect(string.find(applier, "Data.PADI_ASSET_ID_ATTRIBUTE", 1, true) ~= nil):toBe(true)
+			expect(string.find(applier, "Data.PADI_STAGE_ATTRIBUTE", 1, true) ~= nil):toBe(true)
+			expect(string.find(applier, "BAKED PADI MODEL, NO PROCEDURAL BLADES", 1, true) ~= nil):toBe(true)
 			expect(string.find(applier, "activeFolder:Destroy()", 1, true) ~= nil):toBe(true)
 			expect(string.find(applier, "rbxassetid://%d") ~= nil):toBe(false)
 		end)
@@ -270,6 +274,57 @@ return function(t, Env)
 			expect(string.find(block, 'part:IsA("BasePart")', 1, true) ~= nil):toBe(true)
 			expect(string.find(block, '"PadiClump"', 1, true) ~= nil):toBe(true)
 			expect(string.find(block, '"PadiRow"', 1, true) ~= nil):toBe(true)
+		end)
+	end)
+
+	t:describe("sawah_r8 baked padi (item 191)", function()
+		t:it("uses the real baked rice asset with deterministic stages, heights and yaws", function()
+			expect(Data.PADI_ASSET_ID):toBe(13286158859)
+			expect(Data.PADI_ASSET_ID_ATTRIBUTE):toBe("PadiAssetId")
+			expect(Data.PADI_STAGE_ATTRIBUTE):toBe("GrowthStage")
+			expect(Data.PADI_STAGES):toBe(2)
+			expect(Data.PADI_YELLOW_STAGE):toBe(2)
+			expect(#Data.PADI_STAGE_COLOURS):toBe(2)
+
+			local stages = {}
+			for _, terrace in ipairs(terraces) do
+				local stage = Data.padiStage(terrace)
+				expect(stage >= 1 and stage <= Data.PADI_STAGES):toBe(true)
+				stages[stage] = true
+			end
+			local distinct = 0
+			for _ in pairs(stages) do
+				distinct += 1
+			end
+			expect(distinct >= 2):toBe(true)
+
+			local other = Env.new():require("shared/ModelMapSawahR8")
+			for _, clumpId in ipairs({ 1, 2, 37, 250, 999 }) do
+				local height = Data.padiHeight(clumpId)
+				expect(height >= Data.PADI_HEIGHT_MIN and height <= Data.PADI_HEIGHT_MAX):toBe(true)
+				expect(other.padiHeight(clumpId)):toBe(height)
+				local yaw = Data.padiYaw(clumpId)
+				expect(yaw >= 0 and yaw <= math.pi * 2):toBe(true)
+				expect(other.padiYaw(clumpId)):toBe(yaw)
+			end
+			for _, terrace in ipairs(terraces) do
+				expect(other.padiStage(terrace)):toBe(Data.padiStage(terrace))
+			end
+
+			expect(Data.PADI_HEIGHT_MAX <= Data.PADI_MAX_PART):toBe(true)
+			expect(Data.PADI_FOOTPRINT_X <= Data.PADI_MAX_PART):toBe(true)
+			expect(Data.PADI_FOOTPRINT_Z <= Data.PADI_MAX_PART):toBe(true)
+		end)
+
+		t:it("stages and tags baked padi parts in the applier", function()
+			local applier = fs.readFile("src/server/World/LookDevSawahR8.luau")
+			expect(string.find(applier, 'SetAttribute("PadiPart", true)', 1, true) ~= nil):toBe(true)
+			expect(string.find(applier, 'SetAttribute("TerraceIndex", clump.terrace)', 1, true) ~= nil):toBe(true)
+			expect(string.find(applier, "Data.PADI_ASSET_ID", 1, true) ~= nil):toBe(true)
+			expect(string.find(applier, "LookDevAssetLoader.get(", 1, true) ~= nil):toBe(true)
+			expect(string.find(applier, "PadiAssetId", 1, true) ~= nil):toBe(true)
+			expect(string.find(applier, "GrowthStage", 1, true) ~= nil):toBe(true)
+			expect(string.find(applier, "rbxassetid://%d") ~= nil):toBe(false)
 		end)
 	end)
 end

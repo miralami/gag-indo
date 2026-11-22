@@ -724,7 +724,7 @@ published). None invented. The baked copy is verified in a fresh Play/Server VM 
 | `path_stone` | 1769612183 | small stone | MandarinBoy | Part (1 part) | Creator Store, free | 1.86 x 1.86 x 1.86 | designer to confirm (LookDev candidate; wired by item 190) |
 
 Licence not re-read here — Creator Store terms apply. The padi ID is wired into `src/` by item 191
-(`sawah_r8` 3D padi); until then it is marked `unused` in the coverage table below. The fountain ID
+(`sawah_r8` 3D padi, `src/shared/ModelMapSawahR8.luau`) and needs no `unused` marker. The fountain ID
 is wired in item 188 (`plaza_r9`, `src/shared/ModelMapPlazaR9.luau`) and needs no `unused` marker.
 The three rock IDs are wired in item 189 (`rocks_r9`, `src/shared/ModelMapRocksR9.luau`) and need no
 `unused` marker. All candidates stay OFF by default until item 226. No ID invented; all from real
@@ -739,7 +739,6 @@ marker. All other manifest IDs are required by the coverage spec to resolve in `
 
 | Asset ID | Why it is here | Status |
 |---|---|---|
-| 13286158859 | section Q item 187 baked 3D padi model; wired into src by item 191 | unused |
 | 155440478 | legacy classic sunset skybox face, superseded by round-6 skies | unused |
 | 156042292 | legacy classic sunset skybox face, superseded by round-6 skies | unused |
 | 156042307 | legacy classic sunset skybox face, superseded by round-6 skies | unused |

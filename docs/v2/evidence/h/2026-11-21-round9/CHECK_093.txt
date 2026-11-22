@@ -1,0 +1,75 @@
+CHECK 93 — Crop stage audit / CROP_GROWTH (WORK_QUEUE section M6, item 93)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Edit runtime injection; place NOT saved, nothing published.
+
+== Target (verbatim) ==
+"For all 12 crops x 3 stages (bibit, tumbuh, siap), measure GetBoundingBox and write a table.
+CHECK CROP_GROWTH: height grows from stage to stage (at least 15% each) and each is within
+0.5-6 studs. Fix any crop that fails by rescaling in the model map, never by weakening the check."
+
+== Check source + thresholds (unweakened) ==
+Live engine check: tools/studio/crop_growth_check.luau (CLIENT VM; the `crops` showcase stages in
+the client workspace). It reads Model:GetBoundingBox() for all 36 staged Models, never the pure
+descriptor approximation (which diverges because rotated Wedge/Ball/Cylinder geometry has
+different extents than offset +/- size/2).
+  MIN_H = 0.5 studs, MAX_H = 6.0 studs, MIN_GROWTH = 15.0% per gap. Declared in the check AND in
+  tests/specs/crop_growth_audit_spec.luau; no threshold was weakened at any point.
+
+== Setup ==
+Fresh real Play session. Injected at runtime (NOT saved) into the CLIENT datamodel:
+Shared.CropModelCandidates (with the item-93 bawang rescale), the client applier as
+Shared.LookDevCropsInjected, then pasted the whole crop_growth_check.luau into execute_luau
+(datamodel_type="Client"). The check requires the applier explicitly because the saved-place boot
+predates it (hasApplier("crops") is false until required), enables "crops", and — in the SAME call,
+before any task.wait() — anchors every staged BasePart. This freezes physics drift: the applier
+stages UNANCHORED parts near the player, so without anchoring the bbox changes every frame (padi
+bibit measured 1.357 -> 1.551 in 0.3 s). Anchored, the measurement is reproducible: two independent
+runs returned identical values (bawang 0.615/1.147/1.579, g1 86.3%, g2 37.6%, failures []).
+The check restores the prior candidate at the end. No place saved.
+
+== Defect found and fixed by rescaling (not by weakening the check) ==
+Initial stable anchored bbox found ONE failure: bawang bibit = 0.412 studs (< 0.5 floor).
+Root cause: bawang's archetype stem size[2] was 0.8; bibit stemHeight = 0.8 x 0.34 = 0.272, so the
+live bbox was ~0.1 (soil) + 0.272 + ~0.04 (leaf) = 0.412. FIX in src/shared/CropModelCandidates.luau:
+archetypes.bawang.stem.size[2] 0.8 -> 1.4. That lifts bibit to 0.615 studs, keeps all three stages
+within 0.5..6, and keeps both growth gaps >= 15%. No other crop needed a rescale; no check value
+was touched. tests/specs/crop_growth_audit_spec.luau locks stem.size[2] = 1.4 so it cannot regress.
+
+== Raw check line (verbatim, CLIENT VM) ==
+CHECK CROP_GROWTH PASS 12 12
+
+== Detail (verbatim) ==
+measured 12, expected 12, failures [], minHeight 0.5, maxHeight 6, minGrowthPct 15,
+anchored true, enabled true. Both runs identical.
+
+== 36-row bbox table (studs; live GetBoundingBox, anchored as-built; g1 = bibit->tumbuh %, g2 = tumbuh->siap %) ==
+crop        bibit   tumbuh  siap    g1      g2      ok
+padi        1.357   2.536   3.398   86.8    33.9    PASS
+singkong    1.217   2.266   3.033   86.1    33.8    PASS
+jagung      1.443   2.686   3.579   86.1    33.2    PASS
+bawang      0.615   1.147   1.579   86.3    37.6    PASS   (rescaled item 93: bibit was 0.412)
+cabai       0.839   1.533   2.040   82.5    33.0    PASS
+tembakau    0.930   1.877   2.689   101.7   43.3    PASS
+kopi        1.068   1.995   2.689   86.7    34.8    PASS
+tebu        1.896   3.636   4.960   91.7    36.3    PASS
+kakao       1.220   2.290   3.090   87.6    34.9    PASS
+cengkeh     1.645   3.148   4.294   91.2    36.3    PASS
+durian      1.429   2.711   3.679   89.6    35.7    PASS
+sawit       1.641   3.184   4.399   93.9    38.1    PASS
+
+All 12 bibit/tumbuh/siap heights are within 0.5..6 studs. All 12 g1 and g2 are >= 15%.
+Minimum bibit = 0.615 (bawang), maximum siap = 4.960 (tebu). 0 failures.
+
+== Validation ==
+lune run tests/run.luau: All 2672 tests passed (new crop_growth_audit_spec registered).
+selene src: 0 errors, 0 warnings, 0 parse errors.
+stylua --check on all changed/new Luau: clean.
+lune run tools/studio/review_check_r8.luau: compiles (runtime game-nil expected under Lune — Roblox globals absent).
+lune run tools/studio/crop_growth_check.luau: compiles (pcall guards game access; engine-only by design).
+git diff --check: clean.
+
+Status: SEEN-IN-STUDIO (CLIENT-VM live GetBoundingBox over all 36 crop models, two identical runs,
+verbatim CHECK CROP_GROWTH PASS 12 12, defect fixed by rescaling the model map, no threshold weakened).
+No place saved, nothing published. This is an audit + data fix, not a new look; the `crops` candidate
+remains off by default (no default-look change, no new CANDIDATES verdict — no visual judgment made).

@@ -1,0 +1,89 @@
+{
+  "item": 19,
+  "date": "2026-11-19",
+  "status": "SEEN-IN-STUDIO",
+  "studio": {
+    "place": "Development-Juragan-Desa",
+    "placeId": 132087524375529,
+    "mode_during_test": "Play Solo",
+    "datamodel": "Client",
+    "device": "average_windows",
+    "set_resolution": [750, 388],
+    "gui_viewport": [749, 388],
+    "camera_viewport": [749, 388],
+    "gui_inset": [0, 58],
+    "safe_rect": { "x": 0, "y": -58, "w": 749, "h": 388 },
+    "place_saved": false,
+    "profile_save_called": false,
+    "returned_to_edit_mode": true
+  },
+  "probe": {
+    "visibility": "effective (ancestor .Visible chain)",
+    "excluded": ["ScrollingFrame descendants (legitimately clipped)", "Chat", "BubbleChat", "TouchGui", "Freecam"],
+    "violation_rule": "rect outside safe +/- 2px",
+    "overlay_method": "built scrim/panel .Visible forced true in Client VM; layout properties are real"
+  },
+  "screens": [
+    { "name": "HUD + startup (phone closed)", "visible": 50, "violations": 0 },
+    { "name": "Phone.PageHome", "visible": 105, "violations": 0 },
+    { "name": "App_phone -> PagePhone", "visible": 84, "violations": 0 },
+    { "name": "App_kebun -> PageKebun", "visible": 139, "violations": 0 },
+    { "name": "App_pinjol -> PagePinjol", "visible": 74, "violations": 0 },
+    { "name": "App_tugas -> PageTugas", "visible": 90, "violations": 0 },
+    { "name": "App_cheat -> PageCheat", "visible": 83, "violations": 0 },
+    { "name": "App_dekor -> PageDekor", "visible": 82, "violations": 0 },
+    { "name": "App_shop -> Hud.Shop panel", "visible": 131, "violations": 0 },
+    { "name": "App_board -> Leaderboard.Panel", "visible": 60, "violations": 0 },
+    { "name": "Toasts.Holder", "visible": true, "rect": [142, 10, 464, 120], "violations": 0 },
+    {
+      "name": "Minigame card",
+      "rect": { "x": 144, "y": 45, "w": 460, "h": 240 },
+      "controls": [
+        { "name": "Auto", "x": 244, "y": 233, "w": 262, "h": 42 },
+        { "name": "Cancel", "x": 548, "y": 55, "w": 44, "h": 44 }
+      ],
+      "visible": 8,
+      "violations": 0
+    },
+    {
+      "name": "RaidOverlay",
+      "card": { "x": 114, "y": 35, "w": 520, "h": 240 },
+      "banner": { "x": 0, "y": -35, "w": 749, "h": 54 },
+      "skip": { "x": 593, "y": 270, "w": 140, "h": 44 },
+      "lowerThird": { "x": 54, "y": 202, "w": 640, "h": 56 },
+      "jail": { "x": 187, "y": 16, "w": 374, "h": 56 },
+      "visible": 24,
+      "violations": 0
+    }
+  ],
+  "defect": {
+    "id": "UI-FIT-ADMINPANEL",
+    "severity": "minor",
+    "file": "src/client/UI/Admin.luau",
+    "symptom": "Panel bottom rows clipped on short landscape screens",
+    "before": {
+      "formula": "(camera.ViewportSize.Y - 24) / 690",
+      "camera_viewport_y": 388,
+      "scale": 0.5275362134,
+      "panel": { "x": 285, "y": -17, "w": 179, "h": 364 },
+      "lowest_element_bottom": 355,
+      "safe_bottom": 330,
+      "violations": true
+    },
+    "after": {
+      "formula": "(camera.ViewportSize.Y - GuiService:GetGuiInset().Y - 24) / 690",
+      "inset_y": 58,
+      "scale": 0.4434782565,
+      "panel": { "x": 299, "y": 12, "w": 151, "h": 306 },
+      "lowest_element_bottom": 324,
+      "safe_bottom": 330,
+      "violations": 0
+    },
+    "fix": "layout only (inset-adjusted UIScale fit); no TextSize reduced"
+  },
+  "validation": {
+    "lune": "passing",
+    "selene": "0 errors / 0 warnings",
+    "text_size_reduced": false
+  }
+}

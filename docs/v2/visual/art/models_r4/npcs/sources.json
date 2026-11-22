@@ -1,0 +1,67 @@
+[
+  {
+    "slot": "petani_caping",
+    "file": "docs/v2/visual/art/models_r4/npcs/raw/npcs_r4/petani_caping.glb",
+    "sha256": "5dde920f392b4fe8faf05b448c236da28c7cf2305ee937b7744a68f857e107ff",
+    "bytes": 221420,
+    "title": "Pleasant peasant",
+    "author": "Remy Tauziac",
+    "licence": "CC-BY 3.0",
+    "licence_url": "https://creativecommons.org/licenses/by/3.0/",
+    "page": "https://poly.pizza/m/f-ePrCSeNjW",
+    "direct_url": "https://static.poly.pizza/d2ae02d1-3a39-402e-b93e-d5e4e33df126.glb",
+    "page_tris": 1770
+  },
+  {
+    "slot": "pedagang",
+    "file": "docs/v2/visual/art/models_r4/npcs/raw/npcs_r4/pedagang.glb",
+    "sha256": "aa40d08387c0dd51bd735cd170f3591454fc21fcc8124eb00c0052bad3962cb3",
+    "bytes": 275164,
+    "title": "Retail Worker",
+    "author": "J-Toastie",
+    "licence": "CC-BY 3.0",
+    "licence_url": "https://creativecommons.org/licenses/by/3.0/",
+    "page": "https://poly.pizza/m/kpw4fiF8St",
+    "direct_url": "https://static.poly.pizza/acea3920-3344-4f42-9f07-d4b2dd336645.glb",
+    "page_tris": 4124
+  },
+  {
+    "slot": "petani_wanita",
+    "file": "docs/v2/visual/art/models_r4/npcs/raw/npcs_r4/petani_wanita.glb",
+    "sha256": "047a24a1f6a6ae432bf77191b67c01e4041949c3fea3fcc273557be3b86f14d0",
+    "bytes": 147068,
+    "title": "Woman",
+    "author": "Polygonal Mind",
+    "licence": "CC0 1.0",
+    "licence_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "page": "https://poly.pizza/m/usAZvwbH0Y",
+    "direct_url": "https://static.poly.pizza/7e8b8395-2bbb-4082-8307-19f6680e2778.glb",
+    "page_tris": 3396
+  },
+  {
+    "slot": "tukang_peci",
+    "file": "docs/v2/visual/art/models_r4/npcs/raw/npcs_r4/tukang_peci.glb",
+    "sha256": "fceb2f242673926224c25d57348483c46afa83f843309539d3caeacc095b35a2",
+    "bytes": 83640,
+    "title": "Character_Man",
+    "author": "prathm",
+    "licence": "CC0 1.0",
+    "licence_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "page": "https://poly.pizza/m/IE7rk47BHn",
+    "direct_url": "https://static.poly.pizza/8da32ddd-f783-49d5-96ff-aad07a598f7e.glb",
+    "page_tris": 896
+  },
+  {
+    "slot": "polisi",
+    "file": "docs/v2/visual/art/models_r4/npcs/raw/npcs_r4/polisi.glb",
+    "sha256": "b78f87ce55a2c85dc560d49941a2226a55069a9eedfff621454b7c3d7f00e4d9",
+    "bytes": 287440,
+    "title": "Male Officer",
+    "author": "J-Toastie",
+    "licence": "CC-BY 3.0",
+    "licence_url": "https://creativecommons.org/licenses/by/3.0/",
+    "page": "https://poly.pizza/m/ipEgtSYI8u",
+    "direct_url": "https://static.poly.pizza/39435bcc-674e-49db-8ca1-9bf297316d2f.glb",
+    "page_tris": 4606
+  }
+]

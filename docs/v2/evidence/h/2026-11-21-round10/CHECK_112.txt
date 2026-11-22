@@ -1,0 +1,96 @@
+CHECK 112 — perahu_r8 boats and river life (WORK_QUEUE section N, item 112)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Fresh Play, Server DataModel. Place NOT saved, nothing published.
+
+== Target (verbatim) ==
+"**`perahu_r8`: boats and river life.** Two small perahu at the river bank, a fishing net on poles,
+a bamboo landing stage and a stack of baskets (not in the water channel, keep the bridge span clear).
+**CHECKS:** counts; `BRIDGE_WALKABLE` unchanged; nothing intersects the river centreline within the
+bridge's 56 studs."
+
+== Implementation (all OFF by default; no shipping default changed) ==
+- NEW `src/shared/ModelMapPerahuR8.luau`: pure, engine-API-free data. 39 original Parts in 8 kinds:
+  hull 6, gunwale 4, seat 4 (two small perahu, 7 parts each), netframe 4 + netmesh 6 (fishing net on
+  poles, criss-cross Part strands — not an asset), stageplank 6 + stagepile 4 (bamboo landing stage),
+  basket 5 (stack of baskets). Plain RGB via Color3, valid built-in material tokens (Wood/WoodPlanks/
+  Fabric) — neither stale Painted nor stale Leaf used; no asset IDs, no brand, no terrain edit, no
+  engine API. SITE derivation mirrors MapSpec: river runs along X with centreline
+  `z = 304 + 12 sin(2*pi*x/320)`, channel half-width 14; every site sits on a bank shelf at
+  `z = riverCentreZ(x) +/- 18` (BANK_OFFSET 18 = channel half 14 + bank shelf half 4). Bridge crosses
+  along Z at x=0 over 56 studs (z0=276, z1=332), so its X crossing interval is [-28, 28]; all sites
+  have |x| >= 52, well clear of it. Pure `riverCentreZ`, `worldXZ`, `counts`, `SITES`, bridge-crossing
+  constants exported; applier passes the live MapSpec centre function when staging.
+- NEW `src/server/World/LookDevPerahuR8.luau`: pcall-guarded server applier, folder
+  `LookDevPerahuR8_perahu_r8`; all 39 Parts `Anchored=true`, `CanCollide=false`, tagged stage +
+  `PerahuKind`; exact folder save/detach-restore; `LookDev.register(Data.familyId, applier)`. No
+  Terrain/water edit — sites are on the existing bank shelf.
+- `src/shared/LookDev.luau`: `perahu_r8` appended as ID 84 (83 -> 84); descriptor + plan branch.
+  `src/shared/LookDevReview.luau`: server path `{ "World", "LookDevPerahuR8" }`.
+- `tools/studio/review_check_r8.luau`: ORDER gets `PERAHU_PARTS`, `PERAHU_RIVER_CLEAR` (inserted
+  before `PASAR_PAVING`, so the lumbung ORDER-literal assertions stay contiguous). New `do...end`
+  block at section `-- 9m. WORK_QUEUE section N item 112` (line 7440+). `PERAHU_PARTS` counts tagged
+  parts by kind vs `ModelMapPerahuR8.counts()` (total, min, per-kind). `PERAHU_RIVER_CLEAR` is mutating:
+  saves the prior candidate, stages perahu, reads EVERY tagged part's rotation-aware XZ box (via
+  CFrame axis vectors), and fails any box that intersects the water channel `|z-riverCentreZ(x)|<=14`
+  while its x-range lies inside the bridge's 56-stud crossing interval [-28,28]. The interval is
+  derived from the live `MapSpec.BRIDGE` (length z1-z0) and cross-checked against the pure mirror;
+  the sinusoidal centre is sampled at both interval ends and every stationary point x=80+160k so no
+  band crossing is missed. PASS only if map ready ∧ folder present ∧ tagged>0 ∧ 0 overlaps; all-FAIL
+  paths emit both checks at measured 0; prior candidate restored on every path. `BRIDGE_WALKABLE`
+  (ORDER 205, block ~3135-3194) is READ-ONLY and BYTE-IDENTICAL — the only harness diff near it is an
+  added explanatory comment; its emit line `emit("BRIDGE_WALKABLE", walkPass, ...)` is unchanged.
+- NEW `tests/specs/perahu_r8_spec.luau` + registration in `tests/run.luau`: locks counts/MIN_PARTS,
+  valid material tokens (forbid both stale tokens), pure `riverCentreZ` + bank offsets, `#IDS==84`/
+  `IDS[84]`, Review path, plan, ORDER strings + emit for both distinct names, `BRIDGE_WALKABLE` still
+  present/untouched, applier strings, no asset IDs, CANDIDATES pending row.
+- Count literals bumped 83 -> 84 across 38 specs plus 3 extra count literals
+  (`review_round3_bugfix_spec`, `sky_map_r6_spec`, `terrain_map_r6_spec`); every changed spec diff line
+  was verified to be only a count literal. Index-locked `IDS[n]` checks intact.
+- `docs/v2/visual/CANDIDATES.md`: pending 6-column row, verdict `pending - review in Studio`, existing
+  `REVIEW_ROUND9.md` render path. No new camera (item 133 owns camera additions).
+
+== Method (fresh Play, Server VM, single-active stage) ==
+`LookDevReview.enable("perahu_r8", game, {studio=true})` returned true; the staging folder held 39
+BaseParts matching `ModelMapPerahuR8.counts()` per kind, ZERO perahu-specific warnings (the two
+`rbxassetid://203785492` content warnings in the log are pre-existing and unrelated — the module has
+no asset IDs and every staged part uses a built-in material). The two check blocks in
+`review_check_r8.luau` were executed as an equivalent ad hoc execute_luau probe (item 103/105/108..111
+precedent — the whole harness file cannot be injected with a pre-set candidate state), using the live
+`MapSpec.BRIDGE` + `MapSpec.riverCentreZ`. A synthetic violating box, a global-channel scan and a
+disable/re-enable lifecycle were added as extra evidence.
+
+== Verbatim check lines (single canonical run, all PASS) ==
+CHECK PERAHU_PARTS PASS 39 >=35 kinds=hull=6 gunwale=4 seat=4 netframe=4 netmesh=6 stageplank=6 stagepile=4 basket=5
+CHECK PERAHU_RIVER_CLEAR PASS overlaps=0 tagged=39 span=56(-28..28) spanOk=true
+EXTRA GLOBAL_CHANNEL_HITS 0 (part centre vs channel; 0 expected)
+SITE perahu_a x=-52 centreZ=293.77 stagedZ=275.77 bridgeCrossX=[-28,28]
+All 39 tagged parts counted by kind, total >= 35, every kind exact. The 56-stud bridge span was derived
+from the live bridge (z1-z0=56) and matched the pure mirror ([-28,28]); 0 parts intersect the channel
+within that span. An additional global scan put 0 part centres inside the water channel anywhere,
+confirming the bank placement is clear (not just within the bridge span).
+
+== Non-vacuity / discrimination evidence ==
+DISCRIM badBoxInChannelAtBridge true (expect true)
+DISCRIM stagedBankBox false (expect false)
+DISCRIM channelBoxOutsideSpan false (expect false)
+A synthetic box placed in the channel at the bridge IS flagged (the check would FAIL a real violation);
+the actual staged bank box and a channel box outside the span are both NOT flagged. This proves the
+check discriminates rather than always passing. All staged parts are CanCollide=false, so a
+collidable-only test would have been vacuous; the check tests every tagged part.
+
+== Lifecycle evidence ==
+CHECK PERAHU_RESTORE PASS gone=true back=true parts=39
+`disable` removed the folder; a second `enable` re-created it with all 39 parts; `disableAll` at end.
+No terrain/water was touched by this candidate at any point.
+
+== Validation / scope ==
+lune run tests/run.luau: All 2736 tests passed. selene src: 0 errors / 0 warnings / 0 parse errors.
+stylua --check clean on all changed Luau files. git diff --check clean. Play stopped after verification;
+no place saved, nothing published. No visual, copy or aural verdict. Candidate off by default; no
+shipping default changed. No asset IDs, no brand marks, no terrain edit, no new camera.
+`BRIDGE_WALKABLE` unchanged (read-only, byte-identical block + emit line).
+
+Status: SEEN-IN-STUDIO (fresh Play Server VM, perahu_r8 staged; PERAHU_PARTS 39>=35 all counts match,
+PERAHU_RIVER_CLEAR 0/39 overlaps within the 56-stud [-28,28] crossing, 0 global channel hits, synthetic
+violation correctly flagged, disable/re-enable PASS, zero perahu staging warnings).

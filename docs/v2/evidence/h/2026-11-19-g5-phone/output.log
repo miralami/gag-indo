@@ -1,0 +1,46 @@
+[JuraganDesa] server started
+[ProfileStore]: Roblox API services available - data will be saved
+[Roblox][sabuiltin_Assistant.rbxm.Assistant.Src.toolInit] Assistant plugin version changed from ef6b1b3 to 9bb6530. This may cause instability when using Assistant or the MCP server. Please restart Roblox Studio to fix.
+[Roblox][sabuiltin_Assistant.rbxm.Assistant.Src.toolInit] Assistant plugin version changed from ef6b1b3 to 9bb6530. This may cause instability when using Assistant or the MCP server. Please restart Roblox Studio to fix.
+ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type
+[G5P] R1 T0 wall=11:16:17
+[G5P] R1 STATUS0 cash=50 step=1
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+[G5P] R1 PLANTED ok=true wall=11:16:18 elapsed=1s
+[G5P] R1 READY wall=11:16:39 elapsed=22s
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+[G5P] R1 FIRST-HARVEST ok=true sack=1 wall=11:16:39 elapsed=22s
+[G5P] R1 DONE
+=== FRESH RESTART ===
+[JuraganDesa] server started
+[ProfileStore]: Roblox API services available - data will be saved
+[G5P] R2 T0 wall=11:17:14
+[G5P] R2 STATUS0 cash=50 step=1
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+[G5P] R2 PLANTED ok=true wall=11:17:14 elapsed=0s
+[G5P] R2 READY wall=11:17:34 elapsed=20s
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+[G5P] R2 FIRST-HARVEST ok=true sack=1 wall=11:17:34 elapsed=20s
+[G5P] R2 DONE
+=== FRESH RESTART ===
+[JuraganDesa] server started
+[ProfileStore]: Roblox API services available - data will be saved
+[G5P] R3 T0 wall=11:18:11
+[G5P] R3 STATUS0 cash=50 step=1
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+[G5P] R3 PLANTED ok=true wall=11:18:12 elapsed=1s
+[G5P] R3 READY wall=11:18:32 elapsed=21s found=true
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+[G5P] R3 FIRST-HARVEST ok=true sack=1 wall=11:18:32 elapsed=21s
+[G5P] R3 PLANTED2 ok=true wall=11:18:33 elapsed=22s
+AnalyticsService: LogCustomEvent event fired.
+[G5P] R3 SECOND-HARVEST ok=true sack=2 wall=11:19:21 elapsed=70s fromPlant=48s found=true
+[G5P] R3 HOLDING-FOR-RAID
+AnalyticsService: LogFunnelStepEvent event fired.
+AnalyticsService: LogFunnelStepEvent event fired.
+[G5P] R3 RAID-WITNESS scripted_raid_gossip wall=11:23:26

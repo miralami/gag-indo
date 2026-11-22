@@ -1,0 +1,68 @@
+[
+  {
+    "face": "SkyboxImageBack",
+    "file": "docs/v2/visual/art/sky_r3/faces/SkyboxImageBack.png",
+    "asset_id": "102550480946849",
+    "asset_type": "Image",
+    "moderation_state": null,
+    "operation_id": "f76bb37c-ac30-4436-833d-98d5f325756b",
+    "source": "Poly Haven fish_hoek_beach CC0 HDRI -> deterministic cubemap",
+    "licence": "CC0 1.0 (Greg Zaal, Rico Cilliers)",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "face": "SkyboxImageBottom",
+    "file": "docs/v2/visual/art/sky_r3/faces/SkyboxImageBottom.png",
+    "asset_id": "129220381103008",
+    "asset_type": "Image",
+    "moderation_state": null,
+    "operation_id": "14c49895-6abe-44c4-a2f8-cdc044edd927",
+    "source": "Poly Haven fish_hoek_beach CC0 HDRI -> deterministic cubemap",
+    "licence": "CC0 1.0 (Greg Zaal, Rico Cilliers)",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "face": "SkyboxImageFront",
+    "file": "docs/v2/visual/art/sky_r3/faces/SkyboxImageFront.png",
+    "asset_id": "133281364333444",
+    "asset_type": "Image",
+    "moderation_state": null,
+    "operation_id": "b628b6be-83ad-4d5b-b4b9-9631a9bda430",
+    "source": "Poly Haven fish_hoek_beach CC0 HDRI -> deterministic cubemap",
+    "licence": "CC0 1.0 (Greg Zaal, Rico Cilliers)",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "face": "SkyboxImageLeft",
+    "file": "docs/v2/visual/art/sky_r3/faces/SkyboxImageLeft.png",
+    "asset_id": "138405045926458",
+    "asset_type": "Image",
+    "moderation_state": null,
+    "operation_id": "e5eeca48-0288-4558-8a26-8bc5b2e78a13",
+    "source": "Poly Haven fish_hoek_beach CC0 HDRI -> deterministic cubemap",
+    "licence": "CC0 1.0 (Greg Zaal, Rico Cilliers)",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "face": "SkyboxImageRight",
+    "file": "docs/v2/visual/art/sky_r3/faces/SkyboxImageRight.png",
+    "asset_id": "102997698570968",
+    "asset_type": "Image",
+    "moderation_state": null,
+    "operation_id": "904acc2b-095d-4428-bf51-7bb691065a12",
+    "source": "Poly Haven fish_hoek_beach CC0 HDRI -> deterministic cubemap",
+    "licence": "CC0 1.0 (Greg Zaal, Rico Cilliers)",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "face": "SkyboxImageTop",
+    "file": "docs/v2/visual/art/sky_r3/faces/SkyboxImageTop.png",
+    "asset_id": "119387111356535",
+    "asset_type": "Image",
+    "moderation_state": null,
+    "operation_id": "68ff3734-4d33-4a06-9b53-f999664fb514",
+    "source": "Poly Haven fish_hoek_beach CC0 HDRI -> deterministic cubemap",
+    "licence": "CC0 1.0 (Greg Zaal, Rico Cilliers)",
+    "upload_route": "ROBLOX_API_KEY"
+  }
+]

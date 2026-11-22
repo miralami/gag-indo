@@ -20,8 +20,8 @@ Pinned versions (from `rokit.toml`): `rojo` 7.7.1, `luau-lsp` 1.70.1.
 ## 2. Clone the repo
 
 ```bash
-git clone https://github.com/miralami/gag-indo.git
-cd gag-indo
+git clone https://github.com/<owner>/<repo>.git
+cd <repo>
 ```
 
 If you already have the folder, `git pull` instead.

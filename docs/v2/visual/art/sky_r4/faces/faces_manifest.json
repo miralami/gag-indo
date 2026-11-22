@@ -1,0 +1,151 @@
+{
+  "deterministic": true,
+  "face_size": 1024,
+  "count": 18,
+  "faces": [
+    {
+      "face": "SkyboxBk",
+      "file": "docs/v2/visual/art/sky_r4/faces/a/SkyboxBk.png",
+      "md5": "4df70080de4f102b23b3ab8d8029c764",
+      "sha256": "f68f35c233fac04a707c3e79c0ac56557335261069dba49b3c993d2ee8542e81",
+      "bytes": 675112,
+      "std": 33.848
+    },
+    {
+      "face": "SkyboxDn",
+      "file": "docs/v2/visual/art/sky_r4/faces/a/SkyboxDn.png",
+      "md5": "3c9ee9986c25e2cd32125f6621c3f8a2",
+      "sha256": "676e68d97e781ee0847a792028f3165671bb893840f4e4ad6d94e154e6e242aa",
+      "bytes": 1211689,
+      "std": 21.467
+    },
+    {
+      "face": "SkyboxFt",
+      "file": "docs/v2/visual/art/sky_r4/faces/a/SkyboxFt.png",
+      "md5": "f1f8801c8173fef3905ffdde6f935cb2",
+      "sha256": "08ec1762921e86be6c4d7d07a5682d7c50997984bec4b3f99cc8d7afd1163004",
+      "bytes": 934629,
+      "std": 43.763
+    },
+    {
+      "face": "SkyboxLf",
+      "file": "docs/v2/visual/art/sky_r4/faces/a/SkyboxLf.png",
+      "md5": "f1658d74adc193ece5cca05110629aaf",
+      "sha256": "0d07da300aad01b9c7068ff6de6702d74698a081a32781635a9f0546788a3764",
+      "bytes": 749102,
+      "std": 34.967
+    },
+    {
+      "face": "SkyboxRt",
+      "file": "docs/v2/visual/art/sky_r4/faces/a/SkyboxRt.png",
+      "md5": "42fe59bec11a59998a63b4a1d3d7054f",
+      "sha256": "71d977925031f80ec35693f0a4363c85f4e282c3be51025fe1ff0dfb63b0f703",
+      "bytes": 877555,
+      "std": 36.445
+    },
+    {
+      "face": "SkyboxUp",
+      "file": "docs/v2/visual/art/sky_r4/faces/a/SkyboxUp.png",
+      "md5": "c9e43f8a616ba22adf4217365b09fbb2",
+      "sha256": "1ce6de947c58af42066a639567336007d8ec541c58d99d9f2eab6b3e54c53c17",
+      "bytes": 452526,
+      "std": 34.767
+    },
+    {
+      "face": "SkyboxBk",
+      "file": "docs/v2/visual/art/sky_r4/faces/b/SkyboxBk.png",
+      "md5": "eb44cdc9a8a394ff401fb129e9296fbc",
+      "sha256": "90ac9475e8f8b1b72734d2e3a0a8aac460192673a478062f91d7ab9b0040bb94",
+      "bytes": 756722,
+      "std": 40.387
+    },
+    {
+      "face": "SkyboxDn",
+      "file": "docs/v2/visual/art/sky_r4/faces/b/SkyboxDn.png",
+      "md5": "1b596822e904b0bec87b31bc2998f98a",
+      "sha256": "3fd4806f26843a7addf4417bc74ca24d83427e190133af455c49392057a6b97b",
+      "bytes": 1359102,
+      "std": 15.208
+    },
+    {
+      "face": "SkyboxFt",
+      "file": "docs/v2/visual/art/sky_r4/faces/b/SkyboxFt.png",
+      "md5": "420469030c315f0f4007c59f8b8f06a2",
+      "sha256": "d02886d4f6f22597a1ee7b4a48d57145f8aa1d588fd7044b2317342aed23f366",
+      "bytes": 724624,
+      "std": 38.833
+    },
+    {
+      "face": "SkyboxLf",
+      "file": "docs/v2/visual/art/sky_r4/faces/b/SkyboxLf.png",
+      "md5": "b91a1b8846bc1438e7a086530beca50a",
+      "sha256": "c9cf1e5911f6532d1e2a0865c00b9793c70ff10de87541881ac8f1a1ff09cc0c",
+      "bytes": 805486,
+      "std": 41.825
+    },
+    {
+      "face": "SkyboxRt",
+      "file": "docs/v2/visual/art/sky_r4/faces/b/SkyboxRt.png",
+      "md5": "36e8f176db0a3ba48e0a046176f632de",
+      "sha256": "4eb6755db331eeb9af66931c2f0a757bb15021f5efe96ef498eab38bea968dce",
+      "bytes": 669649,
+      "std": 38.514
+    },
+    {
+      "face": "SkyboxUp",
+      "file": "docs/v2/visual/art/sky_r4/faces/b/SkyboxUp.png",
+      "md5": "23b001534330f8183ace1af0d2b57972",
+      "sha256": "5c21020c43f1062165c430cf45156f1a4289f8d4e81b408a7f78e665c4d8d9c1",
+      "bytes": 454816,
+      "std": 17.466
+    },
+    {
+      "face": "SkyboxBk",
+      "file": "docs/v2/visual/art/sky_r4/faces/c/SkyboxBk.png",
+      "md5": "89659c9899c14f09edda49237c9c1f44",
+      "sha256": "c713ee19ea8312783d0af224bf692192e55cc58b17e1c9ab3568fda761ef1984",
+      "bytes": 291632,
+      "std": 18.598
+    },
+    {
+      "face": "SkyboxDn",
+      "file": "docs/v2/visual/art/sky_r4/faces/c/SkyboxDn.png",
+      "md5": "c065156aac64dd89064e349e978b560d",
+      "sha256": "7e24da7e329ab8f32946a5cb272c9c50e38e3116f196cb8dc5cca40f3bd951d7",
+      "bytes": 117187,
+      "std": 4.709
+    },
+    {
+      "face": "SkyboxFt",
+      "file": "docs/v2/visual/art/sky_r4/faces/c/SkyboxFt.png",
+      "md5": "21061ec1f8b4c9bd3cbfcdf15c7c99a7",
+      "sha256": "c93bb08933e971853656aeb73c2e1410381640626758157c4ad4c6412a8359b7",
+      "bytes": 272396,
+      "std": 17.4
+    },
+    {
+      "face": "SkyboxLf",
+      "file": "docs/v2/visual/art/sky_r4/faces/c/SkyboxLf.png",
+      "md5": "7dfc11234a8f08cfb09e512c1b13681b",
+      "sha256": "a02800504e1c9c5fd85cdfda968079a040397ea1948ce7764b923c890fa928ea",
+      "bytes": 274379,
+      "std": 16.1
+    },
+    {
+      "face": "SkyboxRt",
+      "file": "docs/v2/visual/art/sky_r4/faces/c/SkyboxRt.png",
+      "md5": "79856a4b9f5e3c1849cfe86fa29714ba",
+      "sha256": "41037a8bbdd5fcf3a0dfe82c2e1397ab4186335c87e8b3b25469661e0a9606ea",
+      "bytes": 281511,
+      "std": 18.938
+    },
+    {
+      "face": "SkyboxUp",
+      "file": "docs/v2/visual/art/sky_r4/faces/c/SkyboxUp.png",
+      "md5": "959c1f9176eff061cf097f0ab1e77aa6",
+      "sha256": "e60a3756ff698a5df6f823a296f018c42afd69c5caeb5ca2fb4bac79077521bc",
+      "bytes": 308415,
+      "std": 6.707
+    }
+  ]
+}

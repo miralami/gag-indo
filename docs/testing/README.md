@@ -6,7 +6,7 @@ Juragan Desa is tested in three layers. Each catches a different kind of problem
 |---|---|---|---|
 | **1. Automated tests** | Game rules and numbers: money, Sus, ranks, raids' maths, Robux receipts, save migrations, config sanity | `lune run tests/run` (no Roblox Studio needed, runs in about a second) | Before every commit, and on every push (CI) |
 | **2. Static checks** | Type errors and typos | `luau-lsp analyze` (see [SETUP.md](../SETUP.md)) | Before every commit |
-| **3. Manual test cases** | Feel, visuals, UI, multiplayer, anything that needs Studio | [MANUAL_TESTS.md](MANUAL_TESTS.md) + a signed run sheet | Before each version you publish |
+| **3. Manual test cases** | Feel, visuals, UI, multiplayer, anything that needs Studio | [PLAYTEST_CASES.md](../v2/qa/PLAYTEST_CASES.md) + a signed run sheet | Before each version you publish |
 
 ## 1. Automated tests
 
@@ -111,19 +111,21 @@ See "Checking code" in the [README](../../README.md). Run `luau-lsp analyze` bef
 
 A real tester works from **written cases with a pass/fail result per version**, not from memory. That is what these files do:
 
-- [MANUAL_TESTS.md](MANUAL_TESTS.md): the catalogue. Every case has an ID, a priority (P0 smoke, P1 core, P2 polish), setup, steps and the expected result.
+- [PLAYTEST_CASES.md](../v2/qa/PLAYTEST_CASES.md): the one catalogue. Every case has an ID, the pass it belongs to (R1 to R6), steps and the expected result; the every-version set (P0) is listed at its top. The v1 `MANUAL_TESTS.md` was merged into it on 2026-11-16.
+- [PLAYTEST_PLAN.md](../v2/qa/PLAYTEST_PLAN.md): the scenarios the cases come from, and the setup.
+- [HARNESS.md](HARNESS.md): the Studio routine agents use to drive a play session; [GATE1.md](GATE1.md) is the gate it feeds and [BUGS.md](BUGS.md) the defect list.
 - [runs/TEMPLATE.md](runs/TEMPLATE.md): the run sheet. Copy it to `runs/<date>-<commit>.md`, tick off each case for that exact version, and sign it off.
 
 ### Release routine
 
 1. `lune run tests/run` is green.
 2. `git rev-parse --short HEAD` to get the version, copy the run sheet to `docs/testing/runs/<date>-<commit>.md`.
-3. Play in Studio. Do every **P0** case, plus every **P1** case in areas you changed. Do **P2** before a public update.
+3. Play in Studio. Do the every-version set (P0) listed at the top of the catalogue, plus the cases for the areas you changed. Run the full passes R1 to R5 before a public update.
 4. Record every result. Write findings. Fix or consciously accept every failure.
 5. Sign off, then commit the run sheet. The file is your proof that *this version* was checked.
 
 ### Keeping the catalogue alive
 
-- New feature: add its cases to `MANUAL_TESTS.md` in the same commit.
+- New feature: add its cases to `PLAYTEST_CASES.md` in the same commit.
 - A bug found by hand: add a case, and an automated test too if the rule can be tested by script.
-- A case that is now fully covered by an automated test keeps its entry but says **Auto** with the spec name. Only the parts a script cannot see stay manual.
+- A case that an automated test now covers keeps its row and gets a line in the catalogue's "Automated cover" table. Only the parts a script cannot see stay manual.

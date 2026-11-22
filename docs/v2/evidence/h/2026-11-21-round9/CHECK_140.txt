@@ -1,0 +1,41 @@
+CHECK 140 — sawah_r8 padi redo (WORK_QUEUE section O, item 140)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Edit runtime injection; place NOT saved, nothing published.
+
+== Setup ==
+1. Injected changed ReplicatedStorage.Shared.ModelMapSawahR8 and
+   ServerScriptService.Server.World.LookDevSawahR8 into the EDIT datamodel (both SET). Fresh Play.
+2. Staged with `require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("sawah_r8", game)`
+   in the Server VM — returned true.
+3. Pasted the whole tools/studio/review_check_r8.luau into execute_luau (Server VM), read byName.
+
+== Raw check lines (verbatim, staged sawah_r8) ==
+CHECK TUFT_SHAPE PASS 0 0
+CHECK PADI_ROWS PASS 294 10
+CHECK PADI_CLUMPS PASS 1764 250
+CHECK SAWAH_GREEN PASS 76 40
+CHECK SAWAH_TOPS PASS 0 0.5
+CHECK SAWAH_WATER PASS 4 4 sheets
+CHECK SAWAH_VERGE PASS 240 >=40
+CHECK GUBUK PASS 1 1
+CHECK PERF_BUDGET PASS 334 500
+CHECK LOAD_FAILURES PASS 0 0
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+CHECK NO_PINES PASS 0 0
+
+== Detail ==
+PADI_ROWS: T1:294 T2:294 T3:294 T4:294 (minimum distinct PadiRow id per terrace; one X column of
+clumps per row, ROW_SPACING = 2 studs). PADI_CLUMPS: 1764 per terrace (minimum distinct PadiClump
+id), 3-5 blades per clump. TUFT_SHAPE: 35,520 PadiPart instances checked, 0 with any Size dimension
+over 2.5 studs, 0 read errors. SAWAH_GREEN: 20x8 grid per terrace from the `sawah_above` camera,
+downward rays into the staged sawah folder; hits T1 135/160, T2 135/160, T3 140/160, T4 123/160 =
+84/84/87/76 percent, minimum 76 >= 40; 0 ray errors. The thin water sheets remain visible between
+the 2-stud rows (SAWAH_WATER 4 4); the grassy bund (SAWAH_VERGE 240), gubuk on terrace 2 (GUBUK 1)
+and stepping stones are unchanged. All four new checks are READ-ONLY and stage nothing themselves.
+
+Note: 35,520 parts are staged only while this OFF-BY-DEFAULT candidate is enabled; the default look
+is unchanged and PERF_BUDGET (spawn-view census) still measures 334 <= 500. The density is driven by
+the item's own 2-stud row spacing plus the >=40% green-coverage requirement across each full pane.
+
+Status: SEEN-IN-STUDIO. No place saved, nothing published. Visual grading remains the designer's.

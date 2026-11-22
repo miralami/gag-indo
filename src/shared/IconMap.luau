@@ -47,6 +47,61 @@ IconMap.phoneApps = {
 	board = { id = 0, slot = "trophy", fallback = "1", token = "kunyit" }, -- TODO: NEEDS-ASSET
 }
 
+-- LookDev candidate icon IDs (WORK_QUEUE round 2 item 4). Agent-made CANDIDATES awaiting a
+-- designer yes/no; see docs/v2/visual/CANDIDATES.md and docs/v2/visual/art/ASSET_MANIFEST.md.
+-- These are applied to Visuals.icons ONLY while the Studio-only "icons" LookDev candidate is on.
+-- The entry.id values above stay 0, so the shipping game keeps the letter/palette fallbacks.
+IconMap.candidateIds = {
+	crop_padi = 114251482326552,
+	crop_singkong = 125071570354841,
+	crop_jagung = 77336087458478,
+	crop_bawang = 104903641478136,
+	crop_cabai = 84310027204694,
+	crop_tembakau = 80640549300472,
+	crop_kopi = 87432090737677,
+	crop_tebu = 126828358791382,
+	crop_kakao = 105395581171156,
+	crop_cengkeh = 101021953955568,
+	crop_durian = 94589075400460,
+	crop_sawit = 127561041299274,
+	tier_biasa = 89039660400929,
+	tier_bagus = 81110221353868,
+	tier_super = 111608597881986,
+	tier_langka = 121577229795943,
+	tier_sultan = 124401414397944,
+	currency_rupiah = 76189327817658,
+	cash = 84649047415515,
+	phone = 135874869613602,
+	garden = 124397872915480,
+	debt = 83485200694555,
+	quest = 86819230917965,
+	cheat = 135587262954164,
+	hat = 109619793807014,
+	shop = 133120999661934,
+	trophy = 130034112081024,
+}
+
+local useCandidates = false
+
+-- Applier entry point for the "icons" LookDev candidate. Never enabled outside Studio: the
+-- LookDev gate enforces that. `on=false` restores every touched slot to id 0 (letter fallback).
+function IconMap.applyCandidates(visuals: any, on: boolean)
+	useCandidates = on == true
+	if type(visuals) ~= "table" or type(visuals.icons) ~= "table" then
+		return
+	end
+	for slot, id in IconMap.candidateIds do
+		local icon = visuals.icons[slot]
+		if icon and type(icon) == "table" then
+			icon.id = if useCandidates then id else 0
+		end
+	end
+end
+
+function IconMap.usingCandidates(): boolean
+	return useCandidates
+end
+
 local function syncEntry(icons: { [string]: any }, slot: string, entry: { [string]: any })
 	local icon = icons[slot]
 	if not icon then

@@ -1,0 +1,50 @@
+[
+  {
+    "slot": "rumah",
+    "name": "Stilt House",
+    "page": "https://grab3d.com/models/buildings/stilt-house/",
+    "kit": "https://grab3d.com/kits/cozy-homes-world/",
+    "direct": "https://grab3d.com/dl/stilt-house/stilt-house-light.glb",
+    "file": "stilt-house-light.glb",
+    "author": "Grab3D",
+    "licence": "CC0 1.0 Universal (public-domain dedication)",
+    "licence_page": "https://grab3d.com/license/",
+    "page_claim": "Free under CC0 for personal and commercial use, no attribution. Download without login as GLB, FBX, BLEND, USDZ or OBJ. Lightweight with 37,418 triangles and 2K textures and light version with 20,400 triangles."
+  },
+  {
+    "slot": "kandang",
+    "name": "Chicken Coop",
+    "page": "https://grab3d.com/models/buildings/chicken-coop/",
+    "kit": "https://grab3d.com/kits/cozy-houses-village/",
+    "direct": "https://grab3d.com/dl/chicken-coop/chicken-coop.glb",
+    "file": "chicken-coop.glb",
+    "author": "Grab3D",
+    "licence": "CC0 1.0 Universal (public-domain dedication)",
+    "licence_page": "https://grab3d.com/license/",
+    "page_claim": "Free under CC0 for personal and commercial use, no attribution. Download without login as GLB, FBX, BLEND, USDZ or OBJ. Lightweight with 18,576 triangles and 2K textures."
+  },
+  {
+    "slot": "gudang",
+    "name": "Garden Shed",
+    "page": "https://grab3d.com/models/buildings/garden-shed/",
+    "kit": "https://grab3d.com/kits/cozy-houses-village/",
+    "direct": "https://grab3d.com/dl/garden-shed/garden-shed.glb",
+    "file": "garden-shed.glb",
+    "author": "Grab3D",
+    "licence": "CC0 1.0 Universal (public-domain dedication)",
+    "licence_page": "https://grab3d.com/license/",
+    "page_claim": "Free under CC0 for personal and commercial use, no attribution. Download without login as GLB, FBX, BLEND, USDZ or OBJ. Lightweight with 11,860 triangles and 2K textures."
+  },
+  {
+    "slot": "warung",
+    "name": "Market Stall",
+    "page": "https://grab3d.com/models/buildings/market-stall/",
+    "kit": "https://grab3d.com/kits/cozy-houses-village/",
+    "direct": "https://grab3d.com/dl/market-stall/market-stall-light.glb",
+    "file": "market-stall-light.glb",
+    "author": "Grab3D",
+    "licence": "CC0 1.0 Universal (public-domain dedication)",
+    "licence_page": "https://grab3d.com/license/",
+    "page_claim": "Free under CC0 for personal and commercial use, no attribution. Download without login as GLB, FBX, BLEND, USDZ or OBJ. Lightweight with 28,580 triangles and 2K textures and light version with 15,744 triangles."
+  }
+]

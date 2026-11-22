@@ -1,3 +1,4 @@
+--!strict
 -- Cosmetic shop (GDD §9.3). v1 uses cash so the shop is testable without Robux;
 -- swap `price` for a Robux purchase flow later without touching the UI.
 -- `kind` decides how the client renders it on the character.

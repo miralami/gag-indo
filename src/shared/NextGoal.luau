@@ -1,3 +1,4 @@
+--!strict
 -- NextGoal: the one goal the HUD guide card shows. Pure: takes the player's attributes and
 -- returns which goal applies and the Strings key + params to render it. The HUD does the drawing.
 --

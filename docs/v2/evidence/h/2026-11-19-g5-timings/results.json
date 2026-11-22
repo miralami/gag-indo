@@ -1,0 +1,48 @@
+{
+  "track": "H",
+  "date": "2026-11-19",
+  "topic": "G5 first-session timings, three fresh desktop runs",
+  "branch": "track/c-world-look",
+  "head": "90b4d9c",
+  "environment": {
+    "rojo": "localhost:34872",
+    "syncConfirmed": true,
+    "studioMode": "Play Solo",
+    "viewport": "desktop",
+    "freshProfileEachRun": true,
+    "freshProfileMethod": "VERIFY-TEMP store.Mock in-memory ProfileStore, reverted before commit"
+  },
+  "config": {
+    "tutorialPadiGrowSeconds": 20,
+    "scriptedRaidDelay": 330,
+    "guaranteedTiers": { "1": "bagus", "2": "super" },
+    "changeProposed": false,
+    "changeReason": "all targets already met by committed config; balance is the designer's call"
+  },
+  "firstHarvestRuns": [
+    { "run": 1, "startWall": "02:13:55", "plantedWall": "02:13:56", "readyWall": "02:14:15", "harvestWall": "02:14:15", "readyElapsedS": 20, "harvestElapsedS": 20, "targetS": 45, "pass": true },
+    { "run": 2, "readyElapsedS": 20, "harvestElapsedS": 21, "targetS": 45, "pass": true, "note": "fresh restart; wall timestamps not retained in console tail" },
+    { "run": 3, "startWall": "02:17:42", "plantedWall": "02:17:42", "readyWall": "02:18:02", "harvestWall": "02:18:03", "readyElapsedS": 20, "harvestElapsedS": 21, "targetS": 45, "pass": true }
+  ],
+  "rarityReveal": {
+    "firstHarvestTier": "bagus",
+    "firstHarvestAtS": 20,
+    "secondHarvestTier": "super",
+    "secondHarvestPlantWall": "02:18:27",
+    "secondHarvestWall": "02:20:17",
+    "secondHarvestFromPlantS": 110,
+    "targetS": 300,
+    "pass": true,
+    "note": "tier guarantee is LUNE-ONLY (first_session_spec.luau); Studio proves the timing window"
+  },
+  "raid": {
+    "marker": "[G5] RAID-WITNESS scripted_raid_gossip wall=02:23:04",
+    "sessionStartWall": "02:17:42",
+    "elapsedS": 322,
+    "targetS": 420,
+    "pass": true,
+    "signal": "Remotes.Notify key scripted_raid_gossip"
+  },
+  "verdict": "SEEN-IN-STUDIO",
+  "scope": "desktop half only; phone-size G5 timing pass stays BLOCKED on the designer's device/emulator control via MCP"
+}

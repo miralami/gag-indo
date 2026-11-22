@@ -1,3 +1,4 @@
+--!strict
 -- Tools (v2 PLAN §3.4). Permanent, bought with cash, one tier per line at a time.
 --
 --   cangkul  planting quality bonus (better rarity rolls)
@@ -79,6 +80,7 @@ function Tools.next(lineId: string, ownedTierId: any): any?
 		end
 	end
 	-- An id this config no longer knows about: treat it as nothing owned.
-	return line.tiers[1]end
+	return line.tiers[1]
+end
 
 return Tools

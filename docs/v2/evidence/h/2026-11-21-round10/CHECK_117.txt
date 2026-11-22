@@ -1,0 +1,124 @@
+CHECK 117 — seated_r8 seated villagers at the Warung (WORK_QUEUE section N, item 117)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Fresh Play, Server DataModel. Place NOT saved, nothing published.
+
+== Target (verbatim) ==
+"**`seated_r8`: seated villagers at the warung.** Use `HumanoidDescription` NPCs (same catalog outfits
+as npcs_r7) seated on the warung benches with `Humanoid.Sit` driven by a `Seat`, and a few glasses and
+plates on the table. At most 4. **CHECKS:** `SEATED_COUNT` <= 4; each `Humanoid.Sit` is true after 3 s;
+none intersects the bench."
+
+== Main-session API probe (fresh Play Server VM, BEFORE implementation) ==
+- `Instance.new("Seat")` -> ClassName "Seat"
+- `Instance.new("HumanoidDescription")` -> ClassName "HumanoidDescription"
+- `Players.CreateHumanoidModelFromDescriptionAsync` / `CreateHumanoidModelFromDescription` -> both function
+- `Players:CreateHumanoidModelFromDescriptionAsync(hd, Enum.HumanoidRigType.R15)` -> real R15 `Model`
+  with a `Humanoid` + `HumanoidRootPart` and 17 BaseParts (tested with R7 outfit shirt 109842878942326 /
+  pants 96146120958106 / hat 90801645168902)
+- `seat:Sit(humanoid)` -> pcall ok, `humanoid.Sit == true` after 0.5 s; bare `Humanoid.Sit = true` settable
+All mechanics therefore supported; no dummy Parts used anywhere.
+
+== Implementation (all OFF by default; no shipping default changed) ==
+- NEW `src/shared/ModelMapSeatedR8.luau`: pure, engine-API-free data. OUTFIT KEYS only
+  {petani, petani_wanita, pedagang, pak_rt} — the exact catalog clothing/hat IDs stay in
+  `Shared.ModelMapNpcsR7` (no NEW or invented IDs; no 7-digit literal in this data module, no
+  rbxassetid, no assetId, no Enum./Instance./game./require). 4 seat sites derived from Warung geometry
+  (x=68 z=-68 yaw=0, benches local x={-6.4,6.4}, local z=10, world centres (61.6,1.7,-58) /
+  (74.4,1.7,-58), top Y=1.95): seats at (60.7,2.45,-56.65), (62.5,2.45,-56.65), (73.5,2.45,-56.65),
+  (75.3,2.45,-56.65) — two per bench, at the bench FRONT EDGE (+Z). 8 table props: 4 glasses
+  (cylinders) + 4 plates (flat discs), plain RGB Color3.fromRGB and built-in Wood/SmoothPlastic/Metal
+  material tokens only — no asset IDs, no brand, no decals, no terrain edit. `PROBE_PARTS` = 8
+  representative R15 body parts incl. both lower legs + feet. MIN_PROPS 8.
+- NEW `src/server/World/LookDevSeatedR8.luau`: pcall-guarded SERVER applier. `buildDescription()` copies
+  the exact R7 `HumanoidDescription` recipe verbatim (Shirt/Pants + Hat/Shirt layered accessories,
+  skin colours; no BodyHeightScale or other unsupported property). `buildRig()` uses
+  `Players:CreateHumanoidModelFromDescriptionAsync(..., R15)` with a sync fallback, exactly as
+  `LookDevModelsNpcsR7.luau`. Each rig: tagged Model, unanchored collidable body Parts (engine owns the
+  seated pose — NOT the anchored-dummy pattern of LookDevNpcsR8), placed by `PivotTo` with bbox-bottom
+  alignment, then `seat:Sit(humanoid)` with `humanoid.Sit = true` pcall fallback. ONE bounded
+  `task.spawn`/`task.wait(0.2)` re-assert of Sit (no Heartbeat, no polling loop). 4 anchored `Seat`
+  Parts above the bench top, 4 glasses + 4 plates on the table. Exact prior-folder save/detach-restore;
+  `clearActive()` destroys rigs/seats/props before restore. Diagnostics `rigs()`, `seatCount()`,
+  `isApplied()`, `sitStates()`, `props()`. `LookDev.register(familyId, {apply, restore})`. No terrain
+  read/write.
+- `src/shared/LookDev.luau`: `seated_r8` appended as ID 89 (88 -> 89); descriptor (`seatedCount=4`,
+  `propCount=8`, idsSource `ModelMapSeatedR8`) + plan branch + header comment. Existing entries
+  byte-identical. `src/shared/LookDevReview.luau`: server path `{ "World", "LookDevSeatedR8" }`.
+- `tools/studio/review_check_r8.luau`: `SEATED_COUNT`, `SEATED_ON_BENCH` appended LAST in ORDER
+  (after `KITE_STRING_CLEAR`, so all contiguous ORDER-literal assertions stay intact). New `do...end`
+  block at section `-- 9r. WORK_QUEUE section N item 117` (line ~9150+).
+  `SEATED_COUNT`: mutating SERVER block — stage via LookDevReview.enable("seated_r8", game,
+  {studio=true}), `task.wait(3)` (real wait), then read each rig's LIVE `Humanoid.Sit`. PASS requires
+  folder present + 1..4 tagged R15 rig Models each with a real Humanoid + HumanoidRootPart matched to
+  4 Seat Parts + isApplied + every live Sit still true after 3 s + seated count in 1..4 (dummy Parts
+  cannot inflate the count). `SEATED_ON_BENCH`: for each rig, probe 8 representative body Parts with a
+  temporary Part at each Part's real CFrame/Size via `workspace:GetPartsInPart` (OverlapParams Exclude
+  probe + staged folder + own rig), count collidable Parts named "Bench" under the Warung Model. PASS
+  requires 2 bench parts + all 4 rigs probed + 0 bench hits + folder present. All-FAIL paths emit BOTH
+  checks at 0; prior candidate restored on every path. All existing checks (incl. KITE_*, FLYER_COST,
+  IDLE_COST, full_r9) byte-identical.
+- NEW `tests/specs/seated_r8_spec.luau` + registration in `tests/run.luau`: locks counts (4 seats,
+  4 glass, 4 plate), exact R7 outfit keys (no invented IDs), seat sites z=-56.65 above bench top,
+  `#IDS==89`/`IDS[89]`, Review path, plan, ORDER tail literal + emit for both names, applier strings
+  (CreateHumanoidModelFromDescriptionAsync, Seat, :Sit(, HumanoidRootPart, task.wait(3) in harness,
+  LookDev.register, folder restore), CANDIDATES pending row.
+- Count literals bumped 88 -> 89 across 42 specs + 3 extra count literals
+  (`review_round3_bugfix_spec`, `sky_map_r6_spec`, `terrain_map_r6_spec`). The two remaining
+  `toBe(88)` are UNRELATED and correctly untouched (`layangan_r8_spec:105` kite altitude 88,
+  `lumbung_r8_spec:139` yard region maxX 88). Index-locked IDS[n] intact.
+- `docs/v2/visual/CANDIDATES.md`: pending 6-column row, verdict `pending — review in Studio`, existing
+  `REVIEW_ROUND9.md` render path. No new camera (item 133). No player-facing text; no DisplayName;
+  no Strings.luau change.
+
+== Validation history (real bug found and fixed, no check weakened) ==
+First fresh Play: SEATED_COUNT PASS (4 rigs, all Sit=true after 3 s) but SEATED_ON_BENCH FAIL
+benchHits=8. Diagnosis: exactly 2 hits per rig = LeftLowerLeg + RightLowerLeg; lower-leg boxes at
+y~1.75, z=-57.65 drop INTO the bench slab (y 1.45..1.95, z -58.8..-57.2) because seats sat ON the
+bench rather than at its front edge. Empirical probe of lower-leg-sized box at shifted Z:
+dz=0.9 -> 1 hit, dz=1.0/1.1/1.2/1.3 -> 0 hits. Fix: seat zLift 0.35 -> 1.35 (seats z -57.65 ->
+-56.65, bench front edge -57.2; shin box min z -57.136 clears by ~0.06), seat depth 0.8 -> 1.4 so
+the seat still overlaps the bench front edge visually. Thresholds, PROBE_PARTS, rig/seat counts
+UNCHANGED. Re-test: SEATED_ON_BENCH PASS 0 hits.
+
+== Method (fresh Play, Server VM, single-active stage) ==
+`LookDevReview.enable("seated_r8", game, {studio=true})` returned true; 4 real R15 rigs, 4 Seat Parts,
+4 glasses + 4 plates staged. Real `task.wait(3)` before reading live Sit. Checks executed as an
+equivalent ad hoc execute_luau probe (harness precedent items 103/108..116 — the whole harness file
+cannot be injected with a pre-set candidate state), using the LIVE applier and real Workspace geometry.
+NOTE: 3 content warnings appeared during catalog rig creation
+(`ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type`) — a
+pre-existing R7 catalog/default-accessory asset-loading warning from real HumanoidDescription rig
+generation, not a new ID introduced by this candidate and not part of either check; rigs, Sit and
+geometry are unaffected. No Terrain write.
+
+== Verbatim check lines (final canonical run, all PASS) ==
+CHECK SEATED_COUNT PASS rigs=4 tagged=4 seats=4 seated=4 sit=[true,true,true,true] applied=true
+CHECK SEATED_ON_BENCH PASS benches=2 rigs=4 probed=4 partsProbed=32 benchHits=0 errs=0
+Exactly 4 tagged R15 rig Models with Humanoid + HumanoidRootPart matched to 4 Seat Parts; all four
+live `Humanoid.Sit == true` after a real 3-second wait (<=4 satisfied); 2 collidable Bench parts
+found, all 4 rigs probed across 32 body-part probes, 0 bench intersections.
+
+== Non-vacuity / discrimination evidence ==
+DISCRIM shinAtOldZ(-57.65)=1 hit (expect >=1) shinAtNewZ(-56.65)=0 hit (expect 0)
+A lower-leg-sized box at the OLD seat Z produces a collidable Bench hit under the harness's exact
+predicate; at the NEW seat Z it produces 0 — the check genuinely distinguishes a clipping pose from
+a clear one. SEATED_COUNT anti-vacuity: only real R15 rig Models with a Humanoid + HumanoidRootPart
+are counted; dummy Parts or bare meshes cannot pass; live Sit is re-read after the real wait.
+
+== Props + lifecycle evidence ==
+PROPS glass=4 plate=4 (expect 4/4)
+CHECK SEATED_RESTORE PASS gone=true rigsOff=0 appliedOff=false back=true rigs=4 seats=4 seated3s=4
+`disable` removed the folder, destroyed all rigs/seats/props and cleared applied; re-enable restored 4
+rigs, 4 seats, and all 4 Sit=true after a fresh 3 s wait; `disableAll` at end; prior candidate restored.
+
+== Validation / scope ==
+lune run tests/run.luau: All 2787 tests passed. selene src: 0 errors / 0 warnings / 0 parse errors.
+stylua --check clean on all changed Luau files. git diff --check clean. Play stopped after verification;
+no place saved, nothing published. No visual, copy or aural verdict. Candidate off by default; no
+shipping default changed. No NEW asset IDs (only exact R7 catalog outfits), no brand, no decals, no
+terrain edit, no new camera. All existing checks byte-identical.
+
+Status: SEEN-IN-STUDIO (fresh Play Server VM, seated_r8 staged; SEATED_COUNT 4 rigs/4 Seats/all
+Sit=true after real 3 s, SEATED_ON_BENCH 32 probes/0 bench hits, synthetic old-Z clip correctly
+flagged, 4/4 props, disable/re-enable PASS; one real bench-clip bug fixed with no check weakened).

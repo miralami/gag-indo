@@ -1,0 +1,64 @@
+CHECK 91 — grade_r8_a/b/c tropical colour grades (WORK_QUEUE section M5, item 91)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Edit runtime injection; place NOT saved, nothing published.
+
+== Setup ==
+Injected at runtime (not saved) into the EDIT datamodel: Shared.ModelMapGradeR8, updated
+Shared.LookDev / Shared.LookDevReview (78 ids), and server applier
+ServerScriptService.Server.World.LookDevGradeR8. Fresh real Play session. The three grades are SERVER
+candidates (Lighting child effects created on the server replicate to clients). The whole
+tools/studio/review_check_r8.luau was pasted into execute_luau in the SERVER VM; GRADE_* run in one
+own `do...end` scope and restore the prior candidate at the end.
+
+== Raw check lines (verbatim, SERVER VM) ==
+CHECK GRADE_SAFE PASS 3 3
+CHECK GRADE_RESTORE PASS 3 3
+CHECK GRADE_NO_DOF PASS 0 0
+CHECK LOAD_FAILURES PASS 0 0
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+CHECK CAMERA_CLEAR PASS 0 blocked/42 checked 0 blocked
+CHECK PERF_BUDGET PASS 334 500
+
+== Detail ==
+GRADE_SAFE: all 3 variants read inside the inclusive documented safeRanges in
+docs/v2/visual/GRADE_R8.md; errors [] and failures [] (45 readings, 15 per variant). Only the four
+allowed effects were touched: Atmosphere, ColorCorrectionEffect, BloomEffect, SunRaysEffect. Sample
+of the LIVE readings that prove the variants actually applied (Color3 channels normalised):
+  grade_r8_a (warm golden): Atmosphere Density 0.28, Haze 1.4, Color 0.988235/0.933333/0.815686,
+    Decay 0.658824/0.776471/0.886275, Offset 0.68, Glare 1.3; CC Saturation 0.15, Contrast 0.05,
+    TintColor 1.04/1/0.93, Brightness 0.02; Bloom 0.15/0.92/18; SunRays 0.24/0.30.
+  grade_r8_b (fresh green): Density 0.24, Haze 1.05, Color 0.941176/0.933333/0.854902,
+    Decay 0.572549/0.745098/0.839216; CC Saturation 0.19, TintColor 0.95/1.06/0.96;
+    Bloom 0.10/0.96/15; SunRays 0.16/0.42.
+  grade_r8_c (hazy humid): Density 0.34, Haze 2.2, Color 0.964706/0.941176/0.886275,
+    Decay 0.619608/0.752941/0.878431; CC Saturation 0.06, TintColor 1/1.02/1.04;
+    Bloom 0.22/0.86/22; SunRays 0.10/0.48.
+All three are distinct and every value is inside its documented bound (e.g. Density 0.22-0.35,
+Haze 1.0-2.4, Bloom Intensity 0-0.25, SunRays Intensity 0-0.30); the warm-white / light-blue
+channel ordering checks also held.
+
+GRADE_RESTORE: 3/3 — for each variant, every one of the 15 touched properties and the Lighting
+descendant count (baseline 6) matched the pre-enable baseline exactly after disable(); failures [],
+errors []. Instances created by the applier were destroyed; reused instances kept their original
+values. GRADE_NO_DOF: 4 depth-of-field checks (baseline + after each enable), 0 violations.
+
+PERF_BUDGET 334/500 — equal to the default look, under the Sedang proxy. No over-budget flag.
+All three checks emit even on error, never skip; a missing effect/range, a non-exact restore or any
+depth-of-field instance FAILs loudly with the reason in detail. No gameplay/interaction hooks.
+
+== Harness defect found and fixed (no check weakened) ==
+First Studio run emitted GRADE_SAFE FAIL 0/3 with all three variants reading IDENTICAL baseline values
+(Atmosphere Density 0.05, Haze 0.2, Bloom Threshold 1.8 — outside the variant values). Cause: the
+grade appliers register with LookDev at MODULE LOAD, and the saved place's boot script predates them;
+the runtime-injected applier was never required, so LookDev.enable(id) was a silent no-op with no
+applier registered. Fix: review_check_r8.luau's grade block now explicitly
+`require(game.ServerScriptService.Server.World.LookDevGradeR8)` (pcall-guarded, FAIL if unreadable),
+and grade_r8_spec.luau locks that source guard. Re-run produced the real per-variant readings and
+PASS lines above. The safe ranges, targets and restore assertions were NOT weakened — the fix makes
+the check able to observe the candidates at all where it previously compared unchanged defaults.
+
+Status: SEEN-IN-STUDIO (SERVER-VM staged enable/read/disable cycle with distinct live per-variant
+readings inside documented ranges, exact restore, no depth of field). No place saved, nothing
+published. Visual yes/no remains the designer's — these checks prove numeric safety and exact
+restore, not which grade looks best.

@@ -1,0 +1,35 @@
+# CHECK 75 — pathedge_r8 dirt-path borders (WORK_QUEUE section M item 75)
+# Studio: Development-Juragan-Desa (placeId 132087524375529), real Play, Server datamodel.
+# Fresh Play, no direct-staged candidates. Because Rojo had not synced the new/changed modules,
+# the following were injected into the Edit datamodel at runtime (not saved to the place):
+#   ReplicatedStorage.Shared.LookDev, LookDevReview, ModelMapPathEdgeR8;
+#   ServerScriptService.Server.Main, Server.World.LookDevPathEdgeR8.
+# Existing bake: ServerStorage.LookDevAssets = 34 folders (unused; this candidate is procedural Parts).
+# Staged with the one-call review path:
+#   require(game.ReplicatedStorage.Shared.LookDevReview).enable("pathedge_r8", game)
+# Verified before the run: LookDev.IDS = 51 (last = "pathedge_r8"), applier registered,
+#   review path datamodel = "server", pure data allPieces(real MapSpec geometry) = 618 pieces,
+#   MIN_EDGE_PIECES = 120, PUDDLE_TRANSPARENCY = 0.4.
+# Staged structure: 7 path folders, 618 BaseParts = 309 grass_tuft + 283 pebble + 26 puddle,
+#   all CanCollide=false, all puddles Transparency=0.4 (alphaBad=0), load failures = 0.
+# Harness: tools/studio/review_check_r8.luau. Raw console lines verbatim (item-75 family + guards):
+CHECK LOAD_FAILURES PASS 0 0
+CHECK PATH_EDGE PASS 618 >=120
+CHECK PATH_CLEAR PASS 0 0
+CHECK CAMERA_CLEAR PASS 0 blocked/26 checked 0 blocked
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+# PATH_EDGE detail: total=618; perKind grass_tuft=309, pebble=283, puddle=26; perPath RoadEast=44,
+#   RoadWest=16, RoadNorth=44, RoadSouth=44, RoadToBalai=72, RoadToBridge=60, RingRoad=338.
+# PATH_CLEAR detail: 62 paths checked (6 MapSpec rectangles = 4 arms + 2 continuations, plus 56
+#   rotated ringSegments), allIntruders=0, collidableIntruders=0, offenders=[], readErrors=[],
+#   total=618. Ring convention in the harness (tangent=(cos,-sin), normal=(sin,cos)) matches
+#   ModelMapPathEdgeR8.ringPieces, so world offsets invert correctly; the minimum candidate
+#   perpendicular offset is 3.81 (> the 3-stud central-corridor half-width), so no piece enters the
+#   central 6 studs of any path. No target weakened, no asset IDs, no place saved.
+# The other harness lines in this run (HATS 0/4, PROPS_VISIBLE 0/6, PROPS_ON_GRASS 6/0,
+# VEG_COUNT 0/60, VEG_SPECIES 0/8, all VEG_HUB_* 0, VEG_SPECIES_HUB min=0, VEG_OVERLAP 0,
+# PLOT_FENCE min=0, GATE_CLEAR 0/0 gates, SAWAH_WATER 0/4 sheets, SAWAH_VERGE 0, GUBUK 0,
+# RIVER_BANK_VEG 0, BRIDGE_RAILS 0/2, BRIDGE_WALKABLE 0/8, VEG_NEAR 0, PROP_SIZE -1,
+# CLOUD_COVER absent) are for candidates NOT staged in this clean Play and are out of scope for
+# item 75; each was PASS-verified in its own evidence file. All item-75 checks PASS on the first
+# run. This is a placement/geometry proof, not a visual verdict — the designer grades the look.

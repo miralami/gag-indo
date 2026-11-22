@@ -99,7 +99,15 @@ function LiveConfig.sanitize(raw): any
 			patch.events = { cabai = cabai }
 		end
 	end
-	if type(raw.updatedAt) == "number" then
+	-- updatedAt is the ordering key for cross-server messages and DataStore polls. Only a
+	-- finite, non-negative value is usable: NaN makes every comparison false and +math.huge
+	-- would make every later finite update look stale, freezing the config forever.
+	if
+		type(raw.updatedAt) == "number"
+		and raw.updatedAt == raw.updatedAt -- not NaN
+		and raw.updatedAt >= 0 -- not negative (also rejects -math.huge)
+		and raw.updatedAt < math.huge -- not +math.huge
+	then
 		patch.updatedAt = raw.updatedAt
 	end
 	return patch
@@ -190,6 +198,14 @@ local function apply(config, nextRuntime)
 	end
 end
 
+-- MessagingService does not guarantee delivery order, and an eventually-consistent DataStore
+-- read can serve an older document. Never let either roll back a newer config. A patch with no
+-- usable updatedAt is treated as un-ordered (legacy/partial message) and is still accepted.
+local function isStale(patch)
+	local incoming = patch.updatedAt
+	return type(incoming) == "number" and type(current.updatedAt) == "number" and incoming < current.updatedAt
+end
+
 local function getStore()
 	if store then
 		return store
@@ -217,7 +233,11 @@ local function load()
 		return
 	end
 	if type(raw) == "table" then
-		local config = LiveConfig.merge(DEFAULTS, LiveConfig.sanitize(raw))
+		local patch = LiveConfig.sanitize(raw)
+		if isStale(patch) then
+			return -- an older document from an eventually-consistent read; keep the newer config
+		end
+		local config = LiveConfig.merge(DEFAULTS, patch)
 		apply(config, LiveConfig.resolve(config))
 	end
 end
@@ -234,7 +254,11 @@ local function subscribe()
 		local MessagingService = game:GetService("MessagingService")
 		MessagingService:SubscribeAsync(TOPIC, function(message)
 			local raw = if type(message) == "table" then message.Data else nil
-			local config = LiveConfig.merge(current, LiveConfig.sanitize(raw))
+			local patch = LiveConfig.sanitize(raw)
+			if isStale(patch) then
+				return -- MessagingService may deliver an older publish late; ignore it
+			end
+			local config = LiveConfig.merge(current, patch)
 			apply(config, LiveConfig.resolve(config))
 		end)
 	end)

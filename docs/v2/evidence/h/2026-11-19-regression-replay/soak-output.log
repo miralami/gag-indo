@@ -1,0 +1,59 @@
+[JuraganDesa] server started
+[Roblox][sabuiltin_Assistant.rbxm.Assistant.Src.toolInit] Assistant plugin version changed from ef6b1b3 to 9bb6530. This may cause instability when using Assistant or the MCP server. Please restart Roblox Studio to fix.
+[ProfileStore]: Roblox API services available - data will be saved
+[Roblox][sabuiltin_Assistant.rbxm.Assistant.Src.toolInit] Assistant plugin version changed from ef6b1b3 to 9bb6530. This may cause instability when using Assistant or the MCP server. Please restart Roblox Studio to fix.
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogEconomyEvent event fired.
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+AnalyticsService: LogEconomyEvent event fired.
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+AnalyticsService: LogFunnelStepEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogEconomyEvent event fired.
+AnalyticsService: LogEconomyEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogEconomyEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+[ ... 1000+ identical AnalyticsService LogCustomEvent / LogEconomyEvent / LogOnboardingFunnelStepEvent / LogFunnelStepEvent notices from the 234-cycle loop; no game-code error or warning ... ]
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogEconomyEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogFunnelStepEvent event fired.
+AnalyticsService: LogEconomyEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogEconomyEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogEconomyEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+
+-- SUMMARY (added by agent after read-back, not engine Output) --
+-- 1801.71 s, 234 cycles, done=true.
+-- Zero game-code errors, zero game-code warnings across the full soak.
+-- Only non-game lines: 2x external Assistant-plugin version warning, ProfileStore API notice,
+--   and AnalyticsService event notices. BUG-003 asset line did not recur.
+-- Full raw log was read from Studio get_console_output at the 1800 s deadline; the repeated
+--   AnalyticsService lines are collapsed above for readability (no error lines were elided).

@@ -1,0 +1,36 @@
+# CHECK 78 — facades_r8 procedural hub facade details (WORK_QUEUE section M item 78)
+# Studio: Development-Juragan-Desa (placeId 132087524375529), real Play, SERVER datamodel.
+# Fresh Play, no candidate staged before the run. Because Rojo had not synced the new/changed
+# modules, they were injected into the Edit datamodel at runtime (not saved to the place):
+#   NEW ModuleScripts: ReplicatedStorage.Shared.ModelMapFacadesR8,
+#     ServerScriptService.Server.World.LookDevFacadesR8;
+#   source replaced: ReplicatedStorage.Shared.LookDev, LookDevReview,
+#     ServerScriptService.Server.Main.
+# Verified before the run (Edit VM): all five sources SET; LookDev IDS count = 56 with last id
+#   "facades_r8"; review path datamodel="server" -> LookDevFacadesR8; boot require present;
+#   ModelMapFacadesR8.HUB_KEYS = pasar, gelap, warung, ronda, polisi, pakrt; applier registers
+#   with LookDev.register(FAMILY_ID). 41 baked folders intact, no stale staged folder.
+# Harness: tools/studio/review_check_r8.luau pasted whole into Studio MCP execute_luau, SERVER VM.
+# Raw console lines verbatim (item-78 family + guards):
+CHECK FACADE_PARTS PASS 6 6
+CHECK DOOR_CLEAR PASS 6 6
+CHECK LOAD_FAILURES PASS 0 0
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+CHECK CAMERA_CLEAR PASS 0 blocked/26 checked 0 blocked
+# FACADE_PARTS detail — folderPresent=true, minParts=10; each of the six hub folders
+#   (pasar, gelap, warung, ronda, polisi, pakrt) has folderPresent=true, count=10,
+#   allKinds=true, pass=true, and carries all six FacadeKind values: shuttered_window,
+#   porch_roof, ridge_cap, lantern_bracket, doorstep, eave. 60 tagged decorative Parts total.
+# DOOR_CLEAR detail — folderPresent=true; all six gauges present with a live hub Model,
+#   dimsMatch=true and hubCollisions=0 / facadeHits=0 in a rotation-aware
+#   workspace:GetPartsInPart probe at the gauge's exact Size and CFrame. Measured sizes:
+#   pakrt 7 x 10.5 x 2; pasar, gelap, warung, ronda, polisi each 6 x 9 x 2. Every hub pass=true.
+# LOAD_FAILURES detail — 0 failures; no applier load or staging failure. LOOKDEV_LEAK enable/
+#   disables all 56 ids with zero Workspace/Lighting leaks. CAMERA_CLEAR is SERVER-only: 0 blocked
+#   of 26 MapSpec-derived cameras checked.
+# All five checks PASS on the first run after injection. No target weakened, no skip, no
+# place saved, no publish. One extra harness run immediately before this capture returned the
+# same five verbatim lines. Play was stopped afterwards: staged folder absent, 41 baked folders
+# intact, RunService:IsRunning() = false in the Edit VM.
+# This is a geometry/clearance proof, not a visual verdict — the candidate ships OFF by default
+# behind LookDev and the designer grades the look.

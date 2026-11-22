@@ -1,0 +1,29 @@
+CHECK 175 - plaza_r9 two-tier fountain and clean flags (WORK_QUEUE section P)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Play mode, Server VM. Place NOT saved, nothing published.
+Candidate OFF by default.
+
+== Setup ==
+1. `src/shared/ModelMapPlazaR9.luau` + `src/server/World/LookDevPlazaR9.luau`: basin 6->14 studs,
+   second smaller tier, non-Neon vertical spout, paved ring, four inward benches; every bunting
+   pole flag now a flat red-over-white panel pair (crossed pennants removed).
+2. `tools/studio/check_p175.luau` temp-staged and require'd in a fresh Play Server VM; it stages
+   `plaza_r9` via `enableAdditive`, measures live parts, restores with `disableAll()`.
+3. First run exposed a check-script bug: the local `pairs` table shadowed the global `pairs()`
+   function (line 145), so the error path emitted four FAILs. FIXED: local renamed to `flagPairs`.
+   Re-run in a fresh Play gave the verbatim lines below. No target/threshold was changed.
+
+== Raw check lines (verbatim, staged plaza_r9, after check-script fix) ==
+CHECK FOUNTAIN_SIZE PASS 14 14
+CHECK FOUNTAIN_TIERS PASS 2 2
+CHECK FLAG_CLEAN PASS 0 0
+CHECK PLAZA_WALKABLE PASS 0 0
+
+== Non-vacuity ==
+- 87 parts, 4 lanes checked; 11 flag pairs, 0 stray/crossing; tiers exactly {1,1}; basin found.
+- New Lune spec was 5/5 FAIL against pre-fix data (6-stud basin, untagged tiers, unpaired flags,
+  short lane), 5/5 PASS after. Check itself forces FAIL on missing folder/parts/pairs.
+- No NPC outfits, terrain sculpt, chosen sky or ground touched. No visual verdict claimed.
+
+Status: SEEN-IN-STUDIO.

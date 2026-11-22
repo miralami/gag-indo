@@ -1,3 +1,4 @@
+--!strict
 -- Visuals: the single source for palette, type, spacing, outline/shadow and icon slots.
 -- ART.md §3 (palette), §8 (type, spacing), §7 (icons). Pure data so Lune tests can read it.
 -- Colours are hex strings; UI code converts them with Color3.fromHex.
@@ -91,7 +92,9 @@ function Visuals.applySurface(part: BasePart, slot: string, fallbackMaterial: En
 	part.Material = fallbackMaterial
 	if not textureUrl then
 		local existing = part:FindFirstChildOfClass("SurfaceAppearance")
-		if existing then existing:Destroy() end
+		if existing then
+			existing:Destroy()
+		end
 		return
 	end
 	local surface = part:FindFirstChildOfClass("SurfaceAppearance") or Instance.new("SurfaceAppearance")

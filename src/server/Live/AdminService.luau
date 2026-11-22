@@ -8,6 +8,8 @@
 --   grantItem  { userId, itemId, amount }       -> testing only
 --   getConfig  {}                               -> current LiveConfig + runtime
 --   refresh    {}                               -> re-read the DataStore now
+--   q6Capture  {}                               -> print Q6_BEFORE_JSON (read-only, works published)
+--   q6Compare  { value? }                       -> print Q6_RESULT_JSON (pasted JSON overrides memory)
 --
 -- Every reply goes back on Admin_Result to the calling admin only.
 
@@ -17,6 +19,17 @@ local Seasons = require(Shared.Config.Seasons)
 local Remotes = require(Shared.Remotes)
 local Inventory = require(Shared.Inventory)
 local Produce = require(Shared.Produce)
+local Crops = require(Shared.Config.Crops)
+
+-- Items an admin may grant: the consumables in the save template plus one seed per real crop.
+local CONSUMABLES = { amplopPremium = true, jaminanKilat = true }
+local function isGrantableItem(itemId: string): boolean
+	if CONSUMABLES[itemId] then
+		return true
+	end
+	local cropId = string.match(itemId, "^seed_(.+)$")
+	return cropId ~= nil and Crops.list[cropId] ~= nil
+end
 
 local PlayerData = require(script.Parent.Parent.Data.PlayerData)
 local RateLimit = require(script.Parent.Parent.Net.RateLimit)
@@ -36,6 +49,8 @@ local ACTIONS = {
 	grantCash = true,
 	getConfig = true,
 	refresh = true,
+	q6Capture = true,
+	q6Compare = true,
 }
 
 local function reply(player: Player, payload: any)
@@ -128,6 +143,10 @@ local function grantItem(player: Player, value: any)
 		fail(player, "Amount must be 1..1000.")
 		return
 	end
+	if not isGrantableItem(itemId) then
+		fail(player, "Unknown item.")
+		return
+	end
 	Inventory.add(data, itemId, amount)
 	EconomyService.sync(target)
 	State.touch(target, "items")
@@ -169,6 +188,27 @@ local function refresh(player)
 	reply(player, { ok = true, message = "Config refreshed." })
 end
 
+-- Q6 test tooling: lazy require keeps the read-only Testing driver out of normal admin startup.
+local function q6Capture(player, value)
+	local Q6Admin = require(script.Parent.Parent.Testing.Q6Admin)
+	local result, err = Q6Admin.handle(player, "q6Capture", value)
+	if err then
+		fail(player, err)
+		return
+	end
+	reply(player, { ok = result ~= nil, message = err, data = result })
+end
+
+local function q6Compare(player, value)
+	local Q6Admin = require(script.Parent.Parent.Testing.Q6Admin)
+	local result, err = Q6Admin.handle(player, "q6Compare", value)
+	if err then
+		fail(player, err)
+		return
+	end
+	reply(player, { ok = result ~= nil, message = err, data = result })
+end
+
 local handlers = {
 	inspect = inspect,
 	setSeason = setSeason,
@@ -180,6 +220,8 @@ local handlers = {
 		getConfig(player)
 	end,
 	refresh = refresh,
+	q6Capture = q6Capture,
+	q6Compare = q6Compare,
 }
 
 local function onCommand(player: Player, payload: any)

@@ -1,84 +1,130 @@
 # Economy & Balance Simulation Report — Juragan Desa v2
 
-Tanggal: 2026-11-12  
-Status: VERIFIED (478 test suite passing via `lune run tests/run`)
+Tanggal: 2026-11-19  
+Status: **LUNE-ONLY** — snapshot regenerate dari `src/shared/Config/*.luau` pada tanggal ini,
+divalidasi oleh `lune run tests/run.luau` (1930 passed). Bukan hasil playtest; angka di bawah
+adalah nilai konfigurasi aktual, bukan rekomendasi. Source of truth tetap file `Config/*.luau`,
+bukan dokumen ini.
 
 ---
 
 ## 1. Progression Pacing (Laju Kemajuan Pemain)
 
-Simulasi matematis waktu permainan aktif untuk setiap kenaikan pangkat (Tier Rank):
+Tiga pangkat saja yang aktif (`Game.rankOrder`):
 
-| Pangkat (Rank) | Syarat Pendapatan Seumur Hidup | Syarat Ubin Lahan | Tanaman Utama | Estimasi Waktu Bermain Aktif |
-|---|---|---|---|---|
-| **Gurem** | Awal (Rp 0) | 6 ubin (bawaan) | Padi (60s grow, bibit 10, jual 18) | 0 menit |
-| **Petani** | Rp 1.000 | 6 ubin | Padi & Singkong (120s grow) | 8 - 11 menit (10 siklus panen padi @ 6 ubin) |
-| **Juragan** | Rp 10.000 | 12 ubin | Jagung, Bawang, Cabai, Tembakau | 45 - 65 menit (ekspansi ubin bertahap + upgrade alat) |
+| Pangkat (Rank) | Syarat kenaikan | Ubin | Tanaman utama |
+|---|---|---|---|
+| **Gurem** | awal (cash 50, bibit padi 5) | 6 (bawaan) | padi, singkong |
+| **Petani** | `lifetimeEarned` 1.000 | 6+ | jagung, bawang, cabai, tembakau, kopi |
+| **Juragan** | `lifetimeEarned` 10.000 **dan** `tilesOwned` 12 | 12+ | tebu, kakao, cengkeh, durian, sawit |
 
-### Biaya Ekspansi Lahan (Tiles Expansion)
-Formula: `100 * 2 ^ (owned - 6)`
-- Ubin ke-7: Rp 100
-- Ubin ke-8: Rp 200
-- Ubin ke-9: Rp 400
-- Ubin ke-10: Rp 800
-- Ubin ke-11: Rp 1.600
-- Ubin ke-12: Rp 3.200
-**Total Biaya Ekspansi ke 12 Ubin**: Rp 6.300 (masuk akal dan proporsional terhadap target Rp 10.000 lifetime income untuk pangkat Juragan).
+Syarat ada di `Game.rankRequirements`. `maxTiles` 12 tanpa pass, 16 dengan Extra Plot pass;
+semua 16 model plot tetap dibangun (`tilesBuilt = 16`) apapun pass-nya.
 
----
+### Biaya Ekspansi Lahan
 
-## 2. Rasio Faucet vs Sink (Arus Kas Ekonomi)
+Formula: `Game.tilePrice(owned) = 100 * 2 ^ max(0, owned - 6)`.
 
-Ekonomi dirancang dengan margin laba yang sehat namun memiliki sink terstruktur untuk mencegah hiperinflasi:
+| Ubin ke- | 7 | 8 | 9 | 10 | 11 | 12 |
+|---|---|---|---|---|---|---|
+| Harga | 100 | 200 | 400 | 800 | 1.600 | 3.200 |
 
-### A. Faucet (Sumber Uang)
-1. **Penjualan Panen Pasar Bersih**:
-   - Margin kotor panen dasar berkisar antara 50% sampai 125% dari modal bibit.
-   - Padi: Beli 10, Jual 18 (+80% ROI).
-   - Singkong: Beli 25, Jual 50 (+100% ROI).
-   - Jagung: Beli 40, Jual 90 (+125% ROI).
-2. **Pengali Rarity (M1 Rarity Tiers)**:
-   - Nilai ekspektasi multiplier panen: ~1,38x di atas harga dasar (Super: 3x, Langka: 8x, Sultan: 25x).
-3. **Event Cabai Meroket**:
-   - 3x multiplier penjualan cabai selama 5 menit setiap 10 menit (faucet periodik terkontrol).
-4. **Hadiah Quest & Login Harian**:
-   - Quest Harian: Rp 150 - Rp 300 per hari (3 tugas).
-   - Login Streak: Rp 100 - Rp 500 per siklus mingguan.
-
-### B. Sink (Penyedot Uang)
-1. **Modal Bibit Berkelanjutan**: Menguras 40% - 50% dari pendapatan kotor setiap siklus.
-2. **Upgrade Alat Pertanian (Tools)**:
-   - Cangkul (Rp 200 / Rp 1.000 / Rp 5.000)
-   - Sabit (Rp 150 / Rp 750 / Rp 3.500)
-   - Karung (Rp 300 / Rp 1.500 / Rp 7.500)
-3. **Biaya Pinjol (Dana Kilat Desa)**:
-   - Admin fee 10% langsung di muka.
-   - Bunga berjalan 5%/jam (online) dan 2%/jam (offline).
-4. **Sistem Penegakan Hukum & Razia**:
-   - Denda razia polisi: Rp 500 - Rp 10.000 proporsional sus/cash.
-   - Sogok Pak RT: Naik secara eksponensial per percobaan sogok berturut-turut.
+Total ekspansi ke 12 ubin: **Rp 6.300** (target lifetime Juragan Rp 10.000).
 
 ---
 
-## 3. Analisis Risiko & Imbal Hasil Pinjol (Dana Kilat Desa)
+## 2. Daftar Tanaman (`Config/Crops.luau`, 12 komoditas)
 
-1. **Leverage Modal Cepat**:
-   - Pemain Gurem dapat meminjam hingga Rp 500 (atau Rp 750 jika Nama Baik 100%).
-   - Memungkinkan pemain langsung membeli bibit dalam jumlah besar atau membuka ubin ke-7 dan ke-8 tanpa harus grinding panen padi 10 kali.
-2. **Titik Bahaya (Default Threshold)**:
-   - Waktu jatuh tempo: 10 menit (`dueSeconds = 600`).
-   - Melewati 10 menit:
-     - Tahap 1 (0 min overdue): Peringatan notifikasi dan SMS teror.
-     - Tahap 2 (+3 min overdue): Panggilan publik di chat desa + penalti -5 Nama Baik.
-     - Tahap 3 (+6 min overdue): Debt collector datang menyita hasil panen di gudang setiap menit.
-3. **Plafon Pengaman (Safety Ceiling)**:
-   - Akumulasi total hutang dikunci pada batas maksimal 3.0x modal pokok (`Pinjol.maxDebtMultiplier = 3.0`), menjamin pemain tidak terjebak hutang tak terhingga jika meninggalkan game berhari-hari.
+ROI = `(sellPrice - seedCost) / seedCost`.
+
+| Tanaman | Bibit | Tumbuh | Jual | ROI | Rank | Rumpun | Regrow / max panen | Izin |
+|---|---|---|---|---|---|---|---|---|
+| padi | 10 | 60 s | 18 | +80% | gurem | palawija | — | — |
+| singkong | 16 | 90 s | 30 | +87,5% | gurem | palawija | — | — |
+| jagung | 25 | 120 s | 50 | +100% | petani | palawija | — | — |
+| bawang | 35 | 150 s | 72 | +105,7% | petani | palawija | — | — |
+| cabai | 60 | 240 s | 140 | +133,3% | petani | palawija | — | — |
+| tembakau | 80 | 480 s | 200 | +150% | petani | kebun | 240 s / 3 | — |
+| kopi | 110 | 600 s | 280 | +154,5% | petani | kebun | 300 s / 4 | — |
+| tebu | 150 | 720 s | 380 | +153,3% | juragan | perkebunan | 360 s / 3 | ya |
+| kakao | 180 | 780 s | 460 | +155,6% | juragan | kebun | 390 s / 3 | — |
+| cengkeh | 220 | 840 s | 560 | +154,5% | juragan | kebun | 420 s / 3 | — |
+| durian | 300 | 900 s | 900 | +200% | juragan | kebun | 450 s / 3 | — |
+| sawit | 420 | 1.200 s | 1.300 | +209,5% | juragan | perkebunan | 600 s / 4 | ya |
+
+ROI dasar 80%–209,5% (bukan 50%–125% seperti dokumen lama — nilai lama sudah kedaluwarsa).
+`permit = true` masih dibaca tetapi belum ditegakkan (menunggu Balai Desa).
+
+### Rarity (`Config/Tiers.luau`) dan Sifat (`Config/Traits.luau`)
+
+| Tier | chance | multiplier | rare? |
+|---|---|---|---|
+| biasa | 0,70 | 1× | — |
+| bagus | 0,20 | 1,5× | — |
+| super | 0,075 | 3× | ya |
+| langka | 0,02 | 8× | ya |
+| sultan | 0,005 | 25× | ya |
+
+Multiplier nilai ekspektasi ≈ **1,51×** dari harga dasar. `Game.rarityQualityBoost = 1`
+(satu poin kualitas minigame ≈ menggandakan bobot tier rare).
+
+Sifat: `oplosan` (hot — ditolak Pasar, dibeli Tengkulak Gelap, disita razia), `basah` (hujan,
+35%), `kering` (El Niño, 35%), `organik` (tanpa pupuk, 30%), `bersertifikat` (stempel Balai
+Desa, 100%).
+
+### Harga Cabai Meroket (`Game`)
+
+`cabaiEventFirstDelay` 240 s, `cabaiEventInterval` 600 s, `cabaiEventDuration` 300 s,
+`cabaiEventMultiplier` 3 — event 3× selama 5 menit tiap 10 menit, mulai 4 menit setelah server
+start. Nilai sengaja pendek untuk Studio; naikkan sebelum publish.
 
 ---
 
-## 4. Rekomendasi Tuning untuk Rilis
+## 3. Rasio Faucet vs Sink (Arus Kas)
 
-1. **Durasi Event Cabai**:
-   - `Game.cabaiEventInterval = 600` (10 menit) cocok untuk playtest dan retensi awal sesi. Untuk server produksi padat, interval dapat dinaikkan ke 15-20 menit jika laju pencetakan uang terlalu deras.
-2. **Kapasitas Gudang**:
-   - Kapasitas gudang bawaan (40 stack) sangat pas untuk fase Gurem-Petani. Pemain aktif yang mencapai Juragan akan merasakan insentif natural untuk upgrade karung atau membeli pass Gudang Besar (120 stack).
+### Faucet
+- Penjualan panen (ROI per tanaman di tabel atas), dimodifikasi rarity ± market.
+- Nama Baik ±5% di Pasar (`Market.namaBaikMaxBonus = 0,05`, baseline 50 → 1,0).
+- Event cabai 3× (lihat atas).
+- Quest harian: 3 tugas, reward 80–150 cash + 1–3 Nama Baik per tugas (`Config/Quests`).
+- Login streak 7 hari: 100 cash, 5 padi, 250 cash, amplopPremium, 4 cabai, 600 cash,
+  jaminanKilat (hari 1–7; reward cash total Rp 950 + item).
+
+### Sink
+- Pasar supply & demand (`Config/Market`): `pressurePerItem 0,003`, decay 600 s, floor 0,60×,
+  ceiling HET 1,25×. Tengkulak Gelap mengabaikan batas ini.
+- Alat permanen (`Config/Tools`): cangkul bambu 60 / baja 350; gembor 150 / sprinkler 600;
+  karung besar 200 / gerobak 800; traktor 1.500 (placeholder row planting).
+- Ekspansi lahan (tabel §1).
+- Buruh tani (`Config/Worker`): sewa 150 / 300 s, upah 2 per item, 20 s/pass, maks 5 item/pass.
+- Pinjol & razia (§4).
+
+---
+
+## 4. Analisis Risiko & Imbal Hasil Pinjol (`Config/Pinjol`)
+
+- Limit dasar per pangkat: gurem 500, petani 1.500, juragan 5.000, tuanTanah 15.000,
+  sultan 50.000. `calcLimit` diskalakan Nama Baik 0,5×–1,5× (baseline 50).
+- Biaya admin 10% di muka; bunga 5%/jam online, 2%/jam offline.
+- Plafon keras: total hutang ≤ 3× pokok (`maxDebtMultiplier = 3,0`).
+- Jatuh tempo `dueSeconds = 600` (10 menit). Tahap keterlambatan: notifikasi (0 s),
+  panggilan publik + Nama Baik −5 (180 s), debt collector menyita hasil gudang (360 s).
+
+### Razia & hukum (`Config/Law`)
+- `susMax` 100; gosip 30, surat panggilan 60, razia acak mulai 80 (10% per tick 20 s,
+  cooldown 180 s, auto-denda setelah 20 s).
+- Denda razia 20% cash (min 50, max 5.000); amplop suap 10%, sukses 75%, gagal ×1,5; penjara 45 s.
+- Suap Pak RT: dasar 100, ×1,5 per pengulangan dalam jendela 600 s, cooldown 180 s,
+  Nama Baik −10.
+- Nama Baik mulai 50 (maks 100): tertangkap −10, viral −20, lapor +2 (maks 10/hari).
+
+---
+
+## 5. Fidelity / performa (`src/client/Feel/FidelityTier.luau`)
+
+Tiga tingkat visual: Rendah / Sedang / Tinggi (default start `Sedang`, auto `Otomatis`).
+Ambang frame-time: turun jika rata-rata > 1/45 s, naik jika < 1/57 s; cooldown turun 2 s,
+sustain naik 10 s, cooldown naik 30 s, jendela 30 frame, minimal 10 sampel. Perubahan
+ditahan saat "moment" (cutscene) aktif. `FpsSampler` (window 60, min 20 sampel) mengabaikan
+frame-time > 2 s agar tab-out tidak merusak rata-rata. Setting ini adalah starting point
+untuk tuning performa, bukan hasil benchmark perangkat.

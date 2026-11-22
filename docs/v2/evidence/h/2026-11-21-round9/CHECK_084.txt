@@ -1,0 +1,39 @@
+CHECK 84 — smoke_r8 kitchen smoke, steam and fire (WORK_QUEUE section M, item 84)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Edit runtime injection; place NOT saved, nothing published.
+
+== Setup ==
+Injected new Shared.ModelMapSmokeR8 into the EDIT datamodel (SET). Fresh Play. Harness
+tools/studio/review_check_r8.luau pasted into execute_luau (Server VM). The three checks are READ-ONLY
+pure-data checks: Shared.ModelMapSmokeR8 is pure and MapSpec lives under ServerScriptService.Server.World,
+so all three run in the Server VM with no staging, no folder mutation and no real wait. The client
+applier's real ParticleEmitter/PointLight/ClockTime wiring is guarded by spec source assertions.
+
+== Raw check lines (verbatim) ==
+CHECK EMITTERS PASS 0 0 violations
+CHECK LIGHTS PASS 0 0 violations
+CHECK TORCH_NIGHT PASS 13=false 20=true 5=true 13 off / 20 on / 5 on
+CHECK LOAD_FAILURES PASS 0 0
+CHECK CAMERA_CLEAR PASS 0 blocked/42 checked 0 blocked
+CHECK PERF_BUDGET PASS 334 500
+
+== Detail ==
+EMITTERS: 9 emitters — 2 chimney smoke, 1 warung-counter steam, 6 torch flames; max Rate 10 (<= 12).
+Total 9 <= 12. failures []. Positions derived from MapSpec (two building roofs, warung counter, torch
+posts). Original Parts only, no asset IDs, no real brand.
+
+LIGHTS: 6 flickering PointLights (one per torch), max Range 14 (<= 30). Total 6 <= 24. failures [].
+
+TORCH_NIGHT: pure isNight predicate — ClockTime 13 -> false (torches OFF at midday), 20 -> true (on),
+5 -> true (on pre-dawn). This proves the item's "torches are off at ClockTime 13" requirement. The
+applier gates flame emitters + PointLights on isNight(Lighting.ClockTime) and connects
+GetPropertyChangedSignal("ClockTime"); one Heartbeat drives sine flicker while night.
+
+All three checks are NEW read-only checks in their own `do...end` scope (harness register limit).
+No existing check weakened. Candidate OFF by default; PERF_BUDGET 334/500 — equal to the default look,
+under the Sedang proxy. CANDIDATES.md records the flag.
+
+Status: SEEN-IN-STUDIO (pure-data checks in the Server VM). No place saved, nothing published. Visual
+grading remains the designer's — these checks prove counts, rates and the day/night rule, not that the
+smoke or flames look good.

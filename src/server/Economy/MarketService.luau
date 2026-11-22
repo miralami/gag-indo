@@ -39,10 +39,6 @@ function MarketService.recordSale(cropId: string, count: number)
 	pressure[cropId] = clampPressure((pressure[cropId] or 0) + math.floor(count) * Market.pressurePerItem)
 end
 
-function MarketService.pressure(cropId: string): number
-	return clampPressure(pressure[cropId] or 0)
-end
-
 -- Price board snapshot: { [cropId] = multiplier }.
 function MarketService.snapshot(): { [string]: number }
 	local out = {}

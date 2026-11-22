@@ -1,3 +1,4 @@
+--!strict
 -- Sound registry (v2 PLAN §3.1). Every id stays `0` until a licensed asset exists.
 --
 -- `client/Audio.luau` reads this table, creates a Sound for every entry with `id > 0` and
@@ -10,6 +11,15 @@
 --   volume  0..1, multiplied by the group volume
 
 local Audio = {}
+
+-- One entry per sound id. `looped` is optional because ui/sting entries play once; strict mode
+-- needs the optional marker so the heterogeneous rows all share one type.
+type SoundDef = {
+	group: string,
+	id: number,
+	looped: boolean?,
+	volume: number,
+}
 
 Audio.groups = {
 	music = 0.45,
@@ -52,6 +62,15 @@ Audio.sounds = {
 	ambience_badai = { group = "ambience", id = 9112853563, looped = true, volume = 0.45 },
 	ambience_kabut = { group = "ambience", id = 9112826489, looped = true, volume = 0.25 },
 
+	-- day-cycle time-of-day beds (LookDev candidate "day_cycle"). Silent until licensed IDs are
+	-- supplied: id 0 is this registry's no-audio sentinel, and no asset ID is invented here.
+	-- `adzan` is deliberately LOW and can be switched off via Shared.Settings.AdzanSetting.
+	ayam = { group = "ambience", id = 0, looped = true, volume = 0.3 },
+	bedug = { group = "ambience", id = 0, looped = true, volume = 0.3 },
+	kentongan = { group = "ambience", id = 0, looped = true, volume = 0.25 },
+	jangkrik = { group = "ambience", id = 0, looped = true, volume = 0.2 },
+	adzan = { group = "ambience", id = 0, looped = true, volume = 0.12 },
+
 	-- ui
 	ui_click = { group = "ui", id = 88442833509532, volume = 0.5 },
 	ui_open = { group = "ui", id = 17779566040, volume = 0.5 },
@@ -66,7 +85,7 @@ Audio.sounds = {
 	sting_rankup = { group = "sting", id = 3120909354, volume = 0.8 },
 	sting_raid = { group = "sting", id = 127714289075929, volume = 1.0 },
 	sting_jail = { group = "sting", id = 127714289075929, volume = 0.8 },
-}
+} :: { [string]: SoundDef }
 
 function Audio.exists(key: any): boolean
 	return type(key) == "string" and Audio.sounds[key] ~= nil

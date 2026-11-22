@@ -1,3 +1,4 @@
+--!strict
 -- WorldConstants: world values that both server and client need. Pure data, no requires, so it is safe
 -- on the client. MapSpec re-exports these; nothing else keeps its own copy.
 

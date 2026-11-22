@@ -1,0 +1,39 @@
+CHECK 146 — building kit / ground pivots (WORK_QUEUE section O, item 146)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Edit runtime injection; place NOT saved, nothing published.
+
+== Setup ==
+1. Injected changed ServerScriptService.Server.World.LookDevBuildingsR8 into the EDIT datamodel (SET).
+   Fresh Play. Staged `buildings_r8` from the Server VM via LookDevReview.enable. Harness
+   tools/studio/review_check_r8.luau pasted into execute_luau (Server VM), read byName in the same
+   call (the harness disables all candidates at the end).
+
+== Raw check lines (verbatim, buildings_r8 staged) ==
+CHECK PIVOT_GROUND PASS 0 0
+CHECK BLDG_VISIBLE PASS 6 6
+CHECK BLDG_WIDTH PASS 6 6
+CHECK BLDG_DOOR PASS 6 6
+CHECK CAMERA_CLEAR PASS 0 blocked/36 checked 0 blocked
+CHECK LOAD_FAILURES PASS 0 0
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+
+== Detail ==
+stage() now sets each staged Model's WorldPivot to CFrame.new(x, bboxBottomY, z) AFTER final
+placement. Verified in Studio that with no PrimaryPart this moves only the pivot: every Part CFrame
+and the world bbox stay unchanged, so BLDG_VISIBLE (6/6), BLDG_DOOR (6/6), BLDG_WIDTH (6/6) and the
+ground pad are unaffected. Per-slot pivot Y vs bbox-bottom Y: all six delta 0 (max |delta| ~8e-4
+from float noise), well inside the 0.2-stud tolerance. Identity CFrame LookVector is -Z, so each
+pivot faces -Z (front door toward the plaza). Models have no PrimaryPart; the code clears one
+defensively before assigning WorldPivot and counts a throw as a failure.
+
+Before this change the pivots sat at bbox-centre Y (5.49..24.05 against a base of ~0) and a
+PIVOT_GROUND check would have failed; the kit convention is now applied at stage time, not by
+editing baked assets. The new read-only PIVOT_GROUND check FAILs at measured 6 when the folder or a
+pivot is unreadable — never a vacuous pass.
+
+`docs/v2/visual/art/BUILDING_KIT.md` records per building: ID, licence/creator, native+staged bbox,
+DoorGauge local X offset + facade, and a SUGGESTED hub match marked as a proposal awaiting the
+designer (no look verdict by an agent).
+
+Status: SEEN-IN-STUDIO. No place saved, nothing published. Visual grading remains the designer's.

@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-19",
+  "item": 10,
+  "round": 2,
+  "branch": "track/c-world-look",
+  "status": "LUNE-ONLY",
+  "target": "docs/v2/visual/CANDIDATES.md gets one row per candidate: a render or screenshot, the toggle to view it, its cost (instances and fps), and a yes/no column for the designer",
+  "artifact": "docs/v2/visual/CANDIDATES.md",
+  "galleryRows": 8,
+  "candidates": ["plaza_lighting", "police_walkin", "icons", "textures", "npcs", "crops", "hubprops", "sounds"],
+  "columns": ["Candidate", "What it is", "Toggle", "Render / screenshot", "Cost (instances / fps)", "Designer yes/no"],
+  "designerColumnBlank": true,
+  "perAssetTables": ["icons (27 slots, blank yes/no)", "textures (7 slots, blank yes/no)"],
+  "renderPathsExistOnDisk": true,
+  "spec": "tests/specs/candidate_gallery_spec.luau (4 cases, registered in tests/run.luau)",
+  "mutationCheck": [
+    {
+      "mutation": "fill one main-table designer yes/no cell with 'yes'",
+      "result": "1 FAILED, 1967 passed — 'leaves every designer yes/no cell blank across all three tables'"
+    },
+    {
+      "mutation": "delete the `sounds` candidate row",
+      "result": "1 FAILED, 1967 passed — 'has exactly one row per LookDev candidate and no extras'"
+    },
+    {
+      "mutation": "restored original file",
+      "result": "All 1968 tests passed"
+    }
+  ],
+  "validation": {
+    "lune": "All 1968 tests passed (up from 1964; +4 gallery cases)",
+    "selene": "0 errors / 0 warnings / 0 parse errors"
+  },
+  "statusNote": "LUNE-ONLY: the gallery structure is provable in Lune (8 rows, required columns, existing render paths, blank designer column) and mutation-checked. The renders themselves are review artifacts for the designer; no agent visually graded them."
+}

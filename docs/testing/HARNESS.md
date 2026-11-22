@@ -1,5 +1,8 @@
 # Playtest Harness — Studio routine
 
+> Refreshed 2026-11-19 (WORK_QUEUE item 28): the `raid` / `raidState` hooks are now documented in
+> §1. No harness step was re-run for this refresh; the verification claims below are unchanged.
+
 **Status: sections 2–4 and 9 ran on 2026-11-14** in Studio Play Solo, iPhone 14 device
 emulation, Rojo synced, Studio API services on. Those steps are `SEEN-IN-STUDIO` (see the
 §10 table); §6 screenshot automation, the 10-player session and the soak are still
@@ -37,6 +40,12 @@ Test-only server hooks in `src/server/Testing/`, started from one line in
 | `quest` | `{ taskId = "..." }` or omitted | Claims that daily task, or the login reward. |
 | `goto` | `{ name = "plot" }` | Stands the character somewhere worth a screenshot: `plot`, `tile`, `pasar`, `gelap`, `pakrt`, `polisi`, `ronda`, `warung`. |
 | `save` | — | `profile:Save()` now, so persistence does not depend on leaving cleanly. |
+| `raid` | omitted, or `{ viral = true, force = true }` | Starts a raid immediately so the cutscene, camera and choice window can be observed without waiting ~5:30. `viral = true` forces a VIRAL raid; `force = true` clears the cooldown only for this call (restored afterwards, so saves are untouched). Behind an extra Studio+flag+admin gate (`RaidTrigger`). |
+| `raidState` | — | Read-back of the current raid state, `InRaid` attribute and `isBusy` — use it to confirm a forced raid fired. |
+
+The two raid hooks live in `server/Testing/RaidTrigger.luau` (pure policy) and `Harness.luau`
+(handler). All three gate conditions (Studio + in-memory flag + admin) must be literally true;
+the cooldown override never writes into saved data. `raid`/`raidState` need no scripted input.
 
 Read-back is a single `Harness_Result` table; the plain scalars are already mirrored on
 player attributes (`Cash`, `Rank`, `TutorialStep`, `TilesOwned`, `Seed_<crop>`, `ShopStock_<crop>`).
@@ -362,3 +371,40 @@ growth is not attributable to the game until a capped run is done. The second ru
 grew 4.4 MB in 27 s — too short to call either way.
 
 Status of the soak criterion: still `UNVERIFIED`.
+
+## 12. Multi-client driver for Q5 (needs a human at the Test tab)
+
+The single-client soak above cannot produce the ten-player half of Q5: this MCP bridge cannot open
+a Local Server or add test clients, and Roblox has no scriptable API to create them from inside a
+place. A gated **server** script is provided so that, once a human opens the clients, the whole
+§2–§4 loop runs on every player at once and produces one results table.
+
+1. Repro root `rojo serve`; Studio connected; **Enable Studio Access to API Services** on.
+2. Test tab → **Start** with **Local Server** on. Add test clients (start with 2, then go to 10 for
+   the real Q5 run). Every client is a fresh save.
+3. In **one** client's command bar, enable the harness (§3) so the gate opens:
+   `game:GetService("ReplicatedStorage").Remotes.Harness_Command:FireServer({ action = "enable" })`.
+4. In the **server** command bar, run the driver once:
+
+   ```lua
+   local MC = require(game.ServerScriptService.Server.Testing.MultiClient)
+   MC.run()
+   ```
+
+   This runs §4 steps 1–7 (plus `save`, and a final `status`) for every player through the same
+   gated handlers a client would call, and prints a readable summary plus one
+   `Q5_MULTICLIENT_JSON=` line. Read the raw table back with `return MC.lastResults`.
+
+5. Compare the JSON against the verdicts in §11 "What counts as what". `stuck` lists players with
+   no save snapshot or a failed critical step (the action and error are named); `desync` lists
+   state fields that differ between players, with each player's value. Identity, position, the
+   UserId-seeded `shop` shelf and the onboarding hint id are excluded — check `shop` before calling
+   a cash/seeds difference a bug.
+6. A driver script cannot see client UI or a client whose network stalls. Watch the clients for the
+   "stopped replying" half of Q5 by hand; note it in the report if you see it.
+
+Evidence: `docs/v2/evidence/h/<yyyy-mm-dd>-q5-multiclient-closed/` with `REPORT.md`, the JSON as
+`results.json` and `output.log`. The comparator (`server/Testing/MultiClientCheck.luau`) is pure and
+covered by `tests/specs/multiclient_spec.luau`; the live ten-player run stays `BLOCKED` until step 2
+is done by a human. Do not save `JuraganDesa.rbxl`.
+

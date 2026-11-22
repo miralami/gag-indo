@@ -1,0 +1,54 @@
+{
+  "track": "H",
+  "date": "2026-11-19",
+  "topic": "real minigame Cancel button closes overlay (BUG-013 / Q3 follow-up)",
+  "branch": "track/c-world-look",
+  "head": "90b4d9c",
+  "environment": {
+    "rojo": "localhost:34872",
+    "studioMode": "Play Solo",
+    "freshProfile": true,
+    "freshProfileMethod": "VERIFY-TEMP store.Mock in-memory ProfileStore, reverted before commit",
+    "driverLimitation": "ProximityPrompt.Triggered not firable via Studio MCP; production Minigame_Start remote fired from Server VM to open the real UI"
+  },
+  "before": {
+    "cash": 50,
+    "seedsPadi": 5,
+    "tiles": [],
+    "tilesOwned": 6,
+    "tutorialStep": 1,
+    "rank": "gurem",
+    "sack": 0
+  },
+  "minigameOpened": {
+    "remote": "Minigame_Start",
+    "args": ["plant", 1, "padi"],
+    "scrimVisible": true,
+    "cancelActivatedFires": 0
+  },
+  "cancelPress": {
+    "method": "GuiService.SelectedObject=Cancel; user_keyboard_input keyDown/Return/keyUp",
+    "cancelActivatedFires": 1,
+    "scrim": "true -> false",
+    "playAreaDestroyed": true,
+    "mouseClickAttempt": "did not fire Activated in this build; keyboard route used"
+  },
+  "after": {
+    "cash": 50,
+    "seedsPadi": 5,
+    "tiles": [],
+    "tilesOwned": 6,
+    "tutorialStep": 1,
+    "rank": "gurem",
+    "sack": 0,
+    "identicalToBefore": true
+  },
+  "commitRemotesFiredByCancel": {
+    "Farm_Complete": 0,
+    "Farm_Auto": 0,
+    "Farm_SelectSeed": 0,
+    "Shop_BuySeed": 0
+  },
+  "verdict": "SEEN-IN-STUDIO",
+  "bug": "BUG-013 not reproduced on synced code"
+}

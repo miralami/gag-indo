@@ -1,0 +1,54 @@
+CHECK 137 — promote water_r8_a to default (WORK_QUEUE section O, item 137)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: JuraganDesa (Edit runtime injection; place NOT saved, nothing published)
+
+== Setup (evidence path) ==
+1. Stopped Play. Injected into the EDIT datamodel (no save):
+   - StarterPlayer.StarterPlayerScripts.Client.Main
+   - StarterPlayer.StarterPlayerScripts.Client.World.Water (new)
+   Both SET. Started a fresh Play. NO LookDev.enable call was made before the checks — the water
+   default is applied by Water.mount() at client boot, right after Sky.mount() in Main.client.
+2. Pasted the WHOLE tools/studio/review_check_r8.luau into execute_luau in the CLIENT VM.
+   WATER_DEFAULT is READ-ONLY and runs before the mutating WATER_SAFE/WATER_RESTORE block.
+
+== Raw check lines (CLIENT datamodel, verbatim) ==
+CHECK WATER_DEFAULT PASS 5 5
+CHECK WATER_SAFE PASS 3 3
+CHECK WATER_RESTORE PASS 3 3
+CHECK LOAD_FAILURES PASS 0 0
+
+== WATER_DEFAULT detail (verbatim, no enable call) ==
+variant = "water_r8_a"
+noEnable = true
+readings:
+  WaterColor=(48,124,104)
+  WaterTransparency=0.2800000011920929
+  WaterReflectance=0.3499999940395355
+  WaterWaveSize=0.41999998688697815
+  WaterWaveSpeed=0.8999999761581421
+mismatches = []
+
+Targets (unweakened):
+- WATER_DEFAULT target 5 = number of the 5 Terrain water properties that equal variant A's values
+  in a fresh Play with NO candidate enabled. Measured = 5. WaterColor compares channel255
+  (Color3 channel * 255, rounded); the four numeric properties compare with 0.01 epsilon. The five
+  readings above match A's palette (r48 g124 b104 / 0.28 / 0.35 / 0.42 / 0.9) exactly.
+- WATER_SAFE 3 3 = all three candidates' readings stay inside ModelMapWaterR8.safeRanges; unchanged.
+- WATER_RESTORE 3 3 = each of a/b/c restores the exact baseline it captured before enable. This run
+  proves the promoted default does not break the b round-trip: with A on Terrain at boot, the b
+  applier snapshots A's values and restores them on disable. Unweakened.
+- Guard: LOAD_FAILURES 0.
+
+== Behaviour == ==
+The default is written by src/client/World/Water.luau (Water.mount()), independent of the LookDev
+candidate appliers — it does NOT call appliers.a.apply(), so that applier's applied flag is untouched
+and a later enable("water_r8_a")/disable() still round-trips correctly. CANDIDATES.md records water_r8_a
+as the promoted default, water_r8_b as the rain-season reference, water_r8_c as rejected.
+
+== Validation before this run == ==
+lune run tests/run.luau: All 2451 tests passed (was 2446; +5).
+selene src: 0 errors / 0 warnings / 0 parse errors.
+stylua --check (changed Luau): clean. git diff --check: clean (pre-existing autocrlf notices only).
+
+Status: SEEN-IN-STUDIO. No place saved, nothing published.

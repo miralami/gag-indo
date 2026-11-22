@@ -1,3 +1,4 @@
+--!strict
 -- Pasar supply and demand (v2 PLAN §3.4). Server-wide, in memory, resets on restart.
 --
 -- Every legal sale adds pressure to that crop, and pressure decays over ~10 minutes. The price

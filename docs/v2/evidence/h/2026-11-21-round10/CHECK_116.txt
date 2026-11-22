@@ -1,0 +1,111 @@
+CHECK 116 — layangan_r8 kites (WORK_QUEUE section N, item 116)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Fresh Play, Server DataModel. Place NOT saved, nothing published.
+
+== Target (verbatim) ==
+"**`layangan_r8`: kites.** Four layangan (kites) flying at 60–90 studs of altitude near the field, each
+with a thin tail and a string (`Beam`) down to a small kid-sized point on the ground; they rock gently.
+**CHECKS:** `KITE_COUNT` = 4; `KITE_COST` under 0.2 ms per frame; strings don't pass through buildings
+(raycast from kite to anchor hits nothing)."
+
+== Implementation (all OFF by default; no shipping default changed) ==
+- NEW `src/shared/ModelMapLayanganR8.luau`: pure, engine-API-free data. 48 original Parts in 6 kinds:
+  kiteroot 4, spine 4, spar 4, sail 16, tail 16, anchor 4. Four kites over the Lapangan field, each a
+  diamond sail (spine + cross-spar + 4 coloured sail panels), a 4-piece thin tail, a root part and a
+  kid-sized ground anchor. 4 textureless Beam strings built by the applier. Plain RGB via Color3.fromRGB
+  and real built-in Wood/Fabric tokens only — no asset IDs, no brand, no decals, no terrain edit, no
+  engine API. SITE mirror of MapSpec.LAPANGAN (centre 0,96, 72x56); anchors at (-24,80), (24,80),
+  (-24,112), (24,112), kites lean 3 studs toward centre; altitudes above GROUND_Y = 64/72/80/88, all
+  inside the [60,90] band; all sites inside field x[-36,36] z[68,124] and >=44 studs from the six hub
+  buildings at x=+-68. Deterministic pump params SIM_SECONDS=60, DT=1/60, MAX_STEP_MS=0.2,
+  ROCK_AMPLITUDE_DEG=4, ROCK_PERIOD=8. TAIL PARTS STATIC (not in moving set) for the KITE_COST budget:
+  44 distinct-part CFrame writes/step ≈0.235ms exceeds 0.2ms; 28 (root+spine+spar+sail) ≈0.14ms.
+- NEW `src/server/World/LookDevLayanganR8.luau`: pcall-guarded server applier, folder
+  `LookDevLayanganR8_layangan_r8`; all 48 Parts `Anchored=true`, `CanCollide=false`, tagged stage +
+  `LayanganKind`. Each string = two Attachments (top under kite root, foot at y+1.5 under anchor) and a
+  Beam with `Color=ColorSequence.new(Color3.fromRGB(...))`, `Width0=Width1=0.12`, `Segments=24`, NO
+  Texture (solid colour, no asset ID). NOTE: this Studio's Beam has no `FaceColor` and no `Width` member
+  — an initial build using those failed all 4 strings; corrected to the valid ColorSequence/Width0/Width1
+  API after a real fresh-Play failure. ONE `RunService.Heartbeat:Connect(tick)` rocks all four sails by a
+  sine tilt about each root; numeric `KiteAngle` attr published per root; the shared `tick(dt)` is exposed
+  as `pump(dt)` for deterministic cost measurement. Tail Parts and anchors are static. Exact prior-folder
+  save/detach-restore; `disconnectLoop()` before destroy on restore. Diagnostics `kiteRoots()`,
+  `anchors()`, `beams()`, `connectionCount()`, `isApplied()`, `pump(dt)`. No Terrain read/write.
+- `src/shared/LookDev.luau`: `layangan_r8` appended as ID 88 (87 -> 88); descriptor + plan branch + header.
+  `src/shared/LookDevReview.luau`: server path `{ "World", "LookDevLayanganR8" }`.
+- `tools/studio/review_check_r8.luau`: `KITE_COUNT`, `KITE_COST`, `KITE_STRING_CLEAR` appended LAST in ORDER
+  (after `LAUNDRY_CLOTH_CLEAR`, so all contiguous ORDER-literal assertions stay intact). New `do...end`
+  block at section `-- 9q. WORK_QUEUE section N item 116` (line 8664+).
+  `KITE_COUNT`: PASS requires folder present ∧ exactly 4 tagged roots / 4 Beams / 4 anchors ∧ one
+  Heartbeat connection ∧ isApplied ∧ every root has a numeric KiteAngle ∧ altitude in [60,90] ∧ each
+  Beam's Attachment0/Attachment1 parented to its matched root/anchor. `KITE_STRING_CLEAR`: raycast
+  (FilterType Exclude, staged folder) from each of the 4 roots to its anchor with `workspace:Raycast`;
+  PASS requires World present + 6 hub Models + 4 rays executed + 0 collidable building-hit descendants.
+  `KITE_COST`: deterministic `N=ceil(60/(1/60))=3600` `applier.pump(DT)` steps timed by `os.clock()`,
+  `ms=elapsed*1000/N`; PASS if `0<=ms<0.2`. All-FAIL paths emit ALL THREE checks at 0/"ERR" with a
+  reason; prior candidate restored on every path. All existing checks (incl. FLYER_COST, IDLE_COST,
+  ROCK_*, DOOR_CLEAR, BLDG_DOOR), SAWAH_TOPS, river checks and full_r9 byte-identical.
+- NEW `tests/specs/layangan_r8_spec.luau` + registration in `tests/run.luau`: locks counts/MIN_PARTS,
+  root/anchor kinds, valid material tokens (forbid Painted/Leaf), no asset IDs (no 7-digit literals, no
+  rbxassetid, no assetId, no engine API in data), field mirror + 4 sites + altitude band, SIM/DT/MAX_STEP,
+  Beam via ColorSequence/Width0/Width1 with NO FaceColor/Width/Texture, tail-static moving exclusion,
+  `#IDS==88`/`IDS[88]`, Review path, plan, ORDER strings + emit for all 3 names, CANDIDATES pending row.
+- Count literals bumped 87 -> 88 across 40 specs plus 3 extra count literals
+  (`review_round3_bugfix_spec`, `sky_map_r6_spec`, `terrain_map_r6_spec`); index-locked IDS[n] intact.
+- `docs/v2/visual/CANDIDATES.md`: pending 6-column row, verdict `pending — review in Studio`, existing
+  `REVIEW_ROUND9.md` render path. No new camera (item 133 owns camera additions).
+
+== Validation history (real bugs found and fixed, no check weakened) ==
+1. First fresh Play: all 4 Beams FAILED — "FaceColor is not a valid member of Beam" + "no complete kite
+   set staged"; beams=0, conn=0. Probed this Studio's Beam: Color(ColorSequence)/Width0/Width1/Segments/
+   Texture valid; FaceColor/Width INVALID. Fixed applier to ColorSequence/Width0/Width1. Re-test: 4 Beams
+   stage, 1 connection, zero warnings.
+2. Second fresh Play: KITE_COUNT/STRING_CLEAR/rock PASS but KITE_COST FAIL 0.25375ms > 0.2. Profiled:
+   CFrame math/pcall/SetAttribute cheap; 44 distinct-part CFrame writes ≈0.235ms (real engine cost).
+   Unanchored children do not follow anchored parent here. Fixed by excluding the 16 static tail Parts
+   from the moving set (28 sail Parts move, ≈0.14ms). MAX_STEP_MS limit NOT changed; part counts NOT
+   reduced. Re-test: KITE_COST PASS 0.149ms.
+
+== Method (fresh Play, Server VM, single-active stage) ==
+`LookDevReview.enable("layangan_r8", game, {studio=true})` returned true; staging folder held 48 BaseParts
+matching `ModelMapLayanganR8.counts()` per kind, 4 roots, 4 anchors, 4 textureless Beams, 1 connection,
+0 anomalies, ZERO kite-specific warnings. The three check blocks were executed as an equivalent ad hoc
+execute_luau probe (items 103/105/108..115 precedent — the whole harness file cannot be injected with a
+pre-set candidate state), using the LIVE applier and real Workspace geometry. Real wall-clock rock was
+measured across `task.wait(1)`; a synthetic ray through a real wall and a disable/re-enable lifecycle
+were added as extra evidence.
+
+== Verbatim check lines (final canonical run, all PASS) ==
+CHECK KITE_COUNT PASS roots=4 beams=4 anchors=4 conn=1 alts=[64,72,80,88] altOk=true angleOk=true stringsOk=true
+CHECK KITE_STRING_CLEAR PASS rays=4 hubs=6 buildingHits=0 errors=0
+CHECK KITE_COST PASS msPerStep=0.14900 steps=3600 limit=0.2
+KITE_ROCK angle0=-2.018 angle1=-3.945 delta=1.927 cframeMoved=true
+Exactly 4 roots/Beams/anchors, one connection, numeric angles, altitudes 64/72/80/88 in [60,90], all
+Beams attached to matched root/anchor with no texture. 4 raycasts from kite to anchor over 6 hub Models,
+0 building hits. 3600 deterministic pump steps at 0.149ms/step, under the 0.2ms budget. Real Heartbeat
+rock advanced the KiteAngle ~1.9 degrees over 1 s and the root CFrame actually moved.
+
+== Non-vacuity / discrimination evidence ==
+DISCRIM syntheticRayAtWall hit=true buildingHit=true inst=BackWall (expect true/true)
+WALL BackWall size=64.0,8.7,0.5
+A ray aimed at a real collidable BackWall produced a `buildingHit=true` under the harness's exact
+predicate — the check would flag a string crossing a building; the 4 actual kite→anchor rays produce 0.
+KITE_COST non-vacuity: 0.149ms measured with 28 moving parts vs the profiled 0.235ms with all 44 — the
+check rejects the over-budget configuration, confirmed by the real FAIL before the tail-static fix.
+
+== Lifecycle evidence ==
+CHECK KITE_RESTORE PASS gone=true connOff=true back=1 parts=48 connOn=1
+`disable` removed the folder and disconnected the loop (0 folders, 0 connections); re-enable restored 48
+parts, 4 Beams and 1 connection; `disableAll` at end; prior candidate restored. No Terrain write anywhere.
+
+== Validation / scope ==
+lune run tests/run.luau: All 2777 tests passed. selene src: 0 errors / 0 warnings / 0 parse errors.
+stylua --check clean on all changed Luau files. git diff --check clean. Play stopped after verification;
+no place saved, nothing published. No visual, copy or aural verdict. Candidate off by default; no
+shipping default changed. No asset IDs, no brand marks, no decals, no texture, no terrain edit, no new
+camera. All existing checks byte-identical.
+
+Status: SEEN-IN-STUDIO (fresh Play Server VM, layangan_r8 staged; KITE_COUNT 4 roots/4 Beams/4 anchors,
+KITE_STRING_CLEAR 4 rays/0 building hits, KITE_COST 0.149ms < 0.2, real rock + CFrame motion, synthetic
+wall ray correctly flagged, disable/re-enable PASS, zero staging warnings; two real engine bugs fixed).

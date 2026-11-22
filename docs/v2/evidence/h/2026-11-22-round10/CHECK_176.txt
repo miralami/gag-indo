@@ -1,0 +1,25 @@
+CHECK 176 - rocks_r9 larger clustered rocks (WORK_QUEUE section P)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Play mode, Server VM. Place NOT saved, nothing published.
+Candidate OFF by default.
+
+== Setup ==
+1. `src/shared/ModelMapRocksR9.luau` + `src/server/World/LookDevRocksR9.luau`: rocks 0.8-2.5 studs,
+   clusters 2-4 on both banks + stepping stones, 4 half-submerged, moss-green/grey-brown palettes.
+2. `tools/studio/check_p176.luau` temp-staged and require'd in a fresh Play Server VM; stages
+   `rocks_r9` via `enableAdditive`, measures live parts, restores with `disableAll()`.
+
+== Raw check lines (verbatim, staged rocks_r9) ==
+CHECK ROCK_COUNT PASS 101 40
+CHECK ROCK_SIZE PASS 1.40 1.2
+CHECK ROCK_VISIBLE PASS 22 8
+
+== Non-vacuity ==
+- 101 rock models; median longest 1.40 studs, all within 0.8..2.5 envelope (0 out of range).
+- ROCK_VISIBLE uses the `river_rocks` camera, 5 rays per rock, own-part hit >=60%: 22 visible.
+  Terrain and other rocks still block; no own-only filter that would fake a pass.
+- New Lune spec was 1 PASS/4 FAIL pre-fix, 5/5 PASS post-fix. No asset IDs invented.
+- No NPC outfits, terrain sculpt, chosen sky or ground touched. No visual verdict claimed.
+
+Status: SEEN-IN-STUDIO.

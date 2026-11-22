@@ -1,3 +1,4 @@
+--!strict
 -- Rarity tiers (v2 PLAN §3.2). Rolled by the server on harvest; the multiplier applies
 -- on top of the crop's base sell price. M0 ships the table only: every stack is "biasa"
 -- until RarityService lands in M1.

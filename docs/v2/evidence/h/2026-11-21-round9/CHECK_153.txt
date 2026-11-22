@@ -1,0 +1,41 @@
+CHECK 153 — camera additions, full-set CAMERA_CLEAR (WORK_QUEUE section O, item 153)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Edit runtime injection; place NOT saved, nothing published.
+
+== Setup ==
+Injected updated Shared.ReviewCameras (all 42 cameras, MapSpec-derived) into the EDIT datamodel (SET).
+Fresh Play. Harness tools/studio/review_check_r8.luau pasted into execute_luau (Server VM); CAMERA_CLEAR
+requires the Server datamodel because ReviewCameras requires MapSpec from ServerScriptService.
+
+== Raw check line (verbatim, full camera set) ==
+CHECK CAMERA_CLEAR PASS 0 blocked/42 checked 0 blocked
+
+Detail: failed = [], checked = 42. Every named review camera's 6-stud eye->lookAt ray starts in air;
+no camera inside a wall, tree, terrain voxel or staged part. Default look (no candidates staged) and
+all four lighting-variant cameras included in the 42.
+
+== New cameras verified present and loadable in Studio (verbatim) ==
+pasar_awnings    Server|true
+plaza_centre     Server|true
+ronda_tower      Server|true
+river_rocks      Server|true
+forest_wall      Server|true
+canonical_overview Server|true
+total = 42 cameras; plot_aerial_01..plot_aerial_10 all present (10 confirmed).
+
+All camera coordinates are derived from MapSpec (hub centres/footprints, PLAZA, RONDA_TOWER, BRIDGE,
+riverCentreZ, TERRAIN_HALF/VOXEL, ROAD) and Config.Game — no hand-typed world coords. New Server
+cameras: pasar_awnings (Pasar stall apron 3/4), plaza_centre (above the lapangan fountain), ronda_tower
+(bamboo tower mid-height), river_rocks (bank sightline down riverCentreZ), forest_wall (village edge
+out to the hill tree wall), canonical_overview (high 3/4 from south over the bridge looking north).
+clearDistance unchanged (6). No check weakened: a blocked camera is fixed by moving it, never by
+weakening the ray. REVIEW_CAMERAS.md documents all 42 cameras (count 26 -> 42, 16 new rows incl. the
+10 plot aerials).
+
+Note: items 152 (verdicts), 154 (CANONICAL_GAP.md) and 155 (REVIEW_ROUND9.md Sec 23 + SHOT_LIST.md)
+are documentation-only — no scene change, no Studio CHECK required; their evidence is the committed
+docs plus the Lune gallery-format spec (candidate_gallery_spec).
+
+Status: SEEN-IN-STUDIO (item 153). No place saved, nothing published. Visual grading remains the
+designer's — CAMERA_CLEAR proves camera geometry only, not that a shot looks good.

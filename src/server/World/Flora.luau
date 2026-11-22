@@ -214,7 +214,7 @@ local function rockParts(cell: number, x: number, z: number, scale: number): { P
 end
 
 -- A grass tuft: 3 to 4 chunky stylized WedgePart blades in daun and padi, fanned outwards slightly.
-local function tuftParts(cell: number, x: number, z: number, scale: number): { PartDef }
+local function tuftParts(cell: number, x: number, z: number, _scale: number): { PartDef }
 	local parts = {}
 	local count = 3 + math.floor(roll(cell, 60) * 2)
 	local turn = roll(cell, 61) * 360

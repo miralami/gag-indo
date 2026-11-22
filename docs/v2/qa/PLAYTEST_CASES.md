@@ -1,6 +1,7 @@
 # Juragan Desa v2 — Full Playtest Cases
 
 Companion to [PLAYTEST_PLAN.md](PLAYTEST_PLAN.md). The plan is scenarios; this file is executable cases.
+This is the only manual case catalogue. The v1 `docs/testing/MANUAL_TESTS.md` was merged in on 2026-11-16: cases it had that v2 lacked are the rows marked **(v1)**. Their numbers were written for v1, so check them against `src/shared/Config/*` on first run and correct the row.
 Expected values come from `src/shared/Config/*` as of commit 76c0c23 plus the uncommitted working tree. Where a value comes from a file not listed here, the expected result says "per config".
 
 ## How to run (multiple passes)
@@ -16,6 +17,29 @@ The suite is meant to be run more than once. Each pass has a different purpose:
 | R6 Regression | After each fix, rerun the failed case plus its neighbors | Failed IDs | Confirm fixes |
 
 Result codes: PASS / FAIL / BLOCKED (reason) / N/A. Every FAIL needs: case ID, pass (R1..R6), actual, Output text, screenshot.
+
+## Every-version set (P0)
+Run these on every version before it is published, in addition to whatever the change touched. A version is verified when all of them PASS and every FAIL elsewhere has a written decision (fixed in a commit, or accepted with a reason).
+
+SMK-01 · FLOW-01 · FLOW-02 · FARM-01 · FARM-07 · MG-01 · MG-02 · SHOP-02 · MKT-01 · MKT-13 · LAW-01 · LAW-08 · LAW-09 · LAW-14 · LAW-16 · LAW-17 · LAW-18 · PER-01 · PAY-01 · PAY-02 · PAY-03
+
+## Conventions
+- Wait times can be shortened in `src/shared/Config/*.luau` while testing. Record the change in the run sheet and put it back afterwards.
+- For a clean profile, rejoin with a different test account or clear the Studio data store (`PlayerData_v1_Studio`).
+- Copy [../../testing/runs/TEMPLATE.md](../../testing/runs/TEMPLATE.md) to `docs/testing/runs/<date>-<short commit>.md` for each run.
+- A new feature adds its cases here in the same commit. A bug found by hand adds a case here, and a spec too if a script can check the rule.
+
+## Automated cover
+These specs already check part of a case; the manual case covers what a script cannot see.
+
+| Spec | Cases it partly covers |
+|---|---|
+| `config_spec` | FLOW-01, FLOW-02, FLOW-11, FARM-10, FARM-11 |
+| `economy_spec` | SHOP-02, SHOP-10, MKT-01, MKT-08, MKT-12, MKT-13 |
+| `playerdata_spec` | PER-02 (migration only; real saving needs Studio) |
+| `rank_spec` | RANK-01 |
+| `sus_spec` | MKT-08, LAW-06, LAW-24 |
+| `receipts_spec` | PAY-02, PAY-03 |
 
 ## Admin shortcuts (use only where a case says "ADMIN")
 F2 opens the admin panel (Studio always counts as admin). Use it to set season/event or grant state. Record which command you used. Note: the screenshot session showed RP 999,985. The owner confirmed it was a deliberate cash cheat (so the cheat works), not a bug. `Game.startCash = 50` is the real start, so FLOW cases must use a fresh save without the cheat.
@@ -46,6 +70,7 @@ Start: cash 50, 5 padi seeds, 6 tiles, sack 40, gudang 40 (120 with pass). Tile 
 | FLOW-08 | R1 | Fresh save | Complete FLOW-03 to 07 without any admin or help; note the time | Under 5 min; no dead end; no unclear text |
 | FLOW-09 | R2 | After FLOW-07, Stop/Play | Rejoin | The tutorial does not restart |
 | FLOW-10 | R3 | Fresh phone-size save | Run FLOW-03 to 07 with touch only | All steps are reachable; nothing is hidden behind other UI |
+| FLOW-11 | R1 | Fresh save | Look at the plot and the rank badge at first spawn | **(v1)** You spawn at your own plot; six tiles are usable and the rest are locked; the rank is Petani Gurem |
 
 ## FARM — Planting, growing, harvesting
 | ID | Pass | Steps | Expected |
@@ -80,6 +105,8 @@ Start: cash 50, 5 padi seeds, 6 tiles, sack 40, gudang 40 (120 with pass). Tile 
 | MG-05 | R1 | Cancel a minigame midway (`Minigame_Cancel`) | The tile returns to a usable state |
 | MG-06 | R1 | Reset the character mid-minigame | The overlay closes; no stuck input or camera |
 | MG-07 | R1 | Auto harvest (if owned) | Quality 0.9; slower rate (2 per second) |
+| MG-08 | R1 | Mencangkul: hit the green zone on all three taps, then on none | **(v1)** A quality value is shown, between 0.8 and 1.3; more green hits give a higher value |
+| MG-09 | R1 | Babat: release too early, then too late | **(v1)** Lower quality, not an error; the crop is still harvested |
 
 ## SHOP — Shop and seeds
 | ID | Pass | Steps | Expected |
@@ -93,6 +120,7 @@ Start: cash 50, 5 padi seeds, 6 tiles, sack 40, gudang 40 (120 with pass). Tile 
 | SHOP-07 | R5 | Wait past 180 s | A new shelf; the countdown resets |
 | SHOP-08 | R1 | Season change via ADMIN | Shelf odds change by season on the next restock (per config) |
 | SHOP-09 | R1 | Rare items (durian, sawit, cengkeh, kakao) | Appear rarely and in low amounts |
+| SHOP-10 | R1 | Buy a seed with too little cash | **(v1)** Refused with a not-enough-cash toast; cash and seeds unchanged |
 
 ## MKT — Selling and market
 | ID | Pass | Steps | Expected |
@@ -109,6 +137,9 @@ Start: cash 50, 5 padi seeds, 6 tiles, sack 40, gudang 40 (120 with pass). Tile 
 | MKT-10 | R1 | Cabai event on (ADMIN or wait 240 s) | Cabai x3 for 300 s; the HUD/toast announces; it ends on time |
 | MKT-11 | R4 | A sells a large stack | B sees the changed price on the board |
 | MKT-12 | R1 | Sell while far from Pasar (over `npcDistance` 18) | Refused |
+| MKT-13 | R1 | Sell a sack holding both clean and hot produce at Pasar | **(v1)** Only the clean produce is paid; the hot items stay in the sack and the sack count matches (regression: a Pasar sale once left clean produce behind) |
+| MKT-14 | R1 | Sell a mixed sack at Pasar Gelap | **(v1)** Hot and clean both sell; the whole sack empties |
+| MKT-15 | R1 | During the cabai event, sell another crop | **(v1)** Its price is unchanged; the event marker shows only while the event runs |
 
 ## STO — Gudang and storage
 | ID | Pass | Steps | Expected |
@@ -187,6 +218,7 @@ Start: cash 50, 5 padi seeds, 6 tiles, sack 40, gudang 40 (120 with pass). Tile 
 | RANK-03 | R1 | Spend cash | Lifetime earned does not drop |
 | RANK-04 | R2 | Rejoin | The rank persists |
 | RANK-05 | R1 | Loans do not count as earned | Borrowing does not raise the lifetime total |
+| RANK-06 | R4 | Reach Juragan, then chat | **(v1)** Chat lines carry the `[Juragan]` tag |
 
 ## ALM — Almanak and cosmetics
 | ID | Pass | Steps | Expected |
@@ -198,6 +230,7 @@ Start: cash 50, 5 padi seeds, 6 tiles, sack 40, gudang 40 (120 with pass). Tile 
 | ALM-05 | R1 | Equip/unequip | The avatar updates; there is one hat and one shirt |
 | ALM-06 | R2 | Rejoin | Owned and equipped persist |
 | ALM-07 | R1 | Equip an un-owned cosmetic (SEC) | Refused |
+| ALM-08 | R1 | Equip a cosmetic, then reset the character | **(v1)** It is still worn after the respawn |
 
 ## LAW — Sus, cheats, bribe, raids, evidence
 | ID | Pass | Steps | Expected |
@@ -224,6 +257,21 @@ Start: cash 50, 5 padi seeds, 6 tiles, sack 40, gudang 40 (120 with pass). Tile 
 | LAW-20 | R4 | B reports without evidence or far away | Refused |
 | LAW-21 | R4 | A raid on A | B is not affected |
 | LAW-22 | R1 | Caught | Nama Baik -10 |
+| LAW-23 | R1 | Look at a tile after using oplosan | **(v1)** The crop is visibly marked as oplosan (glow and a warning on the tile label) |
+| LAW-24 | R1 | Raise Sus step by step past 30 and 60 | **(v1)** The Sus indicator changes colour as it rises; the Surat Panggilan appears once per crossing, not repeatedly |
+| LAW-25 | R2 | Rejoin with Sus above 0 | **(v1)** The Sus value is saved |
+| LAW-26 | R1 | Use oplosan with less than 20 cash | **(v1)** Refused with a not-enough-cash toast; no Sus added |
+| LAW-27 | R4 | A steals water from B | **(v1)** A's growing tiles finish about 30 s sooner; B always receives an evidence token |
+| LAW-28 | R5 | Bribe, then wait past the 10 min window | **(v1)** The price is back to 100 |
+| LAW-29 | R1 | Watch a raid from start to end | **(v1)** Siren, banner and camera move; police NPCs walk to the plot; hot crops are confiscated |
+| LAW-30 | R1 | Get raided with almost no cash | **(v1)** All cash is taken; you are placed in the Pos Ronda with the countdown; chat still works; you are released on time |
+| LAW-31 | R2 | Stop Play while the raid choice is open, then rejoin | **(v1)** The fine was applied; no free escape |
+| LAW-32 | R4 | B reports A; add up both players' cash before and after | **(v1)** B gets +2 Nama Baik; the money comes from A, so the total did not rise |
+| LAW-33 | R4 | B waits past the token's 180 s, then reports | **(v1)** The token is gone and the report is refused |
+| LAW-34 | R4 | A second player reports the same cheat event (third client if possible) | **(v1)** No cash for the second reporter; the report still counts toward VIRAL |
+| LAW-35 | R4 | Trigger VIRAL on A | **(v1)** A is raided at once and the amplop choice is disabled |
+| LAW-36 | R1 | Use Amplop Premium during a raid | **(v1)** Refused |
+| LAW-37 | R1 | Use Jaminan Kilat outside and then inside the Pos Ronda | **(v1)** Refused outside; inside it ends the timer and the fine is still paid |
 
 ## MP — Multiplayer and social
 | ID | Pass | Steps | Expected |
@@ -235,6 +283,7 @@ Start: cash 50, 5 padi seeds, 6 tiles, sack 40, gudang 40 (120 with pass). Tile 
 | MP-05 | R4 | The leaderboard tabs on both clients | Render; switching works; the same data; an empty state is graceful |
 | MP-06 | R4 | Chat tags | Correct for admin and normal |
 | MP-07 | R4 | B leaves mid-action | No server error; A is unaffected |
+| MP-08 | R4 | Both clients spawn; B tries to plant on A's tiles | **(v1)** Each client spawns at a different plot; neither can plant on the other's tiles |
 
 ## ADM — Admin and LiveConfig
 | ID | Pass | Steps | Expected |
@@ -254,6 +303,8 @@ Start: cash 50, 5 padi seeds, 6 tiles, sack 40, gudang 40 (120 with pass). Tile 
 | PAY-04 | R1 | Extra Plot pass | Max tiles 16 |
 | PAY-05 | R1 | Gudang pass | Capacity 120 |
 | PAY-06 | R2 | Rejoin | The pass effects persist |
+| PAY-07 | R1 | Ordal pass, if an ID is set | **(v1)** +10% sale price and an `[Ordal]` chat tag |
+| PAY-08 | R1 | Own any pass, then reach Sus 100 | **(v1)** The raid still happens; no pass protects from a raid |
 
 ## PER — Persistence
 | ID | Pass | Steps | Expected |
@@ -279,6 +330,7 @@ Start: cash 50, 5 padi seeds, 6 tiles, sack 40, gudang 40 (120 with pass). Tile 
 | UI-10 | R1 | The Seeds panel | Scrolls; 12 crops listed; locked ones marked |
 | UI-11 | R1 | Toasts stack | None stuck; they dismiss |
 | UI-12 | R1 | Sound | Every sound plays at a sane volume; no stuck loops |
+| UI-13 | R1 | Read every panel in ID and EN | **(v1)** No raw string keys (such as `n_sold`) on screen |
 
 ## SEC — Exploit probes (R4, run as a client; a script in the command bar is fine)
 | ID | Remote | Probe | Expected |
@@ -305,6 +357,9 @@ Start: cash 50, 5 padi seeds, 6 tiles, sack 40, gudang 40 (120 with pass). Tile 
 | PERF-03 | Reset the character 10 times | The HUD and handlers are not duplicated; no leaked connections |
 | PERF-04 | Rapid tab-switching between the Seeds/Phone/Board | No lag spikes |
 | PERF-05 | 6 players or more (if possible) | The server heartbeat stays healthy |
+
+## Exploratory
+After the scripted cases, play freely for ten minutes and note anything odd: stuck states, a bad camera, confusing text, missing sounds. Write each under Findings in the run sheet, and turn every real bug into a case here or a spec.
 
 ## Exit criteria
 - R1 and R2: zero FAIL in SMK, FLOW, FARM, MKT, PER, SEC.

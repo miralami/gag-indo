@@ -1,0 +1,32 @@
+# CHECK 71 — plots_r8 plot fences and gates (WORK_QUEUE section M item 71)
+# Studio: Development-Juragan-Desa (placeId 132087524375529), real Play, Server datamodel.
+# Fresh Play, no direct-staged candidates. Because Rojo had not synced the new/changed modules,
+# the following were injected into the Edit datamodel at runtime (not saved to the place):
+#   ReplicatedStorage.Shared.LookDev, LookDevReview, ModelMapPlotsR8;
+#   ServerScriptService.Server.Main, Server.World.LookDevPlotsR8.
+# Existing bake: ServerStorage.LookDevAssets = 34 folders (unused; this candidate is procedural Parts).
+# Staged with the one-call review path:
+#   require(game.ReplicatedStorage.Shared.LookDevReview).enable("plots_r8", game)
+# Verified before the run: LookDev.IDS = 48 (last = "plots_r8"), applier registered,
+#   review path datamodel = "server", current = "plots_r8", 10 plot folders, 120 parts
+#   (80 fence + 20 gate posts/lintels + 10 markers), load failures = 0.
+# Harness: tools/studio/review_check_r8.luau. Raw console lines verbatim (item-71 family + guards):
+CHECK LOAD_FAILURES PASS 0 0
+CHECK PLOT_FENCE PASS min=8 (P1:8 P2:8 P3:8 P4:8 P5:8 P6:8 P7:8 P8:8 P9:8 P10:8) >=6 each
+CHECK GATE_CLEAR PASS 0 hits/10 gates 0
+CHECK CAMERA_CLEAR PASS 0 blocked/26 checked 0 blocked
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+# GATE_CLEAR detail: {markers=10, missing=[], errors=[], offenders=[], hits=0, box={6,8,1}} —
+# every one of the ten 6-wide x 8-tall x 1-deep gate-opening boxes (placed in the marker's own
+# plot-yaw frame, lifted 0.05 above the ground surface) hit zero parts with CanCollide=true.
+# The other harness lines in this run (HATS 0/4, PROPS_VISIBLE 0/6, PROPS_ON_GRASS 6/0,
+# VEG_COUNT 0/60, VEG_SPECIES 0/8, all VEG_HUB_* 0, VEG_SPECIES_HUB min=0, VEG_OVERLAP 0,
+# VEG_NEAR 0, PROP_SIZE -1, CLOUD_COVER absent) are for candidates NOT staged in this clean Play
+# and are out of scope for item 71; they were PASS-verified in their own evidence files.
+# The first GATE_CLEAR run FAILED with 18 hits: the box was world-axis-aligned and centred at
+# ground level, so it straddled the collidable GroundNorth slab and reached into rotated plots'
+# Base/SignPost. Fixed in the CHECK geometry — the box now uses the marker's own CFrame and is
+# lifted by 8/2+0.05 so it measures the actual gate opening above ground — with the target
+# unchanged (6x8x1, 10 gates, zero CanCollide hits). Second run PASS. No candidate part was
+# made collidable and no check target was weakened.
+# This is a geometry/exclusion proof, not a visual verdict — the designer grades the look.

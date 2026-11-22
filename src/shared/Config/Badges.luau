@@ -1,3 +1,4 @@
+--!strict
 -- Badge registry (v2 PLAN §3.6).
 --
 -- Badge IDs default to 0 for local Studio dev. In production, real Roblox badge IDs replace them.

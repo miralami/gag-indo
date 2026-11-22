@@ -1,0 +1,93 @@
+{
+  "date": "2026-11-19",
+  "item": 29,
+  "branch": "track/c-world-look",
+  "headBeforeReplay": "350c48f71b436c52ec6d733e5cb84c50da5aff7c",
+  "placeId": 132087524375529,
+  "studioId": "447c176b-1d7b-4b9c-a794-45912fea4b63",
+  "rojo": "localhost:34872",
+  "freshProfileMethod": "VERIFY-TEMP store.Mock in-memory ProfileStore in src/server/Data/PlayerData.luau; reverted before commit",
+  "identityRecorded": false,
+  "statusWords": ["SEEN-IN-STUDIO", "LUNE-ONLY", "UNVERIFIED", "BLOCKED"],
+  "g3": {
+    "status": "SEEN-IN-STUDIO",
+    "target": "harness plays the full 9-step beat sheet with zero game-code errors",
+    "baseline": "docs/v2/evidence/h/2026-11-19-g3-beatsheet/REPORT.md",
+    "allStepsOk": true,
+    "steps": [
+      { "step": "1-enable", "ok": true, "message": "Harness on." },
+      { "step": "2-status", "ok": true, "cash": 50, "padi": 5, "tiles": 0, "sack": 0, "tutorialStep": 1, "rank": "gurem" },
+      { "step": "3-plant", "ok": true, "cash": 50, "padi": 4, "tiles": 1, "sack": 0, "tutorialStep": 2, "rank": "gurem" },
+      { "step": "4-ready", "ok": true, "cash": 50, "padi": 4, "tiles": 1, "sack": 0, "tutorialStep": 2, "rank": "gurem" },
+      { "step": "5-harvest", "ok": true, "cash": 50, "padi": 4, "tiles": 0, "sack": 1, "tutorialStep": 3, "rank": "gurem" },
+      { "step": "6-sell", "ok": true, "cash": 77, "padi": 4, "tiles": 0, "sack": 0, "tutorialStep": 4, "rank": "gurem" },
+      { "step": "7-buy", "ok": true, "cash": 57, "padi": 6, "tiles": 0, "sack": 0, "tutorialStep": 5, "rank": "gurem" },
+      { "step": "8-quest", "ok": true, "cash": 157, "padi": 6, "tiles": 0, "sack": 0, "tutorialStep": 5, "rank": "gurem" },
+      { "step": "9-status", "ok": true, "cash": 157, "padi": 6, "tiles": 0, "sack": 0, "tutorialStep": 5, "rank": "gurem" }
+    ],
+    "wallStart": "09:58:43",
+    "wallEnd": "09:58:46",
+    "matchesBaseline": true
+  },
+  "forcedRaidRegression": {
+    "status": "SEEN-IN-STUDIO",
+    "reason": "regression check over the item 21/22/23 raid-overlay/nav/audio changes",
+    "trigger": { "action": "raid", "viral": true, "force": true, "ok": true },
+    "raidState": { "state": "incoming", "action": "raidState", "inRaid": true, "busy": true },
+    "statusAfter": { "tutorialStep": 5, "inRaid": true, "cash": 157 },
+    "wallStart": "09:58:57",
+    "wallEnd": "09:59:00"
+  },
+  "q2": {
+    "status": "SEEN-IN-STUDIO",
+    "target": "zero game-code errors or warnings in full-session Output",
+    "gameCodeErrors": 0,
+    "gameCodeWarnings": 0,
+    "externalNotices": [
+      "Assistant plugin version changed ef6b1b3 -> 9bb6530 (x2, external plugin)",
+      "AnalyticsService LogOnboardingFunnelStepEvent / LogCustomEvent / LogEconomyEvent / LogFunnelStepEvent notices",
+      "execute_luau changed camera type Scriptable -> Custom (MCP harness notice)"
+    ],
+    "bug003Recurred": false,
+    "outputLog": "g3-g5-q2-output.log"
+  },
+  "g5": {
+    "status": "SEEN-IN-STUDIO",
+    "target": "time to first harvest < 45 s; first rarity reveal < 5 min; raid witnessed < 7 min",
+    "baseline": "docs/v2/evidence/h/2026-11-19-g5-timings/REPORT.md",
+    "realGrowTimers": true,
+    "noReadyShortcut": true,
+    "freshProfileEachRun": true,
+    "runs": [
+      { "run": 1, "startCash": 50, "startStep": 1, "wallPlant": "10:00:02", "readySec": 20, "harvestSec": 20, "wallHarvest": "10:00:22", "plantOk": true },
+      { "run": 2, "startCash": 50, "startStep": 1, "wallPlant": "10:00:46", "readySec": 20, "harvestSec": 20, "wallHarvest": "10:01:06", "plantOk": true },
+      { "run": 3, "startCash": 50, "startStep": 1, "wallPlant1": "10:01:49", "ready1Sec": 20, "harvest1Sec": 20, "wallHarvest1": "10:02:10", "wallPlant2": "10:02:10", "ready2Sec": 48, "harvest2Sec": 48, "wallHarvest2": "10:02:58", "note": "second harvest = Super reveal timing" }
+    ],
+    "firstHarvestSec": [20, 20, 20],
+    "firstHarvestTargetSec": 45,
+    "superRevealSec": 48,
+    "superRevealTargetSec": 300,
+    "allUnderTarget": true
+  },
+  "q5SoakClientHalf": {
+    "status": "SEEN-IN-STUDIO",
+    "durationSec": 1801.71,
+    "cycles": 234,
+    "done": true,
+    "baseline": { "cash": 50, "padi": 5, "tilesOwned": 6 },
+    "serverMemoryMb": { "start": 2617.5, "end": 2587.3 },
+    "clientMemoryMb": { "samples": 235, "first": 2617.57, "last": 2586.09, "min": 2578.21, "max": 2618.38, "deltaMb": -31.48 },
+    "leakDetected": false,
+    "stuckStateDetected": false,
+    "finalStatus": { "cash": 945, "rank": "petani", "lifetimeEarned": 1495, "tutorialStep": 5 },
+    "raidGossipElapsedSec": 310,
+    "raidGossipTargetSec": 420,
+    "probe": "injected SoakProbe LocalScript in PlayerScripts; 6-tile padi plant -> ready -> harvest -> sell pasar -> buy padi 1 loop; SoakData folder attributes flushed every 5 cycles",
+    "calls": { "plant": 1404, "harvest": 1404, "ready": 234, "sell": 234, "buy": 234 },
+    "failures": { "plant": 1339, "harvest": 1339, "sell": 178, "buy": 174 },
+    "failureNote": "graceful refusals from a seed-starved probe (buys 1 padi but plants 6), same class as the 2026-11-14 baseline (104 plant + 20 buy); no stale replies or stuck loop",
+    "evidence": "soak.json, soak-output.log",
+    "note": "multi-client / ten-player half stays BLOCKED (no local-server/team-test tool); see docs/v2/evidence/h/2026-11-19-q5-multiclient/"
+  },
+  "regressionsFound": []
+}

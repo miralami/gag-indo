@@ -1,3 +1,4 @@
+--!strict
 -- Almanak pages (v2 PLAN §3.2). One page per crop family; a page completes when every
 -- crop in the family has been discovered at least once (any tier, any trait).
 --

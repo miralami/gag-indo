@@ -1,0 +1,7 @@
+{
+  "route": "ROBLOX_API_KEY env var -> Open Cloud POST /assets/v1/assets",
+  "real_file": "raw/cobblestone_floor_01/cobblestone_floor_01_nor_1k.jpg",
+  "asset_type": "Decal",
+  "post_status": 200,
+  "post_body_excerpt": null
+}

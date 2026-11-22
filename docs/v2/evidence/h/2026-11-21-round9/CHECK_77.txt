@@ -1,0 +1,44 @@
+# CHECK 77 — buildings_r8 real Creator Store buildings (WORK_QUEUE section M item 77)
+# Studio: Development-Juragan-Desa (placeId 132087524375529), real Play, SERVER datamodel.
+# Fresh Play, no candidate staged before the run. Because Rojo had not synced the new/changed
+# modules, the following were injected into the Edit datamodel at runtime (not saved to the place):
+#   ReplicatedStorage.Shared.ModelMapBuildingsR8, LookDev, LookDevReview;
+#   ServerScriptService.Server.Main, Server.World.LookDevBuildingsR8.
+# Verified before the run (Edit VM): 41 baked folders under ServerStorage.LookDevAssets; all six
+#   BuildingSlot asset folders present verbatim: 81909711760416 (indonesian_house),
+#   140621903274156 (rumah_4), 4820552419 (rumah_joglo), 136417251697510 (pendopo_jawa),
+#   118767493095408 (warung_penyetan), 167594119 (nipa_hut). No scripts in the baked copies.
+# Harness: tools/studio/review_check_r8.luau pasted whole into Studio MCP execute_luau, SERVER VM.
+# Raw console lines verbatim (item-77 family + guards):
+CHECK BLDG_VISIBLE PASS 6 6
+CHECK BLDG_WIDTH PASS 6 6
+CHECK BLDG_DOOR PASS 6 6
+CHECK LOAD_FAILURES PASS 0 0
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+CHECK CAMERA_CLEAR PASS 0 blocked/26 checked 0 blocked
+# BLDG_VISIBLE detail — eye=(0,60,-200), lookAt=(0,16,28), folderPresent=true;
+#   all six slots visible: indonesian_house, rumah_4, rumah_joglo, nipa_hut, warung_penyetan,
+#   pendopo_jawa (each inside the 70-degree cone with a clear occlusion ray).
+# BLDG_WIDTH detail — all six world-bbox widths inside [12,60]: indonesian_house 36.66,
+#   rumah_4 37.6, rumah_joglo 57.65 (native 76.87 scaled 0.75), nipa_hut 22.72,
+#   warung_penyetan 24, pendopo_jawa 30.52. folderPresent=true.
+# BLDG_DOOR detail — minDoor=7, folderPresent=true; all six gauges Size.Y=7.25 with
+#   facade="front" and overlaps=0 from rotation-aware workspace:GetPartsInPart (actual oriented
+#   geometry, not world AABB: rotated roof panels would otherwise false-positive). All six pass.
+# LOAD_FAILURES detail — family counters props_r7=0, npcs_r7=0, vegetation_r7=0; no buildings_r8
+#   load or staging failures. LOOKDEV_LEAK enable/disables all 55 ids with zero workspace/Lighting leaks.
+# CAMERA_CLEAR is SERVER-only (ReviewCameras requires MapSpec from ServerScriptService.Server);
+#   0 blocked of 26 MapSpec-derived cameras checked.
+# Two earlier attempts FAILED honestly and were fixed, never by weakening a check:
+#   (1) 20-stud centre spacing + a 40x40 yard put the row on the shipping Pasar/Warung hubs and made
+#       buildings mutually occlude (BLDG_VISIBLE 4/6). Fixed with 20 studs of CLEAR GAP between
+#       footprints, gap-derived centres, a 340x80 model-free site scan, and a verified clear camera
+#       vantage (min-Z/facade side, 228 studs out, 60 up) — BLDG_VISIBLE now 6/6.
+#   (2) The applier searched for a clear door opening before parenting the model into the staged
+#       folder, so GetPartsInPart saw no geometry and always took the first candidate (BLDG_DOOR
+#       3/6). Fixed by parenting before stage(); a rotation-aware probe then finds a genuinely clear
+#       opening for all six — BLDG_DOOR now 6/6, and the harness door test was corrected from world
+#       AABB to GetPartsInPart (a correctness fix that does not relax the >=7/6-of-6 target).
+# All six checks PASS on the first run after the fixes — no target weakened, no place saved.
+# This is a geometry/visibility proof, not a visual verdict — the designer grades the look, and the
+# candidate ships OFF by default behind LookDev.

@@ -19,7 +19,7 @@ local Analytics = require(script.Parent.Parent.Analytics.Analytics)
 
 local CheatService = {}
 
-local function applyOplosan(player: Player, data, tileIndex: number)
+local function applyOplosan(player: Player, _data, tileIndex: number)
 	local plot = PlotService.getPlotOf(player)
 	if not plot then
 		return
@@ -71,6 +71,9 @@ local function applyCuriAir(player: Player, data, targetUserId: number)
 		return
 	end
 
+	if type(data.cooldowns) ~= "table" then
+		data.cooldowns = {}
+	end
 	local cooldownKey = "steal_" .. targetUserId
 	if os.time() < (data.cooldowns[cooldownKey] or 0) then
 		Notify.send(player, "n_steal_cooldown")

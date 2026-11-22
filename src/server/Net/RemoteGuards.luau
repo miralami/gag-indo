@@ -21,7 +21,7 @@ function RemoteGuards.start(remotes: any?, rateLimit: any?)
 	for _, name in GUARDED_IGNORED do
 		local remote = remotesTable[name]
 		if remote and remote.OnServerEvent then
-			remote.OnServerEvent:Connect(function(player, ...)
+			remote.OnServerEvent:Connect(function(player)
 				if not limiter.allow(player, name, 2) then
 					return
 				end

@@ -1,0 +1,101 @@
+CHECK 114 — kincir_r8 water wheel (WORK_QUEUE section N, item 114)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Fresh Play, Server DataModel. Place NOT saved, nothing published.
+
+== Target (verbatim) ==
+"**`kincir_r8`: water wheel.** A small wooden waterwheel beside the river that rotates slowly (one
+shared loop, 6 degrees per second). **CHECKS:** `KINCIR_ROT`: the wheel angle changes by 3–9 degrees
+over 1 s; one instance only; `disable()` stops and removes it."
+
+== Implementation (all OFF by default; no shipping default changed) ==
+- NEW `src/shared/ModelMapKincirR8.luau`: pure, engine-API-free data. 21 original Parts in 6 kinds:
+  wheelroot 1, hub 1, axle 1, spoke 8, blade 8, support 2. Plain RGB via Color3 and built-in material
+  tokens Wood/WoodPlanks only — neither stale Painted nor stale Leaf used; no asset IDs, no brand,
+  no terrain edit, no engine API. `DEG_PER_SEC=6`. River mirror `riverCentreZ(x)=304+12 sin(2*pi*x/320)`,
+  `RIVER_HALF=14`, `BANK_OFFSET=18`, bridge crossing x in [-28,28]. ONE site x=-68, bank=+1,
+  z = riverCentreZ(-68)+18 = 310.33; max local Z half-extent 4 so the nearest wheel face sits exactly
+  14 studs from the centreline (outside the water channel), and x=-68 is clear of the bridge span and
+  all perahu sites.
+- NEW `src/server/World/LookDevKincirR8.luau`: pcall-guarded server applier. All 21 Parts anchored and
+  non-collidable, tagged stage + `KincirKind`; one tagged `wheelroot` part carries a numeric
+  `WheelAngle` attribute. The eight spokes, eight blades, hub and axle are parented under the single
+  root; because Anchored children do not follow a parent CFrame, the shared tick rewrites each cached
+  base CFrame by `CFrame.Angles(0,0,math.rad(angle))`. ONE `RunService.Heartbeat:Connect(tick)` for the
+  whole candidate; `angle = (angle + 6*dt) % 360`; `disconnectLoop()` disconnects inside pcall and nils
+  the connection BEFORE destroying the folder. Diagnostics `wheelRoot()`, `connectionCount()`,
+  `isApplied()`, `pump(dt)` (pump drives the exact same tick function deterministically). Exact prior
+  folder save/detach-restore; failures via `LookDevFailures`. No Terrain read/write.
+- `src/shared/LookDev.luau`: `kincir_r8` appended as ID 86 (85 -> 86); descriptor (`degPerSec=6`,
+  21 parts) + plan branch + header comment. `src/shared/LookDevReview.luau`: server path
+  `{ "World", "LookDevKincirR8" }`.
+- `tools/studio/review_check_r8.luau`: `KINCIR_ROT` appended LAST in ORDER (after
+  `IRRIGATION_WATER_ON_TERRACE`, so all 19 contiguous ORDER-literal assertions stay intact). New
+  `do...end` block at section `-- 9o. WORK_QUEUE section N item 114` (line 8004+). The single mutating
+  SERVER check resolves the SAME applier module instance via `LookDevReview.resolveContainer`, saves
+  the prior candidate, stages kincir, and PASSes only if: exactly one staging folder, exactly one
+  tagged `wheelroot` part matching `wheelRoot()`, exactly one Heartbeat connection, `isApplied()==true`,
+  `pump(1)` angle delta in [3,9] degrees, `disable()` leaves 0 folders / 0 roots / 0 connections, and
+  re-enable yields a FRESH distinct root with one folder / one connection and a `pump(1)` delta in
+  [3,9]. All missing-module/data/service/applier/enable paths call `kcFail` and emit
+  `emit("KINCIR_ROT", false, 0, "3..9", detail)` — never skip. Anti-vacuity comes from exact counts,
+  connection/applied diagnostics and readable angle attribute; no CanCollide filtering (all staged
+  parts are non-collidable). Prior candidate restored on every path. All existing checks, SAWAH_TOPS,
+  river checks and full_r9 are byte-identical.
+- NEW `tests/specs/kincir_r8_spec.luau` + registration in `tests/run.luau`: locks counts/MIN_PARTS,
+  valid material tokens (forbid both stale tokens), river mirror + bank site, `DEG_PER_SEC==6`,
+  `#IDS==86`/`IDS[86]`, Review path, plan, ORDER name + emit for `KINCIR_ROT`, applier strings
+  (`Heartbeat:Connect`, `Disconnect`, `connectionCount`, `pump`, `WheelAngle`), no asset IDs,
+  CANDIDATES pending row.
+- Count literals bumped 85 -> 86 across 39 specs plus 3 extra count literals
+  (`review_round3_bugfix_spec`, `sky_map_r6_spec`, `terrain_map_r6_spec`); every changed spec diff line
+  verified to be only a count literal. Index-locked `IDS[n]` checks intact.
+- `docs/v2/visual/CANDIDATES.md`: pending 6-column row, verdict `pending - review in Studio`, existing
+  `REVIEW_ROUND9.md` render path. No new camera (item 133 owns camera additions).
+
+== Method (fresh Play, Server VM, single-active stage) ==
+The 9o check block was executed as an equivalent ad hoc execute_luau probe (item 103/105/108..113
+precedent — the whole harness file cannot be injected with a pre-set candidate state), using the LIVE
+applier module registered by `LookDevReview.enable("kincir_r8", game, {studio=true})`. Because this
+item is about real rotation, two extra wall-clock measurements were added: a real `RunService.Heartbeat`
+angle delta across `task.wait(1)`, and angle stability after disable across another `task.wait(1)`.
+Zero kincir-specific staging warnings.
+
+== Verbatim check lines (single canonical run, all PASS) ==
+CHECK KINCIR_ROT PASS 6.0000 3..9
+STAGE folders=1 roots=1 conn=1 delta=6.0000 stageOk=true
+TEARDOWN folders=0 roots=0 conn=0 teardownOk=true
+DISABLED_ANGLE_STABLE a0=169.8185 a1=169.8185 stable=true
+REENABLE folders=1 roots=1 conn=1 freshDistinct=true delta=6.0000 reOk=true
+Exactly one folder, one tagged wheelroot and one Heartbeat connection while staged; `pump(1)` advanced
+the angle 6.0 degrees; `disable()` removed the folder, root and connection; the angle of the disabled
+root did not change across a full second (loop actually stopped, not just hidden); re-enable produced
+a DIFFERENT fresh root with one folder/one connection and a 6.0-degree `pump(1)` step.
+
+== Real wall-clock rotation evidence ==
+KINCIR_HEARTBEAT t0=47.1557 t1=53.1782 delta=6.0225 deg elapsed=1.024s rate=5.881 deg/s
+CHECK KINCIR_ROT_REAL PASS delta=6.0225 in [3,9] over 1.024s
+CHECK KINCIR_ROT_PUMP PASS delta=6.0000 in [3,9]
+KINCIR_CFRAME_MOVED true
+A real Heartbeat-driven rotation advanced 6.0225 degrees over 1.024 s (well inside the item's 3-9
+degree window and close to the specified 6 deg/s); `pump(1)` is exactly 6.0; the root CFrame actually
+changed between two samples, so the published angle is not decoupled from the visible geometry.
+
+== Site / non-vacuity evidence ==
+SITE x=-68.00 z=310.33 riverCentreZ=292.33 bankDist=18.00 channelHalf=14 nearestFaceDist=14.00 bridgeCross=[-28,28] inSpan=false
+CHECK KINCIR_BANK PASS (bankDist>=18 and nearestFace>=channelHalf and outside bridge span)
+DISCRIM goodDelta=6.0 ok=true badDelta=15.0 ok=false
+The wheel sits at bank offset 18 with its nearest face 14 studs from the centreline (channel edge) and
+outside the bridge crossing interval. The 6-degree step passes the [3,9] predicate while a synthetic
+15-degree step fails it; teardown leaves 0/0/0, so the check cannot pass without a live single wheel.
+
+== Validation / scope ==
+lune run tests/run.luau: All 2756 tests passed. selene src: 0 errors / 0 warnings / 0 parse errors.
+stylua --check clean on all changed Luau files. git diff --check clean. Play stopped after verification;
+no place saved, nothing published. No visual, copy or aural verdict. Candidate off by default; no
+shipping default changed. No asset IDs, no brand marks, no terrain edit, no new camera. All existing
+checks byte-identical; only one new check name.
+
+Status: SEEN-IN-STUDIO (fresh Play Server VM, kincir_r8 staged; KINCIR_ROT PASS 6.0000 3..9 with
+one folder/root/connection, real Heartbeat 6.0225 deg/1.024s, CFrame moves, disable removes all and
+stops rotation across 1 s, re-enable produces a fresh rotating wheel, zero staging warnings).

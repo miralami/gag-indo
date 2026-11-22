@@ -1,0 +1,72 @@
+[
+  {
+    "file": "templates/shirt_polisi.png",
+    "code": "shirt_polisi",
+    "role": "polisi",
+    "kind": "shirt",
+    "size": "585x559"
+  },
+  {
+    "file": "templates/pants_polisi.png",
+    "code": "pants_polisi",
+    "role": "polisi",
+    "kind": "pants",
+    "size": "585x559"
+  },
+  {
+    "file": "templates/shirt_pak_rt.png",
+    "code": "shirt_pak_rt",
+    "role": "pak_rt",
+    "kind": "shirt",
+    "size": "585x559"
+  },
+  {
+    "file": "templates/pants_pak_rt.png",
+    "code": "pants_pak_rt",
+    "role": "pak_rt",
+    "kind": "pants",
+    "size": "585x559"
+  },
+  {
+    "file": "templates/shirt_petani.png",
+    "code": "shirt_petani",
+    "role": "petani",
+    "kind": "shirt",
+    "size": "585x559"
+  },
+  {
+    "file": "templates/pants_petani.png",
+    "code": "pants_petani",
+    "role": "petani",
+    "kind": "pants",
+    "size": "585x559"
+  },
+  {
+    "file": "templates/shirt_pedagang.png",
+    "code": "shirt_pedagang",
+    "role": "pedagang",
+    "kind": "shirt",
+    "size": "585x559"
+  },
+  {
+    "file": "templates/pants_pedagang.png",
+    "code": "pants_pedagang",
+    "role": "pedagang",
+    "kind": "pants",
+    "size": "585x559"
+  },
+  {
+    "file": "templates/shirt_petani_wanita.png",
+    "code": "shirt_petani_wanita",
+    "role": "petani_wanita",
+    "kind": "shirt",
+    "size": "585x559"
+  },
+  {
+    "file": "templates/pants_petani_wanita.png",
+    "code": "pants_petani_wanita",
+    "role": "petani_wanita",
+    "kind": "pants",
+    "size": "585x559"
+  }
+]

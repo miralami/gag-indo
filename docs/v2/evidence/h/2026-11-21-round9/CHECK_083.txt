@@ -1,0 +1,36 @@
+CHECK 83 — flyers_r8 birds, butterflies, dragonflies (WORK_QUEUE section M, item 83)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Edit runtime injection; place NOT saved, nothing published.
+
+== Setup ==
+Injected new Shared.ModelMapFlyersR8 into the EDIT datamodel (SET). Fresh Play. Harness
+tools/studio/review_check_r8.luau pasted into execute_luau (Server VM). The two FLYER_* checks are
+READ-ONLY pure simulation: they require the pure Shared module (MapSpec-derived) and spawn/step each
+tier deterministically — no staging, no folder mutation, no real-time wait. Client applier not required.
+
+== Raw check lines (verbatim) ==
+CHECK FLYER_COUNT PASS 0 0 invalid tiers
+CHECK FLYER_COST PASS 0.0104 <0.3ms
+CHECK LOAD_FAILURES PASS 0 0
+CHECK CAMERA_CLEAR PASS 0 blocked/42 checked 0 blocked
+CHECK PERF_BUDGET PASS 334 500
+
+== Detail ==
+FLYER_COUNT: emit measured = number of invalid tiers (0), target string "0 invalid tiers" — all three
+FidelityTier tiers spawn valid per-kind counts within cap, failures []. Rendah: burung 6/6, kupu 10/10,
+capung 4/4 (total 20). Sedang: 6/6, 10/10, 6/6 (total 22). Tinggi: 6/6, 10/10, 8/8 (total 24).
+Each flyer is a body + two sine-flapping wings from original Parts; no asset IDs, no real brand. Home
+bands derived from MapSpec: burung high above the plaza, kupu by flower beds/sawah verge, capung by the
+river bridge. Per-tier cap honoured (capung 4/6/8; burung 6 and kupu 10 fixed).
+
+FLYER_COST: deterministic 60 s sim (3600 steps at dt=1/60) over the largest tier (24 flyers), total
+37.61 ms, average 0.0104 ms/step — well under the 0.3 ms/frame budget. The client applier uses this
+same pure step behind ONE Heartbeat loop.
+
+Both FLYER_* checks are NEW read-only checks in their own `do...end` scope (harness register limit).
+No existing check weakened. Candidate OFF by default; PERF_BUDGET 334/500 — equal to the default look,
+under the Sedang proxy. CANDIDATES.md records the flag.
+
+Status: SEEN-IN-STUDIO (pure deterministic sim in the Server VM). No place saved, nothing published.
+Visual grading remains the designer's — these checks prove caps and cost, not that the flyers look good.

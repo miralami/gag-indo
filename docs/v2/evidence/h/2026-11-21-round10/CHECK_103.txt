@@ -1,0 +1,105 @@
+CHECK 103 — full_r9 combined additive review set (WORK_QUEUE section N, item 103)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Real Play, Server DataModel. Place NOT saved, nothing published.
+
+== Target (verbatim) ==
+"`full_r9`: everything approved-or-pending at once. A candidate that stages, in order, the round-9
+scene candidates that don't conflict: hubveg_r8, plots_r8, sawah_r8, river_r8, pathedge_r8,
+facades_r8, plus whichever of items 79-85 are ticked. Skip buildings_r8 (staging lot) and the
+water/grade/sound variants. CHECKS: LOAD_FAILURES = 0; CROSS_OVERLAP = 0: no two candidates' parts
+with CanCollide true have intersecting bounding boxes (report the pair names on FAIL); LOOKDEV_LEAK
+PASS; PERF_BUDGET result recorded."
+
+== Deviation: additive review set, NOT a new LookDev ID (designer decision recorded in WORK_QUEUE) ==
+Implemented as an additive staging set via `LookDevReview.enableAdditive` in ONE lane (Server VM),
+not as a new candidate ID. Three reasons: (1) CROSS-VM — the set spans 9 SERVER appliers plus 4
+CLIENT appliers (animals/flyers/smoke/wind); each VM has its own LookDev/additiveIds registry and a
+server applier cannot require StarterPlayer client modules (LookDevReview.paths[].datamodel). One ID
+cannot stage both halves. (2) Adding an 80th ID breaks 33 specs asserting #LookDev.IDS==79 plus
+review_round3_bugfix_spec and candidate_gallery_spec. (3) Item 136 ADDITIVE_STAGE is precedent:
+multi-candidate staging lives in the harness/review recipe, not a new ID; the item's CHECKS verify
+staging/overlap/leaks, not IDS registration. All 13 appliers DO stage correctly together in the
+Server VM (verified below: 13 distinct folders) because ServerScriptService.Server.World.MapSpec is
+readable there; the 4 client appliers early-return in a Client VM (MapSpec is server-only), which is
+pre-existing behaviour — their item-82..85 objective checks ran via pure sims in the Server VM.
+
+== Set staged (13, order) ==
+SERVER (9): hubveg_r8, plots_r8, sawah_r8, river_r8, pathedge_r8, facades_r8, hubprops_r8,
+streetfurn_r8, spanduk_r8.
+CLIENT-applier candidates staged in the same Server VM (4): animals_r8, flyers_r8, smoke_r8, wind_r8.
+Skipped per item: buildings_r8, water_r8_a/b/c, grade_r8_a/b/c, sounds_r8 (designer picks one).
+
+== Method ==
+Fresh Play. pcall-required all 42 server applier modules so registration is not vacuous. Staged all
+13 via enableAdditive(id, game, {studio=true}); confirmed 13 distinct `<Module>_<id>` folders.
+For CROSS_OVERLAP: enumerated every BasePart in each of the 13 folders by name suffix, computed the
+full 3D AABB from CFrame*Size corners, binned into 8-stud XZ spatial hashes, and compared parts from
+EVERY pair of DIFFERENT candidate folders (78 folder pairs) with a 0.5-stud tolerance (touching faces
+are not overlaps). COLLIDABLE parts only (the item's literal CanCollide==true filter); an all-parts
+scan ran alongside as informational. Loader calls stage fresh within each run (disableAll first), so
+the two runs are independent. Then disableAll and the full 79-ID LOOKDEV_LEAK sweep.
+
+== ANTI-VACUITY (why the first naive result was rejected) ==
+A first pass filtered parts by CanCollide==true and got partCount=0 — a VACUOUS pass. Investigation:
+ALL round-9 lookdev dressing parts are intentionally CanCollide=false (decorative, non-blocking);
+there is no collidable geometry to overlap by design. NOT a folder-match bug — correct enumeration
+by folder finds 35,949 parts. Fixed by adding a guard: the check now requires stagedOk AND 13 staged
+folders AND parts>0 AND unreadable==0 AND not-capped. A 0-part / missing-folder / unreadable-part
+result now emits FAIL, never PASS. The literal spec check (collidable pairs) is reported together with
+the all-parts informational count so the empty collidable domain is explicit, not hidden.
+
+== Verbatim check lines — RUN 1 (13 candidates) ==
+CHECK CROSS_OVERLAP PASS 0 collidable pairs 0 pairs
+CHECK CROSS_ALLPARTS INFO 7 decorative pairs (all CanCollide=false, expected shared hubs)
+CHECK ANTIVAC parts=35949 collidable=0 folders=13 unreadable=0 stagedOk=true
+CHECK STAGE_COUNT PASS 13 13
+CHECK LOAD_FAILURES PASS 0 0
+CHECK PERF_BUDGET RECORDED 2041 500
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+
+Per-folder part counts (run 1): hubveg 916, plots 678, sawah 28481, river 286, pathedge 5008,
+facades 66, hubprops 155, streetfurn 116, spanduk 29, animals 86, flyers 72, smoke 6, wind 50.
+Total 35,949 parts, 0 collidable, 0 unreadable. 7 decorative (non-collidable) AABB overlaps across
+different folders, all expected in shared hubs:
+  hubveg_r8/Handle vs hubprops_r8/geometry_0
+  hubveg_r8/Leaves vs wind_r8/Trunk_tilt_pasar_pisang
+  facades_r8/FacadeDoorGauge vs spanduk_r8/Board
+  facades_r8/FacadePorchRoof_R vs wind_r8/SignPost_sign_polisi_1
+  hubprops_r8/geometry_0 vs spanduk_r8/Board
+  hubprops_r8/geometry_0 vs smoke_r8/TorchPost_torch_warung_flame
+  spanduk_r8/Cord vs wind_r8/Jemuran_jemuran_warung_2
+These are non-collidable decorative dressing in the same hub, not solid geometry conflicts; no
+CanCollide=true pair intersects. No pair names on FAIL (there is no FAIL).
+
+== Verbatim check lines — RUN 2 (determinism re-check, independent fresh staging) ==
+CHECK CROSS_OVERLAP PASS 0 collidable pairs 0 pairs
+CHECK ANTIVAC parts=35949 collidable=0 folders=13 unreadable=0 stagedOk=true
+CHECK STAGE_COUNT PASS 13 13
+CHECK PERF_BUDGET RECORDED 2041 500
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+Identical to run 1 on every measured value (parts, folders, perf 2041, leak 0).
+
+== PERF_BUDGET note ==
+2041 spawn-view BaseParts within 100 studs with the full set staged, vs proxy target 500 — recorded,
+NOT hidden. Expected: the default look is 334 (CHECK_097.txt) and individual heavy candidates
+(pathedge_r8 1146, hubveg_r8 799) already exceeded 500 alone; staging all 13 together multiplies it.
+Every candidate is off by default; this number is a measurement of the combined review set, not a
+shipping default and not a regression. No default look changed.
+
+== Check-source provenance ==
+No existing CROSS_OVERLAP emit existed (grep: only WORK_QUEUE.md:991). Implemented ad hoc in
+execute_luau for this evidence using the harness's own idioms: 3D AABB primitive from
+review_check_r8.luau:3709-3717, corner math from :1707-1731, CanCollide filter from :1738-1740,
+anti-vacuous guard pattern from VEG_OVERLAP :1506-1522, emit() format from :293-311. LOAD_FAILURES
+(:689-717, target 0), PERF_BUDGET (:719-801, proxy 500), LOOKDEV_LEAK (:8391-8505, target "0 leaks")
+re-run verbatim from the harness logic. No harness Luau source was changed.
+
+== Validation / scope ==
+lune run tests/run.luau: All 2676 tests passed. selene src: 0/0/0. No Luau source or spec changed.
+Play stopped after verification; no place saved, nothing published. No visual/copy/aural verdict.
+
+Status: SEEN-IN-STUDIO (13 candidates stage together in one Server lane; CROSS_OVERLAP 0 collidable
+pairs with anti-vacuity guard, LOAD_FAILURES 0, LOOKDEV_LEAK 0, PERF_BUDGET 2041 recorded; two
+deterministic runs). Deviation (additive set, no new ID) recorded under WORK_QUEUE "Decisions for
+designer".

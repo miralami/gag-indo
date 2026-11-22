@@ -20,6 +20,9 @@ local RANK_LABELS = {
 }
 
 local function clampNamaBaik(value: number): number
+	if type(value) ~= "number" or value ~= value then
+		return Law.namaBaikStart -- damaged save: restart from the default, never keep NaN
+	end
 	return math.clamp(math.floor(value), 0, Law.namaBaikMax)
 end
 
@@ -64,6 +67,9 @@ local function dailyAllowance(data, capKey: string, cap: number): number
 	local day = math.floor(os.time() / 86400)
 	local dayKey = "nbDay_" .. capKey
 	local countKey = "nbCount_" .. capKey
+	if type(data.cooldowns) ~= "table" then
+		data.cooldowns = {}
+	end
 	if data.cooldowns[dayKey] ~= day then
 		data.cooldowns[dayKey] = day
 		data.cooldowns[countKey] = 0
@@ -74,7 +80,7 @@ end
 -- Returns the amount actually applied.
 function RankService.addNamaBaik(player: Player, amount: number, capKey: string?): number
 	local data = PlayerData.get(player)
-	if not data or type(amount) ~= "number" or amount == 0 then
+	if not data or type(amount) ~= "number" or amount ~= amount or amount == 0 then
 		return 0
 	end
 
@@ -93,7 +99,11 @@ function RankService.addNamaBaik(player: Player, amount: number, capKey: string?
 		return 0
 	end
 
-	data.namaBaik = clampNamaBaik((data.namaBaik or Law.namaBaikStart) + applied)
+	local current = data.namaBaik
+	if type(current) ~= "number" or current ~= current then
+		current = Law.namaBaikStart
+	end
+	data.namaBaik = clampNamaBaik(current + applied)
 	RankService.sync(player)
 	return applied
 end

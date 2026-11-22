@@ -1,0 +1,14 @@
+[JuraganDesa] server started
+[ProfileStore]: Roblox API services available - data will be saved
+ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type
+ShippingLookR7: no PlotAnchor parts within 10 s; only flower beds painted
+CHECK LOAD_FAILURES PASS 0 0
+CHECK SKY_DEFAULT PASS rbxassetid://2835177931 rbxassetid://2835177931
+CHECK GRASS_ON_BEDS PASS 0 0
+CHECK HATS PASS 4 4
+CHECK PROPS_VISIBLE PASS 6 6
+CHECK PROPS_ON_GRASS PASS 0 0
+CHECK VEG_COUNT PASS 67 60
+CHECK VEG_SPECIES PASS 10 8

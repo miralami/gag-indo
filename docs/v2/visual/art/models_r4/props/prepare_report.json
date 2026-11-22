@@ -1,0 +1,368 @@
+[
+  {
+    "slot": "gerobak",
+    "source": "poly_pizza",
+    "page": "https://poly.pizza/m/f_LuAcP2_Yh",
+    "title": "Street Vendor Cart",
+    "author": "Alan Zimmerman",
+    "licence": "Creative Commons Attribution (CC BY 3.0)",
+    "licence_url": "https://creativecommons.org/licenses/by/3.0/",
+    "attribution": "\"Street Vendor Cart\" by Alan Zimmerman \u2014 Poly Pizza, CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/), source https://poly.pizza/m/f_LuAcP2_Yh",
+    "download_url": "https://static.poly.pizza/116d5231-487f-438c-8fa7-e98d401737ab.glb",
+    "licence_page": null,
+    "licence_text": null,
+    "raw_md5": "4e5673135f4315b8d68fa22984f17705",
+    "export_file": "docs/v2/visual/art/models_r4/props/export/gerobak.glb",
+    "export_md5": "2252360077007630a76bc556ecc01b95",
+    "source_faces": 8098,
+    "export_faces": 2027,
+    "colour_kind": "vertex_colour",
+    "colour_data": [
+      [
+        0.0,
+        0.3412,
+        0.7882
+      ],
+      [
+        0.0,
+        0.5216,
+        0.6588
+      ],
+      [
+        0.0118,
+        0.0118,
+        0.0118
+      ],
+      [
+        0.0588,
+        0.102,
+        0.1294
+      ],
+      [
+        0.1882,
+        0.0902,
+        0.0588
+      ],
+      [
+        0.1882,
+        0.2784,
+        0.3412
+      ],
+      [
+        0.2196,
+        0.7412,
+        0.8314
+      ],
+      [
+        0.2706,
+        0.549,
+        0.0706
+      ],
+      [
+        0.349,
+        0.349,
+        0.349
+      ],
+      [
+        0.6314,
+        0.698,
+        0.7216
+      ],
+      [
+        0.7412,
+        0.3294,
+        0.0588
+      ],
+      [
+        0.8314,
+        0.8902,
+        0.8706
+      ],
+      [
+        0.8706,
+        0.1216,
+        0.2902
+      ],
+      [
+        0.9098,
+        0.051,
+        0.0314
+      ],
+      [
+        1.0,
+        0.0902,
+        0.0118
+      ],
+      [
+        1.0,
+        0.3294,
+        0.0
+      ],
+      [
+        1.0,
+        1.0,
+        1.0
+      ]
+    ],
+    "glb": {
+      "bytes": 118876,
+      "images": 0,
+      "textures": 0,
+      "attributes": [
+        "COLOR_0",
+        "POSITION"
+      ],
+      "meshes": 1
+    },
+    "verified_textured": true
+  },
+  {
+    "slot": "sumur",
+    "source": "poly_pizza",
+    "page": "https://poly.pizza/m/1lK9mD0zDZw",
+    "title": "Well",
+    "author": "Jarlan Perez",
+    "licence": "Creative Commons Attribution (CC BY 3.0)",
+    "licence_url": "https://creativecommons.org/licenses/by/3.0/",
+    "attribution": "\"Well\" by Jarlan Perez \u2014 Poly Pizza, CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/), source https://poly.pizza/m/1lK9mD0zDZw",
+    "download_url": "https://static.poly.pizza/516aa94b-f969-4ddd-9dc2-4b414b1b22fc.glb",
+    "licence_page": null,
+    "licence_text": null,
+    "raw_md5": "189b84a8c3c96997c58fe93a4885110a",
+    "export_file": "docs/v2/visual/art/models_r4/props/export/sumur.glb",
+    "export_md5": "79e91ba04b8182e528eb5a89ac320409",
+    "source_faces": 3466,
+    "export_faces": 1999,
+    "colour_kind": "vertex_colour",
+    "colour_data": [
+      [
+        0.1882,
+        0.0902,
+        0.0588
+      ],
+      [
+        0.2196,
+        0.7412,
+        0.8314
+      ],
+      [
+        0.349,
+        0.349,
+        0.349
+      ],
+      [
+        0.6314,
+        0.698,
+        0.7216
+      ],
+      [
+        0.7412,
+        0.3294,
+        0.0588
+      ],
+      [
+        0.9098,
+        0.051,
+        0.0314
+      ]
+    ],
+    "glb": {
+      "bytes": 95976,
+      "images": 0,
+      "textures": 0,
+      "attributes": [
+        "COLOR_0",
+        "POSITION"
+      ],
+      "meshes": 1
+    },
+    "verified_textured": true
+  },
+  {
+    "slot": "lapak",
+    "source": "poly_pizza",
+    "page": "https://poly.pizza/m/bwgNq3z2SQs",
+    "title": "Small stand with Wheels",
+    "author": "Peter Simcoe",
+    "licence": "Creative Commons Attribution (CC BY 3.0)",
+    "licence_url": "https://creativecommons.org/licenses/by/3.0/",
+    "attribution": "\"Small stand with Wheels\" by Peter Simcoe \u2014 Poly Pizza, CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/), source https://poly.pizza/m/bwgNq3z2SQs",
+    "download_url": "https://static.poly.pizza/f148433a-9ffc-4e52-a3b7-1a79c89e8354.glb",
+    "licence_page": null,
+    "licence_text": null,
+    "raw_md5": "0d62d587ecea6a6ae0bb737e57c90d22",
+    "export_file": "docs/v2/visual/art/models_r4/props/export/lapak.glb",
+    "export_md5": "d2e4e064fef18bccc275a28f48b9af7d",
+    "source_faces": 1542,
+    "export_faces": 1542,
+    "colour_kind": "vertex_colour",
+    "colour_data": [
+      [
+        0.0118,
+        0.0118,
+        0.0118
+      ],
+      [
+        0.0588,
+        0.102,
+        0.1294
+      ],
+      [
+        0.349,
+        0.349,
+        0.349
+      ],
+      [
+        1.0,
+        0.8314,
+        0.0392
+      ]
+    ],
+    "glb": {
+      "bytes": 68052,
+      "images": 0,
+      "textures": 0,
+      "attributes": [
+        "COLOR_0",
+        "POSITION"
+      ],
+      "meshes": 1
+    },
+    "verified_textured": true
+  },
+  {
+    "slot": "pagar_bambu",
+    "source": "poly_pizza",
+    "page": "https://poly.pizza/m/dVwByrifEmj",
+    "title": "Bamboo Fence Panel",
+    "author": "Jarlan Perez",
+    "licence": "Creative Commons Attribution (CC BY 3.0)",
+    "licence_url": "https://creativecommons.org/licenses/by/3.0/",
+    "attribution": "\"Bamboo Fence Panel\" by Jarlan Perez \u2014 Poly Pizza, CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/), source https://poly.pizza/m/dVwByrifEmj",
+    "download_url": "https://static.poly.pizza/023404b1-6974-49a8-9560-23752ee9fb7c.glb",
+    "licence_page": null,
+    "licence_text": null,
+    "raw_md5": "e04bd653c8cee3e6af796a1a818b1f71",
+    "export_file": "docs/v2/visual/art/models_r4/props/export/pagar_bambu.glb",
+    "export_md5": "629ac74a7d9b2cb71017fdcdc882e0d7",
+    "source_faces": 30816,
+    "export_faces": 2000,
+    "colour_kind": "vertex_colour",
+    "colour_data": [
+      [
+        0.1882,
+        0.0902,
+        0.0588
+      ],
+      [
+        0.7412,
+        0.3294,
+        0.0588
+      ]
+    ],
+    "glb": {
+      "bytes": 99044,
+      "images": 0,
+      "textures": 0,
+      "attributes": [
+        "COLOR_0",
+        "POSITION"
+      ],
+      "meshes": 1
+    },
+    "verified_textured": true
+  },
+  {
+    "slot": "alat_tani",
+    "source": "poly_haven",
+    "page": "https://polyhaven.com/a/wooden_axe",
+    "title": "Wooden Axe",
+    "author": "Ulan Cabanilla (Poly Haven API: All)",
+    "licence": "Our assets are all licensed as CC0, which is effectively Public Domain",
+    "licence_url": "https://polyhaven.com/license",
+    "attribution": "\"Wooden Axe\" by Ulan Cabanilla \u2014 Poly Haven, CC0 1.0 (https://polyhaven.com/license), source https://polyhaven.com/a/wooden_axe",
+    "download_url": null,
+    "licence_page": null,
+    "licence_text": null,
+    "raw_md5": null,
+    "export_file": "docs/v2/visual/art/models_r4/props/export/alat_tani.glb",
+    "export_md5": "38aaac886d644b915494345730fc391f",
+    "source_faces": 3348,
+    "export_faces": 1999,
+    "colour_kind": "embedded_texture",
+    "colour_data": null,
+    "glb": {
+      "bytes": 4217064,
+      "images": 3,
+      "textures": 3,
+      "attributes": [
+        "POSITION",
+        "TEXCOORD_0"
+      ],
+      "meshes": 1
+    },
+    "verified_textured": true
+  },
+  {
+    "slot": "karung",
+    "source": "poly_haven",
+    "page": "https://polyhaven.com/a/cement_bag",
+    "title": "Cement Bag",
+    "author": "PierreB3D (Poly Haven API: All)",
+    "licence": "Our assets are all licensed as CC0, which is effectively Public Domain",
+    "licence_url": "https://polyhaven.com/license",
+    "attribution": "\"Cement Bag\" by PierreB3D \u2014 Poly Haven, CC0 1.0 (https://polyhaven.com/license), source https://polyhaven.com/a/cement_bag",
+    "download_url": null,
+    "licence_page": null,
+    "licence_text": null,
+    "raw_md5": null,
+    "export_file": "docs/v2/visual/art/models_r4/props/export/karung.glb",
+    "export_md5": "90822ce16afcf4c7a440ced0c9aee73c",
+    "source_faces": 844,
+    "export_faces": 844,
+    "colour_kind": "embedded_texture",
+    "colour_data": null,
+    "glb": {
+      "bytes": 3388604,
+      "images": 3,
+      "textures": 3,
+      "attributes": [
+        "POSITION",
+        "TEXCOORD_0"
+      ],
+      "meshes": 1
+    },
+    "verified_textured": true
+  },
+  {
+    "slot": "jemuran",
+    "source": "grab3d",
+    "page": "https://grab3d.com/models/props/clothesline/",
+    "title": "Clothesline (light, 1K PBR)",
+    "author": "Grab3D (manifest extras.generator: Created by grab3d)",
+    "licence": "CC0 1.0 Universal (CC0 1.0) Public Domain Dedication",
+    "licence_url": "https://creativecommons.org/publicdomain/zero/1.0/legalcode",
+    "attribution": "\"Clothesline\" by Grab3D \u2014 CC0 1.0 Universal, no attribution required (https://creativecommons.org/publicdomain/zero/1.0/legalcode), source https://grab3d.com/models/props/clothesline/, licence text https://grab3d.com/dl/clothesline/LICENSE.txt",
+    "download_url": "https://grab3d.com/dl/clothesline/clothesline-light.glb",
+    "licence_page": "https://grab3d.com/dl/clothesline/LICENSE.txt",
+    "licence_text": "To the extent possible under law, Grab3D has waived all copyright and related or neighboring rights to the 3D models, textures and images in this package. This work is published from: Germany.",
+    "raw_md5": "9453c77b2092d2539d5f9ff7b132d130",
+    "export_file": "docs/v2/visual/art/models_r4/props/export/jemuran.glb",
+    "export_md5": "4bb3f2c5cccc789faec2ef2cb6504a65",
+    "source_faces": 12396,
+    "export_faces": 2000,
+    "colour_kind": "embedded_texture",
+    "colour_data": null,
+    "glb": {
+      "bytes": 1527668,
+      "images": 2,
+      "textures": 2,
+      "attributes": [
+        "POSITION",
+        "TEXCOORD_0"
+      ],
+      "meshes": 1
+    },
+    "verified_textured": true
+  }
+]

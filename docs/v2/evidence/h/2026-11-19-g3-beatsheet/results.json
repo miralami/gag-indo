@@ -1,0 +1,38 @@
+{
+  "track": "H",
+  "date": "2026-11-19",
+  "topic": "G3 harness full beat sheet at desktop size",
+  "branch": "track/c-world-look",
+  "head": "90b4d9c",
+  "environment": {
+    "rojo": "localhost:34872",
+    "syncConfirmed": true,
+    "studioMode": "Play Solo",
+    "viewport": "desktop",
+    "freshProfile": true,
+    "freshProfileMethod": "VERIFY-TEMP store.Mock in-memory ProfileStore, reverted before commit",
+    "marketplaceInspection": "no local-server / team-test / multi-client tool in Studio MCP surface"
+  },
+  "driver": "Harness_Command / Harness_Result remotes; 0.35 s pacing to stay under the 4/s harness rate limit",
+  "steps": [
+    { "step": "enable", "ok": true, "message": "Harness on." },
+    { "step": "status", "ok": true, "cash": 50, "sack": 0, "padi": 5, "tiles": 0 },
+    { "step": "plant", "ok": true, "tile": 1, "cropId": "padi", "cash": 50, "sack": 0, "padi": 4, "tiles": 1 },
+    { "step": "ready", "ok": true, "shifted": 1 },
+    { "step": "harvest", "ok": true, "cash": 50, "sack": 1, "padi": 4, "tiles": 0 },
+    { "step": "sell", "ok": true, "channel": "pasar", "cash": 77, "sack": 0 },
+    { "step": "buy", "ok": true, "cropId": "padi", "amount": 2, "cash": 57, "padi": 6 },
+    { "step": "quest", "ok": true, "cash": 157, "padi": 6 },
+    { "step": "goto", "ok": true, "name": "plot" },
+    { "step": "status-final", "ok": true, "cash": 157, "sack": 0, "padi": 6, "tiles": 0, "tutorialStep": 5, "rank": "gurem" }
+  ],
+  "firstAttemptNote": "An unpaced first attempt dropped one rapid-fire quest command to the 4/s harness rate limit (no reply within 9 s); re-run with 0.35 s pacing passed all steps. Standalone quest re-check also returned ok (cash 57->157). Rate limit is documented behaviour, not a game bug.",
+  "outputLog": {
+    "gameCodeErrors": 0,
+    "gameCodeWarnings": 0,
+    "knownExternalLines": "BUG-003 rbxassetid://203785492 x3 (proven external by blank-place test, D-G4 accepted)",
+    "nonGameLines": "2x Assistant plugin version warning; AnalyticsService event-fired notices"
+  },
+  "verdict": "SEEN-IN-STUDIO",
+  "scope": "desktop half only; phone-size (iPhone 14) beat-sheet replay stays BLOCKED on the designer's device/emulator control via MCP"
+}

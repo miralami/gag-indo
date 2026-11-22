@@ -1,0 +1,38 @@
+CHECK 120 — rain_r8 client rain ring + morning mist (WORK_QUEUE section N, item 120)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Fresh Play, CLIENT DataModel. Place NOT saved, nothing published.
+
+== Target (verbatim) ==
+"**`rain_r8`: rain and mist.** A client rain effect (a ring of `ParticleEmitter` parts around the camera, at most 3 emitters, `Rate` ≤ 60 each) with a ground splash, and a morning mist `Atmosphere` bump. Only on when the season/weather state says `hujan`; off in `cerah`. **CHECKS:** `RAIN_EMITTERS` ≤ 3; `RAIN_OFF_CERAH`: emitters disabled when the weather is `cerah`; `RAIN_COST` under 0.5 ms per frame."
+
+== Implementation (OFF by default; no shipping default changed) ==
+- NEW `src/shared/ModelMapRainR8.luau`: pure data. id="rain_r8", FOLDER="LookDevRainR8_rain_r8", MAX_EMITTERS=3, MAX_RATE=60, SPLASH_Y=0.53 (documented Ground.Y 0.5 + 0.03; MapSpec unreachable from Client VM), EMITTERS = 3 specs (ring_front rate 50, ring_back rate 50, ground_splash rate 44; Lifetime/Speed min/max plain numbers; Size/Color byte triples; no asset IDs). MIST_DELTA=0.05, MIST_MAX=0.35. MAX_STEP_MS=0.5, SIM_SECONDS=60, DT=1/60. WEATHER_RAIN="hujan", WEATHER_CLEAR="cerah". No engine API / 6+ digit literal / Painted / Leaf / terrain write.
+- NEW CLIENT applier `src/client/World/LookDevRainR8.luau`: 3 anchored, non-collidable, transparent Part emitters in its own Folder, texture NOT set by the candidate (no asset ID; ParticleEmitter's engine-default texture remains). Lifetime/Speed = NumberRange, Size = NumberSequence from a keypoint table. One pcall-guarded `RunService.Heartbeat` connection follows `CurrentCamera.CFrame` and calls the SAME `pump(dt)` the cost check times; Disconnect + Folder Destroy on restore. Weather gate reads `ReplicatedStorage:GetAttribute("Cuaca")`, never writes it; deterministic `setCuacaForCheck`/`clearCuacaForCheck` override for checks only. Bounded Atmosphere.Density bump with exact LIFO restore. Diagnostics `emitterCount/isApplied/currentWeather/pump/lastCostMs`. No ColorCorrection/Bloom/SunRays/ClockTime/Terrain/DataStore/player/crop write.
+- `src/shared/LookDev.luau`: ID 94 appended (93 -> 94), descriptor + plan branch + header. `src/shared/LookDevReview.luau`: client path. `src/client/Main.client.luau`: boot require. `tools/studio/review_check_r8.luau`: ORDER tail `RAIN_EMITTERS/RAIN_OFF_CERAH/RAIN_COST` appended LAST after `SEASON_DISTINCT` (all existing ORDER literals byte-identical); new `-- 9u.` own do...end + `runRainChecks()` (client VM gate, client applier require, fail-all + 3 emits, prior candidate re-enabled, override cleared and folder destroyed on every path). Count literals 93 -> 94 across spec files; unrelated paving count `pasar_ground_r8_spec.luau expect(counts.total):toBe(94)` left intact. `tests/specs/rain_r8_spec.luau` registered; `client_error_boundary_spec.luau` mock updated. `docs/v2/visual/CANDIDATES.md`: 1 pending row. No new camera, no Strings change.
+
+== TWO REAL BUGS FOUND AND FIXED (no check weakened) ==
+BUG 1 — stale weather token. First implementation's `setCuacaForCheck` validated `Data.WEATHER_CERAH`, but pure data defines `WEATHER_CLEAR`. `setCuacaForCheck("cerah")` returned false and never set the override, so `RAIN_OFF_CERAH` could not be driven. FIX: applier + harness + spec use `WEATHER_CLEAR`; added a Lune regression test locking `setCuacaForCheck(Data.WEATHER_CLEAR)==true`, `currentWeather()` before/after override and after clear. Repo-wide grep: zero `WEATHER_CERAH` remains.
+BUG 2 — invalid NumberSequence constructor. First fresh Client VM: folder created but 0 emitter Parts; console warned once per emitter `NumberSequence.new(): table of NumberSequenceKeypoints expected.` Cause: `NumberSequence.new(kp0, kp1)` two-arg form. FIX: pass a keypoint TABLE (`NumberSequence.new({ kp0, kp1 })`), matching `src/client/Feel/ActionFeel.luau`. Added a Lune regression lock on the source form. Lifetime/Speed remain NumberRange (item 107 regression honoured).
+
+== Method (fresh Play, CLIENT VM; equivalent ad hoc execute_luau probes; whole harness cannot be injected with pre-set state) ==
+Modules synced from source (`Players.LocalPlayer.PlayerScripts.Client.World.LookDevRainR8` present, `#IDS==94`, last id `rain_r8`). Real `LookDev.enable("rain_r8",{studio=true})`; live emitter Parts, `ParticleEmitter` instances, `Atmosphere.Density`, `CurrentCamera` and weather override all read from the running Client VM. `RAIN_COST` times `A.pump(DT)` for `ceil(60/(1/60))=3600` steps with `os.clock` (exact KITE_COST precedent). No place saved.
+
+== Verbatim check lines (final canonical fresh-Play run, all PASS) ==
+CHECK RAIN_EMITTERS PASS 3 3
+CHECK RAIN_OFF_CERAH PASS 3 3
+CHECK RAIN_COST PASS 0.0042 <0.5ms
+Live emitters: Rain_ring_front Rate 50, Rain_ring_back Rate 50, Rain_ground_splash Rate 44; all Lifetime/Speed = NumberRange; diagnostic `emitterCount()==3`. Gate: `cerah` override disabled 3/3 emitters and a pump did NOT re-enable them; `hujan` re-enabled 3/3. Cost 0.0042 ms/step over 3600 steps (bound 0.5 ms). Camera-follow: emitter Parts within 40 studs of `CurrentCamera`. Mist: Atmosphere.Density 0.289762 -> 0.339762 on enable, restored to 0.289762 exactly on disable. Folder destroyed; `emitterCount()==0`, `isApplied()==false`, weather back to the live attribute (`hujan`); `LookDev.current()` empty at the end; Play stopped.
+
+== Non-vacuity / discrimination ==
+- Synthetic emitter Rate=100 was correctly flagged by the harness's exact `rate<=MAX_RATE` predicate (100 > 60).
+- Synthetic Atmosphere.Density=100 was correctly flagged as out of band (> 0.35).
+- Both gate directions proven (not just "off in cerah"): cerah 3/3 off, hujan 3/3 on.
+- Tail state clean: no folder, no applied candidate, no override leak.
+
+Note: an early ad hoc probe additionally required `Texture==""`; that criterion is NOT in the item text or the harness. The candidate sets no `Texture` and therefore introduces no asset ID; Roblox's engine-default ParticleEmitter texture remains. No check was weakened to obtain PASS.
+
+== Validation / scope ==
+lune run tests/run.luau: All 2825 tests passed (including 2 new rain regression tests). selene src: 0 errors / 0 warnings / 0 parse errors. stylua --check clean on all changed Luau files. git diff --check clean. All existing checks byte-identical. Three pre-existing R7 catalog ContentId warnings appeared, unrelated to this candidate. Visual "rain reads as rain / splash reads as splash / mist reads as morning" NOT judged — no screenshot pixels retained; no visual verdict claimed. No asset IDs invented, no publish, no place save.
+
+Status: SEEN-IN-STUDIO (fresh Client Play; RAIN_EMITTERS 3/3, RAIN_OFF_CERAH 3/3, RAIN_COST 0.0042ms<0.5ms; two real bugs fixed — stale WEATHER_CERAH token and invalid NumberSequence constructor; synthetic rate/mist discriminated; exact restore + no override leak). No visual or aural verdict.

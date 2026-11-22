@@ -1,0 +1,51 @@
+CHECK 85 — wind_r8 gentle wind and sway (WORK_QUEUE section M, item 85)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Edit runtime injection; place NOT saved, nothing published.
+
+== Setup ==
+Injected at runtime (not saved) into the EDIT datamodel: Shared.ModelMapWindR8, updated
+Shared.LookDev / Shared.LookDevReview, client applier PlayerScripts.Client.World.LookDevWindR8
+(via StarterPlayerScripts so it clones on Play), and ServerScriptService.Server.World.MapSpec+Ground.
+ServerScriptService does NOT replicate Edit->Client, so MapSpec+Ground were ALSO injected directly
+into the CLIENT datamodel at runtime before the check. This is review-only harness plumbing; the
+shipping client resolves MapSpec from ServerScriptService when a real Play has it. Fresh Play. The
+whole tools/studio/review_check_r8.luau was pasted into execute_luau in the CLIENT VM (WIND_* checks
+are CLIENT-ONLY and MUTATING, guarded by isClient); staging + read happened in one call.
+
+== Raw check lines (verbatim, CLIENT VM) ==
+CHECK WIND_SET PASS 2.9154759474226504 0 < M <= 12
+CHECK SWAY_TWEENS PASS 10 30
+CHECK WIND_RESTORE PASS 0 0
+CHECK LOAD_FAILURES PASS 0 0
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+CHECK PERF_BUDGET PASS 334 500
+(CAMERA_CLEAR is SERVER-only; re-read below.) Server-VM guards after the client cycle:
+CHECK CAMERA_CLEAR PASS 0 blocked/42 checked 0 blocked
+CHECK LOAD_FAILURES PASS 0 0
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+CHECK PERF_BUDGET PASS 334 500
+
+== Detail ==
+WIND_SET: workspace.GlobalWind baseline (0,0,0); after enable (2.5, 0, 1.5), magnitude 2.9155 —
+non-zero and <= 12. errors [].
+
+SWAY_TWEENS: applier created 10 TweenService sway tweens (6 jemuran laundry cloths + 4 hanging sign
+boards), 0 < 10 <= 30; 16 staged targets total. A separate staged probe over 60 Heartbeats confirmed
+the ONE shared Heartbeat tilt loop genuinely leans the 6 pisang/bambu Models: tiltActive=true, Euler X
+sampled -3.54deg, -3.29deg, -3.02deg, -2.70deg — a slow sine within the +/-4deg ceiling (MAX_TILT_DEG).
+tiltActive was false only in the synchronous first read (no frame had elapsed), not a defect.
+Original Parts only, no asset IDs, no real brand; positions derived from MapSpec hubs.
+
+WIND_RESTORE: after look.disable(), workspace.GlobalWind (0,0,0) equals the captured baseline and all
+16 staged target CFrames/pivots match the applier's saved originals to 1e-4 — mismatches [], errors [].
+GlobalWind and every CFrame are exactly restored; folder destroyed, LOOKDEV_LEAK 0.
+
+All three checks are NEW MUTATING client checks in their own `do -- 12a-wind` scope (harness register
+limit), guarded by isClient, emit on error, and restore any prior candidate. No existing check weakened.
+PERF_BUDGET 334/500 — equal to the default look, under the Sedang proxy. CANDIDATES.md records the flag.
+The existing src/client/World/Wind.luau (gameplay WindShake foliage sway) was NOT modified.
+
+Status: SEEN-IN-STUDIO (mutating enable/read/disable cycle in the Client VM). No place saved, nothing
+published. Visual grading remains the designer's — these checks prove wind vector, tween count and
+exact restore, not that the sway looks good.

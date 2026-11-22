@@ -135,29 +135,30 @@ function LeaderboardService.record(player: Player, force: boolean?)
 	end)
 end
 
-function LeaderboardService.fetchCategory(category: string): { { userId: number, name: string, value: number } }
+-- Returns the rows and whether the read succeeded, so a failed read can keep the last good board.
+local function fetchRows(category: string): ({ any }, boolean)
 	local store = getStore(category)
 	if not store then
-		return {}
+		return {}, false
 	end
 
 	local ok, pages = pcall(function()
 		return store:GetSortedAsync(false, TOP_COUNT)
 	end)
 	if not ok or not pages then
-		return {}
+		return {}, false
 	end
 
 	local okPage, current = pcall(function()
 		return pages:GetCurrentPage()
 	end)
 	if not okPage or type(current) ~= "table" then
-		return {}
+		return {}, false
 	end
 
 	local rows = {}
 	for _, item in current do
-		local userId = tonumber(item.key)
+		local userId = if type(item) == "table" then tonumber(item.key) else nil
 		if userId then
 			table.insert(rows, {
 				userId = userId,
@@ -166,12 +167,22 @@ function LeaderboardService.fetchCategory(category: string): { { userId: number,
 			})
 		end
 	end
-	return Leaderboard.top(rows, TOP_COUNT)
+	return Leaderboard.top(rows, TOP_COUNT), true
+end
+
+function LeaderboardService.fetchCategory(category: string): { { userId: number, name: string, value: number } }
+	local rows = fetchRows(category)
+	return rows
 end
 
 function LeaderboardService.refresh()
 	for _, category in Leaderboard.categories do
-		boards[category] = LeaderboardService.fetchCategory(category)
+		local okCall, rows, okRead = pcall(fetchRows, category)
+		if okCall and okRead then
+			boards[category] = rows
+		elseif boards[category] == nil then
+			boards[category] = {} -- nothing good yet; a failed read never blanks a good board
+		end
 	end
 	pcall(function()
 		Remotes.Leaderboard_Data:FireAllClients(boards)

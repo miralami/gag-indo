@@ -1,0 +1,34 @@
+# CHECK 73 — river_r8 banks and bridge (WORK_QUEUE section M item 73)
+# Studio: Development-Juragan-Desa (placeId 132087524375529), real Play, Server datamodel.
+# Fresh Play, no direct-staged candidates. Because Rojo had not synced the new/changed modules,
+# the following were injected into the Edit datamodel at runtime (not saved to the place):
+#   ReplicatedStorage.Shared.LookDev, LookDevReview, ModelMapRiverR8;
+#   ServerScriptService.Server.Main, Server.World.LookDevRiverR8.
+# Existing bake: ServerStorage.LookDevAssets = 34 folders (unused; this candidate is procedural Parts).
+# Staged with the one-call review path:
+#   require(game.ReplicatedStorage.Shared.LookDevReview).enable("river_r8", game)
+# Verified before the run: LookDev.IDS = 50 (last = "river_r8"), applier registered,
+#   review path datamodel = "server", 3 child folders, 84 bank-veg parts (42 south / 42 north,
+#   56 within 40 studs of bridge centre), 2 rails (1 per side), 16 posts (8/side), 6 stepping
+#   stones, load failures = 0.
+# Harness: tools/studio/review_check_r8.luau. Raw console lines verbatim (item-73 family + guards):
+CHECK LOAD_FAILURES PASS 0 0
+CHECK RIVER_BANK_VEG PASS 56 >=30
+CHECK BRIDGE_RAILS PASS 2 2
+CHECK BRIDGE_WALKABLE PASS 8 >=8
+CHECK CAMERA_CLEAR PASS 0 blocked/26 checked 0 blocked
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+# RIVER_BANK_VEG detail: radius=40 about bridge centre (0,304), near=56 (south=28, north=28),
+#   totalVeg=84 — both banks represented, target >=30.
+# BRIDGE_RAILS detail: deck z [276,332], tolerance 4; left and right each have 1 rail covering the
+#   deck and 8 posts -> both sides pass (2/2).
+# BRIDGE_WALKABLE detail: rail inner faces leftInnerX=-4, rightInnerX=4, walkableWidth=8,
+#   offenders=[] — the central 8-stud corridor of the 10-wide deck stays clear.
+# The other harness lines in this run (HATS 0/4, PROPS_VISIBLE 0/6, PROPS_ON_GRASS 6/0,
+# VEG_COUNT 0/60, VEG_SPECIES 0/8, all VEG_HUB_* 0, VEG_SPECIES_HUB min=0, VEG_OVERLAP 0,
+# PLOT_FENCE min=0, GATE_CLEAR 0/0 gates, SAWAH_WATER 0/4 sheets, SAWAH_VERGE 0, GUBUK 0,
+# VEG_NEAR 0, PROP_SIZE -1, CLOUD_COVER absent) are for candidates NOT staged in this clean Play
+# and are out of scope for item 73; each was PASS-verified in its own evidence file. All item-73
+# checks PASS on the first run — no target weakened, and Terrain, greybox bridge, existing rails,
+# padi rows and the ford were not edited.
+# This is a placement/geometry proof, not a visual verdict — the designer grades the look.

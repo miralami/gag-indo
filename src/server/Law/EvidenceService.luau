@@ -47,6 +47,16 @@ local tokens: { [string]: Token } = {}
 -- Distinct reporters per cheater (for VIRAL across several cheat events).
 local reportersByCheater: { [number]: { [number]: number } } = {}
 
+-- A damaged or old save may lack these tables; never index through nil.
+local function ensureTables(data)
+	if type(data.cooldowns) ~= "table" then
+		data.cooldowns = {}
+	end
+	if type(data.stats) ~= "table" then
+		data.stats = {}
+	end
+end
+
 local function rootPosition(player: Player): Vector3?
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
@@ -98,6 +108,7 @@ function EvidenceService.logCheat(
 		firstReporter = nil,
 	}
 	events[event.id] = event
+	ensureTables(data)
 	data.stats.cheats = (data.stats.cheats or 0) + 1
 
 	for _, player in Players:GetPlayers() do
@@ -180,6 +191,7 @@ local function report(player: Player, tokenId: string): boolean
 		Notify.send(player, "n_token_expired")
 		return false
 	end
+	ensureTables(data)
 	if os.time() < (data.cooldowns.reportReadyAt or 0) then
 		Notify.send(player, "n_report_cooldown")
 		return false
@@ -239,6 +251,7 @@ local function report(player: Player, tokenId: string): boolean
 		Notify.send(player, "n_report_no_cash")
 	end
 
+	ensureTables(cheaterData)
 	cheaterData.stats.timesReported = (cheaterData.stats.timesReported or 0) + 1
 
 	if countRecentReporters(cheater.UserId, now) >= Law.viralReporters then

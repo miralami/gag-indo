@@ -1,0 +1,48 @@
+{
+  "item": 18,
+  "date": "2026-11-19",
+  "status": { "specs": "LUNE-ONLY", "plot_walks": "SEEN-IN-STUDIO" },
+  "studio": {
+    "place": "Development-Juragan-Desa",
+    "placeId": 132087524375529,
+    "datamodel": "Server",
+    "mode_during_test": "Play Solo",
+    "module": "ServerScriptService.Server.World.NpcWalk",
+    "walkTo_type": "function",
+    "per_plot_final_xz_distance": {
+      "Plot_1": 0.0,
+      "Plot_2": 0.0,
+      "Plot_3": 0.0,
+      "Plot_4": 0.0,
+      "Plot_5": 0.0,
+      "Plot_6": 0.0,
+      "Plot_7": 0.0,
+      "Plot_8": 0.0,
+      "Plot_9": 0.0,
+      "Plot_10": 0.0
+    },
+    "all_plots_arrived": true,
+    "start_offset_studs": 8,
+    "stuck_fallback": {
+      "walkTo_returned": true,
+      "last_commanded_pivot_x": 60,
+      "fallback_to_goal": true
+    },
+    "console_game_code_errors": 0,
+    "place_saved": false,
+    "profile_save_called": false,
+    "left_in_mode": "Edit"
+  },
+  "lune": { "tests_passed": 1854, "new_cases": 9 },
+  "selene": { "errors": 0, "warnings": 0, "parse_errors": 0 },
+  "mutation_check": {
+    "description": "Reverting positionOf to a type-name guard fails only the native-vector case",
+    "mutated_result": "1 FAILED, 8 passed",
+    "fixed_result": "All 9 tests passed"
+  },
+  "limitations": [
+    "Village.police empty in this place (no designer NpcSpawn tags bound), so police caller not driven live",
+    "Play-Solo player had no assigned plot, so DebtCollector.summon not driven live",
+    "both callers' delegation locked by source-check spec; walker proven end to end at every plot"
+  ]
+}

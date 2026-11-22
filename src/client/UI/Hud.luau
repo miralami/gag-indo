@@ -16,7 +16,12 @@ local Visuals = require(Shared.Config.Visuals)
 local Audio = require(script.Parent.Parent.Audio)
 local Icons = require(script.Parent.Icons)
 local Theme = require(script.Parent.Theme)
+local NavBridge = require(script.Parent.NavBridge)
 local ActionFeel = require(script.Parent.Parent.Feel.ActionFeel)
+local MomentGuard = require(script.Parent.Parent.Feel.MomentGuard)
+
+-- A rarity reveal holds the fidelity tier steady for about as long as its toast is on screen.
+local REVEAL_MOMENT_SECONDS = 3.6
 
 -- Register "sack" fallback in Visuals.icons if missing.
 if not Visuals.icons["sack"] then
@@ -72,6 +77,8 @@ function Hud.mount(initialLang: string?)
 		(gui :: any).ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
 	end)
 	local revealToken = 0
+	local revealMoment = MomentGuard.new()
+	gui.Destroying:Connect(revealMoment.finish)
 
 	local topInset = 0
 	pcall(function()
@@ -222,7 +229,7 @@ function Hud.mount(initialLang: string?)
 	refreshEvent()
 
 	local function refreshStats()
-		cashLabel.Text = "Rp " .. Strings.formatNumber(player:GetAttribute("Cash") or 0, activeLang)
+		cashLabel.Text = t("cash_label", player:GetAttribute("Cash") or 0)
 		sackLabel.Text = string.format("%d/%d",
 			player:GetAttribute("HarvestCount") or 0,
 			player:GetAttribute("SackCapacity") or GameConfig.sackBaseCapacity
@@ -263,7 +270,7 @@ function Hud.mount(initialLang: string?)
 		Size = UDim2.new(1, -20, 0, 18),
 		Text = t("tutorial_card_title"),
 		Font = Theme.displayFont,
-		TextColor3 = Theme.merah,
+		TextColor3 = Theme.text,
 		TextScaled = false,
 		TextSize = 14,
 		TextXAlignment = Enum.TextXAlignment.Left,
@@ -524,6 +531,14 @@ function Hud.mount(initialLang: string?)
 	close.Activated:Connect(function()
 		shop.Visible = false
 	end)
+	-- WORK_QUEUE item 21: B/Escape closes the seed shop; selecting it focuses the X button.
+	NavBridge.register("shop", {
+		root = shop,
+		default = close,
+		onClose = function()
+			shop.Visible = false
+		end,
+	})
 	buySeedsButton.Activated:Connect(function()
 		shop.Visible = not shop.Visible
 	end)
@@ -592,6 +607,15 @@ function Hud.mount(initialLang: string?)
 				color = tier.color
 			end
 			ActionFeel.onHarvest(nil, tierName)
+			-- begin() replaces any open reveal (one end for it); only the newest token may end it.
+			revealToken += 1
+			local token = revealToken
+			revealMoment.begin()
+			task.delay(REVEAL_MOMENT_SECONDS, function()
+				if token == revealToken then
+					revealMoment.finish()
+				end
+			end)
 		elseif key == "n_almanak_page" or key == "n_almanak_new" then
 			Audio.play("sting_almanak")
 		elseif key == "n_rank_up" then

@@ -1,0 +1,50 @@
+[
+  {
+    "file": "templates/shirt_pak_rt.png",
+    "code": "shirt_pak_rt",
+    "role": "pak_rt",
+    "kind": "shirt",
+    "size": "585x559",
+    "asset_id": "92996938301042",
+    "asset_type": "Image",
+    "moderation_state": "Reviewing",
+    "operation_id": "0e703ee4-7412-4d21-8360-bb62699a6ef4",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "file": "templates/shirt_polisi.png",
+    "code": "shirt_polisi",
+    "role": "polisi",
+    "kind": "shirt",
+    "size": "585x559",
+    "asset_id": "133590758790821",
+    "asset_type": "Image",
+    "moderation_state": "Reviewing",
+    "operation_id": "1f4de52f-5e00-4ff7-9bff-4e96ed473db3",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "file": "templates/pants_polisi.png",
+    "code": "pants_polisi",
+    "role": "polisi",
+    "kind": "pants",
+    "size": "585x559",
+    "asset_id": "98235919851901",
+    "asset_type": "Image",
+    "moderation_state": "Reviewing",
+    "operation_id": "d3ed71ba-84ac-4c9b-9187-37889f6dd2dd",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "file": "templates/shirt_petani.png",
+    "code": "shirt_petani",
+    "role": "petani",
+    "kind": "shirt",
+    "size": "585x559",
+    "asset_id": "81581201405716",
+    "asset_type": "Image",
+    "moderation_state": "Reviewing",
+    "operation_id": "ba7bc917-d592-4945-b941-ad2e30da07fc",
+    "upload_route": "ROBLOX_API_KEY"
+  }
+]

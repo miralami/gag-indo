@@ -1,0 +1,79 @@
+{
+  "date": "2026-11-19",
+  "build": "track/c-world-look (after f31e38f), Rojo serving localhost:34872",
+  "place": "Development-Juragan-Desa, placeId 132087524375529, universeId 10776530981",
+  "studioInstance": "447c176b-1d7b-4b9c-a794-45912fea4b63",
+  "safety": "Play Solo only. Place never saved or published, no profile:Save() called. Play stopped and Studio returned to Edit.",
+
+  "instanceCounts": {
+    "note": "Server VM, full startup-built world. Before and after are identical because both fixes are client-only (Wind, CameraFeel) and do not build instances.",
+    "before": {
+      "totalBaseParts": 1706,
+      "totalDescendants": 3289,
+      "hubs": {
+        "pasar": { "model": "Pasar", "parts": 38, "descendants": 46, "prompts": 1 },
+        "gelap": { "model": "TengkulakGelap", "parts": 17, "descendants": 25, "prompts": 1 },
+        "warung": { "model": "Warung", "parts": 21, "descendants": 29, "prompts": 1 },
+        "ronda": { "model": "PosRonda", "parts": 27, "descendants": 34, "prompts": 0 },
+        "polisi": { "model": "PosPolisi", "parts": 18, "descendants": 26, "prompts": 1 },
+        "pakrt": { "model": "RumahPakRT", "parts": 51, "descendants": 59, "prompts": 1 }
+      }
+    },
+    "after": {
+      "totalBaseParts": 1706,
+      "totalDescendants": 3289,
+      "hubs": {
+        "pasar": { "parts": 38, "descendants": 46, "prompts": 1 },
+        "gelap": { "parts": 17, "descendants": 25, "prompts": 1 },
+        "warung": { "parts": 21, "descendants": 29, "prompts": 1 },
+        "ronda": { "parts": 27, "descendants": 34, "prompts": 0 },
+        "polisi": { "parts": 18, "descendants": 26, "prompts": 1 },
+        "pakrt": { "parts": 51, "descendants": 59, "prompts": 1 }
+      }
+    },
+    "regression": false
+  },
+
+  "connectionAudit": {
+    "leaksFound": [
+      {
+        "module": "src/client/World/Wind.luau",
+        "before": "GetInstanceRemovedSignal(WIND_TAG) and RunService.Heartbeat connected in start(); neither connection stored, no Disconnect path",
+        "after": "both connections stored; Wind.stop() disconnects them, restores swayed parts, resets state; Wind.isStarted() diagnostic added"
+      },
+      {
+        "module": "src/client/Feel/CameraFeel.luau",
+        "before": "CharacterAdded, CharacterRemoving and RunService.Heartbeat connected in start() and pushed to a connections table, but no stop/Disconnect existed",
+        "after": "CameraFeel.stop() disconnects all three, cancels the tween, unbinds the humanoid and resets started; CameraFeel.isStarted() added"
+      }
+    ],
+    "alreadyHadTeardown": [
+      "src/client/Feel/FidelityRuntime.luau (stop)",
+      "src/client/Feel/FpsSampler.luau (stop)",
+      "src/client/UI/RaidOverlay.luau (disconnect)",
+      "src/client/Minigames/Mencangkul.luau (disconnect)",
+      "src/client/Feel/PerfSwitches.luau (disconnect)",
+      "src/client/Minigames/Babat.luau (cleanup)"
+    ]
+  },
+
+  "allocationAudit": {
+    "hotPath": "src/client/World/Wind.luau heartbeat (about 20 Hz)",
+    "before": "tierSettings() built a fresh `pcall(function() return require(FidelityRuntime).settings() end)` closure and re-resolved the module every tick: 1 closure + 1 require per ~0.05 s (~20/s)",
+    "after": "FidelityRuntime resolved exactly once in start(); settings() is still read every tick (table lookup via a stored function reference, no new closure) so a tier change still lands on the next tick",
+    "specProof": "tests/specs/perf_hotpath_spec.luau - Wind.resolveCount() is 0 before start, 1 after, and still 1 after 50 heartbeat fires while settings() is called 50 times",
+    "closuresPerTick": { "before": 1, "after": 0 },
+    "requiresPerTick": { "before": 1, "after": 0 }
+  },
+
+  "studioCheck": {
+    "status": "SEEN-IN-STUDIO (load + no-regression); behaviour proven LUNE-ONLY by spec",
+    "clientModulesLoaded": { "Wind": true, "CameraFeel": true },
+    "newApiPresent": { "Wind.stop": true, "CameraFeel.stop": true },
+    "consoleBeforeAndAfter": "[JuraganDesa] server started; [ProfileStore] Roblox API services available; external Assistant plugin version warning only",
+    "newOutputErrors": 0,
+    "note": "execute_luau require runs in the MCP probe's own module cache, so resolveCount read 0 there even though the client mounted 11 PlayerGui children; the per-tick behaviour is therefore proven by the Lune spec, not asserted from the probe."
+  },
+
+  "tests": { "suite": 1732, "seleneErrors": 0, "seleneWarnings": 3, "seleneParseErrors": 0 }
+}

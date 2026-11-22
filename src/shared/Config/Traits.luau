@@ -1,3 +1,4 @@
+--!strict
 -- Traits ("Sifat") that stack on a produce stack (v2 PLAN §3.2).
 -- M0 defined the vocabulary and migrated the old `hot` flag to the "oplosan" trait; M1
 -- rolls the condition-driven traits on harvest (see server/Farm/TraitService.luau).

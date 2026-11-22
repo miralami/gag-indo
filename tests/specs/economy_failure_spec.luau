@@ -108,6 +108,14 @@ return function(t, Env, Fakes)
 			expect(fx.data.cash):toBe(cash)
 		end)
 
+		t:it("trySpend refuses when the saved cash is NaN or infinite", function()
+			local fx = makeEconEnv()
+			fx.data.cash = 0 / 0
+			expect(fx.Economy.trySpend(fx.player, 1)):toBe(false)
+			fx.data.cash = math.huge
+			expect(fx.Economy.trySpend(fx.player, 1)):toBe(false)
+		end)
+
 		t:it("Pasar price ignores NaN and infinite sale counts and keeps the price finite", function()
 			local fx = makeEconEnv()
 			local Market = fx.env:require("shared/Config/Market")

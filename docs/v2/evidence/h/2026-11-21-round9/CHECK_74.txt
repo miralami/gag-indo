@@ -1,0 +1,23 @@
+CHECK 74 — ring_r8 hills and forest ring (WORK_QUEUE section M item 74) — UNBLOCKED / PASS
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Fresh Play, Server datamodel, default look (no candidate staged).
+This file REPLACES the earlier BLOCKED evidence on this item (NO_PINES FAIL 254 0). The blocker was
+resolved by the authorized section-O default-look change (items 138/102, V-D4). Full detail:
+CHECK_138.txt in this folder.
+
+== Raw check lines (verbatim) ==
+CHECK RING_COUNT PASS 272 250
+CHECK RING_SPECIES PASS 4 4
+CHECK NO_PINES PASS 0 0
+CHECK PERF_BUDGET PASS 334 500
+
+== Detail ==
+272 tropical trees under Workspace.World.BackgroundForest, 4 species (bambu, kelapa, mangga, pisang),
+ring band 260-380 + hills/beyond-400 band 400-460, deterministic yaw and +/-15% scale, sunset
+corridor + sawah/Balai north + river south kept open. NO_PINES scans the whole workspace in the
+default look: 0. The pre-V-D4 top-level pine forest baked into the saved place is destroyed at
+build time. Targets unchanged: RING_COUNT >= 150 (item 74) / >= 250 (item 138), RING_SPECIES >= 4,
+NO_PINES = 0, PERF_BUDGET <= 500 (334 measured with the recorded 100-stud census method).
+
+Status: SEEN-IN-STUDIO. No place saved, nothing published. Visual grading remains the designer's.

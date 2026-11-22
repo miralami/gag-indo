@@ -1,0 +1,60 @@
+CHECK 147 — hubs_real_r9 real buildings on hubs (WORK_QUEUE section O, item 147)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Edit runtime injection; place NOT saved, nothing published.
+
+== Setup ==
+Injected new Shared.ModelMapHubsRealR9, updated Shared.LookDev + Shared.LookDevReview, and new
+ServerScriptService.Server.World.LookDevHubsRealR9 into the EDIT datamodel (all SET). Fresh Play.
+Harness tools/studio/review_check_r8.luau pasted into execute_luau (Server VM); staging and read in
+one call because the harness disables all candidates at the end.
+
+== Raw check lines (verbatim, hubs_real_r9 staged alone) ==
+CHECK HUB_FIT PASS 0 0
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+CHECK LOAD_FAILURES PASS 0 0
+CHECK CAMERA_CLEAR PASS 0 blocked/36 checked 0 blocked
+CHECK DOOR_CLEAR FAIL 0 6        (expected: no facade gauges staged)
+CHECK PATH_REACH FAIL 6 0        (expected: no facade/hubveg corridor gauges staged)
+CHECK PERF_BUDGET FAIL 692 500
+
+== Raw check lines (verbatim, facades_r8 + hubveg_r8 + hubs_real_r9 staged additive; authoritative) ==
+CHECK HUB_FIT PASS 0 0
+CHECK DOOR_CLEAR PASS 6 6
+CHECK PATH_REACH PASS 0 0
+CHECK FACADE_STRAY PASS 0 0
+CHECK VEG_OVERLAP PASS 0 0
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+CHECK CAMERA_CLEAR PASS 0 blocked/36 checked 0 blocked
+CHECK LOAD_FAILURES PASS 0 0
+CHECK PERF_BUDGET FAIL 1206 500
+
+HUB_FIT detail: 1 staged building each on pasar, gelap, warung, ronda, polisi, pakrt (6/6);
+0 offenders (all inside MapSpec footprint + 2 studs), 0 missing.
+DOOR_CLEAR / PATH_REACH correctly FAILED with hubs_real_r9 alone (facade door gauges and the hub-veg
+corridor gauges were not staged). With the documented additive set both PASS 6/6 and 0 blocked; the
+checks were not weakened.
+
+== Greybox hide / restore proof (verbatim measurements, Pasar "Plinth" body part + "Sign") ==
+Before stage:   body Transparency 0, CanCollide true;  Sign Transparency 0
+Staged:         body Transparency 1, CanCollide false; Sign Transparency 0 (unchanged, kept visible)
+                body attribute HubRealR9PrevTransparency = 0
+After disableAll: body Transparency 0, CanCollide true;  Sign Transparency 0
+                body attribute HubRealR9PrevTransparency = nil (removed)
+                staging folder LookDevHubsRealR9_hubs_real_r9 = gone
+All six greybox hub bodies (Pasar, TengkulakGelap, Warung, PosRonda, PosPolisi, RumahPakRT) use the
+same hide/restore path; each has exactly one Sign kept visible. LOOKDEV_LEAK 0 proves no folder leak.
+
+== Mapping (PROPOSAL, pending designer — no look verdict by an agent) ==
+pasar->indonesian_house, gelap->rumah_joglo, warung->warung_penyetan, ronda->nipa_hut,
+polisi->pendopo_jawa, pakrt->rumah_4. All ids resolved from Shared.ModelMapBuildingsR8 (verified
+Creator Store ids); no id invented. Each building scaled DOWN to fit its footprint with 0.25-stud
+inset, pivot at ground base / footprint centre facing -Z (item-146 convention), clone-first via
+LookDevAssetLoader. Candidate OFF by default; docs/v2/visual/art/BUILDING_KIT.md records the proposal.
+
+PERF_BUDGET recorded, FLAGGED not hidden: 692/500 (hubs_real alone), 1206/500 (additive facades +
+hubveg + hubs_real), over the Sedang proxy. Item 147 has no perf clause; no check weakened; default
+look stays 334/500. CANDIDATES.md records the flag.
+
+Status: SEEN-IN-STUDIO. No place saved, nothing published. Visual grading / final hub matches remain
+the designer's.

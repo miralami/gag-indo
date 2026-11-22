@@ -1,0 +1,3 @@
+## Process fix (round 8, item 65)
+
+The round-7 review found `ServerStorage.LookDevAssets` survived a Studio restart, meaning the place was probably saved after an Edit-mode LookDev bake. The bake must NOT be saved: after running `tools/studio/bake_lookdev_assets.luau` in the EDIT datamodel, do not press Ctrl+S and do not call `save_place`. Steps added in round 8 (item 65): (a) note before the bake whether `LookDevAssets` already has children; (b) close/reopen Studio WITHOUT saving and confirm the bake folders are gone — they are runtime-only edits; (c) confirm the place's version history shows no new version from the review session. Round-8 review session did not save the place; see `docs/v2/evidence/h/2026-11-21-round8/REVIEW_ROUND8.md`.

@@ -1,0 +1,41 @@
+CHECK 95 — Strings audit (WORK_QUEUE section M6, item 95)
+Datetime: 2026-11-21
+Session: Lune spec audit, no Studio (non-scene-affecting — no CHECK-from-Play needed).
+
+== Target (verbatim) ==
+"Strings audit. Add or extend a spec so that every `Strings.luau` key has a non-empty `id` and
+`en`, no leftover `TODO`/`lorem`/placeholder text, and no `id == en` for long strings (flag, don't
+fail, for loanwords). Grep `src/client` for hardcoded player-facing string literals in `Text =`
+assignments and move them into `Strings.luau`."
+
+== What changed ==
+Extended `tests/specs/strings_integrity_spec.luau` in place (no new spec, no Strings.luau change):
+  * Banned-word check extended to TODO/TBD/XXX/LOREM/IPSUM/DOLOR/"SIT AMET"/PLACEHOLDER, matched
+    case-insensitively over both id and en.
+  * New non-failing FLAG: long strings (id == en, >= 12 chars) emit
+    `[STRINGS FLAG] id==en long key=<key> value=<value>`, sorted by key for determinism. Uses print,
+    never expect()/fail — loanword/proper-noun call is the designer's. Added a non-failing determinism
+    test that rebuilds the sorted flag list.
+
+== Baseline audit (no defects needing a source change) ==
+src/shared/Strings.luau: 350 keys, all with non-empty id and en, 0 TODO/lorem/placeholder hits.
+30 keys have id == en; 2 are long (>=12 chars) and were FLAGGED (not failed):
+  [STRINGS FLAG] id==en long key=admin_title value=Admin — Juragan Desa
+  [STRINGS FLAG] id==en long key=raid_breaking value=BREAKING NEWS
+Hardcoded `Text = "..."` literals in src/client: 32 raw hits across 8 files (UI/Hud, UI/Phone,
+UI/RaidOverlay, UI/Minigame, UI/Admin, UI/Tiles, Minigames/Mencangkul, Minigames/Babat). Every one
+is empty or a technical glyph ("X", "[L]", "-", "<", "|||| 4G [===]") already covered by the spec's
+allowlist; ZERO word-like player-facing literals, ZERO single-quote word literals. Nothing to move
+into Strings.luau — no Strings.luau or src/client change was needed (verified, not assumed).
+
+== Validation ==
+lune run tests/run.luau: All 2676 tests passed (baseline 2672 + 3 iconmap_manifest_spec from the
+parallel item-96 lane + 1 determinism test from this spec); both flag lines appear verbatim above.
+selene src: 0 errors / 0 warnings / 0 parse errors.
+stylua --check on changed Luau: clean (HEAD file was byte-preserved stylua-dirty; formatting the
+pre-existing quote/if-then lines was legitimate, HEAD-dirty confirmed before formatting).
+git diff --check: clean.
+
+Status: audit spec extended, loanword flags emitted, no source-string defects found. Non-scene-
+affecting; no place saved, nothing published. Whether either flagged string should be differentiated
+is the designer's call — no visual/copy judgment made here.

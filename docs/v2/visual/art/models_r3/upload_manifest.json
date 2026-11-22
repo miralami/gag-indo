@@ -1,0 +1,222 @@
+[
+  {
+    "slot": "vegetation_r3/kelapa_cc0",
+    "file": "docs/v2/visual/art/models_r3/raw/vegetation_r3/palm_quaternius.ply.glb",
+    "family": "vegetation_r3",
+    "asset_id": "110335398915554",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "d8ae4f51-060a-4138-a83a-c7165733267d",
+    "source_type": "CC0_DOWNLOAD",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "slot": "vegetation_r3/bambu_cc0",
+    "file": "docs/v2/visual/art/models_r3/raw/vegetation_r3/bamboo_quaternius.ply.glb",
+    "family": "vegetation_r3",
+    "asset_id": "118009659509388",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "b4dfe5ee-0061-46b8-a4f2-63279bcbf324",
+    "source_type": "CC0_DOWNLOAD",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "slot": "npcs_r3/farmer_cc0",
+    "file": "docs/v2/visual/art/models_r3/raw/npcs_r3/farmer_quaternius.ply.glb",
+    "family": "npcs_r3",
+    "asset_id": "109551357778200",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "54331610-65e9-40e3-9353-e5aacabbbb72",
+    "source_type": "CC0_DOWNLOAD",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "slot": "npcs_r3/polisi_cc0",
+    "file": "docs/v2/visual/art/models_r3/raw/npcs_r3/swat_quaternius.ply.glb",
+    "family": "npcs_r3",
+    "asset_id": "95267863359958",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "c6b9d383-4899-428e-8f09-318b81f9cafc",
+    "source_type": "CC0_DOWNLOAD",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "slot": "buildings_r3/rumah",
+    "file": "docs/v2/visual/art/models_r3/export/buildings_r3/rumah_panggung.glb",
+    "family": "buildings_r3",
+    "asset_id": "85063409548405",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "c75c925d-64f1-413f-a35a-3d120eda2040",
+    "source_type": "AGENT_GENERATED",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "slot": "buildings_r3/kandang",
+    "file": "docs/v2/visual/art/models_r3/export/buildings_r3/kandang_ayam.glb",
+    "family": "buildings_r3",
+    "asset_id": "119940478952704",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "6d449d01-0dd6-46ec-8dfc-5b5d6fb81321",
+    "source_type": "AGENT_GENERATED",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "slot": "buildings_r3/gudang",
+    "file": "docs/v2/visual/art/models_r3/export/buildings_r3/gudang_sawmill.glb",
+    "family": "buildings_r3",
+    "asset_id": "111256303923528",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "dde0244e-2f82-4ebd-9567-dde75104be00",
+    "source_type": "AGENT_GENERATED",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "slot": "vegetation_r3/kelapa_alt",
+    "file": "docs/v2/visual/art/models_r3/export/vegetation_r3/palm_tropical.glb",
+    "family": "vegetation_r3",
+    "asset_id": "109494105307245",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "29798139-e342-40df-bf6d-64825e3f5e63",
+    "source_type": "AGENT_GENERATED",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "slot": "vegetation_r3/pisang",
+    "file": "docs/v2/visual/art/models_r3/export/vegetation_r3/banana_tropical.glb",
+    "family": "vegetation_r3",
+    "asset_id": "101217327819812",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "0ba36126-c58f-4165-aea6-655df5d4395f",
+    "source_type": "AGENT_GENERATED",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "slot": "vegetation_r3/mangga",
+    "file": "docs/v2/visual/art/models_r3/export/vegetation_r3/mango_tropical.glb",
+    "family": "vegetation_r3",
+    "asset_id": "121015860286403",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "bc61e92d-3f00-44a6-b78f-3e80585ce9ab",
+    "source_type": "AGENT_GENERATED",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "slot": "vegetation_r3/shrubs",
+    "file": "docs/v2/visual/art/models_r3/export/vegetation_r3/shrubs_tropical.glb",
+    "family": "vegetation_r3",
+    "asset_id": "130954290306373",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "1fe76c6f-a88c-4c45-b9f5-867c686cf845",
+    "source_type": "AGENT_GENERATED",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "slot": "props_r3/cart",
+    "file": "docs/v2/visual/art/models_r3/export/props_r3/cart_gerobak.glb",
+    "family": "props_r3",
+    "asset_id": "123070528502160",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "74b46974-f023-44ac-ba4c-a7d7ae0013d0",
+    "source_type": "AGENT_GENERATED",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "slot": "props_r3/well",
+    "file": "docs/v2/visual/art/models_r3/export/props_r3/well_sumur.glb",
+    "family": "props_r3",
+    "asset_id": "108779169207130",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "0b907e3b-4e59-4ca6-976c-4d0cec919f97",
+    "source_type": "AGENT_GENERATED",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "slot": "props_r3/stall",
+    "file": "docs/v2/visual/art/models_r3/export/props_r3/market_stall.glb",
+    "family": "props_r3",
+    "asset_id": "119525167329493",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "af2f4cda-6c66-4c0a-b3c9-dc08b3b08e91",
+    "source_type": "AGENT_GENERATED",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "slot": "props_r3/fence",
+    "file": "docs/v2/visual/art/models_r3/export/props_r3/fencing_bambu.glb",
+    "family": "props_r3",
+    "asset_id": "85094565897097",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "9778afdb-b56e-4698-828d-d500291394c8",
+    "source_type": "AGENT_GENERATED",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "slot": "props_r3/tools",
+    "file": "docs/v2/visual/art/models_r3/export/props_r3/tools_set.glb",
+    "family": "props_r3",
+    "asset_id": "110400413362502",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "05317dcd-d068-4068-be99-f27db33dcfb2",
+    "source_type": "AGENT_GENERATED",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "slot": "npcs_r3/villager_a",
+    "file": "docs/v2/visual/art/models_r3/export/npcs_r3/npc_petani_caping.glb",
+    "family": "npcs_r3",
+    "asset_id": "75743269173481",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "6f92b544-5fa1-4011-9f6b-17d9a34f6cf5",
+    "source_type": "AGENT_GENERATED",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "slot": "npcs_r3/villager_b",
+    "file": "docs/v2/visual/art/models_r3/export/npcs_r3/npc_pedagang.glb",
+    "family": "npcs_r3",
+    "asset_id": "100304009103314",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "5a7c8df7-5ae3-4951-ae82-4e44beb28575",
+    "source_type": "AGENT_GENERATED",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "slot": "npcs_r3/villager_c",
+    "file": "docs/v2/visual/art/models_r3/export/npcs_r3/npc_petani_wanita.glb",
+    "family": "npcs_r3",
+    "asset_id": "75017945133929",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "fb011612-e48d-4447-98a0-650322435f50",
+    "source_type": "AGENT_GENERATED",
+    "upload_route": "ROBLOX_API_KEY"
+  },
+  {
+    "slot": "npcs_r3/villager_d",
+    "file": "docs/v2/visual/art/models_r3/export/npcs_r3/npc_tukang_peci.glb",
+    "family": "npcs_r3",
+    "asset_id": "128549093376717",
+    "asset_type": "Model",
+    "moderation_state": null,
+    "operation_id": "3879391a-c9a1-433e-a4e4-f2706dc64470",
+    "source_type": "AGENT_GENERATED",
+    "upload_route": "ROBLOX_API_KEY"
+  }
+]

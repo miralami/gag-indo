@@ -1,0 +1,43 @@
+{
+  "date": "2026-11-19",
+  "item": 32,
+  "branch": "track/c-world-look",
+  "head": "76d8d4e",
+  "placeId": 132087524375529,
+  "studioId": "447c176b-1d7b-4b9c-a794-45912fea4b63",
+  "rojo": "localhost:34872",
+  "status": "SEEN-IN-STUDIO",
+  "target": "harness plays the full 9-step beat sheet at phone size with zero game-code errors or warnings",
+  "deviceMethod": "StudioDeviceSimulatorService:SetDeviceAsync('iphone_14') applied in EDIT datamodel BEFORE entering Play (setting it during Play leaves a 1x1 viewport). Real GUI viewport during Play = 749x389, GuiService inset 0,58.",
+  "viewport": "749x389",
+  "freshProfileMethod": "VERIFY-TEMP store.Mock in-memory ProfileStore in src/server/Data/PlayerData.luau; reverted before commit",
+  "identityRecorded": false,
+  "statusWords": ["SEEN-IN-STUDIO", "LUNE-ONLY", "UNVERIFIED", "BLOCKED"],
+  "allStepsOk": true,
+  "totalReplies": 9,
+  "steps": [
+    { "step": "1-enable", "ok": true, "message": "Harness on." },
+    { "step": "2-status", "ok": true, "cash": 50, "padi": 5, "tiles": 6, "planted": 0, "sack": 0, "tutorialStep": 1, "rank": "gurem" },
+    { "step": "3-plant", "ok": true, "cash": 50, "padi": 4, "tiles": 6, "planted": 1, "sack": 0, "tutorialStep": 2, "rank": "gurem" },
+    { "step": "4-ready", "ok": true, "cash": 50, "padi": 4, "tiles": 6, "planted": 1, "sack": 0, "tutorialStep": 2, "rank": "gurem" },
+    { "step": "5-harvest", "ok": true, "cash": 50, "padi": 4, "tiles": 6, "planted": 0, "sack": 1, "tutorialStep": 3, "rank": "gurem" },
+    { "step": "6-sell", "ok": true, "cash": 77, "padi": 4, "tiles": 6, "planted": 0, "sack": 0, "tutorialStep": 4, "rank": "gurem", "lifetimeEarned": 27 },
+    { "step": "7-buy", "ok": true, "cash": 57, "padi": 6, "tiles": 6, "planted": 0, "sack": 0, "tutorialStep": 5, "rank": "gurem", "lifetimeEarned": 27 },
+    { "step": "8-quest", "ok": true, "cash": 157, "padi": 6, "tiles": 6, "planted": 0, "sack": 0, "tutorialStep": 5, "rank": "gurem", "lifetimeEarned": 27 },
+    { "step": "9-status", "ok": true, "cash": 157, "padi": 6, "tiles": 6, "planted": 0, "sack": 0, "tutorialStep": 5, "rank": "gurem", "lifetimeEarned": 27 }
+  ],
+  "matchesBaseline": true,
+  "baseline": "docs/v2/evidence/h/2026-11-19-regression-replay/results.json (desktop G3: cash 50->77->57->157, tutorialStep 1->5)",
+  "q2": {
+    "gameCodeErrors": 0,
+    "gameCodeWarnings": 0,
+    "externalNotices": [
+      "Assistant plugin version changed ef6b1b3 -> 9bb6530 (x2, external plugin)",
+      "ContentId rbxassetid://203785492 failed: Asset type does not match requested type (x3, BUG-003, accepted exclusion D-G4)",
+      "AnalyticsService LogOnboardingFunnelStepEvent / LogCustomEvent / LogEconomyEvent / LogFunnelStepEvent notices"
+    ],
+    "bug003Recurred": false,
+    "outputLog": "output.log"
+  },
+  "note": "Command spacing >=300ms was required: the harness rate limit is 4/s, and firing all nine back-to-back made harvest get rate-limited (returned a stale reply). First attempt at 0.3s spacing failed at sell ('sack is empty'); a clean fresh-profile run with a first-new-reply collector and 300ms spacing passed every step. The first-new reply (pending[before+1]) was read rather than the last to avoid a stale-reply race."
+}

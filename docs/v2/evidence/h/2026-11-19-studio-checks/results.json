@@ -1,0 +1,70 @@
+{
+  "build": "track/c-world-look @ a53e92b (items 1-3 of WORK_QUEUE), Rojo serving localhost:34872",
+  "place": "Development-Juragan-Desa, placeId 132087524375529, universeId 10776530981",
+  "studioInstance": "447c176b-1d7b-4b9c-a794-45912fea4b63",
+  "date": "2026-11-19",
+  "method": "require the real Rojo-synced ModuleScripts in the Roblox engine via Studio MCP execute_luau; pure/config modules in Edit mode, CabaiEvent + headroom in a Play Solo Server VM (real created Remotes and the built 1706-part World)",
+  "safety": "place never saved or published; no profile:Save(); in-memory LiveConfig/GameConfig overrides restored; fabricated Edit-mode Remotes folder destroyed; Play stopped and Studio returned to Edit",
+
+  "fidelityTier": {
+    "method": "FidelityTier.new({clock=fn}) then controller.setOverride(tier), read get()/getOverride()/settings()",
+    "Rendah": { "get": "Rendah", "particleRate": 0.4, "particleLifeScale": 0.6, "foliageSwayRange": 25, "localLights": "none", "smallPartShadows": "off", "rain": "sheet", "cameraDoF": false, "ambientLife": "minimal" },
+    "Sedang": { "get": "Sedang", "particleRate": 0.7, "particleLifeScale": 1, "foliageSwayRange": 50, "localLights": "key", "smallPartShadows": "near", "rain": "splashes", "cameraDoF": false, "ambientLife": "half" },
+    "Tinggi": { "get": "Tinggi", "particleRate": 1.0, "particleLifeScale": 1, "foliageSwayRange": 80, "localLights": "all", "smallPartShadows": "on", "rain": "full", "cameraDoF": true, "ambientLife": "full" }
+  },
+
+  "tierScaleConsumers": {
+    "Rendah": { "emitCount(base20)": 8, "rate(base10)": 4, "lifetime(0.35,0.65)": [0.21, 0.39], "swayRange": 25, "swayWeight(near,mid,far)": [1, 0.5, 0] },
+    "Sedang": { "emitCount(base20)": 14, "rate(base10)": 7, "lifetime(0.35,0.65)": [0.35, 0.65], "swayRange": 50, "swayWeight(near,mid,far)": [1, 0.5, 0] },
+    "Tinggi": { "emitCount(base20)": 20, "rate(base10)": 10, "lifetime(0.35,0.65)": [0.35, 0.65], "swayRange": 80, "swayWeight(near,mid,far)": [1, 0.5, 0] },
+    "windOffsetFor(seed=1.23,t=2.5)": { "rotationDeg": -2.767, "offsetStuds": -0.083, "withinLimits": true }
+  },
+
+  "cropStages": {
+    "bibit": { "stem": 0.6, "crown": 0.7 },
+    "tumbuh": { "stem": 1.6, "crown": 1.5 },
+    "siap": { "stem": 3.4, "crown": 2.4 },
+    "selection(growSeconds=60,bibitMax=20)": { "elapsed0": "bibit", "elapsed30": "tumbuh", "elapsed60": "tumbuh", "ready": "siap" }
+  },
+
+  "cabaiEvent": {
+    "timed_auto": { "active": true, "cabaiMultiplier": 3, "padiMultiplier": 1, "bannerAttribute": true, "endsAtMinusNow": 300, "countdownSeconds": 300 },
+    "forced_on": { "active": true, "cabaiMultiplier": 3, "padiMultiplier": 1, "bannerAttribute": true, "endsAt": 0, "note": "admin-forced has no countdown by design" },
+    "forced_off": { "active": false, "cabaiMultiplier": 1, "padiMultiplier": 1, "bannerAttribute": false, "endsAt": 0 }
+  },
+
+  "debtCollectorCutsceneHooks": {
+    "eventsReceived": [
+      { "kind": "debt_collector", "state": "summoned", "waiting": true, "playerName": "VERIFY-TEMP" },
+      { "kind": "debt_collector", "state": "dismissed", "waiting": false, "playerName": "VERIFY-TEMP" }
+    ],
+    "afterUnsubscribeEmitsIgnored": true
+  },
+
+  "npcArchetypes": {
+    "order": ["pakrt", "tengkulak", "polisi"],
+    "pakrt": { "displayName": "Pak RT", "silhouette": "Broad torso, tall peci", "exaggeratedFeature": "Large moustache", "accessory": "Peci + clipboard", "outfit": ["bambu", "kunyit", "tinta"], "voice": "Warm, procedural, nosy" },
+    "tengkulak": { "displayName": "Tengkulak", "silhouette": "Forward-leaning, narrow shoulders", "exaggeratedFeature": "Heavy brow", "accessory": "Sling pouch", "outfit": ["tinta", "genteng", "bambu"], "voice": "Quiet, bargaining cadence" },
+    "polisi": { "displayName": "Polisi Desa", "silhouette": "Upright, squared stance", "exaggeratedFeature": "Oversized cap", "accessory": "Fictional dark-blue badge", "outfit": ["malam", "indigo", "kertas"], "voice": "Formal, generic fictional authority" }
+  },
+
+  "headroom": {
+    "spec": { "ground": 0.5, "headroom": 9.5, "requiredMinY": 10.0, "partsChecked": "Roof, RoofRidge, Awning, Spanduk, KunyitTrim, MalamTrim" },
+    "hubs": {
+      "pasar": { "model": "Pasar", "partsChecked": 5, "lowestPartY": 10.0, "passesSpec": true, "offenders": [], "raycastClearsHeadroom": true },
+      "gelap": { "model": "TengkulakGelap", "partsChecked": 3, "lowestPartY": 10.0, "passesSpec": true, "offenders": [], "raycastClearsHeadroom": true },
+      "warung": { "model": "Warung", "partsChecked": 4, "lowestPartY": 10.0, "passesSpec": true, "offenders": [], "raycastClearsHeadroom": true },
+      "ronda": { "model": "PosRonda", "partsChecked": 6, "lowestPartY": 13.0, "passesSpec": true, "offenders": [], "raycastClearsHeadroom": true },
+      "polisi": { "model": "PosPolisi", "partsChecked": 5, "lowestPartY": 10.0, "passesSpec": true, "offenders": [], "raycastClearsHeadroom": true },
+      "pakrt": { "model": "RumahPakRT", "partsChecked": 8, "lowestPartY": 11.258, "passesSpec": true, "offenders": [], "raycastClearsHeadroom": true }
+    }
+  },
+
+  "seasonPresets": {
+    "order": ["hujan", "kemarau", "pancaroba"],
+    "goldenHour": { "minClock": 16.0, "maxClock": 17.0 },
+    "hujan": { "growth": 1.1, "labelKey": "season_hujan", "clockTime": 16.2, "brightness": 1.8, "fogEnd": 1400 },
+    "kemarau": { "growth": 0.9, "labelKey": "season_kemarau", "clockTime": 16.9, "brightness": 3.0, "fogEnd": 3000 },
+    "pancaroba": { "growth": 1.0, "labelKey": "season_pancaroba", "clockTime": 17.0, "brightness": 2.5, "fogEnd": 3500 }
+  }
+}

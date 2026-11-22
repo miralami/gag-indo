@@ -1,0 +1,40 @@
+CHECK 96 — IconMap coverage spec (WORK_QUEUE section M6, item 96)
+Datetime: 2026-11-21
+Session: Lune spec audit, no Studio (non-scene-affecting — no CHECK-from-Play needed).
+
+== Target (verbatim) ==
+"IconMap coverage. A spec that every `IconMap` slot resolves to a non-zero asset ID recorded in
+`ASSET_MANIFEST.md`, and that no ID appears twice by mistake."
+
+== New spec: tests/specs/iconmap_manifest_spec.luau (registered in tests/run.luau) ==
+Pure Lune — no engine dependency. Reads `shared/IconMap` + `shared/IconMapR3` via Env, and
+`docs/v2/visual/art/ASSET_MANIFEST.md` via @lune/fs.
+
+CAVEAT locked in the spec: `IconMap.*.id` is 0 BY DESIGN for all 27 slots (round-2 fallback slots).
+The non-zero asset IDs live in `IconMap.candidateIds` (the off-by-default `icons` candidate) and
+`IconMapR3.ids`. The spec checks candidateIds, never the deliberately-zero entry.id.
+
+Three checks:
+  1. 27 slots across 4 families (crops 12 / currency 2 / tiers 5 / phoneApps 8), each a non-empty
+     slot key, entry.id == 0 (by design), and a non-zero integer candidateId; no candidate key
+     outside the four families.
+  2. Every candidateId is recorded in the ASSET_MANIFEST.md fenced CSV icon rows (9-column schema,
+     ID = 7th column). Parses all `icon.*` / `icon_r3.*` rows; guards against a vacuous pass by
+     requiring >= 27 parsed rows; fail-loud with the exact missing `slot=id` offenders.
+  3. No ID appears twice: 27 pairwise-distinct candidate IDs; no overlap with IconMapR3.ids (r3 IDs
+     are separate uploads for the same slots, never a legitimate reuse — documented in-file).
+
+== Measured baseline (all PASS) ==
+slots: 27; families 12/2/5/8; candidate IDs: 27, all > 0 and numeric.
+manifest rows parsed: 55 icon rows (28 round-2 + 27 round-3); 27/27 candidate IDs found; 0 missing.
+duplicates: 0 within r2, 0 r3-internal, 0 r2/r3 overlap.
+
+== Validation ==
+lune run tests/run.luau: All 2676 tests passed (3 new PASS from this spec).
+selene src: 0 errors / 0 warnings / 0 parse errors.
+stylua --check on new spec + tests/run.luau: clean.
+git diff --check: clean.
+
+Status: coverage spec added; every IconMap slot resolves to a real manifest-recorded non-zero ID,
+no duplicates. No invented IDs, no manifest rows changed. Non-scene-affecting; no place saved,
+nothing published.

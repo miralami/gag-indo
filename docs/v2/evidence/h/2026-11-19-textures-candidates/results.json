@@ -1,0 +1,81 @@
+{
+  "date": "2026-11-19",
+  "item": 5,
+  "round": 2,
+  "branch": "track/c-world-look",
+  "placeId": 132087524375529,
+  "universeId": 10776530981,
+  "studioId": "447c176b-1d7b-4b9c-a794-45912fea4b63",
+  "rojo": "localhost:34872",
+  "status": "SEEN-IN-STUDIO",
+  "target": "7 tileable agent-made hero-texture CANDIDATES per TEXTURES.md, uploaded, recorded, and applied behind an off-by-default LookDev material preset",
+  "candidateRule": "all assets CANDIDATES awaiting designer yes/no; not approved, not shipped on by default",
+  "statusWords": ["SEEN-IN-STUDIO", "LUNE-ONLY", "UNVERIFIED", "BLOCKED"],
+  "creator": { "type": "User", "id": 172146044 },
+  "auth": "Roblox Studio MCP open_cloud_invoke token (asset:read/asset:write); NOT the ROBLOX_API_KEY env var; no key printed/logged/committed",
+  "generation": {
+    "script": "docs/v2/visual/art/textures/src/generate_textures.py",
+    "contactSheet": "docs/v2/visual/art/textures/render/contact_sheet.png",
+    "count": 7,
+    "size": "512x512 RGBA, tileable",
+    "validityCheck": "all 7 files 512x512 RGBA; seam check passed (opposite-edge jumps <= interior jumps + 8)",
+    "agentVisualGrade": "none - no image-input support in this session; render provided for designer yes/no only"
+  },
+  "uploads": {
+    "route": "POST /assets/v1/assets (assetType=Image) -> GET /assets/v1/operations/{id}",
+    "allModerationApproved": true,
+    "note": "texture_sawah briefly Reviewing then Approved on re-poll",
+    "ids": {
+      "texture_bambu": 86020876968095,
+      "texture_genteng": 121899778984239,
+      "texture_seng": 116077927961929,
+      "texture_paving": 70537329110423,
+      "texture_sawah": 121312141770783,
+      "texture_kertas": 102834761172815,
+      "texture_tanah": 95694392312399
+    },
+    "manifest": "docs/v2/visual/art/ASSET_MANIFEST.md"
+  },
+  "wiring": {
+    "idsLiveIn": "src/shared/TextureMap.luau candidateIds (Visuals.textures slots stay 0)",
+    "lookDevCandidate": "textures (pure data only, idsSource pointer, no numeric literals)",
+    "applier": "src/client/World/LookDevTextures.luau",
+    "bootstrap": "src/client/Main.client.luau pcall(require, ...) at boot",
+    "default": "off - built-in material + palette colour fallback",
+    "surfaceTarget": "SurfaceAppearance is MeshPart-only (Studio-verified: parenting to greybox Pasar Parts throws); adapter targets imported v2 prop_*/kit_* MeshParts"
+  },
+  "studioRoundTrip": {
+    "method": "Play Solo, fresh Client VM; require Shared.LookDev + Shared.TextureMap + the LookDevTextures adapter from LocalPlayer.PlayerScripts, then LookDev.enable('textures')/disable()",
+    "note": "Edit VM had a stale require cache for LookDev (3 IDs) even after Rojo sync and Source touch; Play creates a fresh VM that loads the synced 4-ID source. execute_luau Client context is a separate VM from LocalScripts, so the adapter was required directly to register it.",
+    "ids": "plaza_lighting,police_walkin,icons,textures",
+    "hasApplier": true,
+    "enableOk": true,
+    "disableOk": true,
+    "currentOn": "textures",
+    "slotsBefore": "0,0,0,0,0,0,0",
+    "slotsEnabled": "86020876968095,121899778984239,116077927961929,70537329110423,121312141770783,102834761172815,95694392312399",
+    "slotsRestored": "0,0,0,0,0,0,0",
+    "populatedSlotCount": 7,
+    "usingCandidates": "false -> true -> false",
+    "surfaceAppearanceCountBefore": 0,
+    "surfaceAppearanceCountEnabled": 10,
+    "surfaceAppearanceCountRestored": 0,
+    "surfaceSamples": [
+      "prop_crate@prop_crate_v2=rbxassetid://86020876968095",
+      "prop_motor@prop_motor_v2=rbxassetid://116077927961929",
+      "kit_hut@kit_hut_v2=rbxassetid://121899778984239",
+      "kit_wall@kit_wall_v2=rbxassetid://86020876968095",
+      "prop_barrel@prop_barrel_v2=rbxassetid://116077927961929",
+      "prop_gerobak@prop_gerobak_v2=rbxassetid://86020876968095",
+      "prop_pasar_stall@prop_pasar_stall_v2=rbxassetid://86020876968095",
+      "kit_fence@kit_fence_v2=rbxassetid://86020876968095"
+    ]
+  },
+  "validation": {
+    "lune": "All 1939 tests passed (up from 1933; 6 new texture/LookDev specs)",
+    "selene": "0 errors / 0 warnings / 0 parse errors",
+    "gallery": "docs/v2/visual/CANDIDATES.md",
+    "specs": ["tests/specs/texturemap_spec.luau", "tests/specs/lookdev_candidates_spec.luau"]
+  },
+  "savedOrPublished": false
+}

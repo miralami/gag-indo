@@ -1,0 +1,41 @@
+{
+  "run": "client loop, 1800 s, 6-tile padi plant -> ready -> harvest -> sell pasar -> buy padi 1",
+  "date": "2026-11-19",
+  "item": 29,
+  "status": "SEEN-IN-STUDIO",
+  "studio": "Development-Juragan-Desa, placeId 132087524375529, Play Solo, harness in-memory",
+  "freshProfileMethod": "VERIFY-TEMP store.Mock in-memory ProfileStore, reverted before commit",
+  "probe": "injected SoakProbe LocalScript in PlayerScripts; writes ReplicatedStorage.SoakData folder attributes every 5 cycles and at done",
+  "elapsedSeconds": 1801.71,
+  "cycles": 234,
+  "done": true,
+  "calls": { "plant": 1404, "harvest": 1404, "ready": 234, "sell": 234, "buy": 234 },
+  "failures": { "plant": 1339, "harvest": 1339, "sell": 178, "buy": 174 },
+  "lastFailure": {
+    "plant": "no padi seed",
+    "harvest": "harvest refused on tile 6 (empty, still growing, or the sack is full)",
+    "sell": "sack is empty",
+    "buy": "shop refused padi x1 (stock, rank or cash)"
+  },
+  "failureInterpretation": "Expected graceful refusals, not defects: the probe buys only 1 padi per cycle but attempts 6 plants, so seeds run out and later plants/harvests/sells refuse with clear messages. Same class as the 2026-11-14 baseline soak (104 plant + 20 buy refusals). No stale replies, no stuck loop: the driver ran all 234 cycles to the deadline and the economy still advanced (cash 50 -> 945, rank gurem -> petani, lifetimeEarned 1495).",
+  "clientMemoryMb": { "samples": 235, "first": 2617.57, "last": 2586.09, "min": 2578.21, "max": 2618.38, "deltaMb": -31.48 },
+  "serverMemoryMb": { "start": 2617.5, "end": 2587.3 },
+  "leakDetected": false,
+  "stuckStateDetected": false,
+  "desyncDetected": false,
+  "raidGossip": {
+    "g5SessionStartEpoch": 1795057439,
+    "g5GossipAtEpoch": 1795057749,
+    "elapsedSeconds": 310,
+    "targetSeconds": 420,
+    "underTarget": true,
+    "marker": "scripted_raid_gossip"
+  },
+  "finalStatus": { "cash": 945, "padi": 0, "tiles": 0, "tilesOwned": 6, "sack": 0, "tutorialStep": 5, "rank": "petani", "lifetimeEarned": 1495 },
+  "baseline": "docs/v2/evidence/h/2026-11-14-soak/soak.json",
+  "console": "output.log (zero game-code errors; only external Assistant warnings and AnalyticsService notices)",
+  "notCovered": [
+    "ten-player / multi-client half - BLOCKED, no local-server/team-test tool (h/2026-11-19-q5-multiclient/)",
+    "explicit client/server state desync diff not scripted this run; no desync symptom observed in stable final status"
+  ]
+}

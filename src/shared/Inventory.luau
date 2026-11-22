@@ -1,3 +1,4 @@
+--!strict
 -- Inventory: the v3 generic item bag (v2 PLAN §7.1). `items[itemId] = count` holds
 -- consumables (amplopPremium, jaminanKilat, ...) and seeds (`seed_<crop>`), so adding an
 -- item never needs a new save field.
@@ -9,12 +10,19 @@ local Inventory = {}
 local SEED_PREFIX = "seed_"
 
 local function bag(data): { [string]: number }
-	data.items = data.items or {}
+	if type(data.items) ~= "table" then
+		data.items = {}
+	end
 	return data.items
 end
 
+-- A damaged count (non-number, NaN, infinite, negative) reads as 0, so it can never be spent.
 function Inventory.get(data, itemId: string): number
-	return bag(data)[itemId] or 0
+	local count = bag(data)[itemId]
+	if type(count) ~= "number" or count ~= count or count == math.huge or count < 0 then
+		return 0
+	end
+	return count
 end
 
 -- Returns how many were actually added.
@@ -62,11 +70,7 @@ end
 
 -- Snapshot for the replicated state module (copy, never the live table).
 function Inventory.snapshot(data): { [string]: number }
-	local out = {}
-	for itemId, count in bag(data) do
-		out[itemId] = count
-	end
-	return out
+	return table.clone(bag(data))
 end
 
 return Inventory

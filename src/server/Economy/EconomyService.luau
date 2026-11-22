@@ -43,6 +43,8 @@ function EconomyService.onSale(hook: (Player, number) -> ())
 	saleHook = hook
 end
 
+local cheatSaleHandler: ((Player, string, number, Vector3) -> ())? = nil
+
 function EconomyService.onCheatSale(handler: (Player, string, number, Vector3) -> ())
 	cheatSaleHandler = handler
 end
@@ -113,7 +115,7 @@ function EconomyService.trySpend(
 		return false
 	end
 	amount = math.floor(amount)
-	if data.cash < amount then
+	if not isFiniteNumber(data.cash) or data.cash < amount then
 		Notify.send(player, "n_not_enough_cash")
 		return false
 	end
@@ -253,10 +255,13 @@ function EconomyService.sellAll(player: Player, channel: string)
 		return
 	end
 	local ordalMultiplier = if player:GetAttribute("Pass_Ordal") then ORDAL_SALE_BONUS else 1
-	-- Nama Baik bonus/penalty: 50 is baseline 1.0, 0 is 0.95, 100 is 1.05
+	-- Nama Baik bonus/penalty: 50 is baseline 1.0, 0 is 0.95, 100 is 1.05 (with the shipped 5%
+	-- config). Derive BOTH the scale and the clamp from the config so tuning namaBaikMaxBonus
+	-- actually changes the payout instead of being silently capped by a hardcoded +-0.05 (BUG-015).
 	local namaBaik = data.namaBaik or Law.namaBaikStart
 	local namaBaikScale = (namaBaik - Law.namaBaikStart) / Law.namaBaikStart
-	local namaBaikMultiplier = 1 + math.clamp(namaBaikScale * (MarketConfig.namaBaikMaxBonus or 0.05), -0.05, 0.05)
+	local maxBonus = MarketConfig.namaBaikMaxBonus or 0.05
+	local namaBaikMultiplier = 1 + math.clamp(namaBaikScale * maxBonus, -maxBonus, maxBonus)
 	local total = math.min(marketValue * ordalMultiplier * namaBaikMultiplier, EconomyService.MAX_CASH)
 	-- Refuse before any produce is removed: a non-finite payout must never erase the sack.
 	if not isFiniteNumber(total) then

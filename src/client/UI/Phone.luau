@@ -18,11 +18,14 @@ local Strings = require(Shared.Strings)
 local Remotes = require(Shared.Remotes)
 local Audio = require(script.Parent.Parent.Audio)
 local ClientState = require(script.Parent.Parent.State)
+local NavBridge = require(script.Parent.NavBridge)
 
-local Icons = require(script.Parent.Icons)
 local Theme = require(script.Parent.Theme)
+local Icons = require(script.Parent.Icons)
+local Widgets = require(script.Parent.PhoneWidgets)
 local Evidence = require(script.Parent.Evidence)
 local PhoneLayout = require(Shared.PhoneLayout)
+local LazyPages = require(script.Parent.LazyPages)
 
 local player = Players.LocalPlayer
 
@@ -35,82 +38,24 @@ function Phone.setLanguage(lang: string)
 	end
 end
 
-local function clearChildren(frame: Instance)
-	for _, child in frame:GetChildren() do
-		if child:IsA("GuiObject") then
-			child:Destroy()
-		end
-	end
-end
+-- Generic view helpers live in PhoneWidgets (code-health split); keep the local names so every
+-- page below calls exactly the same function it did before the move.
+local clearChildren = Widgets.clearChildren
+local sectionLabel = Widgets.sectionLabel
+local scrollPage = Widgets.scrollPage
 
-local function sectionLabel(parent: Instance, text: string, order: number, iconName: string?): Frame
-	local row = Theme.new("Frame", {
-		LayoutOrder = order,
-		Size = UDim2.new(1, 0, 0, 26),
-		BackgroundTransparency = 1,
-		Parent = parent,
-	})
-	local offset = 0
-	if iconName then
-		Icons.make(iconName, {
-			Position = UDim2.new(0, 0, 0, 2),
-			Size = UDim2.fromOffset(22, 22),
-			Parent = row,
-		})
-		offset = 26
-	end
-	local label = Theme.label({
-		Position = UDim2.new(0, offset, 0, 0),
-		Size = UDim2.new(1, -offset, 1, 0),
-		Text = text,
-		TextColor3 = Theme.merah,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Parent = row,
-	})
-	label.TextSize = 18
-	label.Font = Theme.displayFont
-	return row
-end
-
-local function scrollPage(parent: Instance, name: string): ScrollingFrame
-	local page = Theme.new("ScrollingFrame", {
-		Name = name,
-		Size = UDim2.fromScale(1, 1),
-		BackgroundTransparency = 1,
-		BorderSizePixel = 0,
-		ScrollBarThickness = 4,
-		ScrollingDirection = Enum.ScrollingDirection.Y,
-		CanvasSize = UDim2.new(),
-		AutomaticCanvasSize = Enum.AutomaticSize.Y,
-		Parent = parent,
-	}, {
-		Theme.new("UIListLayout", {
-			SortOrder = Enum.SortOrder.LayoutOrder,
-			Padding = UDim.new(0, 8),
-		}),
-		Theme.new("UIPadding", {
-			PaddingLeft = UDim.new(0, 4),
-			PaddingRight = UDim.new(0, 8),
-			PaddingTop = UDim.new(0, 6),
-			PaddingBottom = UDim.new(0, 24),
-		}),
-	})
-	return page
-end
-
-function Phone.mount(initialLang: string?)
-	-- Default language is Indonesian ("id").
-	local activeLang = if initialLang == "en" then "en" else "id"
+-- Builds the device (frame, home grid, app tiles, wiring) on the first open, not at mount.
+-- `ctx` carries the always-present pieces made by Phone.mount: gui, toggle and the shared
+-- language state. Returns the open function and the language setter for the built device.
+local function buildDevice(ctx: any)
+	local activeLang: string = ctx.state.lang
 	local Hud = require(script.Parent.Hud)
+	local gui: ScreenGui = ctx.gui
+	local toggle: TextButton = ctx.toggle
 
 	local t = function(key: string, ...: any): string
 		return Strings.get(activeLang, key, ...)
 	end
-
-	-- Above the HUD (DisplayOrder 10) so the dim backdrop covers the Next Goal card and stats.
-	local gui = Theme.screenGui("Phone", 20)
-	-- The scrim must cover the whole screen, including the top-bar strip where the HUD goal card sits.
-	gui.IgnoreGuiInset = true
 
 	-- Full-screen scrim. Tapping outside the device closes the phone.
 	local root = Theme.new("Frame", {
@@ -273,6 +218,8 @@ function Phone.mount(initialLang: string?)
 		Parent = header,
 	})
 
+	local homeBarHeight = PhoneLayout.homeBarHeight
+
 	-- Content: fills the screen between the top bar and the home bar.
 	local content = Theme.new("Frame", {
 		Name = "Content",
@@ -284,7 +231,6 @@ function Phone.mount(initialLang: string?)
 	})
 
 	-- Home bar: a touch-friendly bar at the bottom. Inside an app it goes home; on home it closes the phone.
-	local homeBarHeight = PhoneLayout.homeBarHeight
 	local homeBar = Theme.new("TextButton", {
 		Name = "HomeBar",
 		AnchorPoint = Vector2.new(0, 1),
@@ -306,50 +252,14 @@ function Phone.mount(initialLang: string?)
 	}, { Theme.corner(nil, 3) })
 
 	-- Closing is always possible: the X, the home bar on home, and a tap outside the device.
-	local toggle: TextButton
+	-- App pages are built on open (LazyPages); closing the phone tears them down again.
+	local registry: any
 	local function closePhone()
 		Audio.play("ui_close")
 		root.Visible = false
+		registry:closeAll()
 		toggle.Visible = true
 	end
-
-	-- The only top-right control: a small phone. Hidden while the phone is open.
-	toggle = Theme.new("TextButton", {
-		Name = "PhoneButton",
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -10, 0, 10),
-		Size = UDim2.fromOffset(44, 64),
-		BackgroundColor3 = Theme.ink,
-		BorderSizePixel = 0,
-		AutoButtonColor = true,
-		Text = "",
-		Parent = gui,
-	}, {
-		Theme.corner(nil, 10),
-		Theme.new("UIStroke", { Color = Theme.inkSoft, Thickness = 2 }),
-		Theme.new("UISizeConstraint", { MinSize = Vector2.new(44, 64), MaxSize = Vector2.new(56, 80) }),
-	})
-	local lit = Theme.new("Frame", {
-		Name = "LitScreen",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.new(1, -8, 1, -12),
-		BackgroundColor3 = Theme.malam,
-		BorderSizePixel = 0,
-		Parent = toggle,
-	}, {
-		Theme.corner(nil, 6),
-		Theme.new("UIGradient", { Color = ColorSequence.new(Theme.malam, Theme.indigo), Rotation = 90 }),
-	})
-	local litLabel = Theme.label({
-		Name = "Label",
-		Size = UDim2.fromScale(1, 1),
-		Text = t("hud_phone"),
-		Font = Theme.displayFont,
-		TextColor3 = Theme.paper,
-		Parent = lit,
-	})
-	Theme.new("UITextSizeConstraint", { MaxTextSize = 14, MinTextSize = 9, Parent = litLabel })
 
 	-- Home grid: column count and cell size are set by applyLayout (3 portrait, 4 landscape).
 	local homeGrid = Theme.new("UIGridLayout", {
@@ -415,18 +325,6 @@ function Phone.mount(initialLang: string?)
 	workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(watchCamera)
 	watchCamera()
 
-	local pages: { [string]: ScrollingFrame } = {
-		phone = scrollPage(content, "PagePhone"),
-		kebun = scrollPage(content, "PageKebun"),
-		pinjol = scrollPage(content, "PagePinjol"),
-		tugas = scrollPage(content, "PageTugas"),
-		cheat = scrollPage(content, "PageCheat"),
-		dekor = scrollPage(content, "PageDekor"),
-	}
-	for _, page in pages do
-		page.Visible = false
-	end
-
 	-- Apps with `page` open a screen inside the phone; apps with `action` open a panel elsewhere.
 	local appDefs = {
 		{ id = "phone", icon = "phone", label = "phone_tab_phone", color = Theme.malam },
@@ -440,7 +338,6 @@ function Phone.mount(initialLang: string?)
 	}
 
 	local currentScreen = "home"
-	local refreshCurrent: () -> () = function() end
 	local appLabels: { [string]: TextLabel } = {}
 
 	local function showScreen(screen: string)
@@ -458,12 +355,8 @@ function Phone.mount(initialLang: string?)
 			titleLabel.Size = UDim2.new(1, -154, 1, 0)
 			titleLabel.Text = t("phone_tab_" .. screen)
 		end
-		for name, page in pages do
-			page.Visible = name == screen
-		end
-		if screen ~= "home" then
-			refreshCurrent()
-		end
+		-- Only the current app page exists: the others are destroyed, this one is built and filled.
+		registry:show(if screen == "home" then nil else screen)
 	end
 
 	backButton.Activated:Connect(function()
@@ -515,7 +408,7 @@ function Phone.mount(initialLang: string?)
 			TextWrapped = true,
 			Parent = tile,
 		})
-		Theme.new("UITextSizeConstraint", { MaxTextSize = 14, MinTextSize = 10, Parent = label })
+		Theme.new("UITextSizeConstraint", { MaxTextSize = 14, MinTextSize = 11, Parent = label })
 		appLabels[app.id] = label
 		tile.Activated:Connect(function()
 			Audio.play("ui_click")
@@ -538,7 +431,7 @@ function Phone.mount(initialLang: string?)
 	}
 
 	local function refreshPhoneTab()
-		local page = pages.phone
+		local page = registry:get("phone")
 		clearChildren(page)
 		local order = 1
 
@@ -708,7 +601,7 @@ function Phone.mount(initialLang: string?)
 		end
 		cheatSignature = signature
 
-		local page = pages.cheat
+		local page = registry:get("cheat")
 		clearChildren(page)
 		local order = 1
 
@@ -829,7 +722,7 @@ function Phone.mount(initialLang: string?)
 		end
 		decorSignature = signature
 
-		local page = pages.dekor
+		local page = registry:get("dekor")
 		clearChildren(page)
 		local order = 1
 		sectionLabel(page, t("phone_tab_dekor"), order, "hat")
@@ -919,7 +812,7 @@ function Phone.mount(initialLang: string?)
 		end
 		kebunSignature = signature
 
-		local page = pages.kebun
+		local page = registry:get("kebun")
 		clearChildren(page)
 		local order = 1
 		local used = player:GetAttribute("GudangUsed") or 0
@@ -1072,7 +965,7 @@ function Phone.mount(initialLang: string?)
 
 	---------------------------------------------------------------- pinjol tab
 	local function refreshPinjolTab()
-		local page = pages.pinjol
+		local page = registry:get("pinjol")
 		clearChildren(page)
 		local order = 1
 
@@ -1135,7 +1028,7 @@ function Phone.mount(initialLang: string?)
 				LayoutOrder = order,
 				Size = UDim2.new(1, 0, 0, 26),
 				Text = t("phone_pinjol_clear"),
-				TextColor3 = Theme.daun,
+				TextColor3 = Theme.text,
 				TextXAlignment = Enum.TextXAlignment.Left,
 				Parent = page,
 			})
@@ -1162,7 +1055,7 @@ function Phone.mount(initialLang: string?)
 
 	---------------------------------------------------------------- tugas tab
 	local function refreshTugasTab()
-		local page = pages.tugas
+		local page = registry:get("tugas")
 		clearChildren(page)
 		local order = 1
 
@@ -1253,37 +1146,70 @@ function Phone.mount(initialLang: string?)
 
 	---------------------------------------------------------------- wiring
 	local lastPhoneSignature = ""
-	refreshCurrent = function()
-		if currentScreen == "phone" then
-			local signature = ""
-			for _, entry in itemRows do
-				signature ..= tostring(player:GetAttribute("Item_" .. entry.item)) .. ","
-			end
-			signature ..= "#" .. #Evidence.getTokens()
-			for _, token in Evidence.getTokens() do
-				signature ..= token.tokenId
-			end
-			if signature ~= lastPhoneSignature then
-				lastPhoneSignature = signature
-				refreshPhoneTab()
-			end
-		elseif currentScreen == "kebun" then
-			refreshKebunTab()
-		elseif currentScreen == "pinjol" then
-			refreshPinjolTab()
-		elseif currentScreen == "tugas" then
-			refreshTugasTab()
-		elseif currentScreen == "cheat" then
-			refreshCheatTab()
-		elseif currentScreen == "dekor" then
-			refreshDecorTab()
+	local function refreshPhoneIfChanged()
+		local signature = ""
+		for _, entry in itemRows do
+			signature ..= tostring(player:GetAttribute("Item_" .. entry.item)) .. ","
 		end
+		signature ..= "#" .. #Evidence.getTokens()
+		for _, token in Evidence.getTokens() do
+			signature ..= token.tokenId
+		end
+		if signature ~= lastPhoneSignature then
+			lastPhoneSignature = signature
+			refreshPhoneTab()
+		end
+	end
+
+	-- A destroyed page must be refilled by the next build, so the change signatures are reset.
+	local function resetSignatures()
+		lastPhoneSignature = ""
+		kebunSignature = ""
+		cheatSignature = ""
+		decorSignature = ""
+	end
+
+	-- Phone app pages are built on first open (not at mount) and destroyed on leaving them.
+	-- Every page reads its state from player attributes / ClientState / Evidence when applied,
+	-- so nothing is pushed into a page that does not exist; `apply` is the refresh function.
+	local function pageDef(name: string, refresh: () -> ())
+		return {
+			build = function()
+				return scrollPage(content, name)
+			end,
+			apply = function()
+				refresh()
+			end,
+			destroy = function(instance: Instance)
+				instance:Destroy()
+				resetSignatures()
+			end,
+		}
+	end
+	registry = LazyPages.new({
+		phone = pageDef("PagePhone", refreshPhoneIfChanged),
+		kebun = pageDef("PageKebun", function()
+			refreshKebunTab()
+		end),
+		pinjol = pageDef("PagePinjol", refreshPinjolTab),
+		tugas = pageDef("PageTugas", refreshTugasTab),
+		cheat = pageDef("PageCheat", function()
+			refreshCheatTab()
+		end),
+		dekor = pageDef("PageDekor", function()
+			refreshDecorTab()
+		end),
+	})
+
+	-- Refreshes the open app page; a no-op on home or when its page is not built.
+	local function refreshCurrent()
+		registry:refresh(currentScreen)
 	end
 
 	local function setPhoneLanguage(newLang: string)
 		activeLang = newLang
+		ctx.state.lang = newLang
 		langToggle.Text = activeLang:upper()
-		litLabel.Text = t("hud_phone")
 		for _, app in appDefs do
 			local lbl = appLabels[app.id]
 			if lbl then
@@ -1295,16 +1221,11 @@ function Phone.mount(initialLang: string?)
 		else
 			titleLabel.Text = t("phone_tab_" .. currentScreen)
 		end
-		lastPhoneSignature = ""
-		kebunSignature = ""
-		cheatSignature = ""
-		decorSignature = ""
+		resetSignatures()
 		if root.Visible and currentScreen ~= "home" then
 			refreshCurrent()
 		end
 	end
-
-	setPhoneLanguageFn = setPhoneLanguage
 
 	langToggle.Activated:Connect(function()
 		local nextLang = if activeLang == "id" then "en" else "id"
@@ -1312,26 +1233,22 @@ function Phone.mount(initialLang: string?)
 		setPhoneLanguage(nextLang)
 	end)
 
-	Hud.onLanguageChanged = function(newLang: string)
-		if activeLang ~= newLang then
-			setPhoneLanguage(newLang)
-		end
-	end
-
 	local function open()
 		Audio.play("ui_open")
 		root.Visible = true
 		toggle.Visible = false
 		updateClock()
-		lastPhoneSignature = ""
-		kebunSignature = ""
-		cheatSignature = ""
-		decorSignature = ""
+		resetSignatures()
 		showScreen("home")
 	end
 
-	toggle.Activated:Connect(open)
 	close.Activated:Connect(closePhone)
+	-- WORK_QUEUE item 21: B/Escape closes the phone; selecting it focuses the X button.
+	NavBridge.register("phone", {
+		root = root,
+		default = close,
+		onClose = closePhone,
+	})
 	homeBar.Activated:Connect(function()
 		if currentScreen == "home" then
 			closePhone()
@@ -1380,6 +1297,87 @@ function Phone.mount(initialLang: string?)
 	end)
 
 	showScreen("home")
+	return open, setPhoneLanguage
+end
+
+-- Only the toggle button exists at mount; the device is built by the first tap on it.
+function Phone.mount(initialLang: string?)
+	-- Default language is Indonesian ("id").
+	local state = { lang = if initialLang == "en" then "en" else "id" }
+	local Hud = require(script.Parent.Hud)
+	local t = function(key: string, ...: any): string
+		return Strings.get(state.lang, key, ...)
+	end
+
+	-- Above the HUD (DisplayOrder 10) so the dim backdrop covers the Next Goal card and stats.
+	local gui = Theme.screenGui("Phone", 20)
+	-- The scrim must cover the whole screen, including the top-bar strip where the HUD goal card sits.
+	gui.IgnoreGuiInset = true
+
+	-- The only top-right control: a small phone. Hidden while the phone is open.
+	local toggle = Theme.new("TextButton", {
+		Name = "PhoneButton",
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.new(1, -10, 0, 10),
+		Size = UDim2.fromOffset(44, 64),
+		BackgroundColor3 = Theme.ink,
+		BorderSizePixel = 0,
+		AutoButtonColor = true,
+		Text = "",
+		Parent = gui,
+	}, {
+		Theme.corner(nil, 10),
+		Theme.new("UIStroke", { Color = Theme.inkSoft, Thickness = 2 }),
+		Theme.new("UISizeConstraint", { MinSize = Vector2.new(44, 64), MaxSize = Vector2.new(56, 80) }),
+	})
+	local lit = Theme.new("Frame", {
+		Name = "LitScreen",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.new(1, -8, 1, -12),
+		BackgroundColor3 = Theme.malam,
+		BorderSizePixel = 0,
+		Parent = toggle,
+	}, {
+		Theme.corner(nil, 6),
+		Theme.new("UIGradient", { Color = ColorSequence.new(Theme.malam, Theme.indigo), Rotation = 90 }),
+	})
+	local litLabel = Theme.label({
+		Name = "Label",
+		Size = UDim2.fromScale(1, 1),
+		Text = t("hud_phone"),
+		Font = Theme.displayFont,
+		TextColor3 = Theme.paper,
+		Parent = lit,
+	})
+	Theme.new("UITextSizeConstraint", { MaxTextSize = 14, MinTextSize = 11, Parent = litLabel })
+
+	local ensureBuilt = LazyPages.once(buildDevice)
+	local openDevice: (() -> ())? = nil
+	local setBuiltLanguage: ((string) -> ())? = nil
+
+	-- Works before and after the first build: before it the language is only remembered
+	-- (the build reads it); after it the built device updates its labels too.
+	local function setLanguage(newLang: string)
+		state.lang = newLang
+		litLabel.Text = t("hud_phone")
+		if setBuiltLanguage then
+			setBuiltLanguage(newLang)
+		end
+	end
+	setPhoneLanguageFn = setLanguage
+	Hud.onLanguageChanged = function(newLang: string)
+		if state.lang ~= newLang then
+			setLanguage(newLang)
+		end
+	end
+
+	toggle.Activated:Connect(function()
+		if not openDevice then
+			openDevice, setBuiltLanguage = ensureBuilt({ gui = gui, toggle = toggle, state = state })
+		end
+		(openDevice :: () -> ())()
+	end)
 end
 
 return Phone

@@ -1,3 +1,4 @@
+--!strict
 -- Cheat table (GDD §4). Every shortcut must be clearly profitable.
 -- `evidenceValue` is what a witness can report (the reward is a share of it).
 

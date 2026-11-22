@@ -8,6 +8,11 @@
 local Players = game:GetService("Players")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Law = require(Shared.Config.Law)
+local RaidCutscene = require(Shared.Config.RaidCutscene)
+
+-- The client plays the raid cutscene during "incoming"; choosing starts when it ends so the
+-- 20 s choice window is never eaten by the cutscene. Floor of 3 s keeps the old minimum.
+local INCOMING_SECONDS = math.max(3, RaidCutscene.totalDuration())
 local Remotes = require(Shared.Remotes)
 
 local PlayerData = require(script.Parent.Parent.Data.PlayerData)
@@ -23,6 +28,7 @@ local BadgeService = require(script.Parent.Parent.Progression.BadgeService)
 local CutsceneHooks = require(script.Parent.Parent.Npc.CutsceneHooks)
 
 local RaidService = {}
+RaidService.INCOMING_SECONDS = INCOMING_SECONDS
 
 type Raid = {
 	state: string, -- incoming | choosing | resolving | jail
@@ -42,6 +48,16 @@ local susApi: { set: (Player, number) -> (), add: (Player, number, string?) -> (
 
 function RaidService.bindSus(api)
 	susApi = api
+end
+
+-- A damaged or old save may lack these tables; never index through nil.
+local function ensureTables(data)
+	if type(data.cooldowns) ~= "table" then
+		data.cooldowns = {}
+	end
+	if type(data.stats) ~= "table" then
+		data.stats = {}
+	end
 end
 
 local function isActive(raid: Raid?): boolean
@@ -121,6 +137,7 @@ local function resetRaid(player: Player, raid: Raid, outcome: string)
 	setState(raid, finalState)
 	player:SetAttribute("InRaid", false)
 	if data then
+		ensureTables(data)
 		data.cooldowns.raidSafeUntil = os.time() + Law.raidCooldown
 		data.stats.raids = (data.stats.raids or 0) + 1
 		local penalty = if raid.isViral then Law.namaBaikViral else Law.namaBaikCaught
@@ -268,6 +285,7 @@ function RaidService.start(player: Player, isViral: boolean)
 	if isActive(existing) or (existing and existing.state == "jail") then
 		return
 	end
+	ensureTables(data)
 	local skipCooldown = isViral or (data.sus or 0) >= Law.susMax
 	if not skipCooldown and os.time() < (data.cooldowns.raidSafeUntil or 0) then
 		return
@@ -311,7 +329,7 @@ function RaidService.start(player: Player, isViral: boolean)
 	local target = if plot then plot.spawnCFrame.Position elseif root then root.Position else Vector3.new(0, 0, 0)
 	task.spawn(policeGoTo, target, if isViral then "VIRAL! Buka, Pak!" else "Operasi! Buka ladangnya!")
 
-	task.delay(3, function()
+	task.delay(INCOMING_SECONDS, function()
 		local current = raids[player]
 		if current ~= raid or not isState(raid, "incoming") then
 			return
@@ -362,6 +380,7 @@ function RaidService.resolveOnLeave(player: Player, data)
 	if isActive(raid) then
 		local fine = raid.fine
 		data.cash = math.max(0, (data.cash or 0) - fine)
+		ensureTables(data)
 		data.cooldowns.raidSafeUntil = os.time() + Law.raidCooldown
 		data.stats.raids = (data.stats.raids or 0) + 1
 		local penalty = if raid.isViral then Law.namaBaikViral else Law.namaBaikCaught

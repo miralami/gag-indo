@@ -16,6 +16,7 @@ local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local GameConfig = require(Shared.Config.Game)
 local Law = require(Shared.Config.Law)
 local Produce = require(Shared.Produce)
+local SaveSanitize = require(script.Parent.SaveSanitize)
 
 local CURRENT_VERSION = 3
 local LOAD_TIMEOUT = 30 -- seconds; we supply Cancel, which disables ProfileStore's own timeout
@@ -87,6 +88,17 @@ local function count(value: any): number
 	return math.floor(n)
 end
 
+-- `migrate` runs before `SaveSanitize`. A partial/interrupted write can leave a legacy sack
+-- field as a string, table, NaN or inf; coerce to a finite number (0 fallback) so the v2-split
+-- comparisons and arithmetic below never throw before sanitize can repair the save.
+local function finiteNumber(value: any): number
+	local n = tonumber(value)
+	if n == nil or n ~= n or n == math.huge or n == -math.huge then
+		return 0
+	end
+	return n
+end
+
 -- v1/v2 harvest sack -> v3 produce stacks.
 -- v2 keeps clean and hot quality apart; v1 folded them together, so run the v2 split first.
 local function migrateProduce(data): { [string]: any }
@@ -154,15 +166,16 @@ local function migrate(data)
 		-- refuse the hot stuff while the black market buys it.
 		for _, sack in data.harvest or {} do
 			if type(sack) == "table" then
-				local hot = sack.hotCount or 0
-				if sack.hotQualitySum == nil then
-					sack.hotQualitySum = 0
-				end
+				local hot = finiteNumber(sack.hotCount)
+				local total = finiteNumber(sack.count)
+				local qualitySum = finiteNumber(sack.qualitySum)
+				local hotQualitySum = finiteNumber(sack.hotQualitySum)
+				sack.hotQualitySum = hotQualitySum
 				-- Older saves folded hot quality into qualitySum; move the average over.
-				if hot > 0 and sack.hotQualitySum == 0 and (sack.count or 0) > 0 then
-					local avg = sack.qualitySum / sack.count
-					sack.hotQualitySum = avg * hot
-					sack.qualitySum -= sack.hotQualitySum
+				if hot > 0 and hotQualitySum == 0 and total > 0 then
+					local moved = (qualitySum / total) * hot
+					sack.hotQualitySum = moved
+					sack.qualitySum = qualitySum - moved
 				end
 			end
 		end
@@ -224,6 +237,12 @@ end
 -- Exposed so tests/specs/playerdata_spec.luau can check old saves upgrade correctly.
 PlayerData.migrate = migrate
 PlayerData.CURRENT_VERSION = CURRENT_VERSION
+
+-- Repairs a damaged save in place against TEMPLATE (or a supplied one); returns repaired paths.
+function PlayerData.sanitize(data, template: any?): { string }
+	return SaveSanitize.sanitize(data, template or TEMPLATE)
+end
+PlayerData.TEMPLATE = TEMPLATE
 
 -- Called after a profile is loaded and ready. Must not yield for long.
 function PlayerData.onLoaded(callback: (Player, any) -> ())
@@ -296,6 +315,11 @@ local function load(player: Player)
 	profile:AddUserId(player.UserId) -- lets Roblox data-deletion requests find this profile
 	profile:Reconcile() -- fills fields added to TEMPLATE after this profile was first saved
 	migrate(profile.Data)
+	-- After migrate so migrated data is never overwritten; repairs wrong types and NaN/inf.
+	local repaired = PlayerData.sanitize(profile.Data)
+	if #repaired > 0 then
+		warn(string.format("[PlayerData] repaired %d damaged save field(s) for UserId %d", #repaired, player.UserId))
+	end
 
 	profile.OnSessionEnd:Connect(function()
 		profiles[player] = nil

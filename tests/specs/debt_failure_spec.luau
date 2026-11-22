@@ -119,5 +119,18 @@ return function(t, Env, Fakes)
 			local ok = pcall(fx.DebtService.tick, fx.player)
 			expect(ok):toBe(true)
 		end)
+
+		-- WORK_QUEUE item 14 mutation D19: dropping `or debt.owed <= 0` lets repay() "clear" a
+		-- loan that already has a zero balance, paying nothing and awarding the cleared badge.
+		t:it("repay refuses an active loan whose owed balance is already zero", function()
+			local fx = makeDebtEnv()
+			fx.data.debt.active = true
+			fx.data.debt.owed = 0
+			fx.data.debt.principal = 100
+			local cash = fx.data.cash
+			expect(fx.DebtService.repay(fx.player, 25)):toBe(false)
+			expect(fx.data.debt.active):toBe(true)
+			expect(fx.data.cash):toBe(cash)
+		end)
 	end)
 end

@@ -23,11 +23,19 @@ local ToolService = {}
 local BUY_RATE = 3
 
 -- The owned tier table for one line, or nil.
+-- A damaged save may hold a non-table here; repair it instead of indexing a number.
+local function toolsOf(data)
+	if type(data.tools) ~= "table" then
+		data.tools = {}
+	end
+	return data.tools
+end
+
 function ToolService.tier(data, lineId: string): any?
 	if not data or not Tools.exists(lineId) then
 		return nil
 	end
-	return Tools.tier(lineId, (data.tools or {})[lineId])
+	return Tools.tier(lineId, toolsOf(data)[lineId])
 end
 
 -- Growth multiplier from every owned line (1 when nothing is owned).
@@ -77,12 +85,12 @@ function ToolService.nextTier(data, lineId: string): any?
 	if not data or not Tools.exists(lineId) then
 		return nil
 	end
-	return Tools.next(lineId, (data.tools or {})[lineId])
+	return Tools.next(lineId, toolsOf(data)[lineId])
 end
 
 function ToolService.publish(player: Player, data)
 	for _, lineId in Tools.order do
-		player:SetAttribute("Tool_" .. lineId, (data.tools or {})[lineId])
+		player:SetAttribute("Tool_" .. lineId, toolsOf(data)[lineId])
 	end
 	player:SetAttribute("SackCapacity", ToolService.sackCapacity(data))
 end
@@ -114,8 +122,7 @@ function ToolService.buy(player: Player, lineId: any): boolean
 		return false
 	end
 
-	data.tools = data.tools or {}
-	data.tools[lineId] = tier.id
+	toolsOf(data)[lineId] = tier.id
 	ToolService.publish(player, data)
 	State.touch(player, "tools")
 	Notify.send(player, "n_tool_bought", "@" .. line.label, "@tool_tier_" .. tier.id)

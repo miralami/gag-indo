@@ -67,7 +67,9 @@ function WorkerService.hire(player: Player): boolean
 	if not EconomyService.trySpend(player, Worker.hireCost, { sku = "buruh_sewa" }) then
 		return false
 	end
-	data.worker = data.worker or { hiredUntil = 0 }
+	if type(data.worker) ~= "table" then
+		data.worker = { hiredUntil = 0 }
+	end
 	data.worker.hiredUntil = os.time() + Worker.hireSeconds
 	WorkerService.publish(player, data)
 	Notify.send(player, "n_worker_hired", math.floor(Worker.hireSeconds / 60), Worker.hireCost, Worker.wagePerItem)
@@ -93,10 +95,21 @@ function WorkerService.tick(player: Player): number
 	if wage <= 0 then
 		affordable = Worker.maxItemsPerPass
 	else
-		affordable = math.min(Worker.maxItemsPerPass, math.floor(data.cash / wage))
+		local cash = data.cash
+		if type(cash) ~= "number" or cash ~= cash then
+			-- Damaged save: an unknown balance is repaired to 0, never harvested on credit.
+			data.cash = 0
+			cash = 0
+		elseif cash == math.huge then
+			cash = 0
+		end
+		affordable = math.min(Worker.maxItemsPerPass, math.floor(cash / wage))
 	end
 	if affordable <= 0 then
 		-- No cash for the wage: the buruh goes home.
+		if type(data.worker) ~= "table" then
+			data.worker = {}
+		end
 		data.worker.hiredUntil = 0
 		Notify.send(player, "n_worker_unpaid")
 		WorkerService.publish(player, data)

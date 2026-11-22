@@ -1,0 +1,27 @@
+CHECK 179 - Pasar pads and brighter stripes (WORK_QUEUE section P)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Play mode, Server VM. Place NOT saved, nothing published.
+Candidate OFF by default.
+
+== Setup ==
+1. Root cause: pasar_ground_r8 staged 54 Slate pads (read as asphalt); stripe RGB was already
+   V>=0.6 but dim. Pads now Cobblestone/Pavement, stall base Cobblestone, stripes brightened to
+   red {248,76,64} / white {255,252,244} / blue {72,148,236}.
+2. `tools/studio/check_p179.luau` temp-staged and require'd in a fresh Play Server VM; stages both
+   pasar candidates via `enableAdditive`, computes HSV V from live Part.Color, restores via
+   `disableAll()`.
+
+== Raw check lines (verbatim, staged pasar) ==
+CHECK PAD_MATERIAL PASS 0 0
+CHECK STRIPE_VALUE PASS 0.925 0.6
+CHECK STALLS PASS 12 10
+CHECK LANE_CLEAR PASS 0 0
+
+== Non-vacuity ==
+- 106 pads checked, 0 wrong-material; 72 stripes, min HSV V 0.925, all three colours present;
+  12 stalls, 0 lane blockers. Pre-fix PAD_MATERIAL would flag 54 Slate pads.
+- New Lune spec pre-fix FAIL (missing pad map), post-fix 3/3 PASS. No asset IDs invented.
+- No NPC outfits, terrain sculpt, chosen sky or ground touched. No visual verdict claimed.
+
+Status: SEEN-IN-STUDIO.

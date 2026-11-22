@@ -3,15 +3,14 @@
 -- validated with shared/Leaderboard before anything is rendered.
 
 local CollectionService = game:GetService("CollectionService")
-local Players = game:GetService("Players")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Remotes = require(Shared.Remotes)
 local Strings = require(Shared.Strings)
 local Leaderboard = require(Shared.Leaderboard)
 
 local Theme = require(script.Parent.Theme)
+local NavBridge = require(script.Parent.NavBridge)
 
-local player = Players.LocalPlayer
 
 local LeaderboardUI = {}
 
@@ -161,7 +160,7 @@ function LeaderboardUI.mount(lang: string)
 	function LeaderboardUI.render()
 		for id, tabButton in tabButtons do
 			tabButton.BackgroundColor3 = if id == current then Theme.accent else Theme.panelLight
-			tabButton.TextColor3 = if id == current then Theme.text else Theme.muted
+			tabButton.TextColor3 = Theme.text
 		end
 		local entries = boards[current] or {}
 		empty.Visible = #entries == 0
@@ -245,6 +244,15 @@ function LeaderboardUI.mount(lang: string)
 	close.Activated:Connect(function()
 		panel.Visible = false
 	end)
+
+	-- WORK_QUEUE item 21: B/Escape closes the board; selecting it focuses the X button.
+	NavBridge.register("leaderboard", {
+		root = panel,
+		default = close,
+		onClose = function()
+			panel.Visible = false
+		end,
+	})
 
 	function LeaderboardUI.open()
 		LeaderboardUI.render()

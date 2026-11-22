@@ -165,7 +165,7 @@ function Tiles.mount(lang: string)
 						textLabel.Text = if hot then t("tile_hot", t("tile_ready")) else t("tile_ready")
 						textLabel.TextColor3 = if hot then Theme.senja else Theme.padi
 					elseif state == "buy" and isMine(tile) then
-						textLabel.Text = "Rp " .. Strings.formatNumber(tile:GetAttribute("Price") or 0, lang)
+						textLabel.Text = t("price_label", tile:GetAttribute("Price") or 0)
 						textLabel.TextColor3 = Theme.paper
 					else
 						textLabel.Text = ""

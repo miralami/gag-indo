@@ -46,7 +46,7 @@ function Passes.has(player: Player, passKey: string): boolean
 end
 
 local function checkPasses(player: Player)
-	for passKey, pass in Products.passes do
+	for _, pass in Products.passes do
 		if pass.id > 0 then
 			local ok, owns = pcall(function()
 				return MarketplaceService:UserOwnsGamePassAsync(player.UserId, pass.id)

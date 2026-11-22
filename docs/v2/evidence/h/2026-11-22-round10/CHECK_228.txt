@@ -1,0 +1,27 @@
+CHECK 228 - balai_r10 visual-only Balai desa hall (WORK_QUEUE section P, gap row 10)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Play mode, Server VM. Place NOT saved, nothing published.
+Candidate OFF by default (enableAdditive stages only for the check; disableAll restores).
+
+== Setup ==
+Sources injected into the Edit datamodel (stale Rojo connection) then fresh Play.
+tools/studio/check_r10_template.luau with __ID__ substituted to `balai_r10`, pasted whole into
+execute_luau (Server VM). ModelMapCanonicalR10 + LookDevCanonicalR10 from items 228-237.
+
+== Raw check lines (verbatim, staged balai_r10) ==
+CHECK BALAI_PARTS PASS 21 20
+CHECK BALAI_FIT PASS 0 0
+CHECK BALAI_SIGN PASS 1 1
+CHECK NO_GAMEPLAY PASS 0 0
+CHECK PATH_REACH PASS 0 0
+CHECK PERF_BUDGET PASS 335 500
+
+== Notes ==
+- 21 Parts form a visual-only village hall inside the 42x28 slot at (0,-137); a sign with id/en
+  Strings text is present; 0 ProximityPrompt/ClickDetector; hall does not block the six MapSpec
+  hub-door lanes (project-standard PATH_REACH semantics).
+- aabb() adds cf.Position to rotated corners; Strings.raw is a table (indexed, not called).
+- No NPC outfits, terrain sculpt, chosen sky or ground touched. No visual verdict claimed.
+
+Status: SEEN-IN-STUDIO.

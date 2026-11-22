@@ -1,0 +1,63 @@
+CHECK 144 — hubveg_r8 densify (WORK_QUEUE section O, item 144)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Edit runtime injection; place NOT saved, nothing published.
+
+== Setup ==
+1. Injected changed ReplicatedStorage.Shared.ModelMapVegetationHubR8 and
+   ServerScriptService.Server.World.LookDevModelsVegetationHubR8 into the EDIT datamodel (both SET).
+   Fresh Play. Harness tools/studio/review_check_r8.luau pasted into execute_luau (Server VM), read
+   byName. The harness runs its own disableAll at the end, so staging and the harness read were run
+   in ONE execute_luau call each time to keep the folder present.
+
+== Raw check lines (verbatim, hubveg_r8 staged alone) ==
+CHECK VEG_HUB_pasar PASS 50 >=30
+CHECK VEG_HUB_gelap PASS 50 >=30
+CHECK VEG_HUB_warung PASS 50 >=30
+CHECK VEG_HUB_ronda PASS 50 >=30
+CHECK VEG_HUB_polisi PASS 50 >=30
+CHECK VEG_HUB_pakrt PASS 50 >=30
+CHECK VEG_SPECIES_HUB PASS min=14 (pasar:14 gelap:14 warung:14 ronda:14 polisi:14 pakrt:14) >=4 each
+CHECK HUB_TREES PASS 2 >=2
+CHECK VEG_OVERLAP PASS 0 0
+CHECK PATH_REACH PASS 0 0
+CHECK CAMERA_CLEAR PASS 0 blocked/36
+CHECK DOOR_CLEAR FAIL 0 6
+CHECK PERF_BUDGET FAIL 799 500
+CHECK LOAD_FAILURES PASS 0 0
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+
+== Raw check lines (verbatim, facades_r8 + hubveg_r8 staged additive; authoritative for DOOR_CLEAR) ==
+CHECK VEG_HUB_pasar PASS 50 >=30
+CHECK VEG_HUB_pakrt PASS 50 >=30
+CHECK VEG_SPECIES_HUB PASS min=14 (pasar:14 gelap:14 warung:14 ronda:14 polisi:14 pakrt:14) >=4 each
+CHECK HUB_TREES PASS 2 >=2
+CHECK VEG_OVERLAP PASS 0 0
+CHECK PATH_REACH PASS 0 0
+CHECK DOOR_CLEAR PASS 6 6
+CHECK FACADE_STRAY PASS 0 0
+CHECK CAMERA_CLEAR PASS 0 blocked/36
+CHECK PERF_BUDGET FAIL 848 500
+CHECK LOAD_FAILURES PASS 0 0
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+
+== Detail ==
+Each hub: 36 anchors / 50 staged instances, all within the 40-stud radius (>= 30 target). Weakest-hub
+HUB_TREES = 2 canopy trees with recorded height in [8,12] studs (per-hub: pasar/ronda/polisi/warung/
+pakrt/gelap all 2). Trees use reused verified ID mangga 103132734600778 scaled to 8 studs; pisang
+119293239911242 groups scaled short (5.8 studs) to fit the Pasar footprint; bambu 130965811347980
+clumps have 10.5-12 stud culms; flower beds reuse bunga 9639782964 and kembang_sepatu 15344074131.
+No asset IDs invented. VEG_SPECIES_HUB min 14 >= 4. VEG_OVERLAP 0 offenders over 68 exclusion zones,
+300 staged parts (strict AABB, 0.05 tolerance). PATH_REACH 0 blocked lanes over 6 hub doors, 300
+staged (deterministic 6-stud corridor check — this is the section-O hub-door subset, NOT
+PathfindingService's full 16/16 audit in section-M item 105).
+
+DOOR_CLEAR reads 6/6 only with facades_r8 staged: the first hubveg-only run correctly reported
+DOOR_CLEAR FAIL 0 6 because facade door gauges were not present. With both candidates staged
+DOOR_CLEAR PASS 6 6 and FACADE_STRAY PASS 0 0. CAMERA_CLEAR 0 blocked / 36 cameras.
+
+FLAGGED, not hidden: with candidates staged PERF_BUDGET is 799/500 (hubveg alone) and 848/500
+(facades + hubveg), over the Sedang proxy. Item 144 has no perf clause and no check was weakened;
+default look remains PERF_BUDGET PASS 334/500. CANDIDATES.md records the flag.
+
+Status: SEEN-IN-STUDIO. No place saved, nothing published. Visual grading remains the designer's.

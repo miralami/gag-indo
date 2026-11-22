@@ -1,0 +1,60 @@
+CHECK 194 - meadow patches on the big lawns (WORK_QUEUE section Q item 194)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Play only (Server VM, check). Place NOT saved, nothing published.
+
+== Wiring ==
+Candidate "meadow_r10" (OFF by default until item 226). Pure data
+src/shared/ModelMapMeadowR10.luau, server applier src/server/World/LookDevMeadowR10.luau,
+LookDev / LookDevReview / Main.server wiring, tests/specs/meadow_r10_spec.luau (5 cases),
+tools/studio/check_q194.luau (3-check harness). No terrain, road, plot, sky or NPC change.
+
+== Baked IDs (real Creator Store, sourced/baked scripts-stripped by item 193) ==
+  7974911801 Wildflower02      -> flower_a
+  13032768586 WildFlower04     -> flower_b
+  70509679878841 Daisy Flower  -> daisy
+  128368650541272 TallGrass    -> tall_grass
+  8715139325 Wild Grass        -> wild_grass
+Loaded per item via LookDevAssetLoader.get (fresh clone), untrusted scripts stripped,
+world AABB scaled to item.height with footprint cap 4, deterministic yaw. No ID invented.
+IDs in docs/v2/visual/art/ASSET_MANIFEST.md, `unused` markers cleared.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK MEADOW_PATCHES PASS 25 20
+CHECK MEADOW_OFF_ROAD PASS 0 0
+CHECK MEADOW_VISIBLE PASS 25 6
+
+== Notes / measurements ==
+- tools/studio/check_q194.luau (equivalent compact inline copy) pasted whole into execute_luau
+  (Server VM), stages meadow_r10 with review.enableAdditive in the same call, then restores
+  with disableAll(). No harness require, no place save, no visual verdict.
+- 25 distinct PatchIndex groups, 1597 tagged MeadowPlant parts. Item counts per patch 10..20,
+  counted as distinct ItemIndex (not tagged parts, since each baked model tags root + parts).
+- MEADOW_OFF_ROAD uses an independent predicate: 28-wide X/Z arms out to the ring, r144 ring
+  (width 12), bridge link, each 19.2-half plot footprint and a 6-stud gate circle + 4 margin.
+  Min distance from any item centre (VegX/VegZ) to any plot centre is 34.011 > 29.2 threshold;
+  pure data resamples every item centre with Data.zoneClear (radial plot exclusion 34 studs).
+- MEADOW_VISIBLE: >=3 of 5 rays from canonical_overview first-hit the same patch; 25 patches
+  visible against target 6.
+
+== Non-vacuity / calibration (undeweakened checks, each in its own fresh Play) ==
+Strip PatchIndex from patches 20..25 (all other staged content intact) and re-run:
+CHECK MEADOW_PATCHES FAIL 19 20
+CHECK MEADOW_OFF_ROAD PASS 0 0
+CHECK MEADOW_VISIBLE PASS 19 6
+
+Pivot one item (patch 1 / item 1) onto the crossroad centre (VegX=0, VegZ=0):
+CHECK MEADOW_PATCHES PASS 25 20
+CHECK MEADOW_OFF_ROAD FAIL 1 0   (reason p1 x-arm)
+CHECK MEADOW_VISIBLE PASS 25 6
+
+Set CanQuery=false on every staged meadow part (raycasts cannot hit them):
+CHECK MEADOW_PATCHES PASS 25 20
+CHECK MEADOW_OFF_ROAD PASS 0 0
+CHECK MEADOW_VISIBLE FAIL 0 6
+
+Each target term bites while the other two checks stay PASS; the baseline PASS is not
+vacuous. Play stopped after each calibration; disableAll() restored the place, so no
+mutation was persisted. No visual approval claimed.
+
+Status: SEEN-IN-STUDIO.

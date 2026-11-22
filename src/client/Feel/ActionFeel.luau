@@ -2,7 +2,14 @@
 -- Handles plant, harvest, sell, and rarity reveal visual and audio punch.
 -- Pure functions for testability; runtime bindings for client interaction.
 
+local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local Strings = require(Shared.Strings)
+
 local ActionFeel = {}
+
+-- The client locale, supplied by Main.client at start(). Kept module-local so the pure functions
+-- above stay free of Roblox state; defaults to Indonesian when start() is not called (Lune specs).
+local lang = "id"
 
 -- -----------------------------------------------------------------------------
 -- Pure functions
@@ -19,7 +26,12 @@ function ActionFeel.cashFlyTrajectory(
 	local t = math.clamp(progress, 0, 1)
 	local oneMinusT = 1 - t
 
-	local is3D = (startPos :: any).Z ~= nil
+	-- Roblox Vector2 throws on a missing `.Z` read rather than returning nil, so probe it
+	-- safely. Plain {X, Y} tables (Lune specs) return nil and take the 2D branch.
+	local okZ, startZ = pcall(function()
+		return (startPos :: any).Z
+	end)
+	local is3D = okZ and startZ ~= nil
 	if is3D then
 		local p0 = startPos :: Vector3
 		local p2 = endPos :: Vector3
@@ -101,6 +113,17 @@ end
 local started = false
 local lastActionTile: BasePart? = nil
 local shakeToken = 0
+
+-- Current fidelity tier settings and the pure scale math. Both fall back safely (nil settings means
+-- Sedang defaults in TierScale), so a missing runtime never breaks a burst.
+local TierScale = require(script.Parent.TierScale)
+
+local function tierSettings(): any
+	local ok, settings = pcall(function()
+		return require(script.Parent.FidelityRuntime).settings()
+	end)
+	return if ok then settings else nil
+end
 
 local function getAudio()
 	local ok, mod = pcall(function()
@@ -296,10 +319,11 @@ function ActionFeel.onHarvest(tilePart: BasePart?, tier: string?)
 			})
 			emitter.Speed = NumberRange.new(6, 12)
 			emitter.SpreadAngle = Vector2.new(60, 60)
-			emitter.Lifetime = NumberRange.new(0.35, 0.65)
+			local settings = tierSettings()
+			emitter.Lifetime = NumberRange.new(TierScale.lifetime(0.35, 0.65, settings))
 			emitter.Rate = 0
 			emitter.Parent = attachment
-			emitter:Emit(if isSultanTier then 30 else 20)
+			emitter:Emit(TierScale.emitCount(if isSultanTier then 30 else 20, settings))
 
 			task.delay(0.8, function()
 				attachment:Destroy()
@@ -373,7 +397,7 @@ function ActionFeel.onSell(earnedAmount: number, originPosition: any?)
 		label.Position = UDim2.fromOffset(startPos.X, startPos.Y)
 		label.Size = UDim2.fromOffset(140, 32)
 		label.BackgroundTransparency = 1
-		label.Text = "+Rp " .. tostring(math.floor(earnedAmount or 0))
+		label.Text = Strings.get(lang, "gain_label", math.floor(earnedAmount or 0))
 		label.TextColor3 = Color3.fromRGB(255, 215, 0)
 		label.TextSize = 18
 		label.Font = Enum.Font.GothamBold
@@ -426,11 +450,12 @@ function ActionFeel.onSell(earnedAmount: number, originPosition: any?)
 end
 
 -- Binds to relevant attribute changes / remotes / events.
-function ActionFeel.start()
+function ActionFeel.start(langCode: string?)
 	if started then
 		return
 	end
 	started = true
+	lang = Strings.langFor(langCode or "id")
 
 	local remotes = getRemotes()
 	if remotes and remotes.Notify then

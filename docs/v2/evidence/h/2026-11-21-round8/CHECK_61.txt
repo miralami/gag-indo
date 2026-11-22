@@ -1,0 +1,19 @@
+# CHECK 61 — CLOUD_COVER (WORK_QUEUE section L, round 8)
+# Studio: Development-Juragan-Desa (placeId 132087524375529), real Play, Client datamodel.
+# Fresh Play, no LookDev enable call. The daily weather roll was hujan/badai (Cover=1);
+# to reach the required clear-day state I set ReplicatedStorage Musim=kemarau, Cuaca=cerah
+# and Lighting.ClockTime=13 on the client (temporary review state, not saved, not committed).
+# At ClockTime 13, Terrain.Clouds.Cover = 0.5. Harness: tools/studio/review_check_r7.luau.
+# Raw console lines from that run, copied verbatim (fresh client run -> family checks correctly FAIL):
+CHECK LOAD_FAILURES PASS 0 0
+CHECK SKY_DEFAULT PASS rbxassetid://2835177931 rbxassetid://2835177931
+CHECK GRASS_ON_BEDS PASS 0 0
+CHECK HATS FAIL 0 4
+CHECK PROPS_VISIBLE FAIL 0 6
+CHECK PROPS_ON_GRASS FAIL 6 0
+CHECK VEG_COUNT FAIL 0 60
+CHECK VEG_SPECIES FAIL 0 8
+CHECK BED_FLUSH PASS 0 0.5
+CHECK VEG_NEAR FAIL 0 inst/0 sp/0 small >=25 inst/>=6 sp/0 small
+CHECK PROP_SIZE FAIL g=-1.00 c=-1.00 p=-1.00 g[4-6] c[3.5-4.5] p[>=8]
+CHECK CLOUD_COVER PASS 0.500@ct13.00 0.4-0.6

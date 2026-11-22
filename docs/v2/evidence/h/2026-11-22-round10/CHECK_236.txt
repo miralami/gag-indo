@@ -1,0 +1,22 @@
+CHECK 236 - plots_mailbox_r10 mailbox + sign per plot (WORK_QUEUE section P, gap row 13)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Play mode, Server VM. Place NOT saved, nothing published.
+Candidate OFF by default.
+
+== Setup ==
+Sources injected into Edit datamodel then fresh Play. tools/studio/check_r10_template.luau with
+__ID__ substituted to `plots_mailbox_r10`, execute_luau Server VM, disableAll() cleanup.
+
+== Raw check lines (verbatim, staged plots_mailbox_r10) ==
+CHECK MAILBOX PASS 10 10
+CHECK MAILBOX_SIGN PASS 10 10
+CHECK GATE_CLEAR PASS 0 0
+CHECK NO_FLOATERS PASS 0 0
+
+== Notes ==
+- 10 mailboxes and 10 signs (one per plot), each sign carrying a Strings key with id/en text;
+  0 staged parts within 6 studs of a plot gate; 0 floating posts. Strings.raw is a table.
+- No NPC outfits, terrain sculpt, chosen sky or ground touched. No visual verdict claimed.
+
+Status: SEEN-IN-STUDIO.

@@ -54,7 +54,10 @@ function StorageService.capacity(player: Player, data): number
 	end
 	local gudang = data.gudang
 	local stored = if gudang and gudang.capacity ~= nil then tonumber(gudang.capacity) else base
-	stored = stored or base
+	if not stored or stored ~= stored or stored == math.huge or stored == -math.huge then
+		stored = base
+	end
+	stored = math.floor(stored)
 	-- Read-only: never mutates save. Removing a pass must not destroy stored items.
 	return math.max(base, stored)
 end
@@ -162,7 +165,10 @@ function StorageService.withdrawAll(player: Player): number
 		return 0
 	end
 	local shed = stacks(data)
-	local sack = data.produce or {}
+	if type(data.produce) ~= "table" then
+		data.produce = {}
+	end
+	local sack = data.produce
 	local moved = 0
 	for _, key in sortedKeys(shed) do
 		local stack = shed[key]

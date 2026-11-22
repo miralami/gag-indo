@@ -1,0 +1,23 @@
+CHECK 231 - pasar_roof_r10 red pitched roof (WORK_QUEUE section P, gap row 17)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Play mode, Server VM. Place NOT saved, nothing published.
+Candidate OFF by default.
+
+== Setup ==
+Sources injected into Edit datamodel then fresh Play. tools/studio/check_r10_template.luau with
+__ID__ substituted to `pasar_roof_r10`, execute_luau Server VM, disableAll() cleanup.
+
+== Raw check lines (verbatim, staged pasar_roof_r10) ==
+CHECK RED_ROOF PASS 3 2
+CHECK HUB_FIT PASS 0 0
+CHECK ROOF_SLOPE PASS 2 2
+CHECK FACADE_STRAY PASS 0 0
+
+== Notes ==
+- 3 red roof panels (R>2G and R>2B, ratio check so Color3 0-1 scale is safe), >=2 tilted sloped
+  roof_panel parts (up-vector Y<0.999 => pitched, not flat), all parts inside Pasar hub bounds
+  (+/-4), 0 stray facade parts.
+- No NPC outfits, terrain sculpt, chosen sky or ground touched. No visual verdict claimed.
+
+Status: SEEN-IN-STUDIO.

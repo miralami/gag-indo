@@ -4,8 +4,13 @@
 
 local Players = game:GetService("Players")
 local TextChatService = game:GetService("TextChatService")
+local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local Strings = require(Shared.Strings)
 
 local Tags = {}
+
+-- Supplied by Main.client at mount(); defaults to Indonesian for specs that call mount() bare.
+local lang = "id"
 
 -- Returns e.g. "[Juragan][Ordal] " or nil when the sender has no tag.
 local function prefixFor(source: TextSource?): string?
@@ -18,10 +23,10 @@ local function prefixFor(source: TextSource?): string?
 	end
 	local labels: { string } = {}
 	if player:GetAttribute("Rank") == "juragan" then
-		table.insert(labels, "Juragan")
+		table.insert(labels, Strings.get(lang, "tag_juragan"))
 	end
 	if player:GetAttribute("Pass_Ordal") then
-		table.insert(labels, "Ordal")
+		table.insert(labels, Strings.get(lang, "tag_ordal"))
 	end
 	if #labels == 0 then
 		return nil
@@ -29,7 +34,8 @@ local function prefixFor(source: TextSource?): string?
 	return "[" .. table.concat(labels, "][") .. "] "
 end
 
-function Tags.mount()
+function Tags.mount(langCode: string?)
+	lang = Strings.langFor(langCode or "id")
 	TextChatService.OnIncomingMessage = function(message: TextChatMessage)
 		local prefix = prefixFor(message.TextSource)
 		if not prefix then

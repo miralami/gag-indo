@@ -1,0 +1,60 @@
+CHECK 138 — replace pine backdrop with tropical forest (WORK_QUEUE section O, item 138; does items 102 + 74)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa (placeId 132087524375529). Edit runtime injection; place NOT saved, nothing published.
+
+== Setup (evidence path) ==
+1. Stopped Play. Injected into the EDIT datamodel from disk (all SET):
+   - ReplicatedStorage.Shared.LookDev, LookDevReview, ModelMapForestR9
+   - ServerScriptService.Server.Main
+   - ServerScriptService.Server.World.Greybox, LookDevForestPinesLegacy
+2. Fresh Play, Server datamodel. NO candidate staged — LookDev.current() = nil. The default forest is
+   built by Greybox.buildBackgroundForest from Shared.ModelMapForestR9.placements() (272 trees).
+3. Pasted the WHOLE tools/studio/review_check_r8.luau into execute_luau (Server VM) and read byName.
+
+== Raw check lines (Server datamodel, verbatim, fresh default-look Play) ==
+CHECK NO_PINES PASS 0 0
+CHECK RING_COUNT PASS 272 250
+CHECK RING_SPECIES PASS 4 4
+CHECK PERF_BUDGET PASS 334 500
+CHECK LOAD_FAILURES PASS 0 0
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+CHECK CAMERA_CLEAR PASS 0 blocked/26 checked 0 blocked
+CHECK ADDITIVE_STAGE PASS 3 3
+
+== Detail ==
+RING_SPECIES species = bambu, kelapa, mangga, pisang (4).
+Tree names = Tropical_<species>_<angle>_<layer>; attributes ForestTree=true, ForestSpecies=<species>.
+Workspace forest census: exactly one folder, Workspace.World.BackgroundForest, 272 children.
+The pre-V-D4 top-level Workspace.BackgroundForest (86 pines baked into the saved place) is now
+destroyed at build time by Greybox.buildBackgroundForest; this run shows no top-level forest.
+NO_PINES scans ALL workspace descendants for the case-sensitive substring "Pine" and reads zero.
+
+Targets (UNWEAKENED): NO_PINES 0, RING_COUNT >=250, RING_SPECIES >=4, PERF_BUDGET <=500.
+PERF_BUDGET method: 100-stud census around (0,0,0) counting BaseParts by bounding-box centre. That
+is the recorded method in docs/v2/evidence/h/2026-11-19-budget-check/REPORT.md (pasar baseline 335
+parts; current default 334). The earlier 150-stud-sphere draft of this proxy measured 764 and was
+NOT aligned with the recorded baseline; the census radius was corrected to 100, the TARGET of 500
+was not changed. The tropical forest sits at 260-460 studs, outside the census.
+CAMERA_CLEAR / ADDITIVE_STAGE / LOOKDEV_LEAK / LOAD_FAILURES are unchanged existing checks.
+
+== forest_pines_legacy comparison candidate (OFF by default) ==
+Using Shared.LookDevReview.enable("forest_pines_legacy", game) in the Server VM:
+  before : tropical=272, pines=0, tagged=0, staged=false
+  enable : tropical=0, pines=83, tagged=165, staged=true (LookDevForestPinesLegacy_forest_pines_legacy)
+  disable: tropical=272, pines=0, tagged=0, staged=false
+Re-ran the harness after restore: all eight lines above still PASS, LOOKDEV_LEAK PASS 0 leaks.
+Candidate index = LookDev.IDS[58]; it stages the old pine ring only for designer comparison.
+Note: execute_luau runs a separate VM with its own require cache, so candidate staging is driven
+through LookDevReview.prepare/enable (which registers in the caller VM), not a bare LookDev.enable.
+
+== Local validation before this run ==
+lune run tests/run.luau: All 2467 tests passed.
+selene src: 0 errors / 0 warnings / 0 parse errors.
+git diff --check: clean (pre-existing autocrlf notices only).
+stylua --check: all changed Luau clean except Greybox.luau, which is stylua-dirty at HEAD already
+(pre-existing config drift at line 29 + a non-idempotent table.insert at ~1783); the HEAD blob fails
+identically. Reformatting the whole file creates a 900-line unrelated diff and still fails, so the
+diff was kept scoped to the forest block. The inserted forest block is stylua-clean in isolation.
+
+Status: SEEN-IN-STUDIO. No place saved, nothing published. Visual grading remains the designer's.

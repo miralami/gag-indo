@@ -1,6 +1,6 @@
 # Juragan Desa
 
-A satirical Indonesian village farming game for Roblox. v2 plan: [docs/v2/plan/PLAN.md](docs/v2/plan/PLAN.md) · v2 technical foundation: [docs/v2/plan/TECH.md](docs/v2/plan/TECH.md) · designer decisions: [docs/v2/plan/DECISIONS.md](docs/v2/plan/DECISIONS.md) · v1 design: [docs/v1/GDD.md](docs/v1/GDD.md) · v1 dev guide: [docs/v1/TECH.md](docs/v1/TECH.md)
+A satirical Indonesian village farming game for Roblox. Current state and next steps: [docs/v2/plan/MASTER_PLAN.md](docs/v2/plan/MASTER_PLAN.md) · map of all docs: [docs/README.md](docs/README.md) · v2 plan: [docs/v2/plan/PLAN.md](docs/v2/plan/PLAN.md) · v2 technical foundation: [docs/v2/plan/TECH.md](docs/v2/plan/TECH.md) · designer decisions: [docs/v2/plan/DECISIONS.md](docs/v2/plan/DECISIONS.md) · v1 design: [docs/v1/GDD.md](docs/v1/GDD.md) · v1 dev guide: [docs/v1/TECH.md](docs/v1/TECH.md)
 
 > **v2 status:** the foundation (M0), farming depth (M1) and the living world (M2) are in place.
 > Saves are schema v3 and migrate in place; the game now has 12 crops in three families,
@@ -8,7 +8,7 @@ A satirical Indonesian village farming game for Roblox. v2 plan: [docs/v2/plan/P
 > with page rewards, a rarity reveal toast, seasons that change growth and sky, a rotating
 > deterministic seed shop, Pasar supply and demand, permanent tools, the gudang and the hired
 > buruh tani — plus a replicated state module, a tag-driven world, admin LiveConfig and an F2 admin
-> panel. Next up is M3 (art-gated presentation). See [docs/v2/plan/TECH.md](docs/v2/plan/TECH.md) for the
+> panel. What is next lives in the Master Plan progress tracker. See [docs/v2/plan/TECH.md](docs/v2/plan/TECH.md) for the
 > contract and [docs/v2/visual/mockups/index.html](docs/v2/visual/mockups/index.html) for the proposed UI (D1, not
 > wired in).
 

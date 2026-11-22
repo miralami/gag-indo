@@ -31,7 +31,9 @@ local PlotService = require(script.Parent.Parent.Farm.PlotService)
 local QuestService = require(script.Parent.Parent.Progression.QuestService)
 local OnboardingService = require(script.Parent.Parent.Progression.OnboardingService)
 local Village = require(script.Parent.Parent.World.Village)
+local RaidService = require(script.Parent.Parent.Law.RaidService)
 local Gate = require(script.Parent.Gate)
+local RaidTrigger = require(script.Parent.RaidTrigger)
 
 local Harness = {}
 
@@ -297,6 +299,42 @@ local handlers = {
 	status = function(player)
 		return snapshot(player)
 	end,
+	-- Studio-only force-raid hook: starts a raid immediately so the cutscene/camera/choice
+	-- window can be observed in a playtest without waiting ~5:30. Already behind enabled()
+	-- (Studio + in-memory flag + admin); the explicit RaidTrigger gate is defense in depth.
+	raid = function(player, value)
+		if not RaidTrigger.allowed({
+			studio = RunService:IsStudio(),
+			flag = Gate.isOpen(),
+			admin = Admins.isAdmin(player.UserId),
+		}) then
+			return nil, "raid trigger refused: a Studio admin must enable the harness"
+		end
+		-- `force` clears the cooldown only for the duration of RaidService.start and restores the
+		-- saved value afterwards, so repeated test triggers never write `raidSafeUntil = 0` into real
+		-- save data. `viral` bypasses the cooldown inside RaidService.start anyway. Both are test-only.
+		local isViral = RaidTrigger.viral(value)
+		if RaidTrigger.force(value) then
+			RaidTrigger.withTemporaryCooldown(PlayerData.get(player), function()
+				RaidService.start(player, isViral)
+			end)
+		else
+			RaidService.start(player, isViral)
+		end
+		return {
+			action = "raid",
+			state = RaidService.getState(player),
+			inRaid = player:GetAttribute("InRaid") == true,
+		}
+	end,
+	raidState = function(player)
+		return {
+			action = "raidState",
+			state = RaidService.getState(player),
+			inRaid = player:GetAttribute("InRaid") == true,
+			busy = RaidService.isBusy(player),
+		}
+	end,
 	plant = plant,
 	harvest = harvest,
 	sell = sell,
@@ -351,9 +389,25 @@ local function onCommand(player: Player, payload: any)
 	end
 end
 
+-- Server-side driver seam for the Q5 multi-client run (WORK_QUEUE item 22). The Studio driver
+-- calls this instead of firing the client RemoteEvent: the same gated handlers and the same real
+-- services run, with no client key input. It is still gated (Studio + flag + admin), so a
+-- published server cannot use it. This is the only new surface; `snapshot` and `handlers` stay
+-- private.
+function Harness.dispatch(player: Player, action: string, value: any): (any?, string?)
+	if not enabled(player) then
+		return nil, "harness driver refused: a Studio admin must enable it first"
+	end
+	local handler = handlers[action]
+	if not handler then
+		return nil, `Unknown action "{action}".`
+	end
+	return handler(player, value)
+end
+
 function Harness.start()
 	Remotes.Harness_Command.OnServerEvent:Connect(onCommand)
-	Players.PlayerRemoving:Connect(function(player)
+	Players.PlayerRemoving:Connect(function(_player)
 		-- one player's flag never leaks to the next session
 		Gate.close()
 	end)

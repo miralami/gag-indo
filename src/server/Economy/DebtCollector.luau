@@ -12,6 +12,7 @@ local Strings = require(Shared.Strings)
 
 local PlotService = require(script.Parent.Parent.Farm.PlotService)
 local Props = require(script.Parent.Parent.World.Props)
+local NpcWalk = require(script.Parent.Parent.World.NpcWalk)
 local CutsceneHooks = require(script.Parent.Parent.Npc.CutsceneHooks)
 
 local DebtCollector = {}
@@ -53,6 +54,15 @@ function DebtCollector.summon(player: Player)
 	label.Text = Strings.get(language(player), "debt_collector_tag")
 	part.Parent = game:GetService("Workspace")
 	parts[player] = part
+	-- Walk the collector from its spawn offset to the plot so it visibly arrives (item 18). The
+	-- shared walker adds stuck/timeout detection with a teleport fallback, so the collector reaches
+	-- the plot for every plot position. Fake parts without a pivot API degrade to a no-op.
+	local target = plot.spawnCFrame and plot.spawnCFrame.Position
+	if target then
+		task.spawn(function()
+			NpcWalk.walkTo(part, target, 8)
+		end)
+	end
 	CutsceneHooks.emitDebtCollector({ kind = "debt_collector", player = player, state = "summoned", waiting = true })
 end
 

@@ -1,3 +1,4 @@
+--!strict
 -- FirstSession: timing benchmarks and guaranteed tiers (v2 PLAN §3.1).
 
 local FirstSession = {

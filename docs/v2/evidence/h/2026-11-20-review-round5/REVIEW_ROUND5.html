@@ -1,0 +1,24 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Review Round 5</title>
+<style>body{background:#111;color:#eee;font-family:system-ui,sans-serif;margin:0;padding:16px}h1{font-size:20px}
+table{border-collapse:collapse;width:100%;max-width:1200px;font-size:14px}th,td{border:1px solid #333;padding:8px;text-align:left;vertical-align:top}
+th{background:#1d1d1d}.v{background:#2a2a2a;min-width:70px}.note{color:#aaa;font-size:13px}code{color:#9cf}
+@media(max-width:720px){table,tbody,tr,th,td{display:block}th{display:none}td{border:0;border-bottom:1px solid #333}}</style></head><body>
+<h1>Review Round 5 — handoff sheet (2026-11-20)</h1>
+<p class="note">No screenshot pixels were retained in this session (Studio <code>screen_capture</code> returned
+<code>null</code>; the video probe showed HUD-only over a flat dark world). This sheet records the exact toggles,
+datamodels, saved cameras and factual sightline checks. <strong>Every verdict cell is blank</strong> — the designer or a
+vision-capable pass with retained screenshots fills it. See <code>REVIEW_ROUND5.md</code> for the method and the
+Studio enable sweep.</p>
+<table><thead><tr><th>#</th><th>Candidate</th><th>Toggle (dot syntax)</th><th>Datamodel</th><th>camera_position → look_at_position</th><th>Sightline</th><th>Verdict</th></tr></thead><tbody>
+<tr><td>1</td><td><code>textures_r4</code> (darkening fixed)</td><td><code>require(game.ReplicatedStorage.Shared.LookDevReview).enable("textures_r4", game)</code></td><td>Client</td><td><code>{0,12,52}</code> → <code>{0,3,-20}</code></td><td>clear</td><td class="v"></td></tr>
+<tr><td>2</td><td><code>sky_r5</code></td><td><code>...enable("sky_r5", game)</code></td><td>Client</td><td><code>{-14,9,42}</code> → <code>{-14,16,-12}</code></td><td>clear; 3 grass stalks ~10 studs off-axis, looks up</td><td class="v"></td></tr>
+<tr><td>3</td><td><code>buildings_r4</code> (temporary yes)</td><td><code>...enable("buildings_r4", game)</code></td><td>Server</td><td><code>{0,22,84}</code> → <code>{0,7,20}</code></td><td>clear</td><td class="v"></td></tr>
+<tr><td>4</td><td><code>vegetation_r5</code></td><td><code>...enable("vegetation_r5", game)</code></td><td>Server</td><td><code>{0,20,150}</code> → <code>{0,8,96}</code></td><td>clear; frames z≈96, main clusters at z=34–63 need a closer shot</td><td class="v"></td></tr>
+<tr><td>5</td><td><code>props_r5</code></td><td><code>...enable("props_r5", game)</code></td><td>Server</td><td><code>{142,9,146}</code> → <code>{142,3,122}</code></td><td>partially screened by pines (~11.3 studs off-axis)</td><td class="v"></td></tr>
+<tr><td>6</td><td><code>npcs_r5</code></td><td><code>...enable("npcs_r5", game)</code></td><td>Server</td><td><code>{0,7,28}</code> → <code>{0,2.5,8}</code></td><td>clear; rig in frame at ~19.9 studs</td><td class="v"></td></tr>
+<tr><td>7</td><td><code>spawn_r5</code></td><td><code>...enable("spawn_r5", game)</code></td><td>Server</td><td><code>{0,20,72}</code> → <code>{0,5,14}</code></td><td>clear</td><td class="v"></td></tr>
+<tr><td>8</td><td><code>spawn_ground_r5</code></td><td><code>...enable("spawn_ground_r5", game)</code></td><td>Server</td><td><code>{0,20,72}</code> → <code>{0,5,14}</code></td><td>shared spawn-wide camera; clear</td><td class="v"></td></tr>
+</tbody></table>
+<p class="note">Restore after each row: <code>require(game.ReplicatedStorage.Shared.LookDevReview).disable()</code>.
+All eight candidates are off by default. Colon syntax (<code>:enable</code>) is a known bug and is not used.</p>
+</body></html>

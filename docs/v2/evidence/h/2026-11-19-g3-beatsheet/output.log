@@ -1,0 +1,29 @@
+[JuraganDesa] server started
+[ProfileStore]: Roblox API services available - data will be saved
+[Roblox][sabuiltin_Assistant.rbxm.Assistant.Src.toolInit] Assistant plugin version changed from ef6b1b3 to 9bb6530. This may cause instability when using Assistant or the MCP server. Please restart Roblox Studio to fix.
+[Roblox][sabuiltin_Assistant.rbxm.Assistant.Src.toolInit] Assistant plugin version changed from ef6b1b3 to 9bb6530. This may cause instability when using Assistant or the MCP server. Please restart Roblox Studio to fix.
+ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type
+ContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type
+[G3] START cash=50 sack=0 padi=5 tiles=0 wall=02:29:48
+[G3] STATUS cash=50 sack=0 padi=5 tiles=0 ok=true wall=02:29:48
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+[G3] PLANT cash=50 sack=0 padi=4 tiles=1 ok=true wall=02:29:49
+[G3] READY cash=50 sack=0 padi=4 tiles=1 ok=true wall=02:29:49
+AnalyticsService: LogCustomEvent event fired.
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+[G3] HARVEST cash=50 sack=1 padi=4 tiles=0 ok=true wall=02:29:50
+AnalyticsService: LogEconomyEvent event fired.
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+[G3] SELL cash=77 sack=0 padi=4 tiles=0 ok=true wall=02:29:50
+AnalyticsService: LogEconomyEvent event fired.
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+AnalyticsService: LogOnboardingFunnelStepEvent event fired.
+[G3] BUY cash=57 sack=0 padi=6 tiles=0 ok=true wall=02:29:51
+AnalyticsService: LogEconomyEvent event fired.
+AnalyticsService: LogCustomEvent event fired.
+[G3] QUEST cash=157 sack=0 padi=6 tiles=0 ok=true wall=02:29:51
+[G3] GOTO cash=157 sack=0 padi=6 tiles=0 ok=true wall=02:29:52
+[G3] STATUS-FINAL cash=157 sack=0 padi=6 tiles=0 ok=true wall=02:29:52
+[G3] DONE wall=02:29:52
+AnalyticsService: LogFunnelStepEvent event fired.

@@ -1,0 +1,82 @@
+{
+  "item": 11,
+  "date": "2026-11-19",
+  "branch": "track/c-world-look",
+  "status": "SEEN-IN-STUDIO",
+  "place": "Development-Juragan-Desa",
+  "placeId": 132087524375529,
+  "datamodel": "Client",
+  "rojo": "localhost:34872",
+  "place_saved": false,
+  "published": false,
+  "profile_save_called": false,
+  "returned_to_edit_mode": true,
+  "probe_artifacts_cleaned": true,
+  "method": {
+    "runtime": "Live FidelityRuntime singleton driven from a probe LocalScript injected into PlayerScripts (same require cache as Main.client); setOverride(tier) forced each tier, setOverride(nil) restored auto.",
+    "lookdev": "LookDev is single-active, so 'all on' = measured baseline + the sum of the eight per-candidate deltas. Each applier owns a disjoint container (LookDevCropShowcase, LookDevHubPropDetails, NPC child parts, material swaps, UI, Sounds), so the deltas are additive.",
+    "census": "Workspace descendants within 100 studs of each MapSpec hub centre: instances (BasePart or Model), parts (BasePart), and estimated triangles from Roblox primitive Shape (Block/Wedge=12, Cylinder=32, Ball/Sphere=320).",
+    "triangle_estimate_note": "Roblox does not expose a primitive triangle count; the per-shape table is an explicit engineering estimate. It is applied identically to baseline and all-on counts, and was cross-checked against the pure-data recipes.",
+    "frustum_crosscheck": "Attempted using Camera:WorldToViewportPoint but returned zero parts in the probe VM (WorldToViewportPoint returns pixels and the probe camera census under-reported); discarded. The 100-stud census is the reported metric."
+  },
+  "census_radius_studs": 100,
+  "triangle_table": { "Block": 12, "Wedge": 12, "Cylinder": 32, "Ball": 320, "Sphere": 320 },
+  "tiers": ["Rendah", "Sedang", "Tinggi"],
+  "hubs": ["pasar", "gelap", "warung", "ronda", "polisi", "pakrt"],
+  "candidates": ["plaza_lighting", "police_walkin", "icons", "textures", "npcs", "crops", "hubprops", "sounds"],
+  "budgets": {
+    "source": "docs/v2/visual/VISUAL_MASTER_PLAN.md section 6",
+    "triangles_at_sedang_spawn_view": 500000,
+    "draw_calls_at_sedang_spawn_view": 500,
+    "note": "Project numbers until measured. Draw calls are not exposed to scripts, so BasePart count within the hub census is used as a conservative upper-bound proxy."
+  },
+  "matrix_note": "Baseline and all-on counts were identical across all three tiers: none of the eight LookDev candidates branches on FidelityTier, and tier changes affect particles/lighting rather than these static parts. Tier forcing was verified via FidelityRuntime.get() for all 18 combinations.",
+  "matrix": [
+    { "hub": "pasar",  "tier": "Rendah",  "baseline": {"instances":369,"parts":335,"triangles":18388}, "allOn": {"instances":760,"parts":690,"triangles":46980} },
+    { "hub": "gelap",  "tier": "Rendah",  "baseline": {"instances":384,"parts":335,"triangles":14884}, "allOn": {"instances":775,"parts":690,"triangles":43476} },
+    { "hub": "warung", "tier": "Rendah",  "baseline": {"instances":278,"parts":230,"triangles":13232}, "allOn": {"instances":664,"parts":580,"triangles":41536} },
+    { "hub": "ronda",  "tier": "Rendah",  "baseline": {"instances":369,"parts":347,"triangles":19780}, "allOn": {"instances":770,"parts":712,"triangles":49208} },
+    { "hub": "polisi", "tier": "Rendah",  "baseline": {"instances":314,"parts":287,"triangles":17724}, "allOn": {"instances":704,"parts":641,"triangles":46036} },
+    { "hub": "pakrt",  "tier": "Rendah",  "baseline": {"instances":313,"parts":266,"triangles":17364}, "allOn": {"instances":704,"parts":621,"triangles":45648} },
+    { "hub": "pasar",  "tier": "Sedang",  "baseline": {"instances":369,"parts":335,"triangles":18388}, "allOn": {"instances":760,"parts":690,"triangles":46980} },
+    { "hub": "gelap",  "tier": "Sedang",  "baseline": {"instances":384,"parts":335,"triangles":14884}, "allOn": {"instances":775,"parts":690,"triangles":43476} },
+    { "hub": "warung", "tier": "Sedang",  "baseline": {"instances":278,"parts":230,"triangles":13232}, "allOn": {"instances":664,"parts":580,"triangles":41536} },
+    { "hub": "ronda",  "tier": "Sedang",  "baseline": {"instances":369,"parts":347,"triangles":19780}, "allOn": {"instances":770,"parts":712,"triangles":49208} },
+    { "hub": "polisi", "tier": "Sedang",  "baseline": {"instances":314,"parts":287,"triangles":17724}, "allOn": {"instances":704,"parts":641,"triangles":46036} },
+    { "hub": "pakrt",  "tier": "Sedang",  "baseline": {"instances":313,"parts":266,"triangles":17364}, "allOn": {"instances":704,"parts":621,"triangles":45648} },
+    { "hub": "pasar",  "tier": "Tinggi",  "baseline": {"instances":369,"parts":335,"triangles":18388}, "allOn": {"instances":760,"parts":690,"triangles":46980} },
+    { "hub": "gelap",  "tier": "Tinggi",  "baseline": {"instances":384,"parts":335,"triangles":14884}, "allOn": {"instances":775,"parts":690,"triangles":43476} },
+    { "hub": "warung", "tier": "Tinggi",  "baseline": {"instances":278,"parts":230,"triangles":13232}, "allOn": {"instances":664,"parts":580,"triangles":41536} },
+    { "hub": "ronda",  "tier": "Tinggi",  "baseline": {"instances":369,"parts":347,"triangles":19780}, "allOn": {"instances":770,"parts":712,"triangles":49208} },
+    { "hub": "polisi", "tier": "Tinggi",  "baseline": {"instances":314,"parts":287,"triangles":17724}, "allOn": {"instances":704,"parts":641,"triangles":46036} },
+    { "hub": "pakrt",  "tier": "Tinggi",  "baseline": {"instances":313,"parts":266,"triangles":17364}, "allOn": {"instances":704,"parts":621,"triangles":45648} }
+  ],
+  "per_candidate_deltas_pasar": {
+    "plaza_lighting": {"parts":0,"triangles":0,"instances":0,"note":"material swaps only"},
+    "police_walkin": {"parts":0,"triangles":0,"instances":0,"note":"reuses the existing police NPC"},
+    "icons": {"parts":0,"triangles":0,"instances":0,"note":"PlayerGui images, no world geometry"},
+    "textures": {"parts":0,"triangles":0,"instances":0,"note":"material swaps only"},
+    "npcs": {"parts":5,"triangles":60,"instances":5,"shapes":{"Block":5}},
+    "crops": {"parts":339,"triangles":27416,"instances":375,"shapes":{"Ball":71,"Block":42,"Cylinder":74,"Wedge":152}},
+    "hubprops": {"parts":11,"triangles":1116,"instances":11,"shapes":{"Ball":3,"Block":5,"Cylinder":3}},
+    "sounds": {"parts":0,"triangles":0,"instances":0,"note":"2 Sound objects, no geometry"}
+  },
+  "recipe_crosscheck": {
+    "crops": {"parts":339,"triangles":27416,"models":36,"guiInstances":72},
+    "hubprops": {"parts":43,"triangles":3648,"perHub":{"pasar":11,"warung":11,"polisi":11,"pakrt":10}},
+    "npc_details_total": {"parts":19,"triangles":656},
+    "note": "Lune computation from the pure-data recipe modules matches the live Studio shape histogram exactly for crops and hubprops."
+  },
+  "verdict": {
+    "triangles": "PASS — worst all-on 49,208 triangles (ronda, all tiers) = 9.8% of the 500k Sedang budget.",
+    "draw_call_proxy": "OVER in the all-on stress case — 580–712 parts vs ~500. Baseline alone (230–347 parts) is within budget. The entire excess is the 339-part Studio-only crops review showcase.",
+    "rendah": "Same geometry as the other tiers: worst all-on 712 parts / 49,208 triangles. Triangles pass; draw-call proxy exceeds only because of the Studio-only showcase.",
+    "shipping_state": "PASS — all LookDev candidates are off by default behind a Studio-only gate, so the shipping scene is the measured baseline (≤347 parts, ≤19,780 triangles within 100 studs of any hub)."
+  },
+  "decision_for_designer": {
+    "title": "Cap the Studio-only crops showcase on low tiers",
+    "proposal": "Show only the mature 'siap' stage on Rendah/Sedang (12 models, 144 parts, 13,088 triangles) and keep all 36 models on Tinggi for full review. This cuts the worst all-on proxy from 712 to about 517 parts (495 at the pasar/spawn view) while preserving complete art review on flagship.",
+    "status": "PARKED — not applied; workshop change to CropModelCandidates.stagesByTier + LookDevCrops + a locking spec is the follow-up.",
+    "reason": "The trim is a designer choice about review fidelity vs stress-view budget; no agent changed delivered item-7 art mid-check."
+  }
+}

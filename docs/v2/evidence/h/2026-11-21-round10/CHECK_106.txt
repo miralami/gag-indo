@@ -1,0 +1,71 @@
+CHECK 106 — Avatar scale audit with everything on (WORK_QUEUE section N, item 106)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Real Play, Server DataModel. Place NOT saved, nothing published.
+
+== Target (verbatim) ==
+"Avatar scale audit with everything on. A 7.25-stud-tall, 4-stud-wide box swept along each of those
+routes must hit no CanCollide part. CHECK AVATAR_FIT 16/16."
+("those routes" = item 105's 16 PathfindingService routes, spawn -> 6 hub doors + 10 plot gates,
+AgentRadius=2, AgentHeight=5.5, AgentCanJump=false.)
+
+== Verdict: BLOCKED — CHECK AVATAR_FIT FAIL 2 16 ==
+Two FAIL attempts on the check; per WORK_QUEUE section K rule (two failed attempts -> BLOCKED with
+the exact FAIL line), item 106 is BLOCKED. No check weakened; no part moved or shrunk.
+
+== Method ==
+Fresh Play, Server VM. Staged all 13 full_r9 candidates via
+`LookDevReview.enableAdditive(id, game, {studio=true})` (13/13 staged). Recomputed item-105's 16
+routes (origin `MapSpec.SPAWN` (0,0.5,28); 6 live hub doors; 10 live `GateMarker` plot gates). For
+each route, sampled every 2 studs along the straight-line Lerp between consecutive waypoints and
+queried a 4 x 7.25 x 4 box centred at (sample + (0, 7.25/2, 0)) with `GetPartBoundsInBox`,
+`OverlapParams.CollisionGroup="Default"`, Terrain excluded (the ground the avatar stands on).
+
+== Attempt 1 — any CanCollide part counts as a hit ==
+Axis-aligned 4 x 7.25 x 4 box, world-AABB overlap, any `CanCollide=true` part recorded.
+Verbatim check lines:
+CHECK AVATAR_FIT FAIL 2 16
+CHECK ANTIVAC staged=13 folders=13 parts=35949 collidable=513 routes=16 samples=2124
+Failing routes: hub2 hits=5, hub4 hits=1, hub5 hits=5, hub6 hits=4, gate1 hits=14, gate2=1,
+gate3=7, gate4=48, gate5=6, gate6=1, gate7=16, gate8=7, gate9=4, gate10=1.
+Sample hit names: kit_fence, Floor, Desk, Table, RumahPakRT.BackWall, RumahPakRT.SideWall,
+Plot_4.SignPost, NPC UpperTorso. hub1 and hub3 passed.
+
+== Attempt 2 — require >0.1 stud penetration on all three axes ==
+Same box and routes; counted only parts overlapping by more than 0.1 stud on X, Y and Z (to remove
+radius-2 corner grazing from the axis-aligned box). Target and box size unchanged.
+Verbatim check line: CHECK AVATAR_FIT FAIL 3 16
+Per-route pen-hits / max penetration: hub4 1/0.20 Floor, hub5 4/1.25 Desk, hub6 2/0.24 Table,
+gate1 11/1.76 UpperTorso, gate2 1/1.02 SignPost, gate3 7/2.20 SignPost, gate4 47/2.26 BackWall,
+gate5 1/0.30 SignPost, gate6 1/0.30 SignPost, gate7 10/1.18 Desk, gate8 7/2.20 SignPost,
+gate9 3/1.45 Post, gate10 1/0.30 SignPost. hub1/2/3 passed.
+
+== Control — same sweep with nothing staged ==
+Ran the identical sweep with full_r9 NOT staged (default shipping look). Hit sets were IDENTICAL to
+the staged run on both routes checked (hub2: only `Workspace.kit_fence_v2.kit_fence` x5; gate4:
+`Workspace.World.Plot_4.SignPost` x1, `Workspace.World.RumahPakRT.BackWall` x38,
+`Workspace.World.RumahPakRT.SideWall` x9). So every blocker is PRE-EXISTING SHIPPING GEOMETRY, not a
+lookdev candidate. All 35,949 staged lookdev parts are CanCollide=false (CHECK_103: 0 collidable of
+35,949); 513 collidable parts in the world are all shipping world / NPCs.
+
+== Why no fix was applied ==
+- "Fix the blocking candidate (move or shrink the part)" has no target: the hit sets are identical
+  with and without full_r9, so no staged candidate contributes a blocker. Moving/shrinking
+  `RumahPakRT` walls, `Plot_4.SignPost`, `kit_fence`, house desks/tables or NPC torsos is a
+  default-look / gameplay world change, out of this lookdev audit's scope and behind Gate 1.
+- Re-scoping the query to "no STAGED CanCollide part" would both weaken the literal check and be
+  vacuous (0 collidable staged parts). Rejected.
+- Measurement caveats are real but are not a pass: the box is axis-aligned (a 4-wide box clips
+  corners a radius-2 pathfinding capsule clears); it is 7.25 tall though the routes were solved for
+  AgentHeight=5.5 (a taller box catches desks/overhangs the 5.5 agent ignores); the AABB is centred
+  at sample+3.625. Attempt 2 removed grazing but deep shipping-geometry penetrations remain
+  (2.26 BackWall, 2.20 SignPost). Correcting the gauge is a follow-up item, not attempt 3 here.
+
+== Validation / scope ==
+No source, spec or harness changed. Gates unchanged from item 105 (lune run tests/run.luau All 2687
+tests passed, selene src 0/0/0). Play stopped after verification; no place saved, nothing published.
+No visual, copy or aural verdict. All candidates remain off by default.
+
+Status: BLOCKED — CHECK AVATAR_FIT FAIL 2 16. Anti-vacuity PASS (staged=13, folders=13, parts=35949,
+collidable-domain=513, routes=16, samples=2124). Measurement and the shipping-geometry diagnosis
+are recorded under WORK_QUEUE "Decisions for designer".

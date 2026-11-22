@@ -1,0 +1,57 @@
+CHECK 189 - source real rock models; rebuild rocks_r9 (section Q item 189, supersedes 176)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Play mode, Server VM. Place NOT saved, nothing published.
+Candidate rocks_r9 OFF by default; staged only inside the check via enableAdditive, disableAll cleanup.
+
+== Setup ==
+Three distinct free Creator Store rock models sourced via real `search_asset` (priceFilter=free),
+fetched with GetObjects and measured in Edit mode, then baked scripts-stripped into
+ServerStorage.LookDevAssets.<id> (0 scripts each, 1 Model child, no place save):
+  - 16098456067 "Low-Poly Rock" (Jajkopko_XD), MeshPart, 5.00 x 5.04 x 5.24  (round)
+  - 5644862709 "Rock" (Tman_TheNoobKing), MeshPart, 2.11 x 1.05 x 2.26        (flat)
+  - 53370997 "Rock Pillar" (EmperorZenith), Model 2 parts, 16 x 28.8 x 17      (tall)
+All three IDs recorded in ASSET_MANIFEST.md section Q (no unused marker: wired in src by item 189).
+No ID invented; exact search_asset + GetObjects measurements in this session.
+Changed sources injected into the Edit datamodel (Rojo connection stale):
+  src/shared/ModelMapRocksR9.luau       -> ReplicatedStorage.Shared.ModelMapRocksR9
+  src/server/World/LookDevRocksR9.luau  -> ServerScriptService.Server.World.LookDevRocksR9
+Fresh Play, Server VM. tools/studio/check_q189.luau pasted whole into execute_luau. The applier
+cycles the three baked models round-robin via Data.assetIdFor(index), clones each via
+LookDevAssetLoader.get, scales its longest side into the rock's declared 0.8-2.5 stud footprint,
+strips scripts, anchors/no-collides every BasePart, and PivotTo-places the scaled box centre at the
+half-buried shelf (water sites at -0.5). Bank/river/stepping/hill/field anchors, cluster 2-4 and
+gate/path exclusion are unchanged from item 176.
+
+== Raw check lines (verbatim, fresh Play, staged rocks_r9) ==
+CHECK ROCK_COUNT PASS 101 40
+CHECK ROCK_MODELS PASS 3 3
+CHECK ROCK_SIZE PASS 1.90 1.2
+CHECK ROCK_VISIBLE PASS 20 8
+
+== Notes / measurements ==
+- ROCK_COUNT 101: tagged RockR9 Models under LookDevRocksR9_rocks_r9 (>= 40 required).
+- ROCK_MODELS 3: distinct RockAssetId values on staged rocks, each with a baked copy present under
+  ServerStorage.LookDevAssets.<id>. The three ids are 53370997, 5644862709, 16098456067.
+- ROCK_SIZE 1.90: median longest bounding-box side, all 101 rocks inside 0.8..2.5 studs (0 out of
+  range). The baked pillar is scaled from 28.8 studs down into the per-rock footprint.
+- ROCK_VISIBLE 20: from the named `river_rocks` ReviewCameras entry, five camera-plane probes per
+  rock raycast from the eye; >=60% of probes hit the same rock Model for 20 rocks (>= 8 required).
+- No fake Parts: a failed load/scale/place leaves an empty tagged Model and a loud fail().
+- No NPC outfits, terrain sculpt, chosen sky or ground touched. No visual verdict claimed.
+- Default look unchanged; rocks_r9 stays behind LookDev until item 226.
+
+== Non-vacuity / calibration (undeweakened checks) ==
+Each mutation applied to the LIVE staged geometry then the SAME check re-run in a fresh Play session:
+
+1. ROCK_MODELS: SetAttribute(RockAssetId, nil) on all staged rocks -> FAIL 0 3 (others PASS).
+2. ROCK_COUNT: Destroy 70 of the 101 rock Models, re-collect -> FAIL 31 40 (visible dropped to 4).
+3. ROCK_SIZE: ScaleTo(4/longest) on one staged rock -> out-of-range -> FAIL
+   (median still reported 1.90; the emitted PASS flag is false because outOfRange > 0).
+4. ROCK_VISIBLE: set CanQuery=false on every rock BasePart so no camera ray can hit them ->
+   FAIL 0 8 (all rocks 0/5 probes).
+5. Pre-change baseline: the same harness on the old Part-built rocks_r9 (before the fixer landed)
+   read ROCK_MODELS FAIL 0 3 while ROCK_COUNT 101/40, ROCK_SIZE 1.40, ROCK_VISIBLE 22/8 PASS — the
+   model check bites on exactly the rejected item-176 geometry, so the PASS is not vacuous.
+
+Status: SEEN-IN-STUDIO.

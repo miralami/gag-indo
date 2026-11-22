@@ -15,6 +15,7 @@ local Flora = require(script.Parent.Flora)
 local Details = require(script.Parent.Details)
 local Landscape = require(script.Parent.Landscape)
 local MapSpec = require(script.Parent.MapSpec)
+local ModelMapForestR9 = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").ModelMapForestR9)
 local Visuals = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").Config.Visuals)
 
 local Greybox = {}
@@ -114,7 +115,9 @@ local function buildDressing(world: Folder)
 		local clone = dressingKit()
 		clone.Name = "DressingCluster_" .. index
 		for _, item in clone:GetChildren() do
-			if item:IsA("BasePart") then item.Position += Vector3.new(origin[1], 0, origin[2]) end
+			if item:IsA("BasePart") then
+				item.Position += Vector3.new(origin[1], 0, origin[2])
+			end
 		end
 		clone.Parent = world
 	end
@@ -250,12 +253,6 @@ local function hubPosts(parent: Instance, hub, roof: { rise: number, halfDepth: 
 		local height = top - GROUND_Y
 		hubBlock(parent, hub, "Post", lx, GROUND_Y + height / 2, lz, Vector3.new(0.7, height, 0.7), color, Enum.Material.Wood)
 	end
-end
-
--- A wall from the plinth top up to the roof underside at its deepest point.
-local function hubWall(parent: Instance, hub, name: string, lx: number, lz: number, sizeX: number, sizeZ: number, deepestZ: number, roof: { rise: number, halfDepth: number }, color: Color3, material: Enum.Material): Part
-	local top = under(roof, deepestZ)
-	return hubBlock(parent, hub, name, lx, (PLINTH_TOP + top) / 2, lz, Vector3.new(sizeX, top - PLINTH_TOP, sizeZ), color, material)
 end
 
 -- The tall cabai-price "ukur" board: a post and a board hung on it. It stands on open ground beside
@@ -768,107 +765,172 @@ local function scatterTrees(world: Folder)
 	end
 end
 
--- Dense, realistic background forest surrounding the perimeter of the village: its ring doubled with
--- the world scale (inner 260, outer 380 at the two layers). Keeps the West sunset corridor (130 deg to
--- 230 deg) open so the low warm sun and horizon glow are never blocked from illuminating the village,
--- and skips the sawah/Balai band to the north and the river band to the south so no trunk grows out of
--- the water or a paddy. Tree count only doubled: the sizes are unchanged, so the same pine reads the
--- same next to the bigger hubs.
-local FOREST_INNER = 260
-local FOREST_OUTER = 380
-local FOREST_MIDDLE = 300
-
--- Where the forest ring is broken: the sawah terraces and the Balai Desa slot to the north, the river
--- channel, banks and bridge to the south. Both bands doubled with the world scale.
-local FOREST_SKIP_NORTH_Z = -260
-local FOREST_SKIP_NORTH_X = 370
-local FOREST_SKIP_SOUTH_Z = { 250, 364 }
-
-local function forestSkip(x: number, z: number): boolean
-	if z < FOREST_SKIP_NORTH_Z and math.abs(x) < FOREST_SKIP_NORTH_X then
-		return true -- sawah terraces and the Balai Desa slot
-	end
-	if z > FOREST_SKIP_SOUTH_Z[1] and z < FOREST_SKIP_SOUTH_Z[2] then
-		return true -- river channel, banks and bridge
-	end
-	return false
-end
-
+-- Dense tropical background forest around the perimeter (WORK_QUEUE items 138/102, V-D4:
+-- tropical trees only, no pines). ModelMapForestR9 supplies the deterministic ring (260..380)
+-- and hills/beyond-400 (400..460) placements, with the West sunset corridor (130..230), the
+-- sawah/Balai north band and the river south band already removed. Kelapa is biased to the river
+-- side. Baked vegetation_r4 models are cloned when available; otherwise original Ball/Cylinder
+-- trees keep the same wall silhouette. Nothing here is a LookDev candidate: this is the default.
 local function buildBackgroundForest(world: Folder)
-	local forest = Instance.new("Folder")
-	forest.Name = "BackgroundForest"
-	forest.Parent = world
-
-	local ok, storage = pcall(function()
-		return game:GetService("ServerStorage")
+	-- WORK_QUEUE item 138: the saved place carries the pre-V-D4 pine forest as a stale top-level
+	-- Workspace.BackgroundForest. Remove any such folder so the shipped world has one forest only
+	-- and NO_PINES (whole-workspace, default look) reads zero. Never saved to the place.
+	local okWs, ws = pcall(function()
+		return workspace
 	end)
-	local template = ok and storage and storage:FindFirstChild("Realistic Pine Tree")
-
-	for angleDeg = 0, 355, 6 do
-		local inSunset = (angleDeg >= 130 and angleDeg <= 230)
-		if not inSunset then
-			local rad = math.rad(angleDeg)
-			local layers = 2 + (angleDeg % 2)
-			for layer = 1, layers do
-				local baseDist = if layer == 1 then FOREST_OUTER elseif layer == 2 then FOREST_MIDDLE else FOREST_INNER
-				local dist = baseDist + ((angleDeg * 7 + layer * 13) % 20)
-				local a = rad + math.rad((layer - 1) * 3)
-				local x = math.cos(a) * dist
-				local z = math.sin(a) * dist
-
-				if not forestSkip(x, z) then
-					local tree: Model
-					if template then
-						tree = template:Clone() :: Model
-						local scale = 0.8 + ((angleDeg * 5 + layer * 11) % 9) * 0.05
-						for _, p in tree:GetDescendants() do
-							if p:IsA("BasePart") then
-								p.Anchored = true
-								p.CanCollide = false
-								p.CanQuery = false
-								p.CanTouch = false
-								p.CastShadow = (layer >= 2 and angleDeg % 2 == 0)
-								p.Size = p.Size * scale
-							end
-						end
-						local rotY = math.rad((angleDeg * 37 + layer * 73) % 360)
-						tree:PivotTo(CFrame.new(x, GROUND_Y, z) * CFrame.Angles(0, rotY, 0))
-					else
-						tree = Instance.new("Model")
-						local scale = 0.8 + ((angleDeg * 5 + layer * 11) % 9) * 0.05
-						part({
-							Name = "Trunk",
-							Shape = Enum.PartType.Cylinder,
-							Size = Vector3.new(45 * scale, 2.4 * scale, 2.4 * scale),
-							Position = Vector3.new(x, 22 * scale, z),
-							Orientation = Vector3.new(0, 0, 90),
-							Color = Color3.fromRGB(75, 52, 35),
-							Material = Enum.Material.Wood,
-							CanCollide = false,
-							CanQuery = false,
-							CanTouch = false,
-							CastShadow = false,
-						}).Parent = tree
-
-						part({
-							Name = "Canopy",
-							Shape = Enum.PartType.Ball,
-							Size = Vector3.new(24 * scale, 48 * scale, 24 * scale),
-							Position = Vector3.new(x, 32 * scale, z),
-							Color = Props.palette("daun"),
-							Material = Enum.Material.Grass,
-							CanCollide = false,
-							CanQuery = false,
-							CanTouch = false,
-							CastShadow = (layer >= 2 and angleDeg % 2 == 0),
-						}).Parent = tree
-					end
-
-					tree.Name = "Pine_" .. angleDeg .. "_" .. layer
-					tree.Parent = forest
+	if okWs and ws and type((ws :: any).GetChildren) == "function" then
+		local okList, children = pcall(function()
+			return (ws :: any):GetChildren()
+		end)
+		if okList and type(children) == "table" then
+			for _, child in ipairs(children) do
+				if child.Name == ModelMapForestR9.FOLDER_NAME then
+					pcall(function()
+						child:Destroy()
+					end)
 				end
 			end
 		end
+	end
+	local okOld, old = pcall(function()
+		return (world :: any):FindFirstChild(ModelMapForestR9.FOLDER_NAME)
+	end)
+	if okOld and old then
+		pcall(function()
+			old:Destroy()
+		end)
+	end
+
+	local forest = Instance.new("Folder")
+	forest.Name = ModelMapForestR9.FOLDER_NAME
+	forest.Parent = world
+	type ForestEntry = {
+		x: number,
+		z: number,
+		yaw: number?, -- ring placements carry radians; shade anchors reuse angle instead
+		scale: number?,
+		species: string,
+		angle: number,
+		layer: number,
+		shade: boolean?,
+		hubKey: string?,
+	}
+
+	local function makeTree(p: ForestEntry, name: string)
+		local tree: Model? = nil
+		local id = ModelMapForestR9.IDS[p.species]
+		if id then
+			local ok, source = pcall(function()
+				local storage = game:GetService("ServerStorage")
+				local root = storage:FindFirstChild("LookDevAssets")
+				local folder = root and root:FindFirstChild(tostring(id))
+				if not folder then
+					return nil
+				end
+				if folder:IsA("Model") or folder:IsA("BasePart") or folder:IsA("Accessory") then
+					return folder:Clone()
+				end
+				local child = folder:GetChildren()[1]
+				return if child then child:Clone() else nil
+			end)
+			if ok and source and (source :: any):IsA("Model") then
+				tree = source :: Model
+			end
+		end
+		if tree then
+			-- Baked assets are stripped and name-sanitised so no legacy "Pine" name can survive
+			-- into the default look (NO_PINES is checked with no candidate staged).
+			local doomed = {}
+			for _, d in tree:GetDescendants() do
+				if d:IsA("Script") or d:IsA("LocalScript") or d:IsA("ModuleScript") then
+					doomed[#doomed + 1] = d
+				end
+				local clean = string.gsub(d.Name, "[Pp][Ii][Nn][Ee]", "")
+				if clean ~= d.Name then
+					d.Name = clean
+				end
+			end
+			for _, d in doomed do
+				d:Destroy()
+			end
+			local model = tree
+			pcall(function()
+				model:ScaleTo(p.scale or 1.15)
+			end)
+		else
+			tree = Instance.new("Model")
+			local isPalm = p.species == "kelapa"
+			local leaf = if p.species == "pisang"
+				then Props.palette("padi")
+				elseif p.species == "bambu" then Props.palette("bambu")
+				else Props.palette("daun")
+			local trunk = part({
+				Name = "Trunk",
+				Shape = Enum.PartType.Cylinder,
+				Size = Vector3.new(1.2, if isPalm then 8.5 else 5.5, 1.2),
+				Position = Vector3.new(0, if isPalm then 4.25 else 2.75, 0),
+				Color = Color3.fromRGB(75, 52, 35),
+				Material = Enum.Material.Wood,
+			})
+			trunk.Parent = tree
+			if isPalm then
+				for f = 0, 5 do
+					-- Frond: a thin blade reaching out from the crown, tilted 20 degrees down.
+					local a = math.rad(f * 60)
+					local frond = part({
+						Name = "Frond",
+						Size = Vector3.new(0.4, 0.2, 5.5),
+						CFrame = CFrame.new(math.cos(a) * 2.4, 9.4, math.sin(a) * 2.4)
+							* CFrame.Angles(0, -a, math.rad(20)),
+						Color = leaf,
+						Material = Enum.Material.Grass,
+					})
+					frond.Parent = tree
+				end
+			else
+				-- Broadleaf round canopy: 9.6 studs across, trunk + Ball reach ~11.8 studs.
+				local canopy = part({
+					Name = "Canopy",
+					Shape = Enum.PartType.Ball,
+					Size = Vector3.new(9.6, 7.5, 9.6),
+					Position = Vector3.new(0, 8, 0),
+					Color = leaf,
+					Material = Enum.Material.Grass,
+				})
+				canopy.Parent = tree
+			end
+		end
+		if tree then
+			local castShadow = p.layer % 2 == 1 -- odd tiers cast; shade anchors use layer 1
+			for _, d in tree:GetDescendants() do
+				if d:IsA("BasePart") then
+					d.Anchored = true
+					d.CanCollide = false
+					d.CanQuery = false
+					d.CanTouch = false
+					d.CastShadow = castShadow
+				end
+			end
+			tree.Name = name
+			tree:SetAttribute("ForestTree", true)
+			tree:SetAttribute("ForestSpecies", p.species)
+			if p.shade then
+				tree:SetAttribute("ShadeTree", true)
+			end
+			-- pcall-guarded: Lune's mock Instance has no PivotTo; real Studio always places the tree.
+			pcall(function()
+				tree:PivotTo(CFrame.new(p.x, GROUND_Y, p.z) * CFrame.Angles(0, p.yaw or math.rad(p.angle), 0))
+			end)
+			tree.Parent = forest
+		end
+	end
+
+	for _, p in ModelMapForestR9.placements() do
+		makeTree(p, ModelMapForestR9.NAME_PREFIX .. p.species .. "_" .. p.angle .. "_" .. p.layer)
+	end
+	-- Q186: shade trees use the same baked/fallback path and post-processing as the ring trees.
+	for i, p in ipairs(ModelMapForestR9.shadeAnchors(MapSpec.HUBS)) do
+		makeTree(p, "Shade_" .. p.species .. "_" .. p.hubKey .. "_" .. i)
 	end
 end
 
@@ -1156,7 +1218,12 @@ end
 local NPC_CONFIG = {
 	pakrt = { name = "Pak RT", subtitle = "Ketua RT 01", shirt = function() return C.gold end, skin = Color3.fromRGB(200, 155, 110), mustache = true, peci = true },
 	tengkulak = { name = "Bang Jago", subtitle = "Tengkulak", shirt = function() return C.shadow end, skin = Color3.fromRGB(170, 125, 90) },
-	polisi = { name = "Polisi Desa", shirt = function() return C.blue end, skin = Color3.fromRGB(185, 140, 100), cap = function() return C.shadow end },
+	polisi = {
+		name = "Polisi Desa",
+		shirt = function() return C.blue end,
+		skin = Color3.fromRGB(185, 140, 100),
+		cap = function() return C.shadow end,
+	},
 }
 
 local function buildNpcs(world: Folder)

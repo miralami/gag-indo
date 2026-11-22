@@ -1,0 +1,105 @@
+CHECK 111 — lumbung_r8 lumbung and pekarangan (WORK_QUEUE section N, item 111)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Fresh Play, Server DataModel. Place NOT saved, nothing published.
+
+== Target (verbatim) ==
+"**`lumbung_r8`: lumbung and pekarangan.** A rice barn (lumbung padi) on stilts, garden fences with
+toga herbs and chilli pots, a tempat jemur padi (drying mat on the ground) and a well-swept dirt yard
+around each of three houses. **CHECKS:** counts per kind; `PROPS_ON_GRASS` = 0 for the yard pads;
+`DOOR_CLEAR`."
+
+== Implementation (all OFF by default; no shipping default changed) ==
+- NEW `src/shared/ModelMapLumbungR8.luau`: pure, engine-API-free data. One lumbung padi on six stilts
+  (raised floor, 6 walls/frame, tiered thatch roof, clear door, ladder, 2 vents) plus, at each of three
+  house hubs (pasar, gelap, pakrt), a bamboo fence (6), toga herb pot + leaves (3), chilli pots +
+  leaves (4), tempat jemur padi drying mat (5) and rake marks (2). 90 architecture Parts in 12 kinds
+  (stilt 6, floor 3, wall 6, door 3, roof 4, ladder 6, vent 2, fence 18, toga 9, chilli 12, mat 15,
+  rake 6) + 1 invisible door gauge. Plain RGB via Color3 + valid built-in material tokens; no asset
+  IDs, no brand, no engine API. Every position derives from MapSpec.hub/hubPoint (barn at pasar-local
+  offsets; yards just beyond each house eave). Publishes three yard sample centres and their snapped
+  4-stud cell boxes; the SERVER applier owns the real Ground voxel pads and their exact LIFO restore.
+- NEW `src/server/World/LookDevLumbungR8.luau`: pcall-guarded server applier. All staged Parts
+  `Anchored=true`, `CanCollide=false`, tagged stage + `LumbungKind`; door gauge gets DoorW/H/D attrs.
+  `paintYardPad` snapshots the whole snapped cell box with `ReadVoxels` BEFORE `FillBlock(Ground)`;
+  every snapshot is restored LIFO via `WriteVoxels` in `clearActive()` (called on both re-apply and
+  restore). Folder save/detach-restore on disable. `LookDev.register(Data.familyId, applier)`.
+- `src/shared/LookDev.luau`: `lumbung_r8` appended as ID 83 (82 -> 83); descriptor + plan branch.
+  `src/shared/LookDevReview.luau`: server path `{ "World", "LookDevLumbungR8" }`.
+- `tools/studio/review_check_r8.luau`: ORDER gets `LUMBUNG_PARTS`, `LUMBUNG_DOOR_CLEAR`,
+  `LUMBUNG_PROPS_ON_GRASS`; new `do...end` block at section `-- 9l. WORK_QUEUE section N item 111`
+  (line 7039+) with all-FAIL paths (`lbFail`). Bare `DOOR_CLEAR` belongs to facades (ORDER 226) and
+  bare `PROPS_ON_GRASS` to the six r7 props (ORDER 172) — distinct names used; both existing checks
+  untouched. `LUMBUNG_DOOR_CLEAR` mirrors musala: exactly one gauge, exact Size + DoorW/H/D attrs +
+  site pose (compare `-LookVector`, Roblox local -Z), `GetPartBoundsInBox` with Exclude=folder, count
+  only collidable hits OUTSIDE the folder. `LUMBUNG_PROPS_ON_GRASS` derives the 3-yard sample list
+  from pure data, requires exact count>0, folder present, every snapped 4-stud cell readable AND
+  non-Grass (`grassAt` false + `voxelHasNonGrass` true), grassyCells == 0.
+- NEW `tests/specs/lumbung_r8_spec.luau` + registration in `tests/run.luau`: locks counts,
+  `MIN_PARTS=80`, door dims, RGB, yard samples, `#IDS==83`, `IDS[83]`, Review path, plan, harness
+  ORDER/emit names (distinct, bare ones still present), applier strings (`ReadVoxels`, `WriteVoxels`,
+  `Anchored`, `CanCollide = false`, `LookDev.register`, folder, restore), no asset IDs, CANDIDATES row.
+- Count literals bumped 82 -> 83 across 37 files (36 `#IDS` specs + 3 extra count literals in
+  `review_round3_bugfix_spec`, `sky_map_r6_spec`, `terrain_map_r6_spec`); musala/lapangan/pasar_ground
+  ORDER-string assertions extended with the three LUMBUNG names. Every changed spec diff line was
+  verified to be only a count/ORDER update; no guard weakened. Index-locked `IDS[n]` checks intact.
+- `docs/v2/visual/CANDIDATES.md`: pending 6-column row, verdict `pending - review in Studio`, existing
+  `REVIEW_ROUND9.md` render path. No new camera (item 133 owns camera additions).
+
+== ONE REAL ERROR FOUND AND FIXED (not allowlisted or hidden) ==
+First stage attempt built only 85/91 parts: 6 `toga_leaf_*` parts warned
+`[LookDevLumbungR8] could not stage part <house>_toga_leaf_<n> for <house>`. Root cause: those recipes
+used material token `Leaf`, which (like the earlier `Painted` bug) is NOT a member of Enum.Material in
+this Studio even though `LookDev.BUILTIN_MATERIALS` lists it. FIXED: lumbung's `leaf`/`herb` material
+tokens -> `Plastic` (green read still comes from Color3), with a spec guard forbidding both stale
+tokens. The shared allowlist entry was deliberately LEFT in place: `LookDevCorner` and `ModelMapPlazaR9`
+also consume `Leaf`, so removing it would be out-of-scope collateral. A fresh Play then staged all 91
+parts (90 architecture + 1 gauge) with ZERO warnings.
+
+== Method (fresh Play, Server VM, single-active stage) ==
+`LookDevReview.enable("lumbung_r8", game, {studio=true})` returned true; the staging folder held 91
+BaseParts matching `ModelMapLumbungR8.counts()` per kind. The three check blocks in
+`review_check_r8.luau` were executed as an equivalent ad hoc execute_luau probe (item 103/105/108/109/110
+precedent — the whole harness file cannot be injected with a pre-set candidate state), replicating the
+harness's exact `voxelHasNonGrass`/`grassAt` helpers. A real Ground-voxel before/during/after snapshot,
+two PathfindingService routes and a disable/re-enable lifecycle were added.
+
+== Verbatim check lines (single canonical run, all PASS) ==
+CHECK LUMBUNG_PARTS PASS 90 >=80 kinds=stilt=6 floor=3 wall=6 door=3 roof=4 ladder=6 vent=2 fence=18 toga=9 chilli=12 mat=15 rake=6
+CHECK LUMBUNG_DOOR_CLEAR PASS gauges=1 dims=true pose=true api=true hits=0
+CHECK LUMBUNG_PROPS_ON_GRASS PASS grassy=0 unread=0 nonGrass=24/24 yards=3
+  pasar cells=8 grassy=0 unread=0 nonGrass=8
+  gelap cells=8 grassy=0 unread=0 nonGrass=8
+  pakrt cells=8 grassy=0 unread=0 nonGrass=8
+`LUMBUNG_PARTS`: 90 architecture Parts, every kind count equals the pure-data count. Door gauge present
+exactly once, Size 3.2 x 4.8 x 2 with matching DoorW/H/D attrs, site pose correct (`-LookVector` radial
+outward), `GetPartBoundsInBox` succeeded with 0 collidable shipping-world hits. Yard check: all 24
+snapped cells (8 per house) readable and non-Grass, 0 grassy, 3 exact yard samples — non-vacuous.
+Note: the three yard cells sit in existing hub clearings (pristine y=4 material is `Air`, not Grass),
+so `grassAt` is legitimately false without staging; the Ground pads are defensive and the check's
+anti-vacuity comes from the exact non-empty sample list + folder presence, not from a terrain delta.
+
+== Extra terrain-restore, route and lifecycle evidence ==
+pasar padChanged=true restoredExact=true
+gelap padChanged=true restoredExact=true
+pakrt padChanged=true restoredExact=true
+CHECK LUMBUNG_TERRAIN_RESTORE PASS anyPadChanged=true allRestoredExact=true folderGone=true
+CHECK LUMBUNG_PFS_YARD PASS Enum.PathStatus.Success barn-approach -> door
+CHECK LUMBUNG_PFS_SPAWN PASS Enum.PathStatus.Success spawn -> door
+CHECK LUMBUNG_RESTORE PASS gone=true back=true parts=91
+A full-volume voxel snapshot before/during/after disable proved all three Ground pads actually changed
+the Terrain and were restored BYTE-EXACT on disable (LIFO), with the folder destroyed. Two real
+`PathfindingService:CreatePath({AgentRadius=2, AgentHeight=5.5, AgentCanJump=false})` routes reached
+the barn door. `disable` removed the folder; a second `enable` re-created it with all 91 parts.
+
+== Validation / scope ==
+lune run tests/run.luau: All 2727 tests passed. selene src: 0 errors / 0 warnings / 0 parse errors.
+stylua --check clean on all changed Luau files. git diff --check clean (pre-existing LF->CRLF notices
+only). Play stopped after verification; no place saved, nothing published. No visual, copy or aural
+verdict. Candidate remains off by default; no shipping default changed. No asset IDs, no brand marks.
+No new camera.
+
+Status: SEEN-IN-STUDIO (fresh Play Server VM, lumbung_r8 staged; LUMBUNG_PARTS 90>=80 all counts match,
+LUMBUNG_DOOR_CLEAR gauge dims/pose/API OK with 0 collidable hits, LUMBUNG_PROPS_ON_GRASS 0/24 grassy
+over 3 exact yards, Ground pads restored byte-exact LIFO, PFS yard+spawn routes PASS,
+disable/re-enable PASS; zero staging warnings after the material fix).

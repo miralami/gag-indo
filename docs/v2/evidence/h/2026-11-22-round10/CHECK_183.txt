@@ -1,0 +1,29 @@
+CHECK 183 - stray top-level Workspace objects (WORK_QUEUE section P)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa (placeId 132087524375529). Place NOT saved, nothing published.
+
+== Method ==
+`tools/studio/check_no_stray_workspace.luau` pasted whole into execute_luau, unchanged, in both
+the Edit datamodel and a fresh clean Play Server VM. It lists EVERY top-level Workspace child not
+in the known list (Terrain, Camera, World, Decor, BackgroundForest, folders, LookDev*, prop_*/kit_*
+saved-place asset models) with class, descendant count and position.
+
+== Edit datamodel: raw output ==
+CHECK NO_STRAY_WORKSPACE PASS 0 0
+13 known children (BackgroundForest, Terrain, 10 prop_*/kit_* asset models, Camera). No stray.
+
+== Clean Play, Server VM: raw output ==
+CHECK NO_STRAY_WORKSPACE FAIL 1 0
+STRAY GiantyFrog | Model | 316 desc @0.00,4.61,28.00
+(An earlier probe in the same Play session reported the same 316-descendant Model at pivot
+(52.53,4.00,-161.68); the generated model has no stable single origin. `BambooBasket` from the
+round-9 review was NOT present in this clean Play.)
+
+== Finding ==
+`GiantyFrog` (Model, 316 descendants) is re-created in every fresh Play and is not produced by any
+game source (grep of src/ shows no such name). It is a leftover studio-generated model, exactly the
+kind item 183 calls a stray. Removing it requires a place edit by the main session; this run did
+NOT save the place and did not delete the instance.
+
+Status: BLOCKED — needs a place edit by the main session: GiantyFrog (Model, 316 descendants) in Workspace after clean Play.

@@ -1,0 +1,15 @@
+# CHECK 69 — CAMERA_CLEAR (WORK_QUEUE section M item 69)
+# Studio: Development-Juragan-Desa (placeId 132087524375529), real Play, Server datamodel.
+# Clean Play, no candidate staged. src/shared/ReviewCameras.luau was injected into
+# ReplicatedStorage.Shared (runtime-only, not saved) because Rojo had not synced the new file;
+# it loaded with 26 named cameras and clearDistance=6. Harness: tools/studio/review_check_r8.luau
+# (CAMERA_CLEAR is Server-only: ReviewCameras requires MapSpec from ServerScriptService).
+# Raw console line verbatim:
+CHECK CAMERA_CLEAR PASS 0 blocked/26 checked 0 blocked
+# Detail: checked=26, failed=[] — every named camera's eye is in free space: a 6-stud ray
+# toward its look-at hits nothing opaque (Transparency >= 0.5 treated as transparent).
+# First attempt failed with 26 "bad coords" because the harness asVector3 helper accepted only
+# {x=,y=,z=} tables, while ReviewCameras exports Vec3 as an array {x,y,z}; the helper was fixed
+# to accept both forms (not the check). Second attempt PASS. No camera needed to be moved.
+# Camera names/count/datamodel are in docs/v2/visual/REVIEW_CAMERAS.md. The main session shoots
+# these; a vision-capable designer grades them — this objective ray check is not a visual verdict.

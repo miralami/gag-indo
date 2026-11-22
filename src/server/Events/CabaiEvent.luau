@@ -72,7 +72,13 @@ local function stopTimer()
 	syncFlag()
 end
 
+local started = false
+
 function CabaiEvent.start()
+	if started then
+		return -- one listener and one loop per server
+	end
+	started = true
 	LiveConfig.onChanged(function()
 		syncFlag()
 	end)

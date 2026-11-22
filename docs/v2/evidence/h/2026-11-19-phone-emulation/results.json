@@ -1,0 +1,60 @@
+{
+  "item": "round2/1 prove phone emulation or downgrade",
+  "date": "2026-11-19",
+  "status": "SEEN-IN-STUDIO",
+  "branch": "track/c-world-look",
+  "placeId": 132087524375529,
+  "studio_id": "447c176b-1d7b-4b9c-a794-45912fea4b63",
+  "scalingMode": "Enum.DeviceSimulatorScalingMode.FitToWindow",
+  "screenOrientation": "Enum.ScreenOrientation.LandscapeSensor",
+  "method": "SetDeviceAsync in Edit datamodel before start_stop_play; getters read in PlayClient after task.wait",
+  "states": [
+    {
+      "device": "average_windows",
+      "native": "1366x768",
+      "playViewport": "1365x768",
+      "aspect": 1.77,
+      "touchEnabled": false,
+      "guiInset": "0,58",
+      "orientation": "Enum.ScreenOrientation.LandscapeRight"
+    },
+    {
+      "device": "iphone_14",
+      "native": "844x390",
+      "playViewport": "749x389",
+      "aspect": 1.92,
+      "touchEnabled": true,
+      "guiInset": "0,58",
+      "orientation": "Enum.ScreenOrientation.LandscapeRight"
+    },
+    {
+      "device": "iphone_14",
+      "note": "portrait set DURING Play",
+      "playViewport": "388x761",
+      "aspect": 0.51,
+      "touchEnabled": true,
+      "guiInset": "0,58",
+      "orientation": "Enum.ScreenOrientation.Portrait"
+    },
+    {
+      "device": "samsung_galaxy_a06",
+      "native": "800x360",
+      "playViewport": "705x338",
+      "aspect": 2.08,
+      "touchEnabled": true,
+      "guiInset": "0,58",
+      "orientation": "Enum.ScreenOrientation.LandscapeRight"
+    }
+  ],
+  "orientationApi": {
+    "GetOrientationAsync": "function -> Enum.ScreenOrientation EnumItem",
+    "SetOrientationAsync": "function (mobile device required; real Enum.ScreenOrientation arg)",
+    "SetDeviceAsync": "function",
+    "SetResolutionAsync": "function",
+    "SetDeviceOrientationAsync": "missing",
+    "RotateDeviceAsync": "missing"
+  },
+  "screenshot": "screen_capture PhoneEmulation_A06_Landscape accepted; not visually analysed (no image input in this session)",
+  "conclusion": "emulation active; no downgrade of G3/G5 phone claims; no GATE1/MASTER_PLAN status change required",
+  "reset": "StopSimulationAsync called; device=default"
+}

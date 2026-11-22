@@ -1,0 +1,60 @@
+CHECK 89 — day_cycle_r8 tuned Sore look (WORK_QUEUE section M5, item 89)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Edit runtime injection; place NOT saved, nothing published.
+
+== Setup ==
+Injected at runtime (not saved) into the EDIT datamodel: Shared.ModelMapDayCycleR8 (requiring the
+baked-in Shared.World.DayCycle, which is present and matches the repo). Fresh real Play session.
+day_cycle_r8 is a CLIENT candidate, but the three new checks are PURE shared-model functions with no
+engine calls, so the whole tools/studio/review_check_r8.luau was pasted into execute_luau in the
+SERVER VM (same as prior round-9 items); the checks are VM-agnostic. The visual yes/no remains the
+designer's and is NOT claimed here.
+
+== Raw check lines (verbatim, Studio VM) ==
+CHECK DAY_PHASES_MONOTONIC PASS 0.623529 <=0.779412
+CHECK DAY_1600_CONTRAST PASS 2.705297 >=2.592990
+CHECK DAY_MAGHRIB_UNCHANGED PASS 1 1
+CHECK LOAD_FAILURES PASS 0 0
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+CHECK CAMERA_CLEAR PASS 0 blocked/42 checked 0 blocked
+CHECK PERF_BUDGET PASS 334 500
+
+== Detail (verbatim numbers) ==
+DAY_PHASES_MONOTONIC: baseMax 0.6235294044017792, tunedMax 0.6235294044017792, factor 1.25,
+documentedLimit 0.779411755502224. Tuned max adjacent normalized-channel jump = base max; both
+under the 1.25x headroom limit defined in docs/v2/visual/DAY_CYCLE.md ("Documented numeric limits
+(item 89)"). No new jump between adjacent phases (including the malam -> dini_hari wrap).
+
+DAY_1600_CONTRAST: baseRatio 2.1608252743359437, tunedRatio 2.7052970410168493, uplift 25.20%
+(target >= 1.20x base = 2.592990). Luminance = Rec.709 0.2126R+0.7152G+0.0722B on 0-255;
+ratio = lum(colorShiftTop)/lum(ambient); measured at 16:00 (START_CLOCK, Sore alpha 0). Tuned Sore:
+ColorShift_Top 255/190/96 (warmer), Ambient 84/70/68 (darker), sunClockOffset -0.75 (lower sun),
+ShadowSoftness 0.45 (shipping 0.3) — all still tweened 20-40 s, never snapped.
+
+DAY_MAGHRIB_UNCHANGED: reason true, changed []. Maghrib (17.75-18.5) and every non-Sore phase are
+field-for-field identical to the shipping DayCycle table (deep compare of all scalar + RGB fields).
+
+PERF_BUDGET 334/500 — equal to the default look, under the Sedang proxy. No over-budget flag.
+
+== Vacuous-PASS defect found and fixed (recorded, no check weakened) ==
+First Studio run emitted DAY_1600_CONTRAST PASS 0.000000 >=0.000000 and DAY_PHASES_MONOTONIC PASS
+0.500000 <=0.625000 while Lune showed 2.16 -> 2.71 and 0.623529. Root cause: a real Roblox Color3
+is userdata (type() ~= "table"), while the Lune test double is a plain table. The model's luminance()
+guard `type(rgb) ~= "table"` returned 0 for Studio Color3, and adjacentJumps()' `type(a) == "table"`
+gate skipped every colour channel, so both Studio measurements collapsed toward zero and compared
+vacuously. Fix (dst 2026-11-21):
+  * ModelMapDayCycleR8.luau: added pcall-based colorChannels() duck-typing both the userdata .R/.G/.B
+    shape and the Lune table shape; luminance() and adjacentJumps() now both use it.
+  * review_check_r8.luau: added non-vacuity guards `baseRatio > 0` (contrast) and `baseJump > 0`
+    (monotonic) so an unreadable-colour environment now FAILs loudly instead of vacuously PASSing.
+  * day_cycle_r8_spec.luau: source guards lock colorChannels/pcall usage, the removed type gates, and
+    both harness non-vacuity guards; a non-table channel provider yields a real luminance under Lune.
+All checks re-run: Lune 2653 tests pass (was 2652), selene src 0/0/0, Studio re-run produced the
+non-vacuous PASS lines above. No threshold, target, or assertion was weakened; the fix makes the
+checks stricter (they can now FAIL where they previously PASSed vacuously).
+
+Status: SEEN-IN-STUDIO (pure numeric checks measured in the live Studio VM with non-vacuous values;
+the fix for the Color3-userdata vacuous PASS is included and verified). No place saved, nothing
+published. Visual yes/no remains the designer's — these checks prove the numeric contrast/jump/
+Maghrib limits and exact restore, not that the tuned 16:00 grade reads better to a human eye.

@@ -1,0 +1,35 @@
+# CHECK 72 — sawah_r8 terrace dressing (WORK_QUEUE section M item 72)
+# Studio: Development-Juragan-Desa (placeId 132087524375529), real Play, Server datamodel.
+# Fresh Play, no direct-staged candidates. Because Rojo had not synced the new/changed modules,
+# the following were injected into the Edit datamodel at runtime (not saved to the place):
+#   ReplicatedStorage.Shared.LookDev, LookDevReview, ModelMapSawahR8;
+#   ServerScriptService.Server.Main, Server.World.LookDevSawahR8.
+# Existing bake: ServerStorage.LookDevAssets = 34 folders (unused; this candidate is procedural Parts).
+# Staged with the one-call review path:
+#   require(game.ReplicatedStorage.Shared.LookDevReview).enable("sawah_r8", game)
+# Verified before the run: LookDev.IDS = 49 (last = "sawah_r8"), applier registered,
+#   review path datamodel = "server", 4 terrace folders, 4 water sheets, 8 panes, 240 verge blades
+#   (80 tufts × 3 blades), 1 gubuk (4 posts + roof + bench), 3 stepping stones, load failures = 0.
+# Harness: tools/studio/review_check_r8.luau. Raw console lines verbatim (item-72 family + guards):
+CHECK LOAD_FAILURES PASS 0 0
+CHECK SAWAH_TOPS PASS 0 0.5
+CHECK SAWAH_WATER PASS 4 4 sheets
+CHECK SAWAH_VERGE PASS 240 >=40
+CHECK GUBUK PASS 1 1
+CHECK CAMERA_CLEAR PASS 0 blocked/26 checked 0 blocked
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+# SAWAH_TOPS detail: 8 Terrain-only raycasts (one per MapSpec.paddyWater pane centre), failed=[],
+#   tolerance=0.5, worst diff 0.00 — terrace tops remain exactly 4.5/8.5/12.5/16.5. Candidate water
+#   parts cannot affect the ray (filter includes Terrain only).
+# SAWAH_WATER detail: 4 sheets (one per terrace), each with exactly 2 water_pane children at
+#   Transparency=0.55 and muddy green-brown Color3 ~{0.33,0.40,0.20} (distBlue=0.95, far from pure
+#   blue), all inside their terrace's z band and a MapSpec.TERRACE_SIDES x band; failures=[].
+# SAWAH_VERGE detail: 240 verge blades (60 per terrace, 80 deterministic tufts × 3 blades), staged=266.
+# GUBUK detail: roofs=1 on Terrace=2 with Gubuk id=1, matchedPosts=4, matchedBenches=1.
+# The other harness lines in this run (HATS 0/4, PROPS_VISIBLE 0/6, PROPS_ON_GRASS 6/0,
+# VEG_COUNT 0/60, VEG_SPECIES 0/8, all VEG_HUB_* 0, VEG_SPECIES_HUB min=0, VEG_OVERLAP 0,
+# PLOT_FENCE min=0, GATE_CLEAR 0/0 gates, VEG_NEAR 0, PROP_SIZE -1, CLOUD_COVER absent) are for
+# candidates NOT staged in this clean Play and are out of scope for item 72; each was PASS-verified
+# in its own evidence file. All item-72 checks PASS on the first run — no target was weakened and no
+# Terrain, greybox, padi row or terrace top was edited.
+# This is a placement/configuration proof, not a visual verdict — the designer grades the look.

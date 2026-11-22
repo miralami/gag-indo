@@ -72,6 +72,28 @@ return function(t, Env)
 				local mid2D = ActionFeel.cashFlyTrajectory(start2D, end2D, 0.5)
 				expect(mid2D.Y):toBeGreaterThan(20)
 			end)
+
+			t:it("handles a Roblox-style Vector2 whose .Z read throws (BUG: cash-fly crash on sell)", function()
+				-- Real Roblox Vector2 raises on a missing member read. A plain {X,Y} table returns
+				-- nil, so the old `startPos.Z ~= nil` probe only worked under Lune and crashed in
+				-- Studio on every sell. This strict vector reproduces the Roblox behaviour.
+				local function strict2D(x, y)
+					return setmetatable({ X = x, Y = y }, {
+						__index = function(_, key)
+							if key == "Z" then
+								error("Z is not a valid member of Vector2", 2)
+							end
+							return nil
+						end,
+					})
+				end
+				local ok, mid = pcall(function()
+					return ActionFeel.cashFlyTrajectory(strict2D(10, 20), strict2D(110, 20), 0.5, -60)
+				end)
+				expect(ok):toBe(true)
+				expect(mid.Y):toBeLessThan(20) -- upward arc is -Y for the screen-space cash fly
+				expect(mid.X):toBeNear(60)
+			end)
 		end)
 
 		t:describe("shakeOffset", function()

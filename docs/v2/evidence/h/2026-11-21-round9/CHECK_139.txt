@@ -1,0 +1,44 @@
+CHECK 139 — facades_r8 stray yellow diagonal pole (WORK_QUEUE section O, item 139)
+Datetime: 2026-11-21
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Edit runtime injection; place NOT saved, nothing published.
+
+== Setup ==
+1. Injected the changed `src/shared/ModelMapFacadesR8.luau` into ReplicatedStorage.Shared in the EDIT
+   datamodel (SET). Started a fresh Play, Server datamodel.
+2. Staged the candidate with `require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive(
+   "facades_r8", game)` — returned true, `LookDevFacadesR8_facades_r8` present.
+3. Pasted the whole `tools/studio/review_check_r8.luau` into execute_luau (Server VM) and read byName.
+
+== Raw check lines (verbatim, staged facades_r8) ==
+CHECK FACADE_STRAY PASS 0 0
+CHECK FACADE_PARTS PASS 6 6
+CHECK DOOR_CLEAR PASS 6 6
+CHECK NO_PINES PASS 0 0
+CHECK RING_COUNT PASS 272 250
+CHECK RING_SPECIES PASS 4 4
+CHECK PERF_BUDGET PASS 383 500
+CHECK LOAD_FAILURES PASS 0 0
+CHECK LOOKDEV_LEAK PASS 0 leaks 0 leaks
+CHECK CAMERA_CLEAR PASS 0 blocked/26 checked 0 blocked
+CHECK ADDITIVE_STAGE PASS 3 3
+
+== Culprit and fix ==
+Culprit: `FacadeRidgeCap` in `src/shared/ModelMapFacadesR8.luau`. Its old size was
+`{ width * 0.8, 0.6, 1.2 }` with width = the hub model width (32–64), so the gold bar was 25.6–51.2
+studs long — the "long yellow diagonal pole" in the Pak RT shot (pakrt: 38.4 studs). It also lay
+across pakrt's Z-running ridge. Fix: cap length fixed at 10 studs for every hub, and a `ridgeAlongZ`
+flag turns pakrt's cap along local Z. Additionally `FacadeEave_L` on pakrt was 0.3 studs past
+hub-bbox+3; `eaveX` was reduced from `gauge.w/2 + 10` to a fixed 12 studs. All six hubs checked; no
+other stray parts remain.
+
+== FACADE_STRAY method (target 0, unweakened) ==
+Per hub, for every staged Part tagged `FacadePart == true`: rotation-aware world AABB must fit inside
+the hub Model bbox grown 3 studs on every axis, its top must be <= ridge + 1, and no AABB side may
+exceed 12 studs. AABB is computed from CFrame + Size corners because this Studio API surface does
+not expose `GetBoundingBox` on Part; hub Model bbox is the union of its descendant BaseParts. A
+missing folder, gauge, hub Model or unreadable bbox is counted as an offender, never a vacuous pass.
+First two attempts correctly FAILED (60 unreadable part bboxes, then 6 unreadable hub bboxes); the
+helper was fixed, not the target. Final detail: offenders = [].
+
+Status: SEEN-IN-STUDIO. No place saved, nothing published. Visual grading remains the designer's.

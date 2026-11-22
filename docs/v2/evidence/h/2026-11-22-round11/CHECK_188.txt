@@ -1,0 +1,54 @@
+CHECK 188 - source and place a real fountain; rebuild plaza_r9 (section Q item 188, supersedes 175)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Play mode, Server VM. Place NOT saved, nothing published.
+Candidate plaza_r9 OFF by default; staged only inside the check via enableAdditive, disableAll cleanup.
+
+== Setup ==
+Real free Creator Store model 93434732057582 "Fountain" (Sonisn1810) sourced over 5 keyword rounds
+("stone fountain", "tiered fountain", "garden fountain", "fountain model", "air mancur"), fetched
+with GetObjects and measured in Edit mode: Model, 15.24 x 17.36 x 17.35 studs, 7 BaseParts, 0
+MeshParts, 2 scripts. Baked scripts-stripped into ServerStorage.LookDevAssets.93434732057582
+(2 scripts removed, 0 left, 1 Model child). Recorded in ASSET_MANIFEST.md section Q (no unused
+marker: ID wired into src/shared/ModelMapPlazaR9.luau). No ID invented.
+Changed sources injected into the Edit datamodel (Rojo connection stale):
+  src/shared/ModelMapPlazaR9.luau       -> ReplicatedStorage.Shared.ModelMapPlazaR9
+  src/server/World/LookDevPlazaR9.luau  -> ServerScriptService.Server.World.LookDevPlazaR9
+Fresh Play, Server VM. tools/studio/check_q188.luau pasted whole into execute_luau. The applier
+clones the baked model via LookDevAssetLoader.get, scales its widest horizontal bbox to 16 studs,
+pivots it to MapSpec.PLAZA centre (+0,+0), tags it FountainAssetId=93434732057582, strips scripts
+and anchors parts. Paved ring, four inward benches, flat red/white flag pairs and four 6-stud lanes
+are unchanged from item 175.
+
+== Raw check lines (verbatim, fresh Play, staged plaza_r9) ==
+CHECK FOUNTAIN_IS_MODEL PASS 1 1
+CHECK FOUNTAIN_SIZE PASS 16 18
+CHECK FLAG_CLEAN PASS 0 0
+CHECK PLAZA_WALKABLE PASS 0 0
+
+== Notes / measurements ==
+- FOUNTAIN_IS_MODEL: assetId 93434732057582, baked folder present, PlazaFountain container present,
+  1 descendant Model tagged FountainAssetId. The container survives a failed bake load but no Parts
+  are fabricated, so a load failure FAILs the check rather than passing a Part stand-in.
+- FOUNTAIN_SIZE 16: widest horizontal AABB across all visible fountain descendants; the model is
+  scaled from a 17.35-stud baked width down to the 16-stud target, inside the required [14,18].
+- FLAG_CLEAN 0: 11 flat red-over-white parallel pairs, no stray/crossing panels (item-175 rule).
+- PLAZA_WALKABLE 0: all four 6-stud lanes reach the ring and no staged part overlaps a corridor.
+- partBox uses cf:VectorToWorldSpace on half-extents; local conversion subtracts MapSpec.PLAZA.
+- No NPC outfits, terrain sculpt, chosen sky or ground touched. No visual verdict claimed.
+- Default look unchanged; plaza_r9 stays behind LookDev until item 226.
+
+== Non-vacuity / calibration (undeweakened checks) ==
+Each mutation applied to the LIVE staged geometry then the SAME check re-run in a fresh Play session:
+
+1. FOUNTAIN_IS_MODEL: SetAttribute("FountainAssetId", nil) on the cloned fountain model while staged
+   -> CHECK FOUNTAIN_IS_MODEL FAIL 0 1 (other three PASS).
+2. FOUNTAIN_SIZE upper bound: ScaleTo(1.3) on the fountain model -> basin 22.56 -> FAIL 22.56 18.
+3. FOUNTAIN_SIZE lower bound: ScaleTo(0.45) -> basin 7.81 -> FAIL 7.81 18.
+4. FLAG_CLEAN: rotate one flat flag panel 90 degrees about Y (crossing pair) -> FAIL 1 0.
+5. PLAZA_WALKABLE: PivotTo a BenchSeat part into the north lane at (0, y, -20) -> FAIL 1 0.
+6. Pre-change baseline: the same harness on the old Part-built fountain (before the fixer landed)
+   read FOUNTAIN_IS_MODEL FAIL 0 1 while FOUNTAIN_SIZE/FLAG_CLEAN/PLAZA_WALKABLE PASS — the model
+   check bites on exactly the rejected item-175 geometry, so the PASS is not vacuous.
+
+Status: SEEN-IN-STUDIO.

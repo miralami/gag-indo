@@ -1,7 +1,7 @@
 --!nocheck
 return function(t, Env, Fakes)
 	local expect = t.expect
-	local env, Crops, GameConfig, Cheats, Economy, Produce, Inventory, notify, rateLimit, remotes, cabai, player, data
+	local env, Crops, GameConfig, Cheats, Economy, Produce, Inventory, notify, rateLimit, remotes, cabai, player, data, analytics
 
 	local PASAR = nil
 	local GELAP = nil
@@ -50,7 +50,8 @@ return function(t, Env, Fakes)
 			env:mock("server/Data/PlayerData", playerData)
 			env:mock("server/Net/Notify", notify)
 			env:mock("server/Net/RateLimit", rateLimit)
-			env:mock("server/Analytics/Analytics", Fakes.analytics())
+			analytics = Fakes.analytics()
+			env:mock("server/Analytics/Analytics", analytics)
 			env:mock("server/Events/CabaiEvent", cabai)
 			env:mock("server/World/Village", {
 				getPosition = function(name)
@@ -150,6 +151,17 @@ return function(t, Env, Fakes)
 				expect(Economy.transfer(player, other, -10)):toBe(0)
 				expect(Economy.transfer(player, other, 0 / 0)):toBe(0)
 				expect(data.cash):toBe(GameConfig.startCash)
+			end)
+
+			-- WORK_QUEUE item 14 mutation E07: changing `moved <= 0` to `moved < 0` makes a
+			-- zero-value transfer emit two analytics rows and two syncs. A transfer of zero must
+			-- be completely silent, not merely balance-neutral.
+			t:it("a zero-value transfer emits no analytics rows and leaves both balances alone", function()
+				local before = #analytics.economyEvents
+				expect(Economy.transfer(player, other, 0)):toBe(0)
+				expect(#analytics.economyEvents):toBe(before)
+				expect(data.cash):toBe(GameConfig.startCash)
+				expect(otherData.cash):toBe(GameConfig.startCash)
 			end)
 		end)
 

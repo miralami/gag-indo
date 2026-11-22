@@ -1,0 +1,79 @@
+{
+  "run": "client loop, 1800 s, 6-tile padi plant -> ready -> harvest -> sell pasar -> buy padi 1, with ALL 8 LookDev candidates applied",
+  "date": "2026-11-19",
+  "item": 12,
+  "status": "SEEN-IN-STUDIO",
+  "branch": "track/c-world-look",
+  "head_before": "e217bda",
+  "studio": "Development-Juragan-Desa, placeId 132087524375529, Play Solo, harness in-memory",
+  "rojo": "localhost:34872",
+  "freshProfileMethod": "VERIFY-TEMP store.Mock in-memory ProfileStore in src/server/Data/PlayerData.luau, reverted before commit",
+  "probe": "injected SoakProbe LocalScript in PlayerScripts (real require cache); writes ReplicatedStorage.SoakData folder attributes every 5 cycles and at done; server-side LookDevWalkin enabled from an injected Script",
+  "allCandidatesOn": {
+    "method": "LookDev is single-active, so the eight disjoint appliers were applied additively: six client adapters (.apply directly) + plaza_lighting via LookDev.enable on Client + police_walkin via LookDev.enable on Server",
+    "applied_client": {"textures": "ok", "crops": "ok", "npcs": "ok", "plaza_lighting": "ok", "sounds": "ok", "icons": "ok", "hubprops": "ok"},
+    "applied_server": {"police_walkin": "ok"},
+    "server_current": "police_walkin"
+  },
+  "startWall": "2026-11-19T11:28:34Z",
+  "elapsedSeconds": 1801.83,
+  "cycles": 234,
+  "done": true,
+  "calls": {"plant": 1404, "harvest": 1404, "ready": 234, "sell": 234, "buy": 234},
+  "failures": {"plant": 1337, "harvest": 1337, "sell": 178, "buy": 172},
+  "lastFailure": {
+    "plant": "no padi seed",
+    "harvest": "harvest refused on tile 6 (empty, still growing, or the sack is full)",
+    "sell": "sack is empty",
+    "buy": "shop refused padi x1 (stock, rank or cash)"
+  },
+  "failureInterpretation": "Expected graceful refusals, not defects: the probe buys only 1 padi per cycle but attempts 6 plants, so seed stock runs dry by design; harvest/sell refusals follow. Same class as the 2026-11-19 regression-replay soak.",
+  "memory": {
+    "clientSource": "Stats:GetTotalMemoryUsageMb() sampled in the real LocalScript VM at start and after every cycle",
+    "clientSamples": 235,
+    "clientFirstMb": 2750.96875,
+    "clientLastMb": 2635.359375,
+    "clientMinMb": 2623.95703125,
+    "clientMaxMb": 2757.61328125,
+    "clientNetMb": -115.609375,
+    "gcCompaction": {"atSampleIndex": 54, "beforeMb": 2744.375, "afterMb": 2623.95703125, "dropMb": -120.41796875},
+    "postGcSamples": 180,
+    "postGcDriftMb": 11.40234375,
+    "last40SamplesDriftMb": 3.05859375,
+    "serverSource": "Stats:GetTotalMemoryUsageMb() read separately in the Server datamodel at start and end",
+    "serverStartMb": 2760.76171875,
+    "serverEndMb": 2636.03515625,
+    "serverNetMb": -124.7265625,
+    "verdict": "No leak. Both memory series end below their start; the one large mid-run drop is GC compaction, and the post-GC drift is ~11 MB over 180 cycles decelerating to ~3 MB over the final 40 cycles (a plateau, not unbounded growth)."
+  },
+  "census": {
+    "source": "whole-DataModel BasePart/Instance count from the real LocalScript VM every 5 cycles, plus a post-soak stability sample",
+    "connectionProxies": "Roblox exposes no raw RBXScriptConnection counter. Stuck-reply proxy = harness pending queue (always 0); lifecycle proxy = DataModel instance/part count and LookDev-owned containers. The appliers that register signals (npcs, walkin) create them once at apply and disconnect once at restore.",
+    "clientInstancesStart": 6735,
+    "clientInstancesEnd": 6898,
+    "clientInstancesNet": 163,
+    "clientPartsStart": 1706,
+    "clientPartsEnd": 1840,
+    "stabilitySampleSecondsAfterSoakEnd": 993,
+    "stabilityInstances": 6900,
+    "stabilityParts": 1840,
+    "cropPartsPersistingOnTiles": 0,
+    "pendingRepliesMax": 0,
+    "verdict": "No growth signal. +163 instances / +134 parts over 1800 s (~0.09 instances/s) that decelerate to +2 instances / +0 parts over the ~993 s after the soak loop stopped — a plateau. Zero crop parts persisted on tiles; the pending harness queue never grew (no stuck/orphaned replies)."
+  },
+  "economy": {
+    "baseline": {"cash": 50, "padiSeeds": 5, "tilesOwned": 6, "rank": "gurem", "lifetimeEarned": 0, "tutorialStep": 1},
+    "end": {"cash": 754, "padiSeeds": 0, "tilesOwned": 6, "rank": "petani", "lifetimeEarned": 1324, "tutorialStep": 5},
+    "verdict": "No desync symptom: cash and lifetimeEarned advanced coherently, tilesOwned constant at 6, rank progressed gurem -> petani, tutorial advanced to step 5. An explicit client/server state diff was not scripted this run (same limitation as the regression-replay soak)."
+  },
+  "outputLog": "Zero game-code errors or warnings across the full 1801 s soak. Lines are the known external ones: a ProfileStore availability notice, three rbxassetid://203785492 asset-type warnings, AnalyticsService event notices, and probe self-destroy parent warnings. BUG-003 did not recur.",
+  "cleanup": {
+    "playStopped": true,
+    "returnedToEditMode": true,
+    "probeArtifactsCleaned": true,
+    "placeSaved": false,
+    "published": false,
+    "verifiedTempEditReverted": true,
+    "gitCleanAfter": true
+  }
+}

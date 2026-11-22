@@ -148,17 +148,23 @@ function Produce.clear(sack: Sack)
 	end
 end
 
--- Deep-ish copy for the replicated state snapshot.
+-- Deep-ish copy for the replicated state snapshot. `produce` and `gudang.stacks` are dynamic-key
+-- tables that SaveSanitize deliberately leaves untouched, so a damaged save can put a non-table
+-- (or a stack with a non-table `traits`) in here. Skip those exactly like count/removeHot/
+-- removeClean do, otherwise a single corrupt value would throw and break the whole State_Snapshot
+-- (BUG-014). Valid stacks copy unchanged.
 function Produce.snapshot(sack: Sack): Sack
 	local out = {}
 	for key, stack in sack do
-		out[key] = {
-			crop = stack.crop,
-			tier = stack.tier,
-			traits = table.clone(stack.traits or {}),
-			count = stack.count,
-			qualitySum = stack.qualitySum,
-		}
+		if type(stack) == "table" then
+			out[key] = {
+				crop = stack.crop,
+				tier = stack.tier,
+				traits = if type(stack.traits) == "table" then table.clone(stack.traits) else {},
+				count = stack.count,
+				qualitySum = stack.qualitySum,
+			}
+		end
 	end
 	return out
 end

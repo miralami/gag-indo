@@ -17,7 +17,8 @@ local Analytics = require(script.Parent.Parent.Analytics.Analytics)
 
 local Receipts = {}
 
-local function applyGrant(player: Player, data, product, productKey: string)
+-- Returns false when the grant type is unknown, so the receipt is never acknowledged for nothing.
+local function applyGrant(player: Player, data, product, productKey: string): boolean
 	if product.grant == "inventory" then
 		Inventory.add(data, product.item, product.amount or 1)
 	elseif product.grant == "seeds" then
@@ -34,7 +35,9 @@ local function applyGrant(player: Player, data, product, productKey: string)
 		end
 	else
 		warn("[Receipts] Unknown grant type", tostring(product.grant))
+		return false
 	end
+	return true
 end
 
 function Receipts.start()
@@ -48,9 +51,22 @@ function Receipts.start()
 			return Enum.ProductPurchaseDecision.NotProcessedYet
 		end
 		local data = profile.Data
+		if receiptInfo.PurchaseId == nil then
+			return Enum.ProductPurchaseDecision.NotProcessedYet -- cannot be deduplicated
+		end
+		if type(data.receipts) ~= "table" then
+			data.receipts = {}
+		end
 
 		if table.find(data.receipts, receiptInfo.PurchaseId) then
-			return Enum.ProductPurchaseDecision.PurchaseGranted -- already granted earlier
+			-- Already granted in memory, but an earlier attempt may have failed to save.
+			-- Never acknowledge until a save containing this PurchaseId is confirmed, or a paid
+			-- purchase can be lost on the next crash with no retry left. Do not re-grant or
+			-- re-notify: a normal replay still grants/notifies exactly once.
+			if PlayerData.saveAndConfirm(profile, receiptInfo.PurchaseId, 15) then
+				return Enum.ProductPurchaseDecision.PurchaseGranted
+			end
+			return Enum.ProductPurchaseDecision.NotProcessedYet
 		end
 
 		local productKey = Products.productKeyForId(receiptInfo.ProductId)
@@ -62,7 +78,9 @@ function Receipts.start()
 
 		-- Grant AND record the PurchaseId in the same step (no yield in between),
 		-- so a retry after a crash sees the ID and doesn't grant twice.
-		applyGrant(player, data, product, productKey)
+		if not applyGrant(player, data, product, productKey) then
+			return Enum.ProductPurchaseDecision.NotProcessedYet
+		end
 		table.insert(data.receipts, receiptInfo.PurchaseId)
 		if #data.receipts > 50 then
 			table.remove(data.receipts, 1)

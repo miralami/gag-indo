@@ -1,0 +1,117 @@
+{
+  "session": "2026-11-19-gate1-sweep",
+  "branch": "track/c-world-look",
+  "baseCommit": "270fffe",
+  "rojoServing": true,
+  "rojoEndpoint": "localhost:34872",
+  "syncConfirmedBy": ["RaidCutscene standOff=14", "Harness line-314 comment"],
+  "placeId": 132087524375529,
+  "universeId": 10776530981,
+  "profile": { "account": "designer account", "baselineCash": 35857 },
+  "placeSaved": false,
+  "placePublished": false,
+  "profileSaveCalled": false,
+  "status": "SEEN-IN-STUDIO",
+  "method": {
+    "uiInput": "GuiService.SelectedObject = button + user_keyboard_input keyPress Return",
+    "mouseInputFailed": "user_mouse_input did not activate GuiButtons (Activated counter stayed 0); VirtualInputManager from execute_luau refused: lacking capability RobloxScript",
+    "viewport": { "x": 749, "y": 388 }
+  },
+  "join_bootstrap": {
+    "status": "NOT_A_BUG",
+    "source": ["src/server/Main.server.luau:95 Harness.start()", "src/server/Main.server.luau:101 PlayerData.start()"],
+    "observation": "real Harness_Command remote replied; runtime probe read a loaded profile",
+    "bugRowAdded": false,
+    "fixNeeded": false
+  },
+  "force_raid_no_save_mutation": {
+    "status": "SEEN-IN-STUDIO",
+    "path": "Harness_Command remote -> raid handler -> RaidTrigger.withTemporaryCooldown -> RaidService.start",
+    "sentinel": 1796000001,
+    "sentinelUnchangedDuringRaid": true,
+    "raidState": "incoming",
+    "inRaid": true,
+    "cooldownTableRestoredTo": { "raidSafeUntil": 1794926416 }
+  },
+  "bug004_zero_cash_zero_seed": {
+    "status": "SEEN-IN-STUDIO",
+    "closed": true,
+    "before": { "cash": 0, "seeds": 0, "tiles": 0 },
+    "call": "FarmService.checkSeedFloor(player)",
+    "after": { "cash": 0, "padi": 1, "tiles": 0 },
+    "notification": "n_seed_floor",
+    "secondCallGranted": false
+  },
+  "mid_loan_recovery": {
+    "status": "SEEN-IN-STUDIO",
+    "borrowAmount": 375,
+    "mid": { "active": true, "owed": 412, "principal": 375 },
+    "notifications": ["n_debt_borrowed"],
+    "after": { "active": false, "owed": 0, "principal": 0 },
+    "repayNotification": "n_debt_cleared"
+  },
+  "full_sack_boundary": {
+    "status": "SEEN-IN-STUDIO",
+    "capacity": 40,
+    "atCapacity": 40,
+    "harvestRefused": true,
+    "notification": "n_sack_full",
+    "sellClear": { "sackBefore": 40, "sackAfter": 0, "cashBefore": 35857, "cashAfter": 36541, "market": "pasar" },
+    "nextHarvestSack": 1
+  },
+  "shop_restock": {
+    "status": "SEEN-IN-STUDIO",
+    "call": "ShopService.restockNow",
+    "padiStock": { "before": 7, "after": 10 },
+    "notification": "n_shop_restocked",
+    "buyAfterRestock": "padi x2 succeeded via harness"
+  },
+  "mid_minigame_cancel": {
+    "status": "NOT_REPRODUCED",
+    "remoteFireClientClosedScrim": true,
+    "scrimVisible": { "before": true, "after": false },
+    "wiring": {
+      "cancelActivated": "src/client/UI/Minigame.luau:182 cancel.Activated:Connect(close)",
+      "cancelRemote": "src/client/UI/Minigame.luau:190 Remotes.Minigame_Cancel.OnClientEvent:Connect(close)",
+      "closeHidesScrim": "src/client/UI/Minigame.luau:106 scrim.Visible = false"
+    },
+    "bugRowAdded": "BUG-013 closed, non-reproduced",
+    "regressionSpec": "tests/specs/minigame_cancel_spec.luau",
+    "fixNeeded": false
+  },
+  "every_button_every_screen_sweep": {
+    "status": "SEEN-IN-STUDIO",
+    "deadEnds": 0,
+    "adminPanel": { "toggle": "F2", "panelVisible": ["true", "false"] },
+    "phone": {
+      "deviceBuilds": true,
+      "appTiles": 8,
+      "pagesOpened": ["App_phone", "App_kebun", "App_pinjol", "App_tugas", "App_cheat", "App_dekor"],
+      "allPagesHaveExit": true,
+      "exitControls": ["Back", "Close", "HomeBar"],
+      "redirects": [
+        { "app": "App_shop", "calls": ["closePhone()", "Hud.openShop()"], "destinationOpened": true, "closeWorks": true },
+        { "app": "App_board", "calls": ["closePhone()", "Leaderboard.open()"], "destinationOpened": true, "closeWorks": true }
+      ],
+      "phoneCloseButtonWorks": true
+    }
+  },
+  "q2_output": {
+    "status": "SEEN-IN-STUDIO",
+    "basis": "sibling output.log + designer decision D-G4 (DECISIONS.md:27)",
+    "outputLog": "h/2026-11-19-gate1-studio/output.log",
+    "gameErrors": 0,
+    "excludedLines": ["BUG-003 asset line (3x, external)", "Assistant plugin version warnings (2x)"]
+  },
+  "teardown": {
+    "profileRestored": true,
+    "restoredCash": 35857,
+    "produceClearedToBaseline": true,
+    "shopNonceReset": 0,
+    "profileSaveCalled": false,
+    "verifyScriptsRemaining": 0,
+    "playStopped": true,
+    "studioMode": "Edit",
+    "placeSaved": false
+  }
+}

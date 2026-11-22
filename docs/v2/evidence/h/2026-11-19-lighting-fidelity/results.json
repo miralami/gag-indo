@@ -1,0 +1,79 @@
+{
+  "item": 23,
+  "date": "2026-11-19",
+  "status": "SEEN-IN-STUDIO",
+  "studio": {
+    "place": "Development-Juragan-Desa",
+    "placeId": 132087524375529,
+    "universeId": 10776530981,
+    "mode_during_test": "Play Solo",
+    "datamodel": "Client",
+    "rojo": "localhost:34872",
+    "place_saved": false,
+    "published": false,
+    "profile_save_called": false,
+    "returned_to_edit_mode": true,
+    "probe_artifacts_cleaned": true
+  },
+  "harness_note": "The ExecuteLuauTool has its own ModuleScript require cache: a direct require(FidelityRuntime) there returned an unstarted copy (get=Sedang default, setOverride a no-op). The live singleton was therefore driven from a temporary injected LocalScript in PlayerScripts (same cache as Main.client), which reported isStarted=true, get/attr=Tinggi at baseline. Probe LocalScript and its ReplicatedStorage result holder were destroyed afterwards; no place file changed.",
+  "live_runtime": {
+    "module_path": "Players.LocalPlayer.PlayerScripts.Client.Feel.FidelityRuntime",
+    "is_started": true,
+    "baseline_tier": "Tinggi",
+    "baseline_fidelitytier_attribute": "Tinggi"
+  },
+  "hubs": ["pasar", "gelap", "warung", "ronda", "polisi", "pakrt"],
+  "tiers": ["Rendah", "Sedang", "Tinggi"],
+  "baseline_lighting_census": {
+    "signature": "Atmosphere,BloomEffect,ColorCorrectionEffect,ColorGradingEffect,Sky,SunRaysEffect",
+    "count": 6,
+    "depthOfFieldEffects": 0
+  },
+  "matrix": [
+    {"hub":"pasar","tier":"Rendah","get":"Rendah","attr":"Rendah","applied":"localLights=none smallPartShadows=off cameraDoF=false ambientLife=minimal","lightingCount":6,"dof":0,"localLights_point_spot_surface_emitters":"1/0/0/0"},
+    {"hub":"pasar","tier":"Sedang","get":"Sedang","attr":"Sedang","applied":"localLights=key smallPartShadows=near cameraDoF=false ambientLife=half","lightingCount":6,"dof":0,"localLights_point_spot_surface_emitters":"1/0/0/0"},
+    {"hub":"pasar","tier":"Tinggi","get":"Tinggi","attr":"Tinggi","applied":"localLights=all smallPartShadows=on cameraDoF=true ambientLife=full","lightingCount":6,"dof":0,"localLights_point_spot_surface_emitters":"1/0/0/0"},
+    {"hub":"gelap","tier":"Rendah","get":"Rendah","attr":"Rendah","applied":"localLights=none smallPartShadows=off cameraDoF=false ambientLife=minimal","lightingCount":6,"dof":0,"localLights_point_spot_surface_emitters":"1/0/0/0"},
+    {"hub":"gelap","tier":"Sedang","get":"Sedang","attr":"Sedang","applied":"localLights=key smallPartShadows=near cameraDoF=false ambientLife=half","lightingCount":6,"dof":0,"localLights_point_spot_surface_emitters":"1/0/0/0"},
+    {"hub":"gelap","tier":"Tinggi","get":"Tinggi","attr":"Tinggi","applied":"localLights=all smallPartShadows=on cameraDoF=true ambientLife=full","lightingCount":6,"dof":0,"localLights_point_spot_surface_emitters":"1/0/0/0"},
+    {"hub":"warung","tier":"Rendah","get":"Rendah","attr":"Rendah","applied":"localLights=none smallPartShadows=off cameraDoF=false ambientLife=minimal","lightingCount":6,"dof":0,"localLights_point_spot_surface_emitters":"1/0/0/0"},
+    {"hub":"warung","tier":"Sedang","get":"Sedang","attr":"Sedang","applied":"localLights=key smallPartShadows=near cameraDoF=false ambientLife=half","lightingCount":6,"dof":0,"localLights_point_spot_surface_emitters":"1/0/0/0"},
+    {"hub":"warung","tier":"Tinggi","get":"Tinggi","attr":"Tinggi","applied":"localLights=all smallPartShadows=on cameraDoF=true ambientLife=full","lightingCount":6,"dof":0,"localLights_point_spot_surface_emitters":"1/0/0/0"},
+    {"hub":"ronda","tier":"Rendah","get":"Rendah","attr":"Rendah","applied":"localLights=none smallPartShadows=off cameraDoF=false ambientLife=minimal","lightingCount":6,"dof":0,"localLights_point_spot_surface_emitters":"0/0/0/0"},
+    {"hub":"ronda","tier":"Sedang","get":"Sedang","attr":"Sedang","applied":"localLights=key smallPartShadows=near cameraDoF=false ambientLife=half","lightingCount":6,"dof":0,"localLights_point_spot_surface_emitters":"0/0/0/0"},
+    {"hub":"ronda","tier":"Tinggi","get":"Tinggi","attr":"Tinggi","applied":"localLights=all smallPartShadows=on cameraDoF=true ambientLife=full","lightingCount":6,"dof":0,"localLights_point_spot_surface_emitters":"0/0/0/0"},
+    {"hub":"polisi","tier":"Rendah","get":"Rendah","attr":"Rendah","applied":"localLights=none smallPartShadows=off cameraDoF=false ambientLife=minimal","lightingCount":6,"dof":0,"localLights_point_spot_surface_emitters":"0/0/0/0"},
+    {"hub":"polisi","tier":"Sedang","get":"Sedang","attr":"Sedang","applied":"localLights=key smallPartShadows=near cameraDoF=false ambientLife=half","lightingCount":6,"dof":0,"localLights_point_spot_surface_emitters":"0/0/0/0"},
+    {"hub":"polisi","tier":"Tinggi","get":"Tinggi","attr":"Tinggi","applied":"localLights=all smallPartShadows=on cameraDoF=true ambientLife=full","lightingCount":6,"dof":0,"localLights_point_spot_surface_emitters":"0/0/0/0"},
+    {"hub":"pakrt","tier":"Rendah","get":"Rendah","attr":"Rendah","applied":"localLights=none smallPartShadows=off cameraDoF=false ambientLife=minimal","lightingCount":6,"dof":0,"localLights_point_spot_surface_emitters":"1/0/0/0"},
+    {"hub":"pakrt","tier":"Sedang","get":"Sedang","attr":"Sedang","applied":"localLights=key smallPartShadows=near cameraDoF=false ambientLife=half","lightingCount":6,"dof":0,"localLights_point_spot_surface_emitters":"1/0/0/0"},
+    {"hub":"pakrt","tier":"Tinggi","get":"Tinggi","attr":"Tinggi","applied":"localLights=all smallPartShadows=on cameraDoF=true ambientLife=full","lightingCount":6,"dof":0,"localLights_point_spot_surface_emitters":"1/0/0/0"}
+  ],
+  "stuck_effect_check": {
+    "sequence": ["Rendah", "Tinggi", "Rendah", "Sedang", "Tinggi", "Rendah"],
+    "then": "setOverride(nil) -> auto",
+    "trace": [
+      "Rendah=>Atmosphere,BloomEffect,ColorCorrectionEffect,ColorGradingEffect,Sky,SunRaysEffect/dof0",
+      "Tinggi=>Atmosphere,BloomEffect,ColorCorrectionEffect,ColorGradingEffect,Sky,SunRaysEffect/dof0",
+      "Rendah=>Atmosphere,BloomEffect,ColorCorrectionEffect,ColorGradingEffect,Sky,SunRaysEffect/dof0",
+      "Sedang=>Atmosphere,BloomEffect,ColorCorrectionEffect,ColorGradingEffect,Sky,SunRaysEffect/dof0",
+      "Tinggi=>Atmosphere,BloomEffect,ColorCorrectionEffect,ColorGradingEffect,Sky,SunRaysEffect/dof0",
+      "Rendah=>Atmosphere,BloomEffect,ColorCorrectionEffect,ColorGradingEffect,Sky,SunRaysEffect/dof0"
+    ],
+    "final_census_signature": "Atmosphere,BloomEffect,ColorCorrectionEffect,ColorGradingEffect,Sky,SunRaysEffect",
+    "final_count": 6,
+    "final_dof": 0,
+    "all_matrix_rows_match_baseline": true,
+    "final_matches_baseline": true,
+    "pass": true
+  },
+  "finding": {
+    "type": "gap - designer decision",
+    "detail": "The four lighting-related tier settings (localLights, smallPartShadows, cameraDoF, ambientLife) are declared in FidelityTier.SETTINGS, returned by FidelityRuntime.settings(), and mirrored to the player FidelityTier attribute, but no consumer applies them to Lighting or to local light/effect instances. Sky.luau alone owns Lighting post effects (seasons/weather driven, not tier driven). cameraDoF=true on Tinggi created no DepthOfFieldEffect (dof=0 in every row). Hub-local light/effect counts were identical across all three tiers at every hub. No tier switch creates or destroys any Lighting effect, so none can be left stuck on. Wiring tier->lighting is a designer look decision (VISUAL_MASTER_PLAN V0.4 still BLOCKED); recorded under WORK_QUEUE 'Decisions for designer'."
+  },
+  "specs": {
+    "note": "No new spec: fidelity_tier_spec already pins all four lighting keys for all three tiers; item 23 adds the missing Studio proof. Suite total unchanged at 1908.",
+    "suite_total": 1908,
+    "selene": "0 errors / 0 warnings / 0 parse errors"
+  }
+}

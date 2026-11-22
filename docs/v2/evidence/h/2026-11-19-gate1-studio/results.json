@@ -1,0 +1,60 @@
+{
+  "session": "2026-11-19-gate1-studio",
+  "placeId": 132087524375529,
+  "universeId": 10776530981,
+  "placeSaved": false,
+  "status": "SEEN-IN-STUDIO",
+  "force_raid_no_save_mutation": {
+    "status": "SEEN-IN-STUDIO",
+    "sentinel_before": 1796000001,
+    "raid_started": true,
+    "raidState": "incoming",
+    "inRaid": true,
+    "sentinel_after": 1796000001,
+    "cooldowns_after": {
+      "raidSafeUntil": 1796000001,
+      "bribeReadyAt": 1794644626,
+      "bribeWindowStart": 1794768458,
+      "bribeCount": 0
+    },
+    "path": "Harness_Command remote -> raid handler -> RaidTrigger.withTemporaryCooldown -> RaidService.start"
+  },
+  "bug004_zero_cash_zero_seed": {
+    "status": "SEEN-IN-STUDIO",
+    "closed": true,
+    "before": { "cash": 40894, "seeds": 9, "tiles": 0 },
+    "broken": { "cash": 0, "seeds": 0, "tiles": 0 },
+    "call": "FarmService.checkSeedFloor(player)",
+    "granted": true,
+    "after": { "cash": 0, "seeds": 1, "padi": 1, "tiles": 0 },
+    "notification": "n_seed_floor",
+    "second_call_granted": false
+  },
+  "mid_loan_recovery": {
+    "status": "SEEN-IN-STUDIO",
+    "limit": 750,
+    "borrow_amount": 375,
+    "mid": { "active": true, "owed": 412, "principal": 375 },
+    "repayOk": true,
+    "after": { "active": false, "owed": 0, "principal": 0 },
+    "notification": "n_debt_cleared"
+  },
+  "mid_minigame_cancel": {
+    "status": "UNVERIFIED",
+    "reason": "Cancel button present and wired in source; Studio mouse click (instance path + absolute coords) and server Minigame_Cancel:FireClient did not close the overlay in this session (client minigame listener unresponsive)."
+  },
+  "q2_output": {
+    "status": "UNVERIFIED",
+    "reason": "output.log saved; no game-code errors, only BUG-003 (3x, external) + Assistant plugin warnings. Plan has no exclusion clause until D-G4 is accepted.",
+    "gameErrors": 0
+  },
+  "teardown": {
+    "profileRestored": true,
+    "profileSavedToStudioStore": true,
+    "harnessSourceRestored": true,
+    "raidTriggerSourceRestored": true,
+    "backupDeleted": true,
+    "studioMode": "Edit",
+    "placeSaved": false
+  }
+}

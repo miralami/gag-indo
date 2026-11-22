@@ -1,0 +1,116 @@
+CHECK 118 — crops_showcase_r8 crop review plots (WORK_QUEUE section N, item 118)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Fresh Play (Server + Client VMs). Place NOT saved, nothing published.
+Runtime injection into Client was NOT saved; no place file changed.
+
+== Target (verbatim) ==
+"**`crops_showcase_r8`: crop review plots.** For the designer's review: one plot per growth stage
+(bibit, tumbuh, siap) showing all 12 crops in rows, and a camera for each in `REVIEW_CAMERAS.md`.
+No gameplay state is touched; it is staged geometry only. **CHECKS:** `CROPS_STAGED` = 36;
+`CROP_GROWTH` re-run."
+
+== Implementation (all OFF by default; no shipping default changed) ==
+- NEW `src/shared/ModelMapCropsShowcaseR8.luau`: pure, API-free data. 12 exact Config/Crops.order ids
+  (padi, singkong, jagung, bawang, cabai, tembakau, kopi, tebu, kakao, cengkeh, durian, sawit), stages
+  {bibit,tumbuh,siap}, 3 plots at MapSpec.LAPANGAN zOffsets -16/0/16 (world z 80/96/112), 12 crops per
+  row at x offsets -24.75..24.75 step 4.5, plate 56×0.3×8. Counts plots=3, crops=12, models=36.
+  Built-in material/shape tokens only (Wood/Grass/SmoothPlastic/Ground, Block/Cylinder/Ball/Wedge);
+  Painted and Leaf deliberately absent. No asset IDs (no 6+ digit literals, no rbxassetid, no assetId),
+  no Enum./Instance./game./require, no brand, no decals, no terrain edit, no player-facing text.
+- NEW `src/server/World/LookDevCropsShowcaseR8.luau`: SERVER-only applier. Builds folder
+  `LookDevCropsShowcaseR8_crops_showcase_r8` under Workspace with 3 stage Models `Plot_bibit`,
+  `Plot_tumbuh`, `Plot_siap`, each a plate Part + 12 crop Models built from the shared
+  `CropModelCandidates.partsFor` recipes using ORIGINAL Parts (plain RGB Color3.fromRGB + built-in
+  materials). 306 BaseParts total (303 crop parts + 3 plates), all Anchored=true, CanCollide=false,
+  tagged stage + `CropsShowcaseKind` + CropId/Stage attrs. NO DataStore/player/crop-state write;
+  no Terrain read/write; no Script/ValueBase/Remote staged. Exact prior-folder detach/restore,
+  idempotent apply. Diagnostics `plotModels()`, `cropModels()`, `counts()`, `partCount()`,
+  `isApplied()`. `LookDev.register(familyId, {apply, restore})`.
+- `src/shared/LookDev.luau`: `crops_showcase_r8` appended as ID 90 (89 -> 90); descriptor
+  (idsSource `ModelMapCropsShowcaseR8`, stageCount=3, cropCount=12, render REVIEW_ROUND9.md) + plan
+  branch + header comment; existing entries byte-identical. `src/shared/LookDevReview.luau`: server
+  path `{ "World", "LookDevCropsShowcaseR8" }`.
+- `src/shared/ReviewCameras.luau` + `docs/v2/visual/REVIEW_CAMERAS.md`: 3 Server review cameras
+  `crop_bibit`, `crop_tumbuh`, `crop_siap` added (registry `add()` calls at :295-315, doc rows :61-63),
+  eyes/targets MapSpec-derived via `CropsShowcase.CAMERA` offsets (standoff 22, rise 12, lookRise 3):
+  eye (0, GROUND_Y+12, centreZ-22) -> look (0, GROUND_Y+3, centreZ), centreZ=80/96/112. These are
+  REGISTRY entries only — no in-game `Instance.new("Camera")` staged. All 42 pre-existing camera
+  entries byte-identical. Doc header count 42 -> 45.
+- `tools/studio/review_check_r8.luau`: `CROPS_STAGED` appended LAST in ORDER (after `SEATED_ON_BENCH`,
+  so all contiguous ORDER-literal assertions stay intact). New `do...end` block at section `-- 9s.`
+  (line 9579+). SERVER VM. Stage via LookDevReview.enable; PASS requires folder present + exactly 3
+  tagged plot Models `Plot_<stage>` each with 12 correctly-named crop Models + 36 tagged crop Models
+  total + 0 duplicates + 0 ValueBase/Script/Remote objects + 303<=parts<=340 + applier diagnostics
+  (3 plots / 36 crops / isApplied) + restore parity. measured = #tagged crop Models, target = 36.
+  All-FAIL path emits `emit("CROPS_STAGED", false, 0, 36, detail)`. `CROP_GROWTH` NOT emitted here — it
+  is the standalone Client-VM script `tools/studio/crop_growth_check.luau` (own local emit, unchanged).
+  All existing checks byte-identical.
+- NEW `tests/specs/crops_showcase_r8_spec.luau` + registration in `tests/run.luau`: locks counts (12
+  crops / 3 stages / 36 models), exact crop ids, stage list, no asset IDs/engine API in pure data,
+  valid material tokens (forbid Painted/Leaf), `#IDS==90`/IDS[90], descriptor/plan, Review path, ORDER
+  tail literal + `emit("CROPS_STAGED", ...)` pass/fail strings, applier source (no FillBlock/
+  ReadVoxels/WriteVoxels, no DataStore writes, folder restore), CANDIDATES pending row, camera names in
+  both ReviewCameras.luau and REVIEW_CAMERAS.md.
+- Count literals bumped 89 -> 90 across 44 specs (46 occurrences) + 3 extra count literals
+  (`review_round3_bugfix_spec`, `sky_map_r6_spec`, `terrain_map_r6_spec`); index-locked IDS[n] intact;
+  no count-89 literal remains.
+- `docs/v2/visual/CANDIDATES.md`: pending 6-column row, verdict `pending — review in Studio`, existing
+  `REVIEW_ROUND9.md` render path. No new in-game camera object (item 133 overlap noted below).
+
+== Method (fresh Play, Server VM, single-active stage) ==
+`LookDevReview.enable("crops_showcase_r8", game, {studio=true})` returned true; staging folder held
+3 plot Models + 36 crop Models + 306 BaseParts, zero candidate warnings. The CROPS_STAGED and
+CAMERA_CLEAR checks were executed as equivalent ad hoc execute_luau probes (items 103/108..117
+precedent — the whole harness file cannot be injected with a pre-set candidate state), using the LIVE
+applier and real Workspace/ReviewCameras state. No Terrain write.
+
+== Verbatim check lines (final canonical run, all PASS) ==
+CHECK CROPS_STAGED PASS crops=36 plots=3 dup=0 state=0 stageCounts=[b12 t12 s12] shapeOk=true
+CHECK CAMERA_CLEAR PASS blocked=0 checked=45 newBlocked=0 fails=[]
+Exactly 3 named stage plots with 12 correctly-named crop Models each (36 total), 0 duplicates, 0
+ValueBase/Script/Remote objects, correct per-stage shape. All 45 registered review cameras (including
+the 3 new crop cameras) have a clear 6-stud line of sight — 0 blocked. The other camera-iterating
+harness checks use `get(name)` by name (plot_aerial_NN, sawah_above), so adding the 3 entries does not
+affect them.
+
+== Non-vacuity / discrimination evidence ==
+DISCRIM destroyOneCrop before=36 after=35 destroyed=true (expect 36/35/true)
+Destroying one crop Model drops the count to 35, so the check would FAIL — it genuinely counts real
+stagged Models and is not vacuous. Anti-vacuity in the harness also requires exact crop+stage names,
+one of each (no duplicates), 12 per named plot, 3 plots, and 0 state objects.
+
+== Lifecycle evidence ==
+CHECK CROPS_RESTORE PASS gone=true off=false back=true crops=36 parts=306 on=true
+`disable` removed the folder and cleared applied; re-enable restored 3 plots / 36 crop Models / 306
+Parts; `disableAll` at end; prior candidate restored. No gameplay/crop state touched anywhere.
+
+== CROP_GROWTH re-run (verbatim standalone script, FRESH Client Play VM) ==
+Fresh Client Play. Runtime-injected (NOT saved) `Shared.LookDevCropsInjected` (verbatim client applier)
+into Client ReplicatedStorage.Shared; `CropModelCandidates` was already present in the saved place with
+the item-93 bawang rescale (verified `archetypes.bawang.stem.size[2] == 1.4`). Pasted the WHOLE unchanged
+`tools/studio/crop_growth_check.luau` into execute_luau with datamodel_type="Client". It enables `crops`,
+anchors all staged Parts in the same call (freezing physics drift), reads live `GetBoundingBox` for all
+36 Models and checks 0.5..6 studs + >=15% per growth gap, then restores the prior candidate.
+Verbatim line:
+CHECK CROP_GROWTH PASS 12 12
+Thresholds UNCHANGED (MIN_H 0.5, MAX_H 6.0, MIN_GROWTH 15%). The new off-by-default SERVER candidate
+does not interfere with the CLIENT `crops` showcase. Injection existed only in this session; no place
+saved.
+
+== Validation / scope ==
+lune run tests/run.luau: All 2798 tests passed. selene src: 0 errors / 0 warnings / 0 parse errors.
+stylua --check clean on all changed Luau files. git diff --check clean. Play stopped after verification;
+no place saved, nothing published. No visual, copy or aural verdict. Candidate off by default; no
+shipping default changed. No asset IDs, no brand, no decals, no terrain edit, no gameplay-state write,
+no new in-game camera (registry/doc entries only). All existing checks byte-identical.
+
+== Designer decision note (not a visual claim) ==
+Item 133 also names "crops showcase x3" cameras. The 3 crop cameras were added NOW because item 118
+explicitly requires them in REVIEW_CAMERAS.md; item 133 should not duplicate them. Camera framing is a
+safe MapSpec-derived default (eye 12 studs up / 22 studs back of each plot, look at plot centre);
+designer may reframe later. No screenshot pixels were retained; this is not a screenshot claim.
+
+Status: SEEN-IN-STUDIO (fresh Play; CROPS_STAGED 36 Models / 3 plots / 12 per stage / 306 Parts / 0
+state objects, CAMERA_CLEAR 45 cameras / 0 blocked incl. 3 new, synthetic destroyed-crop discriminated,
+disable/re-enable PASS; standalone CROP_GROWTH re-run PASS 12 12 in fresh Client VM; zero warnings).

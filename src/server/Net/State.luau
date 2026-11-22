@@ -42,12 +42,6 @@ function State.touch(player: Player, section: string)
 	sections[section] = true
 end
 
-function State.touchAll(player: Player)
-	for _, section in StateSchema.SECTIONS do
-		State.touch(player, section)
-	end
-end
-
 function State.start()
 	Remotes.State_Request.OnServerEvent:Connect(function(player)
 		if RateLimit.allow(player, "State_Request", 1) then

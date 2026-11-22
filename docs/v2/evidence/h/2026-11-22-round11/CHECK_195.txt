@@ -1,0 +1,63 @@
+CHECK 195 - terrain colour variation (WORK_QUEUE section Q item 195)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Play only (Server VM, check). Place NOT saved, nothing published.
+
+== Wiring ==
+Candidate "ground_variation_r10" (OFF by default until item 226). Pure string-tone data
+src/shared/ModelMapGroundVariationR10.luau (LCG(195), 36 blobs radius 10..30, string tones
+Grass/LeafyGrass/Ground/Mud, Mud 5.6%, conservative zoneClear, sine-edged toneAt, sampleGrid(40)).
+Server voxel applier src/server/World/LookDevGroundVariationR10.luau (snapshot-first WriteVoxels,
+zones only zoneClear + occupied non-Air cells, occupancy preserved, 4-arg scalar-res-4 writes,
+LIFO restore). LookDev / LookDevReview / Main.server wiring; tests/specs/ground_variation_r10_spec.luau
+(5 cases); tools/studio/check_q195.luau (3-check harness). No terrain sculpt, no road/plot change,
+no sky, no NPC, no asset IDs; 106->107 spec mirror only.
+
+== Studio voxel-API facts (probed this session) ==
+Terrain:ReadVoxels(region, 4) needs SCALAR resolution 4 (Vector3.new(4,4,4) errors); returns
+materials[x][y][z] + occupancy (3rd water return is nil). Region (-208,-12,-208)..(208,20,208)
+= 104x8x104. Enum.Material.LeafyGrass exists. Baseline voxels: Ground 7148, Grass 14484, Air 64896
+(2 non-air tones), so GROUND_TONES>=3 requires the applier to add LeafyGrass/Mud.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK GROUND_TONES PASS 4 3
+CHECK ROAD_UNTOUCHED PASS 0 0
+CHECK PLOT_UNTOUCHED PASS 0 0
+
+== Notes / measurements ==
+- tools/studio/check_q195.luau (equivalent compact inline copy) pasted whole into execute_luau
+  (Server VM), snapshots BEFORE, enables ground_variation_r10 via review.enableAdditive, re-reads
+  the same region, measures a 40x40 cell-centre grid, then restores with disableAll(). No harness
+  require, no place save, no visual verdict.
+- Zone tests use the 4-stud voxel CENTRE (MIN + (floor((x-MIN)/4)+0.5)*4), not the abstract 10-stud
+  grid point: materialAt() reads the voxel containing the grid point, so comparing a grid point
+  against the applier's voxel-centre zoning misclassified 3 gate-edge cells. After aligning both
+  to voxel centres, ROAD_UNTOUCHED = 0 (702 road-zone grid samples) and PLOT_UNTOUCHED = 0
+  (188 in-plot grid samples).
+- GROUND_TONES = 4 distinct materials on the grid: Grass, Ground, LeafyGrass, Mud.
+- During staging the full region counts were Air 64896, Grass 12137, Ground 7685, LeafyGrass 1540,
+  Mud 270 (4 non-air tones). After disableAll() the region counted Air 64896, Grass 14484,
+  Ground 7148 - byte-identical to before; restore exact verified by serialized full-region count.
+
+== Non-vacuity / calibration (undeweakened checks, each in its own fresh Play) ==
+Collapse LeafyGrass+Mud to Grass in the AFTER voxel table (<3 distinct tones):
+CHECK GROUND_TONES FAIL 2 3
+CHECK ROAD_UNTOUCHED PASS 0 0
+CHECK PLOT_UNTOUCHED PASS 0 0
+
+Mutate one non-plot, offRoad=false voxel that a grid sample reads, in the BEFORE snapshot:
+CHECK GROUND_TONES PASS 4 3
+CHECK ROAD_UNTOUCHED FAIL 1 0
+CHECK PLOT_UNTOUCHED PASS 0 0
+
+Mutate one in-plot voxel that a grid sample reads, in the BEFORE snapshot:
+CHECK GROUND_TONES PASS 4 3
+CHECK ROAD_UNTOUCHED FAIL 1 0
+CHECK PLOT_UNTOUCHED FAIL 1 0
+(note: plot footprints are a subset of the offRoad reject zone, so an in-plot BEFORE mutation
+necessarily also breaks ROAD_UNTOUCHED; GROUND_TONES stays PASS. All three checks bite.)
+
+Each target term is FAIL-able; the baseline PASS is not vacuous. Play stopped after every
+calibration; disableAll() restored the place, so no mutation was persisted. No visual approval claimed.
+
+Status: SEEN-IN-STUDIO.

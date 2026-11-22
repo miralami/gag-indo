@@ -14,8 +14,8 @@ the same direction.
 | Person | GitHub | Role | Their agent |
 |---|---|---|---|
 | Owner and designer | @miralami | Sets direction, makes every design and visual call, the only one who approves merges into `main` | opencode (long runs from `WORK_QUEUE.md`) and Claude Code (review, Studio) |
-| Willy | (collaborator) | Code and general engineering: gameplay, server/client, data, tests, tooling, CI | Claude Code |
-| Ragun | (collaborator) | Design, 3D, Blender, map, terrain, assets | Claude Code |
+| Willy | @willsyh | Code and general engineering: gameplay, server/client, data, tests, tooling, CI | Claude Code |
+| Ragun | @lyciaryn | Design, 3D, Blender, map, terrain, assets | Claude Code |
 
 **Find out who you work for first.** Run `gh api user --jq .login` (or `git config user.name` if `gh` is
 not signed in). If it is `miralami`, you are the owner's agent and the rest of this file applies as

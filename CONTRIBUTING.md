@@ -1,7 +1,7 @@
 # Cara kerja bareng di Juragan Desa
 
-Tim: **@miralami** (pemilik, designer, satu-satunya yang menyetujui merge ke `main`), **Willy** (kode
-dan umum), **Ragun** (desain, 3D, map). Masing-masing bekerja dengan agen AI (opencode untuk
+Tim: **@miralami** (pemilik, designer, satu-satunya yang menyetujui merge ke `main`), **Willy** (@willsyh, kode
+dan umum), **Ragun** (@lyciaryn, desain, 3D, map). Masing-masing bekerja dengan agen AI (opencode untuk
 @miralami, Claude Code untuk Willy dan Ragun). Aturan untuk agen ada di `AGENTS.md` bagian
 "Team and authority"; Claude Code membacanya otomatis lewat `CLAUDE.md`.
 

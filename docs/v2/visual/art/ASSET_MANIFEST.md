@@ -727,14 +727,21 @@ published). None invented. The baked copy is verified in a fresh Play/Server VM 
 | `bank_fern` | 5661660655 | fern plant | 11FlanT | Model (4 parts) | Creator Store, free | 6.08 x 5.70 x 6.08 | designer to confirm (LookDev candidate; wired by item 192) |
 | `bank_shrub` | 9953859659 | Shrub/Bush | Purified142 | MeshPart | Creator Store, free | 82.16 x 20.25 x 102.78 (scaled to ~2-stud accent) | designer to confirm (LookDev candidate; wired by item 192) |
 | `water_lily` | 5044238410 | Lilypad | Exp_p | MeshPart | Creator Store, free | 3.32 x 0.08 x 3.29 | designer to confirm (LookDev candidate; wired by item 192) |
+| `meadow_flower_a` | 7974911801 | Wildflower02 | Oneshot7577 | Model (1 MeshPart) | Creator Store, free | 3.47 x 2.59 x 2.90 | designer to confirm (LookDev candidate; wired by item 194) |
+| `meadow_flower_b` | 13032768586 | WildFlower04 | realOmlet | Model (1 MeshPart) | Creator Store, free | 1.17 x 2.59 x 1.21 | designer to confirm (LookDev candidate; wired by item 194) |
+| `meadow_daisy` | 70509679878841 | Daisy Flower | [HL] Creative Team | Model (1 MeshPart) | Creator Store, free | 0.32 x 1.04 x 0.36 | designer to confirm (LookDev candidate; wired by item 194) |
+| `meadow_tall_grass` | 128368650541272 | TallGrass | Reneniza981 | Model (4 parts) | Creator Store, free | 1.41 x 4 x 1.41 (2 scripts stripped on bake) | designer to confirm (LookDev candidate; wired by item 194) |
+| `meadow_wild_grass` | 8715139325 | Wild Grass | wooful67 | Model (16 MeshParts) | Creator Store, free | 13.17 x 1.01 x 2.63 | designer to confirm (LookDev candidate; wired by item 194) |
 
 Licence not re-read here — Creator Store terms apply. The padi ID is wired into `src/` by item 191
 (`sawah_r8` 3D padi, `src/shared/ModelMapSawahR8.luau`) and needs no `unused` marker. The fountain ID
 is wired in item 188 (`plaza_r9`, `src/shared/ModelMapPlazaR9.luau`) and needs no `unused` marker.
 The three rock IDs are wired in item 189 (`rocks_r9`, `src/shared/ModelMapRocksR9.luau`) and need no
-`unused` marker. All candidates stay OFF by default until item 226. No ID invented; all from real
-Creator Store free-filter `search_asset` results, baked scripts-stripped into `LookDevAssets` (evidence
-`docs/v2/evidence/h/2026-11-22-round11/CHECK_187.txt`, `CHECK_188.txt` and `CHECK_189.txt`).
+`unused` marker. The five meadow IDs are wired in item 194 (`meadow_r10`,
+`src/shared/ModelMapMeadowR10.luau`) and need no `unused` marker. All candidates stay OFF by default
+until item 226. No ID invented; all from real Creator Store free-filter `search_asset` results, baked
+scripts-stripped into `LookDevAssets` (evidence `docs/v2/evidence/h/2026-11-22-round11/CHECK_187.txt`,
+`CHECK_188.txt`, `CHECK_189.txt` and `CHECK_193.txt`).
 
 ### Unused manifest IDs
 
@@ -744,11 +751,6 @@ marker. All other manifest IDs are required by the coverage spec to resolve in `
 
 | Asset ID | Why it is here | Status |
 |---|---|---|
-| 7974911801 | Wildflower02 (Oneshot7577), Creator Store free, baked 1 MeshPart 3.47x2.59x2.90; meadow flower source for item 194 | unused |
-| 13032768586 | WildFlower04 (realOmlet), Creator Store free, baked 1 MeshPart 1.17x2.59x1.21; meadow flower source for item 194 | unused |
-| 70509679878841 | Daisy Flower ([HL] Creative Team), Creator Store free, baked 1 MeshPart 0.32x1.04x0.36; meadow flower source for item 194 | unused |
-| 128368650541272 | TallGrass (Reneniza981), Creator Store free, baked 4 parts 1.41x4x1.41 (2 scripts stripped on bake); wild-grass source for item 194 | unused |
-| 8715139325 | Wild Grass (wooful67), Creator Store free, baked 16 MeshParts 13.17x1.01x2.63; wild-grass source for item 194 | unused |
 | 155440478 | legacy classic sunset skybox face, superseded by round-6 skies | unused |
 | 156042292 | legacy classic sunset skybox face, superseded by round-6 skies | unused |
 | 156042307 | legacy classic sunset skybox face, superseded by round-6 skies | unused |

@@ -221,6 +221,7 @@ local specs = {
 	require("./specs/plots_gate_wood_sign_spec"),
 	require("./specs/cameras_round10_p_spec"),
 	require("./specs/blocks_band_trees_spec"),
+	require("./specs/meadow_r10_spec"),
 	require("./specs/ronda_tower_r9_spec"),
 	require("./specs/rocks_r9_spec"),
 	require("./specs/streetfurn_r8_spec"),

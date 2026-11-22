@@ -1,0 +1,36 @@
+CHECK 187 - source a 3D padi model (WORK_QUEUE section Q item 187)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Edit + Play (Server VM). Place NOT saved, nothing published.
+
+== Source search ==
+Creator Store `search_asset` free-filter Model results over 11 keyword rounds
+("padi", "rice plant", "rice paddy", "paddy", "tall grass clump", "rice stalk",
+"tanaman padi", "rice seedling", "padi plant", "rice crop mesh", "growing rice").
+Each candidate was fetched with `GetObjects("rbxassetid://<id>")` and measured in Edit mode.
+Rejected: 5681949223 (MeshPart but 3.65x4.88x3.67, >2 wide), 479617393 (1.34x2.38 but 0 MeshParts),
+101803239917661 (2.15 wide, 0 MeshParts), 86850310 / 142215565 / 83922438219389 (whole fields,
+10-48 studs wide), 6554682975 (4.93 wide), 13286158859 selected as the best single clump.
+
+== Selected / baked ==
+Asset ID 13286158859, "Meshes/rice2", Polyslayer1, Creator Store free, MeshPart.
+Baked with a script-strip + GetObjects bake (same path as tools/studio/bake_lookdev_assets.luau)
+into ServerStorage.LookDevAssets.13286158859 in the Edit datamodel, then fresh Play.
+Recorded in docs/v2/visual/art/ASSET_MANIFEST.md (section Q table + `unused` coverage marker; item
+191 will wire the ID into src and remove the marker). No ID invented.
+
+== Raw check line (verbatim, fresh Play, Server VM) ==
+CHECK PADI_MODEL_BAKED PASS 1 1
+
+== Notes ==
+- The baked copy has 1 MeshPart, 0 Script descendants, size 1.07 x 3.52 x 1.51 studs; widest
+  horizontal dimension 1.51 <= 2 studs. `tools/studio/check_q187.luau` pasted whole into
+  execute_luau (Server VM); measured value is the MeshPart count, target >= 1.
+- No NPC outfits, terrain sculpt, chosen sky or ground touched. No visual verdict claimed.
+
+== Non-vacuity / calibration (undeweakened check) ==
+- Scaling the baked MeshPart to 3 x 3 studs XZ, then re-running the same check, gives
+  CHECK PADI_MODEL_BAKED FAIL 1 1 (width 3 > 2). Restoring the original Size returns PASS 1 1.
+  The width term of the check bites; the PASS is not a vacuous folder-exists check.
+
+Status: SEEN-IN-STUDIO.

@@ -174,7 +174,7 @@ return function(t)
 			end
 			table.sort(expected)
 			expect(table.concat(actual, ",")):toBe(table.concat(expected, ","))
-			expect(#actual):toBe(24)
+			expect(#actual):toBe(25)
 		end)
 	end)
 end

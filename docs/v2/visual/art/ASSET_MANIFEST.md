@@ -705,6 +705,20 @@ The three hat IDs above were already present in code (`ModelMapNpcsR5.accessorie
 name and store URL; the seven vegetation IDs were already present in `ModelMapVegetationR6.ids` /
 `.alternates` with a shortlist REPORT. This section only closes the manifest gap.
 
+### section Q — sourced 3D models (Creator Store, free)
+
+WORK_QUEUE section Q, round 11. IDs from real Creator Store `search_asset` free-filter results,
+baked live into `ServerStorage.LookDevAssets.<id>` (scripts stripped, no place saved, nothing
+published). None invented. The baked copy is verified in a fresh Play/Server VM with
+`tools/studio/check_q187.luau` (evidence `docs/v2/evidence/h/2026-11-22-round11/CHECK_187.txt`).
+
+| Slot | Asset ID | Name | Creator | Type | Source | Baked size (studs) | Approved by |
+|---|---|---|---|---|---|---|---|
+| `padi_model` | 13286158859 | Meshes/rice2 | Polyslayer1 | MeshPart | Creator Store, free | 1.07 x 3.52 x 1.51 (widest 1.51 <= 2) | designer to confirm (LookDev candidate) |
+
+Licence not re-read here — Creator Store terms apply. The ID is wired into `src/` by item 191
+(`sawah_r8` 3D padi); until then it is marked `unused` in the coverage table below.
+
 ### Unused manifest IDs
 
 Convention: `unused` means the ID appears in this manifest for provenance but has no reference in
@@ -713,6 +727,7 @@ marker. All other manifest IDs are required by the coverage spec to resolve in `
 
 | Asset ID | Why it is here | Status |
 |---|---|---|
+| 13286158859 | section Q item 187 baked 3D padi model; wired into src by item 191 | unused |
 | 155440478 | legacy classic sunset skybox face, superseded by round-6 skies | unused |
 | 156042292 | legacy classic sunset skybox face, superseded by round-6 skies | unused |
 | 156042307 | legacy classic sunset skybox face, superseded by round-6 skies | unused |

@@ -1,10 +1,10 @@
 --!strict
 -- ModelMapPlazaR9: pure data for the OFF-BY-DEFAULT "plaza_r9" LookDev candidate
--- (WORK_QUEUE section O item 149, rebuilt by section P item 175). Central Lapangan dressing: a
--- two-tier fountain with a 14-stud basin, smaller upper basin and thin water column, a four-strip
--- paved ring, four inward-facing benches, four striped umbrellas, a bunting line whose flags are
--- flat red-over-white part pairs, and one procedural shade tree at the plaza edge. No asset IDs
--- and no brand: every piece is built from original Parts by src/server/World/LookDevPlazaR9.luau.
+-- (WORK_QUEUE section O item 149, rebuilt by section P item 175, fountain baked in item 188).
+-- Central Lapangan dressing: a real baked Creator Store fountain normalised to a 16-stud basin,
+-- a four-strip paved ring, four inward-facing benches, four striped umbrellas, a bunting line whose
+-- flags are flat red-over-white part pairs, and one procedural shade tree at the plaza edge. Only
+-- the fountain is asset-backed; the rest is built from original Parts by LookDevPlazaR9.
 --
 -- Pure data/functions only: no game APIs, no Instances, no Enums. Every anchor is in PLAZA-LOCAL
 -- coordinates (x, z) relative to MapSpec.PLAZA centre; the applier adds MapSpec.PLAZA.x/.z at
@@ -36,6 +36,12 @@ Data.fountainTierAttribute = "FountainTier"
 Data.pavingAttribute = "PlazaPaving"
 Data.flagPairAttribute = "BuntingFlagPair"
 Data.flagPanelAttribute = "BuntingFlagPanel"
+Data.fountainAssetIdAttribute = "FountainAssetId"
+
+-- The one real Creator Store fountain, already baked under ServerStorage.LookDevAssets.<id>.
+Data.FOUNTAIN_ASSET_ID = 93434732057582
+Data.FOUNTAIN_BASIN_MIN = 14
+Data.FOUNTAIN_BASIN_MAX = 18
 
 -- The dressed inner area: |x| <= 19, |z| <= 14 in plaza-local coordinates. MapSpec.PLAZA itself is
 -- 96x84 of Ground terrain; everything here stays inside the smaller dressed rectangle.
@@ -73,8 +79,8 @@ function Data.stripeColour(index: number): string
 end
 
 -- FOUNTAIN_RADIUS/LANE_GAP stay at their item-149 values: the original plaza spec locks that
--- contract. The rebuilt basin is bigger; lanes now stop at RING_RADIUS + LANE_GAP = 9.5 so the
--- 14-stud basin and its paved ring still leave a clear 6-stud approach from each road.
+-- contract. The real fountain is scaled to a 16-stud basin; lanes stop at RING_RADIUS + LANE_GAP =
+-- 9.5 so the basin and its paved ring still leave a clear 6-stud approach from each road.
 Data.FOUNTAIN_RADIUS = 3
 Data.LANE_GAP = 0.5
 Data.BASIN_RADIUS = 7
@@ -83,6 +89,7 @@ Data.RING_RADIUS = 9
 Data.FOUNTAIN = {
 	x = 0,
 	z = 0,
+	basinDiameter = 16, -- applied to the real model's widest horizontal bounding-box dimension
 	basinSize = { 14, 0.8, 14 },
 	basinY = 0.4,
 	waterSize = { 12.4, 0.25, 12.4 },
@@ -191,7 +198,7 @@ function Data.fountain()
 		x = Data.FOUNTAIN.x,
 		z = Data.FOUNTAIN.z,
 		radius = Data.FOUNTAIN_RADIUS,
-		basinDiameter = Data.FOUNTAIN.basinSize[1],
+		basinDiameter = Data.FOUNTAIN.basinDiameter,
 		ringRadius = Data.RING_RADIUS,
 		tierCount = Data.FOUNTAIN.tierCount,
 		spoutSize = Data.FOUNTAIN.spoutSize,

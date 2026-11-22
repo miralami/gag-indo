@@ -1,7 +1,7 @@
 --!nocheck
--- WORK_QUEUE section P item 175 (UNREGISTERED). Two-tier plaza fountain, paved ring, inward
--- benches and one flat red-over-white flag pair per bunting flag. No Studio claim: the live
--- geometry proof is tools/studio/check_p175.luau and its CHECK evidence belongs to the main session.
+-- WORK_QUEUE section P item 175 (UNREGISTERED), fountain rebuilt by item 188. Baked Creator Store
+-- fountain at a 16-stud basin, paved ring, inward benches and one flat red-over-white flag pair per
+-- bunting flag. No Studio claim: live CHECK evidence belongs to the main session.
 
 local fs = require("@lune/fs")
 
@@ -45,29 +45,35 @@ return function(t, Env)
 			and math.min(a.maxZ, b.maxZ) > math.max(a.minZ, b.minZ)
 	end
 
-	t:describe("plaza_r9 item 175 fountain", function()
-		t:it("has a basin at least 14 studs across and exactly two tiers", function()
-			expect(Data.FOUNTAIN.basinSize[1] >= 14):toBe(true)
-			expect(Data.FOUNTAIN.basinSize[3] >= 14):toBe(true)
-			expect(fountain.basinDiameter >= 14):toBe(true)
-			expect(Data.FOUNTAIN.tierCount):toBe(2)
-			expect(fountain.tierCount):toBe(2)
-			expect(#tiers):toBe(2)
-			expect(tiers[1].size[1] >= 14):toBe(true)
-			expect(tiers[2].size[1] < tiers[1].size[1]):toBe(true)
-			expect(tiers[2].y > tiers[1].y):toBe(true)
+	t:describe("plaza_r9 item 188 baked fountain", function()
+		t:it("uses the real baked asset scaled to a 16-stud basin inside [14,18]", function()
+			expect(Data.FOUNTAIN_ASSET_ID):toBe(93434732057582)
+			expect(Data.FOUNTAIN_BASIN_MIN):toBe(14)
+			expect(Data.FOUNTAIN_BASIN_MAX):toBe(18)
+			expect(fountain.basinDiameter):toBe(16)
+			expect(fountain.basinDiameter >= Data.FOUNTAIN_BASIN_MIN):toBe(true)
+			expect(fountain.basinDiameter <= Data.FOUNTAIN_BASIN_MAX):toBe(true)
+			expect(fountain.x):toBe(0)
+			expect(fountain.z):toBe(0)
+			expect(fountain.ringRadius):toBe(Data.RING_RADIUS)
+			expect(#tiers):toBe(2) -- data kept for compatibility; no Parts are built from it
+			expect(applierSrc:find("LookDevAssetLoader.get(Data.FOUNTAIN_ASSET_ID, Data.familyId)", 1, true) ~= nil):toBe(
+				true
+			)
+			expect(applierSrc:find("GetBoundingBox()", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("ScaleTo(", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("PivotTo(CFrame.new(x, groundY(), z))", 1, true) ~= nil):toBe(true)
 		end)
 
-		t:it("uses a thin vertical non-Neon water column and a four-strip paved ring", function()
-			expect(Data.FOUNTAIN.spoutSize[2] > Data.FOUNTAIN.spoutSize[1] * 3):toBe(true)
-			expect(Data.MATERIALS[Data.FOUNTAIN.spoutMaterial]):toBe("SmoothPlastic")
+		t:it("tags baked water for the R8 check and keeps a four-strip paved ring", function()
+			expect(applierSrc:find("Data.waterAttribute, true", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("Data.waterColourAttribute, recipe.waterColour", 1, true) ~= nil):toBe(true)
 			expect(applierSrc:find("Enum.Material.Neon", 1, true) == nil):toBe(true)
 			expect(#paving):toBe(4)
-			expect(fountain.ringRadius >= Data.FOUNTAIN.basinSize[1] / 2):toBe(true)
+			expect(fountain.ringRadius >= Data.FOUNTAIN.basinDiameter / 2):toBe(true)
 			for _, tile in ipairs(paving) do
 				expect(tile.size[2] < 0.5):toBe(true)
 			end
-			expect(applierSrc:find("Data.fountainTierAttribute, tier.index", 1, true) ~= nil):toBe(true)
 			expect(applierSrc:find("Data.pavingAttribute, true", 1, true) ~= nil):toBe(true)
 		end)
 	end)
@@ -111,10 +117,7 @@ return function(t, Env)
 				expect(inner <= fountain.ringRadius + Data.LANE_GAP + 1e-6):toBe(true)
 				local rect = box(lane.x, lane.z, lane.width / 2, lane.depth / 2)
 				expect(
-					overlaps(
-						box(fountain.x, fountain.z, Data.FOUNTAIN.basinSize[1] / 2, Data.FOUNTAIN.basinSize[3] / 2),
-						rect
-					)
+					overlaps(box(fountain.x, fountain.z, fountain.basinDiameter / 2, fountain.basinDiameter / 2), rect)
 				):toBe(false)
 				for _, tile in ipairs(paving) do
 					expect(overlaps(box(tile.x, tile.z, tile.size[1] / 2, tile.size[3] / 2), rect)):toBe(false)

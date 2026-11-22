@@ -1,12 +1,12 @@
 --!strict
 -- LookDevPlazaR9: SERVER-ONLY applier for the OFF-BY-DEFAULT "plaza_r9" candidate
--- (WORK_QUEUE section O item 149, rebuilt by section P item 175). Builds the central Lapangan
--- dressing from original Parts under one folder: a two-tier fountain with water discs and a thin
--- water column, a paved ring, four inward-facing benches, four striped umbrellas, a bunting line
--- with flat red-over-white flag pairs and one procedural shade tree at the plaza edge.
+-- (WORK_QUEUE section O item 149, rebuilt by section P item 175, fountain baked in item 188).
+-- Builds the central Lapangan dressing under one folder: a real baked Creator Store fountain scaled
+-- to a 16-stud basin, a paved ring, four inward-facing benches, four striped umbrellas, a bunting
+-- line with flat red-over-white flag pairs and one procedural shade tree at the plaza edge.
 --
 -- Every recipe comes from Shared.ModelMapPlazaR9 and every position is resolved from
--- MapSpec.PLAZA centre plus a plaza-local offset; no world-coordinate literals and no asset IDs.
+-- MapSpec.PLAZA centre plus a plaza-local offset; no world-coordinate literals and no local ID.
 -- The plaza is already Ground terrain, so no voxel pads are painted and no grass check is graded.
 -- All parts are anchored and non-collidable, tagged per kind, and destroyed on restore together
 -- with the staging folder; the exact prior folder (if any) is re-parented. Game APIs are pcall
@@ -43,13 +43,14 @@ if not Shared then
 	return {}
 end
 
-local okModules, LookDev, Data, LookDevFailures = pcall(function()
+local okModules, LookDev, Data, LookDevAssetLoader, LookDevFailures = pcall(function()
 	return require((Shared :: any).LookDev),
 		require((Shared :: any).ModelMapPlazaR9),
+		require(script.Parent.LookDevAssetLoader),
 		require((Shared :: any).LookDevFailures)
 end)
-if not okModules or not LookDev or not Data or not LookDevFailures then
-	warn("[LookDevPlazaR9] could not require LookDev / ModelMapPlazaR9 / LookDevFailures")
+if not okModules or not LookDev or not Data or not LookDevAssetLoader or not LookDevFailures then
+	warn("[LookDevPlazaR9] could not require LookDev / ModelMapPlazaR9 / LookDevAssetLoader / LookDevFailures")
 	return {}
 end
 
@@ -189,6 +190,8 @@ local function newModel(name: string, attribute: string, value: any, folder: any
 	return model
 end
 
+-- The tagged container always survives a failed bake load: the item-149 tag check must still find
+-- it, but no Parts are fabricated to stand in for the real fountain.
 local function stageFountain(folder: any): boolean
 	local recipe = Data.FOUNTAIN
 	local x, z = plazaPoint(recipe.x, recipe.z)
@@ -199,55 +202,77 @@ local function stageFountain(folder: any): boolean
 	if not model then
 		return false
 	end
-	local base = CFrame.new(x, groundY(), z)
-	for _, tier in ipairs(Data.fountainTiers()) do
-		local basin = addPart(
-			model,
-			tier.name,
-			tier.size,
-			base * CFrame.new(0, tier.y, 0),
-			"stone",
-			"stone",
-			"fountain",
-			SHAPE_NAMES.Cylinder
-		)
-		if basin then
-			pcall(function()
-				basin:SetAttribute(Data.fountainTierAttribute, tier.index)
-			end)
-		end
-		local disc = addPart(
-			model,
-			"FountainWater_" .. tier.index,
-			tier.waterSize,
-			base * CFrame.new(0, tier.waterY, 0),
-			recipe.waterColour,
-			"water",
-			"fountain",
-			SHAPE_NAMES.Cylinder
-		)
-		if disc then
-			pcall(function()
-				disc:SetAttribute(Data.waterAttribute, true)
-				disc:SetAttribute(Data.waterColourAttribute, recipe.waterColour)
-			end)
-		end
+	pcall(function()
+		model:SetAttribute(Data.fountainAssetIdAttribute, Data.FOUNTAIN_ASSET_ID)
+	end)
+
+	local okLoad, loaded = pcall(function()
+		return LookDevAssetLoader.get(Data.FOUNTAIN_ASSET_ID, Data.familyId)
+	end)
+	if not okLoad or not loaded then
+		fail("could not load fountain asset " .. tostring(Data.FOUNTAIN_ASSET_ID))
+		return true
 	end
-	local spout = addPart(
-		model,
-		"FountainSpout",
-		recipe.spoutSize,
-		base * CFrame.new(0, recipe.spoutY, 0),
-		recipe.waterColour,
-		recipe.spoutMaterial,
-		"fountain",
-		SHAPE_NAMES.Cylinder
-	)
-	if spout then
+	track(loaded)
+	local okBox, _, size = pcall(function()
+		return loaded:GetBoundingBox()
+	end)
+	if not okBox or not size or size.X <= 0 or size.Z <= 0 or recipe.basinDiameter <= 0 then
+		fail("invalid fountain bounding box / basin diameter for asset " .. tostring(Data.FOUNTAIN_ASSET_ID))
+		return true
+	end
+	local okScale = pcall(function()
+		if loaded.PrimaryPart then
+			loaded.PrimaryPart = nil -- scale about the model pivot, not an arbitrary baked part
+		end
+		loaded:ScaleTo(recipe.basinDiameter / math.max(size.X, size.Z))
+	end)
+	if not okScale then
+		fail("could not scale fountain asset " .. tostring(Data.FOUNTAIN_ASSET_ID))
+		return true
+	end
+
+	local okParts, descendants = pcall(function()
+		return loaded:GetDescendants()
+	end)
+	if not okParts or not descendants then
+		fail("could not inspect fountain asset " .. tostring(Data.FOUNTAIN_ASSET_ID))
+		return true
+	end
+	local waterPart: any? = nil
+	local flattest = math.huge
+	for _, descendant in ipairs(descendants) do
 		pcall(function()
-			spout:SetAttribute(Data.waterAttribute, true)
-			spout:SetAttribute(Data.waterColourAttribute, recipe.waterColour)
+			if descendant:IsA("Script") or descendant:IsA("LocalScript") or descendant:IsA("ModuleScript") then
+				descendant:Destroy()
+			elseif descendant:IsA("BasePart") then
+				descendant.Anchored = true
+				descendant.CanCollide = false
+				local partSize = descendant.Size
+				local flatness = partSize.Y / math.max(partSize.X, partSize.Z, 1e-4)
+				if flatness < flattest then
+					flattest = flatness
+					waterPart = descendant
+				end
+			end
 		end)
+	end
+	if not waterPart then
+		fail("fountain asset has no BasePart to tag as water")
+		return true
+	end
+	pcall(function()
+		waterPart:SetAttribute(Data.waterAttribute, true)
+		waterPart:SetAttribute(Data.waterColourAttribute, recipe.waterColour)
+	end)
+	local okStage = pcall(function()
+		loaded.Name = "PlazaFountainModel"
+		loaded:SetAttribute(Data.fountainAssetIdAttribute, Data.FOUNTAIN_ASSET_ID)
+		loaded.Parent = model
+		loaded:PivotTo(CFrame.new(x, groundY(), z))
+	end)
+	if not okStage then
+		fail("could not place fountain asset " .. tostring(Data.FOUNTAIN_ASSET_ID))
 	end
 	return true
 end

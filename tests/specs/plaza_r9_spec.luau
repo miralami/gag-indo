@@ -1,7 +1,7 @@
 --!nocheck
--- WORK_QUEUE section O item 149: plaza_r9 central plaza dressing.
+-- WORK_QUEUE section O item 149: plaza_r9 central plaza dressing (fountain baked in item 188).
 -- Pure-data counts and lane geometry, LookDev/review wiring, the seven read-only harness checks and
--- the applier's original-Part/restore guards. No Studio claim: CHECK evidence, tracker ticks and the
+-- the applier's baked-model/restore guards. No Studio claim: CHECK evidence, tracker ticks and the
 -- visual verdict belong to the main session and the designer respectively.
 
 local fs = require("@lune/fs")
@@ -134,8 +134,13 @@ return function(t, Env)
 			end
 		end)
 
-		t:it("declares no asset-id literals or engine APIs in the pure data module", function()
-			expect(string.find(dataSrc, "%d%d%d%d%d%d%d") ~= nil):toBe(false)
+		t:it("declares the one baked fountain asset id and no engine APIs in pure data", function()
+			expect(Data.FOUNTAIN_ASSET_ID):toBe(93434732057582)
+			expect(Data.FOUNTAIN_BASIN_MIN):toBe(14)
+			expect(Data.FOUNTAIN_BASIN_MAX):toBe(18)
+			expect(dataSrc:find(tostring(Data.FOUNTAIN_ASSET_ID), 1, true) ~= nil):toBe(true)
+			local withoutId = string.gsub(dataSrc, tostring(Data.FOUNTAIN_ASSET_ID), "")
+			expect(string.find(withoutId, "%d%d%d%d%d%d%d") ~= nil):toBe(false)
 			expect(string.find(dataSrc, "rbxassetid://", 1, true) ~= nil):toBe(false)
 			expect(string.find(dataSrc, "assetId", 1, true) ~= nil):toBe(false)
 			expect(string.find(dataSrc, "Enum.", 1, true) ~= nil):toBe(false)
@@ -200,11 +205,19 @@ return function(t, Env)
 	end)
 
 	t:describe("plaza_r9 applier", function()
-		t:it("stages original anchored non-collidable Parts from MapSpec.PLAZA and restores exactly", function()
+		t:it("stages a baked fountain model plus original Parts from MapSpec.PLAZA and restores exactly", function()
 			expect(applierSrc:find("require((Shared :: any).ModelMapPlazaR9)", 1, true) ~= nil):toBe(true)
 			expect(applierSrc:find("require(script.Parent.MapSpec)", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("require(script.Parent.LookDevAssetLoader)", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("LookDevAssetLoader.get(Data.FOUNTAIN_ASSET_ID, Data.familyId)", 1, true) ~= nil):toBe(
+				true
+			)
+			expect(applierSrc:find("GetBoundingBox()", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("ScaleTo(", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("PivotTo(CFrame.new(x, groundY(), z))", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("Data.fountainAssetIdAttribute, Data.FOUNTAIN_ASSET_ID", 1, true) ~= nil):toBe(true)
 			expect(applierSrc:find("MapSpec.PLAZA.x + localX, MapSpec.PLAZA.z + localZ", 1, true) ~= nil):toBe(true)
-			expect(applierSrc:find('Instance.new("Part")', 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find('Instance.new("Part")', 1, true) ~= nil):toBe(true) -- other stages still use Parts
 			expect(applierSrc:find("Anchored = true", 1, true) ~= nil):toBe(true)
 			expect(applierSrc:find("CanCollide = false", 1, true) ~= nil):toBe(true)
 			expect(applierSrc:find("Color3.fromRGB", 1, true) ~= nil):toBe(true)
@@ -214,6 +227,12 @@ return function(t, Env)
 			expect(applierSrc:find("LookDev.register(Data.familyId", 1, true) ~= nil):toBe(true)
 			expect(applierSrc:find("Data.waterAttribute, true", 1, true) ~= nil):toBe(true)
 			expect(applierSrc:find("Data.buntingFlagAttribute, true", 1, true) ~= nil):toBe(true)
+			local fountainStart = applierSrc:find("local function stageFountain", 1, true)
+			local fountainEnd = applierSrc:find("local function stagePaving", 1, true)
+			local fountainSrc = applierSrc:sub(fountainStart, fountainEnd - 1)
+			expect(fountainSrc:find('Instance.new("Part")', 1, true) == nil):toBe(true)
+			expect(fountainSrc:find("addPart(", 1, true) == nil):toBe(true)
+			expect(fountainSrc:find("Data.fountainTiers()", 1, true) == nil):toBe(true)
 			expect(string.find(applierSrc, "%d%d%d%d%d%d%d") ~= nil):toBe(false)
 			expect(string.find(applierSrc, "rbxassetid://%d") ~= nil):toBe(false)
 		end)

@@ -714,10 +714,15 @@ published). None invented. The baked copy is verified in a fresh Play/Server VM 
 
 | Slot | Asset ID | Name | Creator | Type | Source | Baked size (studs) | Approved by |
 |---|---|---|---|---|---|---|---|
-| `padi_model` | 13286158859 | Meshes/rice2 | Polyslayer1 | MeshPart | Creator Store, free | 1.07 x 3.52 x 1.51 (widest 1.51 <= 2) | designer to confirm (LookDev candidate) |
+| `padi_model` | 13286158859 | Meshes/rice2 | Polyslayer1 | MeshPart | Creator Store, free | 1.07 x 3.52 x 1.51 (widest 1.51 <= 2) | designer to confirm (LookDev candidate; wired by item 191) |
+| `fountain_model` | 93434732057582 | Fountain | Sonisn1810 | Model (7 parts) | Creator Store, free | 15.24 x 17.36 x 17.35 (scaled to 16-stud basin in `plaza_r9`) | designer to confirm (LookDev candidate) |
 
-Licence not re-read here — Creator Store terms apply. The ID is wired into `src/` by item 191
-(`sawah_r8` 3D padi); until then it is marked `unused` in the coverage table below.
+Licence not re-read here — Creator Store terms apply. The padi ID is wired into `src/` by item 191
+(`sawah_r8` 3D padi); until then it is marked `unused` in the coverage table below. The fountain ID
+is wired in item 188 (`plaza_r9`, `src/shared/ModelMapPlazaR9.luau`) and needs no `unused` marker.
+Both candidates stay OFF by default until item 226. No ID invented; both from real Creator Store
+free-filter `search_asset` results, baked scripts-stripped into `LookDevAssets` (evidence
+`docs/v2/evidence/h/2026-11-22-round11/CHECK_187.txt` and `CHECK_188.txt`).
 
 ### Unused manifest IDs
 

@@ -26,9 +26,26 @@ for _, name in ipairs(CROPS) do
 	EXPECTED[#EXPECTED + 1] = name
 end
 
+-- WORK_QUEUE item 216: twelve named cameras; the two canonical overview flanks already exist in
+-- P_ROUND_CAMERAS, so only ten new registry entries are added.
+local SPRINT1 = {
+	"canonical_overview_left",
+	"canonical_overview_right",
+	"path_curve",
+	"kampung_view",
+	"bridge_side",
+	"meadow_view",
+	"terrace_wall",
+	"signpost_pasar",
+	"lamp_night",
+	"horizon_north",
+	"horizon_south",
+	"fountain_close",
+}
 local PREVIOUS_COUNT = 45 -- registry size after item 118, before item 133
 local P_ROUND_CAMERAS = 3 -- items 180/182: ronda_tower_wide + canonical_overview_left/right
-local TOTAL_COUNT = PREVIOUS_COUNT + #NEW + P_ROUND_CAMERAS -- 57
+local SPRINT1_NEW_COUNT = 10 -- 12 names minus the 2 canonical overview flanks already counted above
+local TOTAL_COUNT = PREVIOUS_COUNT + #NEW + P_ROUND_CAMERAS + SPRINT1_NEW_COUNT -- 67
 
 local function validVec(value)
 	if type(value) ~= "table" or #value ~= 3 then
@@ -94,6 +111,43 @@ return function(t, Env)
 				registrySeen[name] = true
 			end
 			expect(cameraDoc:find("54 named cameras after item 133", 1, true) ~= nil):toBe(true)
+		end)
+
+		t:it("registers all 12 item-216 names with valid coords, Server datamodel and doc rows", function()
+			local seen = {}
+			for _, name in ipairs(SPRINT1) do
+				expect(seen[name] == nil):toBe(true)
+				seen[name] = true
+				local camera = Cameras.get(name)
+				expect(camera ~= nil):toBe(true)
+				expect(camera.name):toBe(name)
+				expect(validVec(camera.position)):toBe(true)
+				expect(validVec(camera.lookAt)):toBe(true)
+				expect(sameVec(camera.position, camera.lookAt)):toBe(false)
+				expect(camera.datamodel):toBe("Server")
+				expect(type(camera.purpose)):toBe("string")
+				expect(#camera.purpose > 0):toBe(true)
+				expect(cameraSrc:find('"' .. name .. '"', 1, true) ~= nil):toBe(true)
+				expect(cameraDoc:find("| `" .. name .. "` | Server |", 1, true) ~= nil):toBe(true)
+			end
+			expect(cameraDoc:find("ClockTime 21", 1, true) ~= nil):toBe(true)
+			expect(cameraDoc:find("67 named cameras after item 216", 1, true) ~= nil):toBe(true)
+		end)
+
+		t:it("documents every registry name exactly once", function()
+			local docSeen = {}
+			for name in cameraDoc:gmatch("| `([^`]+)` |") do
+				expect(docSeen[name] == nil):toBe(true)
+				docSeen[name] = true
+			end
+			for _, name in ipairs(Cameras.names()) do
+				expect(docSeen[name] == true):toBe(true)
+			end
+			local docCount = 0
+			for _ in pairs(docSeen) do
+				docCount = docCount + 1
+			end
+			expect(docCount):toBe(TOTAL_COUNT)
 		end)
 	end)
 end

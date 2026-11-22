@@ -1,0 +1,48 @@
+CHECK 217 - visual-risk audit harness (WORK_QUEUE SPRINT 1 item 217)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2
+Place: Development-Juragan-Desa. Play only (Server VM, check). Place NOT saved, nothing published.
+
+== Wiring ==
+src/shared/VisualRiskAudit.luau: pure-data predicates floaters(parts), cubeShrubs(parts),
+sizeSanity(parts) over descriptor tables {name,size,position?,shape?,kind?}; no engine calls;
+emptyIsFailure=true, probeOk self-probed at load. floaters = O(n^2) AABB overlap grown 0.3 with
+roof/awning/sign exemptions; cubeShrubs = Block with min>=1.5 and max<=min*1.2; sizeSanity = max>12
+and min<0.8 unless fence/roof/bridge/road/awning/sign/rail/ditch/path. src/shared/ModelMapVisualFixtureBad.luau:
+DELIBERATELY BAD fixture (floating rock, cube shrub, overlong thin bar + one good touching cluster).
+tools/studio/review_check_visual.luau: self-contained Server-VM harness; gathers descriptor sets from
+shipped candidates that expose a parts()-style function, checks all three predicates on that set,
+then checks the fixture trips all three; emits AUDIT_PROBE and GOOD_SET_NONEMPTY guards.
+tests/specs/visual_risk_audit_spec.luau: 7 LUNE-ONLY cases; registered in tests/run.luau.
+Suite 2955->2964.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK NO_FLOATERS PASS 0 0
+CHECK NO_CUBE_SHRUBS PASS 0 0
+CHECK SIZE_SANITY PASS 0 0
+CHECK GOOD_SET_NONEMPTY PASS 1 >0
+CHECK FIXTURE_NO_FLOATERS_FAILED PASS 3 >=1
+CHECK FIXTURE_NO_CUBE_SHRUBS_FAILED PASS 2 >=1
+CHECK FIXTURE_SIZE_SANITY_FAILED PASS 1 >=1
+CHECK AUDIT_PROBE PASS 1 1
+
+== Notes / measurements ==
+- Shipped descriptor set: 1 candidate currently exposes parts()/skirtParts() (horizon_fill_r10's
+  HorizonSkirt). The other 8 candidate modules in the harness CANDIDATES list do not expose a
+  descriptor function and are recorded as `skipped` notes, never counted as a pass. The check is
+  honest about coverage: GOOD_SET_NONEMPTY is 1>0, not a vacuous 0.
+- NO_FLOATERS/NO_CUBE_SHRUBS/SIZE_SANITY each measured 0 offenders on the shipped set.
+- AUDIT_PROBE PASS: every predicate classifies hand-built touching/separated/cube/ball/thin/road/
+  invalid samples correctly, so the PASS is not vacuous.
+- FIXTURE_*: the deliberately bad fixture trips floaters (3: FloatingRock, CubeShrub, LongThinBar),
+  cube shrubs (2: FloatingRock 3^3, CubeShrub 2^3) and size sanity (1: LongThinBar 20x0.4x0.4).
+  Each FIXTURE check PASSES only when the matching predicate reports >=1 offender, proving the harness
+  FAILs on a known-bad fixture while PASSing on the shipped set.
+- Pure-data: no Staging, no enableAdditive, no place save, no visual verdict. Play stopped after the run.
+
+Calibration note: to prove FAIL, the harness's FIXTURE lines are the injected bad case; replacing the
+goodSet with the fixture parts in the three good checks would emit NO_FLOATERS FAIL 3 0,
+NO_CUBE_SHRUBS FAIL 2 0, SIZE_SANITY FAIL 1 0. probeOk guards against a misclassified sample.
+The visual yes/no for any candidate remains the designer's / vision observer's call.
+
+Status: SEEN-IN-STUDIO.

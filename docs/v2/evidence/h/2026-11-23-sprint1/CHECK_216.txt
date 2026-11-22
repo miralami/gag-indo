@@ -1,0 +1,39 @@
+CHECK 216 - cameras for the new candidates (WORK_QUEUE SPRINT 1 item 216)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2
+Place: Development-Juragan-Desa. Play only (Server VM, check). Place NOT saved, nothing published.
+Rojo-synced: the live ReviewCameras module matched the repo bytes (fix for Game.plotCenter returning
+two numbers confirmed at studio lines 490-493 before the run).
+
+== Wiring ==
+src/shared/ReviewCameras.luau: ten new Server review cameras plus doc rows for the two already in the
+registry but undocumented (canonical_overview_left/right): path_curve (0,10,124)->(0,1.5,150),
+kampung_view derived from Game.plotCenter(1/2), bridge_side (22,10,304)->(0,3.6,304), meadow_view
+(0,19.5,90)->(0,1,120), terrace_wall from terraces[1]/FUTURE_SLOTS, signpost_pasar (18,10,-8),
+lamp_night (0,10,144)->(60,4.5,120), horizon_north (0,100.5,-408)->(0,29,-900), horizon_south
+(0,100.5,392)->(0,29,900), fountain_close (10,12,20)->(0,3,0). All derive from MapSpec/Game data.
+docs/v2/visual/REVIEW_CAMERAS.md: count 54->67, all 67 registry names documented once, lamp_night
+records the ClockTime 21 preset (the registry has no clockTime field).
+tests/specs/cameras_new_r10_spec.luau: item-216 record/doc contract + "every registry name documented
+once"; suite 2955->2964. tools/studio/check_q216.luau: self-contained CAMERA_CLEAR harness.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK CAMERA_CLEAR PASS 0 0
+CHECK DOCS_ONCE PASS 0 0
+
+== Notes / measurements ==
+- CAMERA_CLEAR: the standard r8 ray (eye toward lookAt for Cameras.clearDistance=6 studs, Characters
+  excluded, any opaque hit Transparency<0.5 FAILs) run on all 67 registered cameras. 67 checked, 0
+  blocked, 0 bad-coordinate eyes. Includes every item-216 camera and every pre-existing camera.
+- DOCS_ONCE: live-module pure-data mirror of the spec's uniqueness contract: 67 names, 67 checked,
+  0 duplicates.
+
+== Non-vacuity / calibration ==
+Fresh Play, spawn one opaque Anchored Part 3 studs along the plaza_centre eye->lookAt ray, then run
+the same harness in the SAME session:
+CHECK CAMERA_CLEAR FAIL 1 0   detail blocked = plaza_centre@CalibrationBlocker
+CHECK DOCS_ONCE PASS 0 0
+(Raycast from inside a Part does not hit that Part, so the blocker was placed 3 studs along the ray;
+the check is not vacuous.) Play stopped after the run; the Place was never saved.
+
+Status: SEEN-IN-STUDIO.

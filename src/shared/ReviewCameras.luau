@@ -479,6 +479,103 @@ add(
 	"Item-117 seated villagers, glasses and plates on the Warung benches from the front-left apron."
 )
 
+-- WORK_QUEUE item 216: twelve sprint-1 r10 review cameras. The two canonical overview flanks already
+-- exist above (item 182), so this block adds ten registry entries and the docs add all twelve rows.
+-- Every eye stands in open air above the ground plane / hill band, so the 6-stud CAMERA_CLEAR ray
+-- starts in air. `lamp_night` is a name-only lighting preset: the registry has no clockTime field,
+-- so REVIEW_CAMERAS.md records the ClockTime 21 preset and the main session sets it for the shot.
+local ringOuter = MapSpec.ROAD.ringCentre + MapSpec.ROAD.ringWidth / 2
+local connectorEyeZ = MapSpec.LAPANGAN.z + MapSpec.LAPANGAN.depth / 2
+local meadowLookZ = connectorEyeZ - MapSpec.S * 2
+local kampungAx, kampungAz = Game.plotCenter(1)
+local kampungBx, kampungBz = Game.plotCenter(2)
+local kampungX = (kampungAx + kampungBx) / 2
+local kampungZ = (kampungAz + kampungBz) / 2
+local terraceNearZ = (terraces[1].z0 + terraces[1].z1) / 2 + MapSpec.S
+local terraceLookZ = MapSpec.FUTURE_SLOTS[1].z + MapSpec.FUTURE_SLOTS[1].depth / 2 + MapSpec.S * 4
+local terraceEyeX = MapSpec.STAIRS[1].x + MapSpec.S * 10
+local horizonLookY = MapSpec.GROUND_Y + MapSpec.HEADROOM * 3
+local horizonFar = MapSpec.TERRAIN_HALF * 2.25
+
+add(
+	"path_curve",
+	vec(MapSpec.PLAZA.x, MapSpec.GROUND_Y + MapSpec.HEADROOM, connectorEyeZ),
+	vec(MapSpec.PLAZA.x, MapSpec.GROUND_Y + MapSpec.S / 2, ringOuter),
+	"Server",
+	"Connector dirt path between the ring road and the plot gates from the Lapangan edge."
+)
+add(
+	"kampung_view",
+	vec(kampungX - MapSpec.S * 4, MapSpec.GROUND_Y + MapSpec.HEADROOM * 2, kampungZ + MapSpec.S * 4),
+	vec(kampungX + MapSpec.S * 6, MapSpec.GROUND_Y, kampungZ - MapSpec.S * 6),
+	"Server",
+	"Outskirts between the ring and the plot ring, framing the future kampung house row."
+)
+add(
+	"bridge_side",
+	vec(bridge.x + bridge.width * MapSpec.S + MapSpec.S, MapSpec.GROUND_Y + MapSpec.HEADROOM, bridgeZ),
+	vec(bridge.x, deckY + bridge.railTop / 2, bridgeZ),
+	"Server",
+	"Side elevation of the river bridge deck and railing from the east bank."
+)
+add(
+	"meadow_view",
+	vec(MapSpec.PLAZA.x, MapSpec.GROUND_Y + MapSpec.HEADROOM * 2, MapSpec.LAPANGAN.z - MapSpec.S * 3),
+	vec(MapSpec.PLAZA.x, MapSpec.GROUND_Y + MapSpec.S / 4, meadowLookZ),
+	"Server",
+	"Open lawn between the Pasar ring and the plots, looking south across the meadow."
+)
+add(
+	"terrace_wall",
+	vec(terraceEyeX, highTerrace.top + MapSpec.HEADROOM * MapSpec.S + MapSpec.S, terraceNearZ),
+	vec(terraceEyeX, highTerrace.top, terraceLookZ),
+	"Server",
+	"Sawah terrace bunds and retaining wall looking south toward the Balai gap."
+)
+add(
+	"signpost_pasar",
+	vec(MapSpec.ROAD.halfWidth + MapSpec.S * 2, MapSpec.GROUND_Y + MapSpec.HEADROOM, -MapSpec.S * 4),
+	vec(
+		MapSpec.UKUR_BOARD.x - MapSpec.S * 6,
+		MapSpec.GROUND_Y + MapSpec.UKUR_BOARD.postHeight / 2,
+		MapSpec.UKUR_BOARD.z + MapSpec.S * 2
+	),
+	"Server",
+	"Pasar junction signpost and ukur board framed from the plaza side."
+)
+add(
+	"lamp_night",
+	vec(MapSpec.PLAZA.x, MapSpec.GROUND_Y + MapSpec.HEADROOM, MapSpec.ROAD.ringCentre),
+	vec(MapSpec.PLAZA.width / 2 + MapSpec.S * 6, MapSpec.GROUND_Y + MapSpec.S * 2, meadowLookZ),
+	"Server",
+	"Ring-road lamp posts and night lighting preset at ClockTime 21."
+)
+add(
+	"horizon_north",
+	vec(MapSpec.PLAZA.x, hillEyeY, -(MapSpec.TERRAIN_HALF + MapSpec.TERRAIN_VOXEL * 2)),
+	vec(MapSpec.PLAZA.x, horizonLookY, -horizonFar),
+	"Server",
+	"North horizon over the hill and forest band from outside the playable square."
+)
+add(
+	"horizon_south",
+	vec(MapSpec.PLAZA.x, hillEyeY, MapSpec.TERRAIN_HALF - MapSpec.TERRAIN_VOXEL * 2),
+	vec(MapSpec.PLAZA.x, horizonLookY, horizonFar),
+	"Server",
+	"South horizon over the bridge and river band from outside the playable square."
+)
+add(
+	"fountain_close",
+	vec(
+		MapSpec.ROAD.halfWidth - MapSpec.S * 2,
+		MapSpec.GROUND_Y + MapSpec.HEADROOM + MapSpec.S,
+		MapSpec.SPAWN.z - MapSpec.S * 4
+	),
+	vec(MapSpec.PLAZA.x, MapSpec.GROUND_Y + MapSpec.S * 1.25, MapSpec.PLAZA.z),
+	"Server",
+	"Close view of the plaza fountain and its basin from the north-east approach."
+)
+
 local byName: { [string]: ReviewCamera } = {}
 for _, camera in cameras do
 	byName[camera.name] = camera

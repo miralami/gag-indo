@@ -1,7 +1,7 @@
 # Review cameras (WORK_QUEUE section M item 69)
 
 Registry: `src/shared/ReviewCameras.luau` (`ReviewCameras.all()`, `.get(name)`, `.names()`).
-45 named cameras at item 118; 54 named cameras after item 133. Coordinates are computed at load from `src/server/World/MapSpec.luau` (hub centres,
+45 named cameras at item 118; 54 named cameras after item 133; 67 named cameras after item 216. Coordinates are computed at load from `src/server/World/MapSpec.luau` (hub centres,
 footprints, road ring, bridge, terraces, hill edge, spawn), `src/shared/Config/Game.luau` (plot-ring
 angles/radius) and `ModelMapVegetationR7.savedCamera` (the current saved spawn camera). No hand-typed
 world coordinates. `ReviewCameras.clearDistance` is the 6-stud `CAMERA_CLEAR` ray length.
@@ -50,10 +50,13 @@ Shots and verdicts belong under `docs/v2/evidence/h/<date>-round9/`.
 | `hill_ring_in` | Server | Hill/forest backdrop looking in across the village. |
 | `pasar_awnings` | Server | Item-148 lapak stalls and striped awnings on the Pasar front apron, from the front-right 3/4. |
 | `plaza_centre` | Server | Fountain, benches, umbrellas and bunting at the MapSpec plaza centre, seen from above. |
-| `ronda_tower` | Server | Bamboo watchtower at MapSpec.RONDA_TOWER, 3/4 from the north shoulder at mid-height. |
+| `ronda_tower` | Server | Bamboo watchtower at MapSpec.RONDA_TOWER, framed whole from the open north-west side. |
+| `ronda_tower_wide` | Server | Wider 3/4 of the whole Pos Ronda watchtower from farther out on the same open north-west side. |
 | `river_rocks` | Server | Bank boulders and plants along MapSpec.riverCentreZ, looking downstream from the south bank. |
 | `forest_wall` | Server | Tree wall beyond the village edge, looking north from MapSpec.TERRAIN_HALF toward the hills. |
 | `canonical_overview` | Server | High 3/4 canonical-style overview from the south over the bridge toward the whole village. |
+| `canonical_overview_left` | Server | Left flank of the canonical overview: village ring and river band west of the Pasar. |
+| `canonical_overview_right` | Server | Right flank of the canonical overview: village ring and river band east of the Pasar. |
 | `spawn_golden` | Client | Spawn framing under the golden-hour lighting preset. |
 | `spawn_night` | Client | Spawn framing under the night lighting preset. |
 | `pasar_golden` | Client | Pasar framing under the golden-hour lighting preset. |
@@ -70,6 +73,16 @@ Shots and verdicts belong under `docs/v2/evidence/h/<date>-round9/`.
 | `laundry_view` | Server | Item-115 Pasar washing lines with sarung, batik and kebaya behind the back wall. |
 | `kite_sky` | Server | Item-116 kites over the Lapangan, framed on the highest sail from above. |
 | `warung_seated` | Server | Item-117 seated villagers, glasses and plates on the Warung benches from the front-left apron. |
+| `path_curve` | Server | Connector dirt path between the ring road and the plot gates from the Lapangan edge. |
+| `kampung_view` | Server | Outskirts between the ring and the plot ring, framing the future kampung house row. |
+| `bridge_side` | Server | Side elevation of the river bridge deck and railing from the east bank. |
+| `meadow_view` | Server | Open lawn between the Pasar ring and the plots, looking south across the meadow. |
+| `terrace_wall` | Server | Sawah terrace bunds and retaining wall looking south toward the Balai gap. |
+| `signpost_pasar` | Server | Pasar junction signpost and ukur board framed from the plaza side. |
+| `lamp_night` | Server | Ring-road lamp posts and night lighting preset at ClockTime 21. |
+| `horizon_north` | Server | North horizon over the hill and forest band from outside the playable square. |
+| `horizon_south` | Server | South horizon over the bridge and river band from outside the playable square. |
+| `fountain_close` | Server | Close view of the plaza fountain and its basin from the north-east approach. |
 
 ## Notes
 
@@ -77,6 +90,8 @@ Shots and verdicts belong under `docs/v2/evidence/h/<date>-round9/`.
   Shoot a `Client` camera in a Client Play VM, a `Server` camera in a Server Play VM.
 - The four lighting variants reuse the exact geometry of `spawn` and `hub_pasar`; only the lighting
   preset changes. The main session sets that preset for the shot.
+- `lamp_night` is the ClockTime 21 night preset on the ring road. The registry has no `clockTime`
+  field, so the name selects the preset and the main session sets ClockTime 21 for the shot.
 - The registry requires MapSpec from `ServerScriptService.Server.World`, so load it from the Server
   datamodel or the Lune Env harness. The returned `datamodel` field is data for the shooter, not a
   promise that the module itself loads in both VMs.

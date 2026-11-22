@@ -917,7 +917,9 @@ All are OFF-by-default LookDev candidates (section K hard rules unchanged). Each
 - [x] 192. **Source taro, reed and shrub models for the river banks.** Replace the cube shrubs of `river_r8` (item 174) with baked taro (talas), reed, fern and round-shrub models; plus a few lily pads on the water. **CHECKS:** `NO_CUBE_SHRUBS`; `BANK_PLANTS` ≥ 60 with ≥ 3 models; `WATER_CLEAR`.
   Done 2026-11-22 (SEEN-IN-STUDIO, `CHECK_192.txt`): five real free Creator Store models baked scripts-stripped — 8466298000 Taro, 13261235137 Cattail/reed, 5661660655 fern, 9953859659 round shrub (scaled to ~2 studs), 5044238410 Lilypad. `river_r8` remaps talas->taro, keladi->fern, alang-alang->reed, publishes BankModelId, adds a shrub accent every 4th non-tall plant and 6 baked lily pads from pure Data.lilyPads. Real fresh-Play SERVER-VM PASS: NO_CUBE_SHRUBS 0/0, BANK_PLANTS 60/60, BANK_MODELS 6/3, WATER_CLEAR 0/0, LILY_PADS 6/6. All five calibrated (strip BankModelId / strip LilyAssetId / pivot plant into channel / turn plant into Block / destroy half -> FAIL). IDs in ASSET_MANIFEST.md section Q, candidate OFF until 226."})
 
-- [ ] 193. **Source a flower-meadow and wild-grass set.** 3 or more baked flower and wild-grass models for meadow patches (items 194, 195). **CHECKS:** `MEADOW_MODELS` ≥ 3 baked.
+- [x] 193. **Source a flower-meadow and wild-grass set.** 3 or more baked flower and wild-grass models for meadow patches (items 194, 195). **CHECKS:** `MEADOW_MODELS` ≥ 3 baked.
+  Done 2026-11-22 (SEEN-IN-STUDIO, `CHECK_193.txt`): five real free Creator Store models baked scripts-stripped — 7974911801 Wildflower02, 13032768586 WildFlower04, 70509679878841 Daisy Flower (flowers), 128368650541272 TallGrass, 8715139325 Wild Grass (grasses). Real fresh-Play SERVER-VM PASS `MEADOW_MODELS 5/3`. Calibration: inject scripts into 3 baked folders -> `FAIL 2/3`, destroy -> `PASS 5/3`. IDs in ASSET_MANIFEST.md "Unused manifest IDs" with `unused` markers; items 194/195 will wire them in."})
+
 
 **Close the gaps against `map-plan-canonical.png`.**
 

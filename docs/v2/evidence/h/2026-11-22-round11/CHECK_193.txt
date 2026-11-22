@@ -1,0 +1,44 @@
+CHECK 193 - source a flower-meadow and wild-grass set (WORK_QUEUE section Q item 193)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Edit (source/bake) + Play (Server VM, check). Place NOT saved, nothing published.
+
+== Source search ==
+Creator Store `search_asset` free-filter Model results over 6 keyword rounds ("wildflower",
+"flower meadow", "tall grass clump", "wild grass", "daisy flowers", "grass patch"). Each candidate
+was fetched with `GetObjects("rbxassetid://<id>")` and measured in Edit mode. Rejected whole-map and
+oversized packs (14629857106 19-stud field, 12586906080 1333-part vegetation pack, 4472876998
+240-part 23-stud clump, 93053021684457 ProceduralModel with 3 scripts) in favour of small clump-scale
+flowers and grasses suitable for scattered meadow patches.
+
+== Selected / baked ==
+Five real free Creator Store models baked scripts-stripped into ServerStorage.LookDevAssets.<id>
+(same path as tools/studio/bake_lookdev_assets.luau; 0 Script descendants after bake):
+  - 7974911801 "Wildflower02" (Oneshot7577), Model 1 MeshPart, 3.47 x 2.59 x 2.90 -- flower
+  - 13032768586 "WildFlower04" (realOmlet), Model 1 MeshPart, 1.17 x 2.59 x 1.21 -- flower
+  - 70509679878841 "Daisy Flower" ([HL] Creative Team), Model 1 MeshPart, 0.32 x 1.04 x 0.36 -- flower
+  - 128368650541272 "TallGrass" (Reneniza981), Model 4 parts, 1.41 x 4 x 1.41 (2 scripts stripped) -- wild grass
+  - 8715139325 "Wild Grass" (wooful67), Model 16 MeshParts, 13.17 x 1.01 x 2.63 -- wild grass
+Recorded in docs/v2/visual/art/ASSET_MANIFEST.md "Unused manifest IDs" table with `unused` markers:
+items 194/195 will wire them into src and remove the markers. No ID invented.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK MEADOW_MODELS PASS 5 3
+
+== Notes / measurements ==
+- `tools/studio/check_q193.luau` (equivalent compact inline copy) pasted whole into execute_luau
+  (Server VM). Measured value = number of the 5 sourced IDs that are baked with >=1 BasePart,
+  0 Script descendants and a non-degenerate footprint (0.01 < widest axis <= 100 studs).
+- All 5 baked copies pass; target >= 3. This is a source item: no applier, candidate, terrain or
+  ground change. No NPC outfits, chosen sky, plot or road touched. No visual verdict claimed.
+
+== Non-vacuity / calibration (undeweakened check) ==
+In the same fresh Play session, injecting a Script descendant into 3 of the 5 baked folders and
+re-running the SAME check gives:
+CHECK MEADOW_MODELS FAIL 2 3
+Destroying the injected scripts and re-running returns:
+CHECK MEADOW_MODELS PASS 5 3
+The script-strip term bites; the PASS is not a vacuous folder-exists check. Play stopped; place not
+saved, so the injected scripts were never persisted.
+
+Status: SEEN-IN-STUDIO.

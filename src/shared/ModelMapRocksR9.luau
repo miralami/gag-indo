@@ -1,12 +1,12 @@
 --!strict
 -- ModelMapRocksR9: pure data for the OFF-BY-DEFAULT "rocks_r9" LookDev candidate
--- (WORK_QUEUE section O item 151, enlarged by section P item 176). At least 40 half-buried rocks
--- (every extent 0.8-2.5 studs, median longest side >=1.2) in clusters of 2-4 along both river banks
--- and at the stepping stones, plus a few stones inside the channel. Three procedural shapes.
+-- (WORK_QUEUE section O item 151, enlarged by section P item 176 and rebuilt by item 189). At least
+-- 40 half-buried rocks (every extent 0.8-2.5 studs, median longest side >=1.2) in clusters of 2-4
+-- along both river banks and at the stepping stones, plus a few stones inside the channel.
 --
--- Pure data/functions only: no Roblox APIs, no Instances, no Enums, no asset IDs. NO verified rock
--- MODEL id exists in any shared ModelMap* module (only Rock textures and procedural FloraRock), so
--- three original-Part shapes are the documented stand-ins; the applier invents no asset id.
+-- Pure data/functions only: no Roblox APIs, no Instances, no Enums. The three baked Creator Store
+-- rock models below are cycled round-robin by assetIdFor; the applier clones them via
+-- LookDevAssetLoader and scales every one into a rock's 0.8-2.5 stud footprint.
 -- The caller supplies MapSpec.riverCentreZ, terrainHalf, terraces and road geometry, so this module
 -- never reimplements the map. RIVER_CENTRE mirrors MapSpec.riverCentreZ for pure specs.
 
@@ -18,6 +18,13 @@ ModelMapRocksR9.folderName = "LookDevRocksR9_rocks_r9"
 ModelMapRocksR9.stageAttribute = "LookDevRocksR9"
 ModelMapRocksR9.rockAttribute = "RockR9"
 ModelMapRocksR9.kindAttribute = "RockKind"
+ModelMapRocksR9.ROCK_ASSET_ID_ATTRIBUTE = "RockAssetId"
+-- Baked Creator Store models: round, flat and tall pillar, cycled round-robin.
+ModelMapRocksR9.ROCK_ASSET_IDS = { 16098456067, 5644862709, 53370997 }
+
+function ModelMapRocksR9.assetIdFor(index: number): number
+	return ModelMapRocksR9.ROCK_ASSET_IDS[((index - 1) % #ModelMapRocksR9.ROCK_ASSET_IDS) + 1]
+end
 
 ModelMapRocksR9.MIN_ROCKS = 25 -- item-151 contract, retained; item 176 asks for >=40 actual rocks
 ModelMapRocksR9.MIN_SPECIES = 2
@@ -287,7 +294,7 @@ function ModelMapRocksR9.bandCounts(rocks: any): { [string]: number }
 	return out
 end
 
--- Original-Part recipe for one rock. Three documented stand-ins; no asset id and no engine enum.
+-- Legacy recipe retained for spec compatibility only; the applier stages baked models instead.
 -- Cluster sub-parts stay inside the rock's declared 0.8-2.5 stud footprint.
 function ModelMapRocksR9.partsFor(rock: any): { any }
 	local size = rock.size

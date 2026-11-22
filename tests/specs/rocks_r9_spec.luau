@@ -118,14 +118,27 @@ return function(t, Env)
 			expect(#Data.pathExcluded(rocks, {}, segments)):toBe(#rocks - 1)
 		end)
 
-		t:it("holds no asset IDs or engine geometry APIs in the pure data module", function()
+		t:it("cycles three real baked model IDs in pure data with no engine APIs", function()
+			expect(Data.ROCK_ASSET_IDS):toEqual({ 16098456067, 5644862709, 53370997 })
+			expect(Data.ROCK_ASSET_ID_ATTRIBUTE):toBe("RockAssetId")
+			expect(type(Data.assetIdFor)):toBe("function")
+			local seen = {}
+			for index = 1, #rocks do
+				local id = Data.assetIdFor(index)
+				expect(id):toBe(Data.ROCK_ASSET_IDS[((index - 1) % 3) + 1])
+				seen[id] = true
+			end
+			local distinct = 0
+			for _ in pairs(seen) do
+				distinct += 1
+			end
+			expect(distinct):toBe(3)
 			expect(string.find(dataSrc, "rbxassetid://", 1, true) ~= nil):toBe(false)
-			expect(string.find(dataSrc, "assetId", 1, true) ~= nil):toBe(false)
+			expect(string.find(dataSrc, "assetId", 1, true) ~= nil):toBe(true)
 			expect(string.find(dataSrc, "Enum.", 1, true) ~= nil):toBe(false)
 			expect(string.find(dataSrc, "Instance.", 1, true) ~= nil):toBe(false)
 			expect(string.find(dataSrc, "Color3", 1, true) ~= nil):toBe(false)
 			expect(string.find(dataSrc, "CFrame", 1, true) ~= nil):toBe(false)
-			expect(string.find(dataSrc, "%d%d%d%d%d%d%d") ~= nil):toBe(false)
 		end)
 	end)
 
@@ -182,19 +195,30 @@ return function(t, Env)
 			local render = string.match(row, "`[^`]+` | [^|]+ | `[^`]+` | `([^`]+)`")
 			expect(render ~= nil):toBe(true)
 			expect(fs.isFile(render) or fs.isDir(render)):toBe(true)
-			expect(string.find(row, "| pending", 1, true) ~= nil or string.find(row, "| **yes", 1, true) ~= nil or string.find(row, "| **no", 1, true) ~= nil):toBe(true)
+			expect(
+				string.find(row, "| pending", 1, true) ~= nil
+					or string.find(row, "| **yes", 1, true) ~= nil
+					or string.find(row, "| **no", 1, true) ~= nil
+			):toBe(true)
 		end)
 	end)
 
 	t:describe("rocks_r9 applier", function()
-		t:it("stages original anchored non-collidable Parts and restores exactly", function()
+		t:it("stages baked scaled rock models without fabricating Parts and restores exactly", function()
 			expect(applierSrc:find("require((Shared :: any).ModelMapRocksR9)", 1, true) ~= nil):toBe(true)
 			expect(applierSrc:find("require((Shared :: any).ModelMapPlotsR8)", 1, true) ~= nil):toBe(true)
 			expect(applierSrc:find("require(script.Parent.MapSpec)", 1, true) ~= nil):toBe(true)
-			expect(applierSrc:find('Instance.new("Part")', 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("require(script.Parent.LookDevAssetLoader)", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("LookDevAssetLoader.get(assetId, Data.familyId)", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("Data.assetIdFor(index)", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("Data.ROCK_ASSET_ID_ATTRIBUTE", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find(":GetBoundingBox()", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find(":ScaleTo(", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find(":PivotTo(", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find('Instance.new("Part")', 1, true) == nil):toBe(true)
+			expect(applierSrc:find('Instance.new("Model")', 1, true) ~= nil):toBe(true)
 			expect(applierSrc:find("Anchored = true", 1, true) ~= nil):toBe(true)
 			expect(applierSrc:find("CanCollide = false", 1, true) ~= nil):toBe(true)
-			expect(applierSrc:find("groundY - recipe.size[2] * Data.BURY_FRACTION", 1, true) ~= nil):toBe(true)
 			expect(applierSrc:find("Data.pathExcluded(Data.gateExcluded", 1, true) ~= nil):toBe(true)
 			expect(applierSrc:find("#gates < PlotsData.PLOT_COUNT", 1, true) ~= nil):toBe(true)
 			expect(applierSrc:find('GetTagged("PlotAnchor")', 1, true) ~= nil):toBe(true)

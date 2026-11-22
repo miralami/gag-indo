@@ -58,6 +58,24 @@ return function(t, Env)
 			expect(median(longSides) >= 1.2):toBe(true)
 		end)
 
+		t:it("uses all three baked model IDs round-robin at the 0.8..2.5 footprint", function()
+			expect(#Data.ROCK_ASSET_IDS):toBe(3)
+			expect(Data.ROCK_ASSET_ID_ATTRIBUTE):toBe("RockAssetId")
+			local seen = {}
+			for index, rock in ipairs(rocks) do
+				local id = Data.assetIdFor(index)
+				expect(id):toBe(Data.ROCK_ASSET_IDS[((index - 1) % 3) + 1])
+				seen[id] = true
+				local longest = math.max(rock.size[1], rock.size[2], rock.size[3])
+				expect(longest >= Data.SIZE_MIN and longest <= Data.SIZE_MAX):toBe(true)
+			end
+			local distinct = 0
+			for _ in pairs(seen) do
+				distinct += 1
+			end
+			expect(distinct):toBe(3)
+		end)
+
 		t:it("forms clusters of 2..4 on both river banks and at the stepping stones", function()
 			local clusterCount, south, north, stepping = 0, 0, 0, 0
 			for group, size in pairs(groups) do

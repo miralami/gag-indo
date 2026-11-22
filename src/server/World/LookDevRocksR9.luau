@@ -1,13 +1,14 @@
 --!strict
 -- LookDevRocksR9: SERVER-ONLY applier for the OFF-BY-DEFAULT "rocks_r9" candidate
--- (WORK_QUEUE section O item 151). Stages half-buried boulders and stones from original Parts under
--- `LookDevRocksR9_rocks_r9`, placed from MapSpec river banks, hill foot and sawah terraces.
+-- (WORK_QUEUE section O item 151, rebuilt by item 189). Stages half-buried baked Creator Store rock
+-- models under `LookDevRocksR9_rocks_r9`, placed from MapSpec river banks, hill foot and terraces.
 --
--- Three procedural shapes (Ball, squashed Wedge, 3-ball cluster) stand in for rock models: no
--- verified rock MODEL id exists in the shared asset maps, so no asset id is invented. Every rock is
--- excluded from the live MapSpec path rectangles and from every live plot gate (staged gate markers
--- first, tagged PlotAnchor parts next, Config.Game.plotCenter fallback). A gate list that cannot be
--- read is a FAIL, never a vacuous pass. Engine calls are pcall guarded, failures are published.
+-- Three baked models (round, flat, tall pillar) are cycled round-robin, scaled into each rock's
+-- 0.8-2.5 stud footprint. No Parts are fabricated: a failed load/scale/place leaves an empty tagged
+-- Model and a loud failure. Every rock is excluded from the live MapSpec path rectangles and from
+-- every live plot gate (staged gate markers first, tagged PlotAnchor parts next, Config.Game.plotCenter
+-- fallback). A gate list that cannot be read is a FAIL, never a vacuous pass. Engine calls are
+-- pcall guarded, failures are published.
 --   require(game.ReplicatedStorage.Shared.LookDevReview).enable("rocks_r9", game)
 
 local function service(name: string): any?
@@ -40,14 +41,17 @@ if not Shared then
 	return {}
 end
 
-local okModules, LookDev, Data, PlotsData, LookDevFailures = pcall(function()
+local okModules, LookDev, Data, PlotsData, LookDevAssetLoader, LookDevFailures = pcall(function()
 	return require((Shared :: any).LookDev),
 		require((Shared :: any).ModelMapRocksR9),
 		require((Shared :: any).ModelMapPlotsR8),
+		require(script.Parent.LookDevAssetLoader),
 		require((Shared :: any).LookDevFailures)
 end)
-if not okModules or not LookDev or not Data or not PlotsData or not LookDevFailures then
-	warn("[LookDevRocksR9] could not require LookDev / ModelMapRocksR9 / ModelMapPlotsR8 / LookDevFailures")
+if not okModules or not LookDev or not Data or not PlotsData or not LookDevAssetLoader or not LookDevFailures then
+	warn(
+		"[LookDevRocksR9] could not require LookDev / ModelMapRocksR9 / ModelMapPlotsR8 / LookDevAssetLoader / LookDevFailures"
+	)
 	return {}
 end
 
@@ -260,40 +264,71 @@ end
 -- has its upper half in air and its lower half in water; bank rocks keep the 40% ground bury.
 local WATER_SURFACE_Y = -0.5
 
--- Two documented palettes from Data.PALETTES; every rock is either grey-brown or moss-green.
-local PALETTE_RGB: { [string]: { number } } = {
-	grey_brown = { 124, 116, 102 },
-	moss_green = { 88, 112, 72 },
-}
-
-local function addPart(parent: any, rock: any, recipe: any, index: number, groundY: number)
-	local ok, part = pcall(function()
-		local created = Instance.new("Part")
-		created.Name = string.format("Rock_%02d_%s", index, recipe.shape)
-		created.Shape = (Enum :: any).PartType[recipe.shape] or (Enum :: any).PartType.Ball
-		created.Size = Vector3.new(recipe.size[1], recipe.size[2], recipe.size[3])
-		-- Half-buried: the centre sits BURY_FRACTION of the part height below the surface.
-		local centreY = groundY - recipe.size[2] * Data.BURY_FRACTION
-		if rock.site == "water" then
-			centreY = WATER_SURFACE_Y
-		end
-		created.CFrame = CFrame.new(rock.x + recipe.dx, centreY, rock.z + recipe.dz)
-		created.Material = (Enum :: any).Material.Rock
-		local rgb = PALETTE_RGB[rock.palette] or PALETTE_RGB.grey_brown
-		created.Color = Color3.fromRGB(rgb[1] + index % 8, rgb[2] + index % 6, rgb[3] + index % 5)
-		created.Anchored = true
-		created.CanCollide = false -- visual overlay; never blocks the walking lane
-		created:SetAttribute(Data.stageAttribute, Data.familyId)
-		created:SetAttribute(Data.rockAttribute, Data.familyId)
-		created:SetAttribute(Data.kindAttribute, rock.kind)
-		created.Parent = parent
-		return created
+-- Clone a baked rock model, scale its longest side into the declared footprint and put its bounding
+-- box centre at the half-buried shelf (or on the water surface). The tagged Model survives failures.
+local function stageBakedRock(model: any, rock: any, index: number, groundY: number)
+	local assetId = Data.assetIdFor(index)
+	pcall(function()
+		model:SetAttribute(Data.ROCK_ASSET_ID_ATTRIBUTE, assetId)
 	end)
-	if not ok or not part then
-		fail("could not stage rock " .. index .. ": " .. tostring(part))
+	local okLoad, loaded = pcall(function()
+		return LookDevAssetLoader.get(assetId, Data.familyId)
+	end)
+	if not okLoad or not loaded then
+		fail("could not load rock " .. index .. " asset " .. tostring(assetId))
 		return
 	end
-	track(part)
+	track(loaded)
+	local okBox, boxCFrame, size = pcall(function()
+		return loaded:GetBoundingBox()
+	end)
+	local longest = math.max(rock.size[1], rock.size[2], rock.size[3])
+	if not okBox or not boxCFrame or not size or longest <= 0 or math.max(size.X, size.Y, size.Z) <= 0 then
+		fail("invalid bounding box for rock " .. index .. " asset " .. tostring(assetId))
+		return
+	end
+	local okScale = pcall(function()
+		if loaded:IsA("Model") and loaded.PrimaryPart then
+			loaded.PrimaryPart = nil -- scale about the model pivot, not an arbitrary baked part
+		end
+		loaded:ScaleTo(longest / math.max(size.X, size.Y, size.Z))
+	end)
+	if not okScale then
+		fail("could not scale rock " .. index .. " asset " .. tostring(assetId))
+		return
+	end
+	local okParts, descendants = pcall(function()
+		return loaded:GetDescendants()
+	end)
+	if not okParts or not descendants then
+		fail("could not inspect rock " .. index .. " asset " .. tostring(assetId))
+		return
+	end
+	for _, descendant in ipairs(descendants) do
+		pcall(function()
+			if descendant:IsA("Script") or descendant:IsA("LocalScript") or descendant:IsA("ModuleScript") then
+				descendant:Destroy()
+			elseif descendant:IsA("BasePart") then
+				descendant.Anchored = true
+				descendant.CanCollide = false -- raycasts still hit; walking lane stays clear
+			end
+		end)
+	end
+	local centreY = groundY - longest * Data.BURY_FRACTION
+	if rock.site == "water" then
+		centreY = WATER_SURFACE_Y
+	end
+	local okStage = pcall(function()
+		local currentBox = loaded:GetBoundingBox()
+		local pivot = loaded:GetPivot()
+		loaded.Name = string.format("RockModel_%s", tostring(assetId))
+		loaded.Parent = model
+		-- Translation-only correction: keep baked orientation, land the scaled box centre on target.
+		loaded:PivotTo(CFrame.new(rock.x, centreY, rock.z) - (currentBox.Position - pivot.Position))
+	end)
+	if not okStage then
+		fail("could not place rock " .. index .. " asset " .. tostring(assetId))
+	end
 end
 
 local applier = {
@@ -397,9 +432,7 @@ local applier = {
 				fail("could not configure rock " .. index)
 				continue
 			end
-			for _, recipe in ipairs(Data.partsFor(rock)) do
-				addPart(model, rock, recipe, index, MapSpec.GROUND_Y)
-			end
+			stageBakedRock(model, rock, index, MapSpec.GROUND_Y)
 			stagedRocks += 1
 		end
 		if stagedRocks ~= Data.count(rocks) then

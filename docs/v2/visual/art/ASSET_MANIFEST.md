@@ -716,13 +716,17 @@ published). None invented. The baked copy is verified in a fresh Play/Server VM 
 |---|---|---|---|---|---|---|---|
 | `padi_model` | 13286158859 | Meshes/rice2 | Polyslayer1 | MeshPart | Creator Store, free | 1.07 x 3.52 x 1.51 (widest 1.51 <= 2) | designer to confirm (LookDev candidate; wired by item 191) |
 | `fountain_model` | 93434732057582 | Fountain | Sonisn1810 | Model (7 parts) | Creator Store, free | 15.24 x 17.36 x 17.35 (scaled to 16-stud basin in `plaza_r9`) | designer to confirm (LookDev candidate) |
+| `rock_round` | 16098456067 | Low-Poly Rock | Jajkopko_XD | MeshPart (1 part) | Creator Store, free | 5.00 x 5.04 x 5.24 | designer to confirm (LookDev candidate; wired by item 189) |
+| `rock_flat` | 5644862709 | Rock | Tman_TheNoobKing | MeshPart (1 part) | Creator Store, free | 2.11 x 1.05 x 2.26 | designer to confirm (LookDev candidate; wired by item 189) |
+| `rock_tall` | 53370997 | Rock Pillar | EmperorZenith | Model (2 parts) | Creator Store, free | 16 x 28.8 x 17 | designer to confirm (LookDev candidate; wired by item 189) |
 
 Licence not re-read here — Creator Store terms apply. The padi ID is wired into `src/` by item 191
 (`sawah_r8` 3D padi); until then it is marked `unused` in the coverage table below. The fountain ID
 is wired in item 188 (`plaza_r9`, `src/shared/ModelMapPlazaR9.luau`) and needs no `unused` marker.
-Both candidates stay OFF by default until item 226. No ID invented; both from real Creator Store
-free-filter `search_asset` results, baked scripts-stripped into `LookDevAssets` (evidence
-`docs/v2/evidence/h/2026-11-22-round11/CHECK_187.txt` and `CHECK_188.txt`).
+The three rock IDs are wired in item 189 (`rocks_r9`, `src/shared/ModelMapRocksR9.luau`) and need no
+`unused` marker. All candidates stay OFF by default until item 226. No ID invented; all from real
+Creator Store free-filter `search_asset` results, baked scripts-stripped into `LookDevAssets` (evidence
+`docs/v2/evidence/h/2026-11-22-round11/CHECK_187.txt`, `CHECK_188.txt` and `CHECK_189.txt`).
 
 ### Unused manifest IDs
 

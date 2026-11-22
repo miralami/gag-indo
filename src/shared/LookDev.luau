@@ -219,6 +219,7 @@ LookDev.IDS = {
 	"horizon_fill_r10",
 	"mountains_r10",
 	"hill_dressing_r10",
+	"kampung_r10",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -1546,6 +1547,15 @@ LookDev.candidates = {
 		idsSource = "Shared.ModelMapHillDressingR10",
 		render = "docs/v2/visual/CANONICAL_GAP.md",
 	},
+
+	kampung_r10 = {
+		id = "kampung_r10",
+		title = "Kampung houses and yards in three outskirt clusters between ring and plots (sprint 1, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapKampungR10",
+		render = "docs/v2/visual/CANONICAL_GAP.md",
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1776,6 +1786,7 @@ function LookDev.plan(id: string): any
 		or id == "horizon_fill_r10"
 		or id == "mountains_r10"
 		or id == "hill_dressing_r10"
+		or id == "kampung_r10"
 	then
 		local c = LookDev.candidates[id]
 		return {

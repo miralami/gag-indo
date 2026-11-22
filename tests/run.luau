@@ -227,6 +227,7 @@ local specs = {
 	require("./specs/horizon_fill_r10_spec"),
 	require("./specs/mountains_r10_spec"),
 	require("./specs/hill_dressing_r10_spec"),
+	require("./specs/kampung_r10_spec"),
 	require("./specs/visual_risk_audit_spec"),
 	require("./specs/ronda_tower_r9_spec"),
 	require("./specs/rocks_r9_spec"),

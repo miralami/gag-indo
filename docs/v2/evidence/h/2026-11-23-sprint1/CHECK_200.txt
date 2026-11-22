@@ -1,0 +1,46 @@
+CHECK 200 - kampung houses at the outskirts (WORK_QUEUE SPRINT 1 item 200)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2
+Place: Development-Juragan-Desa. Play only (Server VM, check). Place NOT saved, nothing published.
+Rojo-synced: repo src/ changes present in the live place before each run.
+
+== Wiring ==
+Candidate "kampung_r10" (OFF by default). Pure data src/shared/ModelMapKampungR10.luau (12 houses in
+3 clusters of 4 between radius 150 and 185, 4 yard parts per house, load-time asserts), server applier
+src/server/World/LookDevKampungR10.luau (anchored non-collidable tagged Parts; no ProximityPrompt or
+ClickDetector; destroy-only restore), 6-case LUNE spec, tools/studio/check_q200.luau.
+LookDev IDS[112] / descriptor / plan OR-chain, LookDevReview path, Main.server boot require,
+tests/run.luau registration, CANDIDATES.md + CANDIDATE_INDEX.md rows, 50-spec count mirror 111->112.
+Primitive Part descriptors only (no invented asset IDs); no terrain/road/plot/sky change; no visual verdict.
+
+== Raw check lines (verbatim, fresh Play, Server VM; second attempt) ==
+CHECK KAMPUNG_HOUSES PASS 12 12
+CHECK LANE_CLEAR PASS 0 0
+CHECK PATH_REACH PASS 0 0
+CHECK PLOT_CLEAR PASS 0 0
+CHECK NOT_INTERACTIVE PASS 0 0
+CHECK PERF_BUDGET PASS 343 500
+
+== Notes / measurements ==
+- KAMPUNG_HOUSES 12/12: 12 distinct "house" groups, 72 staged Parts, 0 before, 0 load failures.
+- LANE_CLEAR 0/0: no staged part footprint intersects either main road arm (laneHalf 14, radius 150).
+- PATH_REACH 0/0: 6 hub-door rays of 8 studs; 0 blocked before and 0 after.
+- PLOT_CLEAR 0/0: no staged part footprint within 20 studs of any of the 10 plot centres.
+- NOT_INTERACTIVE 0/0: no ProximityPrompt or ClickDetector on any of the 72 staged Parts.
+- PERF_BUDGET 343/500: BasePart centres inside the 100-stud proxy radius, 0 read errors.
+- First attempt FAILED `PLOT_CLEAR 1 0`: one yard fence on house 11 cleared plot 1 centre by 19.61
+  studs (24.61 centre distance minus 5-stud footprint), 0.39 short of the 20-stud target. Fixed by
+  moving the fence radial offset from 4 to 2 studs in ModelMapKampungR10 (pure data); second fresh
+  Play PASSed all six checks. No check was weakened.
+
+== Non-vacuity / calibration ==
+Runtime-only injections between the harness's BEFORE/AFTER anchors (repo file untouched):
+- destroy house groups 10-12, move one staged part onto a road arm, move one onto plot 1 centre,
+  add a ProximityPrompt, and add 200 origin parts:
+  CHECK KAMPUNG_HOUSES FAIL 9 12, LANE_CLEAR FAIL 1 0, PLOT_CLEAR FAIL 1 0,
+  NOT_INTERACTIVE FAIL 1 0, PERF_BUDGET FAIL 543 500.
+- separate fresh Play, one opaque Part at (-64,6,-33) on hub-door ray 1:
+  CHECK PATH_REACH FAIL 1 0 (all other checks stayed PASS).
+All six checks demonstrably FAIL on injected bad state. The visual yes/no stays the designer's.
+
+Status: SEEN-IN-STUDIO.

@@ -144,7 +144,7 @@ return function(t, Env)
 
 	t:describe("seated_r8 LookDev wiring and review harness", function()
 		t:it("ships new candidate 89 with a descriptor, plan and server review path", function()
-			expect(#LookDev.IDS):toBe(111)
+			expect(#LookDev.IDS):toBe(112)
 			expect(LookDev.IDS[87]):toBe("laundry_r8")
 			expect(LookDev.IDS[88]):toBe("layangan_r8")
 			expect(LookDev.IDS[89]):toBe("seated_r8")

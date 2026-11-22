@@ -20,10 +20,12 @@ Data.collideAttribute = "StallCollide"
 Data.idAttribute = "StallId"
 
 -- Plain {r,g,b} arrays; the applier calls Color3.fromRGB. No asset-backed material.
+-- Item 179: higher-value red/white/blue. The old 196/58/48 and 54/104/178 read as maroon and
+-- navy at ClockTime 13 even though their HSV V already cleared 0.6; these read as primaries.
 Data.COLOURS = {
-	red = { 196, 58, 48 },
-	white = { 246, 242, 230 },
-	blue = { 54, 104, 178 },
+	red = { 248, 76, 64 },
+	white = { 255, 252, 244 },
+	blue = { 72, 148, 236 },
 }
 Data.STRIPE_ORDER = { "red", "white", "blue" }
 
@@ -59,7 +61,7 @@ Data.LAMP = {
 }
 Data.VEGETABLE_COLOURS = { { 92, 142, 58 }, { 196, 148, 42 }, { 178, 62, 52 } }
 Data.MATERIALS = {
-	base = "Ground",
+	base = "Cobblestone", -- item 179: cobble pad under each lapak, never SmoothPlastic-black
 	wood = "WoodPlanks",
 	cloth = "Fabric",
 	crate = "Cardboard",
@@ -67,6 +69,8 @@ Data.MATERIALS = {
 	basket = "Wood",
 	lamp = "SmoothPlastic",
 }
+-- Packed-earth tint on the cobble base so the pad reads as ground, not asphalt.
+Data.PAD_COLOUR = { 190, 176, 148 }
 
 type Stripe = {
 	name: string,

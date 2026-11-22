@@ -311,8 +311,109 @@ local function addBladeFallback(part: any, x: number, z: number, bottomY: number
 	end
 end
 
+local PLANT_BLADE_OFFSETS = {
+	{ -0.16, 0.12 },
+	{ 0.16, -0.12 },
+	{ 0, 0.2 },
+}
+
+local function flowerColour(rgb: any?): any
+	if type(rgb) == "table" and #rgb == 3 then
+		return Color3.fromRGB(rgb[1], rgb[2], rgb[3])
+	end
+	return Color3.fromRGB(246, 240, 214)
+end
+
+-- Item 177: a 1..2-stud stem plus 3 thin blades; flowers get 3 coloured petals at the tip. The
+-- tagged part is the stem itself, so a ray aimed at the plant centre hits its own part.
+local function addTallPlant(part: any?, piece: any, roadY: number, index: number)
+	if not part then
+		return
+	end
+	local height = piece.height
+	pcall(function()
+		part:SetAttribute("PathEdgePlant", true)
+		part:SetAttribute("PlantHeight", height)
+		part:SetAttribute("Along", piece.along)
+		if piece.kind == "flower" then
+			part:SetAttribute("FlowerColour", piece.flowerColour)
+		end
+		part.Material = Enum.Material.Grass
+		part.Color = Color3.fromRGB(104, 136, 58)
+	end)
+	if not place(part, { piece.x, roadY + height / 2, piece.z }, { 0.3, height, 0.3 }) then
+		fail("could not place tall plant " .. index)
+		return
+	end
+	for bladeIndex, offset in ipairs(PLANT_BLADE_OFFSETS) do
+		local blade: any? = nil
+		local ok, created = pcall(function()
+			return Instance.new("Part")
+		end)
+		if ok and created then
+			blade = created
+		end
+		if not blade then
+			continue
+		end
+		pcall(function()
+			local bladeHeight = height * (0.72 + bladeIndex * 0.08)
+			blade.Name = "TallBlade_" .. index .. "_" .. bladeIndex
+			blade.Anchored = true
+			blade.CanCollide = false
+			blade.Material = Enum.Material.Grass
+			blade.Color = Color3.fromRGB(112 + bladeIndex * 4, 142 + bladeIndex * 3, 62)
+			blade.Size = Vector3.new(0.12, bladeHeight, 0.12)
+			blade.CFrame = CFrame.new(
+				piece.x + offset[1],
+				roadY + bladeHeight / 2,
+				piece.z + offset[2],
+				math.cos(index + bladeIndex) * 0.1,
+				0,
+				-math.sin(index + bladeIndex) * 0.1,
+				0,
+				1,
+				0,
+				math.sin(index + bladeIndex) * 0.1,
+				0,
+				math.cos(index + bladeIndex) * 0.1
+			)
+			blade.Parent = part
+		end)
+	end
+	if piece.kind ~= "flower" then
+		return
+	end
+	local petals = flowerColour(piece.flowerRgb)
+	for petalIndex = 1, 3 do
+		local petal: any? = nil
+		local ok, created = pcall(function()
+			return Instance.new("Part")
+		end)
+		if ok and created then
+			petal = created
+		end
+		if not petal then
+			continue
+		end
+		pcall(function()
+			local angle = (petalIndex - 1) * math.pi * 2 / 3
+			petal.Name = "FlowerPetal_" .. index .. "_" .. petalIndex
+			petal.Anchored = true
+			petal.CanCollide = false
+			petal.Material = Enum.Material.SmoothPlastic
+			petal.Color = petals
+			petal.Size = Vector3.new(0.26, 0.14, 0.26)
+			petal.CFrame =
+				CFrame.new(piece.x + math.cos(angle) * 0.16, roadY + height + 0.02, piece.z + math.sin(angle) * 0.16)
+			petal.Parent = part
+		end)
+	end
+end
+
 -- ponytail: Rendah halves the decorative edge pieces (cap <=50%); the >=120 target still holds at
--- the default tier, where every piece is staged.
+-- the default tier, where every piece is staged. Item-177 plants are structural for EDGE_VISIBLE
+-- and are never thinned.
 local function apply(plan)
 	local tier = plan and plan.tier
 	failures = 0
@@ -434,6 +535,13 @@ local function apply(plan)
 				fail("baked grass clump unavailable for piece " .. index .. "; used thin-blade fallback")
 			end
 		end
+	end
+
+	-- Item 177: one plant every PLANT_SPACING studs on each side of every road edge.
+	local plantFolder = taggedFolder("TallPlants_pathedge_r8", folder)
+	for index, piece in ipairs(Data.plantPieces(arms, ring, continuations, MapSpec.ROAD)) do
+		local part = taggedPart(piece, "EdgePlant_" .. piece.kind .. "_" .. index, plantFolder or folder)
+		addTallPlant(part, piece, roadY, index)
 	end
 
 	publishFailures()

@@ -1,8 +1,9 @@
 --!strict
 -- ModelMapRiverR8: pure data for the OFF-BY-DEFAULT "river_r8" LookDev candidate
--- (WORK_QUEUE section M item 73, redone in section O item 141). River-bank plants from the baked
--- vegetation list, twelve half-buried boulder stand-ins, a second pair of bridge rails with an
--- 8-stud clear walking corridor, and six stepping stones on the banks near the bridge.
+-- (WORK_QUEUE section M item 73, redone in section O item 141; bank plant shapes fixed in P item
+-- 174). River-bank plants from the baked vegetation list plus organic procedural bases (Ball mounds
+-- and Wedge reed blades, never cube hedges), twelve half-buried boulder stand-ins, a second pair of
+-- bridge rails with an 8-stud clear walking corridor, and six stepping stones on the banks.
 --
 -- Pure data/functions only: no Roblox APIs, no Instances, no Enums, no asset IDs. The applier
 -- (src/server/World/LookDevRiverR8.luau) resolves every species to an ID already recorded in
@@ -27,6 +28,7 @@ ModelMapRiverR8.BRIDGE_Z0 = 276
 ModelMapRiverR8.BRIDGE_Z1 = 332
 ModelMapRiverR8.BRIDGE_CENTRE_Z = 304
 ModelMapRiverR8.BANK_OFFSET = 18 -- channel half 14 + bank shelf half 4
+ModelMapRiverR8.WATER_HALF = 14 -- mirrors MapSpec.RIVER_HALF: the water channel is 28 studs wide
 ModelMapRiverR8.VEG_KINDS = { "talas", "keladi", "bambu", "alang-alang" }
 
 local RAIL_X = 4.5 -- centre of a 1-stud rail: inner face exactly 4 from bridge centre x=0
@@ -105,6 +107,36 @@ local TALL_SPECIES = { bambu = true, kelapa = true }
 local PLANT_X_MIN, PLANT_X_MAX, PLANT_X_STEP = -36, 36, 2
 local PLANT_BRIDGE_GAP = 6 -- BRIDGE_WIDTH / 2 + 1
 
+-- Item 174: the procedural base of every bank plant is organic, never a 1.6/2.6 stud Block cube.
+-- "ball" is a squashed sphere (round taro/shrub mound); "blades" is a 3-part Wedge fan (reed or
+-- bamboo clump). All three axes differ enough that no recipe is a near-cube, and every blade centre
+-- stays within 0.35 stud of its plant centre (>17 studs from the channel centreline, half width 14).
+-- Baked models are still cloned by the applier where a verified ID exists; this is the base/fallback.
+local PLANT_FORMS = {
+	talas = "ball",
+	keladi = "ball",
+	["alang-alang"] = "blades",
+	bambu = "blades",
+	kelapa = "ball",
+}
+local PLANT_GEOMETRY = {
+	ball = { Shape = "Ball", size = { 1.7, 1.9, 1.5 } },
+	blades = { Shape = "Wedge", size = { 1.1, 2.4, 0.9 } },
+}
+local SINGLE_OFFSET = { { 0, 0 } }
+local BLADE_OFFSETS = { { 0, 0 }, { -0.9, 0.35 }, { 0.9, -0.35 } }
+
+local function plantRecipe(species: string): any
+	local form = PLANT_FORMS[species] or "ball"
+	local geometry = PLANT_GEOMETRY[form] or PLANT_GEOMETRY.ball
+	return {
+		Form = form,
+		Shape = geometry.Shape,
+		size = { geometry.size[1], geometry.size[2], geometry.size[3] },
+		offsets = if form == "blades" then BLADE_OFFSETS else SINGLE_OFFSET,
+	}
+end
+
 function ModelMapRiverR8.bankPlants(centreZFn: ((number) -> number)?): { any }
 	local centre = centreZFn or ModelMapRiverR8.RIVER_CENTRE
 	local out = {}
@@ -128,6 +160,7 @@ function ModelMapRiverR8.bankPlants(centreZFn: ((number) -> number)?): { any }
 						elseif species == "bambu" then 18
 						elseif species == "alang-alang" then 2
 						else 2.5,
+					Recipe = plantRecipe(species),
 					VegX = x,
 					VegZ = z,
 				}

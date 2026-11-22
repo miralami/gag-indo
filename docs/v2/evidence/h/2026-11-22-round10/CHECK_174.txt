@@ -1,0 +1,27 @@
+CHECK 174 - river_r8 bank plants no longer stepped cubes (WORK_QUEUE section P)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Play mode, Server VM. Place NOT saved, nothing published.
+Candidate OFF by default.
+
+== Setup ==
+1. `src/shared/ModelMapRiverR8.luau` + `src/server/World/LookDevRiverR8.luau`: bank hedge cubes
+   replaced by Ball mounds and 3-blade Wedge clusters (baked models retained).
+2. New `tools/studio/check_p174.luau` temp-staged under ServerScriptService.Server._CheckTmp via Rojo
+   and `require`d in a fresh Play Server VM; it stages `river_r8` via `enableAdditive` in the same
+   call, measures live tagged parts, restores with `disableAll()`. byName read verbatim.
+
+== Raw check lines (verbatim, staged river_r8) ==
+CHECK NO_CUBE_SHRUBS PASS 0 0
+CHECK BANK_PLANTS PASS 60 >=40
+CHECK WATER_CLEAR PASS 0 0
+
+== Non-vacuity ==
+- 120 tagged plant parts, 60 distinct planted centres; all 120 procedural parts measured for shape.
+- Self-probe confirmed the predicate rejects the old 1.6^3 and 2.6/2.4/2.6 cube bases and accepts
+  Ball/Wedge; both fail branches of NO_CUBE_SHRUBS were exercised pre-fix (spec proof 3 PASS/2 FAIL).
+- WATER_CLEAR uses oriented Z extent against the live centreline; 0 offenders over 120 parts.
+- Bank footprint and bridge unchanged. No NPC outfits, terrain sculpt, chosen sky or ground touched.
+- No visual verdict claimed (designer/vision observer's call).
+
+Status: SEEN-IN-STUDIO.

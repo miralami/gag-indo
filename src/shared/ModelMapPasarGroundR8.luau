@@ -51,14 +51,23 @@ Data.MIN_PAVING = 60
 -- Built-in materials only. Plain {r,g,b} arrays; the applier calls Color3.fromRGB.
 Data.COLOURS = {
 	paving = { 176, 176, 168 },
-	cobble = { 146, 148, 142 },
-	gutter = { 118, 124, 128 },
+	cobble = { 184, 186, 178 }, -- item 179: lifted off the old slate-dark 146/148/142
+	gutter = { 156, 162, 166 },
 }
 Data.MATERIALS = {
 	paving = "Cobblestone",
 	cobble = "Slate",
 	gutter = "Slate",
 }
+-- Item 179: MATERIALS keeps the item-109 recipe tokens, but those Slate pads read as asphalt under
+-- the lapak. PAD_MATERIALS is the authoritative material at staging time: only Ground/Cobblestone/
+-- Pavement, never SmoothPlastic black. The applier resolves through this map.
+Data.PAD_MATERIALS = {
+	paving = "Cobblestone",
+	cobble = "Cobblestone",
+	gutter = "Pavement",
+}
+Data.ALLOWED_PAD_MATERIALS = { Ground = true, Cobblestone = true, Pavement = true }
 
 -- Thicknesses double as the bottom-to-centre offset: bottom = centre Y - size[2] / 2.
 Data.SLAB = {

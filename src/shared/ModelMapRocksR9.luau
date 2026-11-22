@@ -1,7 +1,8 @@
 --!strict
 -- ModelMapRocksR9: pure data for the OFF-BY-DEFAULT "rocks_r9" LookDev candidate
--- (WORK_QUEUE section O item 151). At least 25 half-buried rocks (1-4 studs, three procedural
--- shapes) along the river banks, the hill foot and the sawah field edges. No path or plot gate.
+-- (WORK_QUEUE section O item 151, enlarged by section P item 176). At least 40 half-buried rocks
+-- (every extent 0.8-2.5 studs, median longest side >=1.2) in clusters of 2-4 along both river banks
+-- and at the stepping stones, plus a few stones inside the channel. Three procedural shapes.
 --
 -- Pure data/functions only: no Roblox APIs, no Instances, no Enums, no asset IDs. NO verified rock
 -- MODEL id exists in any shared ModelMap* module (only Rock textures and procedural FloraRock), so
@@ -18,13 +19,16 @@ ModelMapRocksR9.stageAttribute = "LookDevRocksR9"
 ModelMapRocksR9.rockAttribute = "RockR9"
 ModelMapRocksR9.kindAttribute = "RockKind"
 
-ModelMapRocksR9.MIN_ROCKS = 25
+ModelMapRocksR9.MIN_ROCKS = 25 -- item-151 contract, retained; item 176 asks for >=40 actual rocks
 ModelMapRocksR9.MIN_SPECIES = 2
 ModelMapRocksR9.GATE_CLEAR = 2
 ModelMapRocksR9.BURY_FRACTION = 0.4 -- centre sits 40% of the part height below the surface
-ModelMapRocksR9.SIZE_MIN = 1
-ModelMapRocksR9.SIZE_MAX = 4
+ModelMapRocksR9.SIZE_MIN = 0.8
+ModelMapRocksR9.SIZE_MAX = 2.5
 ModelMapRocksR9.PATH_MARGIN = 0.5
+ModelMapRocksR9.CLUSTER_MIN = 2
+ModelMapRocksR9.CLUSTER_MAX = 4
+ModelMapRocksR9.PALETTES = { "grey_brown", "moss_green" }
 
 ModelMapRocksR9.KINDS = { "boulder_round", "boulder_wedge", "boulder_cluster" }
 ModelMapRocksR9.BANDS = { "river", "hill", "field" }
@@ -39,6 +43,9 @@ local RIVER_X_LIMIT = 220
 local HILL_STEP = 220
 local BRIDGE_CLEAR_X = 12 -- bridge width 10 + one rock half-width
 local FORD_CLEAR_X = 18 -- ford width 24, west end
+local STEPPING_X = 12 -- river_r8's inner stepping stones, outside the 10-wide deck
+local STEPPING_OUTER_X = 20 -- river_r8's outer stepping stones
+local CLUSTER_GAP = 4.5 -- clears the harness's 3-stud path corridor and sibling self-occlusion
 
 -- Mirrors MapSpec.riverCentreZ(x) = 304 + 12 sin(2 pi x / 320). Kept pure for specs.
 function ModelMapRocksR9.RIVER_CENTRE(x: number): number
@@ -46,24 +53,83 @@ function ModelMapRocksR9.RIVER_CENTRE(x: number): number
 end
 
 local SIZES = {
-	{ 3.2, 2.2, 2.8 },
-	{ 3.4, 1.8, 2.6 },
-	{ 2.8, 2.4, 3.0 },
-	{ 3.6, 1.6, 2.4 },
-	{ 3.0, 2.0, 2.6 },
-	{ 2.6, 1.8, 3.2 },
+	{ 2.4, 1.4, 1.9 },
+	{ 1.3, 0.9, 1.1 },
+	{ 2.1, 1.6, 1.5 },
+	{ 1.2, 0.8, 1.0 },
+	{ 2.5, 1.5, 2.0 },
+	{ 1.6, 1.1, 1.4 },
+	{ 1.9, 1.3, 1.7 },
+	{ 1.1, 0.8, 1.0 },
+	{ 2.2, 1.2, 1.8 },
+	{ 1.4, 0.9, 1.3 },
 }
 
-local function anchor(index: number, x: number, z: number, band: string): any
+local CLUSTER_OFFSETS = {
+	[2] = { 0, CLUSTER_GAP },
+	[3] = { 0, -CLUSTER_GAP, CLUSTER_GAP },
+	[4] = { 0, -CLUSTER_GAP, CLUSTER_GAP, CLUSTER_GAP * 2 },
+}
+
+local function rockAt(
+	index: number,
+	x: number,
+	z: number,
+	band: string,
+	site: string,
+	group: string,
+	slot: number,
+	count: number,
+	side: number?
+): any
 	local size = SIZES[((index - 1) % #SIZES) + 1]
 	return {
 		x = x,
 		z = z,
 		band = band,
+		site = site,
+		group = group,
+		slot = slot,
+		count = count,
+		side = side,
 		kind = ModelMapRocksR9.KINDS[((index - 1) % #ModelMapRocksR9.KINDS) + 1],
+		palette = ModelMapRocksR9.PALETTES[((index - 1) % #ModelMapRocksR9.PALETTES) + 1],
 		size = { size[1], size[2], size[3] },
 		bury = ModelMapRocksR9.BURY_FRACTION,
 	}
+end
+
+-- A river cluster keeps every member on the same bank shelf: each member's z is recomputed from
+-- its own x, so the item-151 centreline contract holds even across a curved river.
+local function clusterAt(
+	out: { any },
+	index: number,
+	x: number,
+	site: string,
+	side: number,
+	count: number,
+	centreZFn: (number) -> number,
+	half: number,
+	bank: number
+): number
+	local offsets = CLUSTER_OFFSETS[count] or CLUSTER_OFFSETS[2]
+	local outward = x >= 0 and 1 or -1
+	local group = site .. "_" .. (side == -1 and "south" or "north") .. "_" .. x
+	for slot, offset in ipairs(offsets) do
+		local memberX = x + offset * outward
+		out[#out + 1] = rockAt(
+			index + slot - 1,
+			memberX,
+			centreZFn(memberX) + side * (half + bank / 2),
+			"river",
+			site,
+			group,
+			slot,
+			count,
+			side
+		)
+	end
+	return index + count
 end
 
 -- River bank shelves: z = centreZ(x) -/+ (channel half + bank half). Both banks, stepping along X.
@@ -76,15 +142,25 @@ function ModelMapRocksR9.riverBankAnchors(
 	local half = riverHalf or RIVER_HALF
 	local bank = bankWidth or RIVER_BANK
 	local out = {}
-	local index = 0
+	local index = 1
 	for x = -RIVER_X_LIMIT, RIVER_X_LIMIT, RIVER_STEP do
 		if math.abs(x) > BRIDGE_CLEAR_X and math.abs(x - -250) > FORD_CLEAR_X then
 			local centre = centreZFn(x)
 			if type(centre) == "number" then
 				for _, side in ipairs({ -1, 1 }) do
-					index += 1
-					out[index] = anchor(index, x, centre + side * (half + bank / 2), "river")
+					local site = math.abs(x) == STEPPING_OUTER_X and "stepping" or "bank"
+					local count = site == "stepping" and 4 or 2 + index % 2
+					index = clusterAt(out, index, x, site, side, count, centreZFn, half, bank)
 				end
+			end
+		end
+	end
+	-- river_r8's inner stepping stones sit at |x| = 12; the step-40 sweep starts at 20.
+	for _, x in ipairs({ -STEPPING_X, STEPPING_X }) do
+		local centre = centreZFn(x)
+		if type(centre) == "number" then
+			for _, side in ipairs({ -1, 1 }) do
+				index = clusterAt(out, index, x, "stepping", side, 4, centreZFn, half, bank)
 			end
 		end
 	end
@@ -94,14 +170,14 @@ end
 -- Four runs of three just inside the terrain edge where the hills start.
 function ModelMapRocksR9.hillFootAnchors(terrainHalf: number): { any }
 	local out = {}
-	local index = 0
+	local index = 1
 	local edge = terrainHalf - HILL_INSET
 	for _, along in ipairs({ -HILL_STEP, 0, HILL_STEP }) do
 		for _, side in ipairs({ -1, 1 }) do
+			out[#out + 1] = rockAt(index, along, side * edge, "hill", "hill", "hill_" .. index, 1, 1, side)
 			index += 1
-			out[index] = anchor(index, along, side * edge, "hill")
+			out[#out + 1] = rockAt(index, side * edge, along, "hill", "hill", "hill_" .. index, 1, 1, side)
 			index += 1
-			out[index] = anchor(index, side * edge, along, "hill")
 		end
 	end
 	return out
@@ -113,15 +189,15 @@ function ModelMapRocksR9.fieldEdgeAnchors(terraces: any, terraceX: any, terraceG
 		return {}
 	end
 	local out = {}
-	local index = 0
+	local index = 1
 	local outer = math.max(math.abs(terraceX[1] or 0), math.abs(terraceX[2] or 0)) - FIELD_INSET
 	local inner = terraceGap / 2 + FIELD_INSET
 	for _, terrace in ipairs(terraces) do
 		if type(terrace) == "table" and type(terrace.z0) == "number" and type(terrace.z1) == "number" then
 			local midZ = (terrace.z0 + terrace.z1) / 2
 			for _, side in ipairs({ -1, 1 }) do
+				out[#out + 1] = rockAt(index, side * outer, midZ, "field", "field", "field_" .. index, 1, 1, side)
 				index += 1
-				out[index] = anchor(index, side * outer, midZ, "field")
 			end
 		end
 	end
@@ -131,9 +207,25 @@ function ModelMapRocksR9.fieldEdgeAnchors(terraces: any, terraceX: any, terraceG
 	}) do
 		if type(z) == "number" then
 			for _, side in ipairs({ -1, 1 }) do
+				out[#out + 1] = rockAt(index, side * inner, z, "field", "field", "field_" .. index, 1, 1, side)
 				index += 1
-				out[index] = anchor(index, side * inner, z, "field")
 			end
+		end
+	end
+	return out
+end
+
+-- Four stones in the north half of the channel: the centre sits below the -0.5 water surface, so
+-- their upper halves break the surface. They stay in the "field" band's |z| > 300 MapSpec zone.
+local IN_WATER_X = { 10, 40, 70, 100 }
+local WATER_INSET = 5
+
+local function inWaterAnchors(centreZFn: (number) -> number): { any }
+	local out = {}
+	for i, x in ipairs(IN_WATER_X) do
+		local centre = centreZFn(x)
+		if type(centre) == "number" then
+			out[i] = rockAt(i, x, centre - WATER_INSET, "field", "water", "water_" .. i, 1, 1, 1)
 		end
 	end
 	return out
@@ -154,6 +246,9 @@ function ModelMapRocksR9.rocks(ctx: any): { any }
 		out[#out + 1] = rock
 	end
 	for _, rock in ipairs(ModelMapRocksR9.fieldEdgeAnchors(ctx.terraces, ctx.terraceX, ctx.terraceGap or 84)) do
+		out[#out + 1] = rock
+	end
+	for _, rock in ipairs(inWaterAnchors(ctx.centreZ)) do
 		out[#out + 1] = rock
 	end
 	return out
@@ -193,7 +288,7 @@ function ModelMapRocksR9.bandCounts(rocks: any): { [string]: number }
 end
 
 -- Original-Part recipe for one rock. Three documented stand-ins; no asset id and no engine enum.
--- Cluster sub-parts stay inside the rock's declared 1-4 stud footprint.
+-- Cluster sub-parts stay inside the rock's declared 0.8-2.5 stud footprint.
 function ModelMapRocksR9.partsFor(rock: any): { any }
 	local size = rock.size
 	if rock.kind == "boulder_wedge" then

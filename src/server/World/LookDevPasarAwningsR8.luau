@@ -251,7 +251,7 @@ local function partDescriptors(): { Descriptor }
 		name = "StallBase",
 		size = { Data.STALL_SIZE.width, 0.4, Data.STALL_SIZE.depth },
 		offset = { 0, 0.2, 0 },
-		colour = { 132, 104, 72 },
+		colour = Data.PAD_COLOUR,
 		material = ground,
 		collide = true,
 	})

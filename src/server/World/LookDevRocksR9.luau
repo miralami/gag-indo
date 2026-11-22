@@ -256,6 +256,16 @@ local function pathGeometry(): (any, any, boolean)
 	return rects, segments, true
 end
 
+-- MapSpec.river() emits a water volume whose visible top is -0.5. A rock centred on that plane
+-- has its upper half in air and its lower half in water; bank rocks keep the 40% ground bury.
+local WATER_SURFACE_Y = -0.5
+
+-- Two documented palettes from Data.PALETTES; every rock is either grey-brown or moss-green.
+local PALETTE_RGB: { [string]: { number } } = {
+	grey_brown = { 124, 116, 102 },
+	moss_green = { 88, 112, 72 },
+}
+
 local function addPart(parent: any, rock: any, recipe: any, index: number, groundY: number)
 	local ok, part = pcall(function()
 		local created = Instance.new("Part")
@@ -263,10 +273,14 @@ local function addPart(parent: any, rock: any, recipe: any, index: number, groun
 		created.Shape = (Enum :: any).PartType[recipe.shape] or (Enum :: any).PartType.Ball
 		created.Size = Vector3.new(recipe.size[1], recipe.size[2], recipe.size[3])
 		-- Half-buried: the centre sits BURY_FRACTION of the part height below the surface.
-		created.CFrame =
-			CFrame.new(rock.x + recipe.dx, groundY - recipe.size[2] * Data.BURY_FRACTION, rock.z + recipe.dz)
+		local centreY = groundY - recipe.size[2] * Data.BURY_FRACTION
+		if rock.site == "water" then
+			centreY = WATER_SURFACE_Y
+		end
+		created.CFrame = CFrame.new(rock.x + recipe.dx, centreY, rock.z + recipe.dz)
 		created.Material = (Enum :: any).Material.Rock
-		created.Color = Color3.fromRGB(126 + index % 12, 122 + index % 9, 112 + index % 8)
+		local rgb = PALETTE_RGB[rock.palette] or PALETTE_RGB.grey_brown
+		created.Color = Color3.fromRGB(rgb[1] + index % 8, rgb[2] + index % 6, rgb[3] + index % 5)
 		created.Anchored = true
 		created.CanCollide = false -- visual overlay; never blocks the walking lane
 		created:SetAttribute(Data.stageAttribute, Data.familyId)

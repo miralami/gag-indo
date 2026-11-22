@@ -24,6 +24,12 @@ ModelMapSawahR8.PADI_CLUMP_WIDTH = 1.5
 ModelMapSawahR8.PADI_MAX_PART = 2.5
 ModelMapSawahR8.ROW_SPACING = 2
 ModelMapSawahR8.PADI_BLADE_WIDTH = 0.12
+-- Item 178: a rounded, grass-green bund along each pane edge. The colour is the terrain Grass
+-- colour set by Greybox/Landscape (#6f8a3f); the diameter is below the 1.5-stud flat-top ceiling.
+ModelMapSawahR8.BUND_COLOR = { 111, 138, 63 }
+ModelMapSawahR8.BUND_COLOR_TOL = 12
+ModelMapSawahR8.BUND_RADIUS = 0.7
+ModelMapSawahR8.BUND_TUFT_RISE = 0.9
 ModelMapSawahR8.TERRACE_TOPS = { 4.5, 8.5, 12.5, 16.5 }
 ModelMapSawahR8.TERRACE_BANDS = {
 	{ z0 = -328, z1 = -312 },
@@ -164,6 +170,33 @@ function ModelMapSawahR8.vergeTufts(panes: any): { any }
 		end
 	end
 	return tufts
+end
+
+-- Item 178: one cylinder-cross-section bund just outside each pane's north and south edge. Length
+-- spans the pane plus 1 stud at each end; radius keeps the curved crest below 1.5 studs wide.
+function ModelMapSawahR8.bunds(panes: any): { any }
+	local out = {}
+	for _, terrace in ModelMapSawahR8.terraceIndices() do
+		for sideIndex, pane in ipairs(ModelMapSawahR8.waterPanes(panes, terrace)) do
+			local box = paneBox(pane)
+			if box then
+				for _, edge in ipairs({ "north", "south" }) do
+					out[#out + 1] = {
+						terrace = terrace,
+						side = ModelMapSawahR8.SIDES[sideIndex],
+						edge = edge,
+						x = pane.centre[1],
+						y = box.y + 0.25,
+						z = if edge == "north" then box.z0 - 1 else box.z1 + 1,
+						length = pane.size[1] + 2,
+						radius = ModelMapSawahR8.BUND_RADIUS,
+						shape = "cylinder",
+					}
+				end
+			end
+		end
+	end
+	return out
 end
 
 -- Terrace 2, west lane: on the bund at the pane's south edge, far from the central ramp.

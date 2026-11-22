@@ -31,6 +31,18 @@ ModelMapPathEdgeR8.PATH_OFFSET_MAX = 2.5
 ModelMapPathEdgeR8.PATH_EDGE_GROW = 3
 ModelMapPathEdgeR8.CLUMP_MAX_WIDTH = 1.5
 
+-- Item 177: a denser, visible dressing sampled independently of the item-142 debris pieces. One
+-- plant per PLANT_SPACING studs on EACH side of every road centreline, 1..2 studs tall, with exactly
+-- two flower colours. PLANT_CLEAR keeps the whole footprint outside the road surface.
+ModelMapPathEdgeR8.PLANT_SPACING = 3
+ModelMapPathEdgeR8.PLANT_HEIGHT_MIN = 1.15
+ModelMapPathEdgeR8.PLANT_HEIGHT_MAX = 1.95
+ModelMapPathEdgeR8.PLANT_CLEAR = 0.9
+ModelMapPathEdgeR8.FLOWER_COLOURS = {
+	{ name = "white", rgb = { 246, 240, 214 } },
+	{ name = "yellow", rgb = { 236, 186, 62 } },
+}
+
 local END_MARGIN = 3
 local SIDES = { -1, 1 }
 
@@ -170,6 +182,115 @@ function ModelMapPathEdgeR8.allPieces(arms: any, ring: any, continuations: any, 
 		for _, piece in ipairs(ModelMapPathEdgeR8.armPieces(continuation, 211 + index)) do
 			out[#out + 1] = piece
 		end
+	end
+	return out
+end
+
+-- Item 177: deterministic plant rows. Every record carries the same centreline/lateral contract as
+-- item 142 so the applier and the Studio check can reuse the road geometry without re-deriving it.
+local function pushPlant(
+	out: { any },
+	seed: number,
+	stepIndex: number,
+	side: number,
+	baseX: number,
+	baseZ: number,
+	normalX: number,
+	normalZ: number,
+	halfWidth: number,
+	along: number,
+	segment: string,
+	path: string
+)
+	local extra = ModelMapPathEdgeR8.PLANT_CLEAR + noise(seed, stepIndex, 5) * 0.35
+	local lateral = side * (halfWidth + extra)
+	local isFlower = stepIndex % 3 == 0
+	local colour = ModelMapPathEdgeR8.FLOWER_COLOURS[((stepIndex - 1) % #ModelMapPathEdgeR8.FLOWER_COLOURS) + 1]
+	out[#out + 1] = {
+		x = baseX + lateral * normalX,
+		z = baseZ + lateral * normalZ,
+		centre = { baseX, baseZ },
+		halfWidth = halfWidth,
+		lateral = lateral,
+		along = along,
+		kind = if isFlower then "flower" else "grass_tuft",
+		flowerColour = if isFlower then colour.name else nil,
+		flowerRgb = if isFlower then colour.rgb else nil,
+		height = ModelMapPathEdgeR8.PLANT_HEIGHT_MIN
+			+ noise(seed, stepIndex, if isFlower then 7 else 6)
+				* (ModelMapPathEdgeR8.PLANT_HEIGHT_MAX - ModelMapPathEdgeR8.PLANT_HEIGHT_MIN),
+		side = sideName(side),
+		segment = segment,
+		path = path,
+	}
+end
+
+function ModelMapPathEdgeR8.plantPieces(arms: any, ring: any, continuations: any, road: any): { any }
+	assert(
+		type(road) == "table" and type(road.ringWidth) == "number" and road.ringWidth > 0,
+		"MapSpec.ROAD.ringWidth required"
+	)
+	local out = {}
+	local function sample(
+		length: number,
+		pointAt: (number) -> (number, number),
+		normalX: number,
+		normalZ: number,
+		seed: number,
+		segment: string,
+		path: string,
+		halfWidth: number
+	)
+		local t = -length / 2 + END_MARGIN
+		local stepIndex = 0
+		while t <= length / 2 - END_MARGIN do
+			stepIndex += 1
+			local baseX, baseZ = pointAt(t)
+			for _, side in ipairs(SIDES) do
+				pushPlant(out, seed, stepIndex, side, baseX, baseZ, normalX, normalZ, halfWidth, t, segment, path)
+			end
+			t += ModelMapPathEdgeR8.PLANT_SPACING
+		end
+	end
+	for index, arm in ipairs(arms) do
+		local horizontal = arm.sx > arm.sz
+		local length = if horizontal then arm.sx else arm.sz
+		sample(
+			length,
+			function(t)
+				return if horizontal then arm.x + t else arm.x, if horizontal then arm.z else arm.z + t
+			end,
+			if horizontal then 0 else 1,
+			if horizontal then 1 else 0,
+			317 + index,
+			arm.name,
+			arm.name,
+			math.min(arm.sx, arm.sz) / 2
+		)
+	end
+	for index, piece in ipairs(ring) do
+		local yaw = math.rad(piece.yaw)
+		local tx, tz = math.cos(yaw), -math.sin(yaw)
+		sample(piece.length, function(t)
+			return piece.x + t * tx, piece.z + t * tz
+		end, math.sin(yaw), math.cos(yaw), 419 + index, "RingRoad:" .. tostring(index), "RingRoad", road.ringWidth / 2)
+	end
+	for index, continuation in ipairs(continuations) do
+		local horizontal = continuation.sx > continuation.sz
+		local length = if horizontal then continuation.sx else continuation.sz
+		sample(
+			length,
+			function(t)
+				return if horizontal then continuation.x + t else continuation.x,
+					if horizontal then continuation.z else continuation.z + t
+			end,
+			if horizontal then 0 else 1,
+			if horizontal then 1 else 0,
+			523 + index,
+			continuation.name,
+			continuation.name,
+			math.min(continuation.sx, continuation.sz) / 2
+		)
 	end
 	return out
 end

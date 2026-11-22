@@ -1,8 +1,9 @@
 --!strict
 -- LookDevPlotsR8: SERVER-ONLY applier for the OFF-BY-DEFAULT "plots_r8" candidate
 -- (WORK_QUEUE section M item 71, redone in section O item 143). Canonical plot dressing:
--- 3-stud two-rail bamboo fences with posts every 4 studs, a gate with lintel + name sign,
--- scarecrow, mailbox + sign, an outer irrigation ditch and a corner gubuk in three plots.
+-- 3-stud two-rail bamboo fences with posts every 4 studs, a wood gate with lintel + burned-in name
+-- sign + rope/bamboo tie, scarecrow, mailbox + sign, an outer irrigation ditch and a corner gubuk in
+-- three plots.
 --
 -- PROCEDURAL PARTS, NO ASSET IDS. No baked models, no LookDevAssetLoader, no LoadAsset: every
 -- piece is a plain Part built from Shared.ModelMapPlotsR8. Everything is anchored, non-collidable,
@@ -70,6 +71,9 @@ local BAMBOO = Color3.fromRGB(122, 106, 58) -- weathered bamboo, brown-green
 local POST_COLOR = Color3.fromRGB(96, 84, 46)
 local SIGN_COLOR = Color3.fromRGB(214, 190, 130)
 local CLOTH_COLOR = Color3.fromRGB(163, 72, 58)
+-- Item 181: gate posts + lintel share one declared wood tone; rope collars are darker.
+local GATE_WOOD_COLOR = Color3.fromRGB(Data.GATE_WOOD_RGB[1], Data.GATE_WOOD_RGB[2], Data.GATE_WOOD_RGB[3])
+local ROPE_COLOR = Color3.fromRGB(Data.GATE_ROPE_RGB[1], Data.GATE_ROPE_RGB[2], Data.GATE_ROPE_RGB[3])
 
 -- Procedural parts, no asset IDs: a clean apply publishes 0. The counter only moves if staging
 -- itself fails, and is published on every exit path for the Studio reads.
@@ -159,7 +163,9 @@ local function place(
 	end)
 	if not ok then
 		fail("could not place " .. name .. " for plot " .. index .. ":" .. tostring(why))
+		return
 	end
+	return part
 end
 
 -- Read the actual built plot model (designer PlotAnchor overrides are common); fall back to
@@ -329,15 +335,64 @@ local function apply(plan: any?)
 
 		-- Gate centre on the inner (-Z) edge; the same local z is used by the harness marker.
 		local gateZ = -(depth / 2 + 3)
+		local signPart: any? = nil
 		for _, gatePart in ipairs(gateParts) do
-			local opts = gatePart.kind == "gate_sign" and { color = SIGN_COLOR } or nil
-			place(
+			-- Item 181: posts and lintel are explicit wood (not the default flat cream board).
+			local opts: any? = if gatePart.kind == "gate_sign"
+				then { color = SIGN_COLOR }
+				else { color = GATE_WOOD_COLOR, material = Enum.Material.WoodPlanks }
+			local placed = place(
 				plotFolder,
 				index,
 				gatePart.kind,
 				`Gate_{gatePart.kind}_{index}_{gatePart.lx}`,
 				frame * CFrame.new(gatePart.lx, GROUND_Y + gatePart.ly, gateZ + gatePart.lz),
 				gatePart,
+				opts,
+				true
+			)
+			if gatePart.kind == "gate_sign" then
+				signPart = placed
+			end
+		end
+
+		-- One visible name sign per plot: dark burned-in text on the gate board's outward face.
+		if signPart then
+			local okGui, why = pcall(function()
+				local gui = Instance.new("SurfaceGui")
+				gui.Name = "GateSignGui_" .. index
+				gui.Face = Enum.NormalId.Front
+				gui.Adornee = signPart
+				local label = Instance.new("TextLabel")
+				label.Name = "GateSignText_" .. index
+				label.Text = Data.GATE_SIGN_PREFIX .. tostring(index)
+				label.TextColor3 = Color3.fromRGB(48, 30, 14)
+				label.BackgroundTransparency = 1
+				label.Size = UDim2.new(1, 0, 1, 0)
+				label.TextScaled = true
+				label.Visible = true
+				label.Parent = gui
+				gui.Parent = signPart
+			end)
+			if not okGui then
+				fail("could not attach gate sign for plot " .. index .. ":" .. tostring(why))
+			end
+		else
+			fail("could not find gate sign for plot " .. index)
+		end
+
+		-- Rope collars and a bamboo tie, all clear of the 6x8x1 gate opening.
+		for _, detail in ipairs(Data.gateDetailParts(Data.GAP_WIDTH, Data.GATE_HEIGHT)) do
+			local opts: any? = if detail.kind == "gate_rope"
+				then { color = ROPE_COLOR, material = Enum.Material.Wood }
+				else { color = BAMBOO, material = Enum.Material.WoodPlanks }
+			place(
+				plotFolder,
+				index,
+				detail.kind,
+				`Gate_{detail.kind}_{index}_{detail.lx}`,
+				frame * CFrame.new(detail.lx, GROUND_Y + detail.ly, gateZ + detail.lz),
+				detail,
 				opts,
 				true
 			)

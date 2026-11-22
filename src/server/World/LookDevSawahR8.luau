@@ -255,6 +255,38 @@ local function apply(plan: any?)
 		end
 	end
 
+	-- Item 178: rounded, grass-green bunds replace the flat lime terrace edges. Cylinders lie along
+	-- X (local Y rotated 90 degrees about Z); the curved crest is below 1.5 studs wide. Bund parts
+	-- carry no PadiPart tag, so TUFT_SHAPE / SAWAH_GREEN keep counting only padi and tuft geometry.
+	local bundFolder = taggedFolder("Bunds_sawah_r8", nil, folder)
+	for index, bund in ipairs(Data.bunds(panes)) do
+		local terraceFolder = folder:FindFirstChild("Terrace_" .. bund.terrace .. "_sawah_r8")
+		local part = taggedPart(
+			"grass_bund",
+			`Bund_{bund.terrace}_{bund.side}_{bund.edge}_{index}`,
+			bund.terrace,
+			terraceFolder or bundFolder or folder
+		)
+		if part then
+			pcall(function()
+				part:SetAttribute("Bund", true)
+				part.Shape = Enum.PartType.Cylinder
+				part.Material = Enum.Material.Grass
+				part.Color = Color3.fromRGB(Data.BUND_COLOR[1], Data.BUND_COLOR[2], Data.BUND_COLOR[3])
+			end)
+		end
+		local okPlace = false
+		if part then
+			okPlace = pcall(function()
+				part.Size = Vector3.new(bund.radius * 2, bund.length, bund.radius * 2)
+				part.CFrame = CFrame.new(bund.x, bund.y, bund.z) * CFrame.Angles(0, 0, math.pi / 2)
+			end)
+		end
+		if not okPlace then
+			fail("could not place grass bund " .. index)
+		end
+	end
+
 	-- Padi rows: one clump column every ROW_SPACING studs along each water pane, clumps spaced the
 	-- same distance across the pane. Each clump is a Model holding 3-5 thin blades (clump width
 	-- <= 1.5 studs, blade <= 2.5 studs); the 0.5-stud gap keeps the water sheet visible.
@@ -322,7 +354,11 @@ local function apply(plan: any?)
 					terraceFolder or folder
 				)
 				local height = Data.BLADE_HEIGHTS[blade]
-				local centre = { tuft.x + offset[1], tuft.y + height / 2 + offset[2], tuft.z + offset[3] }
+				local centre = {
+					tuft.x + offset[1],
+					tuft.y + Data.BUND_TUFT_RISE + height / 2 + offset[2],
+					tuft.z + offset[3],
+				}
 				if not place(part, centre, { 0.14, height, 0.14 }) then
 					fail("could not place verge blade " .. tuftIndex .. "/" .. blade)
 				end

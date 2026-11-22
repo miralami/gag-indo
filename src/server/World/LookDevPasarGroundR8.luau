@@ -151,8 +151,11 @@ local function addPart(
 		part.CFrame = cframe
 		local colour = Data.COLOURS[colourKey] or Data.COLOURS.paving
 		part.Color = Color3.fromRGB(colour[1], colour[2], colour[3])
-		part.Material = (Enum :: any).Material[Data.MATERIALS[materialKey] or "Cobblestone"]
-			or Enum.Material.Cobblestone
+		-- Item 179: stage the brighter pad material map; legacy Slate tokens stay in pure data only.
+		local stagedMaterial = (Data.PAD_MATERIALS and Data.PAD_MATERIALS[materialKey])
+			or Data.MATERIALS[materialKey]
+			or "Cobblestone"
+		part.Material = (Enum :: any).Material[stagedMaterial] or Enum.Material.Cobblestone
 		part.Anchored = true
 		part.CanCollide = false
 		part:SetAttribute(Data.stageAttribute, Data.familyId)

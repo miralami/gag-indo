@@ -1,8 +1,9 @@
 --!strict
 -- LookDevPlazaR9: SERVER-ONLY applier for the OFF-BY-DEFAULT "plaza_r9" candidate
--- (WORK_QUEUE section O item 149). Builds the central Lapangan dressing from original Parts under
--- one folder: a centre fountain with a water-colour disc, four benches, four striped umbrellas,
--- one bunting line between two poles and one large procedural shade tree at the plaza edge.
+-- (WORK_QUEUE section O item 149, rebuilt by section P item 175). Builds the central Lapangan
+-- dressing from original Parts under one folder: a two-tier fountain with water discs and a thin
+-- water column, a paved ring, four inward-facing benches, four striped umbrellas, a bunting line
+-- with flat red-over-white flag pairs and one procedural shade tree at the plaza edge.
 --
 -- Every recipe comes from Shared.ModelMapPlazaR9 and every position is resolved from
 -- MapSpec.PLAZA centre plus a plaza-local offset; no world-coordinate literals and no asset IDs.
@@ -137,12 +138,13 @@ local function addPart(
 	cframe: any,
 	colourKey: string,
 	materialKey: string,
-	label: string
+	label: string,
+	shapeKey: string?
 ): any?
 	local ok, created = pcall(function()
 		local part = Instance.new("Part")
 		part.Name = name
-		local shapeName = SHAPE_NAMES.Block
+		local shapeName = shapeKey or SHAPE_NAMES.Block
 		local shape = (Enum :: any).PartType[shapeName]
 		part.Shape = shape
 		part.Size = Vector3.new(size[1], size[2], size[3])
@@ -198,39 +200,79 @@ local function stageFountain(folder: any): boolean
 		return false
 	end
 	local base = CFrame.new(x, groundY(), z)
-	addPart(
+	for _, tier in ipairs(Data.fountainTiers()) do
+		local basin = addPart(
+			model,
+			tier.name,
+			tier.size,
+			base * CFrame.new(0, tier.y, 0),
+			"stone",
+			"stone",
+			"fountain",
+			SHAPE_NAMES.Cylinder
+		)
+		if basin then
+			pcall(function()
+				basin:SetAttribute(Data.fountainTierAttribute, tier.index)
+			end)
+		end
+		local disc = addPart(
+			model,
+			"FountainWater_" .. tier.index,
+			tier.waterSize,
+			base * CFrame.new(0, tier.waterY, 0),
+			recipe.waterColour,
+			"water",
+			"fountain",
+			SHAPE_NAMES.Cylinder
+		)
+		if disc then
+			pcall(function()
+				disc:SetAttribute(Data.waterAttribute, true)
+				disc:SetAttribute(Data.waterColourAttribute, recipe.waterColour)
+			end)
+		end
+	end
+	local spout = addPart(
 		model,
-		"FountainBasin",
-		recipe.basinSize,
-		base * CFrame.new(0, recipe.basinY, 0),
-		"stone",
-		"stone",
-		"fountain"
-	)
-	local disc = addPart(
-		model,
-		"FountainWater",
-		recipe.waterSize,
-		base * CFrame.new(0, recipe.waterY, 0),
+		"FountainSpout",
+		recipe.spoutSize,
+		base * CFrame.new(0, recipe.spoutY, 0),
 		recipe.waterColour,
-		"water",
-		"fountain"
+		recipe.spoutMaterial,
+		"fountain",
+		SHAPE_NAMES.Cylinder
 	)
-	if disc then
+	if spout then
 		pcall(function()
-			disc:SetAttribute(Data.waterAttribute, true)
-			disc:SetAttribute(Data.waterColourAttribute, recipe.waterColour)
+			spout:SetAttribute(Data.waterAttribute, true)
+			spout:SetAttribute(Data.waterColourAttribute, recipe.waterColour)
 		end)
 	end
-	addPart(
-		model,
-		"FountainPillar",
-		recipe.pillarSize,
-		base * CFrame.new(0, recipe.pillarY, 0),
-		"stoneDark",
-		"stone",
-		"fountain"
-	)
+	return true
+end
+
+local function stagePaving(folder: any): boolean
+	local x, z = plazaPoint(0, 0)
+	if x == nil or z == nil then
+		return false
+	end
+	for _, tile in ipairs(Data.paving()) do
+		local part = addPart(
+			folder,
+			"PlazaPaving_" .. tile.name,
+			tile.size,
+			CFrame.new(x + tile.x, groundY() + Data.PAVING.y, z + tile.z),
+			"stoneDark",
+			"stone",
+			"paving"
+		)
+		if part then
+			pcall(function()
+				part:SetAttribute(Data.pavingAttribute, true)
+			end)
+		end
+	end
 	return true
 end
 
@@ -353,24 +395,29 @@ local function stageBunting(folder: any): boolean
 			line:SetAttribute(Data.buntingLineAttribute, true)
 		end)
 	end
+	local panelSize = Data.flagPanelSize()
 	for _, flag in ipairs(Data.bunting().flags) do
 		local fx, fz = plazaPoint(flag.x, flag.z)
 		if fx == nil or fz == nil then
 			return false
 		end
-		local part = addPart(
-			model,
-			flag.name,
-			bunting.flagSize,
-			CFrame.new(fx, groundY() + bunting.flagY, fz),
-			flag.colour,
-			"fabric",
-			"bunting"
-		)
-		if part then
-			pcall(function()
-				part:SetAttribute(Data.buntingFlagAttribute, true)
-			end)
+		for _, panel in ipairs(Data.flagPanels(flag)) do
+			local part = addPart(
+				model,
+				panel.name,
+				panelSize,
+				CFrame.new(fx, groundY() + bunting.flagY + panel.yOffset, fz),
+				panel.colour,
+				"fabric",
+				"bunting"
+			)
+			if part then
+				pcall(function()
+					part:SetAttribute(Data.buntingFlagAttribute, true)
+					part:SetAttribute(Data.flagPairAttribute, flag.name)
+					part:SetAttribute(Data.flagPanelAttribute, panel.colour)
+				end)
+			end
 		end
 	end
 	return true
@@ -457,6 +504,7 @@ local applier = {
 			folder:SetAttribute(Data.stageAttribute, Data.familyId)
 		end)
 		stageFountain(folder)
+		stagePaving(folder)
 		for _, bench in ipairs(Data.benches()) do
 			stageBench(bench, folder)
 		end

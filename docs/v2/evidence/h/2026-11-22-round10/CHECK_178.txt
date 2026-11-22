@@ -1,0 +1,26 @@
+CHECK 178 - sawah_r8 grassy rounded bunds (WORK_QUEUE section P)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Play mode, Server VM. Place NOT saved, nothing published.
+Candidate OFF by default.
+
+== Setup ==
+1. `src/shared/ModelMapSawahR8.luau` + `src/server/World/LookDevSawahR8.luau`: 16 lime Block bunds
+   replaced with rounded cylinder Grass bunds matched to terrain Grass colour, verge tufts lifted
+   onto crests; PADI_ROWS/TUFT_SHAPE untouched.
+2. `tools/studio/check_p178.luau` temp-staged and require'd in a fresh Play Server VM; stages
+   `sawah_r8` via `enableAdditive`, measures live parts, restores with `disableAll()`.
+
+== Raw check lines (verbatim, staged sawah_r8) ==
+CHECK BUND_COLOR PASS 0 12
+CHECK BUND_SHAPE PASS 0 0
+CHECK PADI_ROWS PASS 294 10
+CHECK TUFT_SHAPE PASS 0 0
+
+== Non-vacuity ==
+- 16 bunds; max |RGB(bund) - Terrain:GetMaterialColor(Grass)| = 0/255 (tol 12); 0 flat Block tops.
+  28,464 padi parts, 294 rows/terrace (min 10), 0 TUFT_SHAPE failures.
+- New Lune spec pre-fix 6 FAIL/1 PASS, post-fix 7/7 PASS. No colour IDs invented.
+- No NPC outfits, terrain sculpt, chosen sky or ground touched. No visual verdict claimed.
+
+Status: SEEN-IN-STUDIO.

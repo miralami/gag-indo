@@ -1,15 +1,16 @@
 --!strict
 -- ModelMapPlazaR9: pure data for the OFF-BY-DEFAULT "plaza_r9" LookDev candidate
--- (WORK_QUEUE section O item 149). Central Lapangan dressing: one fountain with a water-colour
--- disc, four benches, four striped umbrellas, one bunting line between two poles and one large
--- procedural shade tree at the plaza edge. No asset IDs and no brand: every piece is built from
--- original Parts by src/server/World/LookDevPlazaR9.luau.
+-- (WORK_QUEUE section O item 149, rebuilt by section P item 175). Central Lapangan dressing: a
+-- two-tier fountain with a 14-stud basin, smaller upper basin and thin water column, a four-strip
+-- paved ring, four inward-facing benches, four striped umbrellas, a bunting line whose flags are
+-- flat red-over-white part pairs, and one procedural shade tree at the plaza edge. No asset IDs
+-- and no brand: every piece is built from original Parts by src/server/World/LookDevPlazaR9.luau.
 --
 -- Pure data/functions only: no game APIs, no Instances, no Enums. Every anchor is in PLAZA-LOCAL
 -- coordinates (x, z) relative to MapSpec.PLAZA centre; the applier adds MapSpec.PLAZA.x/.z at
 -- apply time, so there are no world-coordinate literals here. The dressed rectangle is 38x28
--- centred on the plaza; the four 6-stud arm lanes form a clear cross that stops at the fountain
--- rim, so the monument at the centre never blocks a walking lane.
+-- centred on the plaza; the four 6-stud arm lanes form a clear cross that stops at the paved ring,
+-- so the monument at the centre never blocks a walking lane.
 
 local Data = {}
 
@@ -31,6 +32,10 @@ Data.buntingLineAttribute = "BuntingLine"
 Data.buntingFlagAttribute = "BuntingFlag"
 Data.treeAttribute = "PlazaShadeTree"
 Data.treeHeightAttribute = "TreeHeight"
+Data.fountainTierAttribute = "FountainTier"
+Data.pavingAttribute = "PlazaPaving"
+Data.flagPairAttribute = "BuntingFlagPair"
+Data.flagPanelAttribute = "BuntingFlagPanel"
 
 -- The dressed inner area: |x| <= 19, |z| <= 14 in plaza-local coordinates. MapSpec.PLAZA itself is
 -- 96x84 of Ground terrain; everything here stays inside the smaller dressed rectangle.
@@ -67,21 +72,31 @@ function Data.stripeColour(index: number): string
 	return Data.STRIPE_ORDER[((index - 1) % #Data.STRIPE_ORDER) + 1]
 end
 
--- Fountain footprint half-extent is 3 studs (basin diameter 6). Lanes start at 3.5, giving a
--- 0.5-stud clearance so the monument sits at the centre without touching a walking lane.
+-- FOUNTAIN_RADIUS/LANE_GAP stay at their item-149 values: the original plaza spec locks that
+-- contract. The rebuilt basin is bigger; lanes now stop at RING_RADIUS + LANE_GAP = 9.5 so the
+-- 14-stud basin and its paved ring still leave a clear 6-stud approach from each road.
 Data.FOUNTAIN_RADIUS = 3
 Data.LANE_GAP = 0.5
+Data.BASIN_RADIUS = 7
+Data.RING_RADIUS = 9
 
 Data.FOUNTAIN = {
 	x = 0,
 	z = 0,
-	basinSize = { 6, 0.8, 6 },
+	basinSize = { 14, 0.8, 14 },
 	basinY = 0.4,
-	waterSize = { 4.8, 0.25, 4.8 },
+	waterSize = { 12.4, 0.25, 12.4 },
 	waterY = 0.95,
 	waterColour = "water",
-	pillarSize = { 1, 2.2, 1 },
-	pillarY = 2.0,
+	upperBasinSize = { 8, 0.7, 8 },
+	upperBasinY = 1.35,
+	upperWaterSize = { 6.4, 0.2, 6.4 },
+	upperWaterY = 1.8,
+	spoutSize = { 0.6, 4, 0.6 },
+	spoutY = 3.2,
+	spoutMaterial = "water", -- SmoothPlastic water column, never Neon
+	tierCount = 2,
+	ringRadius = Data.RING_RADIUS,
 }
 
 Data.BENCH = {
@@ -96,11 +111,25 @@ Data.BENCH = {
 	legZOffsets = { -0.5, 0.5 },
 }
 
-local benchAnchors: { { name: string, x: number, z: number, yaw: number } } = {
-	{ name = "bench_nw", x = -9, z = -8, yaw = 0 },
-	{ name = "bench_ne", x = 9, z = -8, yaw = 180 },
-	{ name = "bench_sw", x = -9, z = 8, yaw = 0 },
-	{ name = "bench_se", x = 9, z = 8, yaw = 180 },
+local benchAnchors: { { name: string, x: number, z: number } } = {
+	{ name = "bench_nw", x = -12, z = -11 },
+	{ name = "bench_ne", x = 12, z = -11 },
+	{ name = "bench_sw", x = -12, z = 11 },
+	{ name = "bench_se", x = 12, z = 11 },
+}
+
+-- Four flat strips between radius 7 (basin) and radius 9 (lane end): a square paved ring.
+Data.PAVING = {
+	y = 0.25,
+	northSouthSize = { 18, 0.2, 2 },
+	eastWestSize = { 2, 0.2, 14 },
+	offset = Data.BASIN_RADIUS + 1,
+}
+
+-- One flat red-over-white pair per bunting flag: two parallel panels, never crossing pennants.
+Data.FLAG = {
+	topColour = "red",
+	bottomColour = "white",
 }
 
 Data.UMBRELLA = {
@@ -146,8 +175,8 @@ Data.SHADE_TREE = {
 }
 
 -- Four 6-stud-wide arm lanes. Each runs from the dressed edge inward and stops 0.5 studs clear
--- of the fountain rim, so the cross reads as one walking cross around the centre monument.
-local laneInner = Data.FOUNTAIN_RADIUS + Data.LANE_GAP
+-- of the paved ring, so the cross reads as one walking cross around the centre monument.
+local laneInner = Data.RING_RADIUS + Data.LANE_GAP
 local halfX, halfZ = Data.DRESSED.width / 2, Data.DRESSED.depth / 2
 
 local lanes = {
@@ -162,19 +191,57 @@ function Data.fountain()
 		x = Data.FOUNTAIN.x,
 		z = Data.FOUNTAIN.z,
 		radius = Data.FOUNTAIN_RADIUS,
+		basinDiameter = Data.FOUNTAIN.basinSize[1],
+		ringRadius = Data.RING_RADIUS,
+		tierCount = Data.FOUNTAIN.tierCount,
+		spoutSize = Data.FOUNTAIN.spoutSize,
 		discColour = Data.COLOURS[Data.FOUNTAIN.waterColour],
 		colourKey = Data.FOUNTAIN.waterColour,
+	}
+end
+
+function Data.fountainTiers()
+	local recipe = Data.FOUNTAIN
+	return {
+		{
+			index = 1,
+			name = "FountainBasin",
+			size = recipe.basinSize,
+			y = recipe.basinY,
+			waterSize = recipe.waterSize,
+			waterY = recipe.waterY,
+		},
+		{
+			index = 2,
+			name = "FountainTierUpper",
+			size = recipe.upperBasinSize,
+			y = recipe.upperBasinY,
+			waterSize = recipe.upperWaterSize,
+			waterY = recipe.upperWaterY,
+		},
+	}
+end
+
+function Data.paving()
+	local recipe = Data.PAVING
+	local offset = recipe.offset
+	return {
+		{ name = "paving_north", x = 0, z = -offset, size = recipe.northSouthSize },
+		{ name = "paving_south", x = 0, z = offset, size = recipe.northSouthSize },
+		{ name = "paving_east", x = offset, z = 0, size = recipe.eastWestSize },
+		{ name = "paving_west", x = -offset, z = 0, size = recipe.eastWestSize },
 	}
 end
 
 function Data.benches()
 	local out = {}
 	for _, anchor in ipairs(benchAnchors) do
+		-- The seat front is local +Z; face the fountain at (0,0) in plaza-local space.
 		out[#out + 1] = {
 			name = anchor.name,
 			x = anchor.x,
 			z = anchor.z,
-			yaw = anchor.yaw,
+			yaw = math.deg(math.atan2(-anchor.x, -anchor.z)),
 			size = { Data.BENCH.seatSize[1], Data.BENCH.seatSize[3] },
 		}
 	end
@@ -200,6 +267,18 @@ function Data.umbrellas()
 		}
 	end
 	return out
+end
+
+function Data.flagPanelSize()
+	return { Data.BUNTING.flagSize[1], Data.BUNTING.flagSize[2] / 2, Data.BUNTING.flagSize[3] }
+end
+
+function Data.flagPanels(flag: any)
+	local offset = Data.BUNTING.flagSize[2] / 4
+	return {
+		{ name = flag.name .. "_" .. Data.FLAG.topColour, colour = Data.FLAG.topColour, yOffset = offset },
+		{ name = flag.name .. "_" .. Data.FLAG.bottomColour, colour = Data.FLAG.bottomColour, yOffset = -offset },
+	}
 end
 
 function Data.bunting()
@@ -247,6 +326,8 @@ end
 function Data.counts()
 	return {
 		fountains = 1,
+		fountainTiers = Data.FOUNTAIN.tierCount,
+		pavingTiles = #Data.paving(),
 		benches = #benchAnchors,
 		umbrellas = #umbrellaAnchors,
 		buntingPoles = #Data.BUNTING.poles,

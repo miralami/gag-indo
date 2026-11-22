@@ -143,13 +143,14 @@ local function taggedPart(kind: string, name: string, parent: any): any?
 	return part
 end
 
-local function place(part: any?, centre: { number }, size: { number }): boolean
+local function place(part: any?, centre: { number }, size: { number }, yaw: number?): boolean
 	if not part then
 		return false
 	end
 	local ok = pcall(function()
 		part.Size = Vector3.new(size[1], size[2], size[3])
 		part.CFrame = CFrame.new(centre[1], centre[2], centre[3])
+			* (yaw and yaw ~= 0 and CFrame.Angles(0, yaw, 0) or CFrame.new())
 	end)
 	return ok
 end
@@ -271,9 +272,10 @@ local function apply(plan)
 	local railFolder = taggedFolder("BridgeRails_river_r8", folder)
 	local stoneFolder = taggedFolder("SteppingStones_river_r8", folder)
 
-	-- Bank plants use the real centreline. The tagged base Part carries BankPlant/PlantSpecies/
+	-- Bank plants use the real centreline. The tagged base Parts carry BankPlant/PlantSpecies/
 	-- PlantTall (and the legacy bank_veg attributes the harness reads); the baked model grows out
-	-- of it. A failed load leaves the grassy base as the procedural fallback.
+	-- of them. Item 174: their geometry comes from the pure-data Recipe — squashed Ball mounds for
+	-- taro/shrubs, three fanned Wedge blades for reeds/bamboo. No Block hedge base is ever staged.
 	local centreFn = MapSpec and MapSpec.riverCentreZ or Data.RIVER_CENTRE
 	-- MIN_BANK_VEG is a data-integrity invariant of ModelMapRiverR8.bankPlants, not a render count:
 	-- measure it on the full unthinned data so intentional Rendah thinning cannot publish a failure.
@@ -290,27 +292,46 @@ local function apply(plan)
 		if math.abs(veg.x) <= Data.BRIDGE_WIDTH / 2 + 1 then
 			continue
 		end
-		local part = taggedPart("bank_veg", "BankPlant_" .. index, vegFolder or folder)
-		if part then
-			pcall(function()
-				part:SetAttribute("Side", veg.Side)
-				part:SetAttribute("Species", veg.Species)
-				part:SetAttribute("VegX", veg.VegX)
-				part:SetAttribute("VegZ", veg.VegZ)
-				part:SetAttribute("BankPlant", true)
-				part:SetAttribute("PlantSpecies", veg.Species)
-				part:SetAttribute("PlantTall", veg.Tall)
-				part.Material = Enum.Material.Grass
-				part.Color = if veg.Species == "alang-alang"
-					then Color3.fromRGB(150, 142, 74)
-					elseif veg.Species == "bambu" or veg.Species == "kelapa" then Color3.fromRGB(74, 132, 62)
-					else Color3.fromRGB(92, 132, 58)
-			end)
+		local recipe = veg.Recipe
+		if type(recipe) ~= "table" or type(recipe.size) ~= "table" or type(recipe.offsets) ~= "table" then
+			fail("missing organic plant recipe " .. index)
+			continue
 		end
-		local baseW = if veg.Tall then 2.6 else 1.6
-		local baseH = if veg.Tall then 2.4 else 1.6
-		if not place(part, { veg.x, groundY + baseH * 0.5 - 0.15, veg.z }, { baseW, baseH, baseW }) then
-			fail("could not place bank plant " .. index)
+		local bladeCluster = recipe.Form == "blades"
+		for partIndex, offset in ipairs(recipe.offsets) do
+			local part = taggedPart(
+				"bank_veg",
+				"BankPlant_" .. index .. (bladeCluster and "_blade" .. partIndex or ""),
+				vegFolder or folder
+			)
+			if part then
+				pcall(function()
+					part:SetAttribute("Side", veg.Side)
+					part:SetAttribute("Species", veg.Species)
+					part:SetAttribute("VegX", veg.VegX)
+					part:SetAttribute("VegZ", veg.VegZ)
+					part:SetAttribute("BankPlant", true)
+					part:SetAttribute("PlantSpecies", veg.Species)
+					part:SetAttribute("PlantTall", veg.Tall)
+					part.Shape = Enum.Shape[recipe.Shape] -- Ball or Wedge; never the Block hedge
+					part.Material = Enum.Material.Grass
+					part.Color = if veg.Species == "alang-alang"
+						then Color3.fromRGB(150, 142, 74)
+						elseif veg.Species == "bambu" or veg.Species == "kelapa" then Color3.fromRGB(74, 132, 62)
+						else Color3.fromRGB(92, 132, 58)
+				end)
+			end
+			local yaw = if bladeCluster then (partIndex - 1) * (2 * math.pi / 3) else 0
+			if
+				not place(
+					part,
+					{ veg.x + offset[1], groundY + recipe.size[2] * 0.5 - 0.15, veg.z + offset[2] },
+					recipe.size,
+					yaw
+				)
+			then
+				fail("could not place bank plant " .. index .. "/" .. partIndex)
+			end
 		end
 
 		local assetId = PLANT_ASSETS[veg.Species]
@@ -326,7 +347,7 @@ local function apply(plan)
 					model:SetAttribute("Species", veg.Species)
 					model.Parent = plantModelFolder or folder
 				end)
-				if not placeModel(model, veg.x, groundY + baseH - 0.15, veg.z, veg.Height) then
+				if not placeModel(model, veg.x, groundY + recipe.size[2] - 0.15, veg.z, veg.Height) then
 					fail("could not scale/place bank plant model " .. index)
 				end
 			end

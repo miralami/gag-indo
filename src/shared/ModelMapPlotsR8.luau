@@ -26,6 +26,12 @@ ModelMapPlotsR8.POST_SPACING = 4
 ModelMapPlotsR8.POST_THICKNESS = 1
 ModelMapPlotsR8.DITCH_WIDTH = 2
 
+-- Item 181 palette. Plain RGB triples keep this module free of Roblox APIs/Enums; the applier and
+-- the Studio check turn them into the same Color3, so a wood gate cannot drift back to flat cream.
+ModelMapPlotsR8.GATE_WOOD_RGB = { 150, 96, 44 }
+ModelMapPlotsR8.GATE_ROPE_RGB = { 92, 66, 38 }
+ModelMapPlotsR8.GATE_SIGN_PREFIX = "P" -- numeric plot id; keeps hardcoded text out of the applier
+
 function ModelMapPlotsR8.plotIndices(): { number }
 	local out = {}
 	for index = 1, ModelMapPlotsR8.PLOT_COUNT do
@@ -174,6 +180,41 @@ function ModelMapPlotsR8.gateParts(width: number, height: number)
 			length = width + 4,
 			axis = "x",
 			thickness = 2,
+		},
+	}
+end
+
+-- Item 181: two rope collars around the gate posts and one bamboo tie under the sign board. All
+-- three sit outside the 6x8x1 clearance box (posts at |lx| >= 4, tie above the lintel top).
+function ModelMapPlotsR8.gateDetailParts(width: number, height: number)
+	local postX = width / 2 + ModelMapPlotsR8.POST_THICKNESS
+	return {
+		{
+			kind = "gate_rope",
+			lx = -postX,
+			ly = height / 2,
+			lz = 0,
+			length = 0.4,
+			axis = "y",
+			thickness = ModelMapPlotsR8.POST_THICKNESS + 0.4,
+		},
+		{
+			kind = "gate_rope",
+			lx = postX,
+			ly = height / 2,
+			lz = 0,
+			length = 0.4,
+			axis = "y",
+			thickness = ModelMapPlotsR8.POST_THICKNESS + 0.4,
+		},
+		{
+			kind = "gate_bamboo",
+			lx = 0,
+			ly = height + 1.9,
+			lz = 0,
+			length = width + 2 * ModelMapPlotsR8.POST_THICKNESS,
+			axis = "x",
+			thickness = 0.3,
 		},
 	}
 end

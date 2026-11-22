@@ -286,4 +286,51 @@ return function(t, Env)
 			end
 		end)
 	end)
+
+	t:describe("river_r8 baked bank models and lily pads (item 192)", function()
+		t:it("publishes deterministic pure lily-pad data inside the channel", function()
+			expect(Data.MIN_LILY_PADS >= 6):toBe(true)
+			expect(Data.WATER_SURFACE_Y):toBe(-0.5)
+			expect(Data.LILY_ASSET_ID_ATTRIBUTE):toBe("LilyAssetId")
+			expect(Data.BANK_MODEL_ID_ATTRIBUTE):toBe("BankModelId")
+			local pads = Data.lilyPads(Data.RIVER_CENTRE)
+			expect(#pads >= Data.MIN_LILY_PADS):toBe(true)
+			local banks = {}
+			for _, pad in ipairs(pads) do
+				expect(math.abs(pad.z - Data.RIVER_CENTRE(pad.x)) <= 12):toBe(true)
+				expect(math.abs(pad.x) > 6):toBe(true)
+				expect(pad.VegX):toBe(pad.x)
+				expect(pad.VegZ):toBe(pad.z)
+				expect(near(pad.y, Data.WATER_SURFACE_Y + 0.1)):toBe(true)
+				expect(pad.Side == "south" or pad.Side == "north"):toBe(true)
+				banks[pad.Side] = true
+			end
+			expect(banks.south):toBe(true)
+			expect(banks.north):toBe(true)
+			expect(Env.new():require("shared/ModelMapRiverR8").lilyPads(MapSpec.riverCentreZ)):toEqual(pads)
+			local src = fs.readFile("src/shared/ModelMapRiverR8.luau")
+			expect(string.find(src, "rbxassetid://%d") ~= nil):toBe(false)
+			expect(string.find(src, "%d%d%d%d%d%d%d") ~= nil):toBe(false)
+			expect(string.find(src, "game.", 1, true) ~= nil):toBe(false)
+			expect(string.find(src, "Instance.new", 1, true) ~= nil):toBe(false)
+			expect(string.find(src, "Enum.", 1, true) ~= nil):toBe(false)
+		end)
+
+		t:it("wires all five real baked IDs and the water-lily staging", function()
+			local applier = fs.readFile("src/server/World/LookDevRiverR8.luau")
+			for _, id in ipairs({ "8466298000", "13261235137", "5661660655", "9953859659", "5044238410" }) do
+				expect(string.find(applier, id, 1, true) ~= nil):toBe(true)
+			end
+			for _, token in ipairs({
+				"BankModelId",
+				'"WaterLilies_river_r8"',
+				'SetAttribute("WaterLily", true)',
+				"LilyAssetId",
+				"SetAttribute(Data.BANK_MODEL_ID_ATTRIBUTE, assetId)",
+			}) do
+				expect(string.find(applier, token, 1, true) ~= nil):toBe(true)
+			end
+			expect(string.find(applier, "rbxassetid://%d") ~= nil):toBe(false)
+		end)
+	end)
 end

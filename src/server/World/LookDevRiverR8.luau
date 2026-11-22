@@ -4,14 +4,16 @@
 -- verified baked assets, twelve half-buried procedural boulder stand-ins, a second pair of bridge
 -- rails/posts keeping the central 8 studs of the deck clear, and six stepping stones on the banks.
 --
--- NO INVENTED ASSET IDS. Every plant resolves to an ID already recorded in Shared.ModelMapVegetationR4
--- / Shared.ModelMapVegetationR6 and is fetched clone-first via LookDevAssetLoader (bake -> LoadAsset
--- fallback inside the loader). talas/keladi use the documented R4 shrub stand-in; alang-alang uses
--- R6's real ID; bambu and kelapa use their real R4 IDs. No verified rock MODEL id exists in any
--- shared ModelMap* module, so the two boulder shapes (Ball, squashed Wedge) are procedural
--- stand-ins, not invented assets. Terrain, greybox, the existing BridgeDeck/BridgePost/BridgeRail,
--- padi rows and the ford are never touched: every piece is staged, anchored, non-collidable, tagged,
--- and removed by restore() (which reattaches any prior folder).
+-- NO INVENTED ASSET IDS. The five numeric IDs below are verified Creator Store bakes recorded in
+-- ASSET_MANIFEST.md section Q, wired by item 192: TARO_ID 8466298000 (taro), REED_ID 13261235137
+-- (cattail), FERN_ID 5661660655 (fern), SHRUB_ID 9953859659 (round shrub, scaled down) and
+-- LILY_ID 5044238410 (lilypad). Bambu/kelapa keep their verified R4 IDs. All are fetched clone-first
+-- via LookDevAssetLoader (bake -> LoadAsset fallback inside the loader) and stripped of any inserted
+-- code before staging. No verified rock MODEL id exists in any shared ModelMap* module, so the two
+-- boulder shapes (Ball, squashed Wedge) are procedural stand-ins, not invented assets. Terrain,
+-- greybox, the existing BridgeDeck/BridgePost/BridgeRail, padi rows and the ford are never touched:
+-- every piece is staged, anchored, non-collidable, tagged, and removed by restore() (which
+-- reattaches any prior folder).
 -- Enable from the Studio Server command bar:
 --   require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("river_r8", game)
 
@@ -43,18 +45,15 @@ else
 	return {}
 end
 
-local okModules, LookDev, Data, LookDevAssetLoader, VegR4, VegR6, TierThin = pcall(function()
+local okModules, LookDev, Data, LookDevAssetLoader, VegR4, TierThin = pcall(function()
 	return require((Shared :: any).LookDev),
 		require((Shared :: any).ModelMapRiverR8),
 		require(script.Parent.LookDevAssetLoader),
 		require((Shared :: any).ModelMapVegetationR4),
-		require((Shared :: any).ModelMapVegetationR6),
 		require((Shared :: any).TierThin)
 end)
-if not okModules or not LookDev or not Data or not LookDevAssetLoader or not VegR4 or not VegR6 or not TierThin then
-	warn(
-		"[LookDevRiverR8] could not require LookDev / ModelMapRiverR8 / LookDevAssetLoader / vegetation maps / TierThin"
-	)
+if not okModules or not LookDev or not Data or not LookDevAssetLoader or not VegR4 or not TierThin then
+	warn("[LookDevRiverR8] could not require LookDev / ModelMapRiverR8 / LookDevAssetLoader / R4 map / TierThin")
 	return {}
 end
 
@@ -79,15 +78,23 @@ if MapSpec and type(MapSpec.GROUND_Y) == "number" then
 	groundY = MapSpec.GROUND_Y
 end
 
--- All IDs come from the verified shared maps; none is written here as a literal.
+local TARO_ID = 8466298000
+local REED_ID = 13261235137
+local FERN_ID = 5661660655
+local SHRUB_ID = 9953859659
+local LILY_ID = 5044238410
+
 local R4_IDS = VegR4.families.vegetation_r4.ids
 local PLANT_ASSETS = {
-	talas = R4_IDS.shrubs, -- R4 shrub as the wet-edge taro stand-in (R7 documented mapping)
-	keladi = R4_IDS.shrubs, -- same documented stand-in
-	["alang-alang"] = VegR6.ids.alang_alang,
+	talas = TARO_ID,
+	keladi = FERN_ID,
+	["alang-alang"] = REED_ID,
 	bambu = R4_IDS.bambu,
 	kelapa = R4_IDS.kelapa,
 }
+
+-- Every loaded clone tracked here so restore() destroys inserts even if a staging parent is lost.
+local loadedModels: { any } = {}
 
 -- Procedural parts only publish 0; a failed baked-plant load or placement moves the counter.
 local function publishFailures()
@@ -226,11 +233,23 @@ local function placeModel(model: any, x: number, bottomY: number, z: number, tar
 	return false
 end
 
+-- Inserted Creator Store objects may carry code; baked copies are stripped, but reject it again.
+local function stripScripts(root: any)
+	pcall(function()
+		for _, item in ipairs(root:GetDescendants()) do
+			if item:IsA("Script") or item:IsA("LocalScript") or item:IsA("ModuleScript") then
+				item:Destroy()
+			end
+		end
+	end)
+end
+
 -- ponytail: Rendah thins decorative veg/rocks/stones to <=50% of instances; bridge rails/posts are
 -- structural and never thinned. Default tiers keep every instance byte-for-byte.
 local function apply(plan)
 	local tier = plan and plan.tier
 	failures = 0
+	loadedModels = {}
 	if activeFolder then
 		publishFailures()
 		return
@@ -268,6 +287,7 @@ local function apply(plan)
 
 	local vegFolder = taggedFolder("BankVeg_river_r8", folder)
 	local plantModelFolder = taggedFolder("BankPlantModels_river_r8", folder)
+	local lilyFolder = taggedFolder("WaterLilies_river_r8", folder)
 	local rockFolder = taggedFolder("BankRocks_river_r8", folder)
 	local railFolder = taggedFolder("BridgeRails_river_r8", folder)
 	local stoneFolder = taggedFolder("SteppingStones_river_r8", folder)
@@ -340,10 +360,13 @@ local function apply(plan)
 				return LookDevAssetLoader.get(assetId, FAMILY_ID)
 			end)
 			if okLoad and model then
+				stripScripts(model)
+				loadedModels[#loadedModels + 1] = model
 				pcall(function()
 					model.Name = "BankPlantModel_" .. index
 					model:SetAttribute("LookDevRiverR8", FAMILY_ID)
 					model:SetAttribute("Kind", "bank_veg_model")
+					model:SetAttribute(Data.BANK_MODEL_ID_ATTRIBUTE, assetId)
 					model:SetAttribute("Species", veg.Species)
 					model.Parent = plantModelFolder or folder
 				end)
@@ -352,10 +375,63 @@ local function apply(plan)
 				end
 			end
 		end
+		if not veg.Tall and index % 4 == 0 then
+			local okShrub, shrub = pcall(function()
+				return LookDevAssetLoader.get(SHRUB_ID, FAMILY_ID)
+			end)
+			if not okShrub or not shrub then
+				fail("could not load round shrub accent " .. index)
+			else
+				stripScripts(shrub)
+				loadedModels[#loadedModels + 1] = shrub
+				pcall(function()
+					shrub.Name = "BankShrubAccent_" .. index
+					shrub:SetAttribute("LookDevRiverR8", FAMILY_ID)
+					shrub:SetAttribute("Kind", "bank_veg_model")
+					shrub:SetAttribute("Species", "semak")
+					shrub:SetAttribute("BankModelId", SHRUB_ID)
+					shrub.Parent = plantModelFolder or folder
+				end)
+				if not placeModel(shrub, veg.x + 1.2, groundY, veg.z + 1.2, 2) then
+					fail("could not scale/place round shrub accent " .. index)
+				end
+			end
+		end
 		placedVeg += 1
 	end
 	if dataNearBridge < Data.MIN_BANK_VEG then
 		fail("only " .. dataNearBridge .. " bank plants near the bridge (" .. placedVeg .. " total)")
+	end
+
+	-- Item 192: real lilypad meshes flat on the visible water, beside the bridge deck and inside
+	-- the 28-wide channel. Placement comes from the pure Data.lilyPads recipe, never from an ID here.
+	for index, pad in ipairs(Data.lilyPads(centreFn)) do
+		if not TierThin.shouldKeep(tier, index) then
+			continue
+		end
+		local okLoad, model = pcall(function()
+			return LookDevAssetLoader.get(LILY_ID, FAMILY_ID)
+		end)
+		if not okLoad or not model then
+			fail("could not load water lily " .. index)
+			continue
+		end
+		stripScripts(model)
+		loadedModels[#loadedModels + 1] = model
+		pcall(function()
+			model.Name = "WaterLily_" .. index
+			model:SetAttribute("LookDevRiverR8", FAMILY_ID)
+			model:SetAttribute("WaterLily", true)
+			model:SetAttribute("Kind", "water_lily")
+			model:SetAttribute("LilyAssetId", LILY_ID)
+			model:SetAttribute("Side", pad.Side)
+			model:SetAttribute("VegX", pad.VegX)
+			model:SetAttribute("VegZ", pad.VegZ)
+			model.Parent = lilyFolder or folder
+		end)
+		if not placeModel(model, pad.x, pad.y, pad.z, 0.08) then
+			fail("could not scale/place water lily " .. index)
+		end
 	end
 
 	-- Twelve half-buried boulders: two procedural shapes (Ball, squashed Wedge) stand in for the
@@ -446,6 +522,12 @@ local function apply(plan)
 end
 
 local function restore()
+	for _, model in ipairs(loadedModels) do
+		pcall(function()
+			model:Destroy()
+		end)
+	end
+	loadedModels = {}
 	if activeFolder then
 		pcall(function()
 			activeFolder:Destroy()

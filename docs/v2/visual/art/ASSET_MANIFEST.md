@@ -722,6 +722,11 @@ published). None invented. The baked copy is verified in a fresh Play/Server VM 
 | `path_grass` | 806579390 | Grass tuft | a61766 | Model (6 parts) | Creator Store, free | 2.12 x 1.32 x 1.49 | designer to confirm (LookDev candidate; wired by item 190) |
 | `path_flower` | 25454256 | Orange Flower | tenchynox | Model (10 parts) | Creator Store, free | 2.71 x 1.40 x 2.70 | designer to confirm (LookDev candidate; wired by item 190) |
 | `path_stone` | 1769612183 | small stone | MandarinBoy | Part (1 part) | Creator Store, free | 1.86 x 1.86 x 1.86 | designer to confirm (LookDev candidate; wired by item 190) |
+| `bank_taro` | 8466298000 | Taro | CreeperProGamer90 | Model (10 parts) | Creator Store, free | 6.94 x 11.55 x 5.46 (scaled to ~2.5-stud plant) | designer to confirm (LookDev candidate; wired by item 192) |
+| `bank_reed` | 13261235137 | Cattail | ablimity | MeshPart | Creator Store, free | 2.33 x 5.47 x 2.47 | designer to confirm (LookDev candidate; wired by item 192) |
+| `bank_fern` | 5661660655 | fern plant | 11FlanT | Model (4 parts) | Creator Store, free | 6.08 x 5.70 x 6.08 | designer to confirm (LookDev candidate; wired by item 192) |
+| `bank_shrub` | 9953859659 | Shrub/Bush | Purified142 | MeshPart | Creator Store, free | 82.16 x 20.25 x 102.78 (scaled to ~2-stud accent) | designer to confirm (LookDev candidate; wired by item 192) |
+| `water_lily` | 5044238410 | Lilypad | Exp_p | MeshPart | Creator Store, free | 3.32 x 0.08 x 3.29 | designer to confirm (LookDev candidate; wired by item 192) |
 
 Licence not re-read here — Creator Store terms apply. The padi ID is wired into `src/` by item 191
 (`sawah_r8` 3D padi, `src/shared/ModelMapSawahR8.luau`) and needs no `unused` marker. The fountain ID

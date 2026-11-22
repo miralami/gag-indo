@@ -22,6 +22,10 @@ ModelMapRiverR8.MIN_BANK_VEG = 40
 ModelMapRiverR8.MIN_SPECIES = 4
 ModelMapRiverR8.MIN_TALL = 6
 ModelMapRiverR8.MIN_ROCKS = 12
+ModelMapRiverR8.MIN_LILY_PADS = 6
+ModelMapRiverR8.WATER_SURFACE_Y = -0.5 -- MapSpec visible water top
+ModelMapRiverR8.LILY_ASSET_ID_ATTRIBUTE = "LilyAssetId"
+ModelMapRiverR8.BANK_MODEL_ID_ATTRIBUTE = "BankModelId"
 ModelMapRiverR8.BRIDGE_WIDTH = 10
 ModelMapRiverR8.WALKABLE_MIN = 8
 ModelMapRiverR8.BRIDGE_Z0 = 276
@@ -167,6 +171,30 @@ function ModelMapRiverR8.bankPlants(centreZFn: ((number) -> number)?): { any }
 			end
 		end
 		x += PLANT_X_STEP
+	end
+	return out
+end
+
+-- Item 192: flat lily pads on the water inside the 28-stud channel, beside (never on) the bridge
+-- deck. x = +/-12/20/28 keeps every pad clear of the 10-wide deck and its rails; z offsets +/-8/5
+-- stay well inside the channel half width 14. Deterministic; the applier resolves the real asset.
+local LILY_X = { -28, -20, -12, 12, 20, 28 }
+local LILY_Z_OFFSETS = { -8, 8, -5, 5 }
+
+function ModelMapRiverR8.lilyPads(centreZFn: ((number) -> number)?): { any }
+	local centre = centreZFn or ModelMapRiverR8.RIVER_CENTRE
+	local out = {}
+	for index, x in ipairs(LILY_X) do
+		local offset = LILY_Z_OFFSETS[(index - 1) % #LILY_Z_OFFSETS + 1]
+		local z = centre(x) + offset
+		out[index] = {
+			x = x,
+			z = z,
+			y = ModelMapRiverR8.WATER_SURFACE_Y + 0.1,
+			Side = if offset < 0 then "south" else "north",
+			VegX = x,
+			VegZ = z,
+		}
 	end
 	return out
 end

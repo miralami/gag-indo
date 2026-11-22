@@ -1,0 +1,47 @@
+CHECK 186 - denser, shadier DEFAULT tropical forest (WORK_QUEUE section Q item 186)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Play mode, Server VM. Place NOT saved, nothing published.
+Default look — NO candidate staged, no LookDev enable. Designer-approved shipping change.
+
+== Setup ==
+Changed sources injected into the Edit datamodel ( Rojo connection stale ) via multi_edit:
+  src/shared/ModelMapForestR9.luau -> ReplicatedStorage.Shared.ModelMapForestR9
+  src/server/World/Greybox.luau     -> ServerScriptService.Server.World.Greybox (buildBackgroundForest)
+Fresh Play, Server VM. tools/studio/check_q186.luau pasted whole into execute_luau.
+Harness reads the live workspace.World.BackgroundForest and the six MapSpec hub-door lanes.
+
+== Raw check lines (verbatim, fresh Play, default look) ==
+CHECK TREE_COUNT PASS 603 450
+CHECK SHADE_TREES PASS 4 3
+CHECK NO_PINES PASS 0 0
+CHECK WALKABLE PASS 0 0
+CHECK PATH_REACH PASS 0 0
+CHECK PERF_BUDGET PASS 339 500
+
+== Notes / measurements ==
+- TREE_COUNT 603 = 579 deterministic ring/hill placements + 24 hub shade anchors (4/hub x 6 hubs).
+  Ring band 260..380 (layers 1..7), hills 400..460 (layers 8..9); ANGLE_STEP 3->2, 9 radii.
+- SHADE_TREES: min per hub = 4 (pasar 4, gelap 4, warung 4, ronda 4, polisi 4, pakrt 4),
+  each ShadeTree model within 25 studs of its hub centre, behind the +Z door lane.
+- NO_PINES 0 over the whole workspace; baked asset names sanitised, shade names use 4 broadleaf
+  species only. WALKABLE / PATH_REACH 0: no tree AABB on a road rect or in a hub-door lane.
+- PERF_BUDGET 339: spawn-view BasePart census within XZ radius 100 (R10 method), Sedang budget 500.
+- aabb() adds cf.Position to rotated half-extent corners; Strings.raw not needed here.
+- No NPC outfits, terrain sculpt, chosen sky or ground touched. No visual verdict claimed.
+
+== Non-vacuity / calibration (undeweakened checks) ==
+Each mutation applied to the LIVE forest then the SAME check re-run (no check logic changed):
+
+1. TREE_COUNT: destroy 170 of the 603 trees -> CHECK TREE_COUNT FAIL 433 450 (all else PASS).
+2. SHADE_TREES: SetAttribute("ShadeTree", nil) on all 24 shade trees (24 mutated) ->
+   CHECK SHADE_TREES FAIL 0 3 (all else PASS).
+3. NO_PINES: rename one tree to "Tropical_pine_TEST" -> CHECK NO_PINES FAIL 1 0.
+4. WALKABLE: PivotTo one tree onto road-rect centre (92, 0) -> CHECK WALKABLE FAIL 1 0.
+5. PATH_REACH: PivotTo one tree into pasar hub-door lane (-64, -26) -> CHECK PATH_REACH FAIL 1 0.
+   (3/4/5 combined broken run also read SHADE_TREES FAIL 0 3 from the earlier shade mutation.)
+6. Pre-change calibration: the SAME harness on the baseline (pre-fix) forest read
+   TREE_COUNT FAIL 272 450 and SHADE_TREES FAIL 0 3 — the count/distance checks bite on the
+   old geometry, so the PASS is not a vacuous threshold.
+
+Status: SEEN-IN-STUDIO.

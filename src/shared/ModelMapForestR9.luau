@@ -12,13 +12,32 @@ export type Placement = {
 	scale: number, -- [0.85, 1.15]
 	species: string,
 	angle: number, -- integer degrees, part of the Model name
-	layer: number, -- 1..4 ring, 5..6 hills, part of the Model name
+	layer: number, -- 1..7 ring, 8..9 hills, part of the Model name
 	riverSide: boolean, -- z > 200 (palm bias)
+}
+
+type Hub = {
+	key: string,
+	x: number,
+	z: number,
+	width: number,
+	depth: number,
+	yaw: number,
+}
+
+export type ShadeAnchor = {
+	x: number,
+	z: number,
+	species: string,
+	angle: number, -- hub yaw in degrees, reused as the tree rotation
+	layer: number, -- odd layer keeps the shade trees in the shadow-casting tier
+	shade: boolean,
+	hubKey: string,
 }
 
 local ModelMapForestR9 = {}
 
-ModelMapForestR9.MIN_INSTANCES = 250
+ModelMapForestR9.MIN_INSTANCES = 450
 ModelMapForestR9.MIN_SPECIES = 4
 ModelMapForestR9.FOLDER_NAME = "BackgroundForest"
 ModelMapForestR9.NAME_PREFIX = "Tropical_"
@@ -34,11 +53,12 @@ ModelMapForestR9.IDS = {
 	bambu = R4_IDS.bambu,
 } :: { [string]: number }
 
--- Ring band 260..380, hills/beyond-400 band 400..460. Up to 11 studs of radial jitter keeps both
--- bands inside their limits while breaking up the "perfect circle" read.
-local BASE_RADII = { 260, 296, 332, 368, 408, 444 }
+-- Ring band 260..380 (layers 1..7), hills/beyond-400 band 400..460 (layers 8..9). Up to 11 studs
+-- of radial jitter keeps both bands inside their limits while breaking up the "perfect circle"
+-- read. Q186 densifies the same bands with interleaved radii; no new radial range is introduced.
+local BASE_RADII = { 260, 278, 296, 314, 332, 350, 368, 408, 444 }
 local RADIAL_JITTER = 12
-local ANGLE_STEP = 3
+local ANGLE_STEP = 2
 local ANGLE_OFFSET = 2
 local SUNSET_START = 130
 local SUNSET_END = 230
@@ -52,6 +72,7 @@ local RIVER_Z = 200
 -- species so RING_SPECIES >= 4 holds in either band.
 local RIVER_SPECIES = { "kelapa", "kelapa", "kelapa", "pisang", "bambu", "mangga" } :: { string }
 local INLAND_SPECIES = { "mangga", "bambu", "pisang", "mangga", "kelapa", "pisang" } :: { string }
+local SHADE_SPECIES = { "mangga", "bambu", "pisang", "kelapa" } :: { string }
 
 function ModelMapForestR9.placements(): { Placement }
 	local result: { Placement } = {}
@@ -83,6 +104,41 @@ function ModelMapForestR9.placements(): { Placement }
 				angle = angle,
 				layer = layer,
 				riverSide = riverSide,
+			}
+		end
+	end
+	return result
+end
+
+-- Mirrors MapSpec.rotatePoint: local +Z is the door side, local -Z the back of a hub. Kept local so
+-- this module stays pure data (no engine API and no MapSpec dependency).
+local function rotateOffset(hub: Hub, lx: number, lz: number): (number, number)
+	local a = math.rad(hub.yaw)
+	local cos, sin = math.cos(a), math.sin(a)
+	return hub.x + lx * cos + lz * sin, hub.z - lx * sin + lz * cos
+end
+
+-- Q186: four broadleaf/bamboo shade trees per hub, all behind/side of the door lane and within 25
+-- studs of the hub centre even for the smallest hub (gelap 32x28). Deterministic, no pine.
+function ModelMapForestR9.shadeAnchors(hubs: { Hub }): { ShadeAnchor }
+	local result: { ShadeAnchor } = {}
+	for _, hub in ipairs(hubs) do
+		local offsets = {
+			{ -hub.width / 5, -hub.depth / 5 },
+			{ hub.width / 5, -hub.depth / 5 },
+			{ 0, -hub.depth / 3 },
+			{ hub.width / 8, -hub.depth / 2.5 },
+		}
+		for i, offset in ipairs(offsets) do
+			local x, z = rotateOffset(hub, offset[1], offset[2])
+			result[#result + 1] = {
+				x = x,
+				z = z,
+				species = SHADE_SPECIES[i],
+				angle = hub.yaw,
+				layer = 1,
+				shade = true,
+				hubKey = hub.key,
 			}
 		end
 	end

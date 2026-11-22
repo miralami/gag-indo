@@ -17,6 +17,7 @@ return function(t, Env)
 	local expect = t.expect
 	local Data = Env.new():require("shared/ModelMapForestR9")
 	local R4 = Env.new():require("shared/ModelMapVegetationR4")
+	local MapSpec = Env.new():require("server/World/MapSpec")
 	local data = fs.readFile(DATA_PATH)
 	local greybox = fs.readFile(GREYBOX_PATH)
 	local placements = Data.placements()
@@ -24,7 +25,7 @@ return function(t, Env)
 
 	t:describe("ModelMapForestR9 pure data", function()
 		t:it("locks the shared name/attribute contract and the four verified R4 IDs", function()
-			expect(Data.MIN_INSTANCES):toBe(250)
+			expect(Data.MIN_INSTANCES):toBe(450)
 			expect(Data.MIN_SPECIES):toBe(4)
 			expect(Data.FOLDER_NAME):toBe("BackgroundForest")
 			expect(Data.NAME_PREFIX):toBe("Tropical_")
@@ -47,9 +48,9 @@ return function(t, Env)
 			expect(data:find("Enum", 1, true)):toBe(nil)
 		end)
 
-		t:it("returns a deterministic >=250 wall across both bands with four species", function()
+		t:it("returns a deterministic >=450 wall across both bands with four species", function()
 			expect(#placements >= Data.MIN_INSTANCES):toBe(true)
-			expect(#placements >= 260 and #placements <= 280):toBe(true)
+			expect(#placements >= 460 and #placements <= 750):toBe(true)
 			local counts = {}
 			for _, p in ipairs(placements) do
 				counts[p.species] = (counts[p.species] or 0) + 1
@@ -80,11 +81,11 @@ return function(t, Env)
 				expect(type(p.angle)):toBe("number")
 				expect(p.angle % 1 == 0 and p.angle >= 0 and p.angle < 360):toBe(true)
 				expect(type(p.layer)):toBe("number")
-				expect(p.layer >= 1 and p.layer <= 6 and p.layer % 1 == 0):toBe(true)
+				expect(p.layer >= 1 and p.layer <= 9 and p.layer % 1 == 0):toBe(true)
 				expect(type(p.riverSide)):toBe("boolean")
 				expect(p.riverSide):toBe(p.z > 200)
 				local radius = math.sqrt(p.x * p.x + p.z * p.z)
-				if p.layer <= 4 then
+				if p.layer <= 7 then
 					ring += 1
 					expect(radius >= 260 and radius <= 380):toBe(true)
 				else
@@ -123,6 +124,58 @@ return function(t, Env)
 			end
 			expect(river > 0 and inland > 0):toBe(true)
 			expect(riverKelapa / river > inlandKelapa / inland):toBe(true)
+		end)
+	end)
+
+	t:describe("ModelMapForestR9 shade anchors", function()
+		local anchors = Data.shadeAnchors(MapSpec.HUBS)
+
+		t:it("places 3-4 broadleaf/bamboo shade trees per hub, behind the door lane", function()
+			local perHub = {}
+			for _, a in ipairs(anchors) do
+				expect(a.shade):toBe(true)
+				expect(type(a.hubKey)):toBe("string")
+				expect(SPECIES_SET[a.species]):toBe(true)
+				expect(hasPine(a.species)):toBe(false)
+				expect(a.layer % 1 == 0 and a.layer % 2 == 1):toBe(true)
+				expect(a.angle % 1 == 0 and a.angle >= 0 and a.angle < 360):toBe(true)
+				perHub[a.hubKey] = (perHub[a.hubKey] or 0) + 1
+				local hub = nil
+				for _, h in ipairs(MapSpec.HUBS) do
+					if h.key == a.hubKey then
+						hub = h
+						break
+					end
+				end
+				expect(hub ~= nil):toBe(true)
+				if hub then
+					local dx, dz = a.x - hub.x, a.z - hub.z
+					expect(dx * dx + dz * dz <= 25 * 25):toBe(true)
+					-- Inverse of MapSpec.rotatePoint: local +Z is the door lane, local -Z the back.
+					local c, s = math.cos(math.rad(hub.yaw)), math.sin(math.rad(hub.yaw))
+					expect(dx * s + dz * c < 0):toBe(true)
+				end
+			end
+			for _, hub in ipairs(MapSpec.HUBS) do
+				local count = perHub[hub.key] or 0
+				expect(count >= 3 and count <= 4):toBe(true)
+			end
+			expect(#anchors >= #MapSpec.HUBS * 3):toBe(true)
+		end)
+
+		t:it("is deterministic and rejects pine names", function()
+			local again = Data.shadeAnchors(MapSpec.HUBS)
+			expect(#again):toBe(#anchors)
+			for i, a in ipairs(anchors) do
+				expect(a.x):toBe(again[i].x)
+				expect(a.z):toBe(again[i].z)
+				expect(a.species):toBe(again[i].species)
+				expect(a.hubKey):toBe(again[i].hubKey)
+				expect(hasPine("Shade_" .. a.species .. "_" .. a.hubKey .. "_" .. i)):toBe(false)
+			end
+			expect(data:find("shadeAnchors", 1, true) ~= nil):toBe(true)
+			expect(greybox:find("shadeAnchors", 1, true) ~= nil):toBe(true)
+			expect(greybox:find('SetAttribute("ShadeTree", true)', 1, true) ~= nil):toBe(true)
 		end)
 	end)
 

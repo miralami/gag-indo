@@ -858,7 +858,7 @@ emit("NO_PINES", okScene and pineCount == 0, pineCount, 0, {
 	sample = pineOffenders,
 	readError = not okScene,
 })
-emit("RING_COUNT", okScene and forestCount >= 250, forestCount, 250, {
+emit("RING_COUNT", okScene and forestCount >= 450, forestCount, 450, {
 	measurement = "workspace descendants with ForestTree == true",
 	readError = not okScene,
 })

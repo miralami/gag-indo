@@ -804,7 +804,19 @@ local function buildBackgroundForest(world: Folder)
 	local forest = Instance.new("Folder")
 	forest.Name = ModelMapForestR9.FOLDER_NAME
 	forest.Parent = world
-	for _, p in ModelMapForestR9.placements() do
+	type ForestEntry = {
+		x: number,
+		z: number,
+		yaw: number?, -- ring placements carry radians; shade anchors reuse angle instead
+		scale: number?,
+		species: string,
+		angle: number,
+		layer: number,
+		shade: boolean?,
+		hubKey: string?,
+	}
+
+	local function makeTree(p: ForestEntry, name: string)
 		local tree: Model? = nil
 		local id = ModelMapForestR9.IDS[p.species]
 		if id then
@@ -843,7 +855,7 @@ local function buildBackgroundForest(world: Folder)
 			end
 			local model = tree
 			pcall(function()
-				model:ScaleTo(p.scale)
+				model:ScaleTo(p.scale or 1.15)
 			end)
 		else
 			tree = Instance.new("Model")
@@ -889,7 +901,7 @@ local function buildBackgroundForest(world: Folder)
 			end
 		end
 		if tree then
-			local castShadow = p.layer % 2 == 1 -- sparse, only three of the six layers
+			local castShadow = p.layer % 2 == 1 -- odd tiers cast; shade anchors use layer 1
 			for _, d in tree:GetDescendants() do
 				if d:IsA("BasePart") then
 					d.Anchored = true
@@ -899,15 +911,26 @@ local function buildBackgroundForest(world: Folder)
 					d.CastShadow = castShadow
 				end
 			end
-			tree.Name = ModelMapForestR9.NAME_PREFIX .. p.species .. "_" .. p.angle .. "_" .. p.layer
+			tree.Name = name
 			tree:SetAttribute("ForestTree", true)
 			tree:SetAttribute("ForestSpecies", p.species)
+			if p.shade then
+				tree:SetAttribute("ShadeTree", true)
+			end
 			-- pcall-guarded: Lune's mock Instance has no PivotTo; real Studio always places the tree.
 			pcall(function()
-				tree:PivotTo(CFrame.new(p.x, GROUND_Y, p.z) * CFrame.Angles(0, p.yaw, 0))
+				tree:PivotTo(CFrame.new(p.x, GROUND_Y, p.z) * CFrame.Angles(0, p.yaw or math.rad(p.angle), 0))
 			end)
 			tree.Parent = forest
 		end
+	end
+
+	for _, p in ModelMapForestR9.placements() do
+		makeTree(p, ModelMapForestR9.NAME_PREFIX .. p.species .. "_" .. p.angle .. "_" .. p.layer)
+	end
+	-- Q186: shade trees use the same baked/fallback path and post-processing as the ring trees.
+	for i, p in ipairs(ModelMapForestR9.shadeAnchors(MapSpec.HUBS)) do
+		makeTree(p, "Shade_" .. p.species .. "_" .. p.hubKey .. "_" .. i)
 	end
 end
 

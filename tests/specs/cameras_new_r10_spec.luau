@@ -27,7 +27,8 @@ for _, name in ipairs(CROPS) do
 end
 
 local PREVIOUS_COUNT = 45 -- registry size after item 118, before item 133
-local TOTAL_COUNT = PREVIOUS_COUNT + #NEW -- 54
+local P_ROUND_CAMERAS = 3 -- items 180/182: ronda_tower_wide + canonical_overview_left/right
+local TOTAL_COUNT = PREVIOUS_COUNT + #NEW + P_ROUND_CAMERAS -- 57
 
 local function validVec(value)
 	if type(value) ~= "table" or #value ~= 3 then

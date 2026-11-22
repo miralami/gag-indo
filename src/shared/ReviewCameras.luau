@@ -235,14 +235,31 @@ add(
 	"Fountain, benches, umbrellas and bunting at the MapSpec plaza centre, seen from above."
 )
 
--- Pos Ronda tower: back off the north shoulder and rise above the greybox roof to frame the tower.
+-- Pos Ronda tower (WORK_QUEUE item 180). The old eye stood east of the tower centre, behind the
+-- Pos Polisi roofline, so the tower read half hidden. Both eyes now stand on the open NORTH-WEST
+-- diagonal (negative local X and Z), with the hut and Polisi roofs behind the subject. Every number
+-- is MapSpec-derived; only the dimensionless diagonal fraction and the rise factor are fixed here.
 local tower = MapSpec.RONDA_TOWER
+local TOWER_STANDOFF = HUB_STANDOFF
+local TOWER_WIDE_STANDOFF = HUB_STANDOFF + MapSpec.PLAZA.width / MapSpec.S
+local TOWER_LOOK_Y = MapSpec.GROUND_Y + tower.height / 2
+local towerEyeX = tower.x - TOWER_STANDOFF * DIAGONAL
+local towerEyeZ = tower.z - TOWER_STANDOFF * DIAGONAL
+local towerWideEyeX = tower.x - TOWER_WIDE_STANDOFF * DIAGONAL
+local towerWideEyeZ = tower.z - TOWER_WIDE_STANDOFF * DIAGONAL
 add(
 	"ronda_tower",
-	vec(tower.x + tower.deck / 2, MapSpec.GROUND_Y + tower.height / 2 + MapSpec.S * 2, tower.z - HUB_STANDOFF),
-	vec(tower.x, MapSpec.GROUND_Y + (tower.height - tower.deck) / 2, tower.z),
+	vec(towerEyeX, MapSpec.GROUND_Y + tower.height * 0.75 + MapSpec.S, towerEyeZ),
+	vec(tower.x, TOWER_LOOK_Y, tower.z),
 	"Server",
-	"Bamboo watchtower at MapSpec.RONDA_TOWER, 3/4 from the north shoulder at mid-height."
+	"Bamboo watchtower at MapSpec.RONDA_TOWER, framed whole from the open north-west side."
+)
+add(
+	"ronda_tower_wide",
+	vec(towerWideEyeX, MapSpec.GROUND_Y + tower.height + MapSpec.HEADROOM / 2, towerWideEyeZ),
+	vec(tower.x, TOWER_LOOK_Y, tower.z),
+	"Server",
+	"Wider 3/4 of the whole Pos Ronda watchtower from farther out on the same open north-west side."
 )
 
 -- River rocks: bank standoff and lateral step come from the bridge; sight down the river centreline.
@@ -268,16 +285,37 @@ add(
 )
 
 -- Canonical overview: high 3/4 from the south of the bridge, looking north over it to the plaza.
+local overviewEyeX = bridge.x + bridge.width * MapSpec.S * 2
+local overviewEyeY = MapSpec.GROUND_Y + MapSpec.TERRAIN_HALF / (MapSpec.S * MapSpec.S)
+local overviewEyeZ = bridge.z1 + bridge.width * MapSpec.S * 3
+local overviewLookY = MapSpec.GROUND_Y + MapSpec.HEADROOM
+local overviewLookZ = MapSpec.PLAZA.z + MapSpec.LAPANGAN.depth
 add(
 	"canonical_overview",
-	vec(
-		bridge.x + bridge.width * MapSpec.S * 2,
-		MapSpec.GROUND_Y + MapSpec.TERRAIN_HALF / (MapSpec.S * MapSpec.S),
-		bridge.z1 + bridge.width * MapSpec.S * 3
-	),
-	vec(MapSpec.PLAZA.x, MapSpec.GROUND_Y + MapSpec.HEADROOM, MapSpec.PLAZA.z),
+	vec(overviewEyeX, overviewEyeY, overviewEyeZ),
+	vec(MapSpec.PLAZA.x, overviewLookY, MapSpec.PLAZA.z),
 	"Server",
 	"High 3/4 canonical-style overview from the south over the bridge toward the whole village."
+)
+
+-- WORK_QUEUE item 182: flanking eyes for the empty west / middle ring between the Pasar ring and the
+-- river. Same height and standoff as the canonical overview, shifted laterally by one plaza width;
+-- each aims at the ring flank so blocks_r9 dressing reads in the default-look shot.
+local OVERVIEW_FLANK = MapSpec.PLAZA.width * MapSpec.S
+local overviewFlankX = MapSpec.PLAZA.width
+add(
+	"canonical_overview_left",
+	vec(overviewEyeX - OVERVIEW_FLANK, overviewEyeY, overviewEyeZ),
+	vec(MapSpec.PLAZA.x - overviewFlankX, overviewLookY, overviewLookZ),
+	"Server",
+	"Left flank of the canonical overview: village ring and river band west of the Pasar."
+)
+add(
+	"canonical_overview_right",
+	vec(overviewEyeX + OVERVIEW_FLANK, overviewEyeY, overviewEyeZ),
+	vec(MapSpec.PLAZA.x + overviewFlankX, overviewLookY, overviewLookZ),
+	"Server",
+	"Right flank of the canonical overview: village ring and river band east of the Pasar."
 )
 
 -- Lighting variants: same framing as their base camera; the name selects the lighting preset.

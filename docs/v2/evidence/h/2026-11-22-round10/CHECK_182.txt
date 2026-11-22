@@ -1,0 +1,30 @@
+CHECK 182 - blocks_r9 ring band trees and overview flank cameras (WORK_QUEUE section P)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Play mode, Server VM. Place NOT saved, nothing published.
+Candidate OFF by default.
+
+== Setup ==
+1. `src/shared/ModelMapBlocksR9.luau` + `src/server/World/LookDevBlocksR9.luau`: baked tropical
+   trees/shrubs added on a polar lattice in the village ring; `ReviewCameras.luau` gained
+   `canonical_overview_left` and `canonical_overview_right`.
+2. Sources injected into the Edit datamodel (stale Rojo connection) then fresh Play.
+   `tools/studio/check_p182.luau` pasted whole into execute_luau (Server VM), stages `blocks_r9`
+   via `enableAdditive`, restores via `disableAll()`.
+
+== Raw check lines (verbatim, staged blocks_r9) ==
+CHECK BLOCK_TREES PASS 68 60
+CHECK PERF_BUDGET PASS 390 500
+CHECK WALKABLE PASS 0 0
+CHECK GATE_CLEAR PASS 0 0
+
+== Non-vacuity / before-after ==
+- BEFORE (stale source in Studio): BLOCK_TREES FAIL 4 60 (4 trees / 16 shrubs in radius 60..140
+  of 72 total) — genuine gap, not a count-only artifact. AFTER: 68 band trees / 40 band shrubs,
+  4 species, 256 staged models; 0 collidable staged parts in 6 lanes and 10 gates; 390 parts
+  within 100 studs vs Sedang budget 500.
+- New Lune spec was pre-fix 1 PASS/9 FAIL, post-fix 10/10 PASS. Existing camera specs updated for
+  the 57-camera registry and the new MapSpec-derived ronda_tower eye; suite 2914.
+- No NPC outfits, terrain sculpt, chosen sky or ground touched. No visual verdict claimed.
+
+Status: SEEN-IN-STUDIO.

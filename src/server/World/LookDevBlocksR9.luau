@@ -216,7 +216,7 @@ local function apply()
 		return
 	end
 
-	local placed = 0
+	local placed, bandTrees = 0, 0
 	for _, slot in ipairs(Data.slots()) do
 		local okSlot, allowed = pcall(function()
 			return Data.slotAllowed(slot, zones)
@@ -250,6 +250,18 @@ local function apply()
 			else
 				model:SetAttribute("BlockShrub", true)
 			end
+			-- Item 182 markers: the village-ring band and the baked alang-alang grass dressing.
+			-- Both are derived from the accepted slot, not invented IDs or measured screenshots.
+			local radius = math.sqrt(slot.x * slot.x + slot.z * slot.z)
+			if radius >= Data.BAND_MIN_RADIUS and radius <= Data.BAND_MAX_RADIUS then
+				model:SetAttribute("BlockBand", true)
+				if slot.kind == "tree" then
+					bandTrees += 1
+				end
+			end
+			if slot.species == "alang_alang" then
+				model:SetAttribute("BlockGrass", true)
+			end
 		end)
 		placeAndScale(model, slot)
 		pcall(function()
@@ -259,6 +271,9 @@ local function apply()
 	end
 	if placed < Data.MIN_TREES + Data.MIN_SHRUBS then
 		fail("too few block plants staged: " .. tostring(placed))
+	end
+	if bandTrees < Data.MIN_BAND_TREES then
+		fail("too few village-ring trees staged: " .. tostring(bandTrees))
 	end
 	publishFailures()
 end

@@ -95,13 +95,15 @@ return function(t, Env)
 			}
 
 			local tower = MapSpec.RONDA_TOWER
+			-- item 180: eye moved to the open north-west diagonal so the whole tower is clear.
+			local towerEyeStandoff = HUB_STANDOFF * DIAGONAL
 			expected.ronda_tower = {
 				{
-					tower.x + tower.deck / 2,
-					MapSpec.GROUND_Y + tower.height / 2 + MapSpec.S * 2,
-					tower.z - HUB_STANDOFF,
+					tower.x - towerEyeStandoff,
+					MapSpec.GROUND_Y + tower.height * 0.75 + MapSpec.S,
+					tower.z - towerEyeStandoff,
 				},
-				{ tower.x, MapSpec.GROUND_Y + (tower.height - tower.deck) / 2, tower.z },
+				{ tower.x, MapSpec.GROUND_Y + tower.height / 2, tower.z },
 			}
 
 			local bridge = MapSpec.BRIDGE

@@ -219,6 +219,8 @@ local specs = {
 	require("./specs/sawah_bund_grass_spec"),
 	require("./specs/pasar_pads_stripes_spec"),
 	require("./specs/plots_gate_wood_sign_spec"),
+	require("./specs/cameras_round10_p_spec"),
+	require("./specs/blocks_band_trees_spec"),
 	require("./specs/ronda_tower_r9_spec"),
 	require("./specs/rocks_r9_spec"),
 	require("./specs/streetfurn_r8_spec"),

@@ -46,6 +46,22 @@ ModelMapBlocksR9.CAMERA_CLEAR_TOLERANCE = 0.5
 ModelMapBlocksR9.PLOT_RADIUS_FRACTION = 1 / 10
 ModelMapBlocksR9.EXTENT = Game.plotRadius * (1 + ModelMapBlocksR9.PLOT_RADIUS_FRACTION) + MapSpec.ROAD.ringWidth
 
+-- WORK_QUEUE item 182: the item-145 lattice is uniform over the whole 223-stud extent, so only 4 of
+-- its 72 trees land in the village ring (radius 60..140) seen from canonical_overview. A second
+-- deterministic pass fills that empty band with the same baked tropical trees plus alang-alang
+-- grass. It reuses every acceptance guard below, so no exclusion zone, camera ray, footprint or
+-- spacing rule is weakened. Radii stop at 136: the ring road starts at 138, and parts outside the
+-- 100-stud PERF_BUDGET census keep the staged proxy under the Sedang target.
+ModelMapBlocksR9.BAND_MIN_RADIUS = 60
+ModelMapBlocksR9.BAND_MAX_RADIUS = 140
+ModelMapBlocksR9.MIN_BAND_TREES = 60
+ModelMapBlocksR9.BAND_TREE_TARGET = 64
+ModelMapBlocksR9.BAND_SHRUB_TARGET = 24
+ModelMapBlocksR9.BAND_RADII = { 100, 106, 112, 118, 124, 130, 136 }
+ModelMapBlocksR9.BAND_ANGLES = 160
+ModelMapBlocksR9.BAND_RADIUS_JITTER = 1.5
+ModelMapBlocksR9.BAND_LCG_SEED = 182
+
 ModelMapBlocksR9.ids = R7.ids
 ModelMapBlocksR9.sources = R7.sources
 
@@ -62,8 +78,26 @@ local SHRUB_PLAN = {
 	{ key = "kembang_sepatu", species = "kembang sepatu", height = 3, half = 3 },
 	{ key = "alang_alang", species = "alang-alang", height = 2, half = 2 },
 }
+-- Item 182 prefers the narrow-footprint baked species in the ring band; every key here already has a
+-- verified R7 ID and appears in the item-145 plans, so no new asset ID is introduced.
+local BAND_TREE_PLAN = {
+	TREE_PLAN[2], -- bambu
+	TREE_PLAN[2],
+	TREE_PLAN[4], -- teh-tehan hedge
+	TREE_PLAN[3], -- pisang
+	TREE_PLAN[1], -- mangga
+}
+local BAND_SHRUB_PLAN = {
+	SHRUB_PLAN[4], -- alang-alang grass
+	SHRUB_PLAN[4],
+	SHRUB_PLAN[2], -- bunga
+	SHRUB_PLAN[1], -- shrubs
+	SHRUB_PLAN[3], -- kembang sepatu
+}
 ModelMapBlocksR9.treePlan = TREE_PLAN
 ModelMapBlocksR9.shrubPlan = SHRUB_PLAN
+ModelMapBlocksR9.bandTreePlan = BAND_TREE_PLAN
+ModelMapBlocksR9.bandShrubPlan = BAND_SHRUB_PLAN
 
 local function lcg(seed)
 	local state = seed % 2147483647
@@ -210,6 +244,47 @@ local function buildSlots()
 		}
 		add(candidate, plan, if wantTree then "tree" else "shrub")
 	end
+
+	-- Item 182 ring-band pass. Same add() gate as above, but the lattice is polar over the empty
+	-- r102.5..137.5 band; deterministic LCG and fixed angular cells keep the pure data reproducible.
+	local bandRand = lcg(ModelMapBlocksR9.BAND_LCG_SEED)
+	local bandTrees, bandShrubs = 0, 0
+	for _, radius in ipairs(ModelMapBlocksR9.BAND_RADII) do
+		for step = 1, ModelMapBlocksR9.BAND_ANGLES do
+			if bandTrees >= ModelMapBlocksR9.BAND_TREE_TARGET and bandShrubs >= ModelMapBlocksR9.BAND_SHRUB_TARGET then
+				break
+			end
+			local wantTree = bandTrees < ModelMapBlocksR9.BAND_TREE_TARGET
+				and (
+					bandShrubs >= ModelMapBlocksR9.BAND_SHRUB_TARGET
+					or bandTrees * ModelMapBlocksR9.BAND_SHRUB_TARGET
+						<= bandShrubs * ModelMapBlocksR9.BAND_TREE_TARGET
+				)
+			local planList = if wantTree then BAND_TREE_PLAN else BAND_SHRUB_PLAN
+			local plan = planList[math.floor(bandRand() * #planList) + 1]
+			local scale = 1 + (bandRand() * 2 - 1) * ModelMapBlocksR9.SCALE_JITTER
+			local height =
+				math.clamp(plan.height * scale, ModelMapBlocksR9.TREE_HEIGHT_MIN, ModelMapBlocksR9.TREE_HEIGHT_MAX)
+			local angle = (step - 0.5) * math.pi * 2 / ModelMapBlocksR9.BAND_ANGLES
+			local bandRadius = radius + (bandRand() * 2 - 1) * ModelMapBlocksR9.BAND_RADIUS_JITTER
+			local candidate = {
+				x = math.cos(angle) * bandRadius,
+				z = math.sin(angle) * bandRadius,
+				species = plan.species,
+				height = height,
+				yaw = bandRand() * math.pi * 2,
+				scale = scale,
+				footprint = { halfX = plan.half, halfZ = plan.half },
+			}
+			if add(candidate, plan, if wantTree then "tree" else "shrub") then
+				if wantTree then
+					bandTrees += 1
+				else
+					bandShrubs += 1
+				end
+			end
+		end
+	end
 	return out
 end
 
@@ -253,6 +328,20 @@ function ModelMapBlocksR9.speciesCount(kind)
 	return count
 end
 
+-- Item 182: trees actually visible in the village ring seen from canonical_overview.
+function ModelMapBlocksR9.bandTreeCount()
+	local count = 0
+	for _, slot in ipairs(SLOTS) do
+		if slot.kind == "tree" then
+			local radius = math.sqrt(slot.x * slot.x + slot.z * slot.z)
+			if radius >= ModelMapBlocksR9.BAND_MIN_RADIUS and radius <= ModelMapBlocksR9.BAND_MAX_RADIUS then
+				count += 1
+			end
+		end
+	end
+	return count
+end
+
 function ModelMapBlocksR9.minSpacing(slotList)
 	local list = slotList or SLOTS
 	local minimum = math.huge
@@ -268,6 +357,10 @@ end
 -- Self-check: pure data must meet the item-145 targets before any Studio check runs.
 do
 	assert(#ModelMapBlocksR9.trees() >= ModelMapBlocksR9.MIN_TREES, "blocks_r9: fewer than 60 trees")
+	assert(
+		ModelMapBlocksR9.bandTreeCount() >= ModelMapBlocksR9.MIN_BAND_TREES,
+		"blocks_r9: fewer than 60 trees in the radius 60..140 village ring"
+	)
 	assert(#ModelMapBlocksR9.shrubs() >= ModelMapBlocksR9.MIN_SHRUBS, "blocks_r9: fewer than 80 shrubs")
 	assert(
 		ModelMapBlocksR9.speciesCount("tree") >= ModelMapBlocksR9.MIN_SPECIES,

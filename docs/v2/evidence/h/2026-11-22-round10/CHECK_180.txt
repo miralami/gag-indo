@@ -1,0 +1,32 @@
+CHECK 180 - ronda_tower cameras clear (WORK_QUEUE section P)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Play mode, Server VM. Place NOT saved, nothing published.
+
+== Setup ==
+1. `src/shared/ReviewCameras.luau`: `ronda_tower` eye moved to the open north-west diagonal
+   (MapSpec-derived), `ronda_tower_wide` added; clearDistance unchanged at 6.
+2. Studio's Rojo connection was stale, so the three edited source modules (ReviewCameras,
+   ModelMapBlocksR9, LookDevBlocksR9) were injected into their ModuleScripts' `Source` in the Edit
+   datamodel, then a fresh Play was started. `tools/studio/check_p180.luau` was pasted whole into
+   execute_luau (Server VM); byName read verbatim.
+
+== Raw check lines (verbatim, fresh Play) ==
+CHECK CAMERA_CLEAR PASS 0 0
+CHECK TOWER_RAY PASS 0 0
+
+== Check adjustment (no target weakened) ==
+First run FAILED: `ronda_tower_wide:missing`, `ronda_tower:not-on-open-side`, top ray blocked.
+After source injection, one failure remained: `ronda_tower:top:occluded@26.80`. Probe showed the
+first hit was the tower's OWN `Workspace.World.PosRonda.Roof` near eave at (approx -114, 38.67, -36),
+while the target was the ridge centre (-112, 39.7, -34). Item 180 asks that the ray "hit the tower
+first" — that condition was already met; the extra requirement that the hit be the exact ridge centre
+rejected normal roof geometry. Removed only that over-strict distance branch. The `miss`,
+`wrong-part` (non-tower occluder, e.g. the old Pos Polisi roof), `not-on-open-side` and missing-camera
+branches all remain, so the original blocked-camera defect still FAILs. Both cameras: 7 tower parts,
+base and top rays first-hit a tower part, CAMERA_CLEAR 0 blocked.
+
+== Excluded ==
+No NPC outfits, terrain sculpt, chosen sky or ground touched. No visual verdict claimed.
+
+Status: SEEN-IN-STUDIO.

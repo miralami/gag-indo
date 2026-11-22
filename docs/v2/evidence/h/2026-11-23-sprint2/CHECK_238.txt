@@ -1,0 +1,39 @@
+CHECK 238 - review capture helper: hide the HUD (WORK_QUEUE SPRINT 2 item 238)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2
+Place: Development-Juragan-Desa. Play only (Server VM, check). Place NOT saved, nothing published.
+Rojo-synced: repo src/ changes present in the live place before the run.
+
+== Wiring ==
+src/shared/LookDevReview.luau gains `hideHud(root?)` / `restoreHud()` only. hideHud resolves
+Players.LocalPlayer.PlayerGui (SERVER-VM fallback Players:GetPlayers()[1].PlayerGui), saves the exact
+prior `Enabled` of every ScreenGui descendant, sets each to false, is repeat-safe, and returns the
+snapshot size. restoreHud writes every saved value back exactly and clears the snapshot. No existing
+LookDev toggle changed. LUNE spec tests/specs/lookdev_hud_spec.luau (7 cases) registered in
+tests/run.luau; docs/v2/visual/REVIEW_CAMERAS.md documents the Client-VM capture sequence;
+tools/studio/check_q238.luau is the self-contained SERVER-VM check. No visual verdict.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK HUD_HIDDEN PASS 0 0
+CHECK HUD_RESTORE PASS 0 0
+
+== Notes / measurements ==
+- HUD_HIDDEN 0/0: 3 temporary ScreenGuis (true/false/true) plus the real HUD were counted. Before:
+  3 enabled (real HUD disabled by game state at that moment); after hideHud(game): 0 enabled, 0 read
+  errors, hiddenCount 4.
+- HUD_RESTORE 0/0: restoreHud() returned true; all three temporary guis matched their saved state
+  exactly ({true,false,true}), 0 mismatches, 0 read errors. Real HUD guis restored first; temporary
+  guis destroyed after the measurement.
+- Check ran in the SERVER VM. Actual capture usage is documented for the Client VM:
+  hideHud(game) -> screen_capture -> restoreHud(). Play stopped after the run.
+
+== Non-vacuity / calibration ==
+Runtime-only injection, same harness/session, repo file untouched:
+- Force one temporary gui Enabled=true after hideHud and before the HUD_HIDDEN measurement:
+  CHECK HUD_HIDDEN FAIL 1 0, HUD_RESTORE PASS 0 0.
+- Flip one temporary gui after restoreHud and before the HUD_RESTORE measurement:
+  CHECK HUD_HIDDEN PASS 0 0, HUD_RESTORE FAIL 1 0.
+Both checks demonstrably FAIL on injected bad state. No visual yes/no claimed.
+
+Local validation: lune run tests/run.luau 3031 passed; selene src 0 errors / 0 warnings / 0 parse errors.
+Status: SEEN-IN-STUDIO.

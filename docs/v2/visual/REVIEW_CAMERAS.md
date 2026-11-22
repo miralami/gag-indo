@@ -95,3 +95,38 @@ Shots and verdicts belong under `docs/v2/evidence/h/<date>-round9/`.
 - The registry requires MapSpec from `ServerScriptService.Server.World`, so load it from the Server
   datamodel or the Lune Env harness. The returned `datamodel` field is data for the shooter, not a
   promise that the module itself loads in both VMs.
+
+## HUD-free review captures (WORK_QUEUE item 238)
+
+`src/shared/LookDevReview.luau` has a client-side review helper for clean shots:
+`hideHud(root?)` saves the exact prior `Enabled` of every `ScreenGui` under the local player's
+`PlayerGui`, sets them all to `false`, and returns the count disabled; `restoreHud()` writes every
+saved value back exactly and clears the saved state. A second `hideHud` keeps the original saved
+values and also records later `ScreenGui`s, so repeated calls do not lose state. If `PlayerGui`
+cannot be resolved, `hideHud` returns 0 and changes nothing.
+
+**Main-session use:** in a **Client VM** `execute_luau`, call `hideHud(game)`, take the
+`screen_capture` for the chosen camera from the table above, then call `restoreHud()` in the same
+session. Do not leave the HUD hidden after the shot. No visual verdict is made by this helper.
+
+Exact commands (Client datamodel):
+
+```luau
+local Review = require(game.ReplicatedStorage.Shared.LookDevReview)
+local hiddenCount = Review.hideHud(game) -- all PlayerGui ScreenGuis now disabled
+-- main session: screen_capture at ReviewCameras.get("spawn") (or another named camera)
+local restored = Review.restoreHud() -- every ScreenGui back to its saved Enabled
+```
+
+One-line command-bar form:
+
+```luau
+require(game.ReplicatedStorage.Shared.LookDevReview).hideHud(game)
+require(game.ReplicatedStorage.Shared.LookDevReview).restoreHud()
+```
+
+`execute_luau` normally runs in the **SERVER VM**, where `Players.LocalPlayer` is nil; the helper
+then uses `Players:GetPlayers()[1].PlayerGui`. The self-contained SERVER-VM harness
+`tools/studio/check_q238.luau` proves `HUD_HIDDEN` (0 enabled ScreenGuis while hidden) and
+`HUD_RESTORE` (every temporary ScreenGui back to its saved value) and cleans up after itself. Use
+that for checks; use the Client VM sequence above for actual capture shots.

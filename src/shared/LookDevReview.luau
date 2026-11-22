@@ -261,4 +261,134 @@ function LookDevReview.disableAll(): boolean
 	return sharedLookDev().disableAll()
 end
 
+-- Review-capture HUD helper (WORK_QUEUE item 238). hideHud records the exact prior Enabled of every
+-- ScreenGui under the player's PlayerGui and sets them all to false; restoreHud writes the saved
+-- values back and clears the snapshot. No game API is touched at load. The root defaults to `game`;
+-- in the SERVER VM Players.LocalPlayer is nil, so resolution falls back to GetPlayers()[1].
+type HudEntry = { gui: any, enabled: any }
+type HudState = { playerGui: any?, entries: { HudEntry } }
+local hudState: HudState? = nil
+
+local function resolveReviewPlayerGui(root: any): any?
+	local players = get(root, "Players")
+	if not players then
+		local getService = get(root, "GetService")
+		if type(getService) == "function" then
+			local ok, service = pcall(getService, root, "Players")
+			if ok then
+				players = service
+			end
+		end
+	end
+	if not players then
+		return nil
+	end
+	local localPlayer = get(players, "LocalPlayer")
+	local playerGui = get(localPlayer, "PlayerGui")
+	if playerGui then
+		return playerGui
+	end
+	-- SERVER VM fallback: no LocalPlayer, use the first connected player's PlayerGui.
+	local getPlayers = get(players, "GetPlayers")
+	if type(getPlayers) ~= "function" then
+		return nil
+	end
+	local ok, list = pcall(getPlayers, players)
+	if not ok or type(list) ~= "table" then
+		return nil
+	end
+	return get(list[1], "PlayerGui")
+end
+
+local function reviewScreenGuis(playerGui: any): { any }
+	local all: { any } = {}
+	local ok, list = pcall(function()
+		return playerGui:GetDescendants()
+	end)
+	if ok and type(list) == "table" then
+		for _, instance in ipairs(list) do
+			all[#all + 1] = instance
+		end
+	else
+		-- Fake DataModels in the Lune specs expose children, not GetDescendants.
+		local function walk(node: any)
+			local okChildren, children = pcall(function()
+				return node:GetChildren()
+			end)
+			if not okChildren or type(children) ~= "table" then
+				return
+			end
+			for _, child in ipairs(children) do
+				all[#all + 1] = child
+				walk(child)
+			end
+		end
+		walk(playerGui)
+	end
+	local found: { any } = {}
+	for _, instance in ipairs(all) do
+		local okClass, className = pcall(function()
+			return instance.ClassName
+		end)
+		local isScreen = okClass and className == "ScreenGui"
+		if not isScreen then
+			local okIsA, result = pcall(function()
+				return instance:IsA("ScreenGui")
+			end)
+			isScreen = okIsA and result == true
+		end
+		if isScreen then
+			found[#found + 1] = instance
+		end
+	end
+	return found
+end
+
+function LookDevReview.hideHud(root: any?): number
+	root = if root == nil then dataModel() else root
+	local playerGui = if root ~= nil then resolveReviewPlayerGui(root) else nil
+	if not playerGui then
+		return 0
+	end
+	local state = hudState
+	if not state then
+		state = { playerGui = playerGui, entries = {} }
+		hudState = state
+	end
+	for _, gui in ipairs(reviewScreenGuis(playerGui)) do
+		local found = false
+		for _, existing in ipairs(state.entries) do
+			if existing.gui == gui then
+				found = true
+				break
+			end
+		end
+		if not found then
+			local ok, enabled = pcall(function()
+				return gui.Enabled
+			end)
+			-- A second hide must never overwrite the values saved by the first.
+			state.entries[#state.entries + 1] = { gui = gui, enabled = if ok then enabled else nil }
+		end
+		pcall(function()
+			gui.Enabled = false
+		end)
+	end
+	return #state.entries
+end
+
+function LookDevReview.restoreHud(): boolean
+	local state = hudState
+	if not state then
+		return false
+	end
+	hudState = nil
+	for _, entry in ipairs(state.entries) do
+		pcall(function()
+			entry.gui.Enabled = entry.enabled
+		end)
+	end
+	return true
+end
+
 return LookDevReview

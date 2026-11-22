@@ -1,0 +1,39 @@
+CHECK 202 - street lamps, obor and lentera (WORK_QUEUE SPRINT 1 item 202)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2
+Place: Development-Juragan-Desa. Play only (Server VM, check). Place NOT saved, nothing published.
+Rojo-synced: repo src/ changes present in the live place before each run.
+
+== Wiring ==
+Candidate "lamps_r10" (OFF by default). Pure data src/shared/ModelMapLampsR10.luau (12 lamps evenly
+spaced on the ring road radius 144, LIGHT_RANGE 16, warm palette, load-time asserts), server applier
+src/server/World/LookDevLampsR10.luau (pole + lantern Parts, one shadowless PointLight per lamp,
+ClockTime-driven setClockTime, destroy-only restore), 5-case LUNE spec, tools/studio/check_q202.luau.
+LookDev IDS[114] / descriptor / plan OR-chain, LookDevReview path, Main.server boot require,
+tests/run.luau registration, CANDIDATES.md + CANDIDATE_INDEX.md rows, 50-spec count mirror 113->114.
+Harness bug fixed before the run: `pcall(review.disableAll())` -> `pcall(review.disableAll)`.
+No asset IDs, no visual verdict.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK LAMPS PASS 12 12
+CHECK LIGHT_COST PASS 0 0 violations
+CHECK LAMP_NIGHT_ONLY PASS 12 12
+
+== Notes / measurements ==
+- LAMPS 12/12: 12 distinct "lamp" groups staged, 0 before, 0 load failures.
+- LIGHT_COST 0/0: 15 PointLights total in the place during the check; 0 with Range > 16 (all staged
+  lamps have Range 16 and CastShadow=false), 0 before.
+- LAMP_NIGHT_ONLY 12/12: staging at ClockTime 21 gave 12 enabled lights; after disableAll, staging
+  at ClockTime 13 gave 0 enabled lights. Original ClockTime was saved and restored by the harness.
+- Check ran in SERVER VM with enableAdditive("lamps_r10", game); disableAll() on every path. Play
+  stopped after the run; the Place was never saved.
+
+== Non-vacuity / calibration ==
+Runtime-only injection between the harness's BEFORE/AFTER anchors (repo file untouched), after the
+night staging: destroy lamp groups 10-12, set every staged PointLight.Range to 30 and Enabled=false:
+CHECK LAMPS FAIL 9 12
+CHECK LIGHT_COST FAIL 12 0 violations
+CHECK LAMP_NIGHT_ONLY FAIL 0 12
+All three checks demonstrably FAIL on injected bad state. Visual yes/no stays the designer's.
+
+Status: SEEN-IN-STUDIO.

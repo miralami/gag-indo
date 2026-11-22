@@ -122,5 +122,6 @@ on any drift between this table and those sources; it never edits CANDIDATES.md.
 | `hill_dressing_r10` | hill_dressing | server | — | pending — review in Studio | `src/server/World/LookDevHillDressingR10.luau` |
 | `kampung_r10` | kampung | server | — | pending — review in Studio | `src/server/World/LookDevKampungR10.luau` |
 | `road_fence_r10` | road_fence | server | — | pending — review in Studio | `src/server/World/LookDevRoadFenceR10.luau` |
+| `lamps_r10` | lamps | server | — | pending — review in Studio | `src/server/World/LookDevLampsR10.luau` |
 
-Rows: 113. Missing from CANDIDATES.md: none. Missing from LookDevReview.paths: none.
+Rows: 114. Missing from CANDIDATES.md: none. Missing from LookDevReview.paths: none.

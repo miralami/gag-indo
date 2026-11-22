@@ -221,6 +221,7 @@ LookDev.IDS = {
 	"hill_dressing_r10",
 	"kampung_r10",
 	"road_fence_r10",
+	"lamps_r10",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -1566,6 +1567,15 @@ LookDev.candidates = {
 		idsSource = "Shared.ModelMapRoadFenceR10",
 		render = "docs/v2/visual/CANONICAL_GAP.md",
 	},
+
+	lamps_r10 = {
+		id = "lamps_r10",
+		title = "Warm obor and lentera lamps on the ring road, lit only at night (sprint 1, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapLampsR10",
+		render = "docs/v2/visual/CANONICAL_GAP.md",
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1798,6 +1808,7 @@ function LookDev.plan(id: string): any
 		or id == "hill_dressing_r10"
 		or id == "kampung_r10"
 		or id == "road_fence_r10"
+		or id == "lamps_r10"
 	then
 		local c = LookDev.candidates[id]
 		return {

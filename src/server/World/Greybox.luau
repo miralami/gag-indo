@@ -17,6 +17,10 @@ local Landscape = require(script.Parent.Landscape)
 local MapSpec = require(script.Parent.MapSpec)
 local ModelMapForestR9 = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").ModelMapForestR9)
 local Visuals = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").Config.Visuals)
+local okLoader, Loader = pcall(function()
+	return require(script.Parent.LookDevAssetLoader)
+end)
+local LookDevAssetLoader = if okLoader and Loader then Loader else {}
 
 local Greybox = {}
 
@@ -37,15 +41,6 @@ local C = {
 -- Road and path earth: bambu #b98a5a shaded about 25 percent. Landscape recolours the Ground
 -- terrain material to the same value, so the road Parts and the terrain corridors read as one.
 local EARTH = Color3.fromRGB(138, 106, 70)
-
--- Each canopy ball gets a small deterministic brightness shift: 0 to 8 percent toward paper
--- (lighter) or shadow (cooler). Both ends are palette colours.
-local function tint(base: Color3, r: number): Color3
-	if r < 0.5 then
-		return base:Lerp(C.paper, r * 0.16)
-	end
-	return base:Lerp(C.shadow, (r - 0.5) * 0.16)
-end
 
 local function contour(model: Model, maxDistance: number?)
 	local highlight = Instance.new("Highlight")
@@ -673,8 +668,8 @@ local TREE_XZ = {
 	{ 112, 28 }, { -100, 68 },
 }
 
--- Canopy balls for the base tree. Colours are palette keys; tree and ball index flip them so
--- the grove mixes daun and padi, and the size scale varies per tree (deterministic, no random).
+-- Canopy anchors for the base tree. Retained as pure data for the wind/tagging contract; item 241
+-- removed the Ball parts themselves. Village trees now wear baked vegetation_r4 meshes (below).
 local CANOPY_BALLS = {
 	{ size = 8, offset = Vector3.new(0, 11, 0) },
 	{ size = 6.4, offset = Vector3.new(-2.2, 9.6, 1.2) },
@@ -716,43 +711,78 @@ end
 Greybox.treeSpots = treeSpots
 Greybox.canopyLayout = canopyLayout
 
--- A stylised tree: a two-section tapered trunk (Cylinder parts, bambu wood) and three overlapping
--- Ball canopy parts. Five parts in total; only the first canopy ball casts a shadow.
+-- Item 241: baked-first tree retrieval. `baked()` never calls InsertService, so the default look
+-- needs no runtime load; mangga is the broadleaf fallback for any missing species bake.
+local function bakedTree(species: string): any?
+	for _, key in { species, "mangga" } do
+		local id = ModelMapForestR9.IDS[key]
+		if type(id) == "number" then
+			local ok, source = pcall(function()
+				return LookDevAssetLoader.baked(id)
+			end)
+			if ok and source then
+				return source
+			end
+		end
+	end
+	return nil
+end
+
+-- Strip scripts, sanitise legacy names and apply the default-look part flags to a baked clone.
+local function normaliseBaked(source, castShadow: boolean)
+	local doomed = {}
+	for _, d in source:GetDescendants() do
+		if d:IsA("Script") or d:IsA("LocalScript") or d:IsA("ModuleScript") then
+			doomed[#doomed + 1] = d
+		end
+		local clean = string.gsub(d.Name, "[Pp][Ii][Nn][Ee]", "")
+		if clean ~= d.Name then
+			d.Name = clean
+		end
+	end
+	for _, d in doomed do
+		d:Destroy()
+	end
+	for _, d in source:GetDescendants() do
+		if d:IsA("BasePart") then
+			d.Anchored = true
+			d.CanCollide = false
+			d.CanQuery = false
+			d.CanTouch = false
+			d.CastShadow = castShadow
+		end
+	end
+end
+
+-- A stylised village tree: a small Trunk marker for Flora's clearance check plus one baked
+-- tropical tree mesh for the crown. No Ball part is created (item 241).
 local function buildTree(index: number, spot: Vector3): Model
 	local tree = Instance.new("Model")
 	tree.Name = "Tree_" .. index
 
 	part({
-		Name = "TrunkBase",
-		Shape = Enum.PartType.Cylinder,
-		Size = Vector3.new(4, 2.6, 2.6),
-		Position = spot + Vector3.new(0, 2, 0),
-		Orientation = Vector3.new(0, 0, 90),
-		Color = C.wood,
-		Material = Enum.Material.Wood,
-	}).Parent = tree
-	part({
 		Name = "Trunk",
 		Shape = Enum.PartType.Cylinder,
-		Size = Vector3.new(6, 1.6, 1.6),
-		Position = spot + Vector3.new(0, 7, 0),
-		Orientation = Vector3.new(0, 0, 90),
+		Size = Vector3.new(1.4, 2, 1.4),
+		Position = spot + Vector3.new(0, 1, 0),
 		Color = C.wood,
 		Material = Enum.Material.Wood,
 	}).Parent = tree
 
-	for ballIndex, ball in canopyLayout(index) do
-		part({
-			Name = "Canopy_" .. ballIndex,
-			Shape = Enum.PartType.Ball,
-			Size = Vector3.new(ball.size, ball.size, ball.size),
-			Position = spot + ball.offset,
-			Color = tint(Props.palette(ball.color), ((index * 7 + ballIndex * 3) % 9) / 9),
-			Material = Enum.Material.Grass,
-			Transparency = 0,
-			CanCollide = false,
-			CastShadow = ball.castShadow,
-		}).Parent = tree
+	local species = ModelMapForestR9.SPECIES[(index - 1) % #ModelMapForestR9.SPECIES + 1]
+	if type(species) == "string" then
+		local source = bakedTree(species)
+		if source then
+			pcall(function()
+				normaliseBaked(source, true)
+				if source:IsA("Model") then
+					source:ScaleTo(0.5)
+				end
+				source.Name = "CanopyBaked_" .. species
+				source:PivotTo(CFrame.new(spot.X, GROUND_Y, spot.Z))
+				source.Parent = tree
+			end)
+		end
 	end
 	return tree
 end
@@ -769,8 +799,8 @@ end
 -- tropical trees only, no pines). ModelMapForestR9 supplies the deterministic ring (260..380)
 -- and hills/beyond-400 (400..460) placements, with the West sunset corridor (130..230), the
 -- sawah/Balai north band and the river south band already removed. Kelapa is biased to the river
--- side. Baked vegetation_r4 models are cloned when available; otherwise original Ball/Cylinder
--- trees keep the same wall silhouette. Nothing here is a LookDev candidate: this is the default.
+-- side. Baked vegetation_r4 models are cloned; no Ball canopy fallback exists after item 241.
+-- Nothing here is a LookDev candidate: this is the default.
 local function buildBackgroundForest(world: Folder)
 	-- WORK_QUEUE item 138: the saved place carries the pre-V-D4 pine forest as a stale top-level
 	-- Workspace.BackgroundForest. Remove any such folder so the shipped world has one forest only
@@ -818,90 +848,30 @@ local function buildBackgroundForest(world: Folder)
 
 	local function makeTree(p: ForestEntry, name: string)
 		local tree: Model? = nil
-		local id = ModelMapForestR9.IDS[p.species]
-		if id then
-			local ok, source = pcall(function()
-				local storage = game:GetService("ServerStorage")
-				local root = storage:FindFirstChild("LookDevAssets")
-				local folder = root and root:FindFirstChild(tostring(id))
-				if not folder then
-					return nil
-				end
-				if folder:IsA("Model") or folder:IsA("BasePart") or folder:IsA("Accessory") then
-					return folder:Clone()
-				end
-				local child = folder:GetChildren()[1]
-				return if child then child:Clone() else nil
-			end)
-			if ok and source and (source :: any):IsA("Model") then
-				tree = source :: Model
-			end
+		local source = bakedTree(p.species)
+		if source and (source :: any):IsA("Model") then
+			tree = source :: Model
 		end
-		if tree then
-			-- Baked assets are stripped and name-sanitised so no legacy "Pine" name can survive
-			-- into the default look (NO_PINES is checked with no candidate staged).
-			local doomed = {}
-			for _, d in tree:GetDescendants() do
-				if d:IsA("Script") or d:IsA("LocalScript") or d:IsA("ModuleScript") then
-					doomed[#doomed + 1] = d
-				end
-				local clean = string.gsub(d.Name, "[Pp][Ii][Nn][Ee]", "")
-				if clean ~= d.Name then
-					d.Name = clean
-				end
-			end
-			for _, d in doomed do
-				d:Destroy()
-			end
-			local model = tree
-			pcall(function()
-				model:ScaleTo(p.scale or 1.15)
-			end)
-		else
+		if not tree then
+			-- Item 241: no Ball canopy fallback. One Model per placement keeps TREE_COUNT stable;
+			-- only a plain trunk is drawn when no baked mesh is available.
 			tree = Instance.new("Model")
 			local isPalm = p.species == "kelapa"
-			local leaf = if p.species == "pisang"
-				then Props.palette("padi")
-				elseif p.species == "bambu" then Props.palette("bambu")
-				else Props.palette("daun")
-			local trunk = part({
+			part({
 				Name = "Trunk",
 				Shape = Enum.PartType.Cylinder,
 				Size = Vector3.new(1.2, if isPalm then 8.5 else 5.5, 1.2),
 				Position = Vector3.new(0, if isPalm then 4.25 else 2.75, 0),
 				Color = Color3.fromRGB(75, 52, 35),
 				Material = Enum.Material.Wood,
-			})
-			trunk.Parent = tree
-			if isPalm then
-				for f = 0, 5 do
-					-- Frond: a thin blade reaching out from the crown, tilted 20 degrees down.
-					local a = math.rad(f * 60)
-					local frond = part({
-						Name = "Frond",
-						Size = Vector3.new(0.4, 0.2, 5.5),
-						CFrame = CFrame.new(math.cos(a) * 2.4, 9.4, math.sin(a) * 2.4)
-							* CFrame.Angles(0, -a, math.rad(20)),
-						Color = leaf,
-						Material = Enum.Material.Grass,
-					})
-					frond.Parent = tree
-				end
-			else
-				-- Broadleaf round canopy: 9.6 studs across, trunk + Ball reach ~11.8 studs.
-				local canopy = part({
-					Name = "Canopy",
-					Shape = Enum.PartType.Ball,
-					Size = Vector3.new(9.6, 7.5, 9.6),
-					Position = Vector3.new(0, 8, 0),
-					Color = leaf,
-					Material = Enum.Material.Grass,
-				})
-				canopy.Parent = tree
-			end
+			}).Parent = tree
 		end
 		if tree then
 			local castShadow = p.layer % 2 == 1 -- odd tiers cast; shade anchors use layer 1
+			normaliseBaked(tree, castShadow)
+			pcall(function()
+				tree:ScaleTo(p.scale or 1.15)
+			end)
 			for _, d in tree:GetDescendants() do
 				if d:IsA("BasePart") then
 					d.Anchored = true
@@ -928,7 +898,7 @@ local function buildBackgroundForest(world: Folder)
 	for _, p in ModelMapForestR9.placements() do
 		makeTree(p, ModelMapForestR9.NAME_PREFIX .. p.species .. "_" .. p.angle .. "_" .. p.layer)
 	end
-	-- Q186: shade trees use the same baked/fallback path and post-processing as the ring trees.
+	-- Q186: shade trees use the same baked path and post-processing as the ring trees.
 	for i, p in ipairs(ModelMapForestR9.shadeAnchors(MapSpec.HUBS)) do
 		makeTree(p, "Shade_" .. p.species .. "_" .. p.hubKey .. "_" .. i)
 	end

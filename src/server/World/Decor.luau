@@ -158,7 +158,7 @@ local function stack(folder: Instance, origin: Vector3)
 		local at: Vector3 = sack[1]
 		piece(folder, "Part", {
 			Name = "Sack",
-			Shape = Enum.PartType.Ball,
+			Shape = Enum.PartType.Cylinder,
 			Size = Vector3.new(1.6, 1.1, 1.3),
 			Position = Vector3.new(origin.X + at.X, at.Y, origin.Z + at.Z),
 			Color = colour(sack[2]),

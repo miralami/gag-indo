@@ -1,0 +1,58 @@
+CHECK 241 - find and fix the round "melon" blobs (WORK_QUEUE SPRINT 2 item 241)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2
+Place: Development-Juragan-Desa. Play only (Server VM, checks). Place NOT saved, nothing published.
+Rojo-synced: repo src/ changes present in the live place before each run.
+
+== Generators / sources found (default look and candidates) ==
+DEFAULT, fixed by this item:
+- src/server/World/Flora.luau bushParts(): 2-3 overlapping green Balls, 2.2-4.6 studs, on the lawn lattice.
+- src/server/World/Greybox.luau CANOPY_BALLS / canopyLayout / buildTree / scatterTrees(): 3 green Balls per Tree_N.
+- src/server/World/Greybox.luau buildBackgroundForest.makeTree(): 9.6x7.5x9.6 Ball canopy fallback.
+- src/server/World/Details.luau hedgeRow() via ball(): 2.4-stud green Hedge Balls, 5 per row at 5 lawn pockets.
+- src/server/World/Details.luau floorDetails(): 2.6x1.8x2.2 beige Sack Balls on lawn -> changed to Cylinder.
+- src/server/World/Decor.luau stack() Sack: 1.6x1.1x1.3 Ball at plaza crate stacks (6 offenders in the
+  first Studio run) -> changed to Cylinder.
+DEFAULT, inspected and NOT a melon (size < 1.5 or not on open lawn):
+- src/server/World/Decor.luau Lantern 1.4, Flower 1.4, FlagFinial 0.9; Greybox.hubBall() Lantern 1.9
+  at door height; src/server/Farm/FarmService.luau crop stem Balls inside plots.
+OFF-BY-DEFAULT candidates, LISTED only — other items own them:
+- src/shared/ModelMapHillDressingR10.luau + src/server/World/LookDevHillDressingR10.luau: Ball rocks
+  4-8 studs grey-brown + Ball crowns 9-13 studs green on 4 hills (item 244).
+- src/shared/ModelMapCanonicalR10.luau, LookDevForestPinesLegacy.luau, ModelMapRocksR9.luau,
+  ModelMapRiverR8.luau, ModelMapMountainsR10.luau, ModelMapKampungR10.luau.
+
+== Fix ==
+Baked tropical vegetation from ServerStorage.LookDevAssets via LookDevAssetLoader.baked():
+- Flora bushes: baked shrub IDs 9953859659 / 116666781655827 / 5661660655 (ASSET_MANIFEST.md);
+  each bush is a 1.2-stud root pad plus a scaled baked shrub. No Ball fallback — missing bake skips.
+- Greybox village trees: baked species from ModelMapForestR9.IDS (mangga fallback), trunk-only if no
+  bake. Background forest: baked tree first, plain trunk (no Ball) if bake absent.
+- Details hedges: baked shrub child. Decor crate-stack sacks: Cylinder instead of Ball.
+Targets unchanged: NO_MELONS 0, TREE_COUNT >= 450, PERF_BUDGET <= 500, 1.5-stud Ball threshold.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+NO_STAGING: shipping default look directly; no LookDev candidate on. Open-lawn rule: Y within
+[groundY-1, groundY+3], outside the road cross, outside 16-stud hub rings, inside the village band,
+outside keepOutRects.
+CHECK NO_MELONS PASS 0 0
+CHECK TREE_COUNT PASS 603 450
+CHECK PERF_BUDGET PASS 323 500
+CHECK CAL_NO_MELONS_FAIL PASS 1 1
+
+== Calibration / non-vacuity ==
+First Studio run found a genuine FAIL the fixer had missed: `CHECK NO_MELONS FAIL 6 0`, six
+`Workspace.World.Decor.Sack` Balls (Size 1.6x1.1x1.3, max 1.6 >= 1.5) at plaza crate stacks, on
+open lawn by the rule above. Corrected in src/server/World/Decor.luau (Ball -> Cylinder), re-ran in a
+fresh Play session, all three checks PASS.
+FAIL injection: temporary anchored 2x2x2 Ball "CalibrationMelon" at (40, groundY+1, 60) -> re-scan
+found exactly 1 offender, `CAL_NO_MELONS_FAIL PASS 1 1`, Part destroyed in the same call. No place
+save. The 0.15-style threshold and the Ball rule were not weakened; the offender source was fixed.
+TREE_COUNT 603 (>= 450) and PERF_BUDGET 323 (<= 500) both still PASS after removing the Balls.
+
+Local validation: lune run tests/run.luau 3051 passed (no_melons_spec 8+ cases); selene src 0 errors /
+0 warnings / 0 parse errors; stylua --check clean on tools/studio/check_q241.luau and
+tests/specs/no_melons_spec.luau. The three edited World files are not stylua-clean at HEAD either
+(pre-existing long-line formatting); the item-241 edits introduced no new formatting defect in the
+changed lines. No thresholds lowered.
+Status: SEEN-IN-STUDIO.

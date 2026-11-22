@@ -3,15 +3,28 @@
 -- Everything lives in one Folder named `Flora` under the world, so a rebuild is one Destroy.
 -- Positions come from a fixed lattice and a pure integer hash, so every server builds the same
 -- flora. No unseeded random. Palette colours only. Anchored, unqueryable, no shadows, no lights,
--- no particles, no asset IDs.
+-- no particles. Bush dressing uses baked Creator Store shrub meshes (WORK_QUEUE item 241);
+-- no procedural Ball is placed on the lawn.
 -- Run this after Greybox.build, so the tree trunks exist for the clearance check.
 -- Tree canopies (Canopy_N inside Tree_N models directly under the world) are tagged WindShake
 -- with a WindSeed attribute for the client sway loop (client/World/Wind.luau).
 
 local Props = require(script.Parent.Props)
 local MapSpec = require(script.Parent.MapSpec)
+local okLoader, Loader = pcall(function()
+	return require(script.Parent.LookDevAssetLoader)
+end)
+local LookDevAssetLoader = if okLoader and Loader then Loader else {}
 
 local Flora = {}
+
+-- Item 241: verified baked shrub IDs from docs/v2/visual/art/ASSET_MANIFEST.md. bank_shrub is a
+-- single MeshPart (cheapest), the R4 shrub and bank fern are the textured fallbacks. No Ball fallback.
+local BUSH_ASSET_IDS = { 9953859659, 116666781655827, 5661660655 }
+local BUSH_HEIGHT = 3
+local BUSH_FOOTPRINT = 2
+
+Flora.BUSH_ASSET_IDS = BUSH_ASSET_IDS -- read-only, for the item-241 spec
 
 local FOLDER_NAME = "Flora"
 local WIND_TAG = "WindShake"
@@ -170,29 +183,29 @@ type PartDef = {
 	colour: string,
 	material: any,
 	jitter: number?,
+	footprint: number?, -- clearance radius, may exceed the visible part (baked shrubs)
+	baked: boolean?, -- place a baked shrub under this part as well
 }
 
--- Two or three overlapping Ball parts in daun or padi, sunk slightly into the ground.
+-- One flat root pad in daun or padi at each bush lattice site. The visible shrub is a baked mesh
+-- placed by placeBakedBush below (item 241). The pad is 1.2 studs across, well under the 1.5-stud
+-- Ball rule, and clears the same 2-stud footprint the old overlapping canopies used.
 local function bushParts(cell: number, x: number, z: number, scale: number): { PartDef }
-	local parts = {}
-	local count = 2 + math.floor(roll(cell, 5) * 2)
-	for k = 1, count do
-		local ox = (roll(cell, 10 + k) * 2 - 1) * 1.6
-		local oz = (roll(cell, 20 + k) * 2 - 1) * 1.6
-		local size = (2.6 + roll(cell, 30 + k) * 1.2) * scale
-		table.insert(parts, {
+	local jitter = roll(cell, 46 + 1)
+	return {
+		{
 			name = "FloraBush",
 			class = "Part",
-			shape = Enum.PartType.Ball,
-			size = Vector3.new(size, size, size),
-			pos = Vector3.new(x + ox, GROUND_Y + size / 2 - 0.3, z + oz),
-			orient = Vector3.new(0, 0, 0),
-			colour = if roll(cell, 40 + k) < 0.5 then "daun" else "padi",
+			size = Vector3.new(1.2, 0.5, 1.2),
+			pos = Vector3.new(x, GROUND_Y + 0.25, z),
+			orient = Vector3.new(0, roll(cell, 47) * 360, 0),
+			colour = if roll(cell, 41) < 0.5 then "daun" else "padi",
 			material = Enum.Material.Grass,
-			jitter = roll(cell, 46 + k),
-		})
-	end
-	return parts
+			jitter = jitter,
+			footprint = BUSH_FOOTPRINT * scale,
+			baked = true,
+		},
+	}
 end
 
 -- One squashed Block in tinta-lembut or bambu, Slate, turned by the cell hash.
@@ -243,12 +256,62 @@ end
 -- Every part of an item must pass. The half-size is the larger horizontal side, so a turned part is covered too.
 local function fitsAll(parts: { PartDef }, trunks: { { number } }): boolean
 	for _, def in parts do
-		local r = math.max(def.size.X, def.size.Z) / 2
+		local r = def.footprint or math.max(def.size.X, def.size.Z) / 2
 		if not fitsAt(def.pos.X, def.pos.Z, r, trunks) then
 			return false
 		end
 	end
 	return true
+end
+
+-- Clone the first baked shrub that exists; `baked()` never calls InsertService, so the default
+-- look stays offline-safe. Missing bake => skip the bush, never a procedural Ball stand-in.
+local function bakedShrub(cell: number): any?
+	for offset = 0, #BUSH_ASSET_IDS - 1 do
+		local id = BUSH_ASSET_IDS[(cell + offset) % #BUSH_ASSET_IDS + 1]
+		local ok, source = pcall(function()
+			return LookDevAssetLoader.baked(id)
+		end)
+		if ok and source then
+			return source
+		end
+	end
+	return nil
+end
+
+local function placeBakedShrub(folder: Instance, def: PartDef, cell: number)
+	local shrub = bakedShrub(cell)
+	if not shrub then
+		return
+	end
+	pcall(function()
+		local doomed = {}
+		for _, d in shrub:GetDescendants() do
+			if d:IsA("Script") or d:IsA("LocalScript") or d:IsA("ModuleScript") then
+				doomed[#doomed + 1] = d
+			end
+		end
+		for _, d in doomed do
+			d:Destroy()
+		end
+		for _, d in shrub:GetDescendants() do
+			if d:IsA("BasePart") then
+				d.Anchored = true
+				d.CanCollide = false
+				d.CanQuery = false
+				d.CanTouch = false
+				d.CastShadow = false
+			end
+		end
+		if shrub:IsA("Model") then
+			shrub:ScaleTo(BUSH_HEIGHT / math.max(1, shrub:GetBoundingBox().Size.Y))
+		elseif shrub:IsA("BasePart") then
+			shrub.Size = shrub.Size * (BUSH_HEIGHT / math.max(1, shrub.Size.Y))
+		end
+		shrub.Name = "FloraShrubBaked"
+		shrub:PivotTo(CFrame.new(def.pos.X, GROUND_Y, def.pos.Z) * CFrame.Angles(0, def.orient.Y, 0))
+		shrub.Parent = folder
+	end)
 end
 
 local function makePart(folder: Instance, def: PartDef)
@@ -338,6 +401,9 @@ function Flora.build(world: Instance): Instance
 				if count + #defs <= PART_BUDGET and fitsAll(defs, trunks) then
 					for _, def in defs do
 						makePart(folder, def)
+						if def.baked then
+							placeBakedShrub(folder, def, cell)
+						end
 					end
 					count += #defs
 				end

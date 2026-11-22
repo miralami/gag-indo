@@ -225,6 +225,7 @@ LookDev.IDS = {
 	"signposts_r10",
 	"bamboo_bridge_r10",
 	"furrows_r10",
+	"crop_stages_r10",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -1606,6 +1607,15 @@ LookDev.candidates = {
 		idsSource = "Shared.ModelMapFurrowsR10",
 		render = "docs/v2/visual/CANONICAL_GAP.md",
 	},
+
+	crop_stages_r10 = {
+		id = "crop_stages_r10",
+		title = "Distinct bibit/tumbuh/siap reference stages for aerial audit (sprint 1, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapCropStagesR10",
+		render = "docs/v2/visual/CANONICAL_GAP.md",
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1842,6 +1852,7 @@ function LookDev.plan(id: string): any
 		or id == "signposts_r10"
 		or id == "bamboo_bridge_r10"
 		or id == "furrows_r10"
+		or id == "crop_stages_r10"
 	then
 		local c = LookDev.candidates[id]
 		return {

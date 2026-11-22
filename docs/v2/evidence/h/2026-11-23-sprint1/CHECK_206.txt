@@ -1,0 +1,48 @@
+CHECK 206 - crop stage readability from plot cameras (WORK_QUEUE SPRINT 1 item 206)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2
+Place: Development-Juragan-Desa. Play only (Server VM, check). Place NOT saved, nothing published.
+Rojo-synced: repo src/ changes present in the live place before each run.
+
+== Wiring ==
+Candidate "crop_stages_r10" (OFF by default). Pure data src/shared/ModelMapCropStagesR10.luau (per-crop
+current-stage height audit from CropModelCandidates; 3 corrected reference stages bibit 1.2
+{r=110,g=170,b=80}, tumbuh 2.6 {r=80,g=155,b=65}, siap 4.2 {r=196,g=162,b=52}, bibit->siap
+normalised RGB distance ~0.206 >= 0.15; 10 plots x 3 stages = 30 stage samples), server applier
+src/server/World/LookDevCropStagesR10.luau (60 anchored non-collidable stem/canopy Parts, stage +
+plot + height attributes, destroy-only restore), 6-case LUNE spec, tools/studio/check_q206.luau.
+LookDev IDS[118] / descriptor / plan OR-chain, LookDevReview path, Main.server boot require,
+tests/run.luau registration, CANDIDATES.md + CANDIDATE_INDEX.md rows, 50-spec count mirror 117->118.
+Default crop models are never modified. No asset IDs, no visual verdict.
+
+== Harness corrections before PASS run ==
+1. First run `CAMERA_SAMPLES FAIL 6/10`: a single demo cluster at plot 3 was aimed at by all 10
+   plot_aerial cameras, and 4 far-side rays hit village geometry first. Fixed by staging one 3-stage
+   cluster per plot (30 samples / 60 Parts) and aiming each plot_aerial_NN at its own plot's cluster.
+2. Two earlier vacuity fixes (staged>0 guards on HEIGHT/COLOR, strict first-hit on CAMERA_SAMPLES)
+   retained. No check weakened.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK CROP_STAGE_HEIGHT PASS 0 0
+CHECK CROP_STAGE_COLOR PASS 0 0
+CHECK CAMERA_SAMPLES PASS 10 10
+
+== Notes / measurements ==
+- CROP_STAGE_HEIGHT 0/0: 60 staged Parts; 0 violations of bibit < tumbuh < siap ordering, before and
+  after, 0 read errors, 0 load failures.
+- CROP_STAGE_COLOR 0/0: 0 crop samples with bibit/siap canopy distance < 0.15, before and after, 0
+  read errors, 0 load failures.
+- CAMERA_SAMPLES 10/10: all plot_aerial_01..10 rays first-hit a staged CropStage part in their own
+  plot, with 60 staged Parts (strict first-hit, no proximity fallback), 0 load failures.
+- Check ran with enableAdditive("crop_stages_r10", game) in SERVER VM; disableAll() in the same call
+  restored the place. Play stopped after the run.
+
+== Non-vacuity / calibration ==
+Runtime-only injection between the harness's BEFORE/AFTER anchors (repo file untouched):
+- set every bibit Part's `height` attribute to 99 and retint one siap canopy to bibit's colour:
+  CHECK CROP_STAGE_HEIGHT FAIL 0 0, CHECK CROP_STAGE_COLOR FAIL 0 0 (CAMERA_SAMPLES stayed PASS 10/10).
+- separate fresh Play, move all 60 staged Parts 100000 studs away so no ray hits:
+  CHECK CAMERA_SAMPLES FAIL 0 10 (other checks stayed PASS).
+All three checks demonstrably FAIL on injected bad state. Visual yes/no stays the designer's.
+
+Status: SEEN-IN-STUDIO.

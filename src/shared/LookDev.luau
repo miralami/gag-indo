@@ -218,6 +218,7 @@ LookDev.IDS = {
 	"paths_curved_r10",
 	"horizon_fill_r10",
 	"mountains_r10",
+	"hill_dressing_r10",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -1536,6 +1537,15 @@ LookDev.candidates = {
 		idsSource = "Shared.ModelMapMountainsR10",
 		render = "docs/v2/visual/CANONICAL_GAP.md",
 	},
+
+	hill_dressing_r10 = {
+		id = "hill_dressing_r10",
+		title = "Hill dressing - rock outcrops, terrace steps and palms on the four hills (sprint 1, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapHillDressingR10",
+		render = "docs/v2/visual/CANONICAL_GAP.md",
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1765,6 +1775,7 @@ function LookDev.plan(id: string): any
 		or id == "paths_curved_r10"
 		or id == "horizon_fill_r10"
 		or id == "mountains_r10"
+		or id == "hill_dressing_r10"
 	then
 		local c = LookDev.candidates[id]
 		return {

@@ -1,0 +1,41 @@
+CHECK 199 - hill dressing (WORK_QUEUE SPRINT 1 item 199)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2
+Place: Development-Juragan-Desa. Play only (Server VM, check). Place NOT saved, nothing published.
+Rojo-synced: repo src/ changes present in the live place before the run.
+
+== Wiring ==
+Candidate "hill_dressing_r10" (OFF by default). Pure data src/shared/ModelMapHillDressingR10.luau
+(4 hills, 5 rocks + 13 palms per hill, 3 terraces, load-time asserts), server applier
+src/server/World/LookDevHillDressingR10.luau (anchored non-collidable tagged Parts with hill/kind
+attributes, destroy-only restore), 5-case LUNE spec, tools/studio/check_q199.luau.
+LookDev IDS[111] / descriptor / plan OR-chain, LookDevReview path, Main.server boot require,
+tests/run.luau registration, CANDIDATES.md + CANDIDATE_INDEX.md rows, 50-spec count mirror 110->111.
+No asset IDs, no terrain sculpt, no visual verdict.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK HILL_ROCKS PASS 5 4
+CHECK HILL_TREES PASS 26 12
+CHECK WALKABLE PASS 0 0
+
+== Notes / measurements ==
+- HILL_ROCKS 5/4: minimum rock-part count across the 4 hills. Before staging 0; per-hill after:
+  hill1 5 rocks + 3 terraces + 26 palm parts, hills 2-4 5 rocks + 26 palm parts each.
+- HILL_TREES 26/12: minimum palm-part count across hills = 26 (13 palms x trunk+crown Parts).
+- WALKABLE 0/0: 10 downward rays from y=256 at clear core points; 9 first-hit Terrain/Walkable
+  before staging and 9 after -> delta 0. All hill dressing sits outside the core ring, so the
+  walkable surface is unchanged.
+- Check ran with enableAdditive("hill_dressing_r10", game) in SERVER VM; disableAll() in the same
+  call restored the place. Play stopped after the run.
+
+== Non-vacuity / calibration ==
+The harness exposes `local before = measure()` / `local after = measure()` as separate anchors.
+Injected between them in a fresh Play (runtime copy of the harness only, repo file untouched):
+destroy all hill-1 rocks and hill-2 palms, and place one opaque Anchored non-Walkable Part at
+(0,100,0) on the (0,256,0) downward ray. Same harness:
+CHECK HILL_ROCKS FAIL 0 4
+CHECK HILL_TREES FAIL 0 12
+CHECK WALKABLE FAIL -1 0
+All three checks demonstrably FAIL on injected bad state. Visual yes/no stays the designer's.
+
+Status: SEEN-IN-STUDIO.

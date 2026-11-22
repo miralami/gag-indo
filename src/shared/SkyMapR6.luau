@@ -127,6 +127,12 @@ SkyMapR6.sets = {
 
 SkyMapR6.order = { "a", "b", "c", "d", "e", "f" }
 
+-- WORK_QUEUE item 242: reversible default haze floor for the shipped far fill. Seasons presets keep
+-- their own numbers; the client clamps only the final Atmosphere.Haze so the buried horizon skirt
+-- fades into the sky. The designer may retune this one value. The OFF candidate horizon_fill_r10
+-- still sets exactly 2.0 itself and is unaffected.
+SkyMapR6.HORIZON_HAZE_FLOOR = 1.6
+
 -- One shared atmosphere stack for all six candidates: humid warm-white haze with
 -- a light-blue Decay. Decay/Color are plain {r,g,b} triples; the client applier
 -- converts them at apply time.

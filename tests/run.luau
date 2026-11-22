@@ -66,6 +66,7 @@ local specs = {
 	require("./specs/flora_spec"),
 	require("./specs/no_melons_spec"),
 	require("./specs/landscape_spec"),
+	require("./specs/horizon_fill_spec"),
 	require("./specs/enums_spec"),
 	require("./specs/camerafeel_spec"),
 	require("./specs/feel_spec"),

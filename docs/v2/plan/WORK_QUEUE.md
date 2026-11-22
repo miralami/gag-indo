@@ -924,7 +924,8 @@ Source: `docs/v2/evidence/h/2026-11-23-sprint1/MAIN_SESSION_NOTES.md` and `docs/
   Done 2026-11-23 (SEEN-IN-STUDIO, `CHECK_240.txt`): four cameras moved, two added (registry 67->69); `lamp_night` carries clockTime=21. Fresh Play SERVER-VM: all six pairs `SC240_*` PASS (0.6703 / 0.8537 / 1.0000 / 0.5882 / 0.9464 / 0.6667, all >= 0.15) and `CC240_*` PASS 0 hits; calibration `CAL_SC240_AWAY` PASS 1 1 (fail-closed on fraction) and `CAL_CC240_BLOCK` PASS 1 1 (injected blocker hit). Old/new positions in `REVIEW_CAMERAS.md`. Suite 3038->3042, `selene src` 0/0/0. Coverage is a floor, not a visual verdict.
 - [x] 241. **Find and fix the round "melon" blobs.** The `spawn` and `canonical_overview` baselines and `hill_dressing_r10` show many round green and brown spheres on lawns and hills that read as melons. Find which generators place them (default look and candidates), list them in the CHECK file, and replace them in the default look with the baked tropical tree, shrub and rock models (cartoonish realism; no plain Ball part larger than 1.5 studs on open lawn). **CHECKS:** `NO_MELONS`: no Ball-shaped part >= 1.5 studs on open lawn in the default look; `TREE_COUNT` and `PERF_BUDGET` still PASS.
   Done 2026-11-23 (SEEN-IN-STUDIO, `CHECK_241.txt`): sources listed (Flora bushes, Greybox village/background Ball canopies, Details hedges + sacks, Decor sacks; candidates deferred to 244 etc.). Default look now uses baked tree/shrub models (Ball-free fallback) and Decor/Details sacks are Cylinders. Fresh Play SERVER-VM: NO_MELONS PASS 0 0, TREE_COUNT PASS 603 450, PERF_BUDGET PASS 323 500; FAIL calibration by injected 2-stud Ball PASS 1 1. First run caught 6 real Decor.Sack Ball offenders (1.6 studs) the fixer missed; fixed and re-verified. Suite 3042->3051, `selene src` 0/0/0.
-- [ ] 242. **Horizon void from above.** From `canonical_overview` the far edge is a flat grey plane. Fill it: extend the grass/terrain ring or add a low far-hill ring, and set the Atmosphere haze so the edge fades into the sky. **CHECKS:** `HORIZON_FILL`: from `canonical_overview`, `canonical_overview_left` and `canonical_overview_right`, at least 90% of 64 rays aimed at the frame's horizon band hit terrain, hill or mountain; `PERF_BUDGET` within Sedang.
+- [x] 242. **Horizon void from above.** From `canonical_overview` the far edge is a flat grey plane. Fill it: extend the grass/terrain ring or add a low far-hill ring, and set the Atmosphere haze so the edge fades into the sky. **CHECKS:** `HORIZON_FILL`: from `canonical_overview`, `canonical_overview_left` and `canonical_overview_right`, at least 90% of 64 rays aimed at the frame's horizon band hit terrain, hill or mountain; `PERF_BUDGET` within Sedang.
+  Done 2026-11-23 (SEEN-IN-STUDIO, `CHECK_242.txt`): four buried non-collidable grass HorizonFill slabs outside the 800x800 playable square + shipped `HORIZON_HAZE_FLOOR = 1.6` (client Sky clamps season haze; live Client VM reads 1.6). Fresh Play SERVER-VM: HORIZON_FILL PASS 190/192 (0.9896, >= 0.90; per camera 63/63/64), PERF_BUDGET PASS 323/500; calibration excluding the four fill slabs drops to 170/192 (0.8854 < 0.90) -> CAL PASS 1 1. Server-VM Camera has no FOV property; check derives ray fan from fixed 70deg/16:9. Suite 3051->3055, `selene src` 0/0/0. Geometric fill, not a visual verdict.
 - [ ] 243. **Redo `mountains_r10`.** Mountains must read as layered blue-green silhouettes behind the hills from `horizon_north` and `canonical_overview`, not a grey ellipsoid. **CHECKS:** `SUBJECT_COVERAGE` >= 0.10 from `horizon_north`; `MOUNTAIN_FAR` and `NO_COLLISION` still PASS; no grey SmoothPlastic Ball part.
 - [ ] 244. **Redo `hill_dressing_r10`.** Use the baked rock models (item 189) and tropical trees in clusters, not spheres. **CHECKS:** `HILL_ROCKS`, `HILL_TREES`, `WALKABLE` still PASS; `NO_MELONS` PASS on the hills.
 - [ ] 245. **`bamboo_bridge_r10` as real bamboo.** Deck and rails built from bamboo culms (cylinders with nodes, yellow-green to straw) instead of timber planks. **CHECKS:** `BRIDGE_WALKABLE` and `BRIDGE_RAILS` still PASS; `BRIDGE_BAMBOO`: at least 80% of deck and rail parts are Cylinder-shaped or bamboo-model parts.
@@ -1462,6 +1463,16 @@ Models the ladder couldn't supply, each with a brief and a reference.
   `models_r3/MANIFEST.md`.
 
 ## Decisions for designer
+
+### Sprint 2 item 242 — shipped haze floor (2026-11-23)
+
+Item 242 asked to raise the Atmosphere haze so the far edge fades into the sky. The seasonal preset
+hazes are 0.8 / 0.5 / 0.4 (hujan / kemarau / pancaroba), which left a hard grey horizon line even with
+new far fill. A reversible shipped floor `HORIZON_HAZE_FLOOR = 1.6` (SkyMapR6) is applied in the client
+Sky module to both the static stack and the season tween; live Client VM read 1.6 at ClockTime 16.2.
+Seasons presets and the `horizon_fill_r10` candidate HAZE = 2.0 were NOT changed. If 1.6 washes out
+the scene at golden hour, the designer may retune that one constant; HORIZON_FILL is geometric and
+does not depend on the haze value.
 
 ### Sprint 2 item 239 — kampung SUBJECT_COVERAGE did not fail as expected (2026-11-23)
 

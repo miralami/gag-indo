@@ -57,6 +57,8 @@ Shots and verdicts belong under `docs/v2/evidence/h/<date>-round9/`.
 | `canonical_overview` | Server | High 3/4 canonical-style overview from the south over the bridge toward the whole village. |
 | `canonical_overview_left` | Server | Left flank of the canonical overview: village ring and river band west of the Pasar. |
 | `canonical_overview_right` | Server | Right flank of the canonical overview: village ring and river band east of the Pasar. |
+
+Item 242 (2026-11-23): the three canonical overview cameras now see a buried `HorizonFill` grass ring beyond the playable square and a shipped Atmosphere.Haze floor of 1.6, so the far edge fades into the sky instead of ending at a grey plane. Geometry is measured by `tools/studio/check_q242.luau`; this is not a look verdict — the designer grades the S2-STOP shots.
 | `spawn_golden` | Client | Spawn framing under the golden-hour lighting preset. |
 | `spawn_night` | Client | Spawn framing under the night lighting preset. |
 | `pasar_golden` | Client | Pasar framing under the golden-hour lighting preset. |

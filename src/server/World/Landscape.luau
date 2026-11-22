@@ -21,6 +21,20 @@ local MAX_HILL_HEIGHT = 80
 -- square, but its above-ground cap must stay outside it, so the walkable surface never rises.
 local PLAYABLE_HALF = MapSpec.TERRAIN_HALF
 
+-- WORK_QUEUE item 242: a low, flat grass ring BEYOND that square closes the grey void seen from the
+-- three canonical overview cameras. It is buried below Terrain's base slab (GROUND_Y - TERRAIN_VOXEL)
+-- so it never changes the walkable surface; its top is only a ray target for the far edge. Four
+-- non-collidable Parts, each within Roblox's 2048-stud Size cap, are cheaper than extra Terrain fills.
+-- This is a reversible default; the designer may retune the band or swap it for a hill silhouette.
+local FILL_FOLDER = "HorizonFill"
+local FILL_TAG = "HorizonFill"
+local FILL_INNER = PLAYABLE_HALF + 4 -- clear of the 400-stud playable square
+local FILL_OUTER = FILL_INNER + 1048 -- 1452; still inside one 2048 Part on Z
+local FILL_HALF_Z = 1024
+local FILL_CENTRE_Y = GROUND_Y - 8.5 -- top -7.5, below the -1.5 Terrain base
+local FILL_THICKNESS = 1
+local FILL_COLOUR = "#6f8a3f"
+
 -- Widest FillBlock either pass may request. A wide, thin fill came out full of holes in Studio
 -- (2026-11-15), so every oversized volume is split into 40-stud strips before it reaches terrain.
 local MAX_SPAN = MapSpec.MAX_FILL_SPAN
@@ -185,6 +199,40 @@ function Landscape.hillBlocks(): { { [string]: any } }
 	return splitAll(volumes)
 end
 
+-- Item 242 far fill as plain data: four buried grass slabs forming a ring just outside the playable
+-- square. XZ bounds are one axis-aligned rectangle per slab, so the data-only spec can prove none of
+-- them enters the playable square or the 100-stud PERF proxy. No Instance or Enum call at load.
+function Landscape.horizonFillParts(): { { [string]: any } }
+	local width = FILL_OUTER - FILL_INNER
+	local centre = (FILL_INNER + FILL_OUTER) / 2
+	local cross = FILL_HALF_Z * 2
+	local function descriptor(name: string, x: number, z: number, sx: number, sz: number)
+		return {
+			name = name,
+			tag = FILL_TAG,
+			size = { sx, FILL_THICKNESS, sz },
+			position = { x, FILL_CENTRE_Y, z },
+			colour = FILL_COLOUR,
+		}
+	end
+	return {
+		descriptor("HorizonFillEast", centre, 0, width, cross),
+		descriptor("HorizonFillWest", -centre, 0, width, cross),
+		descriptor("HorizonFillNorth", 0, centre, FILL_INNER * 2, width),
+		descriptor("HorizonFillSouth", 0, -centre, FILL_INNER * 2, width),
+	}
+end
+
+do
+	for _, part in ipairs(Landscape.horizonFillParts()) do
+		assert(part.size[1] <= 2048 and part.size[3] <= 2048, "Landscape: far fill exceeds the Part Size cap")
+		assert(
+			part.position[2] + part.size[2] / 2 < GROUND_Y - MapSpec.TERRAIN_VOXEL,
+			"Landscape: far fill is not below the Terrain base"
+		)
+	end
+end
+
 -- Clip an old volume to the part above GROUND_Y. Clearing this restores the baseline surface
 -- without digging a crater under the old hill.
 local function aboveGroundClear(volume)
@@ -248,6 +296,39 @@ local function fill(terrain: Terrain, volume: { [string]: any }, material: Enum.
 	end
 end
 
+-- Rebuild the far-fill folder from data. Greybox.build() destroys the whole World folder on a
+-- rebuild, but this also removes an older copy if apply() is called twice on the same place, so the
+-- result is idempotent. The parts are invisible to physics and shadows, queryable by the ray check,
+-- and never inside the playable square or the 100-stud PERF proxy.
+local function applyHorizonFill(terrain: Terrain)
+	local root = terrain.Parent
+	local world = root and root:FindFirstChild("World") or root
+	if not world then
+		return
+	end
+	local previous = world:FindFirstChild(FILL_FOLDER)
+	if previous then
+		previous:Destroy()
+	end
+	local folder = Instance.new("Folder")
+	folder.Name = FILL_FOLDER
+	folder.Parent = world
+	for _, descriptor in ipairs(Landscape.horizonFillParts()) do
+		local part = Instance.new("Part")
+		part.Name = descriptor.name
+		part.Size = Vector3.new(descriptor.size[1], descriptor.size[2], descriptor.size[3])
+		part.CFrame = CFrame.new(descriptor.position[1], descriptor.position[2], descriptor.position[3])
+		part.Color = Color3.fromHex(descriptor.colour)
+		part.Material = Enum.Material.Grass
+		part.Anchored = true
+		part.CanCollide = false
+		part.CastShadow = false
+		part.CanQuery = true
+		part:SetAttribute(descriptor.tag, true)
+		part.Parent = folder
+	end
+end
+
 -- Clears the retired footprints with Air, sets the palette, then fills the current volumes. Safe
 -- to call on every rebuild.
 function Landscape.apply(terrain: Terrain)
@@ -264,6 +345,7 @@ function Landscape.apply(terrain: Terrain)
 	for _, volume in Landscape.hillBlocks() do
 		fill(terrain, volume, volume.material)
 	end
+	applyHorizonFill(terrain)
 end
 
 return Landscape

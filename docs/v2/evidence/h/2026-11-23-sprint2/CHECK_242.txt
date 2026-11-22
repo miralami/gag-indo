@@ -1,0 +1,48 @@
+CHECK 242 - horizon void from above (WORK_QUEUE SPRINT 2 item 242)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2
+Place: Development-Juragan-Desa. Play only (Server VM for ray checks, Client VM for haze read).
+Place NOT saved, nothing published. Rojo-synced: repo src/ changes present in the live place.
+
+== Wiring ==
+src/server/World/Landscape.luau: `horizonFillParts()` + idempotent `applyHorizonFill()` called from
+`apply()`. Four buried, non-collidable, CanQuery grass slabs form a ring just outside the 800x800
+playable square (|x|,|z| <= 400): east/west x-centre 928, size 1048x1x2048; north/south z-centre
+928, size 808x1x1048; y = GROUND_Y-8.5 so the top is below the Terrain base slab. Tagged
+`HorizonFill = true`, name containing "HorizonFill". No Ball, no walkable surface change.
+src/shared/SkyMapR6.luau: `HORIZON_HAZE_FLOOR = 1.6` (reversible default). src/client/World/Sky.luau
+clamps both static and season-tweened Atmosphere.Haze to that floor. Seasons presets and q197's
+candidate HAZE = 2.0 untouched. Live Client VM after Play: Atmosphere.Haze = 1.600000023841858,
+ClockTime 16.2. tools/studio/check_q242.luau: self-contained SERVER-VM check, 3 cameras x 64 rays.
+tests/specs/horizon_fill_spec.luau registered; docs/v2/visual/REVIEW_CAMERAS.md note added.
+
+== Check method ==
+Fresh Camera per canonical_overview / canonical_overview_left / canonical_overview_right using
+CFrame.lookAt(eye, lookAt) from ReviewCameras.get; 8x8 normalised viewport rays, x 0.02..0.98,
+y 0.40..0.60 (horizon band), tan half-angles from fixed 70deg / 16:9 (a Server-VM Camera has no
+FOV property — corrected during verification). Ray length 5000; Characters excluded; non-ground
+hits (roofs, roads, foliage) excluded per ray and re-cast, up to 24 skips. A hit counts only for
+Terrain, or a part named Ground/Hill/Mountain/Skirt/Horizon/FarFill or tagged
+HorizonFill/HorizonSkirt/FarHill/Mountain. Target: >= 90% of 192 rays => ceil(172.8) = 173.
+PERF_BUDGET: BasePart centres within XZ radius 100, target <= 500 (Sedang proxy, check_q186 method).
+These are geometric fill checks, not a visual verdict.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK HORIZON_FILL PASS 190 173
+CHECK PERF_BUDGET PASS 323 500
+CHECK CAL_HORIZON_FILL_FAIL PASS 1 1
+
+== Exact measured values ==
+- HORIZON_FILL: 190/192 = 0.9895833 hits (>= 0.90). Per camera: canonical_overview 63/64,
+  canonical_overview_left 63/64, canonical_overview_right 64/64.
+- PERF_BUDGET: 323 BasePart centres within XZ radius 100 (<= 500). The four far-fill slabs sit
+  outside that proxy and inside Roblox's 2048-stud Size cap (asserted in data).
+- Calibration: re-running the same sweep with the four `HorizonFill` parts added to the local
+  RaycastParams exclude filter gives 170/192 = 0.8854167 (< 0.90). Per camera without fill: 54, 57,
+  59. CAL_HORIZON_FILL_FAIL PASS 1 1. No world instance was destroyed or mutated for calibration.
+- Default-look haze floor is a designer-tunable visual choice; recorded under Decisions for designer.
+  No threshold lowered; 90% and PERF 500 unchanged.
+
+Local validation: lune run tests/run.luau 3055 passed; selene src 0 errors / 0 warnings / 0 parse
+errors; stylua --check clean on all changed/new Luau files.
+Status: SEEN-IN-STUDIO.

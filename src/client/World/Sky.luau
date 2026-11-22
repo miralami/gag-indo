@@ -20,6 +20,8 @@ local TWEEN = TweenInfo.new(4, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
 local DEFAULT_SKY = "e"
 local SHIPPING_ATMOSPHERE = SkyMapR6.atmosphere
 local SHIPPING_EFFECTS = SkyMapR6.effects
+-- Item 242 reversible default; lives in shared data so the data-only spec can guard it.
+local HORIZON_HAZE_FLOOR = SkyMapR6.HORIZON_HAZE_FLOOR
 
 local function atmosphere(): Atmosphere
 	local found = Lighting:FindFirstChildOfClass("Atmosphere")
@@ -88,20 +90,15 @@ local function configureStatic()
 	Lighting.ExposureCompensation = 0.08
 
 	-- LookDevSkyR6 atmosphere stack, applied with no enable call. Seasons still tween
-	-- these same properties below, so the preset wins once apply() runs.
+	-- these same properties below, so the preset wins once apply() runs. The item-242 haze floor
+	-- keeps the far fill fading into the sky at every season.
 	local atmo = atmosphere()
 	atmo.Density = SHIPPING_ATMOSPHERE.Density
-	atmo.Haze = SHIPPING_ATMOSPHERE.Haze
-	atmo.Color = Color3.fromRGB(
-		SHIPPING_ATMOSPHERE.Color[1],
-		SHIPPING_ATMOSPHERE.Color[2],
-		SHIPPING_ATMOSPHERE.Color[3]
-	)
-	atmo.Decay = Color3.fromRGB(
-		SHIPPING_ATMOSPHERE.Decay[1],
-		SHIPPING_ATMOSPHERE.Decay[2],
-		SHIPPING_ATMOSPHERE.Decay[3]
-	)
+	atmo.Haze = math.max(SHIPPING_ATMOSPHERE.Haze, HORIZON_HAZE_FLOOR)
+	atmo.Color =
+		Color3.fromRGB(SHIPPING_ATMOSPHERE.Color[1], SHIPPING_ATMOSPHERE.Color[2], SHIPPING_ATMOSPHERE.Color[3])
+	atmo.Decay =
+		Color3.fromRGB(SHIPPING_ATMOSPHERE.Decay[1], SHIPPING_ATMOSPHERE.Decay[2], SHIPPING_ATMOSPHERE.Decay[3])
 	atmo.Offset = SHIPPING_ATMOSPHERE.Offset
 	atmo.Glare = SHIPPING_ATMOSPHERE.Glare
 
@@ -153,7 +150,8 @@ local function apply()
 
 	TweenService:Create(atmosphere(), TWEEN, {
 		Density = preset.atmosphereDensity or 0.35,
-		Haze = preset.atmosphereHaze or 1,
+		-- Seasons numbers stay unchanged; only the shipped final value gets a reversible floor.
+		Haze = math.max(preset.atmosphereHaze or 1, HORIZON_HAZE_FLOOR),
 		Color = preset.atmosphereColor,
 		Decay = preset.atmosphereDecay,
 		Glare = preset.atmosphereGlare or 0.3,

@@ -1,22 +1,26 @@
 # Cara kerja bareng di Juragan Desa
 
 Tim: **@miralami** (pemilik, designer, satu-satunya yang menyetujui merge ke `main`), **Willy** (kode
-dan umum), **Ragun** (desain, 3D, map). Agen opencode bekerja di branch `track/c-world-look`.
+dan umum), **Ragun** (desain, 3D, map). Masing-masing bekerja dengan agen AI (opencode untuk
+@miralami, Claude Code untuk Willy dan Ragun). Aturan untuk agen ada di `AGENTS.md` bagian
+"Team and authority"; Claude Code membacanya otomatis lewat `CLAUDE.md`.
 
 ## Aturan merge
 
-- Tidak ada yang push langsung ke `main`. Semua perubahan masuk lewat Pull Request.
+- `main` adalah branch kerja utama sejak 22 Nov 2026. Hanya @miralami (dan agen opencode miliknya)
+  yang push langsung ke `main`. Willy dan Ragun selalu lewat Pull Request.
 - `CODEOWNERS` menunjuk @miralami untuk semua file, dan `main` mewajibkan review dari code owner.
   Artinya PR hanya bisa di-merge setelah @miralami menyetujuinya.
 - CI (workflow **Tests**, job `unit`) harus hijau: `lune run tests/run.luau` dan `selene src`.
-- Branch `track/*` milik agen. Jangan push ke sana; buka PR kalau perlu mengubahnya.
+- Branch `track/*` adalah branch lama agen dan tidak dipakai lagi. Jangan push ke sana.
 
 ## Branch
 
 - Willy: `willy/<topik>`, contoh `willy/fix-bribe-cooldown`.
 - Ragun: `ragun/<topik>`, contoh `ragun/pasar-stall-model`.
 - Satu topik per branch, PR kecil lebih cepat direview.
-- Sebelum buka PR, rebase atau merge dari `main` terbaru.
+- `main` bergerak cepat karena opencode push terus. `git pull origin main` sebelum mulai, dan
+  rebase ke `main` terbaru sebelum buka PR.
 
 ## Pembagian area
 
@@ -64,3 +68,10 @@ tugas pertama yang cocok untuk Willy ada di `docs/testing/BUGS.md` dan `docs/tes
 
 Perubahan yang mengubah tampilan dilampiri screenshot Studio di PR. Keputusan apakah tampilan
 dipakai tetap di @miralami, lewat sheet review HTML seperti biasa.
+
+## Arah proyek
+
+Arah dan keputusan desain dipegang @miralami. File arah (`docs/v2/plan/MASTER_PLAN.md`,
+`WORK_QUEUE.md`, `DECISIONS.md`, verdict di `docs/v2/visual/CANDIDATES.md`, `AGENTS.md`) hanya diubah
+oleh @miralami. Kalau menurutmu arahnya perlu diubah, tulis usulannya di deskripsi PR atau di chat.
+Agen AI kalian sudah diberi aturan yang sama, jadi cukup minta tugas ke agen seperti biasa.

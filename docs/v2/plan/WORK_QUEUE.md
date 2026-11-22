@@ -5,7 +5,7 @@
 > 1. Read `AGENTS.md`, the tracker at the top of `docs/v2/plan/MASTER_PLAN.md`, `docs/testing/BUGS.md` and `docs/testing/GATE1.md`.
 > 2. You are in long-run mode. Take the **first unchecked item** in this file (sections P, Q, L, O, M and N are the live ones, in that order: **P first, then Q**, then O before the unticked items of M) and work down. Don't ask questions, don't stop to report.
 > 3. Section K's hard rules apply to every scene-affecting item: a tick needs real Studio PASS output saved under `docs/v2/evidence/h/<date>-round<N>/CHECK_<item>.txt`; two failed attempts mean `BLOCKED — <FAIL line>`; never weaken a check; never save the place; never touch NPC outfits, the terrain sculpt or the chosen sky/ground.
-> 4. Per item: `lune run tests/run.luau` passes (check the exit code), `selene src` is 0/0/0, stylua only on files you changed, then a topical commit with no attribution lines, the tracker "Last updated" line updated in the same commit, and push to `track/c-world-look`. Stage files by name, never `git add -A`.
+> 4. Per item: `lune run tests/run.luau` passes (check the exit code), `selene src` is 0/0/0, stylua only on files you changed, then a topical commit with no attribution lines, the tracker "Last updated" line updated in the same commit, and push to `main` (the working branch since 2026-11-22; `track/c-world-look` is retired). Stage files by name, never `git add -A`.
 > 5. The main session (Claude, with Studio screenshots) does the visual review afterwards. Stop only when every item is ticked or `BLOCKED`, then write the final report: commits, blocked items, decisions list.
 
 Live since 2026-11-19 (`e6da076`). Rounds 1 and 2 are archived in `WORK_QUEUE_ROUND1.md` and

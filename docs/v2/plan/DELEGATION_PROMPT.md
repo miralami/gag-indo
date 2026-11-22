@@ -4,7 +4,7 @@
 Kamu mengerjakan repo Roblox "Juragan Desa" (Rojo + Luau + Lune).
 
 SETUP (wajib, urut)
-1. git fetch origin && git checkout track/c-world-look && git pull origin track/c-world-look
+1. git fetch origin && git checkout main && git pull origin main
    (jangan kerja di main: main di remote ketinggalan 69 commit)
 2. Baca AGENTS.md, lalu "Progress tracker" di docs/v2/plan/MASTER_PLAN.md baris atas.
    Itu sumber kebenaran: apa yang selesai, apa berikutnya, di mana buktinya.

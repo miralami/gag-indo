@@ -1,0 +1,83 @@
+CHECK 196 - curved dirt connector paths (WORK_QUEUE section Q item 196)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Play only (Server VM, check). Place NOT saved, nothing published.
+
+== Wiring ==
+Candidate "paths_curved_r10" (OFF by default until item 226). Pure data
+src/shared/ModelMapPathsCurvedR10.luau (LCG(196), 10 serpentine spokes at the 10 plot angles,
+8 control points each on r 110..148, sine wobble amplitude 8..11 studs <= 12; Mud core 8 studs
+wide + 1.5 stud Ground shoulder; plot-footprint / gate-box(r 152 +-3) / river-channel keep-outs;
+load-time self-check asserts >=6 paths deviate >=4 studs). Server voxel applier
+src/server/World/LookDevPathsCurvedR10.luau (snapshot-first ReadVoxels/WriteVoxels, zone-restricted
+repaint of occupied non-Air voxels, occupancy + water preserved, byte-exact LIFO restore). LookDev /
+LookDevReview / Main.server wiring; tests/specs/paths_curved_r10_spec.luau (5 cases); 107->108
+mirror across 50 existing specs; tools/studio/check_q196.luau (4-check harness). No terrain sculpt,
+no road/plot change, no asset IDs, no visual verdict.
+
+Base connector roads (Greybox.buildRoads / MapSpec) are NOT removed: the check paints a cosmetic
+curved dirt band alongside them, so PATH_REACH stays the item-105 invariant (6 hub doors + 10 plot
+gates). Nothing in this candidate changes collidability.
+
+== Studio voxel-API facts (probed this session) ==
+Terrain:ReadVoxels(region, 4) needs SCALAR resolution 4; data indexed [x][y][z]; 2nd return is
+occupancy, 3rd (water) is nil. Harness region X -208..208, Y -12..20, Z -208..340 (104 x 8 x 137
+voxels) - Z extended past the grid's 208 so NO_CROSS can actually sample the river centreline
+z = 304 + 12*sin(2*pi*x/320) (~292..316), bridge corridor x in [-5,5] z 276..332 excepted.
+Before staging, full-region counts: Air 84176, Grass 18724, Ground 8844, Mud 1552, Water 688
+(the Mud is natural river-bed material; the harness counts only cells that CHANGE to paint).
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK PATH_REACH PASS 16 16
+CHECK PATH_CURVE PASS 10 6
+CHECK GATE_CLEAR PASS 0 0
+CHECK NO_CROSS PASS 0 0
+
+== Notes / measurements ==
+- tools/studio/check_q196.luau served verbatim to execute_luau (Server VM), snapshots BEFORE,
+  enables paths_curved_r10 via review.enableAdditive, re-reads the region, runs all four checks,
+  then restores with disableAll() in the SAME call. No harness require, no place save, no visual
+  verdict. 1600-cell (40x40) path grid; 4-stud grid deviation readings per path:
+  11.737, 10.203, 6.000, 10.680, 9.757, 9.757, 10.680, 6.000, 10.203, 9.757 - all 10 >= 4,
+  target >=6.
+- PATH_REACH uses the item-105 method verified in a plain Play Server VM: spawn MapSpec.SPAWN
+  (0,0.5,28) -> 6 hub doors via MapSpec.hubPoint(hub,0,hub.depth/2+2) on the live MapSpec.HUBS
+  array + 10 plot gates reconstructed purely at radius 152 (GateMarker parts do not exist when
+  only paths_curved_r10 is staged). CreatePath({AgentRadius=2,AgentHeight=5.5,AgentCanJump=false}),
+  16 real ComputeAsync calls, pass iff Status==Success. Anti-vacuity: 16 routes attempted.
+- GATE_CLEAR / NO_CROSS count cells whose topmost non-Air material CHANGED to Mud/Ground vs BEFORE
+  inside a plot footprint / gate box, or inside the river channel outside the bridge. 0 each.
+- During staging full-region counts: Air 84176, Grass 18453, Ground 8539, Mud 2128, Water 688;
+  after disableAll() counts returned to Air 84176, Grass 18724, Ground 8844, Mud 1552, Water 688
+  - byte-identical to before; restore exact verified by serialized full-region count.
+
+== Non-vacuity / calibration (undeweakened checks, each in its own fresh Play) ==
+Erase painted cells in the AFTER table -> no path deviates:
+CHECK PATH_REACH PASS 16 16
+CHECK PATH_CURVE FAIL 0 6
+CHECK GATE_CLEAR PASS 0 0
+CHECK NO_CROSS PASS 0 0
+
+Paint one in-plot voxel in AFTER:
+CHECK PATH_REACH PASS 16 16
+CHECK PATH_CURVE PASS 10 6
+CHECK GATE_CLEAR FAIL 1 0
+CHECK NO_CROSS PASS 0 0
+
+Paint one river-channel voxel (x=100, outside bridge) in AFTER:
+CHECK PATH_REACH PASS 16 16
+CHECK PATH_CURVE PASS 10 6
+CHECK GATE_CLEAR PASS 0 0
+CHECK NO_CROSS FAIL 1 0
+
+Clip MapSpec.HUBS to empty before the route loop -> fewer routes attempted:
+CHECK PATH_REACH FAIL 10 16
+CHECK PATH_CURVE PASS 10 6
+CHECK GATE_CLEAR PASS 0 0
+CHECK NO_CROSS PASS 0 0
+
+Each target term is FAIL-able independently; no baseline PASS is vacuous. Play stopped after every
+calibration; disableAll() restored the place, so no mutation was persisted. Restore byte-identical
+after every run. No visual approval claimed.
+
+Status: SEEN-IN-STUDIO.

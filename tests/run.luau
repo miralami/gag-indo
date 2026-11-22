@@ -223,6 +223,7 @@ local specs = {
 	require("./specs/blocks_band_trees_spec"),
 	require("./specs/meadow_r10_spec"),
 	require("./specs/ground_variation_r10_spec"),
+	require("./specs/paths_curved_r10_spec"),
 	require("./specs/ronda_tower_r9_spec"),
 	require("./specs/rocks_r9_spec"),
 	require("./specs/streetfurn_r8_spec"),

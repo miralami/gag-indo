@@ -1,0 +1,46 @@
+CHECK 205 - tilled plot furrows (WORK_QUEUE SPRINT 1 item 205)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2
+Place: Development-Juragan-Desa. Play only (Server VM, check). Place NOT saved, nothing published.
+Rojo-synced: repo src/ changes present in the live place before each run.
+
+== Wiring ==
+Candidate "furrows_r10" (OFF by default). Pure data src/shared/ModelMapFurrowsR10.luau (10 plots x 5
+thin alternating dark/light Ground-coloured strips just above the real soil at y=0.55, inside the plot
+footprint and outside the 2-stud ditch, plot_aerial_01..10 camera names, load-time asserts), server
+applier src/server/World/LookDevFurrowsR10.luau (anchored non-collidable Furrow/plot tagged Parts,
+destroy-only restore), 6-case LUNE spec, tools/studio/check_q205.luau. LookDev IDS[117] / descriptor /
+plan OR-chain, LookDevReview path, Main.server boot require, tests/run.luau registration,
+CANDIDATES.md + CANDIDATE_INDEX.md rows, 50-spec count mirror 116->117. Terrain and crop placement are
+untouched. No asset IDs, no visual verdict.
+
+== Harness defect fixed before PASS run ==
+First Studio run threw `audit error: Z is not a valid member of UDim2`: measure() read `.Position` of a
+workspace GUI descendant (a UDim2). Fixed in the harness only: each descendant's position read and
+classification is wrapped in a per-instance pcall with a `typeof` component guard, so a single bad
+instance can no longer throw out of measure(). No check weakened; semantics unchanged.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK FURROWS PASS 5 4
+CHECK FURROW_VISIBLE PASS 10 10
+CHECK CROP_PLACEMENT_UNCHANGED PASS 0 0
+
+== Notes / measurements ==
+- FURROWS 5/4: minimum live Furrow-tagged strip count across the 10 plots = 5 per plot (50 staged
+  strips total), 0 before, 0 load failures. Strips sit at y=0.55, above the y=0.5 soil surface.
+- FURROW_VISIBLE 10/10: all plot_aerial_01..10 eyes have >=1 Furrow strip within 60 studs (4-5 strips
+  per eye), 0 visible before staging.
+- CROP_PLACEMENT_UNCHANGED 0/0: 0 crop-stage Parts/Models inside the plot area before staging and 0
+  after, with 50 Furrow parts staged (non-vacuous guard), 0 load failures.
+- Check ran with enableAdditive("furrows_r10", game) in SERVER VM; disableAll() in the same call
+  restored the place. Play stopped after the run.
+
+== Non-vacuity / calibration ==
+Runtime-only injection between the harness's BEFORE/AFTER anchors (repo file untouched):
+- destroy plot-1 strips and move all other Furrow parts 100000 studs away:
+  CHECK FURROWS FAIL 0 4, CHECK FURROW_VISIBLE FAIL 0 10.
+- separate fresh Play, add one crop-tagged BasePart at plot 1's centre:
+  CHECK CROP_PLACEMENT_UNCHANGED FAIL 1 0.
+All three checks demonstrably FAIL on injected bad state. Visual yes/no stays the designer's.
+
+Status: SEEN-IN-STUDIO.

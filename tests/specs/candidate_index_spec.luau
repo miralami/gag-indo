@@ -219,7 +219,7 @@ return function(t, Env)
 			expect(table.concat(missingRows, ", ")):toBe("")
 			expect(table.concat(extras, ", ")):toBe("")
 			expect(#index.rows):toBe(#LookDev.IDS)
-			expect(#LookDev.IDS):toBe(116)
+			expect(#LookDev.IDS):toBe(117)
 		end)
 
 		t:it("copies verdict, datamodel, module, family and documented camera per id", function()

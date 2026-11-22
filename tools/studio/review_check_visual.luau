@@ -154,4 +154,144 @@ if not ok then
 	end
 end
 
+-- ------------------------------------------------------------------------------------------------
+-- WORK_QUEUE item 239: SUBJECT_COVERAGE. Separate SERVER-VM block; item-217 checks above are kept
+-- intact. The temporary fixture is destroyed and every staged candidate restored on every path.
+--   SUBJECT_COVERAGE_FIXTURE        well-framed temporary part must measure >= 0.15
+--   SUBJECT_COVERAGE_FIXTURE_FAIL   deliberately shrunk fixture must measure < 0.15 (calibration)
+--   SUBJECT_COVERAGE_KAMPUNG_R10    sprint-1 pair expected < 0.15 (FAIL is the expected line)
+--   SUBJECT_COVERAGE_DITCH_WATER_R10  sprint-1 pair expected < 0.15 (FAIL is the expected line)
+--   SUBJECT_COVERAGE_PROBE          synthetic-data self-probe through the same sampling core
+--
+-- CALIBRATION ANCHORS (single lines): the `local good = coverage.measure(...)` line for the pass,
+-- the `scFixture.Size = Vector3.new(0.2, 0.2, 0.2)` line for the fail. Inject a bad first opaque hit
+-- to push a measurement down, or shrink the fixture further before the second measure to prove the
+-- target bites. Staged-pair values are reported as measured; if one is >= 0.15, report it to the
+-- main session for camera correction instead of weakening 0.15.
+
+local SC_CHECK_NAMES = {
+	"SUBJECT_COVERAGE_FIXTURE",
+	"SUBJECT_COVERAGE_FIXTURE_FAIL",
+	"SUBJECT_COVERAGE_FIXTURE_CALIBRATION",
+	"SUBJECT_COVERAGE_KAMPUNG_R10",
+	"SUBJECT_COVERAGE_DITCH_WATER_R10",
+	"SUBJECT_COVERAGE_PROBE",
+}
+local SC_TARGETS = {
+	SUBJECT_COVERAGE_FIXTURE = "0.15",
+	SUBJECT_COVERAGE_FIXTURE_FAIL = "0.15",
+	SUBJECT_COVERAGE_FIXTURE_CALIBRATION = 1,
+	SUBJECT_COVERAGE_KAMPUNG_R10 = "0.15",
+	SUBJECT_COVERAGE_DITCH_WATER_R10 = "0.15",
+	SUBJECT_COVERAGE_PROBE = 1,
+}
+local scReview, scFixture = nil, nil
+
+local function shown(value)
+	return string.format("%.4f", tonumber(value) or 0)
+end
+
+local scOk, scErr = pcall(function()
+	local shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+	local coverage = require(shared:WaitForChild("SubjectCoverage"))
+	scReview = require(shared:WaitForChild("LookDevReview"))
+	if type(coverage) ~= "table" or type(coverage.measure) ~= "function" or type(coverage.probe) ~= "function" then
+		error("SubjectCoverage API missing")
+	end
+	if
+		type(scReview) ~= "table"
+		or type(scReview.enableAdditive) ~= "function"
+		or type(scReview.disableAll) ~= "function"
+	then
+		error("LookDevReview staging API missing")
+	end
+	local registry = require(shared:WaitForChild("ReviewCameras"))
+	local camera = registry.get("spawn")
+	if type(camera) ~= "table" or type(camera.position) ~= "table" or type(camera.lookAt) ~= "table" then
+		error("spawn review camera missing")
+	end
+	local eye = Vector3.new(camera.position[1], camera.position[2], camera.position[3])
+	local look = Vector3.new(camera.lookAt[1], camera.lookAt[2], camera.lookAt[3])
+	local centre = eye + (look - eye).Unit * 12
+
+	scFixture = Instance.new("Part")
+	scFixture.Name = "Q239_FIXTURE"
+	scFixture.Size = Vector3.new(18, 12, 1)
+	scFixture.CFrame = CFrame.lookAt(centre, eye)
+	scFixture.Anchored = true
+	scFixture.CanCollide = false
+	scFixture.Transparency = 0
+	scFixture:SetAttribute("LookDevStage", "Q239_FIXTURE")
+	scFixture.Parent = game:GetService("Workspace")
+
+	local good = coverage.measure("Q239_FIXTURE", "spawn") -- CALIBRATION ANCHOR: well-framed fixture
+	emit("SUBJECT_COVERAGE_FIXTURE", good.ok == true and good.fraction >= 0.15, shown(good.fraction), "0.15", good)
+
+	scFixture.Size = Vector3.new(0.2, 0.2, 0.2) -- CALIBRATION ANCHOR: deliberately unframed fixture
+	local low = coverage.measure("Q239_FIXTURE", "spawn")
+	emit("SUBJECT_COVERAGE_FIXTURE_FAIL", false, shown(low.fraction), "0.15", {
+		measured = low.fraction,
+		candidateId = "Q239_FIXTURE",
+		camera = "spawn",
+		reason = low.reason,
+	})
+	local bit = low.fraction < 0.15
+	emit("SUBJECT_COVERAGE_FIXTURE_CALIBRATION", bit, bit and 1 or 0, 1, { measured = low.fraction })
+	pcall(function()
+		scFixture:Destroy()
+	end)
+	scFixture = nil
+
+	local function stagedMeasure(candidateId, cameraName, checkName)
+		pcall(function()
+			scReview.disableAll()
+		end)
+		local staged, why = scReview.enableAdditive(candidateId, game)
+		if not staged then
+			emit(checkName, false, "0.0000", "0.15", { staged = false, reason = why })
+			return
+		end
+		local measured = coverage.measure(candidateId, cameraName)
+		local below = measured.fraction < 0.15
+		emit(checkName, not below, shown(measured.fraction), "0.15", {
+			measured = measured.fraction,
+			candidateId = candidateId,
+			camera = cameraName,
+			expectedBelow = 0.15,
+			detail = measured,
+			stageReason = why,
+		})
+	end
+
+	stagedMeasure("kampung_r10", "kampung_view", "SUBJECT_COVERAGE_KAMPUNG_R10")
+	pcall(function()
+		scReview.disableAll()
+	end)
+	stagedMeasure("ditch_water_r10", "plot_gate_01", "SUBJECT_COVERAGE_DITCH_WATER_R10")
+	pcall(function()
+		scReview.disableAll()
+	end)
+
+	local probeOk = coverage.probe() == true
+	emit("SUBJECT_COVERAGE_PROBE", probeOk, probeOk and 1 or 0, 1, { synthetic = true })
+end)
+
+pcall(function()
+	if scReview then
+		scReview.disableAll()
+	end
+end)
+pcall(function()
+	if scFixture then
+		scFixture:Destroy()
+	end
+end)
+
+if not scOk then
+	local reason = { reason = "subject coverage error: " .. tostring(scErr) }
+	for _, name in ipairs(SC_CHECK_NAMES) do
+		emitOnce(name, false, 0, SC_TARGETS[name], reason)
+	end
+end
+
 return results

@@ -1,0 +1,63 @@
+CHECK 239 - SUBJECT_COVERAGE review-shot check (WORK_QUEUE SPRINT 2 item 239)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2
+Place: Development-Juragan-Desa. Play only (Server VM, checks). Place NOT saved, nothing published.
+Rojo-synced: repo src/ changes present in the live place before each run.
+
+== Wiring ==
+src/shared/SubjectCoverage.luau (new, pure-at-load): measure(candidateId, cameraName, viewport?),
+sample(), probe(). AABB corners via Camera:WorldToViewportPoint, clipped to the viewport; shared 64x36
+grid with per-cell dedup; 1200-stud raycast per covered cell, first opaque hit must belong to the
+candidate, transparent non-candidate hits excluded and retried up to 4 times. Lune spec
+tests/specs/subject_coverage_spec.luau (7 cases) registered in tests/run.luau. tools/studio/
+review_check_visual.luau gains a separate SUBJECT_COVERAGE block (item-217 checks untouched) with a
+well-framed temporary fixture, a shrunk calibration fixture, the two staged sprint-1 pairs and a
+synthetic probe. docs/v2/visual/REVIEW_CAMERAS.md documents the check. No visual verdict written.
+
+Engine-backed fixes made during Studio verification (no target weakened):
+- Camera.ViewportSize is engine-owned (read-only); a fresh Server-VM Camera reports (1,1) and
+  WorldToViewportPoint returns aspect-corrected normalised [0,1]. Projection and ray directions are
+  now mapped into the requested pixel viewport (X scaled by height*aspect, offset by half width);
+  Lune fakes with nil ViewportSize keep the identity path.
+- Roblox newer Luau reports type(Vector3)=="vector"; the AABB guard now accepts "vector".
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+(CHECK lines emitted by the harness block logic; run in three bounded execute_luau calls to keep each
+ Studio call short; every staged candidate restored with disableAll() in the same call.)
+CHECK SUBJECT_COVERAGE_FIXTURE PASS 1.0000 0.15
+CHECK SUBJECT_COVERAGE_FIXTURE_FAIL FAIL 0.0000 0.15
+CHECK SUBJECT_COVERAGE_FIXTURE_CALIBRATION PASS 1 1
+CHECK SUBJECT_COVERAGE_KAMPUNG_R10 PASS 0.4694 0.15
+CHECK SUBJECT_COVERAGE_DITCH_WATER_R10 FAIL 0.0000 0.15
+CHECK SUBJECT_COVERAGE_PROBE PASS 1 1
+
+== Exact measured values (sprint-1 pairs, recorded per the item) ==
+- kampung_view + kampung_r10: fraction 0.4693627450980392 (0.4694), partCount 72, rectCount 7,
+  sampleCount 816, hitCount 383. Staged true. Line emitted: PASS 0.4694 0.15.
+- plot_gate_01 + ditch_water_r10: fraction 0.0000, partCount 20, rectCount 2, sampleCount 0,
+  hitCount 0. Staged true. Line emitted: FAIL 0.0000 0.15. The two ditch rectangles are ~3 px tall,
+  below one 64x36 grid cell (~20.9 px), so no cell centre falls inside; the check fails with zero
+  samples, which is the correct fail-closed result for a subject that thin in frame.
+
+== Expected-FAIL discrepancy (reported, target NOT weakened) ==
+The item expected both sprint-1 pairs to measure < 0.15. Only ditch_water_r10 did (0.0000).
+kampung_view + kampung_r10 measured 0.4694 >= 0.15, so the harness emitted PASS, not FAIL. The
+metric is geometric visible screen fraction; the sprint-1 provisional note for shot #03 was
+"Camera against a red wall; houses not readable" - a framing/legibility defect that a coverage
+fraction does not penalise (a close wall can fill the frame at high coverage). A centre-ray cast
+from kampung_view toward its lookAt returned no hits, consistent with item 216 CAMERA_CLEAR 0/0.
+No threshold, sample count or occlusion rule was changed to force the expected FAIL. Flagged to the
+designer / item 240 as a finding: re-aimed kampung cameras should be judged on legibility, and this
+coverage number is a floor check, not a verdict.
+
+== Non-vacuity / calibration ==
+- Well-framed temporary Part (18x12x1, 12 studs in front of spawn): fixture PASS 1.0000, 1040/1040
+  samples hit. Shrunk to 0.2^3: fixture FAIL 0.0000, 0 samples -> FIXTURE_CALIBRATION PASS 1 1,
+  proving the 0.15 target bites.
+- probe() on synthetic rects passes through the same sampling core: PROBE PASS 1 1.
+- Earlier harness attempts that exposed the read-only ViewportSize and "vector" type bugs were
+  corrected in src/shared/SubjectCoverage.luau; no local test was skipped or threshold lowered.
+
+Local validation: lune run tests/run.luau 3038 passed; selene src 0 errors / 0 warnings / 0 parse
+errors; stylua --check clean on the three changed Luau files.
+Status: SEEN-IN-STUDIO.

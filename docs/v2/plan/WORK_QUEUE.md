@@ -913,7 +913,13 @@ Source: `docs/v2/evidence/h/2026-11-23-sprint1/MAIN_SESSION_NOTES.md` and `docs/
   restore exact ScreenGui `Enabled` values; repeat-safe, SERVER fallback, documented Client-VM capture
   sequence. Fresh Play SERVER-VM PASS `HUD_HIDDEN 0/0`, `HUD_RESTORE 0/0`; each check calibrated FAIL
   by runtime injection. Suite 3024->3031, `selene src` 0/0/0.
-- [ ] 239. **`SUBJECT_COVERAGE` check for review shots.** For a candidate and a camera, project the candidate's part bounding boxes with `Camera:WorldToViewportPoint` and compute the visible screen fraction (clipped to the viewport, occlusion tested by raycasting sampled points). Add it to `tools/studio/review_check_visual.luau`. **CHECKS:** `SUBJECT_COVERAGE` >= 0.15 for a well-framed fixture; it FAILS (< 0.15) for the sprint-1 pairs `kampung_view` + `kampung_r10` and `plot_gate_01` + `ditch_water_r10` (record their measured values).
+- [x] 239. **`SUBJECT_COVERAGE` check for review shots.** For a candidate and a camera, project the candidate's part bounding boxes with `Camera:WorldToViewportPoint` and compute the visible screen fraction (clipped to the viewport, occlusion tested by raycasting sampled points). Add it to `tools/studio/review_check_visual.luau`. **CHECKS:** `SUBJECT_COVERAGE` >= 0.15 for a well-framed fixture; it FAILS (< 0.15) for the sprint-1 pairs `kampung_view` + `kampung_r10` and `plot_gate_01` + `ditch_water_r10` (record their measured values).
+  Done 2026-11-23 (SEEN-IN-STUDIO, `CHECK_239.txt`): `SubjectCoverage` helper (AABB projection, viewport clip,
+  64x36 dedup grid, 4-retry occlusion raycast), 7-case spec, harness SUBJECT_COVERAGE block. Fresh Play
+  SERVER-VM: fixture PASS 1.0000 / shrunk FAIL 0.0000 / calibration PASS 1 1; PROBE PASS 1 1;
+  ditch pair FAIL 0.0000 (recorded). Kampung pair measured 0.4694 (PASS), NOT the expected FAIL -
+  geometric coverage does not penalise the sprint-1 "red wall / not legible" framing; recorded as a
+  finding under Decisions for designer, target not weakened. Suite 3031->3038, `selene src` 0/0/0.
 - [ ] 240. **Re-aim the weak sprint-1 cameras.** Move or add cameras so each subject fills the frame: `kampung_r10`, `road_fence_r10`, `signposts_r10`, `crop_stages_r10` (closer, one plot with all three stages), `ditch_water_r10`, and `lamps_r10` (make `lamp_night` a real ClockTime 21 variant). **CHECKS:** `SUBJECT_COVERAGE` >= 0.15 and `CAMERA_CLEAR` for each; record old and new positions in `REVIEW_CAMERAS.md`.
 - [ ] 241. **Find and fix the round "melon" blobs.** The `spawn` and `canonical_overview` baselines and `hill_dressing_r10` show many round green and brown spheres on lawns and hills that read as melons. Find which generators place them (default look and candidates), list them in the CHECK file, and replace them in the default look with the baked tropical tree, shrub and rock models (cartoonish realism; no plain Ball part larger than 1.5 studs on open lawn). **CHECKS:** `NO_MELONS`: no Ball-shaped part >= 1.5 studs on open lawn in the default look; `TREE_COUNT` and `PERF_BUDGET` still PASS.
 - [ ] 242. **Horizon void from above.** From `canonical_overview` the far edge is a flat grey plane. Fill it: extend the grass/terrain ring or add a low far-hill ring, and set the Atmosphere haze so the edge fades into the sky. **CHECKS:** `HORIZON_FILL`: from `canonical_overview`, `canonical_overview_left` and `canonical_overview_right`, at least 90% of 64 rays aimed at the frame's horizon band hit terrain, hill or mountain; `PERF_BUDGET` within Sedang.
@@ -1454,6 +1460,19 @@ Models the ladder couldn't supply, each with a brief and a reference.
   `models_r3/MANIFEST.md`.
 
 ## Decisions for designer
+
+### Sprint 2 item 239 — kampung SUBJECT_COVERAGE did not fail as expected (2026-11-23)
+
+Item 239 expected `kampung_view` + `kampung_r10` to measure < 0.15. It measured 0.4694 in a fresh Play
+SERVER VM (72 parts, 7 rects, 816 samples, 383 hits), so the emitted line is PASS, not FAIL. The
+metric is geometric visible screen fraction with raycast occlusion; the sprint-1 note for shot #03 was
+"Camera against a red wall; houses not readable" - a legibility defect that a fill fraction cannot
+penalise (a close wall can fill the frame at high coverage). A centre ray from `kampung_view` toward
+its lookAt had no hits, consistent with item 216 CAMERA_CLEAR 0/0. The `plot_gate_01` +
+`ditch_water_r10` pair did fail (0.0000). No threshold, grid size or occlusion rule was changed to
+force the expected result. For item 240: re-aimed kampung cameras should be judged on legibility in
+the review pack; treat 0.15 as a floor check, not a visual verdict. The main session cannot make a
+visual yes/no from these numbers.
 
 ### Round 10 item 107 — smoke allowlist scope and the real smoke_r8 error (2026-11-22)
 

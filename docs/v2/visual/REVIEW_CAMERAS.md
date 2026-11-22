@@ -130,3 +130,25 @@ then uses `Players:GetPlayers()[1].PlayerGui`. The self-contained SERVER-VM harn
 `tools/studio/check_q238.luau` proves `HUD_HIDDEN` (0 enabled ScreenGuis while hidden) and
 `HUD_RESTORE` (every temporary ScreenGui back to its saved value) and cleans up after itself. Use
 that for checks; use the Client VM sequence above for actual capture shots.
+
+## SUBJECT_COVERAGE (WORK_QUEUE item 239)
+
+`src/shared/SubjectCoverage.luau` measures the visible screen fraction of a candidate from a named
+review camera: project each tagged `BasePart` AABB with `Camera:WorldToViewportPoint`, clip to the
+viewport (default 1375x753), then raycast a shared 64x36 grid cell centre through every covered
+cell. A cell counts only when the first opaque hit belongs to the candidate; overlapping rects are
+visited once. `measure(candidateId, cameraName, viewportSize?, deps?)` returns `fraction` plus
+`sampleCount`, `hitCount`, `partCount`, `rects`, `camera`, `viewport` and `reason`. No place save;
+the temporary Camera is unparented. Target stays **0.15**; a <0.15 value is a camera/framing defect,
+not a reason to lower the target.
+
+The SERVER-VM harness `tools/studio/review_check_visual.luau` prints three harness pairs:
+
+| Pair | Purpose |
+|---|---|
+| temporary `Q239_FIXTURE` part + `spawn`, then shrunk fixture + `spawn` | PASS >=0.15 and calibrated FAIL <0.15 |
+| `kampung_r10` staged + `kampung_view` | sprint-1 weak pair, expected FAIL <0.15 |
+| `ditch_water_r10` staged + `plot_gate_01` | sprint-1 weak pair, expected FAIL <0.15 |
+
+Each staged pair is restored with `LookDevReview.disableAll()`; values are recorded by the main
+session in `CHECK_239.txt`. The camera pairs above are measurement inputs, not visual verdicts.

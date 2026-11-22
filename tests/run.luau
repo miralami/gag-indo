@@ -126,6 +126,7 @@ local specs = {
 	require("./specs/lookdev_corner_spec"),
 	require("./specs/lookdev_additive_spec"),
 	require("./specs/lookdev_hud_spec"),
+	require("./specs/subject_coverage_spec"),
 	require("./specs/economy_config_spec"),
 	require("./specs/first_session_failure_spec"),
 	require("./specs/client_state_failure_spec"),

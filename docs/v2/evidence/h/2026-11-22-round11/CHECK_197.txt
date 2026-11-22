@@ -1,0 +1,68 @@
+CHECK 197 - horizon fill (WORK_QUEUE section Q item 197)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Play only (Server VM, check). Place NOT saved, nothing published.
+
+== Wiring ==
+Candidate "horizon_fill_r10" (OFF by default until item 226). Pure data
+src/shared/ModelMapHorizonFillR10.luau (3 review cameras, 5 horizon samples per camera at yaw
+-0.35..0.35, one 2048x1x2048 anchored non-collidable Part centred (0,-8,-128) tagged
+HorizonSkirt, Atmosphere Haze=2.0 / Color={214,226,220}; load-time self-check). Server applier
+src/server/World/LookDevHorizonFillR10.luau (save-once LIFO snapshot of Atmosphere.Haze/Color,
+stage folder+part from data, byte-exact restore of overwritten props, destroy only created
+instances, pcall guards, LookDevFailures, LookDev.register). LookDev IDS[109] / descriptor /
+plan OR-chain, LookDevReview path, Main.server boot require; tests/specs/horizon_fill_r10_spec.luau
+(5 cases); 108->109 spec mirror across 50 specs; tools/studio/check_q197.luau (3-check harness).
+No asset IDs, no terrain sculpt, no visual verdict.
+
+ENGINE CONSTRAINT (found during Studio validation): Roblox clamps Part.Size to 2048 per axis. The
+first data revision asked for 3200 and the engine silently staged 2048, so the 3 middle spawn rays
+(horizon z~-1032..-1050) fell outside the skirt and HORIZON_FILL failed 12/15. Fixed in pure data
+by using one 2048 tile centred at z=-128 (covers spawn z~-1050, hill z~+792, canonical z~-805 and
+all |x|<=484) with a load-time assert that skirt size stays <=2048 and that representative
+horizon samples of all three review cameras lie inside the tile. Spec mirrors the corrected values.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK HORIZON_FILL PASS 15 15
+CHECK PERF_BUDGET PASS 338 500
+CHECK HAZE_MATCH PASS 1 1
+
+== Notes / measurements ==
+- tools/studio/check_q197.luau served verbatim to execute_luau (Server VM); it snapshots BEFORE,
+  enables horizon_fill_r10 via review.enableAdditive, re-reads the live DataModel, emits all three
+  CHECK lines, and restores with disableAll() in the SAME call. No place save, no visual verdict.
+- HORIZON_FILL: 15 downward raycasts (5 horizon samples x 3 cameras: canonical_overview, spawn,
+  hill_ring_in), origin (x,256,z), direction (0,-512,0), RaycastParams IgnoreWater=false; a ray
+  passes when the first hit is Terrain or a BasePart with attribute HorizonSkirt=true. Per-camera
+  after hits 5/5/5; before hits 0/15 (so the skirt adds all 15 - not a vacuous terrain-only pass).
+- PERF_BUDGET: standard 100-stud proxy from check_p182.luau; 338 BaseParts within the radius before
+  and after staging (the skirt centre is at the origin, so +1 part, but the census counts only what
+  is inside the radius - measured 338/500, 0 read errors, loadFailures 0).
+- HAZE_MATCH: before Haze 0.20000000298023224, Color RGB (0.9607843,0.7450981,0.5490196) = warm
+  orange sky; after Haze 2.0, Color RGB (0.8392157,0.8862745,0.8627451) = {214,226,220} pale
+  sky-horizon haze; both within 0.001 / 0.5 per channel of the data target.
+- Byte-exact restore after disableAll(): before and after both Haze "0.20000000298023224", Color
+  "0.9607843160629272,0.7450980544090271,0.5490196347236633", folder NIL, staged parts 0; during
+  folder present, Haze 2, parts 1. No mutation persisted.
+
+== Non-vacuity / calibration (each in its own fresh Play; inject BEFORE the AFTER measure) ==
+Destroy the staged skirt before the AFTER measurement:
+CHECK HORIZON_FILL FAIL 0 15
+CHECK PERF_BUDGET PASS 338 500
+CHECK HAZE_MATCH PASS 1 1
+
+Spawn 200 BaseParts inside the 100-stud radius before the AFTER measurement:
+CHECK HORIZON_FILL PASS 15 15
+CHECK PERF_BUDGET FAIL 538 500
+CHECK HAZE_MATCH PASS 1 1
+
+Reset Atmosphere.Haze to the before-stage value before the AFTER measurement:
+CHECK HORIZON_FILL PASS 15 15
+CHECK PERF_BUDGET PASS 338 500
+CHECK HAZE_MATCH FAIL 0 1
+
+Each of the three target terms is FAIL-able independently; no baseline PASS is vacuous. Play
+stopped after every run and disableAll() restored the place. No visual approval claimed.
+The visual yes/no for the horizon look remains the owner's / vision observer's call.
+
+Status: SEEN-IN-STUDIO.

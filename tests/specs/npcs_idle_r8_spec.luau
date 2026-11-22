@@ -123,7 +123,7 @@ return function(t, Env)
 
 	t:describe("npcs_idle_r8 LookDev and applier wiring", function()
 		t:it("registers candidate 72 with a server review path", function()
-			expect(#LookDev.IDS):toBe(108)
+			expect(#LookDev.IDS):toBe(109)
 			expect(LookDev.IDS[72]):toBe("npcs_idle_r8")
 			expect(LookDev.isCandidate("npcs_idle_r8")):toBe(true)
 			local candidate = LookDev.candidates.npcs_idle_r8

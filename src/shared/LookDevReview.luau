@@ -134,6 +134,7 @@ LookDevReview.paths = {
 	meadow_r10 = { datamodel = "server", path = { "World", "LookDevMeadowR10" } },
 	ground_variation_r10 = { datamodel = "server", path = { "World", "LookDevGroundVariationR10" } },
 	paths_curved_r10 = { datamodel = "server", path = { "World", "LookDevPathsCurvedR10" } },
+	horizon_fill_r10 = { datamodel = "server", path = { "World", "LookDevHorizonFillR10" } },
 }
 
 function LookDevReview.pathsFor(id: string): any?

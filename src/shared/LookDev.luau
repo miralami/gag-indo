@@ -216,6 +216,7 @@ LookDev.IDS = {
 	"meadow_r10",
 	"ground_variation_r10",
 	"paths_curved_r10",
+	"horizon_fill_r10",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -1516,6 +1517,15 @@ LookDev.candidates = {
 		idsSource = "Shared.ModelMapPathsCurvedR10",
 		render = "docs/v2/visual/CANONICAL_GAP.md",
 	},
+
+	horizon_fill_r10 = {
+		id = "horizon_fill_r10",
+		title = "Distant horizon skirt and matching haze so no grey void shows at the map edge (round 10, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapHorizonFillR10",
+		render = "docs/v2/visual/CANONICAL_GAP.md",
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1743,6 +1753,7 @@ function LookDev.plan(id: string): any
 		or id == "meadow_r10"
 		or id == "ground_variation_r10"
 		or id == "paths_curved_r10"
+		or id == "horizon_fill_r10"
 	then
 		local c = LookDev.candidates[id]
 		return {

@@ -117,5 +117,6 @@ on any drift between this table and those sources; it never edits CANDIDATES.md.
 | `meadow_r10` | meadow | server | — | pending — review in Studio | `src/server/World/LookDevMeadowR10.luau` |
 | `ground_variation_r10` | ground_variation | server | — | pending — review in Studio | `src/server/World/LookDevGroundVariationR10.luau` |
 | `paths_curved_r10` | paths_curved | server | — | pending — review in Studio | `src/server/World/LookDevPathsCurvedR10.luau` |
+| `horizon_fill_r10` | horizon_fill | server | — | pending — review in Studio | `src/server/World/LookDevHorizonFillR10.luau` |
 
-Rows: 108. Missing from CANDIDATES.md: none. Missing from LookDevReview.paths: none.
+Rows: 109. Missing from CANDIDATES.md: none. Missing from LookDevReview.paths: none.

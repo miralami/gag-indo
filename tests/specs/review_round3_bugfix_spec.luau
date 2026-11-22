@@ -296,7 +296,7 @@ return function(t, Env)
 				count += 1
 			end
 			expect(count):toBe(#LookDev.IDS)
-			expect(count):toBe(108)
+			expect(count):toBe(109)
 			for _, id in ipairs(LookDev.IDS) do
 				local entry = Review.pathsFor(id)
 				expect(entry ~= nil):toBe(true)

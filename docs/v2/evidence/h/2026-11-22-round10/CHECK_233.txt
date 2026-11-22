@@ -1,0 +1,26 @@
+CHECK 233 - polisi_roof_r10 blue roof on Pos Polisi (WORK_QUEUE section P, gap row 20)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Play mode, Server VM. Place NOT saved, nothing published.
+Candidate OFF by default.
+
+== Setup ==
+Sources injected into Edit datamodel then fresh Play. tools/studio/check_r10_template.luau with
+__ID__ substituted to `polisi_roof_r10`, execute_luau Server VM, disableAll() cleanup.
+
+== Raw check lines (verbatim, staged polisi_roof_r10) ==
+CHECK BLUE_ROOF PASS 3 2
+CHECK HUB_FIT PASS 0 0
+CHECK FACADE_STRAY PASS 0 0
+CHECK CAMERA_CLEAR PASS 0 0
+
+== Non-vacuity / calibration ==
+- First staged run: the four CHECK lines emitted FAIL via the audit-error fallback because the
+  harness read the camera as `cam.eye - cam.lookAt` Vector3; ReviewCameras returns `position` and
+  `lookAt` as {x,y,z} tables. Harness bug, not geometry. Fixed the harness to build Vector3s from
+  the tables; geometry checks (BLUE_ROOF, HUB_FIT, FACADE_STRAY) had already passed in that run.
+- Camera clearance: 6-stud ray from the documented hub_polisi review-camera eye toward lookAt hits
+  nothing opaque (0 blocked). Ratio-based colour check (B>1.5R, B>1.3G) is Color3-scale safe.
+- No NPC outfits, terrain sculpt, chosen sky or ground touched. No visual verdict claimed.
+
+Status: SEEN-IN-STUDIO.

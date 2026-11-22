@@ -236,6 +236,7 @@ local specs = {
 	require("./specs/day_cycle_r8_spec"),
 	require("./specs/night_r8_spec"),
 	require("./specs/grade_r8_spec"),
+	require("./specs/canonical_r10_spec"),
 	require("./specs/sounds_r8_spec"),
 }
 

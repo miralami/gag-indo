@@ -121,6 +121,16 @@ LookDevReview.paths = {
 	season_r8_panen = { datamodel = "client", path = { "World", "LookDevSeasonR8" } },
 	rain_r8 = { datamodel = "client", path = { "World", "LookDevRainR8" } },
 	subuh_r8 = { datamodel = "client", path = { "World", "LookDevSubuhR8" } },
+	balai_r10 = { datamodel = "server", path = { "World", "LookDevCanonicalR10" } },
+	hub_canopy_r10 = { datamodel = "server", path = { "World", "LookDevCanonicalR10" } },
+	blocks_shrubs_r10 = { datamodel = "server", path = { "World", "LookDevCanonicalR10" } },
+	pasar_roof_r10 = { datamodel = "server", path = { "World", "LookDevCanonicalR10" } },
+	warung_cluster_r10 = { datamodel = "server", path = { "World", "LookDevCanonicalR10" } },
+	polisi_roof_r10 = { datamodel = "server", path = { "World", "LookDevCanonicalR10" } },
+	pakrt_roof_r10 = { datamodel = "server", path = { "World", "LookDevCanonicalR10" } },
+	sawah_gubuk_r10 = { datamodel = "server", path = { "World", "LookDevCanonicalR10" } },
+	plots_mailbox_r10 = { datamodel = "server", path = { "World", "LookDevCanonicalR10" } },
+	river_palms_r10 = { datamodel = "server", path = { "World", "LookDevCanonicalR10" } },
 }
 
 function LookDevReview.pathsFor(id: string): any?

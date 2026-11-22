@@ -203,6 +203,16 @@ LookDev.IDS = {
 	"season_r8_panen",
 	"rain_r8",
 	"subuh_r8",
+	"balai_r10",
+	"hub_canopy_r10",
+	"blocks_shrubs_r10",
+	"pasar_roof_r10",
+	"warung_cluster_r10",
+	"polisi_roof_r10",
+	"pakrt_roof_r10",
+	"sawah_gubuk_r10",
+	"plots_mailbox_r10",
+	"river_palms_r10",
 }
 
 -- Built-in Roblox materials only. This is also the guard the spec checks: a value outside this
@@ -1386,6 +1396,96 @@ LookDev.candidates = {
 		tweenMax = 40,
 		birdsSilentUntil = 6,
 	},
+
+	balai_r10 = {
+		id = "balai_r10",
+		title = "Balai desa — village meeting hall (round 10, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapCanonicalR10",
+		render = "docs/v2/visual/CANONICAL_GAP.md",
+	},
+
+	hub_canopy_r10 = {
+		id = "hub_canopy_r10",
+		title = "Hub canopies — large shade trees over the six village hubs (round 10, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapCanonicalR10",
+		render = "docs/v2/visual/CANONICAL_GAP.md",
+	},
+
+	blocks_shrubs_r10 = {
+		id = "blocks_shrubs_r10",
+		title = "Block shrubs — shrub and flower patches across the village blocks (round 10, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapCanonicalR10",
+		render = "docs/v2/visual/CANONICAL_GAP.md",
+	},
+
+	pasar_roof_r10 = {
+		id = "pasar_roof_r10",
+		title = "Pasar roof — market building roof detailing (round 10, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapCanonicalR10",
+		render = "docs/v2/visual/CANONICAL_GAP.md",
+	},
+
+	warung_cluster_r10 = {
+		id = "warung_cluster_r10",
+		title = "Warung cluster — grouped stalls and seating around the warung (round 10, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapCanonicalR10",
+		render = "docs/v2/visual/CANONICAL_GAP.md",
+	},
+
+	polisi_roof_r10 = {
+		id = "polisi_roof_r10",
+		title = "Polisi roof — police post roof detailing (round 10, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapCanonicalR10",
+		render = "docs/v2/visual/CANONICAL_GAP.md",
+	},
+
+	pakrt_roof_r10 = {
+		id = "pakrt_roof_r10",
+		title = "Pak RT roof — Pak RT house roof detailing (round 10, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapCanonicalR10",
+		render = "docs/v2/visual/CANONICAL_GAP.md",
+	},
+
+	sawah_gubuk_r10 = {
+		id = "sawah_gubuk_r10",
+		title = "Sawah gubuk — field hut on the sawah terraces (round 10, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapCanonicalR10",
+		render = "docs/v2/visual/CANONICAL_GAP.md",
+	},
+
+	plots_mailbox_r10 = {
+		id = "plots_mailbox_r10",
+		title = "Plot mailboxes — mailbox props at the ten plots (round 10, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapCanonicalR10",
+		render = "docs/v2/visual/CANONICAL_GAP.md",
+	},
+
+	river_palms_r10 = {
+		id = "river_palms_r10",
+		title = "River palms — palm clusters along the river banks (round 10, server-only)",
+		style = LookDev.STYLE,
+		status = LookDev.STATUS,
+		idsSource = "Shared.ModelMapCanonicalR10",
+		render = "docs/v2/visual/CANONICAL_GAP.md",
+	},
 }
 
 function LookDev.isCandidate(id: any): boolean
@@ -1600,6 +1700,16 @@ function LookDev.plan(id: string): any
 		or id == "smoke_r8"
 		or id == "wind_r8"
 		or id == "npcs_r8"
+		or id == "balai_r10"
+		or id == "hub_canopy_r10"
+		or id == "blocks_shrubs_r10"
+		or id == "pasar_roof_r10"
+		or id == "warung_cluster_r10"
+		or id == "polisi_roof_r10"
+		or id == "pakrt_roof_r10"
+		or id == "sawah_gubuk_r10"
+		or id == "plots_mailbox_r10"
+		or id == "river_palms_r10"
 	then
 		local c = LookDev.candidates[id]
 		return {

@@ -117,9 +117,9 @@ return function(t, Env)
 			expect(harnessSrc:find("totalLights > 0", 1, true) ~= nil):toBe(true)
 		end)
 
-		t:it("adds no LookDev ID, count or CANDIDATES row", function()
-			expect(#LookDev.IDS):toBe(95)
-			expect(LookDev.IDS[96]):toBe(nil)
+		t:it("adds no LookDev ID, count or CANDIDATES row beyond the 105 registered", function()
+			expect(#LookDev.IDS):toBe(105)
+			expect(LookDev.IDS[106]):toBe(nil)
 		end)
 	end)
 

@@ -1,6 +1,6 @@
 # Candidate index (WORK_QUEUE item 128)
 
-Generated from `src/shared/LookDev.luau` (`LookDev.IDS`, 95 ids), `docs/v2/visual/CANDIDATES.md`
+Generated from `src/shared/LookDev.luau` (`LookDev.IDS`, 105 ids), `docs/v2/visual/CANDIDATES.md`
 (verdict, verbatim Designer yes/no cell), `src/shared/LookDevReview.luau` (datamodel + module path),
 `docs/v2/visual/SHOT_LIST.md` and explicit gallery camera text. Every camera name is checked against
 `docs/v2/visual/REVIEW_CAMERAS.md`; `—` means no documented camera mapping. Family is the id prefix
@@ -104,5 +104,15 @@ on any drift between this table and those sources; it never edits CANDIDATES.md.
 | `season_r8_panen` | season | client | — | pending — Studio checks `SEASON_SAFE` 3/3, `SEASON_RESTORE` 3/3, `SEASON_DISTINCT` 16>=2 all PASS; Clouds.Cover may be overwritten by the client Sky tween — Cover hold confirmed in Client VM, no Sky overwrite (`docs/v2/evidence/h/2026-11-21-round10/CHECK_119.txt`); keep off by default — 2026-11-22 | `src/client/World/LookDevSeasonR8.luau` |
 | `rain_r8` | rain | client | — | pending — review in Studio (checks `RAIN_EMITTERS`, `RAIN_OFF_CERAH`, `RAIN_COST`; keep off by default) | `src/client/World/LookDevRainR8.luau` |
 | `subuh_r8` | subuh | client | — | pending — review in Studio (checks `DAWN_PHASES_MONOTONIC`, `DAWN_SAFE`; keep off by default) | `src/client/World/LookDevSubuhR8.luau` |
+| `balai_r10` | balai | server | — | pending — review in Studio | `src/server/World/LookDevCanonicalR10.luau` |
+| `hub_canopy_r10` | hub_canopy | server | — | pending — review in Studio | `src/server/World/LookDevCanonicalR10.luau` |
+| `blocks_shrubs_r10` | blocks_shrubs | server | — | pending — review in Studio | `src/server/World/LookDevCanonicalR10.luau` |
+| `pasar_roof_r10` | pasar_roof | server | — | pending — review in Studio | `src/server/World/LookDevCanonicalR10.luau` |
+| `warung_cluster_r10` | warung_cluster | server | — | pending — review in Studio | `src/server/World/LookDevCanonicalR10.luau` |
+| `polisi_roof_r10` | polisi_roof | server | — | pending — review in Studio | `src/server/World/LookDevCanonicalR10.luau` |
+| `pakrt_roof_r10` | pakrt_roof | server | — | pending — review in Studio | `src/server/World/LookDevCanonicalR10.luau` |
+| `sawah_gubuk_r10` | sawah_gubuk | server | — | pending — review in Studio | `src/server/World/LookDevCanonicalR10.luau` |
+| `plots_mailbox_r10` | plots_mailbox | server | — | pending — review in Studio | `src/server/World/LookDevCanonicalR10.luau` |
+| `river_palms_r10` | river_palms | server | — | pending — review in Studio | `src/server/World/LookDevCanonicalR10.luau` |
 
-Rows: 95. Missing from CANDIDATES.md: none. Missing from LookDevReview.paths: none.
+Rows: 105. Missing from CANDIDATES.md: none. Missing from LookDevReview.paths: none.

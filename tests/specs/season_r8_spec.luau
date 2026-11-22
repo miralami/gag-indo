@@ -256,7 +256,7 @@ return function(t, Env)
 
 	t:describe("season_r8 LookDev wiring", function()
 		t:it("ships candidates 91-93 with descriptors, keyed plans and client paths", function()
-			expect(#LookDev.IDS):toBe(95)
+			expect(#LookDev.IDS):toBe(105)
 			expect(LookDev.IDS[90]):toBe("crops_showcase_r8")
 			expect(LookDev.IDS[91]):toBe("season_r8_hujan")
 			expect(LookDev.IDS[92]):toBe("season_r8_kemarau")
@@ -401,7 +401,7 @@ return function(t, Env)
 				"tests/specs/sky_map_r6_spec.luau",
 			}) do
 				local src = fs.readFile(path)
-				expect(src:find("expect(count):toBe(95)", 1, true) ~= nil, path):toBe(true)
+				expect(src:find("expect(count):toBe(105)", 1, true) ~= nil, path):toBe(true)
 			end
 		end)
 	end)

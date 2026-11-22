@@ -1,8 +1,10 @@
 --!nocheck
--- WORK_QUEUE section M item 75, redone in section O item 142: pathedge_r8 dirt-path edge dressing.
--- Pure-data contract, the read-only harness check and the server LookDev wiring. No Studio claim:
--- CHECK_75.txt / CHECK_142.txt and the visual verdict belong to the main session. The only asset ID
--- is read from Shared.ModelMapVegetationR6; the applier never writes an ID literal.
+-- WORK_QUEUE section M item 75, redone in section O item 142, plants rebuilt in section Q item 190:
+-- pathedge_r8 dirt-path edge dressing. Pure-data contract, the read-only harness check and the
+-- server LookDev wiring. No Studio claim: CHECK_75.txt / CHECK_142.txt / CHECK_190.txt and the visual
+-- verdict belong to the main session. The grass-clump ID is read from Shared.ModelMapVegetationR6
+-- and the three plant IDs from Shared.ModelMapPathEdgeR8.PLANT_ASSET_IDS; the applier writes no ID
+-- literal.
 
 local fs = require("@lune/fs")
 
@@ -112,7 +114,24 @@ return function(t, Env)
 			expect(other.ringPieces(ring[1], 7, ringHalf, 1)):toEqual(Data.ringPieces(ring[1], 7, ringHalf, 1))
 			local src = fs.readFile("src/shared/ModelMapPathEdgeR8.luau")
 			expect(string.find(src, "rbxassetid://%d") ~= nil):toBe(false)
-			expect(string.find(src, "%d%d%d%d%d%d%d") ~= nil):toBe(false)
+			-- Item 190: the only 7+ digit runs are the three declared Creator Store plant IDs.
+			local ids = {}
+			for digits in string.gmatch(src, "%d+") do
+				if #digits >= 7 then
+					ids[tonumber(digits)] = true
+				end
+			end
+			local declared, distinct = 0, 0
+			for _, id in pairs(Data.PLANT_ASSET_IDS) do
+				expect(ids[id]):toBe(true)
+				ids[id] = nil
+				declared += 1
+			end
+			for _ in pairs(ids) do
+				distinct += 1
+			end
+			expect(declared):toBe(3)
+			expect(distinct):toBe(0)
 			expect(string.find(src, "game.", 1, true) ~= nil):toBe(false)
 			expect(string.find(src, "Instance.new", 1, true) ~= nil):toBe(false)
 			expect(string.find(src, "Enum.", 1, true) ~= nil):toBe(false)
@@ -199,6 +218,14 @@ return function(t, Env)
 			expect(string.find(applier, "LookDevFailures).set(FAMILY_ID, failures)", 1, true) ~= nil):toBe(true)
 			expect(string.find(applier, "part.CanCollide = false", 1, true) ~= nil):toBe(true)
 			expect(string.find(applier, "activeFolder:Destroy()", 1, true) ~= nil):toBe(true)
+			-- Item 190: baked plants, no procedural stem/blades/petals.
+			local dataSrc = fs.readFile("src/shared/ModelMapPathEdgeR8.luau")
+			expect(string.find(dataSrc, "PLANT_ASSET_IDS", 1, true) ~= nil):toBe(true)
+			expect(string.find(applier, "Data.assetIdFor(", 1, true) ~= nil):toBe(true)
+			expect(string.find(applier, 'SetAttribute("EdgeAssetId"', 1, true) ~= nil):toBe(true)
+			expect(string.find(applier, "LookDevAssetLoader.get(assetId, FAMILY_ID)", 1, true) ~= nil):toBe(true)
+			expect(string.find(applier, "TallBlade_", 1, true) == nil):toBe(true)
+			expect(string.find(applier, "FlowerPetal_", 1, true) == nil):toBe(true)
 			expect(string.find(applier, "rbxassetid://%d") ~= nil):toBe(false)
 			local main = fs.readFile("src/server/Main.server.luau")
 			expect(string.find(main, "pcall(require, script.Parent.World.LookDevPathEdgeR8)", 1, true) ~= nil):toBe(

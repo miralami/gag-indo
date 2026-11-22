@@ -1,0 +1,60 @@
+CHECK 190 - redesign pathedge_r8 with real baked models (section Q item 190, supersedes 177)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa. Play mode, Server VM. Place NOT saved, nothing published.
+Candidate pathedge_r8 OFF by default; staged only inside the check via enableAdditive, disableAll cleanup.
+
+== Setup ==
+Three distinct free Creator Store models sourced via real `search_asset` (free), fetched with
+GetObjects and measured, then baked scripts-stripped into ServerStorage.LookDevAssets.<id>
+(0 scripts each, no place save):
+  - 806579390 "Grass tuft"   (a61766),      Model 6 parts,  bbox 2.12 x 1.32 x 1.49
+  - 25454256  "Orange Flower"(tenchynox),   Model 10 parts, bbox 2.71 x 1.40 x 2.70
+  - 1769612183 "small stone" (MandarinBoy), Part 1 part,    bbox 1.86 x 1.86 x 1.86
+All three IDs recorded in ASSET_MANIFEST.md section Q (no unused marker: wired in src by item 190).
+No ID invented; exact search_asset + GetObjects measurements in this session.
+Changed sources injected into the Edit datamodel (Rojo connection stale):
+  src/shared/ModelMapPathEdgeR8.luau       -> ReplicatedStorage.Shared.ModelMapPathEdgeR8
+  src/server/World/LookDevPathEdgeR8.luau  -> ServerScriptService.Server.World.LookDevPathEdgeR8
+Fresh Play, Server VM. tools/studio/check_q190.luau pasted whole into execute_luau. The applier
+places one tagged anchor per plant, loads the correct baked model via LookDevAssetLoader.get,
+strips scripts, scales component-wise so bbox height == piece.height (1..2.5) and footprint <=
+2*PLANT_CLEAR, parents the real baked BaseParts under the anchor and raycasts them. Irregular
+2..4-stud spacing, flower patch every 4th step (~12 studs), a stone every 11th non-flower step,
+exactly two flower colours. Item-142 debris loop and alang-alang clump unchanged.
+
+== Raw check lines (verbatim, fresh Play, staged pathedge_r8) ==
+CHECK EDGE_HEIGHT PASS 1.96 1
+CHECK EDGE_VISIBLE PASS 405 12
+CHECK EDGE_OFF_ROAD PASS 0 0
+CHECK EDGE_VARIETY PASS 3 3
+
+== Notes / measurements ==
+- 814 tagged plants staged (all sides of every road centreline).
+- EDGE_HEIGHT 1.96: median world AABB height over anchor + real baked model descendants >= 1.
+- EDGE_VISIBLE 405: from named `spawn` ReviewCameras eye {0,20,150}, look {0,8,96}, ~75deg cone,
+  5 rays per in-cone plant with an Include filter on the staged folder; >=60% must hit that plant's
+  own part. 3350 rays tried, 1914 own hits, 405 plants qualified (>= 12 required).
+- EDGE_OFF_ROAD 0: for all 814 plants |Lateral| - footprint >= HalfWidth and anchor CFrame agrees
+  with Lateral/CentreX/CentreZ within 0.35 studs. Zero offenders.
+- EDGE_VARIETY 3: distinct real baked asset ids present as EdgeAssetId attribute on a staged plant
+  AND with a baked folder under ServerStorage.LookDevAssets.<id>. Ids: 25454256, 806579390,
+  1769612183. Procedural-only plants cannot supply an id.
+- Load failure during first run: `baked.CFrame = CFrame.new(position) + (cf - cf.Position)` threw
+  `invalid argument #2 (Vector3 expected, got CFrame)` (Roblox CFrame + CFrame invalid). Fixed to
+  `baked.CFrame = cf + (position - cf.Position)` (rotation preserved). Re-run gave the PASS lines
+  above with applier failure count 0. No fake Parts: a failed load/scale/place leaves an empty
+  tagged anchor and a loud fail().
+- No NPC outfits, terrain sculpt, chosen sky or ground touched. No visual verdict claimed.
+- Default look unchanged; pathedge_r8 stays behind LookDev until item 226.
+
+== Non-vacuity / calibration (undeweakened checks) ==
+Each mutation applied to the LIVE staged geometry, then the SAME check re-run in a fresh Play session:
+
+1. EDGE_VARIETY: SetAttribute(EdgeAssetId, nil) on all staged plants -> FAIL 0 3 (others PASS).
+2. EDGE_VISIBLE: set CanQuery=false on every staged BasePart so no camera ray can hit them ->
+   FAIL 0 12 (all plants 0/5 probes).
+3. EDGE_OFF_ROAD: PivotTo(+Vector3.new(6,0,0)) on every plant -> FAIL 798 0.
+4. EDGE_HEIGHT: Destroy all 7386 baked descendants, leaving 0.1-tall anchors -> FAIL 0.1 1.
+
+Status: SEEN-IN-STUDIO.

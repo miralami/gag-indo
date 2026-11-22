@@ -1,14 +1,17 @@
 --!strict
 -- ModelMapPathEdgeR8: pure data for the OFF-BY-DEFAULT "pathedge_r8" LookDev candidate
--- (WORK_QUEUE section M item 75, redone in section O item 142). Dirt-path edge dressing:
--- grass clumps, pebbles and a few flat puddles along BOTH edges of every road arm, ring segment
--- and continuation. Each piece records its nearest centreline point, the path's half-width and its
--- own signed lateral distance, so the applier and the harness never re-guess the geometry.
+-- (WORK_QUEUE section M item 75, redone in section O item 142; tall plants rebuilt in section Q
+-- item 190). Dirt-path edge dressing: grass clumps, pebbles and a few flat puddles along BOTH edges
+-- of every road arm, ring segment and continuation, plus tall baked Creator Store plants (grass
+-- tuft / flower / stone) at irregular intervals. Each piece records its nearest centreline point,
+-- the path's half-width and its own signed lateral distance, so the applier and the harness never
+-- re-guess the geometry.
 --
--- Pure data/functions only: no Roblox APIs, no Instances, no Enums, no asset IDs. The applier passes
--- the real MapSpec.roadArms() / ringSegments() / roadContinuations() / ROAD geometry in, so this
--- module never reimplements the road layout. Jitter is an integer hash of (seed, index, salt):
--- deterministic. Lateral = side * (halfWidth + extra), with extra in
+-- Pure data/functions only: no Roblox APIs, no Instances, no Enums. The applier passes the real
+-- MapSpec.roadArms() / ringSegments() / roadContinuations() / ROAD geometry in, so this module never
+-- reimplements the road layout. The only asset IDs here are the three real Creator Store plants
+-- declared in PLANT_ASSET_IDS; no rbxassetid:// literals. Jitter is an integer hash of
+-- (seed, index, salt): deterministic. Lateral = side * (halfWidth + extra), with extra in
 -- [PATH_OFFSET_MIN, PATH_OFFSET_MAX]; a clump at most CLUMP_MAX_WIDTH wide therefore reaches the
 -- road edge without entering the central corridor.
 --
@@ -31,17 +34,30 @@ ModelMapPathEdgeR8.PATH_OFFSET_MAX = 2.5
 ModelMapPathEdgeR8.PATH_EDGE_GROW = 3
 ModelMapPathEdgeR8.CLUMP_MAX_WIDTH = 1.5
 
--- Item 177: a denser, visible dressing sampled independently of the item-142 debris pieces. One
--- plant per PLANT_SPACING studs on EACH side of every road centreline, 1..2 studs tall, with exactly
--- two flower colours. PLANT_CLEAR keeps the whole footprint outside the road surface.
+-- Item 190: a denser, visible dressing sampled independently of the item-142 debris pieces. One
+-- plant every 2..4 studs on EACH side of every road centreline, 1..2.5 studs tall, rendered by the
+-- applier with one of three baked Creator Store models. PLANT_SPACING is the legacy nominal value;
+-- plantStep() supplies the jitter. PLANT_CLEAR keeps the whole footprint outside the road surface.
 ModelMapPathEdgeR8.PLANT_SPACING = 3
-ModelMapPathEdgeR8.PLANT_HEIGHT_MIN = 1.15
-ModelMapPathEdgeR8.PLANT_HEIGHT_MAX = 1.95
+ModelMapPathEdgeR8.PLANT_SPACING_MIN = 2
+ModelMapPathEdgeR8.PLANT_SPACING_MAX = 4
+ModelMapPathEdgeR8.PLANT_HEIGHT_MIN = 1
+ModelMapPathEdgeR8.PLANT_HEIGHT_MAX = 2.5
 ModelMapPathEdgeR8.PLANT_CLEAR = 0.9
+ModelMapPathEdgeR8.PLANT_ASSET_ID_ATTRIBUTE = "EdgeAssetId"
+ModelMapPathEdgeR8.PLANT_ASSET_IDS = {
+	grass_tuft = 806579390, -- "Grass tuft" (a61766)
+	flower = 25454256, -- "Orange Flower" (tenchynox)
+	stone = 1769612183, -- "small stone" (MandarinBoy)
+}
 ModelMapPathEdgeR8.FLOWER_COLOURS = {
 	{ name = "white", rgb = { 246, 240, 214 } },
 	{ name = "yellow", rgb = { 236, 186, 62 } },
 }
+
+function ModelMapPathEdgeR8.assetIdFor(kind: string): number?
+	return ModelMapPathEdgeR8.PLANT_ASSET_IDS[kind]
+end
 
 local END_MARGIN = 3
 local SIDES = { -1, 1 }
@@ -51,6 +67,11 @@ local function noise(seed: number, index: number, salt: number): number
 	local n = (seed * 7919 + index * 104729 + salt * 129970) % 100003
 	n = (n * n) % 100003
 	return n / 100003
+end
+
+function ModelMapPathEdgeR8.plantStep(seed: number, stepIndex: number): number
+	return ModelMapPathEdgeR8.PLANT_SPACING_MIN
+		+ noise(seed, stepIndex, 8) * (ModelMapPathEdgeR8.PLANT_SPACING_MAX - ModelMapPathEdgeR8.PLANT_SPACING_MIN)
 end
 
 local function kindFor(index: number): string
@@ -186,8 +207,9 @@ function ModelMapPathEdgeR8.allPieces(arms: any, ring: any, continuations: any, 
 	return out
 end
 
--- Item 177: deterministic plant rows. Every record carries the same centreline/lateral contract as
--- item 142 so the applier and the Studio check can reuse the road geometry without re-deriving it.
+-- Item 190: deterministic plant rows rendered with baked models. Every record carries the same
+-- centreline/lateral contract as item 142 so the applier and the Studio check can reuse the road
+-- geometry without re-deriving it.
 local function pushPlant(
 	out: { any },
 	seed: number,
@@ -204,8 +226,10 @@ local function pushPlant(
 )
 	local extra = ModelMapPathEdgeR8.PLANT_CLEAR + noise(seed, stepIndex, 5) * 0.35
 	local lateral = side * (halfWidth + extra)
-	local isFlower = stepIndex % 3 == 0
-	local colour = ModelMapPathEdgeR8.FLOWER_COLOURS[((stepIndex - 1) % #ModelMapPathEdgeR8.FLOWER_COLOURS) + 1]
+	local isFlower = stepIndex % 4 == 0
+	local isStone = not isFlower and stepIndex % 11 == 0
+	local colour =
+		ModelMapPathEdgeR8.FLOWER_COLOURS[((math.floor(stepIndex / 4) - 1) % #ModelMapPathEdgeR8.FLOWER_COLOURS) + 1]
 	out[#out + 1] = {
 		x = baseX + lateral * normalX,
 		z = baseZ + lateral * normalZ,
@@ -213,7 +237,7 @@ local function pushPlant(
 		halfWidth = halfWidth,
 		lateral = lateral,
 		along = along,
-		kind = if isFlower then "flower" else "grass_tuft",
+		kind = if isFlower then "flower" elseif isStone then "stone" else "grass_tuft",
 		flowerColour = if isFlower then colour.name else nil,
 		flowerRgb = if isFlower then colour.rgb else nil,
 		height = ModelMapPathEdgeR8.PLANT_HEIGHT_MIN
@@ -249,7 +273,7 @@ function ModelMapPathEdgeR8.plantPieces(arms: any, ring: any, continuations: any
 			for _, side in ipairs(SIDES) do
 				pushPlant(out, seed, stepIndex, side, baseX, baseZ, normalX, normalZ, halfWidth, t, segment, path)
 			end
-			t += ModelMapPathEdgeR8.PLANT_SPACING
+			t += ModelMapPathEdgeR8.plantStep(seed, stepIndex)
 		end
 	end
 	for index, arm in ipairs(arms) do

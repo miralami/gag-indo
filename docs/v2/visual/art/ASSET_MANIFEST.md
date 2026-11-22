@@ -719,6 +719,9 @@ published). None invented. The baked copy is verified in a fresh Play/Server VM 
 | `rock_round` | 16098456067 | Low-Poly Rock | Jajkopko_XD | MeshPart (1 part) | Creator Store, free | 5.00 x 5.04 x 5.24 | designer to confirm (LookDev candidate; wired by item 189) |
 | `rock_flat` | 5644862709 | Rock | Tman_TheNoobKing | MeshPart (1 part) | Creator Store, free | 2.11 x 1.05 x 2.26 | designer to confirm (LookDev candidate; wired by item 189) |
 | `rock_tall` | 53370997 | Rock Pillar | EmperorZenith | Model (2 parts) | Creator Store, free | 16 x 28.8 x 17 | designer to confirm (LookDev candidate; wired by item 189) |
+| `path_grass` | 806579390 | Grass tuft | a61766 | Model (6 parts) | Creator Store, free | 2.12 x 1.32 x 1.49 | designer to confirm (LookDev candidate; wired by item 190) |
+| `path_flower` | 25454256 | Orange Flower | tenchynox | Model (10 parts) | Creator Store, free | 2.71 x 1.40 x 2.70 | designer to confirm (LookDev candidate; wired by item 190) |
+| `path_stone` | 1769612183 | small stone | MandarinBoy | Part (1 part) | Creator Store, free | 1.86 x 1.86 x 1.86 | designer to confirm (LookDev candidate; wired by item 190) |
 
 Licence not re-read here — Creator Store terms apply. The padi ID is wired into `src/` by item 191
 (`sawah_r8` 3D padi); until then it is marked `unused` in the coverage table below. The fountain ID

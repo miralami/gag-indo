@@ -1,17 +1,20 @@
 --!strict
 -- LookDevPathEdgeR8: SERVER-ONLY applier for the OFF-BY-DEFAULT "pathedge_r8" candidate
--- (WORK_QUEUE section M item 75, redone in section O item 142). Dirt-path edge dressing: real
--- baked alang-alang grass clumps (clone-first, procedural thin-blade fallback), pebbles and flat
--- puddles along BOTH edges of every road arm, ring segment and continuation.
+-- (WORK_QUEUE section M item 75, redone in section O item 142; tall plants rebuilt in section Q
+-- item 190). Dirt-path edge dressing: real baked alang-alang grass clumps (clone-first, procedural
+-- thin-blade fallback), pebbles and flat puddles, plus tall baked Creator Store grass/flower/stone
+-- plants along BOTH edges of every road arm, ring segment and continuation.
 --
--- NO INVENTED ASSET IDS. The only model ID is read from Shared.ModelMapVegetationR6.ids.alang_alang
--- (verified free Creator Store grass clump, 361802126, recorded in the round-6 shortlist); the
--- applier fetches it clone-first via LookDevAssetLoader (bake -> LoadAsset fallback inside the
--- loader) and scales its footprint to <= Data.CLUMP_MAX_WIDTH studs using CFrame + Size corner math
--- (this Studio has no Part.GetBoundingBox). If the model cannot be loaded or placed, a procedural
--- clump of thin blades (also <= CLUMP_MAX_WIDTH wide) is staged instead. Terrain, road slabs,
--- RoadEdge strips, RingRoad pieces, buildings and the ford are never edited: every piece is an
--- anchored, non-collidable, tagged Part removed by restore() (which reattaches any prior folder).
+-- NO INVENTED ASSET IDS. The grass-clump ID comes from Shared.ModelMapVegetationR6.ids.alang_alang
+-- (verified free Creator Store grass clump, 361802126, round-6 shortlist); the three plant IDs come
+-- from Shared.ModelMapPathEdgeR8.PLANT_ASSET_IDS. Every model is fetched clone-first via
+-- LookDevAssetLoader (bake -> LoadAsset fallback inside the loader). The clump's footprint is scaled
+-- to <= Data.CLUMP_MAX_WIDTH studs; baked plants are scaled anisotropically to their recorded height
+-- with a <= 2*Data.PLANT_CLEAR footprint, using CFrame + Size corner math (no Part.GetBoundingBox).
+-- A failed baked load fails loudly and leaves only its tagged anchor Part: no fabricated plant
+-- geometry. Terrain, road slabs, RoadEdge strips, RingRoad pieces, buildings and the ford are never
+-- edited: every piece is an anchored, non-collidable, tagged Part removed by restore() (which
+-- reattaches any prior folder).
 -- Enable from the Studio Server command bar:
 --   require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("pathedge_r8", game)
 
@@ -73,6 +76,7 @@ local FAMILY_ID = Data.id
 local GRASS_ASSET_ID = VegR6.ids.alang_alang
 local activeFolder: any? = nil
 local savedFolder: any? = nil
+local loadedPlantModels: { any } = {}
 local failures = 0
 
 local function publishFailures()
@@ -311,25 +315,42 @@ local function addBladeFallback(part: any, x: number, z: number, bottomY: number
 	end
 end
 
-local PLANT_BLADE_OFFSETS = {
-	{ -0.16, 0.12 },
-	{ 0.16, -0.12 },
-	{ 0, 0.2 },
-}
-
-local function flowerColour(rgb: any?): any
-	if type(rgb) == "table" and #rgb == 3 then
-		return Color3.fromRGB(rgb[1], rgb[2], rgb[3])
+-- Item 190: collect the real BaseParts of a baked plant root (a Model or a lone Part), stripping
+-- any script descendants. Baked geometry is parented under the tagged anchor so the harness sees
+-- it as the plant, and can raycast it (CanQuery stays at its default).
+local function plantBaseParts(root: any): { any }
+	local out = {}
+	local okRoot, isPart = pcall(function()
+		return root:IsA("BasePart")
+	end)
+	if okRoot and isPart then
+		out[#out + 1] = root
 	end
-	return Color3.fromRGB(246, 240, 214)
+	local okDesc, descendants = pcall(function()
+		return root:GetDescendants()
+	end)
+	if okDesc and descendants then
+		for _, instance in ipairs(descendants) do
+			pcall(function()
+				if instance:IsA("Script") or instance:IsA("LocalScript") or instance:IsA("ModuleScript") then
+					instance:Destroy()
+				elseif instance:IsA("BasePart") then
+					out[#out + 1] = instance
+				end
+			end)
+		end
+	end
+	return out
 end
 
--- Item 177: a 1..2-stud stem plus 3 thin blades; flowers get 3 coloured petals at the tip. The
--- tagged part is the stem itself, so a ray aimed at the plant centre hits its own part.
+-- Item 190: one tagged anchor per piece plus the correct baked model, scaled component-wise so its
+-- bbox height is piece.height and its footprint stays inside 2*PLANT_CLEAR. No procedural fallback:
+-- a failed load or placement fails loudly and leaves the anchor alone.
 local function addTallPlant(part: any?, piece: any, roadY: number, index: number)
 	if not part then
 		return
 	end
+	local assetId = Data.assetIdFor(piece.kind)
 	local height = piece.height
 	pcall(function()
 		part:SetAttribute("PathEdgePlant", true)
@@ -338,76 +359,61 @@ local function addTallPlant(part: any?, piece: any, roadY: number, index: number
 		if piece.kind == "flower" then
 			part:SetAttribute("FlowerColour", piece.flowerColour)
 		end
-		part.Material = Enum.Material.Grass
-		part.Color = Color3.fromRGB(104, 136, 58)
+		part:SetAttribute("EdgeAssetId", assetId)
 	end)
-	if not place(part, { piece.x, roadY + height / 2, piece.z }, { 0.3, height, 0.3 }) then
+	if not place(part, { piece.x, roadY + 0.05, piece.z }, { 0.2, 0.1, 0.2 }) then
 		fail("could not place tall plant " .. index)
 		return
 	end
-	for bladeIndex, offset in ipairs(PLANT_BLADE_OFFSETS) do
-		local blade: any? = nil
-		local ok, created = pcall(function()
-			return Instance.new("Part")
-		end)
-		if ok and created then
-			blade = created
-		end
-		if not blade then
-			continue
-		end
-		pcall(function()
-			local bladeHeight = height * (0.72 + bladeIndex * 0.08)
-			blade.Name = "TallBlade_" .. index .. "_" .. bladeIndex
-			blade.Anchored = true
-			blade.CanCollide = false
-			blade.Material = Enum.Material.Grass
-			blade.Color = Color3.fromRGB(112 + bladeIndex * 4, 142 + bladeIndex * 3, 62)
-			blade.Size = Vector3.new(0.12, bladeHeight, 0.12)
-			blade.CFrame = CFrame.new(
-				piece.x + offset[1],
-				roadY + bladeHeight / 2,
-				piece.z + offset[2],
-				math.cos(index + bladeIndex) * 0.1,
-				0,
-				-math.sin(index + bladeIndex) * 0.1,
-				0,
-				1,
-				0,
-				math.sin(index + bladeIndex) * 0.1,
-				0,
-				math.cos(index + bladeIndex) * 0.1
-			)
-			blade.Parent = part
-		end)
-	end
-	if piece.kind ~= "flower" then
+	local okLoad, model = pcall(function()
+		return LookDevAssetLoader.get(assetId, FAMILY_ID)
+	end)
+	if not okLoad or not model then
+		fail("baked plant unavailable for " .. piece.kind .. " " .. index .. " asset " .. tostring(assetId))
 		return
 	end
-	local petals = flowerColour(piece.flowerRgb)
-	for petalIndex = 1, 3 do
-		local petal: any? = nil
-		local ok, created = pcall(function()
-			return Instance.new("Part")
-		end)
-		if ok and created then
-			petal = created
+	loadedPlantModels[#loadedPlantModels + 1] = model
+	local centre, size = bounds(model)
+	if not centre or not size or size.Y <= 0 then
+		fail("invalid baked plant bounds for " .. index .. " asset " .. tostring(assetId))
+		return
+	end
+	local sy = piece.height / size.Y
+	local span = math.max(size.X, size.Z)
+	local sh = span > 0 and math.min(1, 2 * Data.PLANT_CLEAR * 0.9 / span) or 1
+	local bakedParts = plantBaseParts(model)
+	if #bakedParts == 0 then
+		fail("baked plant has no BasePart for " .. index .. " asset " .. tostring(assetId))
+		return
+	end
+	local target = Vector3.new(piece.x, roadY + piece.height / 2, piece.z)
+	local staged = {}
+	local okStage = pcall(function()
+		for _, baked in ipairs(bakedParts) do
+			local cf, sz = baked.CFrame, baked.Size
+			local offset = cf.Position - centre
+			local position = target + Vector3.new(offset.X * sh, offset.Y * sy, offset.Z * sh)
+			baked.Size = Vector3.new(sz.X * sh, sz.Y * sy, sz.Z * sh)
+			baked.CFrame = cf + (position - cf.Position)
+			baked.Anchored = true
+			baked.CanCollide = false
+			baked.Parent = part
+			staged[#staged + 1] = baked
 		end
-		if not petal then
-			continue
+	end)
+	if not okStage then
+		fail("could not stage baked plant " .. index .. " asset " .. tostring(assetId))
+		return
+	end
+	-- Correct the final centre after baked pivot/rotation quirks; translation only, no new geometry.
+	local measured = bounds(part)
+	if measured then
+		local delta = target - measured
+		for _, baked in ipairs(staged) do
+			pcall(function()
+				baked.CFrame = baked.CFrame + delta
+			end)
 		end
-		pcall(function()
-			local angle = (petalIndex - 1) * math.pi * 2 / 3
-			petal.Name = "FlowerPetal_" .. index .. "_" .. petalIndex
-			petal.Anchored = true
-			petal.CanCollide = false
-			petal.Material = Enum.Material.SmoothPlastic
-			petal.Color = petals
-			petal.Size = Vector3.new(0.26, 0.14, 0.26)
-			petal.CFrame =
-				CFrame.new(piece.x + math.cos(angle) * 0.16, roadY + height + 0.02, piece.z + math.sin(angle) * 0.16)
-			petal.Parent = part
-		end)
 	end
 end
 
@@ -417,6 +423,7 @@ end
 local function apply(plan)
 	local tier = plan and plan.tier
 	failures = 0
+	loadedPlantModels = {}
 	if activeFolder then
 		publishFailures()
 		return
@@ -537,7 +544,7 @@ local function apply(plan)
 		end
 	end
 
-	-- Item 177: one plant every PLANT_SPACING studs on each side of every road edge.
+	-- Item 190: one baked plant every 2..4 studs on each side of every road edge.
 	local plantFolder = taggedFolder("TallPlants_pathedge_r8", folder)
 	for index, piece in ipairs(Data.plantPieces(arms, ring, continuations, MapSpec.ROAD)) do
 		local part = taggedPart(piece, "EdgePlant_" .. piece.kind .. "_" .. index, plantFolder or folder)
@@ -548,6 +555,12 @@ local function apply(plan)
 end
 
 local function restore()
+	for _, model in ipairs(loadedPlantModels) do
+		pcall(function()
+			model:Destroy()
+		end)
+	end
+	loadedPlantModels = {}
 	if activeFolder then
 		pcall(function()
 			activeFolder:Destroy()

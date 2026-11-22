@@ -1,0 +1,37 @@
+CHECK 201 - low bamboo road fences (WORK_QUEUE SPRINT 1 item 201)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2
+Place: Development-Juragan-Desa. Play only (Server VM, check). Place NOT saved, nothing published.
+Rojo-synced: repo src/ changes present in the live place before each run.
+
+== Wiring ==
+Candidate "road_fence_r10" (OFF by default). Pure data src/shared/ModelMapRoadFenceR10.luau (6 fence
+stretches within radius 60..120, 1.2-stud bamboo posts/rails, load-time asserts), server applier
+src/server/World/LookDevRoadFenceR10.luau (anchored non-collidable tagged Parts, destroy-only restore),
+5-case LUNE spec, tools/studio/check_q201.luau. LookDev IDS[113] / descriptor / plan OR-chain,
+LookDevReview path, Main.server boot require, tests/run.luau registration, CANDIDATES.md +
+CANDIDATE_INDEX.md rows, 50-spec count mirror 112->113. No asset IDs, no visual verdict.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK ROAD_FENCE PASS 6 6
+CHECK JUNCTION_GAPS PASS 0 0
+CHECK PATH_REACH PASS 0 0
+
+== Notes / measurements ==
+- ROAD_FENCE 6/6: 6 distinct "stretch" groups, 130 staged Parts, 0 before, 0 load failures.
+- JUNCTION_GAPS 0/0: no staged fence part within 8 studs of any of the 4 junctions at radius 144.
+- PATH_REACH 0/0: 6 hub-door rays of 8 studs at y=1.5; 0 blocked before and 0 after, 0 ray errors.
+- Every stretch stays inside radius 120, so no junction (radius 144) or plot gate falls inside it.
+- Check ran with enableAdditive("road_fence_r10", game) in SERVER VM; disableAll() in the same call
+  restored the place. Play stopped after the run.
+
+== Non-vacuity / calibration ==
+Runtime-only injection between the harness's BEFORE/AFTER anchors (repo file untouched): destroy all
+staged parts from stretches 4-6, move one surviving part onto the radius-144 junction at (144,0), and
+place one opaque Part at (-64,1.5,-32) on the Pasar hub-door ray:
+CHECK ROAD_FENCE FAIL 3 6
+CHECK JUNCTION_GAPS FAIL 1 0
+CHECK PATH_REACH FAIL 1 0
+All three checks demonstrably FAIL on injected bad state. Visual yes/no stays the designer's.
+
+Status: SEEN-IN-STUDIO.

@@ -34,12 +34,15 @@ ModelMapFacadesR8.KINDS = {
 -- Local hub frame numbers copied from MapSpec.HUBS so this shared module stays pure. The applier
 -- still reads the live MapSpec.hub(key) for yaw, x and z; these are footprint/ridge sizes only.
 local EAVE_OFFSET = 9.5 -- MapSpec.EAVE_UNDERSIDE - MapSpec.GROUND_Y
+local GROUND_Y = 0.5 -- MapSpec.GROUND_Y (Ground.Y)
+local RIDGE_TRIM_LIFT = 0.55 -- Greybox hubTrim: ROOF_THICK / 2 + 0.25 above ridgeY
+local CAP_LENGTH = 10 -- item 139: every staged AABB side stays <= 12 studs
 local SIDE_SIGNS = { -1, 1 }
 local SIDE_TAGS = { "L", "R" }
 
 -- Every recipe is relative to the gauge centre (gx, gz) or to the hub footprint (halfD). `y` is an
 -- offset above MapSpec.GROUND_Y. `pitch` is an optional local-X tilt in degrees for the porch roof.
-local function recipes(gx: number, gz: number, halfD: number, ridge: number, gauge: any, ridgeAlongZ: boolean?): { any }
+local function recipes(gx: number, gz: number, halfD: number, gauge: any, caps: { any }): { any }
 	local top = gauge.base + gauge.h -- gauge head, above ground
 	local shutterX = gauge.w / 2 + 6
 	local porchX = gauge.w / 2 + 7
@@ -115,10 +118,14 @@ local function recipes(gx: number, gz: number, halfD: number, ridge: number, gau
 			"Wood"
 		)
 	end
-	-- item 139: width * 0.8 was 25.6..51.2 studs on the six hubs — a floating diagonal pole. A 10-stud
-	-- cap fits every hub; pakrt's gable ridge runs along local Z, so its cap is turned to match.
-	local capSize = if ridgeAlongZ then { 1.2, 0.6, 10 } else { 10, 0.6, 1.2 }
-	add("FacadeRidgeCap", "ridge_cap", 0, 0, ridge + 0.6, capSize, { 176, 142, 72 }, "Metal")
+	-- item 173: a cap sits ON a real Greybox RoofRidge (same centre, matching long axis), never at
+	-- the hub origin. `caps` carries the ridge centre/height in this hub's local frame.
+	for _, cap in ipairs(caps) do
+		-- item 173: a cap's long axis must match its REAL ridge. Single-ridge hubs' RoofRidge runs
+		-- local X; pakrt's two ridges use a roofHub yawed +90, so they run local Z in the hub frame.
+		local size = cap.alongZ and { 1.2, 0.6, CAP_LENGTH } or { CAP_LENGTH, 0.6, 1.2 }
+		add(cap.name, "ridge_cap", cap.lx, cap.lz, cap.y, size, { 176, 142, 72 }, "Metal")
+	end
 	add(
 		"FacadeDoorstep",
 		"doorstep",
@@ -132,14 +139,19 @@ local function recipes(gx: number, gz: number, halfD: number, ridge: number, gau
 	return out
 end
 
-local function hub(model: string, width: number, depth: number, ridge: number, gauge: any, ridgeAlongZ: boolean?): any
+-- Greybox's single-ridge hubs: ridge trim sits at the hub origin, at ridge + 0.55 world.
+local function cap(name: string, lx: number, lz: number, ridgeY: number, alongZ: boolean?): any
+	return { name = name, lx = lx, lz = lz, y = ridgeY + RIDGE_TRIM_LIFT - GROUND_Y, alongZ = alongZ == true }
+end
+
+local function hub(model: string, width: number, depth: number, ridge: number, gauge: any, caps: { any }?): any
 	return {
 		model = model,
 		width = width,
 		depth = depth,
 		ridge = ridge,
 		gauge = gauge,
-		parts = recipes(gauge.lx, gauge.lz, depth / 2, ridge, gauge, ridgeAlongZ),
+		parts = recipes(gauge.lx, gauge.lz, depth / 2, gauge, caps or { cap("FacadeRidgeCap", 0, 0, ridge) }),
 	}
 end
 
@@ -152,7 +164,12 @@ ModelMapFacadesR8.hubs = {
 	warung = hub("Warung", 52, 44, 24, { w = 6, h = 9, d = 2, lx = 0, lz = 23, base = 0.85 }),
 	ronda = hub("PosRonda", 44, 40, 16, { w = 6, h = 9, d = 2, lx = 0, lz = 17, base = 1.75 }),
 	polisi = hub("PosPolisi", 48, 44, 24, { w = 6, h = 9, d = 2, lx = 0, lz = 23, base = 0.85 }),
-	pakrt = hub("RumahPakRT", 48, 34, 32.6, { w = 7, h = 10.5, d = 2, lx = -13, lz = 10.5, base = 0.85 }, true),
+	-- Greybox buildPakRt: two gable roofs, ridges at local (A.cx, A.cz) and (B.cx, B.cz).
+	-- Heights are PLINTH_TOP + wall + rise: 1.3 + 22 + 9 = 32.3 (A), 1.3 + 15 + 7 = 23.3 (B).
+	pakrt = hub("RumahPakRT", 48, 34, 32.6, { w = 7, h = 10.5, d = 2, lx = -13, lz = 10.5, base = 0.85 }, {
+		cap("FacadeRidgeCap_A", -13, -3, 32.3, true),
+		cap("FacadeRidgeCap_B", 10, -4, 23.3, true),
+	}),
 }
 
 ModelMapFacadesR8.HUB_KEYS = { "pasar", "gelap", "warung", "ronda", "polisi", "pakrt" }

@@ -211,6 +211,7 @@ local specs = {
 	require("./specs/assetmap_manifest_spec"),
 	require("./specs/candidate_index_spec"),
 	require("./specs/cameras_new_r10_spec"),
+	require("./specs/facades_ridge_cap_spec"),
 	require("./specs/ronda_tower_r9_spec"),
 	require("./specs/rocks_r9_spec"),
 	require("./specs/streetfurn_r8_spec"),

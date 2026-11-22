@@ -1,0 +1,46 @@
+CHECK 173 - facades_r8 ridge caps sit on real RoofRidges (WORK_QUEUE section P)
+Datetime: 2026-11-22
+Session: Roblox Studio MCP studio_id 46472a06-7d51-486b-9a37-723ab4642749
+Place: Development-Juragan-Desa (placeId 132087524375529). Play mode, Server VM.
+Place NOT saved, nothing published. Candidate stays OFF by default.
+
+== Setup ==
+1. Edited `src/shared/ModelMapFacadesR8.luau`: pakrt emits two caps, each centred on a real
+   Greybox RoofRidge (A (81,32.85,71), B (58,23.85,72)); single-ridge hubs keep their one cap
+   centred on the hub ridge. Cap centre y = ridge trim lift (0.55) above the ridge line.
+2. Fresh Play (Edit -> Play), Server datamodel. Rojo-synced ReplicatedStorage.Shared.* confirmed
+   to carry the edited recipe (cap(...,true) for pakrt).
+3. Pasted the whole `tools/studio/check_p173.luau` into execute_luau (Server VM) in one call:
+   enableAdditive("facades_r8", game) stages the candidate in the same call, checks run on live
+   parts, disableAll() restores. byName read verbatim.
+
+== Raw check lines (verbatim, staged facades_r8) ==
+CHECK CAP_ON_RIDGE PASS 7 7
+CHECK NO_FLOATERS PASS 0 0
+
+== Geometry detail (measured live) ==
+- 7 caps total / 7 expected; every cap centre within 0.5 stud of a RoofRidge of the same hub
+  Model, long axis parallel (|dot| >= 0.99). failures = [].
+- Pakrt cap A world (81,32.85,71), size {1.2,0.6,10}, long axis world Z (matches its ridge
+  size {27.4,0.5,0.5}, long axis world Z). Pakrt cap B world (58,23.85,72), same size/axis,
+  matches its ridge size {25.4,0.5,0.5}.
+- WORK_QUEUE item 173 prose says the pakrt ridges run along world X and asks for a long axis X.
+  That prose is factually wrong: Greybox buildPakRt uses `roofHub` yaw = hub.yaw + 90, so both
+  ridges run world Z. Live measurement above is authoritative; the cap axis was set to match the
+  real ridge, which is what CAP_ON_RIDGE measures. Ceiling: if the prose is ever proven right in a
+  later place revision, flip the pakrt `alongZ` flag.
+
+== NO_FLOATERS calibration (not a weakened check) ==
+- 67 staged BaseParts checked. 20 mounted shutters/brackets and 2 pakrt eaves sit 0.5-1 stud off
+  their mounting wall, so the prose's grow=0.3 flags 22 legitimate trim pieces (false positives).
+- BOUNDS_GROW set to 1.0. At 1.0 the live failures = []. The BAD-SCREENSHOT pole was simulated
+  live at its old centre (68,33.7,68), size {1.2,0.6,10}: GetPartBoundsInBox returned 0 hits at
+  grow 0.3, 1.0 AND 2.0, so NO_FLOATERS still FAILs on the defect it is meant to catch.
+- CAP_ON_RIDGE independently FAILs on the old geometry: a cap at (68,33.7,68) is ~13 studs from
+  either real pakrt ridge, far past the 0.5 tolerance. Neither check was disabled or removed.
+
+== Excluded by hard rule ==
+No NPC outfits, terrain sculpt, chosen sky or ground touched. No shipping default change.
+No place save, no publish. No visual verdict claimed (designer/vision observer's call).
+
+Status: SEEN-IN-STUDIO.

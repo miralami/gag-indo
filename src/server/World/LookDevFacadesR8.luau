@@ -4,8 +4,8 @@
 --
 -- PROCEDURAL PARTS, NO ASSET IDS. Every recipe comes from Shared.ModelMapFacadesR8 and is placed in
 -- the live MapSpec.hub(key) frame (hubPoint + hub.yaw), never at a hardcoded world position. For each
--- of the six Greybox hub Models this stages ten anchored, non-collidable decorative Parts plus one
--- transparent FacadeDoorGauge Part. Every decorative Part carries a WeldConstraint to the hub's
+-- of the six Greybox hub Models this stages ten anchored, non-collidable decorative Parts (eleven on
+-- pakrt, which has two real ridges) plus one transparent FacadeDoorGauge Part. Every decorative Part carries a WeldConstraint to the hub's
 -- anchor part as structural documentation (both ends are anchored). Shipping Greybox parts are
 -- never touched. Restore destroys the whole staged folder and its saved instances.
 -- Enable from the Studio Server command bar:
@@ -248,8 +248,8 @@ local function stageGauge(hub: any, hubKey: string, gauge: any, folder: any): bo
 	return true
 end
 
--- ponytail: every FacadePart is structural here — each hub has exactly 10 recipes and the harness
--- FACADE_MIN_PARTS=10 + all-six-kinds checks need all of them; add surplus recipes before thinning.
+-- ponytail: every FacadePart is structural here — hubs have 10+ recipes (pakrt 11: one ridge cap per
+-- real RoofRidge) and the harness FACADE_MIN_PARTS=10 + all-six-kinds checks need all of them.
 local function stageHub(hubKey: string, entry: any, parent: any, tier: any): boolean
 	if not MapSpec then
 		fail("missing MapSpec for " .. hubKey)

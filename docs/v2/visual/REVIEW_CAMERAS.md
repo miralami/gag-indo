@@ -1,7 +1,7 @@
 # Review cameras (WORK_QUEUE section M item 69)
 
 Registry: `src/shared/ReviewCameras.luau` (`ReviewCameras.all()`, `.get(name)`, `.names()`).
-45 named cameras at item 118; 54 named cameras after item 133; 67 named cameras after item 216. Coordinates are computed at load from `src/server/World/MapSpec.luau` (hub centres,
+45 named cameras at item 118; 54 named cameras after item 133; 67 named cameras after item 216; 69 named cameras after item 240. Coordinates are computed at load from `src/server/World/MapSpec.luau` (hub centres,
 footprints, road ring, bridge, terraces, hill edge, spawn), `src/shared/Config/Game.luau` (plot-ring
 angles/radius) and `ModelMapVegetationR7.savedCamera` (the current saved spawn camera). No hand-typed
 world coordinates. `ReviewCameras.clearDistance` is the 6-stud `CAMERA_CLEAR` ray length.
@@ -73,13 +73,15 @@ Shots and verdicts belong under `docs/v2/evidence/h/<date>-round9/`.
 | `laundry_view` | Server | Item-115 Pasar washing lines with sarung, batik and kebaya behind the back wall. |
 | `kite_sky` | Server | Item-116 kites over the Lapangan, framed on the highest sail from above. |
 | `warung_seated` | Server | Item-117 seated villagers, glasses and plates on the Warung benches from the front-left apron. |
-| `path_curve` | Server | Connector dirt path between the ring road and the plot gates from the Lapangan edge. |
-| `kampung_view` | Server | Outskirts between the ring and the plot ring, framing the future kampung house row. |
+| `path_curve` | Server | Item-240 close 3/4 of the first `road_fence_r10` bamboo stretch, from outside the road shoulder. |
+| `kampung_view` | Server | Item-240 close view of one four-house `kampung_r10` cluster from outside the plot ring. |
 | `bridge_side` | Server | Side elevation of the river bridge deck and railing from the east bank. |
 | `meadow_view` | Server | Open lawn between the Pasar ring and the plots, looking south across the meadow. |
 | `terrace_wall` | Server | Sawah terrace bunds and retaining wall looking south toward the Balai gap. |
-| `signpost_pasar` | Server | Pasar junction signpost and ukur board framed from the plaza side. |
-| `lamp_night` | Server | Ring-road lamp posts and night lighting preset at ClockTime 21. |
+| `signpost_pasar` | Server | Item-240 close view of the east-junction `signposts_r10` board and post from the plaza side. |
+| `lamp_night` | Server | Item-240 close 3/4 of the first `lamps_r10` pole and lantern; `clockTime = 21` night variant. |
+| `crop_stages_close` | Server | Item-240 close view of one plot with all three `crop_stages_r10` stages side by side. |
+| `ditch_water_close` | Server | Item-240 close downward view of one plot's two `ditch_water_r10` glass strips. |
 | `horizon_north` | Server | North horizon over the hill and forest band from outside the playable square. |
 | `horizon_south` | Server | South horizon over the bridge and river band from outside the playable square. |
 | `fountain_close` | Server | Close view of the plaza fountain and its basin from the north-east approach. |
@@ -90,8 +92,10 @@ Shots and verdicts belong under `docs/v2/evidence/h/<date>-round9/`.
   Shoot a `Client` camera in a Client Play VM, a `Server` camera in a Server Play VM.
 - The four lighting variants reuse the exact geometry of `spawn` and `hub_pasar`; only the lighting
   preset changes. The main session sets that preset for the shot.
-- `lamp_night` is the ClockTime 21 night preset on the ring road. The registry has no `clockTime`
-  field, so the name selects the preset and the main session sets ClockTime 21 for the shot.
+- `lamp_night` is a real ClockTime 21 night variant: its registry record carries `clockTime = 21`.
+  The main session reads that field and sets `Lighting.ClockTime = 21` for the shot, then restores the
+  prior value. Game lighting defaults are unchanged. `tools/studio/check_q240.luau` does the same
+  temporary set/restore before staging `lamps_r10`.
 - The registry requires MapSpec from `ServerScriptService.Server.World`, so load it from the Server
   datamodel or the Lune Env harness. The returned `datamodel` field is data for the shooter, not a
   promise that the module itself loads in both VMs.
@@ -152,3 +156,27 @@ The SERVER-VM harness `tools/studio/review_check_visual.luau` prints three harne
 
 Each staged pair is restored with `LookDevReview.disableAll()`; values are recorded by the main
 session in `CHECK_239.txt`. The camera pairs above are measurement inputs, not visual verdicts.
+
+## Item 240 re-aim: old and new positions
+
+Coordinates below are the registry's numeric eye / lookAt at load, in studs. The first four cameras
+were moved in place; `crop_stages_close` and `ditch_water_close` are new, with the sprint-1 camera
+formerly used for that subject listed as the old pair. `REVIEW_CAMERAS.md` keeps the historical
+item-239 table above unchanged. The registry still owns the formulas; these numbers are the record
+of what changed.
+
+| Camera | Old eye -> lookAt | New eye -> lookAt |
+|---|---|---|
+| `kampung_view` (moved) | `(99.3313, 19.5, -139.7288)` -> `(119.3313, 0.5, -159.7288)` | `(188.8782, 19.5, 68.7460)` -> `(155.0493, 5, 56.4333)` |
+| `path_curve` (moved) | `(0, 10, 124)` -> `(0, 1.5, 150)` | `(90, 5.25, -26)` -> `(90, 1.1, -10)` |
+| `signpost_pasar` (moved) | `(18, 10, -8)` -> `(-40, 4.5, -40)` | `(120, 10, ~0)` -> `(144, 7.5, 0)` |
+| `lamp_night` (moved) | `(0, 10, 144)` -> `(60, 4.5, 120)` | `(124, 10, -12)` -> `(144, 5, 0)` |
+| `crop_stages_close` (new; was `plot_aerial_03`) | `(152, 30.5, 0)` -> `(192, 0.5, 0)` | `(220, 10, 0)` -> `(200, 3.1, 0)` |
+| `ditch_water_close` (new; was `plot_gate_01`) | `(42.6443, 12, -131.2458)` -> `(46.9706, 10, -144.5606)` | `(68.9108, 10, -212.0856)` -> `(65.2026, 0.58, -200.6729)` |
+
+`lamp_night` now carries `clockTime = 21` in the registry. The main session sets
+`Lighting.ClockTime = 21` before the shot and restores the prior value afterwards; the check harness
+does the same before staging. No game lighting default changes. The self-contained SERVER-VM check
+`tools/studio/check_q240.luau` stages each pair, prints `SC240_*` (target 0.15) and `CC240_*` (target
+0 opaque hits within the 6-stud `CAMERA_CLEAR` ray), and proves both checks can FAIL by injection.
+A passing fraction is a floor check, not a visual verdict: the designer still grades re-shoot shots.

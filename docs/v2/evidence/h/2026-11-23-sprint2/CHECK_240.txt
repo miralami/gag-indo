@@ -1,0 +1,66 @@
+CHECK 240 - re-aim of weak sprint-1 review cameras (WORK_QUEUE SPRINT 2 item 240)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2
+Place: Development-Juragan-Desa. Play only (Server VM, checks). Place NOT saved, nothing published.
+Rojo-synced: repo src/ changes present in the live place before each run.
+
+== Wiring ==
+src/shared/ReviewCameras.luau: four cameras moved in place (kampung_view, path_curve,
+signpost_pasar, lamp_night), two added (crop_stages_close, ditch_water_close); registry 67->69.
+lamp_night carries clockTime = 21 (verified live: get("lamp_night").clockTime == 21). The check
+harness sets Lighting.ClockTime from that field then restores the prior value; no lighting default
+written. tools/studio/check_q240.luau: self-contained SERVER-VM check emitting SC240_* (target
+0.15) and CC240_* (target 0 opaque hits within Cameras.clearDistance = 6 studs, Characters excluded)
+for each pair, plus CAL_SC240_AWAY and CAL_CC240_BLOCK injection anchors. Focused data-only spec
+tests/specs/review_cameras_q240_spec.luau (4 cases), cameras_new_r10_spec count 67->69, registered
+in tests/run.luau. Old/new eye and lookAt positions for all six pairs recorded in
+docs/v2/visual/REVIEW_CAMERAS.md.
+
+== Raw check lines (fresh Play, Server VM) ==
+Emitted by the canonical harness logic; run as bounded execute_luau calls (the inlined whole-file
+base64 paste hit a Studio "Failed to parse command code" transport error, NOT a check FAIL - the
+same emit logic was executed in short calls, as with item 239). Every candidate staged with
+LookDevReview.enableAdditive(id, game) then restored with disableAll() in the same call.
+
+CHECK SC240_KAMPUNG_R10 PASS 0.6703 0.15
+CHECK CC240_KAMPUNG_R10 PASS 0 0
+CHECK SC240_ROAD_FENCE_R10 PASS 0.8537 0.15
+CHECK CC240_ROAD_FENCE_R10 PASS 0 0
+CHECK SC240_SIGNPOSTS_R10 PASS 1.0000 0.15
+CHECK CC240_SIGNPOSTS_R10 PASS 0 0
+CHECK SC240_CROP_STAGES_R10 PASS 0.5882 0.15
+CHECK CC240_CROP_STAGES_R10 PASS 0 0
+CHECK SC240_DITCH_WATER_R10 PASS 0.9464 0.15
+CHECK CC240_DITCH_WATER_R10 PASS 0 0
+CHECK SC240_LAMPS_R10 PASS 0.6667 0.15
+CHECK CC240_LAMPS_R10 PASS 0 0
+CHECK CAL_SC240_AWAY PASS 1 1
+CHECK CAL_CC240_BLOCK PASS 1 1
+
+== Exact measured values (Server VM, SubjectCoverage.measure) ==
+- kampung_r10 + kampung_view: fraction 0.6702508960573477, ok true, 837 samples, 561 hits; clear 0 hits.
+- road_fence_r10 + path_curve: fraction 0.8536585365853658, ok true, 82 samples, 70 hits; clear 0 hits.
+- signposts_r10 + signpost_pasar: fraction 1.0, ok true, 18 samples, 18 hits; clear 0 hits.
+- crop_stages_r10 + crop_stages_close: fraction 0.5882352941176471, ok true, 17 samples, 10 hits; clear 0 hits.
+- ditch_water_r10 + ditch_water_close: fraction 0.9464285714285714, ok true, 112 samples, 106 hits; clear 0 hits.
+- lamps_r10 + lamp_night: fraction 0.6666666666666666, ok true, 24 samples, 16 hits; clear 0 hits.
+All staged true, all coverageOk true, all clearHits 0. Targets NOT weakened: 0.15 for coverage,
+0 hits for CAMERA_CLEAR at full 6-stud distance.
+
+== Calibration / non-vacuity ==
+- SC FAIL anchor: ditch_water_r10 staged, measured from "horizon_north" (camera pointed away) ->
+  ok false, fraction 0.0000, reason "no projected rects". CAL_SC240_AWAY PASS 1 1. Anchor was
+  corrected during verification: original formula required ok==true, which a fail-closed "no
+  projected rects" result never meets; it now negates the SC pass condition (ok and fraction >=
+  0.15), matching how SC240_* pass is decided. No check target changed.
+- CC FAIL anchor: an opaque 2-stud Part injected 2 studs along the kampung_view clear ray ->
+  raycast hit "Q240_CAL_BLOCKER", Transparency 0, CC240 would emit FAIL. CAL_CC240_BLOCK PASS 1 1,
+  blocker destroyed in the same call.
+
+== Note ==
+A passing SUBJECT_COVERAGE fraction is a geometric floor check, not a visual legibility verdict.
+Sprint-1 provisional calls stay pending; the designer grades the re-shoot shots at S2-STOP.
+
+Local validation: lune run tests/run.luau 3042 passed; selene src 0 errors / 0 warnings / 0 parse
+errors; stylua --check clean on all five changed Luau files.
+Status: SEEN-IN-STUDIO.

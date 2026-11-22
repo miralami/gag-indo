@@ -24,6 +24,12 @@ local Kincir: any = require(script.Parent.ModelMapKincirR8)
 local Laundry: any = require(script.Parent.ModelMapLaundryR8)
 local Layangan: any = require(script.Parent.ModelMapLayanganR8)
 local Seated: any = require(script.Parent.ModelMapSeatedR8)
+local KampungR10: any = require(script.Parent.ModelMapKampungR10)
+local RoadFenceR10: any = require(script.Parent.ModelMapRoadFenceR10)
+local SignpostsR10: any = require(script.Parent.ModelMapSignpostsR10)
+local LampsR10: any = require(script.Parent.ModelMapLampsR10)
+local CropStagesR10: any = require(script.Parent.ModelMapCropStagesR10)
+local DitchWaterR10: any = require(script.Parent.ModelMapDitchWaterR10)
 
 export type Vec3 = { number }
 export type ReviewCamera = {
@@ -32,6 +38,7 @@ export type ReviewCamera = {
 	lookAt: Vec3,
 	datamodel: "Client" | "Server",
 	purpose: string,
+	clockTime: number?,
 }
 
 local ReviewCameras = {}
@@ -102,13 +109,21 @@ end
 
 local cameras: { ReviewCamera } = {}
 
-local function add(name: string, position: Vec3, lookAt: Vec3, datamodel: "Client" | "Server", purpose: string)
+local function add(
+	name: string,
+	position: Vec3,
+	lookAt: Vec3,
+	datamodel: "Client" | "Server",
+	purpose: string,
+	clockTime: number?
+)
 	table.insert(cameras, {
 		name = name,
 		position = position,
 		lookAt = lookAt,
 		datamodel = datamodel,
 		purpose = purpose,
+		clockTime = clockTime,
 	})
 end
 
@@ -481,35 +496,55 @@ add(
 
 -- WORK_QUEUE item 216: twelve sprint-1 r10 review cameras. The two canonical overview flanks already
 -- exist above (item 182), so this block adds ten registry entries and the docs add all twelve rows.
--- Every eye stands in open air above the ground plane / hill band, so the 6-stud CAMERA_CLEAR ray
--- starts in air. `lamp_night` is a name-only lighting preset: the registry has no clockTime field,
--- so REVIEW_CAMERAS.md records the ClockTime 21 preset and the main session sets it for the shot.
-local ringOuter = MapSpec.ROAD.ringCentre + MapSpec.ROAD.ringWidth / 2
+-- Item 240 re-aimed the four weak sprint-1 eyes below; they still stand in open air so the 6-stud
+-- CAMERA_CLEAR ray starts in air. `lamp_night` now carries a real `clockTime = 21` field.
 local connectorEyeZ = MapSpec.LAPANGAN.z + MapSpec.LAPANGAN.depth / 2
 local meadowLookZ = connectorEyeZ - MapSpec.S * 2
-local kampungAx, kampungAz = Game.plotCenter(1)
-local kampungBx, kampungBz = Game.plotCenter(2)
-local kampungX = (kampungAx + kampungBx) / 2
-local kampungZ = (kampungAz + kampungBz) / 2
 local terraceNearZ = (terraces[1].z0 + terraces[1].z1) / 2 + MapSpec.S
 local terraceLookZ = MapSpec.FUTURE_SLOTS[1].z + MapSpec.FUTURE_SLOTS[1].depth / 2 + MapSpec.S * 4
 local terraceEyeX = MapSpec.STAIRS[1].x + MapSpec.S * 10
 local horizonLookY = MapSpec.GROUND_Y + MapSpec.HEADROOM * 3
 local horizonFar = MapSpec.TERRAIN_HALF * 2.25
 
+-- Item 240: close 3/4 of one road-fence stretch instead of the old far end-on sliver. The eye is
+-- 16 studs outside the first authored stretch; the sightline and standoff come from its descriptor.
+local fenceStretch = RoadFenceR10.stretches()[1]
+local fenceAngle = math.rad(fenceStretch.angle)
+local fenceMid = (fenceStretch.radiusFrom + fenceStretch.radiusTo) / 2
+local fenceX = math.cos(fenceAngle) * fenceMid - math.sin(fenceAngle) * RoadFenceR10.SIDE_OFFSET * fenceStretch.side
+local fenceZ = math.sin(fenceAngle) * fenceMid + math.cos(fenceAngle) * RoadFenceR10.SIDE_OFFSET * fenceStretch.side
+local fenceEyeX = fenceX - math.sin(fenceAngle) * MapSpec.S * 8 * fenceStretch.side
+local fenceEyeZ = fenceZ + math.cos(fenceAngle) * MapSpec.S * 8 * fenceStretch.side
 add(
 	"path_curve",
-	vec(MapSpec.PLAZA.x, MapSpec.GROUND_Y + MapSpec.HEADROOM, connectorEyeZ),
-	vec(MapSpec.PLAZA.x, MapSpec.GROUND_Y + MapSpec.S / 2, ringOuter),
+	vec(fenceEyeX, MapSpec.GROUND_Y + MapSpec.HEADROOM / 2, fenceEyeZ),
+	vec(fenceX, MapSpec.GROUND_Y + RoadFenceR10.FENCE_HEIGHT / 2, fenceZ),
 	"Server",
-	"Connector dirt path between the ring road and the plot gates from the Lapangan edge."
+	"Item-240 close 3/4 of the first road_fence_r10 bamboo stretch, from outside the road shoulder."
 )
+
+-- Item 240: aim at the first real kampung cluster (four houses at radius 165) instead of the empty
+-- gap between plots 1 and 2. The eye stands 36 studs radially outside that cluster's mean centre.
+local kampungHouses = KampungR10.houses()
+local kampungClusterX, kampungClusterZ = 0, 0
+for index = 1, KampungR10.HOUSES_PER_CLUSTER do
+	kampungClusterX += kampungHouses[index].position.x
+	kampungClusterZ += kampungHouses[index].position.z
+end
+kampungClusterX /= KampungR10.HOUSES_PER_CLUSTER
+kampungClusterZ /= KampungR10.HOUSES_PER_CLUSTER
+local kampungRadius = math.sqrt(kampungClusterX * kampungClusterX + kampungClusterZ * kampungClusterZ)
+local kampungUx, kampungUz = kampungClusterX / kampungRadius, kampungClusterZ / kampungRadius
 add(
 	"kampung_view",
-	vec(kampungX - MapSpec.S * 4, MapSpec.GROUND_Y + MapSpec.HEADROOM * 2, kampungZ + MapSpec.S * 4),
-	vec(kampungX + MapSpec.S * 6, MapSpec.GROUND_Y, kampungZ - MapSpec.S * 6),
+	vec(
+		kampungClusterX + kampungUx * MapSpec.S * 18,
+		MapSpec.GROUND_Y + MapSpec.HEADROOM * 2,
+		kampungClusterZ + kampungUz * MapSpec.S * 18
+	),
+	vec(kampungClusterX, MapSpec.GROUND_Y + KampungR10.BODY_SIZE[2] / 2, kampungClusterZ),
 	"Server",
-	"Outskirts between the ring and the plot ring, framing the future kampung house row."
+	"Item-240 close view of one four-house kampung_r10 cluster from outside the plot ring."
 )
 add(
 	"bridge_side",
@@ -532,23 +567,34 @@ add(
 	"Server",
 	"Sawah terrace bunds and retaining wall looking south toward the Balai gap."
 )
+-- Item 240: frame the real east-junction signpost board, 24 studs in front of it on the inward
+-- normal. The old eye aimed at the ukur board instead, so no signpost was in frame.
+local signDescriptor = SignpostsR10.SIGNS[1]
+local signAngle = math.rad(signDescriptor.yaw)
+local signEyeX = signDescriptor.position.x - math.sin(signAngle) * MapSpec.S * 12
+local signEyeZ = signDescriptor.position.z - math.cos(signAngle) * MapSpec.S * 12
 add(
 	"signpost_pasar",
-	vec(MapSpec.ROAD.halfWidth + MapSpec.S * 2, MapSpec.GROUND_Y + MapSpec.HEADROOM, -MapSpec.S * 4),
-	vec(
-		MapSpec.UKUR_BOARD.x - MapSpec.S * 6,
-		MapSpec.GROUND_Y + MapSpec.UKUR_BOARD.postHeight / 2,
-		MapSpec.UKUR_BOARD.z + MapSpec.S * 2
-	),
+	vec(signEyeX, MapSpec.GROUND_Y + MapSpec.HEADROOM, signEyeZ),
+	vec(signDescriptor.position.x, SignpostsR10.GROUND_Y + SignpostsR10.POST_SIZE[2], signDescriptor.position.z),
 	"Server",
-	"Pasar junction signpost and ukur board framed from the plaza side."
+	"Item-240 close view of the east-junction signposts_r10 board and post from the plaza side."
 )
+
+-- Item 240: move off the ring centreline to a 3/4 eye 20 studs inside and 12 studs to the side of
+-- the first lamp, so the pole and lantern read against the road. clockTime makes the night preset
+-- real data; the main session sets Lighting.ClockTime from the registry field for the shot.
+local lampDescriptor = LampsR10.lamps()[1]
+local lampAngle = math.atan2(lampDescriptor.position.z, lampDescriptor.position.x)
+local lampEyeX = lampDescriptor.position.x - math.cos(lampAngle) * MapSpec.S * 10 - math.sin(lampAngle) * MapSpec.S * 6
+local lampEyeZ = lampDescriptor.position.z - math.sin(lampAngle) * MapSpec.S * 10 - math.cos(lampAngle) * MapSpec.S * 6
 add(
 	"lamp_night",
-	vec(MapSpec.PLAZA.x, MapSpec.GROUND_Y + MapSpec.HEADROOM, MapSpec.ROAD.ringCentre),
-	vec(MapSpec.PLAZA.width / 2 + MapSpec.S * 6, MapSpec.GROUND_Y + MapSpec.S * 2, meadowLookZ),
+	vec(lampEyeX, MapSpec.GROUND_Y + MapSpec.HEADROOM, lampEyeZ),
+	vec(lampDescriptor.position.x, lampDescriptor.position.y + LampsR10.POLE_SIZE[2] / 2, lampDescriptor.position.z),
 	"Server",
-	"Ring-road lamp posts and night lighting preset at ClockTime 21."
+	"Item-240 close 3/4 of the first lamps_r10 pole and lantern; ClockTime 21 night variant.",
+	21
 )
 add(
 	"horizon_north",
@@ -574,6 +620,43 @@ add(
 	vec(MapSpec.PLAZA.x, MapSpec.GROUND_Y + MapSpec.S * 1.25, MapSpec.PLAZA.z),
 	"Server",
 	"Close view of the plaza fountain and its basin from the north-east approach."
+)
+
+-- WORK_QUEUE item 240: two new close cameras for the sprint-1 subjects that had no dedicated eye.
+-- `crop_stages_close` frames all three stage samples in the authored demo plot (plot 3); the old
+-- plot_aerial_03 shot was too far for the 1.2/2.6/4.2-stud samples to read. `ditch_water_close`
+-- looks down on one plot's two water strips from 12 studs outside the outer ditch, so each 2-stud
+-- strip projects well over one 64x36 grid cell. Both eyes are in open air for the 6-stud ray.
+local cropCentre = CropStagesR10.demoCentre()
+local cropPlotX, cropPlotZ = Game.plotCenter(CropStagesR10.DEMO_PLOT)
+local cropRadius = math.sqrt(cropPlotX * cropPlotX + cropPlotZ * cropPlotZ)
+add(
+	"crop_stages_close",
+	vec(
+		cropPlotX + cropPlotX / cropRadius * MapSpec.S * 14,
+		MapSpec.GROUND_Y + MapSpec.HEADROOM,
+		cropPlotZ + cropPlotZ / cropRadius * MapSpec.S * 14
+	),
+	cropCentre,
+	"Server",
+	"Item-240 close view of one plot with all three crop_stages_r10 stages side by side."
+)
+
+local ditchParts = DitchWaterR10.parts()
+local ditchX = (ditchParts[1].position[1] + ditchParts[2].position[1]) / 2
+local ditchZ = (ditchParts[1].position[3] + ditchParts[2].position[3]) / 2
+local ditchPlotX, ditchPlotZ = Game.plotCenter(ditchParts[1].plot)
+local ditchRadius = math.sqrt(ditchPlotX * ditchPlotX + ditchPlotZ * ditchPlotZ)
+add(
+	"ditch_water_close",
+	vec(
+		ditchX + ditchPlotX / ditchRadius * MapSpec.S * 6,
+		MapSpec.GROUND_Y + MapSpec.HEADROOM,
+		ditchZ + ditchPlotZ / ditchRadius * MapSpec.S * 6
+	),
+	vec(ditchX, DitchWaterR10.WATER_Y, ditchZ),
+	"Server",
+	"Item-240 close downward view of one plot's two ditch_water_r10 glass strips."
 )
 
 local byName: { [string]: ReviewCamera } = {}

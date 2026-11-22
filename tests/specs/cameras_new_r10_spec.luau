@@ -45,7 +45,8 @@ local SPRINT1 = {
 local PREVIOUS_COUNT = 45 -- registry size after item 118, before item 133
 local P_ROUND_CAMERAS = 3 -- items 180/182: ronda_tower_wide + canonical_overview_left/right
 local SPRINT1_NEW_COUNT = 10 -- 12 names minus the 2 canonical overview flanks already counted above
-local TOTAL_COUNT = PREVIOUS_COUNT + #NEW + P_ROUND_CAMERAS + SPRINT1_NEW_COUNT -- 67
+local Q240_NEW_COUNT = 2 -- crop_stages_close + ditch_water_close
+local TOTAL_COUNT = PREVIOUS_COUNT + #NEW + P_ROUND_CAMERAS + SPRINT1_NEW_COUNT + Q240_NEW_COUNT -- 69
 
 local function validVec(value)
 	if type(value) ~= "table" or #value ~= 3 then

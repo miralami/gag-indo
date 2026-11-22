@@ -1,0 +1,41 @@
+CHECK 204 - bamboo plank bridge (WORK_QUEUE SPRINT 1 item 204)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2
+Place: Development-Juragan-Desa. Play only (Server VM, check). Place NOT saved, nothing published.
+Rojo-synced: repo src/ changes present in the live place before each run.
+
+== Wiring ==
+Candidate "bamboo_bridge_r10" (OFF by default). Pure data src/shared/ModelMapBambooBridgeR10.luau
+(bamboo pallet: 14 planks spanning the 6-stud lane, 2 round rails rail_left/rail_right, 7 rope ties,
+4 end posts; bridge start/end/width read from the river geometry, load-time asserts), server applier
+src/server/World/LookDevBambooBridgeR10.luau (anchored non-collidable tagged Parts, role attributes,
+destroy-only restore), 6-case LUNE spec, tools/studio/check_q204.luau. LookDev IDS[116] / descriptor /
+plan OR-chain, LookDevReview path, Main.server boot require, tests/run.luau registration,
+CANDIDATES.md + CANDIDATE_INDEX.md rows, 50-spec count mirror 115->116. Additive overlay: the default
+river_r8 bridge stays walkable and untouched. No asset IDs, no visual verdict.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK BRIDGE_WALKABLE PASS 0 0
+CHECK BRIDGE_MATERIAL PASS 0 0
+CHECK BRIDGE_RAILS PASS 2 2
+
+== Notes / measurements ==
+- BRIDGE_WALKABLE 0/0: 15 downward lane raycasts (5 x-offsets x 3 z-samples) over the 6-stud lane;
+  0 blocked before staging and 0 after, 0 read errors. The underlying river_r8 bridge remains the
+  walkable surface; the bamboo overlay is decorative (CanCollide=false).
+- BRIDGE_MATERIAL 0/0: 14 staged deck Parts, all within per-channel tolerance 12 of the bamboo or
+  wood palette, 0 violations.
+- BRIDGE_RAILS 2/2: both rail roles (rail_left and rail_right) present in the staged set, 27 staged
+  Parts total, 0 before.
+- Check ran with enableAdditive("bamboo_bridge_r10", game) in SERVER VM; disableAll() in the same call
+  restored the place. Play stopped after the run.
+
+== Non-vacuity / calibration ==
+Runtime-only injection between the harness's BEFORE/AFTER anchors (repo file untouched):
+- repaint one staged deck Part far from both palettes and delete the rail_right Parts:
+  CHECK BRIDGE_MATERIAL FAIL 14 0, CHECK BRIDGE_RAILS FAIL 1 2.
+- separate fresh Play, push Data.BRIDGE_START/END z off-map so all 15 lane rays miss:
+  CHECK BRIDGE_WALKABLE FAIL 15 0 (other checks stayed PASS).
+All three checks demonstrably FAIL on injected bad state. Visual yes/no stays the designer's.
+
+Status: SEEN-IN-STUDIO.

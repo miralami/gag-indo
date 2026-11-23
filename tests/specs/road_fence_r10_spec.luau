@@ -119,6 +119,39 @@ return function(t, Env)
 			expect(violations):toBe(0)
 		end)
 
+		t:it("stands every fence segment on the grass shoulder, 1.5-2.5 studs outside the road edge", function()
+			local roadHalf = 14 -- MapSpec.ROAD.halfWidth: arms are 28 wide around the X and Z axes
+			local roadReach = 136 -- MapSpec.ROAD.radius
+			for _, part in ipairs(Data.parts()) do
+				local x, z = part.position[1], part.position[3]
+				-- Which arm runs along the fence: angle 0/180 -> X arm (offset in Z), 90/270 -> Z arm.
+				local alongX = part.angle == 0 or part.angle == 180
+				local along = if alongX then x else z
+				local across = if alongX then z else x
+				expect(math.abs(along) <= roadReach):toBe(true)
+				local outside = math.abs(across) - roadHalf
+				expect(outside >= 1.5 and outside <= 2.5):toBe(true)
+				-- Never inside either road rectangle, wherever the point is.
+				local inEastWest = math.abs(z) < roadHalf and math.abs(x) <= roadReach
+				local inNorthSouth = math.abs(x) < roadHalf and math.abs(z) <= roadReach
+				expect(inEastWest or inNorthSouth):toBe(false)
+			end
+		end)
+
+		t:it("runs parallel to the road, opens a gate gap and never covers the gap radii", function()
+			local byGroup = {}
+			for _, part in ipairs(Data.parts()) do
+				local x, z = part.position[1], part.position[3]
+				local along = if part.angle == 0 or part.angle == 180 then math.abs(x) else math.abs(z)
+				expect(along < Data.GATE_GAP.from or along > Data.GATE_GAP.to):toBe(true)
+				byGroup[part.group] = (byGroup[part.group] or 0) + 1
+			end
+			for _, count in pairs(byGroup) do
+				expect(count >= 2):toBe(true)
+			end
+			expect(Data.SIDE_OFFSET >= 14 + Data.SHOULDER_MIN and Data.SIDE_OFFSET <= 14 + Data.SHOULDER_MAX):toBe(true)
+		end)
+
 		t:it("covers every stretch with a shoulder patch for the Grass -> Ground repaint", function()
 			local patches = Data.shoulderPatches()
 			expect(#patches >= 6):toBe(true)
@@ -171,6 +204,11 @@ return function(t, Env)
 			expect(check201Src:find("Data.parts", 1, true) ~= nil):toBe(true)
 			expect(check201Src:find('GetAttribute("RoadFence") == true', 1, true) ~= nil):toBe(true)
 			expect(check201Src:find("disableAll()", 1, true) ~= nil):toBe(true)
+		end)
+
+		t:it("check_q262 also measures FENCE_ON_SHOULDER with a FAIL calibration", function()
+			expect(check262Src:find('"FENCE_ON_SHOULDER"', 1, true) ~= nil):toBe(true)
+			expect(check262Src:find('"CAL_FENCE_ON_SHOULDER_FAIL"', 1, true) ~= nil):toBe(true)
 		end)
 
 		t:it("check_q262 declares the exact five checks and emits SUMMARY_Q262", function()

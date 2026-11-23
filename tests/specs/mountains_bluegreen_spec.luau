@@ -20,69 +20,32 @@ return function(t, Env)
 	local check260Src = fs.readFile(CHECK_260)
 
 	t:describe("item 243 blue-green mountain silhouettes", function()
-		t:it("exposes at least eight non-Ball silhouettes beyond the 250-stud spawn floor", function()
+		t:it("exposes terrain ridge data: three bands, no part descriptors", function()
 			expect(Data.id):toBe("mountains_r10")
-			expect(#Data.MOUNTAINS >= 8):toBe(true)
-			expect(#Data.mountainParts()):toBe(#Data.MOUNTAINS)
-			for _, descriptor in ipairs(Data.MOUNTAINS) do
-				expect(descriptor.shape == "Wedge" or descriptor.shape == "Cylinder"):toBe(true)
-				expect(descriptor.shape ~= "Ball"):toBe(true)
-				expect(descriptor.shape ~= "Block"):toBe(true)
-				expect(descriptor.material == "Rock" or descriptor.material == "Slate"):toBe(true)
-				local radius = math.sqrt(descriptor.position[1] ^ 2 + descriptor.position[3] ^ 2)
-				expect(radius >= Data.MIN_DISTANCE):toBe(true)
+			expect(#Data.BANDS):toBe(3)
+			expect(#Data.shapes() > 100):toBe(true)
+			expect(#Data.mountainParts()):toBe(0)
+			expect(#Data.smokeParts()):toBe(0)
+			for _, shape in ipairs(Data.shapes()) do
+				expect(shape.kind == "Ball" or shape.kind == "Cylinder" or shape.kind == "Wedge"):toBe(true)
+				expect(shape.kind ~= "Block"):toBe(true)
+				local radial = math.sqrt(shape.x ^ 2 + shape.z ^ 2)
+				expect(radial >= Data.MIN_RADIUS):toBe(true)
 			end
 		end)
 
-		t:it("exposes the exact item-260 ridge bands and skyline targets in pure data", function()
-			expect(Data.MIN_DISTANCE):toBe(250)
-			expect(#Data.RIDGE_BANDS):toBe(3)
-			expect(Data.RIDGE_BANDS[1]):toBe(300)
-			expect(Data.RIDGE_BANDS[2]):toBe(450)
-			expect(Data.RIDGE_BANDS[3]):toBe(600)
-			expect(Data.BAND_TOLERANCE):toBe(60)
-			expect(Data.SKYLINE_MIN):toBe(0.15)
-			expect(Data.SKYLINE_MAX):toBe(0.40)
-			local seen = {}
-			for _, descriptor in ipairs(Data.MOUNTAINS) do
-				expect(descriptor.shape == "Block"):toBe(false)
-				for _, band in ipairs(Data.RIDGE_BANDS) do
-					if math.abs(math.abs(descriptor.position[3]) - band) <= Data.BAND_TOLERANCE then
-						seen[band] = true
-					end
-				end
-			end
-			for _, band in ipairs(Data.RIDGE_BANDS) do
-				expect(seen[band] == true):toBe(true)
-			end
+		t:it("keeps the blue-green ladder: greener near band, bluer far band, bluish haze", function()
+			expect(Data.BANDS[1].slope):toBe("LeafyGrass")
+			expect(Data.BANDS[3].slope):toBe("Slate")
+			expect(Data.ATMOSPHERE.color.b >= Data.ATMOSPHERE.color.r + 20):toBe(true)
 		end)
 
-		t:it("keeps a blue-green spread on every staged descriptor", function()
-			for _, list in ipairs({ Data.mountainParts(), Data.smokeParts() }) do
-				for _, descriptor in ipairs(list) do
-					local colour = descriptor.color
-					local spread = math.max(colour.r, colour.g, colour.b) - math.min(colour.r, colour.g, colour.b)
-					expect(spread >= 18):toBe(true)
-					expect(colour.b >= colour.r + 12):toBe(true)
-					expect(colour.g >= colour.r + 12):toBe(true)
-					expect(descriptor.shape ~= "Ball"):toBe(true)
-				end
-			end
-			local smoke = Data.smokeParts()[1]
-			expect(smoke.shape ~= "Ball"):toBe(true)
-			expect(type(smoke.transparency) == "number" and smoke.transparency > 0):toBe(true)
-		end)
-
-		t:it("applies descriptor material with a pcall fallback and keeps stage/restore behaviour", function()
-			expect(applierSrc:find('name ~= "Wedge" and name ~= "Cylinder"', 1, true) ~= nil):toBe(true)
-			expect(applierSrc:find("(Enum :: any).Material[name]", 1, true) ~= nil):toBe(true)
-			expect(applierSrc:find("pcall(function()", 1, true) ~= nil):toBe(true)
-			expect(applierSrc:find("instance.Material = material", 1, true) ~= nil):toBe(true)
-			expect(applierSrc:find('SetAttribute("Mountain", true)', 1, true) ~= nil):toBe(true)
-			expect(applierSrc:find('SetAttribute("LookDevStage", FAMILY_ID)', 1, true) ~= nil):toBe(true)
-			expect(applierSrc:find("CanCollide = false", 1, true) ~= nil):toBe(true)
-			expect(applierSrc:find("CastShadow = false", 1, true) ~= nil):toBe(true)
-			expect(applierSrc:find("instance:Destroy()", 1, true) ~= nil):toBe(true)
+		t:it("is terrain only: no Part, no Block, no SmoothPlastic in the applier", function()
+			expect(applierSrc:find('.new("Part")', 1, true) == nil):toBe(true)
+			expect(applierSrc:find("PartType", 1, true) == nil):toBe(true)
+			expect(applierSrc:find("SmoothPlastic", 1, true) == nil):toBe(true)
+			expect(applierSrc:find(":FillBall(", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("Material.Air", 1, true) ~= nil):toBe(true)
 		end)
 
 		t:it("keeps the exact four SERVER-VM targets and real calibration injections", function()
@@ -144,27 +107,18 @@ return function(t, Env)
 
 		t:it("keeps the exact item-260 SERVER-VM targets and non-vacuous FAIL anchors", function()
 			for _, name in ipairs({
-				"MOUNTAIN_DISTANCE",
-				"NO_BOX_MOUNTAIN",
 				"RIDGE_LAYERS",
-				"SKYLINE_COVER",
+				"MOUNTAIN_DIST",
+				"NO_BOX_MOUNTAIN",
 				"CAL_RIDGE_LAYERS_FAIL",
-				"CAL_SKYLINE_COVER_FAIL",
+				"CAL_NO_BOX_MOUNTAIN_FAIL",
 			}) do
 				expect(check260Src:find('"' .. name .. '"', 1, true) ~= nil):toBe(true)
 			end
-			expect(check260Src:find("MIN_DISTANCE = 250", 1, true) ~= nil):toBe(true)
-			expect(check260Src:find("RIDGE_BANDS = { 300, 450, 600 }", 1, true) ~= nil):toBe(true)
-			expect(check260Src:find("BAND_TOLERANCE = 60", 1, true) ~= nil):toBe(true)
-			expect(check260Src:find("SKYLINE_MIN = 0.15", 1, true) ~= nil):toBe(true)
-			expect(check260Src:find("SKYLINE_MAX = 0.40", 1, true) ~= nil):toBe(true)
-			expect(check260Src:find('SPAWN_CAMERA = "spawn"', 1, true) ~= nil):toBe(true)
-			expect(check260Src:find("Cameras.get, SPAWN_CAMERA", 1, true) ~= nil):toBe(true)
-			expect(check260Src:find("Enum.RaycastFilterType.Include", 1, true) ~= nil):toBe(true)
-			expect(check260Src:find("part.Shape == Enum.PartType.Block", 1, true) ~= nil):toBe(true)
-			expect(check260Src:find("aabbDistance(eye, part)", 1, true) ~= nil):toBe(true)
-			expect(check260Src:find("measureSkyline({})", 1, true) ~= nil):toBe(true)
-			expect(check260Src:find("CFrame.new(0, 30, -750)", 1, true) ~= nil):toBe(true)
+			expect(check260Src:find("MIN_DISTANCE = 480", 1, true) ~= nil):toBe(true)
+			expect(check260Src:find("workspace.Terrain", 1, true) ~= nil):toBe(true)
+			expect(check260Src:find("Raycast(", 1, true) ~= nil):toBe(true)
+			expect(check260Src:find("Enum.PartType.Block", 1, true) ~= nil):toBe(true)
 			expect(check260Src:find('SetAttribute("Mountain", true)', 1, true) ~= nil):toBe(true)
 			expect(check260Src:find("review.disableAll()", 1, true) ~= nil):toBe(true)
 			expect(check260Src:find("destroyInjected()", 1, true) ~= nil):toBe(true)

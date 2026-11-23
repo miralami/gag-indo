@@ -229,7 +229,10 @@ local function measure(ignoreWalkables)
 	end
 
 	local roles = { post = {}, pillar = {}, rail_left = {}, rail_right = {} }
-	local railShapes = {}
+	local railShapes = { rail_left = true, rail_right = true }
+	local railHeights = { rail_left = {}, rail_right = {} }
+	local intrusions = 0
+	local laneHalf = if Data and type(Data.LANE_HALF) == "number" then Data.LANE_HALF else 2
 	for _, instance in ipairs(staged) do
 		local okRole, role = pcall(function()
 			return instance:GetAttribute("role")
@@ -252,10 +255,31 @@ local function measure(ignoreWalkables)
 					return instance.Shape
 				end)
 				if okShape then
-					railShapes[role] = shape == Enum.PartType.Cylinder
+					if shape ~= Enum.PartType.Cylinder then
+						railShapes[role] = false
+					end
 				else
 					readErrors += 1
 				end
+				local okY, y = pcall(function()
+					return instance.Position.Y
+				end)
+				if okY then
+					railHeights[role][#railHeights[role] + 1] = y
+				else
+					readErrors += 1
+				end
+			end
+			-- Posts, rails and pillars must stay outside the walking lane (|x| < laneHalf).
+			local okLane, innerX = pcall(function()
+				return math.abs(instance.Position.X) - instance.Size.X / 2
+			end)
+			if okLane then
+				if innerX < laneHalf then
+					intrusions += 1
+				end
+			else
+				readErrors += 1
 			end
 		end
 	end
@@ -266,6 +290,8 @@ local function measure(ignoreWalkables)
 		staged = #staged,
 		roles = roles,
 		railShapes = railShapes,
+		railHeights = railHeights,
+		intrusions = intrusions,
 		readErrors = readErrors,
 	}
 end
@@ -298,7 +324,7 @@ local function measureColors(measurement)
 			postsOk = false
 		end
 	end
-	local railsOk = #measurement.roles.rail_left == 1 and #measurement.roles.rail_right == 1
+	local railsOk = #measurement.roles.rail_left == 2 and #measurement.roles.rail_right == 2
 	for _, color in ipairs(rails) do
 		if not (color.r < 60 and color.g < 60 and color.b < 60) or not nearColor(color, Data and Data.RAIL_COLOR) then
 			railsOk = false
@@ -415,6 +441,7 @@ local ok, err = pcall(function()
 		staged == true
 			and walkAfter.staged > 0
 			and walkDelta == 0
+			and walkAfter.intrusions == 0
 			and walkAfter.samples > 0
 			and walkAfter.readErrors == 0
 			and walkBefore.readErrors == 0,
@@ -425,13 +452,25 @@ local ok, err = pcall(function()
 			afterBlocked = walkAfter.blocked,
 			samples = walkAfter.samples,
 			staged = walkAfter.staged,
+			laneIntrusions = walkAfter.intrusions,
 			reason = reason,
 		}
 	)
 
 	local railCount = 0
+	local deckTop = Data.BRIDGE_START.y
+	local heightsOk = true
 	for _, role in ipairs({ "rail_left", "rail_right" }) do
-		if #walkAfter.roles[role] == 1 and walkAfter.railShapes[role] == true then
+		-- Two pipes per side, both Cylinders, at 1.2 and 2.6 studs above the deck.
+		local ys = walkAfter.railHeights[role]
+		table.sort(ys)
+		local sideHeights = #ys == 2
+			and math.abs(ys[1] - (deckTop + 1.2)) < 0.3
+			and math.abs(ys[2] - (deckTop + 2.6)) < 0.3
+		if not sideHeights then
+			heightsOk = false
+		end
+		if #walkAfter.roles[role] == 2 and walkAfter.railShapes[role] == true and sideHeights then
 			railCount += 1
 		end
 	end
@@ -440,6 +479,7 @@ local ok, err = pcall(function()
 		right = #walkAfter.roles.rail_right,
 		leftCylinder = walkAfter.railShapes.rail_left == true,
 		rightCylinder = walkAfter.railShapes.rail_right == true,
+		heightsOk = heightsOk,
 		reason = reason,
 	})
 

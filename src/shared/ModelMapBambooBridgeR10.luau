@@ -1,8 +1,9 @@
 --!strict
 -- ModelMapBambooBridgeR10: pure data for the OFF-BY-DEFAULT "bamboo_bridge_r10" restyle
 -- (WORK_QUEUE item 204/245/252; item 258 rebuilds it as the concrete village bridge).
--- Fourteen dark concrete deck slabs span the central 6-stud lane, with yellow square posts,
--- two black pipe rails, white river-stone-pattern end pillars and a black-white striped curb.
+-- Fourteen dark concrete deck slabs span the 6-stud lane, with yellow square posts every 4 studs,
+-- two black pipe rails per side, white stone end pillars, stone abutments and a black-white
+-- striped curb (docs/v2/visual/refs/bridge_ref.jpg). Posts, rails and pillars stay outside the walk lane.
 -- The baked Creator Store model is staged by the SERVER applier from its own asset id; this
 -- module only supplies its placement, scale and deck colour (no engine calls, no asset IDs).
 -- The default timber bridge is hidden only by the SERVER applier while staged; this pure module
@@ -33,17 +34,24 @@ Data.PLANK_COUNT = 14
 Data.PLANK_THICKNESS = 0.6
 Data.PLANK_GAP = 0.12
 Data.RAIL_X = 3.2
-Data.RAIL_Y = 2.6
+Data.LANE_HALF = 2.0 -- only the deck may sit inside |x| < LANE_HALF
+Data.RAIL_HEIGHTS = { 1.2, 2.6 } -- studs above the deck top
+Data.RAIL_Y = BRIDGE_START.y + 2.6 -- upper rail, kept for older checks
 Data.RAIL_DIAMETER = 0.36
-Data.POST_INSET = 3
-Data.CURB_SEGMENTS = 14
+Data.POST_SIZE = { 0.5, 3, 0.5 }
+Data.POST_SPACING = 4
+Data.POST_INSET = 4
+Data.CURB_SEGMENTS = 56 -- one stripe per stud along each edge
+Data.CURB_HEIGHT = 0.3
 Data.STONE_CHIPS_PER_PILLAR = 4
-Data.PILLAR_SIZE = { 1.6, 4.2, 1.6 }
+Data.PILLAR_SIZE = { 1.6, 5, 1.6 }
+Data.ABUTMENT_SIZE = { 7.2, 3, 3.5 }
 
 local DECK_COLOR: RGB = { r = 58, g = 62, b = 66 }
-local POST_COLOR: RGB = { r = 244, g = 198, b = 44 }
+local POST_COLOR: RGB = { r = 230, g = 190, b = 30 }
 local RAIL_COLOR: RGB = { r = 18, g = 20, b = 22 }
 local PILLAR_COLOR: RGB = { r = 242, g = 240, b = 236 }
+local ABUTMENT_COLOR: RGB = { r = 150, g = 148, b = 140 }
 local CURB_DARK_COLOR: RGB = { r = 24, g = 24, b = 24 }
 local CURB_LIGHT_COLOR: RGB = { r = 236, g = 236, b = 232 }
 local STONE_COLORS: { RGB } = {
@@ -56,6 +64,7 @@ Data.DECK_COLOR = DECK_COLOR
 Data.POST_COLOR = POST_COLOR
 Data.RAIL_COLOR = RAIL_COLOR
 Data.PILLAR_COLOR = PILLAR_COLOR
+Data.ABUTMENT_COLOR = ABUTMENT_COLOR
 Data.CURB_DARK_COLOR = CURB_DARK_COLOR
 Data.CURB_LIGHT_COLOR = CURB_LIGHT_COLOR
 Data.STONE_COLORS = STONE_COLORS
@@ -92,10 +101,12 @@ end
 
 function Data.parts(): { PartDescriptor }
 	local out: { PartDescriptor } = {}
-	local length = Data.BRIDGE_END.z - Data.BRIDGE_START.z
-	local centerZ = (Data.BRIDGE_START.z + Data.BRIDGE_END.z) / 2
+	local startZ, endZ = Data.BRIDGE_START.z, Data.BRIDGE_END.z
+	local length = endZ - startZ
+	local centerZ = (startZ + endZ) / 2
 	local step = length / Data.PLANK_COUNT
-	local deckY = Data.BRIDGE_START.y - Data.PLANK_THICKNESS / 2
+	local deckTop = Data.BRIDGE_START.y
+	local deckY = deckTop - Data.PLANK_THICKNESS / 2
 	local curbX = Data.BRIDGE_WIDTH / 2 - 0.2
 
 	-- Dark concrete deck slabs: the old 14-plank cadence, now a continuous slab lane.
@@ -105,66 +116,83 @@ function Data.parts(): { PartDescriptor }
 			kind = "deck",
 			shape = "Block",
 			size = { Data.BRIDGE_WIDTH, Data.PLANK_THICKNESS, step - Data.PLANK_GAP },
-			position = { 0, deckY, Data.BRIDGE_START.z + (index - 0.5) * step },
+			position = { 0, deckY, startZ + (index - 0.5) * step },
 			color = copy(DECK_COLOR),
 			material = "Concrete",
 		}
 	end
 
-	-- Two black pipes along the lane. The applier rotates local Y onto world Z for these roles.
 	local sides = {
 		{ role = "left", sign = -1, label = "Left" },
 		{ role = "right", sign = 1, label = "Right" },
 	}
-	for _, side in ipairs(sides) do
-		out[#out + 1] = {
-			name = "PipeRail" .. side.label,
-			kind = "rail_" .. side.role,
-			shape = "Cylinder",
-			size = { Data.RAIL_DIAMETER, length, Data.RAIL_DIAMETER },
-			position = { side.sign * Data.RAIL_X, Data.RAIL_Y, centerZ },
-			color = copy(RAIL_COLOR),
-			material = "SmoothPlastic",
-		}
-	end
 
-	-- Four yellow square posts: one at each corner, just inside the two ends.
-	local ends = {
-		{ label = "Start", z = Data.BRIDGE_START.z + Data.POST_INSET },
-		{ label = "End", z = Data.BRIDGE_END.z - Data.POST_INSET },
-	}
-	for _, endPoint in ipairs(ends) do
-		for _, side in ipairs(sides) do
+	-- Two black pipe rails per side, post to post, 1.2 and 2.6 studs above the deck. The applier
+	-- rotates local Y onto world Z for the rail_* roles.
+	for _, side in ipairs(sides) do
+		for level, height in ipairs(Data.RAIL_HEIGHTS) do
 			out[#out + 1] = {
-				name = "YellowPost" .. side.label .. endPoint.label,
-				kind = "post",
-				shape = "Block",
-				size = { 0.9, 3.4, 0.9 },
-				position = { side.sign * Data.RAIL_X, 1.7, endPoint.z },
-				color = copy(POST_COLOR),
-				material = "SmoothPlastic",
+				name = "PipeRail" .. side.label .. level,
+				kind = "rail_" .. side.role,
+				shape = "Cylinder",
+				size = { Data.RAIL_DIAMETER, length, Data.RAIL_DIAMETER },
+				position = { side.sign * Data.RAIL_X, deckTop + height, centerZ },
+				color = copy(RAIL_COLOR),
+				material = "Metal",
 			}
 		end
 	end
 
-	-- White end pillars. Mottled stone chips on the faces stand in for the river-stone
-	-- pattern; no texture asset is available to this pure data module.
+	-- Yellow square posts every POST_SPACING studs along both edges, between the end pillars.
+	local postIndex = 0
+	local z = startZ + Data.POST_INSET
+	while z <= endZ - Data.POST_INSET + 1e-6 do
+		for _, side in ipairs(sides) do
+			postIndex += 1
+			out[#out + 1] = {
+				name = "YellowPost" .. side.label .. name2(postIndex),
+				kind = "post",
+				shape = "Block",
+				size = { Data.POST_SIZE[1], Data.POST_SIZE[2], Data.POST_SIZE[3] },
+				position = { side.sign * Data.RAIL_X, deckTop + Data.POST_SIZE[2] / 2, z },
+				color = copy(POST_COLOR),
+				material = "Metal",
+			}
+		end
+		z += Data.POST_SPACING
+	end
+
+	-- White stone end pillars (Cobblestone) with a mottled Slate chip panel on the outward face as
+	-- the river-stone pattern, plus a stone abutment under each bank end of the deck.
 	local pillarEnds = {
-		{ label = "Start", z = Data.BRIDGE_START.z },
-		{ label = "End", z = Data.BRIDGE_END.z },
+		{ label = "Start", z = startZ, outward = -1 },
+		{ label = "End", z = endZ, outward = 1 },
 	}
 	local chipIndex = 0
 	for _, endPoint in ipairs(pillarEnds) do
+		out[#out + 1] = {
+			name = "StoneAbutment" .. endPoint.label,
+			kind = "abutment",
+			shape = "Block",
+			size = { Data.ABUTMENT_SIZE[1], Data.ABUTMENT_SIZE[2], Data.ABUTMENT_SIZE[3] },
+			position = {
+				0,
+				deckTop - 0.3 - Data.ABUTMENT_SIZE[2] / 2,
+				endPoint.z + endPoint.outward * (Data.ABUTMENT_SIZE[3] / 2 - 0.5),
+			},
+			color = copy(ABUTMENT_COLOR),
+			material = "Cobblestone",
+		}
 		for _, side in ipairs(sides) do
 			local pillarX, pillarY = side.sign * Data.RAIL_X, Data.PILLAR_SIZE[2] / 2
 			out[#out + 1] = {
 				name = "StonePillar" .. side.label .. endPoint.label,
 				kind = "pillar",
 				shape = "Block",
-				size = copy(Data.PILLAR_SIZE),
+				size = { Data.PILLAR_SIZE[1], Data.PILLAR_SIZE[2], Data.PILLAR_SIZE[3] },
 				position = { pillarX, pillarY, endPoint.z },
 				color = copy(PILLAR_COLOR),
-				material = "Concrete",
+				material = "Cobblestone",
 			}
 			for chip = 1, Data.STONE_CHIPS_PER_PILLAR do
 				chipIndex += 1
@@ -175,8 +203,8 @@ function Data.parts(): { PartDescriptor }
 					size = { 0.5, 0.35, 0.08 },
 					position = {
 						pillarX + (chip % 2 == 0 and 0.35 or -0.35),
-						pillarY + (chip <= 2 and -0.6 or 0.6),
-						endPoint.z + Data.PILLAR_SIZE[3] / 2 + 0.04,
+						deckTop + 1.4 + (chip <= 2 and -0.6 or 0.6),
+						endPoint.z + endPoint.outward * (Data.PILLAR_SIZE[3] / 2 + 0.04),
 					},
 					color = copy(STONE_COLORS[(chipIndex - 1) % #STONE_COLORS + 1]),
 					material = "Slate",
@@ -185,18 +213,19 @@ function Data.parts(): { PartDescriptor }
 		end
 	end
 
-	-- Black-white striped curb on both deck edges, one alternating block per deck step.
+	-- Black-white striped curb on both deck edges, alternating every stud.
+	local curbStep = length / Data.CURB_SEGMENTS
 	for _, side in ipairs(sides) do
 		for index = 1, Data.CURB_SEGMENTS do
 			out[#out + 1] = {
 				name = "Curb" .. side.label .. name2(index),
 				kind = "curb",
 				shape = "Block",
-				size = { 0.4, 0.35, step },
+				size = { 0.4, Data.CURB_HEIGHT, curbStep },
 				position = {
 					side.sign * curbX,
-					Data.BRIDGE_START.y - 0.05,
-					Data.BRIDGE_START.z + (index - 0.5) * step,
+					deckTop + Data.CURB_HEIGHT / 2,
+					startZ + (index - 0.5) * curbStep,
 				},
 				color = copy(
 					if (index + (side.sign < 0 and 0 or 1)) % 2 == 0 then CURB_DARK_COLOR else CURB_LIGHT_COLOR
@@ -223,7 +252,7 @@ do
 	)
 
 	local rails = { left = 0, right = 0 }
-	local deck, posts, pillars, stones, curbs = 0, 0, 0, 0, 0
+	local deck, posts, pillars, stones, curbs, abutments = 0, 0, 0, 0, 0, 0
 	local curbColors = { dark = 0, light = 0 }
 	local parts = Data.parts()
 	for _, part in ipairs(parts) do
@@ -250,6 +279,8 @@ do
 			pillars += 1
 		elseif part.kind == "pillar_stone" then
 			stones += 1
+		elseif part.kind == "abutment" then
+			abutments += 1
 		elseif part.kind == "curb" then
 			if sameColor(part.color, CURB_DARK_COLOR) then
 				curbColors.dark += 1
@@ -264,10 +295,11 @@ do
 			assert(channel >= 0 and channel <= 255, "bamboo_bridge_r10: colour channel outside 0..255")
 		end
 	end
-	assert(rails.left == 1 and rails.right == 1, "bamboo_bridge_r10: rails are not exactly two")
+	assert(rails.left == 2 and rails.right == 2, "bamboo_bridge_r10: rails are not two per side")
 	assert(deck == Data.PLANK_COUNT, "bamboo_bridge_r10: deck slab count changed")
-	assert(posts == 4, "bamboo_bridge_r10: fewer than four yellow posts")
+	assert(posts >= 8 and posts % 2 == 0, "bamboo_bridge_r10: fewer than four yellow posts per side")
 	assert(pillars == 4, "bamboo_bridge_r10: fewer than four end pillars")
+	assert(abutments == 2, "bamboo_bridge_r10: stone abutments missing")
 	assert(stones == pillars * Data.STONE_CHIPS_PER_PILLAR, "bamboo_bridge_r10: stone pattern incomplete")
 	assert(curbs == 2 * Data.CURB_SEGMENTS, "bamboo_bridge_r10: curb segments changed")
 	assert(curbColors.dark > 0 and curbColors.light > 0, "bamboo_bridge_r10: curb is not striped")

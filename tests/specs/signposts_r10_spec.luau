@@ -42,19 +42,29 @@ return function(t, Env)
 		t:it("declares the id, folder name and readability floor", function()
 			expect(Data.id):toBe("signposts_r10")
 			expect(Data.folderName):toBe("LookDevSignpostsR10_signposts_r10")
-			expect(Data.ASSET_KEY):toBe("signpost")
 			expect(Data.RING_RADIUS):toBe(144)
 			expect(Data.GROUND_Y):toBe(0.5)
 			expect(Data.READ_MIN_PX):toBe(14)
 			expect(Data.FONT_SIZE_PX >= Data.READ_MIN_PX):toBe(true)
-			expect(Data.PLATE_COUNT):toBe(6)
+			expect(Data.PLATE_COUNT >= 5 and Data.PLATE_COUNT <= 6):toBe(true)
 			expect(#Data.POST_SIZE):toBe(3)
-			expect(Data.POST_SIZE[2] > 8 and Data.POST_SIZE[2] < 9):toBe(true)
 			expect(#Data.PLATE_SIZE):toBe(3)
 			expect(#Data.LAMP_SIZE):toBe(3)
 		end)
 
-		t:it("has exactly four junction signs, each with six distinct arrow plates", function()
+		t:it("has a green square pole about 12 studs tall", function()
+			expect(Data.POST_SIZE[1]):toBe(Data.POST_SIZE[3])
+			expect(Data.POST_SIZE[1] >= 0.6 and Data.POST_SIZE[1] <= 0.8):toBe(true)
+			expect(Data.POST_SIZE[2] >= 11.5 and Data.POST_SIZE[2] <= 13):toBe(true)
+			local c = Data.POST_COLOR
+			expect(c.g > c.r and c.g > c.b):toBe(true)
+			expect(Data.PLATE_COLOR.g > Data.PLATE_COLOR.r):toBe(true)
+			expect(Data.BORDER_COLOR.r):toBe(255)
+			expect(Data.TEXT_COLOR.g):toBe(255)
+			expect(Data.PLATE_STEP > Data.PLATE_SIZE[2]):toBe(true)
+		end)
+
+		t:it("has exactly four junction signs, each with five distinct non-overlapping plates", function()
 			expect(#Data.SIGNS):toBe(4)
 			local seenSigns = {}
 			for index, sign in ipairs(Data.SIGNS) do
@@ -63,28 +73,30 @@ return function(t, Env)
 				seenSigns[sign.index] = true
 				expect(#sign.name > 0):toBe(true)
 				expect(type(sign.yaw)):toBe("number")
-				expect(type(sign.position.x)):toBe("number")
-				expect(type(sign.position.y)):toBe("number")
-				expect(type(sign.position.z)):toBe("number")
 				local radius = math.sqrt(sign.position.x ^ 2 + sign.position.z ^ 2)
 				expect(math.abs(radius - Data.RING_RADIUS) < 0.001):toBe(true)
-				expect(#sign.plates):toBe(6)
-				local heights, keys, yawOffsets = {}, {}, {}
+				expect(#sign.plates >= 5 and #sign.plates <= 6):toBe(true)
+				expect(#sign.plates):toBe(Data.PLATE_COUNT)
+				local keys, yawOffsets, last = {}, {}, nil
 				for order, plate in ipairs(sign.plates) do
 					expect(plate.order):toBe(order)
-					expect(heights[plate.height] == nil):toBe(true)
 					expect(keys[plate.textKey] == nil):toBe(true)
 					expect(yawOffsets[plate.yawOffset] == nil):toBe(true)
-					heights[plate.height], keys[plate.textKey], yawOffsets[plate.yawOffset] = true, true, true
-					expect(plate.height > 0 and plate.height < Data.POST_SIZE[2]):toBe(true)
+					keys[plate.textKey], yawOffsets[plate.yawOffset] = true, true
+					if last then
+						expect(plate.height - last >= Data.PLATE_SIZE[2]):toBe(true)
+					end
+					last = plate.height
+					expect(plate.height - Data.PLATE_SIZE[2] / 2 > 0):toBe(true)
+					expect(plate.height + Data.PLATE_SIZE[2] / 2 < Data.POST_SIZE[2]):toBe(true)
 					expect(plate.fontSizePx >= Data.READ_MIN_PX):toBe(true)
-					expect(type(plate.side)):toBe("number")
+					expect(plate.side == 1 or plate.side == -1):toBe(true)
 				end
 			end
 		end)
 
-		t:it("declares six plate text keys with both variants in Strings", function()
-			expect(#Data.STRING_KEYS):toBe(6)
+		t:it("declares plate text keys with both variants in Strings", function()
+			expect(#Data.STRING_KEYS):toBe(Data.PLATE_COUNT)
 			local declared, used = {}, {}
 			for _, key in ipairs(Data.STRING_KEYS) do
 				expect(declared[key] == nil):toBe(true)
@@ -111,12 +123,16 @@ return function(t, Env)
 			expect(Strings.raw.signpost_kampung.en):toBe("Village")
 		end)
 
-		t:it("keeps the baked asset ID and script stripping in the SERVER applier", function()
-			expect(string.find(applierSrc, "71310674426033", 1, true) ~= nil):toBe(true)
-			expect(string.find(applierSrc, "LookDevAssetLoader", 1, true) ~= nil):toBe(true)
-			expect(string.find(applierSrc, ".baked(", 1, true) ~= nil):toBe(true)
-			expect(string.find(applierSrc, "LuaSourceContainer", 1, true) ~= nil):toBe(true)
+		t:it("builds from parts: DiamondPlate pole, no Wood, no store model, SurfaceGui per plate", function()
+			expect(string.find(applierSrc, "Material.DiamondPlate", 1, true) ~= nil):toBe(true)
+			expect(string.find(applierSrc, "Material.Wood", 1, true) == nil):toBe(true)
+			expect(string.find(applierSrc, "Material.SmoothPlastic", 1, true) == nil):toBe(true)
+			expect(string.find(applierSrc, "LookDevAssetLoader", 1, true) == nil):toBe(true)
+			expect(string.find(applierSrc, ".baked(", 1, true) == nil):toBe(true)
+			expect(string.find(applierSrc, "SurfaceGui", 1, true) ~= nil):toBe(true)
 			expect(string.find(applierSrc, "SignpostPlate", 1, true) ~= nil):toBe(true)
+			expect(string.find(applierSrc, "PointLight", 1, true) ~= nil):toBe(true)
+			expect(string.find(applierSrc, "isNight", 1, true) ~= nil):toBe(true)
 		end)
 
 		t:it("stays identical across fresh requires", function()

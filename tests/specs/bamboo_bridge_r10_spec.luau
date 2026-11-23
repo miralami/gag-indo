@@ -104,48 +104,70 @@ return function(t, Env)
 			end
 		end)
 
-		t:it("places exactly two black Cylinder pipe rails on opposite sides", function()
+		t:it("places two black Cylinder pipe rails per side at 1.2 and 2.6 studs above the deck", function()
 			local left, right = byKind("rail_left"), byKind("rail_right")
-			expect(#left):toBe(1)
-			expect(#right):toBe(1)
-			expect(#left + #right):toBe(2)
-			for _, rail in ipairs({ left[1], right[1] }) do
-				expect(rail.shape):toBe("Cylinder")
-				expect(near(rail.size[1], Data.RAIL_DIAMETER, 1e-6)):toBe(true)
-				expect(near(rail.size[3], rail.size[1], 1e-6)):toBe(true)
-				expect(near(rail.size[2], 56, 1e-6)):toBe(true)
-				expect(rail.color.r < 60 and rail.color.g < 60 and rail.color.b < 60):toBe(true)
+			expect(#left):toBe(2)
+			expect(#right):toBe(2)
+			for _, group in ipairs({ left, right }) do
+				local heights = {}
+				for _, rail in ipairs(group) do
+					expect(rail.shape):toBe("Cylinder")
+					expect(rail.material):toBe("Metal")
+					expect(near(rail.size[1], Data.RAIL_DIAMETER, 1e-6)):toBe(true)
+					expect(near(rail.size[3], rail.size[1], 1e-6)):toBe(true)
+					expect(near(rail.size[2], 56, 1e-6)):toBe(true)
+					expect(rail.color.r < 60 and rail.color.g < 60 and rail.color.b < 60):toBe(true)
+					heights[#heights + 1] = rail.position[2] - Data.BRIDGE_START.y
+				end
+				table.sort(heights)
+				expect(near(heights[1], 1.2, 1e-6)):toBe(true)
+				expect(near(heights[2], 2.6, 1e-6)):toBe(true)
 			end
 			expect(left[1].position[1] < 0):toBe(true)
 			expect(right[1].position[1] > 0):toBe(true)
 			expect(near(left[1].position[1], -Data.RAIL_X, 1e-6)):toBe(true)
 			expect(near(right[1].position[1], Data.RAIL_X, 1e-6)):toBe(true)
-			expect(near(left[1].position[2], Data.RAIL_Y, 1e-6)):toBe(true)
-			expect(near(right[1].position[2], Data.RAIL_Y, 1e-6)):toBe(true)
 		end)
 
-		t:it("sets four yellow square posts at the four corners", function()
+		t:it("sets yellow Metal square posts every 4 studs along both edges", function()
 			local posts = byKind("post")
-			expect(#posts):toBe(4)
-			local corners = {}
+			local perSide = { left = {}, right = {} }
 			for _, post in ipairs(posts) do
 				expect(post.shape):toBe("Block")
+				expect(post.material):toBe("Metal")
 				expect(post.size[1]):toBe(post.size[3])
+				expect(near(post.size[1], 0.5, 1e-6)):toBe(true)
+				expect(near(post.size[2], 3, 1e-6)):toBe(true)
 				expect(post.color.r > post.color.g and post.color.g > post.color.b):toBe(true)
-				local side = if post.position[1] < 0 then "left" else "right"
-				local endpoint = if near(post.position[3], Data.BRIDGE_START.z + Data.POST_INSET, 1e-6)
-					then "start"
-					elseif near(post.position[3], Data.BRIDGE_END.z - Data.POST_INSET, 1e-6) then "end"
-					else "other"
-				expect(endpoint ~= "other"):toBe(true)
-				corners[side .. "_" .. endpoint] = true
+				expect(near(post.color.r, 230, 12) and near(post.color.g, 190, 12) and near(post.color.b, 30, 12)):toBe(
+					true
+				)
+				expect(near(post.position[2] - post.size[2] / 2, Data.BRIDGE_START.y, 1e-6)):toBe(true)
+				local list = perSide[if post.position[1] < 0 then "left" else "right"]
+				list[#list + 1] = post.position[3]
 			end
-			for _, key in ipairs({ "left_start", "right_start", "left_end", "right_end" }) do
-				expect(corners[key]):toBe(true)
+			for _, zs in pairs(perSide) do
+				expect(#zs >= 4):toBe(true)
+				table.sort(zs)
+				for index = 2, #zs do
+					expect(near(zs[index] - zs[index - 1], 4, 1e-6)):toBe(true)
+				end
+				expect(zs[1] > Data.BRIDGE_START.z):toBe(true)
+				expect(zs[#zs] < Data.BRIDGE_END.z):toBe(true)
+			end
+			expect(#perSide.left):toBe(#perSide.right)
+		end)
+
+		t:it("keeps the walking lane clear of posts, rails, pillars and chips", function()
+			for _, part in ipairs(parts) do
+				if part.kind ~= "deck" and part.kind ~= "curb" and part.kind ~= "abutment" then
+					local inner = math.abs(part.position[1]) - part.size[1] / 2
+					expect(inner >= Data.LANE_HALF):toBe(true)
+				end
 			end
 		end)
 
-		t:it("builds four white stone pillars with a mottled pattern", function()
+		t:it("builds four thicker white Cobblestone pillars with a Slate chip pattern", function()
 			local pillars, stones = byKind("pillar"), byKind("pillar_stone")
 			expect(#pillars):toBe(4)
 			expect(#stones):toBe(4 * Data.STONE_CHIPS_PER_PILLAR)
@@ -153,7 +175,8 @@ return function(t, Env)
 			local sides, ends = {}, {}
 			for _, pillar in ipairs(pillars) do
 				expect(pillar.shape):toBe("Block")
-				expect(pillar.material):toBe("Concrete")
+				expect(pillar.material):toBe("Cobblestone")
+				expect(pillar.size[1] > 2 * byKind("post")[1].size[1]):toBe(true)
 				for _, channel in ipairs({ pillar.color.r, pillar.color.g, pillar.color.b }) do
 					expect(channel > 200):toBe(true)
 				end
@@ -176,10 +199,22 @@ return function(t, Env)
 			expect(stoneShades >= 3):toBe(true)
 		end)
 
+		t:it("sets a stone abutment at each bank end of the deck", function()
+			local abutments = byKind("abutment")
+			expect(#abutments):toBe(2)
+			local ends = {}
+			for _, abutment in ipairs(abutments) do
+				expect(abutment.material):toBe("Cobblestone")
+				expect(abutment.position[2] + abutment.size[2] / 2 < Data.BRIDGE_START.y):toBe(true)
+				ends[if abutment.position[3] < Data.BRIDGE_START.z + 8 then "start" else "end"] = true
+			end
+			expect(ends.start and ends["end"]):toBe(true)
+		end)
+
 		t:it("stripes both deck edges with alternating black and white curb blocks", function()
 			local curbs = byKind("curb")
 			expect(#curbs):toBe(2 * Data.CURB_SEGMENTS)
-			expect(#curbs):toBe(28)
+			expect(#curbs):toBe(112)
 			local dark, light = 0, 0
 			for _, curb in ipairs(curbs) do
 				expect(curb.shape):toBe("Block")
@@ -189,8 +224,8 @@ return function(t, Env)
 					light += 1
 				end
 			end
-			expect(dark):toBe(14)
-			expect(light):toBe(14)
+			expect(dark):toBe(56)
+			expect(light):toBe(56)
 		end)
 
 		t:it("uses only the declared concrete palette and returns fresh deterministic data", function()
@@ -201,6 +236,7 @@ return function(t, Env)
 				Data.PILLAR_COLOR,
 				Data.CURB_DARK_COLOR,
 				Data.CURB_LIGHT_COLOR,
+				Data.ABUTMENT_COLOR,
 			}
 			for _, stone in ipairs(Data.STONE_COLORS) do
 				palettes[#palettes + 1] = stone
@@ -217,7 +253,7 @@ return function(t, Env)
 					expect(channel >= 0 and channel <= 255):toBe(true)
 				end
 			end
-			expect(#parts):toBe(68)
+			expect(#parts):toBe(178)
 			local fresh = Env.new():require("shared/ModelMapBambooBridgeR10")
 			expect(serialize(fresh.parts())):toBe(serialize(Data.parts()))
 			expect(serialize(fresh.BRIDGE_START)):toBe(serialize(Data.BRIDGE_START))
@@ -326,6 +362,18 @@ return function(t, Env)
 				"measureRestore(snapshot)",
 				"review.enableAdditive(CANDIDATE_ID, game)",
 				"review.disableAll()",
+			}) do
+				expect(check258Src:find(token, 1, true) ~= nil):toBe(true)
+			end
+		end)
+
+		t:it("check_q258 measures two rails per side, their heights and a clear lane", function()
+			for _, token in ipairs({
+				"#walkAfter.roles[role] == 2",
+				"deckTop + 1.2",
+				"deckTop + 2.6",
+				"laneIntrusions",
+				"walkAfter.intrusions == 0",
 			}) do
 				expect(check258Src:find(token, 1, true) ~= nil):toBe(true)
 			end

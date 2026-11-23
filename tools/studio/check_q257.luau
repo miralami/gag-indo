@@ -3,36 +3,34 @@
 -- into execute_luau in a FRESH Play session. Stages ONLY signposts_r10 with LookDevReview, measures
 -- the live DataModel, prints verbatim CHECK lines and SUMMARY_Q257, then restores on every path.
 --
---   MODEL_USED      >=4 staged baked MeshParts with the restyled signpost's post MeshId
---   SIGN_PLATES     max plates on one staged sign >=5 (data contract stages six)
---   STRINGS_PARITY  all six declared plate keys have non-empty id and en in Shared.Strings.raw
+--   SIGN_PLATES   max staged plates on one sign >= 5, and 4 signs
+--   PLATE_TEXT    every staged plate has a SurfaceGui TextLabel with non-empty text (all >= 5 per sign)
+--   POLE_COLOR    every staged steel pole is green (g clearly above r and b), square, not Wood
 --
 -- CALIBRATION ANCHORS (each forces a FAIL the same measure must catch, then restores LIFO):
---   CAL_MODEL_USED_FAIL      strip the staging tag from every restyled post MeshPart
---   CAL_SIGN_PLATES_FAIL     unflag every staged plate, on every sign
---   CAL_STRINGS_PARITY_FAIL  blank one plate key's id/en in the live Strings table
+--   CAL_SIGN_PLATES_FAIL  unflag every staged plate, on every sign
+--   CAL_PLATE_TEXT_FAIL   blank every staged plate label text
+--   CAL_POLE_COLOR_FAIL   repaint every staged pole red
 
 local CANDIDATE_ID = "signposts_r10"
-local SIGN_MESH_ID = "rbxassetid://122307668139747"
 local STAGE_ATTR = "LookDevStage"
-local MODEL_TARGET = 4
 local PLATE_TARGET = 5
 
 local CHECK_NAMES = {
-	"MODEL_USED",
 	"SIGN_PLATES",
-	"STRINGS_PARITY",
-	"CAL_MODEL_USED_FAIL",
+	"PLATE_TEXT",
+	"POLE_COLOR",
 	"CAL_SIGN_PLATES_FAIL",
-	"CAL_STRINGS_PARITY_FAIL",
+	"CAL_PLATE_TEXT_FAIL",
+	"CAL_POLE_COLOR_FAIL",
 }
 local targets = {
-	MODEL_USED = MODEL_TARGET,
 	SIGN_PLATES = PLATE_TARGET,
-	STRINGS_PARITY = 6,
-	CAL_MODEL_USED_FAIL = 1,
+	PLATE_TEXT = PLATE_TARGET,
+	POLE_COLOR = 4,
 	CAL_SIGN_PLATES_FAIL = 1,
-	CAL_STRINGS_PARITY_FAIL = 1,
+	CAL_PLATE_TEXT_FAIL = 1,
+	CAL_POLE_COLOR_FAIL = 1,
 }
 
 local results = { checks = {}, byName = {} }
@@ -87,7 +85,7 @@ local function printSummary()
 	)
 end
 
-local review, Data, StringsRaw
+local review, Data
 local injected = {}
 
 local function recordSet(target, prop, value, isAttribute)
@@ -128,10 +126,14 @@ local function restoreInjected()
 	end
 end
 
--- Every value below comes from the live DataModel; Data only supplies declared key names.
+local function isGreen(color)
+	return color.G > color.R + 0.15 and color.G > color.B + 0.15
+end
+
+-- Every value below comes from the live DataModel.
 local function measure()
-	local modelParts, groups, plates, readableLabels, readErrors = 0, {}, {}, 0, 0
-	local validKeys, stagedKeys = {}, {}
+	local groups, plates, poles, labels, textLabels, greenPoles = {}, {}, {}, {}, 0, 0
+	local plateTexts, platesWithText, readErrors, woodPoles, nonSquare = 0, 0, 0, 0, 0
 	local okDescendants, descendants = pcall(function()
 		return workspace:GetDescendants()
 	end)
@@ -144,111 +146,72 @@ local function measure()
 			if instance:GetAttribute(STAGE_ATTR) ~= CANDIDATE_ID then
 				return
 			end
-			if instance:IsA("MeshPart") then
-				local meshId = instance.MeshId
-				if type(meshId) == "string" and meshId == SIGN_MESH_ID then
-					modelParts += 1
-				end
-			end
-			if instance:GetAttribute("SignpostPlate") == true then
+			if instance:GetAttribute("SignpostPlate") == true and instance:IsA("BasePart") then
 				local signIndex = instance:GetAttribute("sign")
 				if type(signIndex) == "number" then
 					groups[signIndex] = (groups[signIndex] or 0) + 1
-					plates[#plates + 1] = { instance = instance, sign = signIndex }
+					plates[#plates + 1] = instance
+					local text = nil
+					for _, child in ipairs(instance:GetDescendants()) do
+						if child:IsA("TextLabel") then
+							text = child
+							break
+						end
+					end
+					local hasGui = instance:FindFirstChildWhichIsA("SurfaceGui") ~= nil
+					if hasGui and text and type(text.Text) == "string" and #text.Text > 0 then
+						platesWithText += 1
+					end
 				else
 					readErrors += 1
 				end
 			end
-			local key = instance:GetAttribute("textKey")
-			if type(key) == "string" and key ~= "" then
-				stagedKeys[key] = true
-				local entry = type(StringsRaw) == "table" and StringsRaw[key] or nil
-				if
-					type(entry) == "table"
-					and type(entry.id) == "string"
-					and #entry.id > 0
-					and type(entry.en) == "string"
-					and #entry.en > 0
-				then
-					validKeys[key] = true
+			if instance:GetAttribute("SignpostPole") == true and instance:IsA("BasePart") then
+				poles[#poles + 1] = instance
+				if isGreen(instance.Color) then
+					greenPoles += 1
 				end
-			end
-			if instance:IsA("TextLabel") then
-				local okSize, size = pcall(function()
-					return instance.TextSize
-				end)
-				if okSize and type(size) == "number" and size >= Data.READ_MIN_PX then
-					readableLabels += 1
+				if instance.Material == Enum.Material.Wood then
+					woodPoles += 1
+				end
+				if math.abs(instance.Size.X - instance.Size.Z) > 0.001 then
+					nonSquare += 1
 				end
 			end
 		end)
 	end
-	local maxPlates, signCount, stagedValid = 0, 0, 0
+	local maxPlates, signCount = 0, 0
 	for _, count in pairs(groups) do
 		signCount += 1
 		maxPlates = math.max(maxPlates, count)
 	end
-	for _, key in ipairs(type(Data) == "table" and Data.STRING_KEYS or {}) do
-		if validKeys[key] then
-			stagedValid += 1
-		end
-	end
-	local stagedKeyCount = 0
-	for _ in pairs(stagedKeys) do
-		stagedKeyCount += 1
-	end
 	return {
-		modelParts = modelParts,
 		maxPlates = maxPlates,
 		signCount = signCount,
-		validKeys = stagedValid,
-		readableLabels = readableLabels,
-		stagedKeyCount = stagedKeyCount,
 		plates = plates,
+		poles = poles,
+		platesWithText = platesWithText,
+		greenPoles = greenPoles,
+		woodPoles = woodPoles,
+		nonSquare = nonSquare,
 		readErrors = readErrors,
 	}
-end
-
-local function stagedPostMeshes()
-	local found = {}
-	local okDescendants, descendants = pcall(function()
-		return workspace:GetDescendants()
-	end)
-	if not okDescendants or type(descendants) ~= "table" then
-		return found
-	end
-	for _, instance in ipairs(descendants) do
-		local okMatch, matched = pcall(function()
-			return instance:IsA("MeshPart")
-				and instance.MeshId == SIGN_MESH_ID
-				and instance:GetAttribute(STAGE_ATTR) == CANDIDATE_ID
-		end)
-		if okMatch and matched then
-			found[#found + 1] = instance
-		end
-	end
-	return found
 end
 
 local ok, err = pcall(function()
 	local shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 	review = require(shared:WaitForChild("LookDevReview"))
 	Data = require(shared:WaitForChild("ModelMapSignpostsR10"))
-	StringsRaw = require(shared:WaitForChild("Strings")).raw
-
 	if type(review) ~= "table" or type(review.enableAdditive) ~= "function" then
 		error("LookDevReview API missing")
 	end
-	if type(Data) ~= "table" or type(Data.STRING_KEYS) ~= "table" or #Data.STRING_KEYS ~= 6 then
+	if type(Data) ~= "table" or type(Data.SIGNS) ~= "table" then
 		error("ModelMapSignpostsR10 API missing")
 	end
-	if type(Data.READ_MIN_PX) ~= "number" then
-		error("ModelMapSignpostsR10.READ_MIN_PX missing")
-	end
-	if type(StringsRaw) ~= "table" then
-		error("Shared.Strings.raw missing")
-	end
-	targets.STRINGS_PARITY = #Data.STRING_KEYS
+	local signsExpected = #Data.SIGNS
+	local platesExpected = signsExpected * Data.PLATE_COUNT
+	targets.PLATE_TEXT = platesExpected
+	targets.POLE_COLOR = signsExpected
 
 	local enableOk, enabled, why = pcall(review.enableAdditive, CANDIDATE_ID, game)
 	local stageReason = nil
@@ -258,66 +221,36 @@ local ok, err = pcall(function()
 	local ready = stageReason == nil
 
 	local live = measure()
-	local signsExpected = #Data.SIGNS
-	emit(
-		"MODEL_USED",
-		ready and live.modelParts >= MODEL_TARGET and live.readErrors == 0,
-		live.modelParts,
-		MODEL_TARGET,
-		{
-			meshId = SIGN_MESH_ID,
-			stage = CANDIDATE_ID,
-			readErrors = live.readErrors,
-			reason = stageReason,
-		}
-	)
 	emit(
 		"SIGN_PLATES",
-		ready and live.signCount == signsExpected and live.maxPlates >= PLATE_TARGET,
+		ready and live.signCount == signsExpected and live.maxPlates >= PLATE_TARGET and live.readErrors == 0,
 		live.maxPlates,
 		PLATE_TARGET,
-		{
-			signs = live.signCount,
-			expectedSigns = signsExpected,
-			readableLabels = live.readableLabels,
-			readErrors = live.readErrors,
-			reason = stageReason,
-		}
+		{ signs = live.signCount, expectedSigns = signsExpected, readErrors = live.readErrors, reason = stageReason }
 	)
 	emit(
-		"STRINGS_PARITY",
-		ready and live.validKeys == #Data.STRING_KEYS and live.stagedKeyCount == #Data.STRING_KEYS,
-		live.validKeys,
-		#Data.STRING_KEYS,
-		{
-			stagedKeys = live.stagedKeyCount,
-			keys = Data.STRING_KEYS,
-			reason = stageReason,
-		}
+		"PLATE_TEXT",
+		ready and live.platesWithText == platesExpected and #live.plates == platesExpected,
+		live.platesWithText,
+		platesExpected,
+		{ plates = #live.plates, reason = stageReason }
+	)
+	emit(
+		"POLE_COLOR",
+		ready
+			and #live.poles == signsExpected
+			and live.greenPoles == signsExpected
+			and live.woodPoles == 0
+			and live.nonSquare == 0,
+		live.greenPoles,
+		signsExpected,
+		{ poles = #live.poles, wood = live.woodPoles, nonSquare = live.nonSquare, reason = stageReason }
 	)
 
-	-- CALIBRATION ANCHOR (MODEL_USED FAIL): strip the staging tag from every restyled post so no
-	-- staged MeshPart carries the sign mesh id; the measured count must fall below MODEL_TARGET.
-	local meshVictims, meshInjected = stagedPostMeshes(), 0
-	for _, mesh in ipairs(meshVictims) do
-		if recordSet(mesh, STAGE_ATTR, nil, true) then
-			meshInjected += 1
-		end
-	end
-	local calMesh = measure()
-	local meshFailed = meshInjected > 0 and calMesh.modelParts < MODEL_TARGET
-	emit("CAL_MODEL_USED_FAIL", meshFailed, meshFailed and 1 or 0, 1, {
-		injected = meshInjected,
-		meshPartsBefore = live.modelParts,
-		meshPartsAfter = calMesh.modelParts,
-	})
-	restoreInjected()
-
-	-- CALIBRATION ANCHOR (SIGN_PLATES FAIL): unflag every staged plate on every sign so the
-	-- maximum plates on any one sign necessarily falls below PLATE_TARGET.
+	-- CALIBRATION ANCHOR (SIGN_PLATES FAIL): unflag every staged plate.
 	local plateInjected = 0
-	for _, entry in ipairs(live.plates) do
-		if recordSet(entry.instance, "SignpostPlate", false, true) then
+	for _, plate in ipairs(live.plates) do
+		if recordSet(plate, "SignpostPlate", false, true) then
 			plateInjected += 1
 		end
 	end
@@ -330,16 +263,39 @@ local ok, err = pcall(function()
 	})
 	restoreInjected()
 
-	-- CALIBRATION ANCHOR (STRINGS_PARITY FAIL): blank one live plate key.
-	local firstKey = Data.STRING_KEYS[1]
-	local keyInjected = recordSet(StringsRaw, firstKey, { id = "", en = "" }, false)
-	local calKeys = measure()
-	local keyFailed = calKeys.validKeys < #Data.STRING_KEYS
-	emit("CAL_STRINGS_PARITY_FAIL", keyFailed, keyFailed and 1 or 0, 1, {
-		injected = keyInjected,
-		key = firstKey,
-		validBefore = live.validKeys,
-		validAfter = calKeys.validKeys,
+	-- CALIBRATION ANCHOR (PLATE_TEXT FAIL): blank every plate label.
+	local textInjected = 0
+	for _, plate in ipairs(live.plates) do
+		pcall(function()
+			for _, child in ipairs(plate:GetDescendants()) do
+				if child:IsA("TextLabel") and recordSet(child, "Text", "", false) then
+					textInjected += 1
+				end
+			end
+		end)
+	end
+	local calText = measure()
+	local textFailed = textInjected > 0 and calText.platesWithText < platesExpected
+	emit("CAL_PLATE_TEXT_FAIL", textFailed, textFailed and 1 or 0, 1, {
+		injected = textInjected,
+		withTextBefore = live.platesWithText,
+		withTextAfter = calText.platesWithText,
+	})
+	restoreInjected()
+
+	-- CALIBRATION ANCHOR (POLE_COLOR FAIL): repaint every pole red.
+	local poleInjected = 0
+	for _, pole in ipairs(live.poles) do
+		if recordSet(pole, "Color", Color3.fromRGB(200, 40, 40), false) then
+			poleInjected += 1
+		end
+	end
+	local calPole = measure()
+	local poleFailed = poleInjected > 0 and calPole.greenPoles < signsExpected
+	emit("CAL_POLE_COLOR_FAIL", poleFailed, poleFailed and 1 or 0, 1, {
+		injected = poleInjected,
+		greenBefore = live.greenPoles,
+		greenAfter = calPole.greenPoles,
 	})
 	restoreInjected()
 end)

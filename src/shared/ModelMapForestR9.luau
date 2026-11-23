@@ -119,17 +119,28 @@ local function rotateOffset(hub: Hub, lx: number, lz: number): (number, number)
 	return hub.x + lx * cos + lz * sin, hub.z - lx * sin + lz * cos
 end
 
--- Q186: four broadleaf/bamboo shade trees per hub, all behind/side of the door lane and within 25
--- studs of the hub centre even for the smallest hub (gelap 32x28). Deterministic, no pine.
+-- Q186 / Q262: four broadleaf/bamboo shade trees per hub, standing OUTSIDE the building (at least 6
+-- studs from the footprint edge, so the 4 stud clearance spec holds with room for the crown) and off
+-- the roads, plaza, lapangan and ring corridor. Offsets are hub-local { lx, lz }, local -Z is the back
+-- and local +Z the door side. Pasar and Gelap sit in the dead-end alley, so Pasar uses its flanks and
+-- Gelap its far (north) side; Pos Ronda keeps off the watchtower on its north-west shoulder.
+local SHADE_OFFSETS: { [string]: { { number } } } = {
+	pasar = { { 39, -21 }, { 39, -5 }, { -37, -13 }, { -37, 0 } },
+	gelap = { { -10, -21 }, { 10, -21 }, { 0, -24 }, { -23, -7 } },
+	warung = { { -13, -29 }, { 0, -29 }, { -33, -11 }, { 33, 0 } },
+	ronda = { { -29, -6 }, { -29, 2 }, { -29, 10 }, { 29, 0 } },
+	polisi = { { -12, -29 }, { 0, -29 }, { 31, 0 }, { 31, 6 } },
+	pakrt = { { -12, -24 }, { 0, -24 }, { 12, -24 }, { -31, -8.5 } },
+}
+
 function ModelMapForestR9.shadeAnchors(hubs: { Hub }): { ShadeAnchor }
 	local result: { ShadeAnchor } = {}
 	for _, hub in ipairs(hubs) do
-		local offsets = {
-			{ -hub.width / 5, -hub.depth / 5 },
-			{ hub.width / 5, -hub.depth / 5 },
-			{ 0, -hub.depth / 3 },
-			{ hub.width / 8, -hub.depth / 2.5 },
-		}
+		local offsets = SHADE_OFFSETS[hub.key]
+		if offsets == nil then
+			-- Unknown hub: fall back to a spot well behind the back wall.
+			offsets = { { 0, -hub.depth / 2 - 8 } }
+		end
 		for i, offset in ipairs(offsets) do
 			local x, z = rotateOffset(hub, offset[1], offset[2])
 			result[#result + 1] = {

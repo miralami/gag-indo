@@ -1,15 +1,14 @@
 --!strict
 -- LookDevMountainsR10: SERVER-ONLY applier for the OFF-BY-DEFAULT "mountains_r10" candidate
--- (WORK_QUEUE items 243 + 251 + 260). Stages twelve blue-green Wedge rock ridges in three
--- distance bands (|z| = 300, 450, 600) plus one faint smoke Cylinder in an anchored, non-collidable
--- Folder. Rock/Slate only: no Block shape and no SmoothPlastic fallback. All geometry, colour and
--- material values come from Shared.ModelMapMountainsR10; no asset IDs or visual verdict live here.
--- No existing property is overwritten, so restore is LIFO destruction of only what was created here.
--- apply/restore are idempotent and pcall-guarded throughout.
+-- (WORK_QUEUE items 243 + 251 + 260, rebuilt as terrain after the designer rejected the box wall).
+-- The mountains are written into Workspace.Terrain with FillBall / FillCylinder / FillWedge in three
+-- ridge bands outside the forest ring; no BaseParts are created. Shapes come from
+-- Shared.ModelMapMountainsR10 and are written in yielding chunks (task.wait). Restore fills the exact
+-- same shapes with Air; they never overlap the playable plateau (radius 400) or the forest ring, so
+-- carving Air is safe. A mild bluish Atmosphere is applied only while enabled, and the previous
+-- Atmosphere properties (or its absence) are restored. apply/restore are idempotent and pcall-guarded.
 -- Enable from the Server command bar:
 --   require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("mountains_r10", game)
-
-type SavedProp = { target: any, prop: string, key: string, value: any }
 
 local function service(name: string): any?
 	local ok, value = pcall(function()
@@ -24,6 +23,7 @@ end
 
 local ReplicatedStorage = service("ReplicatedStorage")
 local Workspace = service("Workspace")
+local Lighting = service("Lighting")
 if not ReplicatedStorage or not Workspace then
 	return {}
 end
@@ -52,12 +52,16 @@ end
 local LookDevMountainsR10 = {}
 
 local FAMILY_ID = Data.id
+local ATMOSPHERE_PROPS = { "Color", "Density", "Haze" }
 
 local failures = 0
 local active = false
-local created: { any } = {}
-local savedOrder: { SavedProp } = {}
-local folder: any? = nil
+-- Bumped by every apply/restore so an older yielding pass stops as soon as a newer one starts.
+local generation = 0
+local written: { any } = {}
+local createdAtmosphere: any? = nil
+local savedAtmosphere: { [string]: any }? = nil
+local atmosphereRef: any? = nil
 
 local function fail(message: string)
 	failures += 1
@@ -70,119 +74,133 @@ local function publishFailures()
 	end)
 end
 
-local function stageFolder(): any?
-	local okFind, existing = pcall(function()
-		return (Workspace :: any):FindFirstChild((Data :: any).folderName)
+local function terrain(): any?
+	local ok, value = pcall(function()
+		return (Workspace :: any).Terrain
 	end)
-	if not okFind then
-		fail("could not look up staging folder: " .. tostring(existing))
-		return nil
+	if ok and value then
+		return value
 	end
-	if existing then
-		folder = existing
-		return existing
-	end
-	local okNew, instance = pcall(function()
-		return (Instance :: any).new("Folder")
-	end)
-	if not okNew or not instance then
-		fail("could not create staging folder: " .. tostring(instance))
-		return nil
-	end
-	local okParent, why = pcall(function()
-		instance.Name = (Data :: any).folderName
-		instance.Parent = Workspace
-	end)
-	if not okParent then
-		pcall(function()
-			instance:Destroy()
-		end)
-		fail("could not parent staging folder: " .. tostring(why))
-		return nil
-	end
-	created[#created + 1] = instance
-	folder = instance
-	return instance
-end
-
-local function partShape(name: any): any?
-	if name ~= "Wedge" and name ~= "Cylinder" then
-		fail("unknown shape " .. tostring(name))
-		return nil
-	end
-	local okShape, shape = pcall(function()
-		return (Enum :: any).PartType[name]
-	end)
-	if not okShape or not shape then
-		fail("could not resolve shape " .. tostring(name) .. ": " .. tostring(shape))
-		return nil
-	end
-	return shape
-end
-
-local function partMaterial(name: any): any?
-	if name ~= "Rock" and name ~= "Slate" then
-		fail("mountain material must be Rock or Slate, got " .. tostring(name))
-		return nil
-	end
-	local okMaterial, material = pcall(function()
-		return (Enum :: any).Material[name]
-	end)
-	if okMaterial and material then
-		return material
-	end
-	fail("could not resolve material " .. tostring(name))
+	fail("Workspace.Terrain is missing")
 	return nil
 end
 
-local function stagePart(descriptor: any, parent: any)
-	local shape = partShape(descriptor and descriptor.shape)
-	if not shape then
-		return
+local function resolveMaterial(name: string): any?
+	local ok, material = pcall(function()
+		return (Enum :: any).Material[name]
+	end)
+	if ok and material then
+		return material
 	end
-	local material = partMaterial(descriptor and descriptor.material)
+	fail("could not resolve terrain material " .. tostring(name))
+	return nil
+end
+
+-- One shape into the terrain. `air` writes Enum.Material.Air with the same geometry (restore).
+local function fillShape(target: any, shape: any, air: boolean): boolean
+	local material = if air then (Enum :: any).Material.Air else resolveMaterial(shape.material)
 	if not material then
-		return
+		return false
 	end
-	local okPart, part = pcall(function()
-		local instance = (Instance :: any).new("Part")
-		instance.Shape = shape
-		instance.Material = material
-		instance.Size = Vector3.new(descriptor.size[1], descriptor.size[2], descriptor.size[3])
-		instance.CFrame = CFrame.new(descriptor.position[1], descriptor.position[2], descriptor.position[3])
-		instance.Color = Color3.fromRGB(descriptor.color.r, descriptor.color.g, descriptor.color.b)
-		if descriptor.transparency ~= nil then
-			instance.Transparency = descriptor.transparency
+	local ok, why = pcall(function()
+		if shape.kind == "Ball" then
+			target:FillBall(Vector3.new(shape.x, shape.y, shape.z), shape.radius, material)
+		elseif shape.kind == "Cylinder" then
+			target:FillCylinder(CFrame.new(shape.x, shape.y, shape.z), shape.height, shape.radius, material)
+		elseif shape.kind == "Wedge" then
+			target:FillWedge(
+				CFrame.new(shape.x, shape.y, shape.z) * CFrame.Angles(0, shape.yaw, 0),
+				Vector3.new(shape.sx, shape.sy, shape.sz),
+				material
+			)
+		else
+			error("unknown shape kind " .. tostring(shape.kind))
 		end
-		instance.Anchored = true
-		instance.CanCollide = false
-		instance.CastShadow = false
-		instance.Name = descriptor.name
-		instance:SetAttribute("Mountain", true)
-		instance:SetAttribute("LookDevStage", FAMILY_ID)
-		return instance
 	end)
-	if not okPart or not part then
-		fail("could not build " .. tostring(descriptor and descriptor.name) .. ": " .. tostring(part))
+	if not ok then
+		fail("could not fill " .. tostring(shape.kind) .. ": " .. tostring(why))
+		return false
+	end
+	return true
+end
+
+local function lightingAtmosphere(): any?
+	if not Lighting then
+		return nil
+	end
+	local ok, found = pcall(function()
+		return (Lighting :: any):FindFirstChildOfClass("Atmosphere")
+	end)
+	if ok then
+		return found
+	end
+	return nil
+end
+
+local function applyAtmosphere()
+	if not Lighting then
 		return
 	end
-	created[#created + 1] = part
-	local okParent, why = pcall(function()
-		part.Parent = parent
+	local config = (Data :: any).ATMOSPHERE
+	local okColor, tint = pcall(function()
+		return Color3.fromRGB(config.color.r, config.color.g, config.color.b)
 	end)
-	if not okParent then
-		fail("could not parent " .. tostring(descriptor.name) .. ": " .. tostring(why))
+	if not okColor then
+		return
+	end
+	local existing = lightingAtmosphere()
+	if existing then
+		local saved: { [string]: any } = {}
+		local okRead = pcall(function()
+			for _, prop in ipairs(ATMOSPHERE_PROPS) do
+				saved[prop] = existing[prop]
+			end
+		end)
+		if not okRead then
+			return
+		end
+		savedAtmosphere = saved
+		atmosphereRef = existing
+		pcall(function()
+			existing.Color = existing.Color:Lerp(tint, 0.5)
+			existing.Density = math.max(existing.Density, config.density)
+			existing.Haze = math.max(existing.Haze, config.haze)
+		end)
+		return
+	end
+	local okNew, made = pcall(function()
+		local atmosphere = (Instance :: any).new("Atmosphere")
+		atmosphere.Name = "LookDevMountainsR10Atmosphere"
+		atmosphere.Color = tint
+		atmosphere.Density = config.density
+		atmosphere.Haze = config.haze
+		atmosphere.Parent = Lighting
+		return atmosphere
+	end)
+	if okNew and made then
+		createdAtmosphere = made
 	end
 end
 
-local function stageDescriptors(getParts: any, parent: any, label: string)
-	local okParts, parts = pcall(getParts)
-	if not okParts or type(parts) ~= "table" then
-		fail("could not read " .. label .. " descriptors: " .. tostring(parts))
-		return
+local function restoreAtmosphere()
+	if createdAtmosphere then
+		local made = createdAtmosphere
+		createdAtmosphere = nil
+		pcall(function()
+			(made :: any):Destroy()
+		end)
 	end
-	for _, descriptor in ipairs(parts) do
-		stagePart(descriptor, parent)
+	local saved, ref = savedAtmosphere, atmosphereRef
+	savedAtmosphere, atmosphereRef = nil, nil
+	if saved and ref then
+		for _, prop in ipairs(ATMOSPHERE_PROPS) do
+			local ok, why = pcall(function()
+				(ref :: any)[prop] = (saved :: any)[prop]
+			end)
+			if not ok then
+				fail("could not restore Atmosphere." .. prop .. ": " .. tostring(why))
+			end
+		end
 	end
 end
 
@@ -191,40 +209,58 @@ local function apply(_plan: any)
 		return
 	end
 	failures = 0
-
-	stageFolder()
-	local root = folder
-	if root then
-		stageDescriptors((Data :: any).mountainParts, root, "mountain")
-		stageDescriptors((Data :: any).smokeParts, root, "smoke")
-	end
-
+	generation += 1
+	local mine = generation
 	active = true
+	written = {}
+
+	local target = terrain()
+	if target then
+		local list = (Data :: any).shapes()
+		local chunk = (Data :: any).CHUNK
+		local count = 0
+		for _, shape in ipairs(list) do
+			if mine ~= generation then
+				return -- restore() ran while this pass was yielding
+			end
+			-- Recorded before the fill: a half-finished pass is still erased by restore.
+			written[#written + 1] = shape
+			fillShape(target, shape, false)
+			count += 1
+			if count % chunk == 0 then
+				task.wait()
+			end
+		end
+	end
+	if mine ~= generation then
+		return
+	end
+	applyAtmosphere()
 	publishFailures()
 end
 
 local function restore()
-	if not active and #savedOrder == 0 and #created == 0 then
+	if not active and #written == 0 and not createdAtmosphere and not savedAtmosphere then
 		return
 	end
-	for index = #savedOrder, 1, -1 do
-		local entry = savedOrder[index]
-		local ok, why = pcall(function()
-			entry.target[entry.prop] = entry.value
-		end)
-		if not ok then
-			fail("could not restore " .. entry.key .. ": " .. tostring(why))
+	generation += 1
+	local target = terrain()
+	if target then
+		local chunk = (Data :: any).CHUNK
+		local count = 0
+		local pending = written
+		written = {}
+		for index = #pending, 1, -1 do
+			fillShape(target, pending[index], true)
+			count += 1
+			if count % chunk == 0 then
+				task.wait()
+			end
 		end
-		savedOrder[index] = nil
+	else
+		written = {}
 	end
-	for index = #created, 1, -1 do
-		local instance = created[index]
-		pcall(function()
-			instance:Destroy()
-		end)
-		created[index] = nil
-	end
-	folder = nil
+	restoreAtmosphere()
 	active = false
 	publishFailures()
 end

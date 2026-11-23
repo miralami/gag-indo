@@ -7,10 +7,13 @@
 --   MODEL_USED   >=6 fence groups with >=2 staged baked-model parts each (asset-id signature)
 --   LANE_CLEAR   0 hub-door path rays blocked by staged fence parts (8 studs per door)
 --   GATE_CLEAR   0 staged fence parts inside the r=144 junction or r=152 plot-gate corridors
+--   FENCE_ON_SHOULDER  0 staged fence models off the shoulder (centre must be 1.5-2.5 studs outside the
+--                      14-stud road edge, never on the road surface)
 --
 -- CALIBRATION ANCHORS (each forces a FAIL the same measure must catch, then restores LIFO):
 --   CAL_MODEL_USED_FAIL   strip RoadFenceAssetId from every live fence part -> 0 model groups
 --   CAL_LANE_CLEAR_FAIL   inject one tagged fence block across the first hub-door ray -> 1 blocked
+--   CAL_FENCE_ON_SHOULDER_FAIL  move one live fence model onto the road centreline -> 1 off shoulder
 
 local CANDIDATE_ID = "road_fence_r10"
 local ASSET_ID = 1158365955 -- pick 2, baked by main session; pick 1 was an all-red OOF placeholder; recorded in ASSET_MANIFEST.md
@@ -22,6 +25,8 @@ local GROUP_MIN_PARTS = 2
 local GAP_MIN = 8
 local JUNCTION_RADIUS, GATE_RADIUS = 144, 152
 local DOOR_RAY_LENGTH, DOOR_RAY_Y = 8, 1.5
+local ROAD_HALF, ROAD_REACH = 14, 136 -- MapSpec.ROAD.halfWidth / radius (arms around the X and Z axes)
+local SHOULDER_MIN, SHOULDER_MAX, SHOULDER_TOL = 1.5, 2.5, 0.25
 
 local CHECK_NAMES = {
 	"MODEL_USED",
@@ -29,13 +34,18 @@ local CHECK_NAMES = {
 	"GATE_CLEAR",
 	"CAL_MODEL_USED_FAIL",
 	"CAL_LANE_CLEAR_FAIL",
+	"FENCE_ON_SHOULDER",
+	"CAL_FENCE_ON_SHOULDER_FAIL",
 }
+local MAIN_CHECKS = { MODEL_USED = true, LANE_CLEAR = true, GATE_CLEAR = true, FENCE_ON_SHOULDER = true }
 local targets = {
 	MODEL_USED = GROUP_TARGET,
 	LANE_CLEAR = 0,
 	GATE_CLEAR = 0,
 	CAL_MODEL_USED_FAIL = 1,
 	CAL_LANE_CLEAR_FAIL = 1,
+	FENCE_ON_SHOULDER = 0,
+	CAL_FENCE_ON_SHOULDER_FAIL = 1,
 }
 
 local results = { checks = {}, byName = {} }
@@ -62,10 +72,10 @@ end
 
 local function printSummary()
 	local mainPass, calPass = 0, 0
-	for index, name in ipairs(CHECK_NAMES) do
+	for _, name in ipairs(CHECK_NAMES) do
 		local entry = results.byName[name]
 		if entry and entry.passed then
-			if index <= 3 then
+			if MAIN_CHECKS[name] then
 				mainPass += 1
 			else
 				calPass += 1
@@ -74,11 +84,12 @@ local function printSummary()
 	end
 	print(
 		string.format(
-			"SUMMARY_Q262 MODEL_USED %d/%d LANE_CLEAR %d/0 GATE_CLEAR %d/0 CAL %d/2",
+			"SUMMARY_Q262 MODEL_USED %d/%d LANE_CLEAR %d/0 GATE_CLEAR %d/0 FENCE_ON_SHOULDER %d/0 CAL %d/3",
 			results.byName.MODEL_USED and results.byName.MODEL_USED.measured or 0,
 			GROUP_TARGET,
 			results.byName.LANE_CLEAR and results.byName.LANE_CLEAR.measured or 0,
 			results.byName.GATE_CLEAR and results.byName.GATE_CLEAR.measured or 0,
+			results.byName.FENCE_ON_SHOULDER and results.byName.FENCE_ON_SHOULDER.measured or 0,
 			calPass
 		)
 	)
@@ -168,6 +179,67 @@ local function stagedParts()
 		end
 	end
 	return found
+end
+
+-- Staged fence units: Models (or lone Parts) carrying the group and asset-id signature.
+local function fenceUnits()
+	local units = {}
+	local okDescendants, descendants = pcall(function()
+		return workspace:GetDescendants()
+	end)
+	if okDescendants and type(descendants) == "table" then
+		for _, instance in ipairs(descendants) do
+			pcall(function()
+				if
+					instance:GetAttribute(STAGE_ATTR) == CANDIDATE_ID
+					and type(instance:GetAttribute(GROUP_ATTR)) == "string"
+					and instance:GetAttribute(ASSET_ATTR) == ASSET_ID
+					and (instance:IsA("Model") or (instance:IsA("BasePart") and not instance.Parent:IsA("Model")))
+				then
+					units[#units + 1] = instance
+				end
+			end)
+		end
+	end
+	return units
+end
+
+local function unitCentre(unit)
+	local ok, position = pcall(function()
+		if unit:IsA("Model") then
+			return unit:GetBoundingBox().Position
+		end
+		return unit.Position
+	end)
+	if ok then
+		return position
+	end
+	return nil
+end
+
+-- A fence unit is on the shoulder when its centre lies 1.5-2.5 studs outside the road edge of the
+-- arm it runs along (the arm is the nearer axis), and never inside a road rectangle.
+-- Returns the number of units that are not.
+local function offShoulderCount()
+	local off = 0
+	for _, unit in ipairs(fenceUnits()) do
+		local position = unitCentre(unit)
+		if not position then
+			off += 1
+		else
+			local x, z = position.X, position.Z
+			local across = if math.abs(z) < math.abs(x) then math.abs(z) else math.abs(x)
+			local along = if math.abs(z) < math.abs(x) then math.abs(x) else math.abs(z)
+			local outside = across - ROAD_HALF
+			local good = along <= ROAD_REACH
+				and outside >= SHOULDER_MIN - SHOULDER_TOL
+				and outside <= SHOULDER_MAX + SHOULDER_TOL
+			if not good then
+				off += 1
+			end
+		end
+	end
+	return off
 end
 
 -- Every reading comes from the live DataModel, never from the pure data alone.
@@ -279,6 +351,8 @@ local ok, err = pcall(function()
 	end
 
 	local live = measure()
+	local shoulderUnits = #fenceUnits()
+	local shoulderOff = offShoulderCount()
 	local loadFailures = 0
 	pcall(function()
 		local count = failures.get(CANDIDATE_ID)
@@ -346,6 +420,43 @@ local ok, err = pcall(function()
 		rayErrors = calLane.rayErrors,
 	})
 	restoreInjected()
+
+	emit("FENCE_ON_SHOULDER", reason == nil and shoulderOff == 0 and shoulderUnits > 0, shoulderOff, 0, {
+		units = shoulderUnits,
+		roadHalf = ROAD_HALF,
+		bandMin = SHOULDER_MIN,
+		bandMax = SHOULDER_MAX,
+		reason = reason,
+	})
+
+	-- CALIBRATION ANCHOR (FENCE_ON_SHOULDER FAIL): drag one live fence model onto the road centreline.
+	local moved = nil
+	for _, unit in ipairs(fenceUnits()) do
+		local centre = unitCentre(unit)
+		local okPivot, pivot = pcall(function()
+			return unit:GetPivot()
+		end)
+		if centre and okPivot and pivot then
+			moved = { unit = unit, pivot = pivot }
+			local shift = if math.abs(centre.Z) < math.abs(centre.X)
+				then Vector3.new(0, 0, -centre.Z)
+				else Vector3.new(-centre.X, 0, 0)
+			pcall(function()
+				unit:PivotTo(pivot + shift)
+			end)
+			break
+		end
+	end
+	local calShoulder = offShoulderCount()
+	if moved then
+		pcall(function()
+			moved.unit:PivotTo(moved.pivot)
+		end)
+	end
+	local shoulderFailed = moved ~= nil and calShoulder > 0
+	emit("CAL_FENCE_ON_SHOULDER_FAIL", shoulderFailed, shoulderFailed and 1 or 0, 1, {
+		offShoulder = calShoulder,
+	})
 end)
 
 -- Restore injected attributes, temporary parts and every staged candidate on every path.

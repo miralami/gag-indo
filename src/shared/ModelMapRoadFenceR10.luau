@@ -52,7 +52,14 @@ Data.RADIUS_MAX = 120
 Data.RING_CENTRE = 144
 Data.GATE_RADIUS = 152
 Data.GAP_MIN = 8
-Data.SIDE_OFFSET = 10 -- inside the 14-stud road half-width
+Data.ROAD_HALF = 14 -- MapSpec.ROAD.halfWidth: the arm road surface spans +-14 studs of its centreline
+Data.SHOULDER_GAP = 2 -- fence centre sits this far outside the road edge, on the grass shoulder
+Data.SHOULDER_MIN = 1.5 -- spec band for the gap between the road edge and the fence centre
+Data.SHOULDER_MAX = 2.5
+Data.SIDE_OFFSET = Data.ROAD_HALF + Data.SHOULDER_GAP -- 16: never on the dirt road surface
+-- Mid-run gate gap: a long run opens here so the fence reads as runs with a gateway, not one wall.
+Data.GATE_GAP = { from = 88, to = 98 }
+Data.GATE_GAP_MIN_RADIUS_TO = 116 -- only the long arms get the gate gap
 
 Data.SHOULDER_HALF_WIDTH = 4 -- repaint band centred on the fence line
 Data.PATCH_PADDING = 2 -- snap margin at either end of a stretch
@@ -85,6 +92,13 @@ local function pointOnStretch(angle: number, radius: number, side: number): (num
 end
 
 local function inGap(stretch: Stretch, radius: number): boolean
+	if
+		stretch.radiusTo >= Data.GATE_GAP_MIN_RADIUS_TO
+		and radius >= Data.GATE_GAP.from
+		and radius <= Data.GATE_GAP.to
+	then
+		return true
+	end
 	for _, gap in ipairs(stretch.gaps) do
 		if radius >= gap.from and radius <= gap.to then
 			return true

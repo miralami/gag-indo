@@ -1,64 +1,54 @@
 --!nocheck
--- check_q260: WORK_QUEUE item 260, self-contained SERVER-VM Studio check. Paste this whole file
--- into execute_luau in a FRESH Play session. It stages ONLY mountains_r10 with enableAdditive,
--- measures the live DataModel, prints verbatim CHECK lines plus SUMMARY_Q260, then restores every
--- injection and calls LookDevReview.disableAll() on every path. No harness require, no place save,
--- no visual verdict. check_q251 is deliberately untouched: its MOUNTAIN_FAR >=450 conflicts with
--- item 260's 300-stud near band.
+-- check_q260: WORK_QUEUE item 260 (terrain rebuild), self-contained SERVER-VM Studio check. Paste
+-- this whole file into execute_luau in a FRESH Play session. It stages ONLY mountains_r10 with
+-- enableAdditive (terrain ridges, no parts), samples the live terrain with downward raycasts that
+-- accept Workspace.Terrain only, prints verbatim CHECK lines plus SUMMARY_Q260, then restores
+-- every injection and calls LookDevReview.disableAll() on every path. No harness require, no place
+-- save, no visual verdict (the look is judged from the hero shots, not from these numbers).
 --
---   MOUNTAIN_DISTANCE  >= 250 studs: nearest point of any tagged Mountain part's AABB to the
---                       `spawn` review camera eye (ReviewCameras.get("spawn"), not a literal).
---   NO_BOX_MOUNTAIN    0 tagged Mountain parts with Shape == Enum.PartType.Block.
---   RIDGE_LAYERS       3 distinct north-distance bands at |z| = 300 / 450 / 600 studs (tolerance
---                      60); no tagged part outside those bands.
---   SKYLINE_COVER      0.15..0.40 of 64 horizon-band rays hit an opaque tagged Mountain part.
---                      Ray frame: from spawn eye, aimed at the ridge skyline (mean X/Z of the
---                      staged crests, mean crest Y) — the saved `spawn` camera faces the market
---                      south, so its own lookAt puts every north ridge behind the fan. Re-aiming
---                      centres the ridges, so the band is ny 0.35..0.60 (not the old 0.20..0.45).
---                      FOV 70, aspect 16:9, nx 0.02..0.98. Include filter on staged parts only.
+--   RIDGE_LAYERS     3 distinct ridge bands: along 72 bearings, terrain height is sampled every 10
+--                    studs from radius 410 to 1200. A band counts when its crest window
+--                    (640 / 820 / 1020 +-90) rises above 20 studs on at least half the bearings.
+--   MOUNTAIN_DIST    >= 480: the smallest radius at which terrain rises above 8 studs on any bearing.
+--   NO_BOX_MOUNTAIN  0 tagged Mountain parts (the candidate stages none) and 0 Block-shaped ones.
 --
 -- CALIBRATION ANCHORS (each must FAIL its own condition, then restore):
---   CAL_RIDGE_LAYERS_FAIL   inject a fourth Wedge band at |z| = 750 -> 4 bands / an off-band part.
---   CAL_SKYLINE_COVER_FAIL  remeasure with an empty part set -> fraction 0, below the 0.15 floor.
--- Both are detected as PASS 1 1; they prove the checks are not vacuous. The structural checks are
--- measured before injection; only the fourth-band Wedge is ever added to the DataModel.
+--   CAL_RIDGE_LAYERS_FAIL     disableAll() writes Air over the same shapes; the remeasure must count
+--                             0 bands and no terrain above 8 studs. This also proves restore works.
+--   CAL_NO_BOX_MOUNTAIN_FAIL  inject one tagged Block part; the box counter must read 1.
+-- Both are detected as PASS 1 1; they prove the checks are not vacuous.
 
 local CANDIDATE_ID = "mountains_r10"
-local SPAWN_CAMERA = "spawn"
 
-local MIN_DISTANCE = 250
-local RIDGE_BANDS = { 300, 450, 600 }
-local BAND_TOLERANCE = 60
-local SKYLINE_MIN = 0.15
-local SKYLINE_MAX = 0.40
+local MIN_DISTANCE = 480
+local BAND_CENTRES = { 640, 820, 1020 }
+local BAND_WINDOW = 90
+local BAND_MIN_HEIGHT = 20
+local BAND_MIN_FRACTION = 0.5
+local DIST_MIN_HEIGHT = 8
 
-local SAMPLES = 8
-local RAYS_PER_CAMERA = SAMPLES * SAMPLES -- 64
-local HORIZON_TOP = 0.35
-local HORIZON_BOTTOM = 0.60
-local FOV_DEG = 70
-local ASPECT = 16 / 9
-local RAY_LENGTH = 5000
-local OPAQUE_LIMIT = 0.5
+local BEARINGS = 72
+local RADIUS_FROM = 410
+local RADIUS_TO = 1200
+local RADIUS_STEP = 10
+local CAST_TOP = 500
+local CAST_LENGTH = 700
 
 local CHECK_NAMES = {
-	"MOUNTAIN_DISTANCE",
-	"NO_BOX_MOUNTAIN",
 	"RIDGE_LAYERS",
-	"SKYLINE_COVER",
+	"MOUNTAIN_DIST",
+	"NO_BOX_MOUNTAIN",
 	"CAL_RIDGE_LAYERS_FAIL",
-	"CAL_SKYLINE_COVER_FAIL",
+	"CAL_NO_BOX_MOUNTAIN_FAIL",
 }
-local MAIN_NAMES = { "MOUNTAIN_DISTANCE", "NO_BOX_MOUNTAIN", "RIDGE_LAYERS", "SKYLINE_COVER" }
-local CAL_NAMES = { "CAL_RIDGE_LAYERS_FAIL", "CAL_SKYLINE_COVER_FAIL" }
+local MAIN_NAMES = { "RIDGE_LAYERS", "MOUNTAIN_DIST", "NO_BOX_MOUNTAIN" }
+local CAL_NAMES = { "CAL_RIDGE_LAYERS_FAIL", "CAL_NO_BOX_MOUNTAIN_FAIL" }
 local CHECK_TARGETS = {
-	MOUNTAIN_DISTANCE = tostring(MIN_DISTANCE),
-	NO_BOX_MOUNTAIN = 0,
 	RIDGE_LAYERS = 3,
-	SKYLINE_COVER = "0.15..0.40",
+	MOUNTAIN_DIST = tostring(MIN_DISTANCE),
+	NO_BOX_MOUNTAIN = 0,
 	CAL_RIDGE_LAYERS_FAIL = 1,
-	CAL_SKYLINE_COVER_FAIL = 1,
+	CAL_NO_BOX_MOUNTAIN_FAIL = 1,
 }
 
 local results = { checks = {}, byName = {} }
@@ -83,14 +73,6 @@ local function emitOnce(name, passed, measured, target, detail)
 	end
 end
 
-local function shown(value)
-	return string.format("%.4f", tonumber(value) or 0)
-end
-
-local function shownDist(value)
-	return string.format("%.1f", tonumber(value) or 0)
-end
-
 local function passedCount(names)
 	local count = 0
 	for _, name in ipairs(names) do
@@ -101,7 +83,7 @@ local function passedCount(names)
 	return count
 end
 
-local review, Cameras = nil, nil
+local review = nil
 local injected = {}
 
 local function worldDescendants()
@@ -111,7 +93,7 @@ local function worldDescendants()
 	return ok and type(list) == "table" and list or {}
 end
 
--- Only this candidate's staged parts count. The applier sets both attributes on every descriptor.
+-- Tagged parts of this candidate. The terrain candidate stages none, so the count must stay 0.
 local function mountainParts()
 	local out = {}
 	for _, instance in ipairs(worldDescendants()) do
@@ -128,188 +110,78 @@ local function mountainParts()
 	return out
 end
 
-local function opaqueMountainParts()
-	local out = {}
-	for _, part in ipairs(mountainParts()) do
-		pcall(function()
-			if part.Transparency < OPAQUE_LIMIT then
-				out[#out + 1] = part
-			end
-		end)
-	end
-	return out
-end
-
-local function spawnEye()
-	if type(Cameras) ~= "table" or type(Cameras.get) ~= "function" then
-		return nil
-	end
-	local ok, camera = pcall(Cameras.get, SPAWN_CAMERA)
-	if not ok or not camera or type(camera.position) ~= "table" then
-		return nil
-	end
-	return { x = camera.position[1], y = camera.position[2], z = camera.position[3] }
-end
-
--- Same nearest-AABB-point method as check_q251: a huge far wedge cannot hide a close face.
-local function aabbDistance(reference, part)
-	local okFrame, frame = pcall(function()
-		return part.CFrame
-	end)
-	local okSize, size = pcall(function()
-		return part.Size
-	end)
-	if not okFrame or not okSize or not frame or not size then
-		return nil
-	end
-	local position = frame.Position
-	local function axis(delta, half)
-		local outside = math.abs(delta) - half
-		return outside > 0 and outside or 0
-	end
-	local dx = axis(reference.x - position.X, size.X / 2)
-	local dy = axis(reference.y - position.Y, size.Y / 2)
-	local dz = axis(reference.z - position.Z, size.Z / 2)
-	return math.sqrt(dx * dx + dy * dy + dz * dz)
-end
-
-local function measureStructure()
-	local eye = spawnEye()
+local function countBoxes()
 	local parts = mountainParts()
-	local minDistance, minPart = math.huge, nil
-	local boxes, offBand = 0, 0
-	local seen = {}
+	local boxes = 0
 	for _, part in ipairs(parts) do
-		if eye then
-			local distance = aabbDistance(eye, part)
-			if distance and distance < minDistance then
-				minDistance = distance
-				minPart = part.Name
-			end
-		end
 		pcall(function()
 			if part.Shape == Enum.PartType.Block then
 				boxes += 1
 			end
-			local z = math.abs(part.CFrame.Position.Z)
-			local matched = false
-			for index, band in ipairs(RIDGE_BANDS) do
-				if math.abs(z - band) <= BAND_TOLERANCE then
-					matched = true
-					seen[index] = true
-					break
-				end
-			end
-			if not matched then
-				offBand += 1
-			end
 		end)
 	end
-	if minDistance == math.huge then
-		minDistance = 0
+	return #parts, boxes
+end
+
+-- Terrain surface height under (x, z), or 0 when the ray finds no terrain.
+local function terrainHeight(params, x, z)
+	local ok, result = pcall(function()
+		return workspace:Raycast(Vector3.new(x, CAST_TOP, z), Vector3.new(0, -CAST_LENGTH, 0), params)
+	end)
+	if ok and result then
+		return result.Position.Y
+	end
+	return 0
+end
+
+-- Height profile per bearing: profile[b][i] is the height at radius RADIUS_FROM + (i - 1) * STEP.
+local function measureTerrain()
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Include
+	params:AddToFilter({ workspace.Terrain })
+	params.IgnoreWater = true
+
+	local radii = {}
+	for radius = RADIUS_FROM, RADIUS_TO, RADIUS_STEP do
+		radii[#radii + 1] = radius
+	end
+	local bandBearings = { 0, 0, 0 }
+	local minRadius = math.huge
+	local tallest = { 0, 0, 0 }
+	for bearing = 0, BEARINGS - 1 do
+		local rad = math.rad(bearing * 360 / BEARINGS)
+		local cosA, sinA = math.cos(rad), math.sin(rad)
+		local crest = { 0, 0, 0 }
+		for _, radius in ipairs(radii) do
+			local height = terrainHeight(params, cosA * radius, sinA * radius)
+			if height > DIST_MIN_HEIGHT and radius < minRadius then
+				minRadius = radius
+			end
+			for index, centre in ipairs(BAND_CENTRES) do
+				if math.abs(radius - centre) <= BAND_WINDOW and height > crest[index] then
+					crest[index] = height
+				end
+			end
+		end
+		for index = 1, #BAND_CENTRES do
+			if crest[index] > BAND_MIN_HEIGHT then
+				bandBearings[index] += 1
+			end
+			if crest[index] > tallest[index] then
+				tallest[index] = crest[index]
+			end
+		end
 	end
 	local bands = 0
-	for index = 1, #RIDGE_BANDS do
-		if seen[index] then
+	for index = 1, #BAND_CENTRES do
+		if bandBearings[index] / BEARINGS >= BAND_MIN_FRACTION then
 			bands += 1
 		end
 	end
-	return {
-		parts = #parts,
-		eye = eye,
-		minDistance = minDistance,
-		minPart = minPart,
-		boxes = boxes,
-		bands = bands,
-		offBand = offBand,
-	}
-end
-
-local function unit(v)
-	local length = math.sqrt(v[1] * v[1] + v[2] * v[2] + v[3] * v[3])
-	if length <= 0 then
-		return { 0, 0, 0 }
+	if minRadius == math.huge then
+		minRadius = 0
 	end
-	return { v[1] / length, v[2] / length, v[3] / length }
-end
-
-local function cross(a, b)
-	return {
-		a[2] * b[3] - a[3] * b[2],
-		a[3] * b[1] - a[1] * b[3],
-		a[1] * b[2] - a[2] * b[1],
-	}
-end
-
--- Mean X/Z of the staged opaque parts, mean crest Y (part centre + half height).
-local function ridgeCentroid(parts)
-	local count, sumX, sumZ, sumCrestY = 0, 0, 0, 0
-	for _, part in ipairs(parts) do
-		pcall(function()
-			local position, size = part.CFrame.Position, part.Size
-			sumX += position.X
-			sumZ += position.Z
-			sumCrestY += position.Y + size.Y / 2
-			count += 1
-		end)
-	end
-	if count == 0 then
-		return nil
-	end
-	return { sumX / count, sumCrestY / count, sumZ / count }
-end
-
--- `parts` is passed in so the CAL_ leg can remeasure with an empty set without mutating the world.
--- From spawn eye, aimed at the ridge skyline: the saved spawn camera looks south at the market.
-local function measureSkyline(parts)
-	local eye = spawnEye()
-	local centroid = ridgeCentroid(parts)
-	if not eye or not centroid then
-		return { hits = 0, rays = RAYS_PER_CAMERA, fraction = 0, eye = eye, parts = #parts }
-	end
-	local okFrame, frame = pcall(function()
-		return CFrame.lookAt(Vector3.new(eye.x, eye.y, eye.z), Vector3.new(centroid[1], centroid[2], centroid[3]))
-	end)
-	if not okFrame or not frame then
-		return { hits = 0, rays = RAYS_PER_CAMERA, fraction = 0, eye = eye, parts = #parts }
-	end
-
-	local params = RaycastParams.new()
-	params.IgnoreWater = false
-	params.FilterType = Enum.RaycastFilterType.Include
-	params:AddToFilter(parts)
-
-	local forward = unit({ centroid[1] - eye.x, centroid[2] - eye.y, centroid[3] - eye.z })
-	local right = unit(cross(forward, { 0, 1, 0 }))
-	local up = unit(cross(right, forward))
-	local tanV = math.tan(math.rad(FOV_DEG) / 2)
-	local tanH = tanV * ASPECT
-
-	local hits = 0
-	for iy = 0, SAMPLES - 1 do
-		local ny = HORIZON_TOP + (HORIZON_BOTTOM - HORIZON_TOP) * iy / (SAMPLES - 1)
-		for ix = 0, SAMPLES - 1 do
-			local nx = 0.02 + 0.96 * ix / (SAMPLES - 1)
-			local sx = (2 * nx - 1) * tanH
-			local sy = (1 - 2 * ny) * tanV
-			local direction = unit({
-				forward[1] + right[1] * sx + up[1] * sy,
-				forward[2] + right[2] * sx + up[2] * sy,
-				forward[3] + right[3] * sx + up[3] * sy,
-			})
-			local okRay, result = pcall(function()
-				return workspace:Raycast(
-					frame.Position,
-					Vector3.new(direction[1], direction[2], direction[3]) * RAY_LENGTH,
-					params
-				)
-			end)
-			if okRay and result then
-				hits += 1
-			end
-		end
-	end
-	return { hits = hits, rays = RAYS_PER_CAMERA, fraction = hits / RAYS_PER_CAMERA, eye = eye, parts = #parts }
+	return { bands = bands, bandBearings = bandBearings, minRadius = minRadius, tallest = tallest }
 end
 
 local function destroyInjected()
@@ -321,17 +193,15 @@ local function destroyInjected()
 	end
 end
 
-local function injectFourthBand()
+local function injectBox()
 	local ok, part = pcall(function()
 		local made = Instance.new("Part")
-		made.Name = "Q260_FOURTH_BAND"
-		made.Shape = Enum.PartType.Wedge
+		made.Name = "Q260_BOX"
+		made.Shape = Enum.PartType.Block
 		made.Size = Vector3.new(60, 40, 40)
 		made.CFrame = CFrame.new(0, 30, -750)
-		made.Material = Enum.Material.Rock
 		made.Anchored = true
 		made.CanCollide = false
-		made.CastShadow = false
 		made:SetAttribute("Mountain", true)
 		made:SetAttribute("LookDevStage", CANDIDATE_ID)
 		made.Parent = workspace
@@ -347,18 +217,12 @@ end
 local ok, err = pcall(function()
 	local shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 	review = require(shared:WaitForChild("LookDevReview"))
-	Cameras = require(shared:WaitForChild("ReviewCameras"))
 	if
 		type(review) ~= "table"
 		or type(review.enableAdditive) ~= "function"
 		or type(review.disableAll) ~= "function"
-		or type(Cameras) ~= "table"
-		or type(Cameras.get) ~= "function"
 	then
-		error("LookDevReview / ReviewCameras API missing")
-	end
-	if not spawnEye() then
-		error(SPAWN_CAMERA .. " has no numeric position in ReviewCameras")
+		error("LookDevReview API missing")
 	end
 
 	local staged, why = review.enableAdditive(CANDIDATE_ID, game)
@@ -366,76 +230,45 @@ local ok, err = pcall(function()
 		error("enableAdditive(" .. CANDIDATE_ID .. ") failed: " .. tostring(why))
 	end
 
-	local structure = measureStructure()
+	local terrain = measureTerrain()
+	local parts, boxes = countBoxes()
 	local detail = {
-		camera = SPAWN_CAMERA,
-		eye = structure.eye,
-		parts = structure.parts,
-		nearestPart = structure.minPart,
-		bands = structure.bands,
-		offBand = structure.offBand,
+		bandBearings = terrain.bandBearings,
+		tallest = terrain.tallest,
+		bearings = BEARINGS,
+		taggedParts = parts,
 		reason = why,
 	}
+	emit("RIDGE_LAYERS", terrain.bands == #BAND_CENTRES, terrain.bands, #BAND_CENTRES, detail)
 	emit(
-		"MOUNTAIN_DISTANCE",
-		structure.parts > 0 and structure.eye ~= nil and structure.minDistance >= MIN_DISTANCE,
-		shownDist(structure.minDistance),
+		"MOUNTAIN_DIST",
+		terrain.minRadius >= MIN_DISTANCE,
+		string.format("%.1f", terrain.minRadius),
 		tostring(MIN_DISTANCE),
 		detail
 	)
-	emit("NO_BOX_MOUNTAIN", structure.parts > 0 and structure.boxes == 0, structure.boxes, 0, detail)
-	emit(
-		"RIDGE_LAYERS",
-		structure.parts > 0 and structure.bands == #RIDGE_BANDS and structure.offBand == 0,
-		structure.bands,
-		#RIDGE_BANDS,
-		detail
-	)
+	emit("NO_BOX_MOUNTAIN", parts == 0 and boxes == 0 and terrain.bands > 0, boxes, 0, detail)
 
-	local opaque = opaqueMountainParts()
-	local skyline = measureSkyline(opaque)
-	emit(
-		"SKYLINE_COVER",
-		#opaque > 0 and skyline.fraction >= SKYLINE_MIN and skyline.fraction <= SKYLINE_MAX,
-		shown(skyline.fraction),
-		"0.15..0.40",
-		{
-			hits = skyline.hits,
-			rays = skyline.rays,
-			opaqueParts = skyline.parts,
-			camera = SPAWN_CAMERA,
-			aim = "ridge skyline",
-			band = { HORIZON_TOP, HORIZON_BOTTOM },
-			fov = FOV_DEG,
-			aspect = ASPECT,
-			eye = skyline.eye,
-			reason = why,
-		}
-	)
-
-	-- CALIBRATION ANCHOR (RIDGE_LAYERS FAIL): a fourth band must be counted as off-pattern.
-	local injectedOk = injectFourthBand()
-	local calStructure = measureStructure()
-	local layersFailed = injectedOk
-		and calStructure.parts > structure.parts
-		and (calStructure.bands > #RIDGE_BANDS or calStructure.offBand > 0)
+	-- CALIBRATION ANCHOR (RIDGE_LAYERS FAIL): restoring the candidate must remove every ridge.
+	review.disableAll()
+	local after = measureTerrain()
+	local layersFailed = after.bands == 0 and after.minRadius == 0
 	emit("CAL_RIDGE_LAYERS_FAIL", layersFailed, layersFailed and 1 or 0, 1, {
+		beforeBands = terrain.bands,
+		afterBands = after.bands,
+		afterMinRadius = after.minRadius,
+	})
+
+	-- CALIBRATION ANCHOR (NO_BOX_MOUNTAIN FAIL): one tagged Block part must be counted as a box.
+	local injectedOk = injectBox()
+	local calParts, calBoxes = countBoxes()
+	local boxFailed = injectedOk and calBoxes == 1 and calParts == 1
+	emit("CAL_NO_BOX_MOUNTAIN_FAIL", boxFailed, boxFailed and 1 or 0, 1, {
 		injected = injectedOk,
-		beforeBands = structure.bands,
-		afterBands = calStructure.bands,
-		offBand = calStructure.offBand,
-		parts = calStructure.parts,
+		boxes = calBoxes,
+		parts = calParts,
 	})
 	destroyInjected()
-
-	-- CALIBRATION ANCHOR (SKYLINE_COVER FAIL): no tagged ridge parts means no skyline hits.
-	local empty = measureSkyline({})
-	local coverFailed = empty.fraction < SKYLINE_MIN
-	emit("CAL_SKYLINE_COVER_FAIL", coverFailed, coverFailed and 1 or 0, 1, {
-		fraction = shown(empty.fraction),
-		parts = empty.parts,
-		rays = empty.rays,
-	})
 end)
 
 -- Restore every mutation on every path: injected part first, then all staged candidates.

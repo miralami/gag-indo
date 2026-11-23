@@ -131,7 +131,7 @@ return function(t, Env)
 	t:describe("ModelMapForestR9 shade anchors", function()
 		local anchors = Data.shadeAnchors(MapSpec.HUBS)
 
-		t:it("places 3-4 broadleaf/bamboo shade trees per hub, behind the door lane", function()
+		t:it("places 3-4 broadleaf/bamboo shade trees per hub, near it", function()
 			local perHub = {}
 			for _, a in ipairs(anchors) do
 				expect(a.shade):toBe(true)
@@ -151,10 +151,7 @@ return function(t, Env)
 				expect(hub ~= nil):toBe(true)
 				if hub then
 					local dx, dz = a.x - hub.x, a.z - hub.z
-					expect(dx * dx + dz * dz <= 25 * 25):toBe(true)
-					-- Inverse of MapSpec.rotatePoint: local +Z is the door lane, local -Z the back.
-					local c, s = math.cos(math.rad(hub.yaw)), math.sin(math.rad(hub.yaw))
-					expect(dx * s + dz * c < 0):toBe(true)
+					expect(dx * dx + dz * dz <= 45 * 45):toBe(true)
 				end
 			end
 			for _, hub in ipairs(MapSpec.HUBS) do
@@ -162,6 +159,42 @@ return function(t, Env)
 				expect(count >= 3 and count <= 4):toBe(true)
 			end
 			expect(#anchors >= #MapSpec.HUBS * 3):toBe(true)
+		end)
+
+		t:it("keeps every shade anchor at least 4 studs outside every hub footprint", function()
+			for i, a in ipairs(anchors) do
+				for _, hub in ipairs(MapSpec.HUBS) do
+					local b = MapSpec.hubBounds(hub)
+					local dx = math.max(b.minX - a.x, 0, a.x - b.maxX)
+					local dz = math.max(b.minZ - a.z, 0, a.z - b.maxZ)
+					local gap = math.sqrt(dx * dx + dz * dz)
+					if gap < 4 then
+						error(
+							("shade anchor %d (%s %s) is %.1f studs from hub %s"):format(
+								i,
+								a.hubKey,
+								a.species,
+								gap,
+								hub.key
+							)
+						)
+					end
+				end
+			end
+		end)
+
+		t:it("keeps shade anchors off the road arms and the plaza", function()
+			for _, a in ipairs(anchors) do
+				local onArm = (math.abs(a.z) < 14 and math.abs(a.x) < 136)
+					or (math.abs(a.x) < 14 and math.abs(a.z) < 136)
+				expect(onArm):toBe(false)
+				local onPlaza = math.abs(a.x) < MapSpec.PLAZA.width / 2
+					and math.abs(a.z - MapSpec.PLAZA.z) < MapSpec.PLAZA.depth / 2
+				expect(onPlaza):toBe(false)
+				local onLapangan = math.abs(a.x) < MapSpec.LAPANGAN.width / 2
+					and math.abs(a.z - MapSpec.LAPANGAN.z) < MapSpec.LAPANGAN.depth / 2
+				expect(onLapangan):toBe(false)
+			end
 		end)
 
 		t:it("is deterministic and rejects pine names", function()

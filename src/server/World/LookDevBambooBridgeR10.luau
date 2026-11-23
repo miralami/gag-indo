@@ -1,8 +1,8 @@
 --!strict
 -- LookDevBambooBridgeR10: SERVER-ONLY applier for the OFF-BY-DEFAULT "bamboo_bridge_r10"
 -- candidate (WORK_QUEUE items 204/245/252; item 258 restages it as the concrete village bridge).
--- Stages a baked Indonesia Concrete Bridge slab, 14 dark concrete deck slabs, four yellow square
--- posts, two black pipe rails, four white river-stone pillars and a striped curb in their own
+-- Stages a baked Indonesia Concrete Bridge slab, 14 dark concrete deck slabs, yellow square
+-- posts every 4 studs, two black pipe rails per side, white stone pillars, abutments and a striped curb in their own
 -- Workspace folder. Every staged Part is Anchored and non-collidable.
 -- While staged, the default Greybox bridge (BridgeDeck/BridgePost/BridgeRail/BridgeRamp, found by
 -- name, never by candidate tag) is hidden with Transparency=1 / CanCollide=false; restore writes the

@@ -45,6 +45,18 @@ tugas pertama yang cocok untuk Willy ada di `docs/testing/BUGS.md` dan `docs/tes
 3. Jalankan `lune run tests/run.luau` sekali untuk memastikan semua lolos.
 4. Pasang plugin Rojo di Studio, lalu `rojo serve` dan connect.
 
+## Dapat akses dan place (untuk anggota baru)
+
+Repo ini tidak memuat file place (`.rbxl`). Untuk mendapatkannya, ikuti langkah berikut.
+
+1. **Minta akses ke @miralami.** Kirim username Roblox kamu di chat. Ada dua hal yang perlu diberikan:
+   - Undangan ke Roblox Group game ini. Dibutuhkan kalau kamu akan upload aset.
+   - Akses Team Create ke place. Owner menyalakannya di Game Settings → Permissions, lalu menambahkan username kamu.
+2. **Buka place lewat Team Create.** Setelah akses diberikan, buka Roblox Studio, lalu pilih place game ini dari daftar place milikmu atau dari Creator Hub. Untuk ngoding, langsung buat salinan pribadi (File → Save to Roblox As) dan kerjakan di salinan itu, sesuai bagian "Studio dan place" di bawah.
+3. **Kalau owner mengirim file `.rbxl` langsung**, simpan di folder di luar repo (misalnya `Documents\juragan-place\`), lalu buka dengan Studio. Jangan masukkan file itu ke repo.
+4. **Buat Open Cloud key sendiri** kalau perlu upload aset. Buka Creator Hub (create.roblox.com/credentials), buat key dengan scope yang dibutuhkan untuk game ini, lalu simpan di env var `ROBLOX_API_KEY` di komputermu. Jangan minta atau pakai key milik orang lain.
+5. **Cek setup.** Jalankan `lune run tests/run.luau`, lalu `rojo serve` dan connect dari Studio. Kalau keduanya berhasil, setup sudah siap.
+
 ## Studio dan place
 
 - Semua script diedit lewat Rojo di repo, **bukan** di Studio. Perubahan script di Studio akan

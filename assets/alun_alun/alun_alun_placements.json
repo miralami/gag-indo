@@ -1,0 +1,3814 @@
+{
+ "note": "Blender Z-up studs; roblox = (x, z, -y), rotation about Roblox Y = rotY_deg. Asset FBX pivots are bottom-centre.",
+ "assets": {
+  "Lamp": "aa_lamp.fbx",
+  "Bench": "aa_bench.fbx",
+  "Palm": "aa_palm.fbx",
+  "ShadeTree": "aa_shade_tree.fbx",
+  "Planter": "aa_planter.fbx",
+  "HedgeRed": "aa_hedge_red.fbx",
+  "Bush": "aa_bush.fbx"
+ },
+ "placements": [
+  {
+   "asset": "Palm",
+   "blender_pos": [
+    -25.5,
+    -25.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -25.5,
+    0.3,
+    25.5
+   ],
+   "rotY_deg": -90,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Palm",
+   "blender_pos": [
+    -45.5,
+    -45.5,
+    0.2
+   ],
+   "roblox_pos": [
+    -45.5,
+    0.2,
+    45.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "HedgeRed",
+   "blender_pos": [
+    -30.5,
+    -30.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -30.5,
+    0.3,
+    30.5
+   ],
+   "rotY_deg": 45,
+   "scale": [
+    5.0,
+    3.0,
+    1.3
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -24.3,
+    -30.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -24.3,
+    0.3,
+    30.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -25.484,
+    -26.856,
+    0.3
+   ],
+   "roblox_pos": [
+    -25.484,
+    0.3,
+    26.856
+   ],
+   "rotY_deg": 36,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -28.584,
+    -24.604,
+    0.3
+   ],
+   "roblox_pos": [
+    -28.584,
+    0.3,
+    24.604
+   ],
+   "rotY_deg": 72,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -32.416,
+    -24.603,
+    0.3
+   ],
+   "roblox_pos": [
+    -32.416,
+    0.3,
+    24.603
+   ],
+   "rotY_deg": 108,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -35.516,
+    -26.855,
+    0.3
+   ],
+   "roblox_pos": [
+    -35.516,
+    0.3,
+    26.855
+   ],
+   "rotY_deg": 144,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.7,
+    -30.499,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.7,
+    0.3,
+    30.499
+   ],
+   "rotY_deg": 180,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -35.516,
+    -34.144,
+    0.3
+   ],
+   "roblox_pos": [
+    -35.516,
+    0.3,
+    34.144
+   ],
+   "rotY_deg": 216,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -32.417,
+    -36.396,
+    0.3
+   ],
+   "roblox_pos": [
+    -32.417,
+    0.3,
+    36.396
+   ],
+   "rotY_deg": 252,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -28.585,
+    -36.397,
+    0.3
+   ],
+   "roblox_pos": [
+    -28.585,
+    0.3,
+    36.397
+   ],
+   "rotY_deg": 288,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -25.485,
+    -34.145,
+    0.3
+   ],
+   "roblox_pos": [
+    -25.485,
+    0.3,
+    34.145
+   ],
+   "rotY_deg": 324,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Planter",
+   "blender_pos": [
+    -16,
+    -16,
+    0.42
+   ],
+   "roblox_pos": [
+    -16,
+    0.42,
+    16
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Palm",
+   "blender_pos": [
+    -25.5,
+    25.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -25.5,
+    0.3,
+    -25.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Palm",
+   "blender_pos": [
+    -45.5,
+    45.5,
+    0.2
+   ],
+   "roblox_pos": [
+    -45.5,
+    0.2,
+    -45.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "HedgeRed",
+   "blender_pos": [
+    -30.5,
+    30.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -30.5,
+    0.3,
+    -30.5
+   ],
+   "rotY_deg": -45,
+   "scale": [
+    5.0,
+    3.0,
+    1.3
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -24.3,
+    30.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -24.3,
+    0.3,
+    -30.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -25.484,
+    34.144,
+    0.3
+   ],
+   "roblox_pos": [
+    -25.484,
+    0.3,
+    -34.144
+   ],
+   "rotY_deg": 36,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -28.584,
+    36.396,
+    0.3
+   ],
+   "roblox_pos": [
+    -28.584,
+    0.3,
+    -36.396
+   ],
+   "rotY_deg": 72,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -32.416,
+    36.397,
+    0.3
+   ],
+   "roblox_pos": [
+    -32.416,
+    0.3,
+    -36.397
+   ],
+   "rotY_deg": 108,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -35.516,
+    34.145,
+    0.3
+   ],
+   "roblox_pos": [
+    -35.516,
+    0.3,
+    -34.145
+   ],
+   "rotY_deg": 144,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.7,
+    30.501,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.7,
+    0.3,
+    -30.501
+   ],
+   "rotY_deg": 180,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -35.516,
+    26.856,
+    0.3
+   ],
+   "roblox_pos": [
+    -35.516,
+    0.3,
+    -26.856
+   ],
+   "rotY_deg": 216,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -32.417,
+    24.604,
+    0.3
+   ],
+   "roblox_pos": [
+    -32.417,
+    0.3,
+    -24.604
+   ],
+   "rotY_deg": 252,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -28.585,
+    24.603,
+    0.3
+   ],
+   "roblox_pos": [
+    -28.585,
+    0.3,
+    -24.603
+   ],
+   "rotY_deg": 288,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -25.485,
+    26.855,
+    0.3
+   ],
+   "roblox_pos": [
+    -25.485,
+    0.3,
+    -26.855
+   ],
+   "rotY_deg": 324,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Planter",
+   "blender_pos": [
+    -16,
+    16,
+    0.42
+   ],
+   "roblox_pos": [
+    -16,
+    0.42,
+    -16
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Palm",
+   "blender_pos": [
+    25.5,
+    -25.5,
+    0.3
+   ],
+   "roblox_pos": [
+    25.5,
+    0.3,
+    25.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Palm",
+   "blender_pos": [
+    45.5,
+    -45.5,
+    0.2
+   ],
+   "roblox_pos": [
+    45.5,
+    0.2,
+    45.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "HedgeRed",
+   "blender_pos": [
+    30.5,
+    -30.5,
+    0.3
+   ],
+   "roblox_pos": [
+    30.5,
+    0.3,
+    30.5
+   ],
+   "rotY_deg": -45,
+   "scale": [
+    5.0,
+    3.0,
+    1.3
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.7,
+    -30.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.7,
+    0.3,
+    30.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    35.516,
+    -26.856,
+    0.3
+   ],
+   "roblox_pos": [
+    35.516,
+    0.3,
+    26.856
+   ],
+   "rotY_deg": 36,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    32.416,
+    -24.604,
+    0.3
+   ],
+   "roblox_pos": [
+    32.416,
+    0.3,
+    24.604
+   ],
+   "rotY_deg": 72,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    28.584,
+    -24.603,
+    0.3
+   ],
+   "roblox_pos": [
+    28.584,
+    0.3,
+    24.603
+   ],
+   "rotY_deg": 108,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    25.484,
+    -26.855,
+    0.3
+   ],
+   "roblox_pos": [
+    25.484,
+    0.3,
+    26.855
+   ],
+   "rotY_deg": 144,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    24.3,
+    -30.499,
+    0.3
+   ],
+   "roblox_pos": [
+    24.3,
+    0.3,
+    30.499
+   ],
+   "rotY_deg": 180,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    25.484,
+    -34.144,
+    0.3
+   ],
+   "roblox_pos": [
+    25.484,
+    0.3,
+    34.144
+   ],
+   "rotY_deg": 216,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    28.583,
+    -36.396,
+    0.3
+   ],
+   "roblox_pos": [
+    28.583,
+    0.3,
+    36.396
+   ],
+   "rotY_deg": 252,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    32.415,
+    -36.397,
+    0.3
+   ],
+   "roblox_pos": [
+    32.415,
+    0.3,
+    36.397
+   ],
+   "rotY_deg": 288,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    35.515,
+    -34.145,
+    0.3
+   ],
+   "roblox_pos": [
+    35.515,
+    0.3,
+    34.145
+   ],
+   "rotY_deg": 324,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Planter",
+   "blender_pos": [
+    16,
+    -16,
+    0.42
+   ],
+   "roblox_pos": [
+    16,
+    0.42,
+    16
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Palm",
+   "blender_pos": [
+    25.5,
+    25.5,
+    0.3
+   ],
+   "roblox_pos": [
+    25.5,
+    0.3,
+    -25.5
+   ],
+   "rotY_deg": 90,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Palm",
+   "blender_pos": [
+    45.5,
+    45.5,
+    0.2
+   ],
+   "roblox_pos": [
+    45.5,
+    0.2,
+    -45.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "HedgeRed",
+   "blender_pos": [
+    30.5,
+    30.5,
+    0.3
+   ],
+   "roblox_pos": [
+    30.5,
+    0.3,
+    -30.5
+   ],
+   "rotY_deg": 45,
+   "scale": [
+    5.0,
+    3.0,
+    1.3
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.7,
+    30.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.7,
+    0.3,
+    -30.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    35.516,
+    34.144,
+    0.3
+   ],
+   "roblox_pos": [
+    35.516,
+    0.3,
+    -34.144
+   ],
+   "rotY_deg": 36,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    32.416,
+    36.396,
+    0.3
+   ],
+   "roblox_pos": [
+    32.416,
+    0.3,
+    -36.396
+   ],
+   "rotY_deg": 72,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    28.584,
+    36.397,
+    0.3
+   ],
+   "roblox_pos": [
+    28.584,
+    0.3,
+    -36.397
+   ],
+   "rotY_deg": 108,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    25.484,
+    34.145,
+    0.3
+   ],
+   "roblox_pos": [
+    25.484,
+    0.3,
+    -34.145
+   ],
+   "rotY_deg": 144,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    24.3,
+    30.501,
+    0.3
+   ],
+   "roblox_pos": [
+    24.3,
+    0.3,
+    -30.501
+   ],
+   "rotY_deg": 180,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    25.484,
+    26.856,
+    0.3
+   ],
+   "roblox_pos": [
+    25.484,
+    0.3,
+    -26.856
+   ],
+   "rotY_deg": 216,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    28.583,
+    24.604,
+    0.3
+   ],
+   "roblox_pos": [
+    28.583,
+    0.3,
+    -24.604
+   ],
+   "rotY_deg": 252,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    32.415,
+    24.603,
+    0.3
+   ],
+   "roblox_pos": [
+    32.415,
+    0.3,
+    -24.603
+   ],
+   "rotY_deg": 288,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    35.515,
+    26.855,
+    0.3
+   ],
+   "roblox_pos": [
+    35.515,
+    0.3,
+    -26.855
+   ],
+   "rotY_deg": 324,
+   "scale": [
+    0.9,
+    0.9,
+    0.9
+   ]
+  },
+  {
+   "asset": "Planter",
+   "blender_pos": [
+    16,
+    16,
+    0.42
+   ],
+   "roblox_pos": [
+    16,
+    0.42,
+    -16
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "ShadeTree",
+   "blender_pos": [
+    -45.5,
+    -20,
+    0.2
+   ],
+   "roblox_pos": [
+    -45.5,
+    0.2,
+    20
+   ],
+   "rotY_deg": -60,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "ShadeTree",
+   "blender_pos": [
+    -20,
+    -45.5,
+    0.2
+   ],
+   "roblox_pos": [
+    -20,
+    0.2,
+    45.5
+   ],
+   "rotY_deg": -100,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "ShadeTree",
+   "blender_pos": [
+    -45.5,
+    20,
+    0.2
+   ],
+   "roblox_pos": [
+    -45.5,
+    0.2,
+    -20
+   ],
+   "rotY_deg": 60,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "ShadeTree",
+   "blender_pos": [
+    20,
+    -45.5,
+    0.2
+   ],
+   "roblox_pos": [
+    20,
+    0.2,
+    45.5
+   ],
+   "rotY_deg": 100,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Lamp",
+   "blender_pos": [
+    -8.8,
+    -23.3,
+    0.42
+   ],
+   "roblox_pos": [
+    -8.8,
+    0.42,
+    23.3
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Lamp",
+   "blender_pos": [
+    -23.3,
+    -8.8,
+    0.42
+   ],
+   "roblox_pos": [
+    -23.3,
+    0.42,
+    8.8
+   ],
+   "rotY_deg": 90,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Lamp",
+   "blender_pos": [
+    -8.8,
+    -40.0,
+    0.2
+   ],
+   "roblox_pos": [
+    -8.8,
+    0.2,
+    40.0
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Lamp",
+   "blender_pos": [
+    -40.0,
+    -8.8,
+    0.2
+   ],
+   "roblox_pos": [
+    -40.0,
+    0.2,
+    8.8
+   ],
+   "rotY_deg": 90,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Lamp",
+   "blender_pos": [
+    8.8,
+    -23.3,
+    0.42
+   ],
+   "roblox_pos": [
+    8.8,
+    0.42,
+    23.3
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Lamp",
+   "blender_pos": [
+    -23.3,
+    8.8,
+    0.42
+   ],
+   "roblox_pos": [
+    -23.3,
+    0.42,
+    -8.8
+   ],
+   "rotY_deg": 90,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Lamp",
+   "blender_pos": [
+    8.8,
+    -40.0,
+    0.2
+   ],
+   "roblox_pos": [
+    8.8,
+    0.2,
+    40.0
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Lamp",
+   "blender_pos": [
+    -40.0,
+    8.8,
+    0.2
+   ],
+   "roblox_pos": [
+    -40.0,
+    0.2,
+    -8.8
+   ],
+   "rotY_deg": 90,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Bench",
+   "blender_pos": [
+    -13,
+    -19.0,
+    0.42
+   ],
+   "roblox_pos": [
+    -13,
+    0.42,
+    19.0
+   ],
+   "rotY_deg": 180,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Bench",
+   "blender_pos": [
+    -19.0,
+    -13,
+    0.42
+   ],
+   "roblox_pos": [
+    -19.0,
+    0.42,
+    13
+   ],
+   "rotY_deg": 90,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Bench",
+   "blender_pos": [
+    13,
+    -19.0,
+    0.42
+   ],
+   "roblox_pos": [
+    13,
+    0.42,
+    19.0
+   ],
+   "rotY_deg": 180,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Bench",
+   "blender_pos": [
+    -19.0,
+    13,
+    0.42
+   ],
+   "roblox_pos": [
+    -19.0,
+    0.42,
+    -13
+   ],
+   "rotY_deg": 90,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "ShadeTree",
+   "blender_pos": [
+    45.5,
+    -20,
+    0.2
+   ],
+   "roblox_pos": [
+    45.5,
+    0.2,
+    20
+   ],
+   "rotY_deg": -60,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "ShadeTree",
+   "blender_pos": [
+    -20,
+    45.5,
+    0.2
+   ],
+   "roblox_pos": [
+    -20,
+    0.2,
+    -45.5
+   ],
+   "rotY_deg": -100,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "ShadeTree",
+   "blender_pos": [
+    45.5,
+    20,
+    0.2
+   ],
+   "roblox_pos": [
+    45.5,
+    0.2,
+    -20
+   ],
+   "rotY_deg": 60,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "ShadeTree",
+   "blender_pos": [
+    20,
+    45.5,
+    0.2
+   ],
+   "roblox_pos": [
+    20,
+    0.2,
+    -45.5
+   ],
+   "rotY_deg": 100,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Lamp",
+   "blender_pos": [
+    -8.8,
+    23.3,
+    0.42
+   ],
+   "roblox_pos": [
+    -8.8,
+    0.42,
+    -23.3
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Lamp",
+   "blender_pos": [
+    23.3,
+    -8.8,
+    0.42
+   ],
+   "roblox_pos": [
+    23.3,
+    0.42,
+    8.8
+   ],
+   "rotY_deg": 90,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Lamp",
+   "blender_pos": [
+    -8.8,
+    40.0,
+    0.2
+   ],
+   "roblox_pos": [
+    -8.8,
+    0.2,
+    -40.0
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Lamp",
+   "blender_pos": [
+    40.0,
+    -8.8,
+    0.2
+   ],
+   "roblox_pos": [
+    40.0,
+    0.2,
+    8.8
+   ],
+   "rotY_deg": 90,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Lamp",
+   "blender_pos": [
+    8.8,
+    23.3,
+    0.42
+   ],
+   "roblox_pos": [
+    8.8,
+    0.42,
+    -23.3
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Lamp",
+   "blender_pos": [
+    23.3,
+    8.8,
+    0.42
+   ],
+   "roblox_pos": [
+    23.3,
+    0.42,
+    -8.8
+   ],
+   "rotY_deg": 90,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Lamp",
+   "blender_pos": [
+    8.8,
+    40.0,
+    0.2
+   ],
+   "roblox_pos": [
+    8.8,
+    0.2,
+    -40.0
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Lamp",
+   "blender_pos": [
+    40.0,
+    8.8,
+    0.2
+   ],
+   "roblox_pos": [
+    40.0,
+    0.2,
+    -8.8
+   ],
+   "rotY_deg": 90,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Bench",
+   "blender_pos": [
+    -13,
+    19.0,
+    0.42
+   ],
+   "roblox_pos": [
+    -13,
+    0.42,
+    -19.0
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Bench",
+   "blender_pos": [
+    19.0,
+    -13,
+    0.42
+   ],
+   "roblox_pos": [
+    19.0,
+    0.42,
+    13
+   ],
+   "rotY_deg": -90,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Bench",
+   "blender_pos": [
+    13,
+    19.0,
+    0.42
+   ],
+   "roblox_pos": [
+    13,
+    0.42,
+    -19.0
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Bench",
+   "blender_pos": [
+    19.0,
+    13,
+    0.42
+   ],
+   "roblox_pos": [
+    19.0,
+    0.42,
+    -13
+   ],
+   "rotY_deg": -90,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    8.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    8.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    8.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    -8.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -8.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -8.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    -8.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    8.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    10.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    10.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    10.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    -10.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -10.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -10.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    -10.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    10.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    12.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    12.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    12.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    -12.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -12.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -12.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    -12.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    12.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    14.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    14.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    14.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    -14.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -14.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -14.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    -14.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    14.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    16.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    16.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    16.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    -16.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -16.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -16.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    -16.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    16.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    18.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    18.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    18.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    -18.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -18.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -18.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    -18.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    18.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    20.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    20.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    20.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    -20.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -20.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -20.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    -20.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    20.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    22.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    22.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    22.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    -22.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -22.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -22.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    -22.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    22.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    24.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    24.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    24.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    -24.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -24.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -24.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    -24.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    24.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    26.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    26.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    26.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    -26.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -26.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -26.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    -26.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    26.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    28.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    28.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    28.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    -28.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -28.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -28.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    -28.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    28.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    30.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    30.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    30.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    -30.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -30.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -30.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    -30.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    30.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    32.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    32.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    32.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    -32.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -32.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -32.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    -32.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    32.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    34.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    34.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    34.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    -34.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -34.5,
+    -36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -34.5,
+    0.3,
+    36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -36.4,
+    -34.5,
+    0.3
+   ],
+   "roblox_pos": [
+    -36.4,
+    0.3,
+    34.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    8.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    8.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    8.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    -8.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -8.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -8.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    -8.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    8.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    10.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    10.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    10.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    -10.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -10.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -10.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    -10.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    10.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    12.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    12.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    12.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    -12.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -12.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -12.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    -12.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    12.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    14.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    14.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    14.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    -14.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -14.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -14.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    -14.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    14.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    16.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    16.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    16.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    -16.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -16.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -16.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    -16.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    16.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    18.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    18.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    18.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    -18.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -18.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -18.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    -18.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    18.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    20.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    20.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    20.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    -20.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -20.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -20.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    -20.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    20.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    22.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    22.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    22.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    -22.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -22.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -22.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    -22.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    22.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    24.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    24.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    24.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    -24.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -24.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -24.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    -24.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    24.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    26.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    26.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    26.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    -26.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -26.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -26.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    -26.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    26.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    28.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    28.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    28.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    -28.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -28.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -28.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    -28.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    28.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    30.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    30.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    30.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    -30.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -30.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -30.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    -30.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    30.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    32.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    32.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    32.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    -32.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -32.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -32.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    -32.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    32.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    34.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    34.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    34.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    -34.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    -34.5,
+    36.4,
+    0.3
+   ],
+   "roblox_pos": [
+    -34.5,
+    0.3,
+    -36.4
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  },
+  {
+   "asset": "Bush",
+   "blender_pos": [
+    36.4,
+    -34.5,
+    0.3
+   ],
+   "roblox_pos": [
+    36.4,
+    0.3,
+    34.5
+   ],
+   "rotY_deg": 0,
+   "scale": [
+    0.75,
+    0.75,
+    0.8
+   ]
+  }
+ ]
+}

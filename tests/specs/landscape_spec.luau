@@ -104,6 +104,18 @@ return function(t, Env)
 					return { hex = hex }
 				end,
 			}
+			-- Minimal Instance fake so applyHorizonFill can be exercised by the switch spec.
+			env.madeInstances = {}
+			env.globals.Instance = {
+				new = function(className)
+					local object = { className = className }
+					function object:SetAttribute(name, value)
+						object[name] = value
+					end
+					env.madeInstances[#env.madeInstances + 1] = object
+					return object
+				end,
+			}
 			Landscape = env:require("server/World/Landscape")
 			MapSpec = env:require("server/World/MapSpec")
 			OWNED = {}
@@ -282,7 +294,10 @@ return function(t, Env)
 					colours += 1
 				end
 			end
-			expect(#terrain.calls):toBe(#Landscape.clearBlocks() + colours + #Landscape.hillBlocks())
+			-- Item 268: hill fills are gated by the reversible DOME_HILLS switch; in the spec env the
+			-- shared config now drives the gate off, so only Air clears + palette colours are emitted.
+			local hillFills = Landscape.DOME_HILLS_ENABLED == false and 0 or #Landscape.hillBlocks()
+			expect(#terrain.calls):toBe(#Landscape.clearBlocks() + colours + hillFills)
 			expect(#terrain.calls <= 128):toBe(true)
 		end)
 
@@ -295,6 +310,44 @@ return function(t, Env)
 			for index, call in first.calls do
 				expect(second.calls[index]):toBe(call)
 			end
+		end)
+
+		t:it("with DOME_HILLS_ENABLED=false skips hill fills but still clears Air and applies horizon fill", function()
+			local terrain = recorder()
+			local world = {}
+			function world:FindFirstChild()
+				return nil
+			end
+			terrain.Parent = world
+			local previous = Landscape.DOME_HILLS_ENABLED
+			Landscape.DOME_HILLS_ENABLED = false
+			Landscape.apply(terrain)
+			Landscape.DOME_HILLS_ENABLED = previous
+
+			local air, hillBalls, colours = 0, 0, 0
+			for _, call in terrain.calls do
+				if string.find(call, "Material.Air", 1, true) then
+					air += 1
+				elseif string.sub(call, 1, 8) == "FillBall" then
+					hillBalls += 1
+				elseif string.sub(call, 1, 16) == "SetMaterialColor" then
+					colours += 1
+				end
+			end
+			expect(air):toBe(#Landscape.clearBlocks())
+			expect(colours):toBeGreaterThan(0)
+			expect(hillBalls):toBe(0)
+
+			local folders, fillParts = 0, 0
+			for _, object in ipairs(env.madeInstances) do
+				if object.className == "Folder" then
+					folders += 1
+				elseif object.className == "Part" and object.HorizonFill == true then
+					fillParts += 1
+				end
+			end
+			expect(folders):toBe(1)
+			expect(fillParts):toBe(4)
 		end)
 	end)
 end

@@ -1507,6 +1507,8 @@ function Greybox.build(): Folder
 	workspace.Terrain:SetMaterialColor(Enum.Material.Ground, Props.palette("bambu"))
 	workspace.Terrain:SetMaterialColor(Enum.Material.Grass, C.grass)
 	Greybox.applyTerrain(workspace.Terrain)
+	-- Item 268: dome hills are off by default; flip GreyboxTerrainConfig.DOME_HILLS to restore them.
+	Landscape.DOME_HILLS_ENABLED = GreyboxTerrainConfig.DOME_HILLS
 	Landscape.apply(workspace.Terrain) -- after the Ground colour above, which it recolours
 
 	buildRoads(world)

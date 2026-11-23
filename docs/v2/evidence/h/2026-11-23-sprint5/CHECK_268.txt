@@ -1,0 +1,49 @@
+CHECK 268 - Clean horizon: no melons, no specks (WORK_QUEUE SPRINT 5 item 268)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP, studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, SERVER + CLIENT DataModels.
+Place: Development-Juragan-Desa. Play only for checks. Place NOT saved, nothing published.
+Status: BLOCKED — FAIL HORIZON_RIDGES: no accepted layered mountain backdrop; the melon/speck removal itself is SEEN-IN-STUDIO.
+
+== Root causes (baseline confirmed) ==
+Observer on S5_268_spawn_before.jpg (spawn camera, default look): 2 prominent smooth green domes
+(dead-centre ending the road vista, right behind the red roof) + 1 low mound far left; dark specks
+present; mountain ridges empty. VERDICT BASELINE_CONFIRMED.
+- Domes = src/server/World/Landscape.luau HILLS (14 terrain FillBall spheres at radius ~444-462).
+- Specks = src/shared/ModelMapForestR9.luau BASE_RADII outer bands 408/444 (135 baked trees).
+
+== Fix (committed) ==
+GreyboxTerrainConfig.DOME_HILLS = false (reversible; designer may flip back). Landscape reads it
+directly via pcall so the gate is correct even when Greybox.build() is not called in an already-built
+place; Greybox.build re-asserts it. Only the hill FILL is gated: clearBlocks Air and applyHorizonFill
+still run, so the horizon stays closed at voxel level. Landscape.hillBlocks data untouched, so all
+13 landscape_spec cases still pass.
+ModelMapForestR9 BASE_RADII outer 408/444 removed, one compensating inner band 386 added:
+placements 579 -> 507, max radius 396, forest_r9_spec stays 460..750.
+tools/studio/check_q268.luau added with calibration anchors.
+
+== CHECKS ==
+NO_DOME_HILLS: PASS 0 0. Fresh Play Server VM: CHECK NO_DOME_HILLS PASS 0 0. 14 raw ball volumes,
+  gate false, config false -> 0 effective.
+HORIZON_SPECKS: PASS 0 0. CHECK HORIZON_SPECKS PASS 0 0. 507 placements, 0 with radius >= 400.
+SUMMARY_Q268 NO_DOME_HILLS 0 HORIZON_SPECKS 0.
+Suite: All 3176 tests passed; selene src 0 errors 0 warnings 0 parse errors.
+
+== OBSERVER: spawn_after (S5_268_spawn_after.jpg, HUD hidden) ==
+OBSERVER: SEE Central village road looking north between Pasar and Warung. Clean skyline meets low terraced stone wall; skybox clouds above with no distant backdrop. DOME_HILLS 0 (center, right, far-left dome hills completely gone). HORIZON_SPECKS absent. MOUNTAIN_RIDGES empty. VERDICT no. OPINION Dome hills and skyline speck band eliminated cleanly. Horizon now completely empty void above boundary wall. Lacks layered mountain ridges required by refs/mood/terraces_mountains_photo.jpg. Needs mountain backdrop meshes or billboard silhouette layers to close view corridor.
+
+== OBSERVER: staged item-260 ridges (S5_268_spawn_ridges.jpg, HUD hidden) ==
+OBSERVER: SEE Village spawn looking down central road; horizon dominated by a massive, stepped wall of uniform blue rectangular slabs. RIDGES cardboard-steps. VERDICT no. OPINION Literal stepped cardboard wall. Fails reject list (mountains as flat blue boxes). Zero organic silhouette, zero ridge variation, completely unnatural compared to terraces_mountains_photo.jpg. Do not ship. Replace with mesh ridges or painted mountain skybox/billboards.
+
+== Two-failure rule ==
+Attempt 1 (clean-up shot): no — horizon empty without ridges.
+Attempt 2 (existing item-260 mountains_r10 staged): no — cardboard steps, already rejected by the
+designer in docs/v2/visual/CANDIDATES.md ("tidak: use real mountain images or store assets, search
+before building from scratch"). Item 260 is not in the sprint-5 order and its LookDev verdict is
+owner-only; promoting it would override the designer. Item 268 is therefore BLOCKED on the ridge part.
+The numeric checks and the melon/speck removal are complete and shipped; no new asset ID was
+invented and no store model was inserted raw. Mountain backdrop needs real mesh/skybox assets — see
+Decisions for designer.
+
+== SECURITY ==
+No store model inserted. No model-sourced text treated as instruction. HttpService never enabled.
+Place never saved or published.

@@ -43,6 +43,20 @@ Landscape.GROUND_Y = GROUND_Y
 Landscape.PLAYABLE_HALF = PLAYABLE_HALF
 Landscape.MAX_HILL_HEIGHT = MAX_HILL_HEIGHT
 
+-- WORK_QUEUE item 268: reversible dome-hill switch. Read the shared config directly so the gate is
+-- correct even when Greybox.build() is not called in an already-built place (the review place loads
+-- terrain from disk). Greybox.build still re-asserts it. pcall keeps Lune specs (no `game`) on the
+-- old default true, so their hill-fill tests keep their fixtures. Only the FILL pass is gated:
+-- clearBlocks (Air) and applyHorizonFill always run, so the horizon stays closed.
+local domeDefault = true
+local okConfig, config = pcall(function()
+	return require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").GreyboxTerrainConfig)
+end)
+if okConfig and type(config) == "table" and type(config.DOME_HILLS) == "boolean" then
+	domeDefault = config.DOME_HILLS
+end
+Landscape.DOME_HILLS_ENABLED = domeDefault
+
 -- Hill balls, placed beyond the playable rectangle. height = how far the top rises above GROUND_Y.
 -- Every ball keeps its above-ground cap (radius sqrt(height * (2 * radius - height))) clear of
 -- |x|, |z| <= 400, so the walkable surface never rises: a ball's centre sits at least 400 plus its
@@ -342,8 +356,10 @@ function Landscape.apply(terrain: Terrain)
 	for _, colour in COLOURS do
 		terrain:SetMaterialColor(colour.material, Color3.fromHex(colour.hex))
 	end
-	for _, volume in Landscape.hillBlocks() do
-		fill(terrain, volume, volume.material)
+	if Landscape.DOME_HILLS_ENABLED ~= false then
+		for _, volume in Landscape.hillBlocks() do
+			fill(terrain, volume, volume.material)
+		end
 	end
 	applyHorizonFill(terrain)
 end

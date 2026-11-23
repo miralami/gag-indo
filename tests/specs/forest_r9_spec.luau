@@ -72,7 +72,7 @@ return function(t, Env)
 		end)
 
 		t:it("keeps every placement finite, in-band, yaw/scale bounded and name-safe", function()
-			local ring, hills = 0, 0
+			local ring, outer = 0, 0
 			for _, p in ipairs(placements) do
 				expect(p.x == p.x and p.x ~= math.huge and p.x ~= -math.huge):toBe(true)
 				expect(p.z == p.z and p.z ~= math.huge and p.z ~= -math.huge):toBe(true)
@@ -89,13 +89,14 @@ return function(t, Env)
 					ring += 1
 					expect(radius >= 260 and radius <= 380):toBe(true)
 				else
-					hills += 1
-					expect(radius >= 400 and radius <= 460):toBe(true)
+					outer += 1
+					-- Item 268: the 408/444 bands are gone; the outermost band is now 386 + jitter.
+					expect(radius >= 380 and radius <= 400):toBe(true)
 				end
 				expect(hasPine(Data.NAME_PREFIX .. p.species .. "_" .. p.angle .. "_" .. p.layer)):toBe(false)
 			end
 			expect(ring > 0):toBe(true)
-			expect(hills > 0):toBe(true)
+			expect(outer > 0):toBe(true)
 		end)
 
 		t:it("honours the north/south skip rectangles and the sunset corridor", function()

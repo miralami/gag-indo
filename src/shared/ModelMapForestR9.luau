@@ -53,10 +53,11 @@ ModelMapForestR9.IDS = {
 	bambu = R4_IDS.bambu,
 } :: { [string]: number }
 
--- Ring band 260..380 (layers 1..7), hills/beyond-400 band 400..460 (layers 8..9). Up to 11 studs
--- of radial jitter keeps both bands inside their limits while breaking up the "perfect circle"
--- read. Q186 densifies the same bands with interleaved radii; no new radial range is introduced.
-local BASE_RADII = { 260, 278, 296, 314, 332, 350, 368, 408, 444 }
+-- Ring bands 260..386 (layers 1..8). Item 268 removed the outer 408/444 bands: their trees read
+-- as dark specks on the horizon. One compensating inner band (386 after 368) keeps the wall dense.
+-- Up to 11 studs of radial jitter breaks up the "perfect circle" read while keeping every radius
+-- below 400, so no placement lands on the horizon.
+local BASE_RADII = { 260, 278, 296, 314, 332, 350, 368, 386 }
 local RADIAL_JITTER = 12
 local ANGLE_STEP = 2
 local ANGLE_OFFSET = 2

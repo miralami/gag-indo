@@ -151,7 +151,9 @@ return function(t, Env)
 				expect(hub ~= nil):toBe(true)
 				if hub then
 					local dx, dz = a.x - hub.x, a.z - hub.z
-					expect(dx * dx + dz * dz <= 45 * 45):toBe(true)
+					-- 45 studs, or just past the half-span of a hub wider than that (the 100 x 84 Pasar).
+					local near = math.max(45, math.max(hub.width, hub.depth) / 2 + 16)
+					expect(dx * dx + dz * dz <= near * near):toBe(true)
 				end
 			end
 			for _, hub in ipairs(MapSpec.HUBS) do

@@ -91,7 +91,7 @@ Item 211 (2026-11-23) data note: the DEFAULT-look Pos Ronda floor now carries ta
 | `path_curve_golden` | Server | Item-218 golden-hour variant of `path_curve`: same eye/target, `clockTime = 16.5`. |
 | `path_curve_night` | Server | Item-218 night variant of `path_curve`: same eye/target, `clockTime = 21`. |
 | `kampung_view` | Server | Item-240 close view of one four-house `kampung_r10` cluster from outside the plot ring. |
-| `bridge_side` | Server | Side elevation of the river bridge deck and railing from the east bank. |
+| `bridge_side` | Server | Item-252 downward 3/4 view of the `bamboo_bridge_r10` culm deck from above the north-east bank. |
 | `meadow_view` | Server | Open lawn between the Pasar ring and the plots, looking south across the meadow. |
 | `terrace_wall` | Server | Item-250 downward view of `hill_dressing_r10` rocks and palms on the north hill from its south foot. |
 | `signpost_pasar` | Server | Item-240 close view of the east-junction `signposts_r10` board and post from the plaza side. |

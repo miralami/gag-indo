@@ -6,7 +6,8 @@
 -- No engine calls, no asset IDs, no verdict.
 -- The lane is mirrored from ModelMapRiverR8.BRIDGE_Z0/Z1 and MapSpec.BRIDGE (x 0, top 1.5):
 -- this module stays pure, so it does not require MapSpec, which reads Roblox services at load.
--- The river_r8 default bridge is never modified: this is an additive decorative overlay.
+-- The default timber bridge is hidden only by the SERVER applier while staged; this pure module
+-- never touches instances. Geometry stays here, not duplicated in the applier.
 
 local Data = {}
 

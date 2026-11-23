@@ -74,6 +74,7 @@ end
 return function(t, Env)
 	local expect = t.expect
 	local Cameras = Env.new():require("shared/ReviewCameras")
+	local MapSpec = Env.new():require("server/World/MapSpec")
 	local cameraSrc = fs.readFile("src/shared/ReviewCameras.luau")
 	local cameraDoc = fs.readFile("docs/v2/visual/REVIEW_CAMERAS.md")
 
@@ -150,6 +151,26 @@ return function(t, Env)
 				docCount = docCount + 1
 			end
 			expect(docCount):toBe(TOTAL_COUNT)
+		end)
+
+		t:it("item 252 bridge_side is a downward 3/4 view of the bamboo deck", function()
+			local camera = Cameras.get("bridge_side")
+			local bridge = MapSpec.BRIDGE
+			local deckTop = MapSpec.GROUND_Y + bridge.top
+			local bridgeZ = (bridge.z0 + bridge.z1) / 2
+			expect(camera.datamodel):toBe("Server")
+			expect(camera.position[1] > bridge.x):toBe(true)
+			expect(camera.position[2] > deckTop + MapSpec.HEADROOM * 2):toBe(true)
+			expect(camera.position[3] < bridge.z0):toBe(true)
+			expect(math.abs(camera.lookAt[1] - bridge.x) < 1e-6):toBe(true)
+			expect(math.abs(camera.lookAt[2] - deckTop) < 1e-6):toBe(true)
+			expect(math.abs(camera.lookAt[3] - bridgeZ) < 1e-6):toBe(true)
+			local drop = camera.position[2] - camera.lookAt[2]
+			local run =
+				math.sqrt((camera.position[1] - camera.lookAt[1]) ^ 2 + (camera.position[3] - camera.lookAt[3]) ^ 2)
+			expect(drop / run > 0.5):toBe(true) -- steeper than ~27 degrees, not a side elevation
+			expect(cameraSrc:find("MapSpec.HEADROOM * 3", 1, true) ~= nil):toBe(true)
+			expect(cameraDoc:find("Item-252 downward 3/4 view", 1, true) ~= nil):toBe(true)
 		end)
 	end)
 end

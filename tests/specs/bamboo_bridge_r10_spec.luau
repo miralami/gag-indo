@@ -1,9 +1,12 @@
 --!nocheck
--- WORK_QUEUE item 204 (SPRINT 1), item 245 (SPRINT 2): LUNE-ONLY pure-data contract for
--- "bamboo_bridge_r10". Studio staging and the BRIDGE_* checks live in check_q204/check_q245;
--- LookDev IDS and review wiring belong to the main session. This spec asserts neither.
+-- WORK_QUEUE item 204 (SPRINT 1), item 245 (SPRINT 2), item 252 (SPRINT 3): LUNE-ONLY pure-data
+-- contract for "bamboo_bridge_r10". Studio staging and the BRIDGE_* checks live in
+-- check_q204/check_q245/check_q252; LookDev IDS and review wiring belong to the main session.
 
 local fs = require("@lune/fs")
+
+local APPLIER = "src/server/World/LookDevBambooBridgeR10.luau"
+local CHECK = "tools/studio/check_q252.luau"
 
 local function serialize(value)
 	if type(value) ~= "table" then
@@ -30,6 +33,8 @@ return function(t, Env)
 	local env = Env.new()
 	local Data = env:require("shared/ModelMapBambooBridgeR10")
 	local pureSrc = fs.readFile("src/shared/ModelMapBambooBridgeR10.luau")
+	local applierSrc = fs.readFile(APPLIER)
+	local checkSrc = fs.readFile(CHECK)
 	local parts = Data.parts()
 
 	local function byKind(kind)
@@ -182,6 +187,56 @@ return function(t, Env)
 			local first = Data.parts()
 			first[1].color.r = -1
 			expect(Data.parts()[1].color.r):toBe(Data.BAMBOO_COLOR.r)
+		end)
+	end)
+
+	t:describe("item 252 default bridge swap", function()
+		t:it("hides the named Greybox bridge parts and saves their exact values for LIFO restore", function()
+			for _, name in ipairs({ "BridgeDeck", "BridgePost", "BridgeRail", "BridgeRamp" }) do
+				expect(applierSrc:find(name .. " = true", 1, true) ~= nil):toBe(true)
+			end
+			expect(applierSrc:find("hideDefaultBridge()", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("GetDescendants()", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find('saveValue(instance, "Transparency"', 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find('saveValue(instance, "CanCollide"', 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("instance.Transparency = 1", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("instance.CanCollide = false", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("for index = #savedOrder, 1, -1 do", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("entry.target[entry.prop] = entry.value", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("entry.target:SetAttribute(entry.prop, entry.value)", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("no default bridge parts found to swap", 1, true) ~= nil):toBe(true)
+		end)
+
+		t:it("keeps the exact SERVER-VM check lines, targets and FAIL calibrations", function()
+			for _, name in ipairs({
+				"BRIDGE_SWAP",
+				"BRIDGE_RESTORE",
+				"SUBJECT_COVERAGE_252",
+				"BRIDGE_WALKABLE",
+				"BRIDGE_BAMBOO",
+				"LOOKDEV_LEAK",
+				"CAL_BRIDGE_SWAP_FAIL",
+				"CAL_COVERAGE_252_FAIL",
+				"CAL_LOOKDEV_LEAK_FAIL",
+				"CAL_BRIDGE_WALKABLE_FAIL",
+				"CAL_BRIDGE_BAMBOO_FAIL",
+			}) do
+				expect(checkSrc:find('"' .. name .. '"', 1, true) ~= nil):toBe(true)
+			end
+			expect(checkSrc:find('COVERAGE_CAMERA = "bridge_side"', 1, true) ~= nil):toBe(true)
+			expect(checkSrc:find('COVERAGE_AWAY_CAMERA = "horizon_north"', 1, true) ~= nil):toBe(true)
+			expect(checkSrc:find("COVERAGE_TARGET = 0.3", 1, true) ~= nil):toBe(true)
+			expect(checkSrc:find('BAMBOO_TARGET_TEXT = "0.80"', 1, true) ~= nil):toBe(true)
+			expect(checkSrc:find("coverage.measure(CANDIDATE_ID, COVERAGE_CAMERA)", 1, true) ~= nil):toBe(true)
+			expect(checkSrc:find("review.enableAdditive(CANDIDATE_ID, game)", 1, true) ~= nil):toBe(true)
+			expect(checkSrc:find("review.disableAll()", 1, true) ~= nil):toBe(true)
+			expect(checkSrc:find("countTaggedLeftovers()", 1, true) ~= nil):toBe(true)
+			expect(checkSrc:find('instance:GetAttribute("LookDevStage") == CANDIDATE_ID', 1, true) ~= nil):toBe(true)
+			expect(checkSrc:find("measureRestore(snapshot)", 1, true) ~= nil):toBe(true)
+			expect(checkSrc:find("descendantCount", 1, true) == nil):toBe(true)
+			expect(checkSrc:find('part.Name = "BridgeDeck"', 1, true) ~= nil):toBe(true)
+			expect(checkSrc:find('part:SetAttribute("LookDevStage", CANDIDATE_ID)', 1, true) ~= nil):toBe(true)
+			expect(checkSrc:find("destroyInjected()", 1, true) ~= nil):toBe(true)
 		end)
 	end)
 end

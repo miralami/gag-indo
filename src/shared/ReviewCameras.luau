@@ -612,10 +612,14 @@ add(
 )
 add(
 	"bridge_side",
-	vec(bridge.x + bridge.width * MapSpec.S + MapSpec.S, MapSpec.GROUND_Y + MapSpec.HEADROOM, bridgeZ),
-	vec(bridge.x, deckY + bridge.railTop / 2, bridgeZ),
+	vec(
+		bridge.x + bridge.width * MapSpec.S / 4,
+		deckY + MapSpec.HEADROOM * 3,
+		bridge.z0 - bridge.rampLength * MapSpec.S
+	),
+	vec(bridge.x, deckY, bridgeZ),
 	"Server",
-	"Side elevation of the river bridge deck and railing from the east bank."
+	"Item-252 downward 3/4 view of the bamboo deck from above the north-east bank."
 )
 add(
 	"meadow_view",

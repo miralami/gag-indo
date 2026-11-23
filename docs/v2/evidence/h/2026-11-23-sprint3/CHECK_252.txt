@@ -1,0 +1,50 @@
+CHECK 252 - bamboo_bridge_r10 hides default bridge while staged (WORK_QUEUE SPRINT 3 item 252)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, SERVER VM.
+Place: Development-Juragan-Desa. Play only. Place NOT saved, nothing published. Rojo-synced.
+Status: BLOCKED — CHECK SUBJECT_COVERAGE_252 FAIL 0.0136 0.3 (two attempts).
+
+== Wiring ==
+tools/studio/check_q252.luau staged/unstaged bamboo_bridge_r10 via LookDevReview.enableAdditive and
+read live default bridge parts (BridgeDeck/BridgePost/BridgeRail/BridgeRamp). SubjectCoverage from
+`bridge_side`. Leak measured by tagged leftovers after unstage, not raw descendant count.
+
+== Raw check lines (verbatim) — attempt 1 ==
+CHECK BRIDGE_SWAP PASS 26/26 26
+CHECK BRIDGE_RESTORE PASS 26/26 26
+CHECK BRIDGE_WALKABLE PASS 0 0
+CHECK SUBJECT_COVERAGE_252 FAIL 0.0872 0.3
+CHECK BRIDGE_BAMBOO PASS 1.0000 0.80
+CHECK CAL_BRIDGE_SWAP_FAIL PASS 1 1
+CHECK CAL_COVERAGE_252_FAIL PASS 1 1
+CHECK CAL_BRIDGE_WALKABLE_FAIL PASS 1 1
+CHECK CAL_BRIDGE_BAMBOO_FAIL PASS 1 1
+CHECK LOOKDEV_LEAK FAIL -70 0
+CHECK CAL_LOOKDEV_LEAK_FAIL FAIL 0 1
+Attempt-1 leak metric was wrong: a raw workspace descendant delta counts the 69 staged parts that
+should disappear. It was replaced by a tagged-leftover count; target 0 kept.
+
+== Raw check lines (verbatim) — attempt 2 ==
+CHECK BRIDGE_SWAP PASS 26/26 26
+CHECK BRIDGE_RESTORE PASS 26/26 26
+CHECK BRIDGE_WALKABLE PASS 0 0
+CHECK SUBJECT_COVERAGE_252 FAIL 0.0136 0.3
+CHECK BRIDGE_BAMBOO PASS 1.0000 0.80
+CHECK CAL_BRIDGE_SWAP_FAIL PASS 1 1
+CHECK CAL_COVERAGE_252_FAIL PASS 1 1
+CHECK CAL_BRIDGE_WALKABLE_FAIL PASS 1 1
+CHECK CAL_BRIDGE_BAMBOO_FAIL PASS 1 1
+CHECK LOOKDEV_LEAK PASS 0 0
+CHECK CAL_LOOKDEV_LEAK_FAIL PASS 1 1
+
+== Notes ==
+Default bridge hide/restore, walkability, bamboo shape, all five calibrations and the leftover leak
+gate now PASS. The only failing gate is SUBJECT_COVERAGE from `bridge_side`: 0.0872 before and
+0.0136 after the elevated 3/4 re-aim, both well under 0.3. The staged bamboo deck is a thin low
+surface and projects too few 64x36 grid cells from the available camera positions. Target 0.3 was
+never weakened. Two attempts spent; item BLOCKED per WORK_QUEUE section K. S3-STOP must record the
+bridge candidate as under 0.15 and re-shoot once from its review camera as required.
+
+== Local validation ==
+lune run tests/run.luau: All 3099 tests passed (exit 0).
+selene src: 0 errors / 0 warnings / 0 parse errors. Stylua clean on changed files.

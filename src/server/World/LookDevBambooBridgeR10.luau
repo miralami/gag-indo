@@ -1,15 +1,18 @@
 --!strict
 -- LookDevBambooBridgeR10: SERVER-ONLY applier for the OFF-BY-DEFAULT "bamboo_bridge_r10"
--- candidate (WORK_QUEUE item 204, SPRINT 1; item 245, SPRINT 2 made the deck real bamboo culms).
+-- candidate (WORK_QUEUE item 204, SPRINT 1; item 245, SPRINT 2 made the deck real bamboo culms;
+-- item 252, SPRINT 3 hides the default timber bridge while staged).
 -- Stages 14 Cylinder culms with node rings, two round rails with node rings, rope ties and four
--- end posts in their own Workspace folder. Every staged Part is Anchored and non-collidable:
--- the underlying river bridge stays untouched and walkable.
+-- end posts in their own Workspace folder. Every staged Part is Anchored and non-collidable.
+-- While staged, the default Greybox bridge (BridgeDeck/BridgePost/BridgeRail/BridgeRamp, found by
+-- name, never by candidate tag) is hidden with Transparency=1 / CanCollide=false; restore writes the
+-- exact saved values back. No geometry is duplicated: the hidden parts keep the walk lane shape.
 -- Geometry and colours come only from Shared.ModelMapBambooBridgeR10; no asset IDs or visual verdict.
 -- apply/restore are idempotent; restore is LIFO over everything created or saved here, destroys only
 -- created instances, and is pcall-guarded throughout.
 --   require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("bamboo_bridge_r10", game)
 
-type SavedProp = { target: any, prop: string, key: string, value: any }
+type SavedProp = { target: any, prop: string, key: string, value: any, attribute: boolean? }
 
 local function service(name: string): any?
 	local ok, value = pcall(function()
@@ -53,6 +56,12 @@ local LookDevBambooBridgeR10 = {}
 
 local FAMILY_ID = Data.id
 local STAGE_ATTR = "LookDevStage"
+local DEFAULT_BRIDGE_NAMES = {
+	BridgeDeck = true,
+	BridgePost = true,
+	BridgeRail = true,
+	BridgeRamp = true,
+}
 
 local failures = 0
 local active = false
@@ -86,8 +95,66 @@ local function saveAttribute(target: any, attr: string): boolean
 		fail("could not read " .. key .. ": " .. tostring(value))
 		return false
 	end
-	savedOrder[#savedOrder + 1] = { target = target, prop = attr, key = key, value = value }
+	savedOrder[#savedOrder + 1] = { target = target, prop = attr, key = key, value = value, attribute = true }
 	return true
+end
+
+-- Same LIFO snapshot for an instance property (the default bridge's exact Transparency/CanCollide).
+local function saveValue(target: any, prop: string, key: string): boolean
+	for _, entry in ipairs(savedOrder) do
+		if entry.key == key then
+			return true
+		end
+	end
+	local okRead, value = pcall(function()
+		return target[prop]
+	end)
+	if not okRead then
+		fail("could not read " .. key .. ": " .. tostring(value))
+		return false
+	end
+	savedOrder[#savedOrder + 1] = { target = target, prop = prop, key = key, value = value }
+	return true
+end
+
+-- Greybox.buildBridge parts have no LookDevStage tag: match their literal names only.
+local function hideDefaultBridge()
+	local okDescendants, descendants = pcall(function()
+		return (Workspace :: any):GetDescendants()
+	end)
+	if not okDescendants or type(descendants) ~= "table" then
+		fail("could not enumerate default bridge parts")
+		return
+	end
+	local found = 0
+	for _, instance in ipairs(descendants) do
+		local okName, name = pcall(function()
+			return instance.Name
+		end)
+		if okName and type(name) == "string" and DEFAULT_BRIDGE_NAMES[name] then
+			local okPart, isPart = pcall(function()
+				return instance:IsA("BasePart")
+			end)
+			if okPart and isPart then
+				found += 1
+				local key = "Bridge." .. found
+				local okT = saveValue(instance, "Transparency", key .. ".Transparency")
+				local okC = saveValue(instance, "CanCollide", key .. ".CanCollide")
+				if okT and okC then
+					local okHide, why = pcall(function()
+						instance.Transparency = 1
+						instance.CanCollide = false
+					end)
+					if not okHide then
+						fail("could not hide " .. name .. ": " .. tostring(why))
+					end
+				end
+			end
+		end
+	end
+	if found == 0 then
+		fail("no default bridge parts found to swap")
+	end
 end
 
 local function stageFolder(): any?
@@ -191,6 +258,7 @@ local function apply(_plan: any)
 	end
 	failures = 0
 
+	hideDefaultBridge()
 	stageFolder()
 	local root = folder
 	if root then
@@ -217,7 +285,11 @@ local function restore()
 	for index = #savedOrder, 1, -1 do
 		local entry = savedOrder[index]
 		local ok, why = pcall(function()
-			entry.target:SetAttribute(entry.prop, entry.value)
+			if entry.attribute then
+				entry.target:SetAttribute(entry.prop, entry.value)
+			else
+				entry.target[entry.prop] = entry.value
+			end
 		end)
 		if not ok then
 			fail("could not restore " .. entry.key .. ": " .. tostring(why))

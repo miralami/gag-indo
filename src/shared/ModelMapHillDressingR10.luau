@@ -5,11 +5,14 @@
 -- `asset` keys ("rock_round"/"rock_flat"/"rock_tall", "kelapa"/"pisang"/"mangga"/"bambu") and the
 -- server applier owns the real IDs. No Ball shapes and no Ball crowns: item 244 removed the
 -- round green/brown "melon" blobs; fallback canopies use Wedge/Cylinder only.
+-- Item 259: every rock axis is >= 4 studs. The former sub-4 scatter stones are now terrain
+-- material spots (Data.rockTextureSpots), painted by the server applier, not staged parts.
 
 local Data = {}
 
 type RGB = { r: number, g: number, b: number }
 type Hill = { x: number, z: number, radius: number }
+type TextureSpot = { hill: number, x: number, z: number }
 type Descriptor = {
 	name: string,
 	kind: string,
@@ -41,6 +44,8 @@ Data.HILL_COUNT = #Data.HILLS
 Data.ROCKS_PER_HILL = 5
 Data.TREES_PER_HILL = 13
 Data.TERRACES = 3 -- a few steps near hill 1
+local MIN_ROCK_AXIS = 4 -- item 259: no rock part may have an axis below this
+local ROCK_TEXTURE_PER_HILL = 6 -- painted terrain spots replacing the old small rocks
 
 -- Symbolic keys only. The applier maps them to the item-189 baked rock IDs and the verified
 -- R4 tropical-tree IDs; no 8-digit numeric literal may appear in this pure-data module.
@@ -102,7 +107,7 @@ function Data.parts(): { Descriptor }
 					y,
 					hill.z + math.sin(angle) * distance,
 				},
-				size = { size, 3 + rock % 4, size - 1 },
+				size = { size, MIN_ROCK_AXIS + rock % 3, math.max(MIN_ROCK_AXIS, size - 1) },
 				color = copyColor(ROCK_COLORS[1 + rock % #ROCK_COLORS]),
 				shape = if rock % 2 == 0 then "Wedge" else "Cylinder",
 				asset = ROCK_ASSETS[((rock - 1) % #ROCK_ASSETS) + 1],
@@ -160,6 +165,24 @@ function Data.parts(): { Descriptor }
 	return parts
 end
 
+-- Item 259: the removed sub-4 stones survive only as terrain paint. Pure XZ coordinates;
+-- the server applier snaps each one to the 4-stud Terrain grid and restores its voxels on unstage.
+function Data.rockTextureSpots(): { TextureSpot }
+	local spots: { TextureSpot } = {}
+	for hillIndex, hill in ipairs(Data.HILLS) do
+		for spot = 1, ROCK_TEXTURE_PER_HILL do
+			local angle = (spot - 0.5) * (2 * math.pi / ROCK_TEXTURE_PER_HILL) + hillIndex * 0.17
+			local distance = hill.radius * (0.30 + 0.09 * (spot % 3))
+			spots[#spots + 1] = {
+				hill = hillIndex,
+				x = hill.x + math.cos(angle) * distance,
+				z = hill.z + math.sin(angle) * distance,
+			}
+		end
+	end
+	return spots
+end
+
 -- Load-time contract check. Keeps the data honest before any applier or harness reads it.
 do
 	assert(Data.HILL_COUNT >= 3, "hill_dressing_r10: hill count below 3")
@@ -193,6 +216,9 @@ do
 				part.shape == "Wedge" or part.shape == "Cylinder",
 				"hill_dressing_r10: rock must be Wedge or Cylinder"
 			)
+			for _, axis in ipairs(part.size) do
+				assert(axis >= MIN_ROCK_AXIS, "hill_dressing_r10: rock axis below 4")
+			end
 		end
 		if part.kind == "rock" or part.kind == "palm" then
 			assert(type(part.asset) == "string" and #part.asset > 0, "hill_dressing_r10: missing asset key")
@@ -209,6 +235,12 @@ do
 				assert(channel >= 0 and channel <= 255, "hill_dressing_r10: colour channel outside 0..255")
 			end
 		end
+	end
+	local spots = Data.rockTextureSpots()
+	assert(#spots == Data.HILL_COUNT * ROCK_TEXTURE_PER_HILL, "hill_dressing_r10: texture spot count mismatch")
+	for _, spot in ipairs(spots) do
+		assert(spot.hill >= 1 and spot.hill <= Data.HILL_COUNT, "hill_dressing_r10: bad texture spot hill")
+		assert(type(spot.x) == "number" and type(spot.z) == "number", "hill_dressing_r10: bad texture spot")
 	end
 end
 

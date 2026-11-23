@@ -1,11 +1,13 @@
 --!strict
 -- LookDevHillDressingR10: SERVER-ONLY applier for the OFF-BY-DEFAULT "hill_dressing_r10"
--- candidate (WORK_QUEUE item 199, rebuilt by item 244). Stages baked item-189 rock models and
--- real R4 tropical-tree models on the four hill domes, with procedural Wedge/Cylinder fallbacks.
+-- candidate (WORK_QUEUE item 199, rebuilt by items 244 and 259). Stages baked item-189 rock models
+-- and real R4 tropical-tree models on the four hill domes, with procedural Wedge/Cylinder fallbacks.
 -- Every staged BasePart (including model descendants) carries HillDev-free tags HillDressing /
 -- hill / kind / LookDevStage so the live per-hill counts still work. No Ball parts are staged:
--- item 244 removed the round green/brown "melon" crowns and rocks. Every created instance is
--- saved once and restored in LIFO order. apply/restore are idempotent and pcall-guarded.
+-- item 244 removed the round green/brown "melon" crowns and rocks. Item 259 enforces a 4-stud
+-- floor on every rock axis and repaints the former small-rock spots as Slate terrain material.
+-- Every created instance and every terrain snapshot is restored in LIFO order. apply/restore are
+-- idempotent and pcall-guarded.
 -- Enable from the Server command bar:
 --   require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("hill_dressing_r10", game)
 
@@ -54,6 +56,11 @@ end
 local LookDevHillDressingR10 = {}
 
 local FAMILY_ID = Data.id
+local ROCK_MIN_AXIS = 4 -- item 259: every axis of every staged rock part must clear this
+local TEXTURE_VOXEL = 4 -- Terrain authoring grid; ReadVoxels/WriteVoxels need this scalar resolution
+local TEXTURE_HALF = 4 -- small paint patch around each former small-rock spot
+local TEXTURE_Y0 = -TEXTURE_VOXEL
+local TEXTURE_Y1 = TEXTURE_VOXEL * 8 -- grade through the hill slopes; no fill, material only
 
 -- Real IDs live here, NOT in the pure data module (its data-only spec forbids 8-digit literals).
 -- Rocks: the three item-189 baked Creator Store IDs from ASSET_MANIFEST.md. LookDevAssets is
@@ -74,6 +81,7 @@ local ASSET_IDS: { [string]: number } = {
 local failures = 0
 local active = false
 local created: { any } = {}
+local textureSaves: { any } = {}
 local folder: any? = nil
 
 local function fail(message: string)
@@ -131,6 +139,20 @@ local function setTags(part: any, descriptor: any)
 	end)
 end
 
+-- Baked rock models can carry a thin axis even after the uniform ScaleTo(height). Clamp every
+-- rock part axis to 4 studs so the live ROCK_MIN_SIZE floor is a property of the staged set,
+-- not of the source model's proportions. Placement stays unchanged.
+local function clampRockSize(part: any)
+	pcall(function()
+		local size = part.Size
+		part.Size = Vector3.new(
+			math.max(size.X, ROCK_MIN_AXIS),
+			math.max(size.Y, ROCK_MIN_AXIS),
+			math.max(size.Z, ROCK_MIN_AXIS)
+		)
+	end)
+end
+
 local function partType(shapeName: string): any?
 	local ok, partTypeValue = pcall(function()
 		return (Enum :: any).PartType[shapeName]
@@ -178,6 +200,9 @@ local function stagePart(
 		return
 	end
 	setTags(part, descriptor)
+	if descriptor.kind == "rock" then
+		clampRockSize(part)
+	end
 	created[#created + 1] = part
 	local okParent, why = pcall(function()
 		part.Parent = parent
@@ -252,6 +277,9 @@ local function normaliseModel(model: any, descriptor: any)
 			end)
 			-- Every part of a multi-part tree still counts as a palm for check_q199.
 			setTags(child, descriptor)
+			if descriptor.kind == "rock" then
+				clampRockSize(child)
+			end
 		end
 	end
 	pcall(function()
@@ -260,6 +288,9 @@ local function normaliseModel(model: any, descriptor: any)
 			model.CanCollide = false
 			model.CastShadow = false
 			setTags(model, descriptor)
+			if descriptor.kind == "rock" then
+				clampRockSize(model)
+			end
 		end
 	end)
 end
@@ -368,6 +399,94 @@ local function stageDescriptor(descriptor: any, parent: any)
 	end
 end
 
+local function terrainOf(): any?
+	if not Workspace then
+		return nil
+	end
+	local ok, terrain = pcall(function()
+		return (Workspace :: any):FindFirstChildOfClass("Terrain")
+	end)
+	return ok and terrain or nil
+end
+
+-- Snap outward to the 4-stud grid so ReadVoxels and WriteVoxels address the same cells.
+local function textureRegion(spot: any): any?
+	local ok, region = pcall(function()
+		local minX = math.floor((spot.x - TEXTURE_HALF) / TEXTURE_VOXEL) * TEXTURE_VOXEL
+		local maxX = math.ceil((spot.x + TEXTURE_HALF) / TEXTURE_VOXEL) * TEXTURE_VOXEL
+		local minZ = math.floor((spot.z - TEXTURE_HALF) / TEXTURE_VOXEL) * TEXTURE_VOXEL
+		local maxZ = math.ceil((spot.z + TEXTURE_HALF) / TEXTURE_VOXEL) * TEXTURE_VOXEL
+		return Region3.new(Vector3.new(minX, TEXTURE_Y0, minZ), Vector3.new(maxX, TEXTURE_Y1, maxZ))
+	end)
+	return ok and region or nil
+end
+
+-- Item 259: a removed sub-4 stone leaves only a Slate patch. Read the exact materials AND
+-- occupancies, clone the material grid, substitute Slate only where terrain already exists,
+-- then write both grids back. Occupancy is never changed, so no terrain volume is added or
+-- carved. The untouched snapshot is saved for a byte-exact LIFO restore.
+local function paintTextureSpot(terrain: any, spot: any)
+	local region = textureRegion(spot)
+	if not region then
+		fail("texture region failed at hill " .. tostring(spot.hill))
+		return
+	end
+	local okRead, materials, occupancies = pcall(function()
+		return terrain:ReadVoxels(region, TEXTURE_VOXEL)
+	end)
+	if not okRead or type(materials) ~= "table" or type(occupancies) ~= "table" then
+		fail("texture ReadVoxels failed at hill " .. tostring(spot.hill))
+		return
+	end
+	local painted = {}
+	local okPaint = pcall(function()
+		for ix, slab in ipairs(materials) do
+			local outSlab = {}
+			painted[ix] = outSlab
+			for iy, row in ipairs(slab) do
+				local outRow = {}
+				outSlab[iy] = outRow
+				local occRow = occupancies[ix] and occupancies[ix][iy]
+				for iz, material in ipairs(row) do
+					local occupancy = occRow and occRow[iz]
+					if occupancy ~= nil and occupancy > 0 and material ~= Enum.Material.Air then
+						outRow[iz] = Enum.Material.Slate
+					else
+						outRow[iz] = material
+					end
+				end
+			end
+		end
+	end)
+	if not okPaint then
+		fail("texture material build failed at hill " .. tostring(spot.hill))
+		return
+	end
+	local okWrite = pcall(function()
+		terrain:WriteVoxels(region, TEXTURE_VOXEL, painted, occupancies)
+	end)
+	if not okWrite then
+		fail("texture WriteVoxels failed at hill " .. tostring(spot.hill))
+		return
+	end
+	textureSaves[#textureSaves + 1] = {
+		terrain = terrain,
+		region = region,
+		materials = materials,
+		occupancies = occupancies,
+	}
+end
+
+local function restoreTexture()
+	for index = #textureSaves, 1, -1 do
+		local entry = textureSaves[index]
+		pcall(function()
+			entry.terrain:WriteVoxels(entry.region, TEXTURE_VOXEL, entry.materials, entry.occupancies)
+		end)
+		textureSaves[index] = nil
+	end
+end
+
 local function apply(_plan: any)
 	if active then
 		return
@@ -389,12 +508,28 @@ local function apply(_plan: any)
 		end
 	end
 
+	local terrain = terrainOf()
+	if not terrain then
+		fail("missing Terrain; rock texture spots not painted")
+	else
+		local okSpots, spots = pcall(function()
+			return (Data :: any).rockTextureSpots()
+		end)
+		if not okSpots or type(spots) ~= "table" then
+			fail("could not read rock texture spots: " .. tostring(spots))
+		else
+			for _, spot in ipairs(spots) do
+				paintTextureSpot(terrain, spot)
+			end
+		end
+	end
+
 	active = true
 	publishFailures()
 end
 
 local function restore()
-	if not active and #created == 0 then
+	if not active and #created == 0 and #textureSaves == 0 then
 		return
 	end
 	for index = #created, 1, -1 do
@@ -404,6 +539,7 @@ local function restore()
 		end)
 		created[index] = nil
 	end
+	restoreTexture()
 	folder = nil
 	active = false
 	publishFailures()

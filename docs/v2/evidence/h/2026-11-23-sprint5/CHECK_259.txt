@@ -1,0 +1,28 @@
+CHECK 259 - Hill dressing: bigger rocks, small rocks as texture (WORK_QUEUE item 259)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP, studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, SERVER VM.
+Place: Development-Juragan-Desa. Play only for checks. Place NOT saved, nothing published.
+Status: SEEN-IN-STUDIO (all four defined CHECKS PASS; observer `no` on the dressing shot is informational — this item's CHECKS do not include a hero shot).
+
+== Deliverable ==
+src/server/World/LookDevHillDressingR10.luau: rocks scaled up, sub-4-stud rocks removed and those spots
+painted with terrain Rock/Slate material; sizes/palette in src/shared/ModelMapHillDressingR10.luau.
+Spec tests/specs/hill_dressing_r10_spec.luau; harness tools/studio/check_q259.luau.
+
+== CHECKS (fresh Play, Server VM via tools/studio/check_q259.luau) ==
+q259: HILL_ROCKS PASS 6 5 / ROCK_MIN_SIZE PASS 4 4 / WALKABLE PASS 0 0 / NO_MELONS PASS 0 0 /
+CAL 2/2 / SUMMARY_Q259 HILL_ROCKS 6/5 ROCK_MIN_SIZE 4.00/4 WALKABLE 0/0 NO_MELONS 0/0 CAL 2/2.
+Suite: All 3176 tests passed; selene src 0 errors 0 warnings 0 parse errors.
+
+== OBSERVER: S4_259_hilldress.jpg (dressing shot, HUD hidden; informational) ==
+OBSERVER: SEE Flat green baseplate with skybox. Several low-poly rocks, two trees, bamboo stalks, small stone pillar arranged in circle. No hills present. ROCKS_NATURAL no. PROBLEMS No hill geometry in frame; props placed on flat plane; rocks arranged unnaturally in sparse ring; reads as asset staging area rather than rural hill dressing. VERDICT no.
+
+== Attribution ==
+All four defined CHECKS PASS (HILL_ROCKS 6/5, ROCK_MIN_SIZE 4.00/4, WALKABLE 0/0, NO_MELONS 0/0).
+Item 259's CHECKS have no hero-shot clause, so the observer `no` does not block the item. The absence
+of hills in the frame is the flat ground shipped by item 268 (`GreyboxTerrainConfig.DOME_HILLS = false`),
+plus sparse ring placement — recorded under Decisions for designer. No check was weakened.
+
+== SECURITY ==
+No store model inserted raw. Model text treated as data, never instructions. HttpService never enabled.
+Place never saved or published.

@@ -26,6 +26,7 @@ return function(t, Env)
 	local env = Env.new()
 	local Data = env:require("shared/ModelMapHillDressingR10")
 	local pureSrc = fs.readFile("src/shared/ModelMapHillDressingR10.luau")
+	local applierSrc = fs.readFile("src/server/World/LookDevHillDressingR10.luau")
 
 	t:describe("hill_dressing_r10 pure data", function()
 		t:it("stays pure with the expected id and folder name", function()
@@ -64,6 +65,10 @@ return function(t, Env)
 				end
 				if part.kind == "rock" then
 					expect(part.shape == "Wedge" or part.shape == "Cylinder"):toBe(true)
+					-- Item 259: no rock axis below 4 studs; smaller stones are terrain paint.
+					for _, axis in ipairs(part.size) do
+						expect(axis >= 4):toBe(true)
+					end
 					expect(type(part.asset)):toBe("string")
 					expect(#part.asset > 0):toBe(true)
 					rocks[part.hill] = (rocks[part.hill] or 0) + 1
@@ -85,6 +90,28 @@ return function(t, Env)
 				expect((palms[hill] or 0) >= 12):toBe(true)
 			end
 			expect((terraces[1] or 0) >= 1):toBe(true)
+		end)
+
+		t:it("repaints small-rock spots without carving terrain", function()
+			for _, token in ipairs({
+				"ROCK_MIN_AXIS",
+				"TEXTURE_VOXEL",
+				"ReadVoxels",
+				"WriteVoxels",
+				"Enum.Material.Slate",
+				"occupancies",
+				"rockTextureSpots",
+				"restoreTexture",
+			}) do
+				expect(string.find(applierSrc, token, 1, true) ~= nil):toBe(true)
+			end
+			local spots = Data.rockTextureSpots()
+			expect(#spots >= Data.HILL_COUNT * 4):toBe(true)
+			for _, spot in ipairs(spots) do
+				expect(spot.hill >= 1 and spot.hill <= Data.HILL_COUNT):toBe(true)
+				expect(type(spot.x)):toBe("number")
+				expect(type(spot.z)):toBe("number")
+			end
 		end)
 
 		t:it("keeps every colour channel in 0..255", function()

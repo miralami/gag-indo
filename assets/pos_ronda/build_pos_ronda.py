@@ -72,14 +72,31 @@ BMS = {}
 
 def bm_for(mat):
     if mat not in BMS:
-        BMS[mat] = bmesh.new()
+        bm = bmesh.new()
+        bm.loops.layers.uv.verify()
+        bm.faces.layers.int.new("fixed")  # 1 = UVs set at creation, compute_uvs leaves them alone
+        BMS[mat] = bm
     return BMS[mat]
+
+
+def _faces(res):
+    faces = set()
+    for v in res["verts"]:
+        faces.update(v.link_faces)
+    return list(faces)
 
 
 def box(mat, x0, x1, y0, y1, z0, z1):
     c = Vector(((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2))
     s = (abs(x1 - x0), abs(y1 - y0), abs(z1 - z0))
-    bmesh.ops.create_cube(bm_for(mat), size=1.0, matrix=Matrix.Translation(c) @ Matrix.Diagonal((*s, 1.0)))
+    res = bmesh.ops.create_cube(bm_for(mat), size=1.0, matrix=Matrix.Translation(c) @ Matrix.Diagonal((*s, 1.0)))
+    return _faces(res)
+
+
+def obox(mat, centre, size, yaw=0.0):
+    """Box with its own yaw (radians about Z)."""
+    m = Matrix.Translation(Vector(centre)) @ Matrix.Rotation(yaw, 4, "Z") @ Matrix.Diagonal((*size, 1.0))
+    return _faces(bmesh.ops.create_cube(bm_for(mat), size=1.0, matrix=m))
 
 
 def beam(mat, p0, p1, w, h):
@@ -92,11 +109,11 @@ def beam(mat, p0, p1, w, h):
     z = x.cross(y)
     rot = Matrix((x, y, z)).transposed().to_4x4()
     m = Matrix.Translation((p0 + p1) / 2) @ rot @ Matrix.Diagonal((d.length, w, h, 1.0))
-    bmesh.ops.create_cube(bm_for(mat), size=1.0, matrix=m)
+    return _faces(bmesh.ops.create_cube(bm_for(mat), size=1.0, matrix=m))
 
 
 def cylinder(mat, centre, radius, depth, segments=10, r_top=None):
-    bmesh.ops.create_cone(
+    res = bmesh.ops.create_cone(
         bm_for(mat),
         cap_ends=True,
         cap_tris=False,
@@ -106,10 +123,87 @@ def cylinder(mat, centre, radius, depth, segments=10, r_top=None):
         depth=depth,
         matrix=Matrix.Translation(Vector(centre)),
     )
+    return _faces(res)
 
 
 def sphere(mat, centre, radius):
-    bmesh.ops.create_uvsphere(bm_for(mat), u_segments=10, v_segments=6, radius=radius, matrix=Matrix.Translation(Vector(centre)))
+    res = bmesh.ops.create_uvsphere(bm_for(mat), u_segments=10, v_segments=6, radius=radius, matrix=Matrix.Translation(Vector(centre)))
+    return _faces(res)
+
+
+# --- small props: "Warna" is a palette swatch atlas, "Cetak" a print atlas (calendar, whiteboard,
+# TV picture, gaple cards). Their faces get UVs here, at creation, instead of in compute_uvs.
+SWATCHES = [
+    "kertas", "tinta", "tinta_lembut", "senja",
+    "padi", "daun", "genteng", "merah",
+    "bambu", "kunyit", "indigo", "malam",
+    "ungu", "galon", "perak", "layar",
+]  # fmt: skip
+
+
+def swatch_rgb(token):
+    derived = {
+        "galon": mix(P["malam"], P["kertas"], 0.55),  # water gallon plastic
+        "perak": mix(P["kertas"], P["indigo"], 0.3),  # aluminium, chrome
+        "layar": mix(P["tinta"], P["indigo"], 0.4),  # dark screen glass
+    }
+    return derived.get(token, P.get(token))
+
+
+def swatch_uv(token):
+    i = SWATCHES.index(token)
+    return ((i % 4 + 0.5) / 4, 1 - (i // 4 + 0.5) / 4)
+
+
+def _fix(bm, faces, fn):
+    uvl = bm.loops.layers.uv.active
+    fixed = bm.faces.layers.int["fixed"]
+    for f in faces:
+        f.normal_update()
+        for loop in f.loops:
+            loop[uvl].uv = fn(f, loop)
+        f[fixed] = 1
+
+
+def paint(token, faces, obj="Warna"):
+    uv = swatch_uv(token)
+    _fix(bm_for(obj), faces, lambda f, l: uv)
+
+
+def sbox(token, x0, x1, y0, y1, z0, z1, obj="Warna"):
+    paint(token, box(obj, x0, x1, y0, y1, z0, z1), obj)
+
+
+# Print atlas regions, pixels in a 1024 canvas with a top-left origin: (x0, y0, x1, y1).
+CETAK = 1024
+R_BOARD = (0, 0, 1024, 512)
+R_CAL = (0, 512, 384, 1024)
+R_SCREEN = (384, 512, 768, 800)
+R_CARD = [(384 + 64 * i, 896, 448 + 64 * i, 1024) for i in range(6)]
+R_BACK = (768, 896, 832, 1024)
+
+
+def decal(faces, region, normal, right, up, obj="Cetak"):
+    """Map `region` onto the face pointing along `normal` (seen with `right`/`up` as the image
+    axes); every other face samples the region's border pixel."""
+    x0, y0, x1, y1 = region
+    u0, u1 = x0 / CETAK, x1 / CETAK
+    vb, vt = 1 - y1 / CETAK, 1 - y0 / CETAK
+    edge = (u0 + 1.5 / CETAK, vb + 1.5 / CETAK)
+    normal, right, up = Vector(normal), Vector(right), Vector(up)
+    front = [f for f in faces if (f.normal_update() or True) and f.normal.dot(normal) > 0.9]
+    cos = [v.co for f in front for v in f.verts]
+    rs, us = [c.dot(right) for c in cos], [c.dot(up) for c in cos]
+    rmin, rmax, umin, umax = min(rs), max(rs), min(us), max(us)
+
+    def fn(f, loop):
+        if f not in front:
+            return edge
+        a = (loop.vert.co.dot(right) - rmin) / (rmax - rmin)
+        b = (loop.vert.co.dot(up) - umin) / (umax - umin)
+        return (u0 + a * (u1 - u0), vb + b * (vt - vb))
+
+    _fix(bm_for(obj), faces, fn)
 
 
 def post(x, y, z_top, footing=True):
@@ -117,6 +211,91 @@ def post(x, y, z_top, footing=True):
         box("Plester", x - BASE / 2, x + BASE / 2, y - BASE / 2, y + BASE / 2, FLOOR, BASE_TOP)
     z0 = BASE_TOP if footing else FLOOR
     box("Tiang", x - POST / 2, x + POST / 2, y - POST / 2, y + POST / 2, z0, z_top)
+
+
+def build_props(table_top, table):
+    """Lived-in clutter: CRT TV, water dispenser, gaple cards, Hijri calendar, night-watch
+    roster on a whiteboard, ceiling fan."""
+    wall_in = -PY + 1.0  # inner face of the back wall (faces +Y)
+    side_in = PX - 1.0  # inner face of the right side wall (faces -X)
+
+    # --- CRT TV on a low cabinet in the back-right corner, facing the open front
+    cab = (8.8, 11.6, wall_in + 0.1, wall_in + 2.3)
+    cab_top = FLOOR + 2.4
+    box("Kayu", cab[0], cab[1], cab[2], cab[3], FLOOR, cab_top)
+    sbox("tinta", cab[0] + 0.2, cab[1] - 0.2, cab[3], cab[3] + 0.04, FLOOR + 0.3, FLOOR + 1.1)  # open shelf
+    tv = (9.0, 11.4, wall_in + 0.3, wall_in + 2.1)
+    tz0, tz1 = cab_top, cab_top + 2.0
+    sbox("layar", tv[0], tv[1], tv[2], tv[3], tz0, tz1)  # casing
+    sbox("layar", tv[0] + 0.5, tv[1] - 0.5, wall_in + 0.05, tv[2], tz0 + 0.3, tz1 - 0.4)  # tube hump
+    decal(box("Cetak", tv[0] + 0.15, tv[0] + 1.75, tv[3], tv[3] + 0.05, tz0 + 0.45, tz1 - 0.35), R_SCREEN, (0, 1, 0), (-1, 0, 0), (0, 0, 1))
+    for kz in (tz1 - 0.6, tz1 - 1.05):
+        sbox("perak", tv[1] - 0.45, tv[1] - 0.2, tv[3], tv[3] + 0.12, kz - 0.12, kz + 0.12)  # knobs
+    sbox("tinta", tv[1] - 0.5, tv[1] - 0.15, tv[3], tv[3] + 0.02, tz0 + 0.2, tz0 + 0.75)  # speaker
+    ax, ay = (tv[0] + tv[1]) / 2, (tv[2] + tv[3]) / 2
+    sbox("perak", ax - 0.25, ax + 0.25, ay - 0.2, ay + 0.2, tz1, tz1 + 0.15)
+    for tip in ((ax - 0.9, ay - 0.1, tz1 + 1.25), (ax + 0.8, ay + 0.15, tz1 + 1.3)):
+        paint("perak", beam("Warna", (ax, ay, tz1 + 0.1), tip, 0.05, 0.05))
+
+    # --- water dispenser with an upside-down galon, back-left corner
+    dx0, dx1, dy0, dy1 = -11.7, -10.4, wall_in + 0.15, wall_in + 1.45
+    dz1 = FLOOR + 3.4
+    sbox("kertas", dx0, dx1, dy0, dy1, FLOOR, dz1)
+    sbox("tinta", dx0 + 0.25, dx1 - 0.25, dy1, dy1 + 0.04, FLOOR + 1.3, FLOOR + 2.5)  # tap recess
+    sbox("perak", dx0 + 0.25, dx1 - 0.25, dy1, dy1 + 0.3, FLOOR + 1.3, FLOOR + 1.4)  # drip tray
+    sbox("merah", dx0 + 0.35, dx0 + 0.55, dy1, dy1 + 0.22, FLOOR + 2.15, FLOOR + 2.35)  # hot
+    sbox("malam", dx1 - 0.55, dx1 - 0.35, dy1, dy1 + 0.22, FLOOR + 2.15, FLOOR + 2.35)  # cold
+    gx, gy = (dx0 + dx1) / 2, (dy0 + dy1) / 2
+    paint("galon", cylinder("Warna", (gx, gy, dz1 + 0.1), 0.3, 0.2, segments=10))
+    paint("galon", cylinder("Warna", (gx, gy, dz1 + 0.25), 0.55, 0.1, segments=12, r_top=0.62))
+    paint("galon", cylinder("Warna", (gx, gy, dz1 + 1.1), 0.62, 1.6, segments=12))
+    paint("galon", cylinder("Warna", (gx, gy, dz1 + 2.0), 0.62, 0.2, segments=12, r_top=0.45))
+
+    # --- gaple (domino) cards scattered over the table, plus a squared-up pile
+    x0, x1, y0, y1 = table
+    rng = np.random.default_rng(7)
+    cz = table_top
+    placed = []  # (x, y, layer)
+    for i in range(16):
+        cx, cy = rng.uniform(x0 + 0.6, x1 - 1.4), rng.uniform(y0 + 0.6, y1 - 0.6)
+        yaw = rng.uniform(0, math.pi)
+        rot = Matrix.Rotation(yaw, 3, "Z")
+        # a card that overlaps earlier ones lies one card-thickness above the highest of them
+        under = [layer for (px, py, layer) in placed if math.hypot(px - cx, py - cy) < 1.02]
+        layer = max(under) + 1 if under else 0
+        placed.append((cx, cy, layer))
+        z = cz + 0.015 + layer * 0.031
+        faces = obox("Cetak", (cx, cy, z), (0.45, 0.9, 0.03), yaw)
+        region = R_CARD[i % 6] if rng.random() < 0.7 else R_BACK
+        decal(faces, region, (0, 0, 1), rot @ Vector((1, 0, 0)), rot @ Vector((0, 1, 0)))
+    pile = obox("Cetak", (x1 - 0.7, y1 - 0.8, cz + 0.13), (0.45, 0.9, 0.26), 0.15)
+    rot = Matrix.Rotation(0.15, 3, "Z")
+    decal(pile, R_BACK, (0, 0, 1), rot @ Vector((1, 0, 0)), rot @ Vector((0, 1, 0)))
+
+    # --- Hijri wall calendar on the right side wall (faces -X)
+    decal(box("Cetak", side_in - 0.05, side_in, -3.6, -2.1, 4.5, 6.5), R_CAL, (-1, 0, 0), (0, -1, 0), (0, 0, 1))
+    sbox("tinta", side_in - 0.08, side_in, -2.9, -2.8, 6.5, 6.75)  # nail and string
+
+    # --- whiteboard with the night-watch roster (jadwal piket ronda) on the back wall (faces +Y)
+    bx0, bx1, bz0, bz1 = 2.2, 6.8, 4.4, 6.6
+    sbox("perak", bx0 - 0.12, bx1 + 0.12, wall_in, wall_in + 0.12, bz0 - 0.12, bz1 + 0.12)
+    decal(box("Cetak", bx0, bx1, wall_in + 0.12, wall_in + 0.16, bz0, bz1), R_BOARD, (0, 1, 0), (-1, 0, 0), (0, 0, 1))
+    sbox("perak", bx0 + 0.4, bx1 - 0.4, wall_in + 0.12, wall_in + 0.4, bz0 - 0.22, bz0 - 0.12)  # tray
+    sbox("malam", bx1 - 1.3, bx1 - 0.8, wall_in + 0.2, wall_in + 0.32, bz0 - 0.12, bz0 - 0.02)  # marker
+
+    # --- ceiling fan; the blades are their own MeshPart (PosRonda_KipasBaling) so Studio can spin
+    # them about their pivot, which is the fan axis
+    fx, fy = 0.0, -1.5
+    paint("perak", cylinder("Warna", (fx, fy, CEIL - 0.1), 0.35, 0.2, segments=12))
+    sbox("perak", fx - 0.07, fx + 0.07, fy - 0.07, fy + 0.07, CEIL - 1.0, CEIL - 0.2)
+    paint("kertas", cylinder("Warna", (fx, fy, CEIL - 1.2), 0.55, 0.45, segments=14, r_top=0.42))
+    paint("perak", cylinder("Warna", (fx, fy, CEIL - 1.5), 0.22, 0.15, segments=10))
+    for k in range(4):
+        a = k * math.pi / 2
+        d = Vector((math.cos(a), math.sin(a), 0))
+        root = Vector((fx, fy, CEIL - 1.25))
+        paint("perak", beam("KipasBaling", root + d * 0.3, root + d * 0.9, 0.18, 0.08), "KipasBaling")
+        paint("bambu", beam("KipasBaling", root + d * 0.8, root + d * 2.7, 0.55, 0.06), "KipasBaling")
 
 
 def roof_z(y):
@@ -258,6 +437,8 @@ def build_geometry():
     cylinder("Kayu", (0, lamp_y, CEIL - 1.15), 0.55, 0.3, segments=12, r_top=0.15)
     sphere("Lampu", (0, lamp_y, CEIL - 1.5), 0.3)
 
+    build_props(top_z, (tx0, tx1, ty0, ty1))
+
     # --- kentongan (bamboo slit drum) hanging on the right inner front post
     kx, ky = 5.6 + POST / 2 + 0.45, front_y
     box("Kayu", kx - 0.03, kx + 0.03, ky - 0.03, ky + 0.03, 7.9, 8.6)
@@ -272,12 +453,16 @@ def build_geometry():
 def compute_uvs(bm):
     bm.normal_update()
     uv = bm.loops.layers.uv.verify()
-    cos = [v.co for v in bm.verts]
+    fixed = bm.faces.layers.int["fixed"]
+    free = [f for f in bm.faces if not f[fixed]]
+    if not free:
+        return 1.0
+    cos = [v.co for f in free for v in f.verts]
     cx = (min(c.x for c in cos) + max(c.x for c in cos)) / 2
     cy = (min(c.y for c in cos) + max(c.y for c in cos)) / 2
     zmin = min(c.z for c in cos)
     raw, span = [], 0.0
-    for f in bm.faces:
+    for f in free:
         n = f.normal
         for loop in f.loops:
             co = loop.vert.co
@@ -446,6 +631,210 @@ def tex_lampu(res, size):
     return np.ones((res, res, 3)) * P["senja"]
 
 
+def tex_warna(res, size):
+    """4 x 4 swatch atlas (SWATCHES), each cell one flat palette colour with a little grain."""
+    canvas = np.zeros((res, res, 3))
+    cell = res // 4
+    grain = 0.96 + 0.08 * fbm(res, res, 16, 16, 3, 121)
+    for i, token in enumerate(SWATCHES):
+        r, c = i // 4, i % 4
+        canvas[r * cell : (r + 1) * cell, c * cell : (c + 1) * cell] = swatch_rgb(token)
+    return np.flipud(canvas * grain[..., None])
+
+
+# ---- print atlas: tiny raster drawing helpers on a top-left canvas ----------------------------
+DIGITS = {
+    "0": ("111", "101", "101", "101", "111"),
+    "1": ("010", "110", "010", "010", "111"),
+    "2": ("111", "001", "111", "100", "111"),
+    "3": ("111", "001", "111", "001", "111"),
+    "4": ("101", "101", "111", "001", "001"),
+    "5": ("111", "100", "111", "001", "111"),
+    "6": ("111", "100", "111", "101", "111"),
+    "7": ("111", "001", "001", "001", "001"),
+    "8": ("111", "101", "111", "101", "111"),
+    "9": ("111", "101", "111", "001", "111"),
+}
+
+
+def rect(c, x0, y0, x1, y1, rgb):
+    c[int(y0) : int(y1), int(x0) : int(x1)] = rgb
+
+
+def disc(c, cx, cy, r, rgb):
+    y0, y1 = int(max(0, cy - r - 1)), int(min(c.shape[0], cy + r + 2))
+    x0, x1 = int(max(0, cx - r - 1)), int(min(c.shape[1], cx + r + 2))
+    if y1 <= y0 or x1 <= x0:
+        return
+    yy, xx = np.mgrid[y0:y1, x0:x1]
+    m = (xx - cx) ** 2 + (yy - cy) ** 2 <= r * r
+    c[y0:y1, x0:x1][m] = rgb
+
+
+def ring(c, cx, cy, r, w, rgb):
+    y0, y1 = int(max(0, cy - r - 1)), int(min(c.shape[0], cy + r + 2))
+    x0, x1 = int(max(0, cx - r - 1)), int(min(c.shape[1], cx + r + 2))
+    if y1 <= y0 or x1 <= x0:
+        return
+    yy, xx = np.mgrid[y0:y1, x0:x1]
+    d = np.sqrt((xx - cx) ** 2 + (yy - cy) ** 2)
+    c[y0:y1, x0:x1][(d <= r) & (d >= r - w)] = rgb
+
+
+def line(c, x0, y0, x1, y1, w, rgb):
+    n = int(max(abs(x1 - x0), abs(y1 - y0)) / max(1.0, w * 0.4)) + 1
+    for t in np.linspace(0, 1, n):
+        disc(c, x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, w / 2, rgb)
+
+
+def number(c, x, y, text, px, rgb):
+    for k, ch in enumerate(text):
+        for r, row in enumerate(DIGITS[ch]):
+            for q, bit in enumerate(row):
+                if bit == "1":
+                    rect(c, x + k * 4 * px + q * px, y + r * px, x + k * 4 * px + (q + 1) * px, y + (r + 1) * px, rgb)
+
+
+def scribble(c, x, y, w, h, rgb, rng, width=3):
+    """Illegible handwriting: one marker stroke that wobbles like a word."""
+    xs = np.linspace(x, x + w, max(8, int(w / 5)))
+    phase, freq = rng.uniform(0, 6), rng.uniform(0.18, 0.3)
+    ys = y + h / 2 + (h / 2) * np.sin(xs * freq + phase) * (0.5 + 0.5 * np.sin(xs * 0.05 + phase))
+    for a in range(len(xs) - 1):
+        line(c, xs[a], ys[a], xs[a + 1], ys[a + 1], width, rgb)
+
+
+def draw_board(c, rng):
+    x0, y0, x1, y1 = R_BOARD
+    rect(c, x0, y0, x1, y1, P["kertas"])
+    ink, red, green = P["malam"], P["merah"], P["daun"]
+    # title: crescent moon and star, then a long red heading stroke
+    disc(c, 190, 62, 30, ink)
+    disc(c, 204, 52, 27, P["kertas"])
+    disc(c, 236, 40, 6, P["kunyit"])
+    scribble(c, 270, 40, 330, 40, red, rng, width=6)
+    scribble(c, 620, 44, 180, 36, red, rng, width=6)
+    # table: header row + seven nights
+    gx = [60, 250, 600, 900, 964]
+    gy = [120 + 46 * k for k in range(9)]
+    for gxx in gx:
+        line(c, gxx, gy[0], gxx, gy[-1], 4, ink)
+    for gyy in gy:
+        line(c, gx[0], gyy, gx[-1], gyy, 4, ink)
+    for k in range(3):
+        scribble(c, gx[k] + 25, gy[0] + 10, gx[k + 1] - gx[k] - 60, 24, red, rng, width=4)
+    for r in range(7):
+        top = gy[r + 1] + 11
+        scribble(c, gx[0] + 20, top, 120 + rng.uniform(-20, 30), 22, P["tinta"], rng)
+        scribble(c, gx[1] + 20, top, 140 + rng.uniform(0, 70), 22, ink, rng)
+        scribble(c, gx[1] + 200, top, 100 + rng.uniform(0, 60), 22, ink, rng)
+        scribble(c, gx[2] + 20, top, 120 + rng.uniform(0, 90), 22, ink, rng)
+        if r < 4:  # nights already done get a tick
+            cx, cy = gx[3] + 32, gy[r + 1] + 23
+            line(c, cx - 14, cy, cx - 4, cy + 10, 5, green)
+            line(c, cx - 4, cy + 10, cx + 16, cy - 12, 5, green)
+    # border so the panel edges read as the frame
+    for w in range(6):
+        c[y0 + w, x0:x1] = c[y1 - 1 - w, x0:x1] = swatch_rgb("perak")
+        c[y0:y1, x0 + w] = c[y0:y1, x1 - 1 - w] = swatch_rgb("perak")
+
+
+def draw_calendar(c):
+    x0, y0, x1, y1 = R_CAL
+    paper = P["kertas"]
+    rect(c, x0, y0, x1, y1, paper)
+    rect(c, x0, y0, x1, y0 + 18, P["merah"])  # binding strip
+    disc(c, x0 + 192, y0 + 9, 5, P["tinta"])
+    # header: green panel, gold crescent and mosque, Hijri year 1448
+    hy0, hy1 = y0 + 18, y0 + 190
+    rect(c, x0, hy0, x1, hy1, P["daun"])
+    gold = P["kunyit"]
+    disc(c, x0 + 80, hy0 + 70, 40, gold)
+    disc(c, x0 + 96, hy0 + 60, 37, P["daun"])
+    disc(c, x0 + 250, hy0 + 108, 46, gold)  # dome
+    rect(c, x0 + 204, hy0 + 108, x0 + 296, hy0 + 160, gold)
+    rect(c, x0 + 236, hy0 + 128, x0 + 264, hy0 + 160, P["daun"])  # door
+    for mx in (x0 + 180, x0 + 308):
+        rect(c, mx, hy0 + 70, mx + 14, hy0 + 160, gold)  # minarets
+        disc(c, mx + 7, hy0 + 66, 9, gold)
+    line(c, x0 + 250, hy0 + 40, x0 + 250, hy0 + 64, 4, gold)
+    number(c, x0 + 40, hy0 + 128, "1448", 6, P["kertas"])
+    # month grid: November 2026 starts on a Sunday; Sundays red, Fridays green, today ringed
+    gx0, gy0, cw, ch = x0 + 12, hy1 + 22, (x1 - x0 - 24) / 7, 60
+    for col in range(7):
+        tone = P["merah"] if col == 0 else P["daun"] if col == 5 else P["tinta_lembut"]
+        rect(c, gx0 + col * cw + 3, hy1 + 6, gx0 + (col + 1) * cw - 3, hy1 + 16, tone)
+    for day in range(1, 31):
+        col, row = (day - 1) % 7, (day - 1) // 7
+        tone = P["merah"] if col == 0 else P["daun"] if col == 5 else P["tinta"]
+        cx, cy = gx0 + col * cw, gy0 + row * ch
+        number(c, cx + 6, cy + 8, str(day), 4, tone)
+        hijri = 20 + day if day <= 10 else day - 10  # 21 Jumada I .. 20 Jumada II 1448
+        number(c, cx + cw - 4 - 4 * 2 * len(str(hijri)), cy + 42, str(hijri), 2, P["daun"])
+        if day == 23:
+            ring(c, cx + cw / 2 - 2, cy + 25, 27, 4, P["merah"])
+
+
+def draw_screen(c):
+    x0, y0, x1, y1 = R_SCREEN
+    w, h = x1 - x0, y1 - y0
+    yy, xx = np.mgrid[0:h, 0:w].astype(np.float64)
+    t = yy / h
+    img = mix(P["malam"], P["indigo"], t)  # evening sky
+    hill = yy > h * (0.62 - 0.1 * np.sin(xx / w * math.pi * 1.6))
+    img = np.where(hill[..., None], mix(P["daun"], P["tinta"], 0.45), img)
+    moon = (xx - w * 0.72) ** 2 + (yy - h * 0.3) ** 2 < (h * 0.09) ** 2
+    img = np.where(moon[..., None], P["senja"], img)
+    scan = 1 - 0.18 * ((yy % 4) < 1)
+    nx, ny = (xx / w - 0.5) * 2, (yy / h - 0.5) * 2
+    vignette = np.clip(1 - 0.55 * (nx**4 + ny**4), 0.15, 1)
+    glare = 0.25 * smoothstep(0.75, 0.0, np.abs((xx / w + yy / h) - 0.7) * 4)
+    img = img * (scan * vignette)[..., None] * 0.8 + glare[..., None]
+    c[y0:y1, x0:x1] = img
+    bezel = (np.abs(nx) > 0.94) | (np.abs(ny) > 0.92)
+    c[y0:y1, x0:x1][bezel] = swatch_rgb("layar")
+
+
+PIPS = {
+    0: [],
+    1: [(0.5, 0.5)],
+    2: [(0.27, 0.27), (0.73, 0.73)],
+    3: [(0.27, 0.27), (0.5, 0.5), (0.73, 0.73)],
+    4: [(0.27, 0.27), (0.73, 0.27), (0.27, 0.73), (0.73, 0.73)],
+    5: [(0.27, 0.27), (0.73, 0.27), (0.5, 0.5), (0.27, 0.73), (0.73, 0.73)],
+    6: [(0.27, 0.22), (0.73, 0.22), (0.27, 0.5), (0.73, 0.5), (0.27, 0.78), (0.73, 0.78)],
+}
+
+
+def draw_cards(c):
+    for (x0, y0, x1, y1), (a, b) in zip(R_CARD, ((6, 6), (3, 5), (1, 4), (2, 2), (0, 6), (5, 1))):
+        rect(c, x0, y0, x1, y1, P["kertas"])
+        w = x1 - x0
+        line(c, x0 + 8, y0 + w, x1 - 8, y0 + w, 3, P["tinta_lembut"])
+        for half, n in ((0, a), (1, b)):
+            for px, py in PIPS[n]:
+                tone = P["merah"] if n in (1, 4) else P["tinta"]
+                disc(c, x0 + px * w, y0 + half * w + py * w, 6, tone)
+    x0, y0, x1, y1 = R_BACK
+    back = c[y0:y1, x0:x1]  # draw in a view so the lattice cannot spill onto the faces
+    w, h = x1 - x0, y1 - y0
+    rect(back, 0, 0, w, h, P["merah"])
+    for k in range(-4, 8):
+        line(back, k * 16, 0, k * 16 + 60, h, 2, P["kertas"])
+    for side in ((0, 0, w, 4), (0, h - 4, w, h), (0, 0, 4, h), (w - 4, 0, w, h)):
+        rect(back, *side, P["kertas"])
+
+
+def tex_cetak(res, size):
+    c = np.zeros((CETAK, CETAK, 3)) + P["tinta"]
+    rng = np.random.default_rng(131)
+    draw_board(c, rng)
+    draw_calendar(c)
+    draw_screen(c)
+    draw_cards(c)
+    return np.flipud(c)
+
+
 MATERIALS = {
     # name: (texture fn, resolution, roughness)
     "Seng": (tex_seng, 1024, 0.45),
@@ -459,7 +848,11 @@ MATERIALS = {
     "Bambu": (tex_bambu, 512, 0.75),
     "PapanNama": (tex_papan_nama, 512, 0.75),
     "Lampu": (tex_lampu, 64, 0.4),
+    "Warna": (tex_warna, 256, 0.6),
+    "Cetak": (tex_cetak, 1024, 0.5),
 }
+# objects that reuse another object's texture (same image, so one upload in Roblox)
+SHARED = {"KipasBaling": "Warna"}
 
 
 def save_texture(name, arr):
@@ -508,14 +901,18 @@ def main():
     )
 
     report = {}
+    mats = {}
     coll = bpy.data.collections.new(NAME)
     scene.collection.children.link(coll)
     for name, bm in BMS.items():
         bmesh.ops.translate(bm, vec=off, verts=bm.verts)
         bmesh.ops.triangulate(bm, faces=bm.faces[:])
         size = compute_uvs(bm)
-        fn, res, rough = MATERIALS[name]
-        mat = make_material(name, save_texture(name, fn(res, size)), rough)
+        tex_name = SHARED.get(name, name)
+        if tex_name not in mats:
+            fn, res, rough = MATERIALS[tex_name]
+            mats[tex_name] = make_material(tex_name, save_texture(tex_name, fn(res, size)), rough)
+        mat = mats[tex_name]
         mesh = bpy.data.meshes.new(f"{NAME}_{name}")
         bm.to_mesh(mesh)
         bm.free()

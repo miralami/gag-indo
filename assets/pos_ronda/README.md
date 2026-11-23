@@ -10,17 +10,36 @@ ventilation blocks (roster), timber slat screens above the side walls, a bench w
 table and chair, a notice board with papers, a hanging bulb and a cardboard box. A kentongan (bamboo
 slit drum) hangs on the right inner post; it is not in the photo, but every pos ronda has one.
 
+Lived-in clutter added on Willy's request: a CRT TV with rabbit-ear antenna on a low cabinet, a
+water dispenser with an upside-down galon, gaple (domino) cards scattered over the table with a
+squared-up pile, a Hijri wall calendar, the night-watch roster (jadwal piket ronda) on a
+whiteboard, and a four-blade ceiling fan.
+
 | Front | Three-quarter | Inside | Back |
 |---|---|---|---|
 | ![front](preview/pos_ronda_front.jpg) | ![34](preview/pos_ronda_34.jpg) | ![inside](preview/pos_ronda_inside.jpg) | ![back](preview/pos_ronda_back.jpg) |
 
+| TV, calendar, whiteboard, fan | Gaple on the table | Dispenser and notice board |
+|---|---|---|
+| ![props](preview/pos_ronda_props.jpg) | ![meja](preview/pos_ronda_meja.jpg) | ![dinding](preview/pos_ronda_dinding.jpg) |
+
 The blue figure in the renders is 5.5 studs tall (avatar scale). It is not part of the asset.
 
-## The sign has no baked text
+## No baked words
 
-Player text lives in `src/shared/Strings.luau`, so the board is blank. `PosRonda_PapanNama` is the
-board's plank panel; give it a `SurfaceGui` on its Front face with a `TextLabel` showing
-`Strings.jail_title` (`id` "POS RONDA", `en` "GUARD POST"), white text, `tinta` stroke.
+Player text lives in `src/shared/Strings.luau` with `id` and `en`, so no texture carries words:
+
+- The sign board is blank. `PosRonda_PapanNama` is the board's plank panel; give it a `SurfaceGui`
+  on its Front face with a `TextLabel` showing `Strings.jail_title` (`id` "POS RONDA", `en`
+  "GUARD POST"), white text, `tinta` stroke.
+- The whiteboard roster is illegible marker scribble in a table (header, seven nights, ticks for
+  the nights already done) under a crescent moon. It reads as a schedule without words.
+- The calendar uses digits only: November 2026 (starts on a Sunday; Sundays red, Fridays green,
+  the 23rd ringed), the Hijri day under each date (21 Jumada I to 20 Jumada II), and 1448 under a
+  gold crescent and mosque. Digits are a 3 x 5 pixel font drawn by the script.
+
+If the designer wants readable names on the roster, the cleanest route is a `SurfaceGui` on the
+whiteboard with new `Strings.luau` keys, not baked text.
 
 ## Palette
 
@@ -38,6 +57,8 @@ values from `src/shared/Config/Visuals.luau`.
 | `Bambu` slats, chair, notice board, kentongan, box | `bambu` |
 | `PapanNama` sign panel | `tinta-lembut` warmed toward `bambu` |
 | `Lampu` bulb | `senja` |
+| `Warna` small props (TV casing, knobs, antenna, dispenser, galon, fan motor), `KipasBaling` fan blades | 4 x 4 swatch atlas: one flat palette colour per cell, plus three blends (galon `malam`/`kertas`, chrome `kertas`/`indigo`, screen glass `tinta`/`indigo`) |
+| `Cetak` print atlas: whiteboard, calendar, TV picture, gaple faces and back | palette colours only (`kertas`, `malam`, `merah`, `daun`, `kunyit`, `tinta`, `senja`, `indigo`) |
 
 ## Numbers
 
@@ -45,8 +66,8 @@ values from `src/shared/Config/Visuals.luau`.
   8.9 above the floor, sign top 15.7.
 - Units: 1 Blender unit = 1 stud. Ground at z = 0, footprint centred on the origin. The open front
   faces Blender +Y, which the exporter maps to Roblox **-Z** (identity CFrame LookVector).
-- 1,532 triangles in 11 meshes, one material and texture each. All UVs inside 0..1, no n-gons,
-  every piece closed.
+- 2,408 triangles in 14 meshes (14 MeshParts), 13 textures: `KipasBaling` shares the `Warna`
+  atlas. All UVs inside 0..1, no n-gons, every piece closed.
 - Export: FBX, Path Mode Copy, Embed Textures, FBX Unit Scale, no leaf bones, no baked animation
   (`docs/v2/plan/TOOLS.md` §2).
 
@@ -64,4 +85,7 @@ blender --background assets/pos_ronda/pos_ronda.blend --python assets/pos_ronda/
    `Hijau`, `Plafon`, `Lampu` can be `CanCollide = false`.
 3. Add the sign `SurfaceGui` (above) and, for the night look, a warm `PointLight` (range 12 or less)
    in `PosRonda_Lampu`.
-4. Record the uploaded asset ID in `docs/v2/visual/art/ASSET_MANIFEST.md` (row `model.kit.pos_ronda`).
+4. Optional: spin the fan. `PosRonda_KipasBaling` is only the blades, and its pivot is the fan
+   axis (the four blades are symmetric), so rotating its CFrame about its own Y axis in a client
+   script turns it in place. Keep it `CanCollide = false`.
+5. Record the uploaded asset ID in `docs/v2/visual/art/ASSET_MANIFEST.md` (row `model.kit.pos_ronda`).

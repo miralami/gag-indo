@@ -128,8 +128,9 @@ return function(t, Env)
 		end)
 
 		-- A designer cell is blank (undecided), "pending — ...", the item-110 cultural-review flag
-		-- "needs designer review: cultural content", or a designer verdict starting with **yes /
-		-- **no** (recorded from the designer's own answer, 2026-11-19 round-2 review).
+		-- "needs designer review: cultural content", a designer verdict starting with **yes /
+		-- **no**, or "designer YYYY-MM-DD: ..." (owner's dated verdict, e.g. 2026-11-23 sprint-2
+		-- re-review).
 		t:it("keeps every designer yes/no cell blank, pending or a designer verdict", function()
 			local tables = parseTables(src)
 			local checked = 0
@@ -144,6 +145,7 @@ return function(t, Env)
 							or string.sub(cell, 1, #"needs designer review") == "needs designer review"
 							or string.sub(cell, 1, 5) == "**yes"
 							or string.sub(cell, 1, 6) == "**no**"
+							or string.match(cell, "^designer %d%d%d%d%-%d%d%-%d%d:") ~= nil
 						expect(ok):toBe(true)
 					end
 				end

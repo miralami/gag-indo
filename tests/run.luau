@@ -230,6 +230,7 @@ local specs = {
 	require("./specs/paths_curved_r10_spec"),
 	require("./specs/horizon_fill_r10_spec"),
 	require("./specs/mountains_r10_spec"),
+	require("./specs/mountains_bluegreen_spec"),
 	require("./specs/hill_dressing_r10_spec"),
 	require("./specs/kampung_r10_spec"),
 	require("./specs/road_fence_r10_spec"),

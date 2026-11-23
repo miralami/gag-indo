@@ -1,10 +1,10 @@
 --!strict
 -- LookDevMountainsR10: SERVER-ONLY applier for the OFF-BY-DEFAULT "mountains_r10" candidate
--- (WORK_QUEUE item 198 lane 2). Stages five far-field wedge/ball mountains plus one faint smoke
--- ball in an anchored, non-collidable Folder. All geometry and colour values come from
--- Shared.ModelMapMountainsR10; no asset IDs or visual verdict live here. No existing property is
--- overwritten, so restore is LIFO destruction of only the instances created here. apply/restore
--- are idempotent and pcall-guarded throughout.
+-- (WORK_QUEUE item 243 redo). Stages ten far-field blue-green Wedge/Cylinder silhouettes plus one
+-- faint smoke Cylinder in an anchored, non-collidable Folder. All geometry, colour and material
+-- values come from Shared.ModelMapMountainsR10; no asset IDs or visual verdict live here. No existing
+-- property is overwritten, so restore is LIFO destruction of only the instances created here.
+-- apply/restore are idempotent and pcall-guarded throughout.
 -- Enable from the Server command bar:
 --   require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("mountains_r10", game)
 
@@ -105,7 +105,7 @@ local function stageFolder(): any?
 end
 
 local function partShape(name: any): any?
-	if name ~= "Wedge" and name ~= "Ball" then
+	if name ~= "Wedge" and name ~= "Cylinder" then
 		fail("unknown shape " .. tostring(name))
 		return nil
 	end
@@ -119,14 +119,37 @@ local function partShape(name: any): any?
 	return shape
 end
 
+local function partMaterial(name: any): any?
+	local okMaterial, material = pcall(function()
+		return (Enum :: any).Material[name]
+	end)
+	if okMaterial and material then
+		return material
+	end
+	local okFallback, fallback = pcall(function()
+		return (Enum :: any).Material.SmoothPlastic
+	end)
+	if okFallback and fallback then
+		fail("could not resolve material " .. tostring(name) .. "; using SmoothPlastic")
+		return fallback
+	end
+	fail("could not resolve material " .. tostring(name))
+	return nil
+end
+
 local function stagePart(descriptor: any, parent: any)
 	local shape = partShape(descriptor and descriptor.shape)
 	if not shape then
 		return
 	end
+	local material = partMaterial(descriptor and descriptor.material)
+	if not material then
+		return
+	end
 	local okPart, part = pcall(function()
 		local instance = (Instance :: any).new("Part")
 		instance.Shape = shape
+		instance.Material = material
 		instance.Size = Vector3.new(descriptor.size[1], descriptor.size[2], descriptor.size[3])
 		instance.CFrame = CFrame.new(descriptor.position[1], descriptor.position[2], descriptor.position[3])
 		instance.Color = Color3.fromRGB(descriptor.color.r, descriptor.color.g, descriptor.color.b)

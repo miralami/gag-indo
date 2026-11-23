@@ -1,0 +1,56 @@
+CHECK 243 - redo mountains_r10 as layered blue-green silhouettes (WORK_QUEUE SPRINT 2 item 243)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2
+Place: Development-Juragan-Desa. Play only (Server VM checks). Place NOT saved, nothing published.
+Rojo-synced: repo src/ changes present in the live place.
+
+== Wiring ==
+src/shared/ModelMapMountainsR10.luau: old 5 descriptors (two grey-green SmoothPlastic Balls, one
+grey-white transparent Ball smoke) replaced with 10 layered blue-green Wedge/Cylinder silhouettes
+(3 back pale, 3 mid, 4 front dark) plus one translucent Cylinder crest puff. Every descriptor has
+an explicit `material`, no Ball, colour blue > red by >= 12, radius >= 450 studs. Load-time asserts
+enforce count >= 8, radius >= 450, Wedge/Cylinder, no Ball, no grey SmoothPlastic, blue-green spread.
+src/server/World/LookDevMountainsR10.luau: stagePart now applies Enum.Material[descriptor.material]
+(pcall with SmoothPlastic fallback); stage/restore behaviour unchanged (Mountain + LookDevStage
+attributes, CanCollide=false, CastShadow=false). Candidate only; default look untouched.
+tools/studio/check_q243.luau: self-contained SERVER-VM check; stages mountains_r10 with
+LookDevReview.enableAdditive and restores with disableAll() in the same call. No place save, no
+visual verdict. New data specs mountains_r10_spec (updated) + mountains_bluegreen_spec registered.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK SC243_MOUNTAINS PASS 0.8736 0.1000
+CHECK CAL_SC243_AWAY PASS 1 1
+CHECK MF243_MOUNTAIN_FAR PASS 0 0
+CHECK NC243_NO_COLLISION PASS 0 0
+CHECK NB243_NO_GREY_BALL PASS 0 0
+CHECK CAL_MF243_NEAR PASS 1 1
+CHECK CAL_NB243_GREY_BALL PASS 1 1
+CHECK CAL_NC243_COLLIDE PASS 1 1
+
+== Exact measured values ==
+- SC243_MOUNTAINS: SubjectCoverage.measure("mountains_r10", "horizon_north") -> ok true,
+  fraction 0.8735837805605248 (>= 0.10), 11 staged parts, 10 projected rects, 1677 samples,
+  1465 hits. Target NOT lowered. This is a geometric coverage floor, not a visual verdict.
+- MF243_MOUNTAIN_FAR: 0 staged Mountain parts with X^2+Z^2 < 450^2 (target 0).
+- NC243_NO_COLLISION: 0 staged Mountain parts with CanCollide == true (target 0).
+- NB243_NO_GREY_BALL: 0 staged candidate BaseParts that are a Ball or SmoothPlastic with an
+  8-bit colour spread < 18 (target 0).
+
+== Calibration / non-vacuity ==
+- CAL_SC243_AWAY: same staged candidate measured from "horizon_south" (camera looks away) -> ok
+  false, fraction 0.0000, reason "no projected rects"; PASS 1 1 (negation of the SC pass condition).
+- CAL_MF243_NEAR: injected 2-stud Mountain Part at the origin -> near count 1; destroyed in-call.
+- CAL_NB243_GREY_BALL: injected 2-stud grey (128,128,128) SmoothPlastic Ball tagged
+  LookDevStage="mountains_r10", Mountain=true -> offender count 1; destroyed in-call. This anchor
+  initially failed because the check compared tostring(Enum.PartType.Ball) == "Ball"; the runtime
+  string is "Enum.PartType.Ball". Fixed to compare Enum items directly (shape == Enum.PartType.Ball
+  and material == Enum.Material.SmoothPlastic) in tools/studio/check_q243.luau and re-run; no
+  check target changed. Same fix mirrored in the inlined Studio call.
+- CAL_NC243_COLLIDE: flipped one staged part's CanCollide to true -> colliding count 1, restored
+  in-call.
+
+Local validation: lune run tests/run.luau 3060 passed (3055->3060); selene src 0 errors / 0 warnings
+/ 0 parse errors; stylua --check clean on all changed/new Luau files. Designer verdict on
+mountains_r10 stays pending (sprint-1 "no, redo" is not a designer call); designer grades the
+S2-STOP re-shoot.
+Status: SEEN-IN-STUDIO.

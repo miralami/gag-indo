@@ -98,6 +98,10 @@ Item 242 (2026-11-23): the three canonical overview cameras now see a buried `Ho
   The main session reads that field and sets `Lighting.ClockTime = 21` for the shot, then restores the
   prior value. Game lighting defaults are unchanged. `tools/studio/check_q240.luau` does the same
   temporary set/restore before staging `lamps_r10`.
+- `mountains_r10` (item 243) now stages ten layered blue-green Wedge/Cylinder silhouettes behind
+  the north hill ring, framed from `horizon_north` (the `SUBJECT_COVERAGE >= 0.10` camera) and above
+  the village from `canonical_overview`. This is a data note only; the designer verdict cell in
+  `CANDIDATES.md` stays pending.
 - The registry requires MapSpec from `ServerScriptService.Server.World`, so load it from the Server
   datamodel or the Lune Env harness. The returned `datamodel` field is data for the shooter, not a
   promise that the module itself loads in both VMs.

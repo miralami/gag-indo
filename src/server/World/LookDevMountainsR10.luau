@@ -1,10 +1,10 @@
 --!strict
 -- LookDevMountainsR10: SERVER-ONLY applier for the OFF-BY-DEFAULT "mountains_r10" candidate
--- (WORK_QUEUE items 243 + 251). Stages twelve far-field blue-green stacked Wedge/Cylinder rock
--- silhouettes plus one faint smoke Cylinder in an anchored, non-collidable Folder. Rock/Slate only:
--- no Block shape and no SmoothPlastic fallback. All geometry, colour and material values come from
--- Shared.ModelMapMountainsR10; no asset IDs or visual verdict live here. No existing property is
--- overwritten, so restore is LIFO destruction of only the instances created here.
+-- (WORK_QUEUE items 243 + 251 + 260). Stages twelve blue-green Wedge rock ridges in three
+-- distance bands (|z| = 300, 450, 600) plus one faint smoke Cylinder in an anchored, non-collidable
+-- Folder. Rock/Slate only: no Block shape and no SmoothPlastic fallback. All geometry, colour and
+-- material values come from Shared.ModelMapMountainsR10; no asset IDs or visual verdict live here.
+-- No existing property is overwritten, so restore is LIFO destruction of only what was created here.
 -- apply/restore are idempotent and pcall-guarded throughout.
 -- Enable from the Server command bar:
 --   require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("mountains_r10", game)

@@ -1,7 +1,8 @@
 --!nocheck
--- WORK_QUEUE items 243 + 251: LUNE-ONLY pure-data contract for "mountains_r10".
--- Studio staging lives in check_q243.luau and check_q251.luau; LookDev IDS wiring belongs to the
--- main session. This spec asserts neither.
+-- WORK_QUEUE items 243 + 251 + 260: LUNE-ONLY pure-data contract for "mountains_r10".
+-- Item 260 replaces the old >=450 origin ring with three ridges at |z| = 300 / 450 / 600 and reads
+-- the spawn camera's upper-third horizon band for SKYLINE_COVER. Studio staging is check_q260.luau;
+-- this spec asserts neither that nor the LookDev IDS wiring.
 
 local fs = require("@lune/fs")
 
@@ -25,6 +26,7 @@ return function(t, Env)
 	local expect = t.expect
 	local env = Env.new()
 	local Data = env:require("shared/ModelMapMountainsR10")
+	local Veg = env:require("shared/ModelMapVegetationR7")
 	local MapSpec = env:require("server/World/MapSpec")
 	local pureSrc = fs.readFile("src/shared/ModelMapMountainsR10.luau")
 
@@ -39,6 +41,74 @@ return function(t, Env)
 		return math.sqrt(dx * dx + dy * dy + dz * dz)
 	end
 
+	local function unit(v)
+		local length = math.sqrt(v[1] ^ 2 + v[2] ^ 2 + v[3] ^ 2)
+		return { v[1] / length, v[2] / length, v[3] / length }
+	end
+
+	local function cross(a, b)
+		return {
+			a[2] * b[3] - a[3] * b[2],
+			a[3] * b[1] - a[1] * b[3],
+			a[1] * b[2] - a[2] * b[1],
+		}
+	end
+
+	-- AABB slab test: the live Studio check raycasts Wedge geometry, so this is a planning proxy,
+	-- not a substitute for the SEEN-IN-STUDIO SKYLINE_COVER line in CHECK_260.txt.
+	local function hitsAabb(eye, direction, descriptor)
+		local near, far = -math.huge, math.huge
+		for axis = 1, 3 do
+			local centre = descriptor.position[axis]
+			local half = descriptor.size[axis] / 2
+			local low, high = centre - half, centre + half
+			if math.abs(direction[axis]) < 1e-9 then
+				if eye[axis] < low or eye[axis] > high then
+					return false
+				end
+			else
+				local a, b = (low - eye[axis]) / direction[axis], (high - eye[axis]) / direction[axis]
+				if a > b then
+					a, b = b, a
+				end
+				near, far = math.max(near, a), math.min(far, b)
+				if near > far then
+					return false
+				end
+			end
+		end
+		return far > 0
+	end
+
+	local function skylineFraction(mountains)
+		local eye, look = Veg.savedCamera.eye, Veg.savedCamera.look
+		local forward = unit({ look[1] - eye[1], look[2] - eye[2], look[3] - eye[3] })
+		local right = unit(cross(forward, { 0, 1, 0 }))
+		local up = cross(right, forward)
+		local tanV = math.tan(math.rad(70) / 2)
+		local tanH = tanV * 16 / 9
+		local hits, samples = 0, 8 * 8
+		for iy = 0, 7 do
+			local ny = 0.20 + 0.25 * iy / 7
+			for ix = 0, 7 do
+				local nx = 0.02 + 0.96 * ix / 7
+				local sx, sy = (2 * nx - 1) * tanH, (1 - 2 * ny) * tanV
+				local direction = unit({
+					forward[1] + right[1] * sx + up[1] * sy,
+					forward[2] + right[2] * sx + up[2] * sy,
+					forward[3] + right[3] * sx + up[3] * sy,
+				})
+				for _, mountain in ipairs(mountains) do
+					if hitsAabb(eye, direction, mountain) then
+						hits += 1
+						break
+					end
+				end
+			end
+		end
+		return hits / samples
+	end
+
 	t:describe("mountains_r10 pure data", function()
 		t:it("stays pure: no engine calls and no undeclared big ID", function()
 			for _, token in ipairs({ "rbxassetid://", "game.", "Instance.new" }) do
@@ -51,9 +121,14 @@ return function(t, Env)
 			expect(Data.folderName):toBe("LookDevMountainsR10_mountains_r10")
 			expect(Data.PERF_TARGET):toBe(500)
 			expect(Data.PERF_RADIUS):toBe(100)
+			expect(Data.MIN_DISTANCE):toBe(250)
+			expect(serialize(Data.RIDGE_BANDS)):toBe(serialize({ 300, 450, 600 }))
+			expect(Data.BAND_TOLERANCE):toBe(60)
+			expect(Data.SKYLINE_MIN):toBe(0.15)
+			expect(Data.SKYLINE_MAX):toBe(0.40)
 		end)
 
-		t:it("places at least eight layered silhouettes on the far ring", function()
+		t:it("places at least eight ridges in exactly three distance bands", function()
 			local mountains = Data.MOUNTAINS
 			expect(type(mountains)):toBe("table")
 			expect(#mountains >= 8):toBe(true)
@@ -68,39 +143,56 @@ return function(t, Env)
 				expect(mountain.shape ~= "Ball"):toBe(true)
 				expect(type(mountain.material) == "string" and #mountain.material > 0):toBe(true)
 				local radius = math.sqrt(mountain.position[1] ^ 2 + mountain.position[3] ^ 2)
-				expect(radius >= 450):toBe(true)
-				expect(mountain.position[2] + mountain.size[2] / 2 >= 55):toBe(true)
-				expect(mountain.position[3] <= -700):toBe(true)
+				expect(radius >= Data.MIN_DISTANCE):toBe(true)
+				expect(mountain.position[2] + mountain.size[2] / 2 >= 25):toBe(true)
+				expect(mountain.position[3] <= -250):toBe(true)
 				expect(mountain.size[2] <= 240):toBe(true)
-				layers[mountain.position[3] <= -860 and "back" or mountain.position[3] <= -780 and "mid" or "front"] =
-					true
+				local band = nil
+				for _, centre in ipairs(Data.RIDGE_BANDS) do
+					if math.abs(math.abs(mountain.position[3]) - centre) <= Data.BAND_TOLERANCE then
+						band = centre
+						break
+					end
+				end
+				expect(band ~= nil):toBe(true)
+				layers[band] = true
 			end
-			expect(layers.back):toBe(true)
-			expect(layers.mid):toBe(true)
-			expect(layers.front):toBe(true)
+			local count = 0
+			for _, centre in ipairs(Data.RIDGE_BANDS) do
+				expect(layers[centre] == true):toBe(true)
+				count += 1
+			end
+			expect(count):toBe(3)
 			local tallPeaks = 0
 			for _, mountain in ipairs(mountains) do
-				if mountain.position[2] + mountain.size[2] / 2 >= 140 then
+				if mountain.position[2] + mountain.size[2] / 2 >= 100 then
 					tallPeaks += 1
 				end
 			end
 			expect(tallPeaks >= 3):toBe(true)
 		end)
 
-		t:it("keeps the horizon_north footprint inside the item-251 coverage ceiling", function()
-			-- Three pale crests plus three small feet fall inside the review frustum; the other
-			-- shelves and shoulders sit past its lateral edges. This keeps SC251_MAX <= 0.6 while
-			-- the far-mountain read survives. Analytic projection ~= 0.498 (Studio ~= 0.48).
-			local inFrame, footprint = 0, 0
+		t:it("keeps the spawn skyline cover inside 15..40 percent", function()
+			local fraction = skylineFraction(Data.MOUNTAINS)
+			expect(fraction >= Data.SKYLINE_MIN):toBe(true)
+			expect(fraction <= Data.SKYLINE_MAX):toBe(true)
+		end)
+
+		t:it("fades each ridge band lighter and bluer with distance", function()
+			local darkest, middle, palest = nil, nil, nil
 			for _, mountain in ipairs(Data.MOUNTAINS) do
-				if math.abs(mountain.position[1]) <= 400 then
-					inFrame += 1
-					footprint += mountain.size[1] * mountain.size[2]
+				if mountain.position[3] == -300 then
+					darkest = mountain.color
+				elseif mountain.position[3] == -450 then
+					middle = mountain.color
+				elseif mountain.position[3] == -600 then
+					palest = mountain.color
 				end
 			end
-			expect(inFrame <= 6):toBe(true)
-			expect(inFrame >= 3):toBe(true)
-			expect(footprint <= 100000):toBe(true)
+			expect(darkest ~= nil and middle ~= nil and palest ~= nil):toBe(true)
+			expect(darkest.r < middle.r and middle.r < palest.r):toBe(true)
+			expect(darkest.b < middle.b and middle.b < palest.b):toBe(true)
+			expect(palest.b - palest.r > darkest.b - darkest.r):toBe(true)
 		end)
 
 		t:it("uses explicit blue-green materials, never a grey SmoothPlastic Ball", function()
@@ -136,21 +228,16 @@ return function(t, Env)
 			expect(string.find(applierSrc, "Material.SmoothPlastic", 1, true) == nil):toBe(true)
 		end)
 
-		t:it("keeps every staged part >=250 studs from horizon_north and every spawn", function()
-			local eye = {
-				MapSpec.PLAZA.x,
-				MapSpec.GROUND_Y + MapSpec.TERRAIN_HALF / (MapSpec.S * MapSpec.S),
-				-(MapSpec.TERRAIN_HALF + MapSpec.TERRAIN_VOXEL * 2),
-			}
+		t:it("keeps every staged part >=250 studs from the spawn eye and player spawn", function()
+			local eye = Veg.savedCamera.eye
+			-- Item 260 measures the spawn review eye and the player spawn; item 251's
+			-- horizon_north eye sits inside the new 300-stud band and is superseded.
 			local references = { eye, { MapSpec.SPAWN.x, MapSpec.SPAWN.y, MapSpec.SPAWN.z } }
-			for _, spot in ipairs(MapSpec.NPC_SPOTS) do
-				references[#references + 1] = { spot.x, MapSpec.GROUND_Y, spot.z }
-			end
 			expect(#references >= 2):toBe(true)
 			for _, list in ipairs({ Data.mountainParts(), Data.smokeParts() }) do
 				for _, descriptor in ipairs(list) do
 					for _, reference in ipairs(references) do
-						expect(nearestDistance(reference, descriptor) >= 250):toBe(true)
+						expect(nearestDistance(reference, descriptor) >= Data.MIN_DISTANCE):toBe(true)
 					end
 				end
 			end
@@ -177,7 +264,7 @@ return function(t, Env)
 			expect(puff.shape):toBe("Cylinder")
 			expect(type(puff.transparency)):toBe("number")
 			expect(puff.transparency > 0 and puff.transparency < 1):toBe(true)
-			expect(math.sqrt(puff.position[1] ^ 2 + puff.position[3] ^ 2) >= 450):toBe(true)
+			expect(math.sqrt(puff.position[1] ^ 2 + puff.position[3] ^ 2) >= 250):toBe(true)
 			local peak = nil
 			for _, mountain in ipairs(Data.MOUNTAINS) do
 				if mountain.position[1] == puff.position[1] and mountain.position[3] == puff.position[3] then

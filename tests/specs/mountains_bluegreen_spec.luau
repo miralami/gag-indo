@@ -1,13 +1,15 @@
 --!nocheck
--- WORK_QUEUE items 243 + 251 data-only guard. Mountains must be far, layered blue-green rock shapes,
--- never a grey Ball, a Block or SmoothPlastic; the applier and SERVER-VM checks must keep their exact
--- targets. Studio measurement stays in tools/studio/check_q243.luau and check_q251.luau.
+-- WORK_QUEUE items 243 + 251 + 260 data-only guard. Mountains must be layered blue-green rock
+-- ridges at 300/450/600 studs, never a grey Ball, a Block or SmoothPlastic; the applier and
+-- SERVER-VM checks must keep their exact targets. Studio measurement stays in check_q243.luau,
+-- check_q251.luau and (for item 260) check_q260.luau.
 
 local fs = require("@lune/fs")
 
 local APPLIER = "src/server/World/LookDevMountainsR10.luau"
 local CHECK = "tools/studio/check_q243.luau"
 local CHECK_251 = "tools/studio/check_q251.luau"
+local CHECK_260 = "tools/studio/check_q260.luau"
 
 return function(t, Env)
 	local expect = t.expect
@@ -15,9 +17,10 @@ return function(t, Env)
 	local applierSrc = fs.readFile(APPLIER)
 	local checkSrc = fs.readFile(CHECK)
 	local check251Src = fs.readFile(CHECK_251)
+	local check260Src = fs.readFile(CHECK_260)
 
 	t:describe("item 243 blue-green mountain silhouettes", function()
-		t:it("exposes at least eight non-Ball silhouettes beyond the 450-stud far ring", function()
+		t:it("exposes at least eight non-Ball silhouettes beyond the 250-stud spawn floor", function()
 			expect(Data.id):toBe("mountains_r10")
 			expect(#Data.MOUNTAINS >= 8):toBe(true)
 			expect(#Data.mountainParts()):toBe(#Data.MOUNTAINS)
@@ -27,7 +30,30 @@ return function(t, Env)
 				expect(descriptor.shape ~= "Block"):toBe(true)
 				expect(descriptor.material == "Rock" or descriptor.material == "Slate"):toBe(true)
 				local radius = math.sqrt(descriptor.position[1] ^ 2 + descriptor.position[3] ^ 2)
-				expect(radius >= 450):toBe(true)
+				expect(radius >= Data.MIN_DISTANCE):toBe(true)
+			end
+		end)
+
+		t:it("exposes the exact item-260 ridge bands and skyline targets in pure data", function()
+			expect(Data.MIN_DISTANCE):toBe(250)
+			expect(#Data.RIDGE_BANDS):toBe(3)
+			expect(Data.RIDGE_BANDS[1]):toBe(300)
+			expect(Data.RIDGE_BANDS[2]):toBe(450)
+			expect(Data.RIDGE_BANDS[3]):toBe(600)
+			expect(Data.BAND_TOLERANCE):toBe(60)
+			expect(Data.SKYLINE_MIN):toBe(0.15)
+			expect(Data.SKYLINE_MAX):toBe(0.40)
+			local seen = {}
+			for _, descriptor in ipairs(Data.MOUNTAINS) do
+				expect(descriptor.shape == "Block"):toBe(false)
+				for _, band in ipairs(Data.RIDGE_BANDS) do
+					if math.abs(math.abs(descriptor.position[3]) - band) <= Data.BAND_TOLERANCE then
+						seen[band] = true
+					end
+				end
+			end
+			for _, band in ipairs(Data.RIDGE_BANDS) do
+				expect(seen[band] == true):toBe(true)
 			end
 		end)
 
@@ -114,6 +140,35 @@ return function(t, Env)
 			expect(check251Src:find("target.CanCollide = true", 1, true) ~= nil):toBe(true)
 			expect(check251Src:find("review.disableAll()", 1, true) ~= nil):toBe(true)
 			expect(check251Src:find("destroyInjected()", 1, true) ~= nil):toBe(true)
+		end)
+
+		t:it("keeps the exact item-260 SERVER-VM targets and non-vacuous FAIL anchors", function()
+			for _, name in ipairs({
+				"MOUNTAIN_DISTANCE",
+				"NO_BOX_MOUNTAIN",
+				"RIDGE_LAYERS",
+				"SKYLINE_COVER",
+				"CAL_RIDGE_LAYERS_FAIL",
+				"CAL_SKYLINE_COVER_FAIL",
+			}) do
+				expect(check260Src:find('"' .. name .. '"', 1, true) ~= nil):toBe(true)
+			end
+			expect(check260Src:find("MIN_DISTANCE = 250", 1, true) ~= nil):toBe(true)
+			expect(check260Src:find("RIDGE_BANDS = { 300, 450, 600 }", 1, true) ~= nil):toBe(true)
+			expect(check260Src:find("BAND_TOLERANCE = 60", 1, true) ~= nil):toBe(true)
+			expect(check260Src:find("SKYLINE_MIN = 0.15", 1, true) ~= nil):toBe(true)
+			expect(check260Src:find("SKYLINE_MAX = 0.40", 1, true) ~= nil):toBe(true)
+			expect(check260Src:find('SPAWN_CAMERA = "spawn"', 1, true) ~= nil):toBe(true)
+			expect(check260Src:find("Cameras.get, SPAWN_CAMERA", 1, true) ~= nil):toBe(true)
+			expect(check260Src:find("Enum.RaycastFilterType.Include", 1, true) ~= nil):toBe(true)
+			expect(check260Src:find("part.Shape == Enum.PartType.Block", 1, true) ~= nil):toBe(true)
+			expect(check260Src:find("aabbDistance(eye, part)", 1, true) ~= nil):toBe(true)
+			expect(check260Src:find("measureSkyline({})", 1, true) ~= nil):toBe(true)
+			expect(check260Src:find("CFrame.new(0, 30, -750)", 1, true) ~= nil):toBe(true)
+			expect(check260Src:find('SetAttribute("Mountain", true)', 1, true) ~= nil):toBe(true)
+			expect(check260Src:find("review.disableAll()", 1, true) ~= nil):toBe(true)
+			expect(check260Src:find("destroyInjected()", 1, true) ~= nil):toBe(true)
+			expect(check260Src:find("SUMMARY_Q260", 1, true) ~= nil):toBe(true)
 		end)
 	end)
 end

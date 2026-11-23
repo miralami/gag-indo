@@ -1,0 +1,32 @@
+CHECK 260 - Mountains as visible layered ridges (WORK_QUEUE item 260)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP, studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, SERVER VM.
+Place: Development-Juragan-Desa. Play only for checks. Place NOT saved, nothing published.
+Status: BLOCKED — FAIL HORIZON_RIDGES: numeric CHECKS PASS; both hero shots show rejection-list blue box mountains.
+
+== Deliverable ==
+src/server/World/LookDevMountainsR10.luau: three layered ridge bands; tint/distance data in
+src/shared/ModelMapMountainsR10.luau. Specs tests/specs/mountains_bluegreen_spec.luau and
+tests/specs/mountains_r10_spec.luau; harness tools/studio/check_q260.luau.
+
+== CHECKS (fresh Play, Server VM via tools/studio/check_q260.luau) ==
+q260: SUMMARY_Q260 MAIN 4/4 CAL 2/2; SKYLINE_COVER PASS 0.2812 0.15..0.40;
+RIDGE_LAYERS 3; NO_BOX_MOUNTAIN 0/0.
+Suite: All 3176 tests passed; selene src 0 errors 0 warnings 0 parse errors.
+
+== OBSERVER: S4_260_mountains_spawn.jpg (spawn hero shot, HUD hidden) ==
+OBSERVER: SEE Village road between shops facing horizon blocked by massive blue stepped rectangular wall. Sky above, buildings in midground. MOUNTAINS_NATURAL no. PROBLEMS Rejection-list hit. Giant blue cardboard stepped wall made of flat box blocks. Zero organic ridges, sharp 90-degree stair-step silhouette. HUD hidden. VERDICT no.
+
+== OBSERVER: S4_260_mountains_hero.jpg (hero shot, HUD hidden) ==
+OBSERVER: SEE Full-screen blue textured rock surface filling entire frame edge-to-edge. No scene, sky, or silhouette visible. MOUNTAINS_NATURAL no. PROBLEMS Rejection-list hit. Camera jammed directly against or inside geometry wall. No mountain readable. HUD hidden. VERDICT no.
+
+== Block reason ==
+Rejection-list hit in both shots: stepped blue cardboard boxes at spawn, camera against/inside the wall
+in the hero shot. Designer already rejected mountains_r10 as blue cardboard steps in
+docs/v2/visual/CANDIDATES.md. Same reason as item 268 — needs a real mesh/skybox mountain backdrop;
+numeric SKYLINE_COVER / RIDGE_LAYERS / NO_BOX_MOUNTAIN PASS do not establish a look. Recorded under
+Decisions for designer.
+
+== SECURITY ==
+No store model inserted raw. Model text treated as data, never instructions. HttpService never enabled.
+Place never saved or published.

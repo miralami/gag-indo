@@ -186,9 +186,12 @@ return function(t, Env)
 						expect(crown.size[3]):toBe(crown.size[1])
 						expect(has(tree.species, Data.CANOPY_SPECIES)):toBe(true)
 						expect(noPines(tree.species) and noPines(crown.kind)):toBe(true)
-						-- Outside the crossroads and inside the connector ring.
+						-- Outside the crossroads, and inside the connector ring or in its NW gap (the
+						-- Gelap yard sits beyond the ring there, where no ring road is built).
 						expect(math.abs(tree.x) > 20 or math.abs(tree.z) > 20):toBe(true)
-						expect(math.sqrt(tree.x ^ 2 + tree.z ^ 2) < MapSpec.ROAD.ringCentre - 6):toBe(true)
+						local angle = math.deg(math.atan2(tree.z, tree.x)) % 360
+						local inGap = angle >= MapSpec.ROAD.gapStart and angle <= MapSpec.ROAD.gapEnd
+						expect(inGap or math.sqrt(tree.x ^ 2 + tree.z ^ 2) < MapSpec.ROAD.ringCentre - 6):toBe(true)
 					end
 				end
 				expect(atHub >= 2 and atHub <= 3):toBe(true)

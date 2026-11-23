@@ -1,0 +1,13 @@
+STAGED=63
+[main 07c692f] SPRINT1 Q207: ditch water candidate
+ 63 files changed, 741 insertions(+), 60 deletions(-)
+ create mode 100644 docs/v2/evidence/h/2026-11-23-sprint1/CHECK_207.txt
+ create mode 100644 src/server/World/LookDevDitchWaterR10.luau
+ create mode 100644 src/shared/ModelMapDitchWaterR10.luau
+ create mode 100644 tests/specs/ditch_water_r10_spec.luau
+ create mode 100644 tools/studio/check_q207.luau
+HEAD=07c692f SPRINT1 Q207: ditch water candidate
+Current branch main is up to date.
+To https://github.com/miralami/gag-indo.git
+   b4564e4..07c692f  main -> main
+SYNC=0	0

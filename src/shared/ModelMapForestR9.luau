@@ -125,8 +125,8 @@ end
 -- and local +Z the door side. Pasar and Gelap sit in the dead-end alley, so Pasar uses its flanks and
 -- Gelap its far (north) side; Pos Ronda keeps off the watchtower on its north-west shoulder.
 local SHADE_OFFSETS: { [string]: { { number } } } = {
-	pasar = { { 39, -21 }, { 39, -5 }, { -37, -13 }, { -37, 0 } },
-	gelap = { { -10, -21 }, { 10, -21 }, { 0, -24 }, { -23, -7 } },
+	pasar = { { -57, -30 }, { -57, -10 }, { -57, 6 }, { -57, 20 } }, -- west flank of the 100 x 84 Pasar (2026-11-23)
+	gelap = { { -10, -25 }, { 10, -25 }, { 0, -28 }, { -25, -7 } },
 	warung = { { -13, -29 }, { 0, -29 }, { -33, -11 }, { 33, 0 } },
 	ronda = { { -29, -6 }, { -29, 2 }, { -29, 10 }, { 29, 0 } },
 	polisi = { { -12, -29 }, { 0, -29 }, { 31, 0 }, { 31, 6 } },

@@ -52,8 +52,8 @@ return function(t, Env)
 			end
 			local pasar = MapSpec.hub("pasar")
 			expect(pasar ~= nil):toBe(true)
-			expect(pasar.width):toBe(64)
-			expect(pasar.depth):toBe(52)
+			expect(pasar.width):toBe(100)
+			expect(pasar.depth):toBe(84)
 			expect(pasar.yaw):toBe(0)
 		end)
 
@@ -81,8 +81,8 @@ return function(t, Env)
 			expect(lane.depth):toBe(6)
 			expect(lane.lx - lane.width / 2):toBe(-38)
 			expect(lane.lx + lane.width / 2):toBe(38)
-			expect(lane.lz - lane.depth / 2):toBe(30)
-			expect(lane.lz + lane.depth / 2):toBe(36)
+			expect(lane.lz - lane.depth / 2):toBe(46)
+			expect(lane.lz + lane.depth / 2):toBe(52)
 			for _, stall in ipairs(stalls) do
 				local rotated = stall.yaw == 90 or stall.yaw == -90
 				local halfX = rotated and stall.size[2] / 2 or stall.size[1] / 2

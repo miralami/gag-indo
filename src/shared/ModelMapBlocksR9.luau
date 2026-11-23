@@ -57,7 +57,8 @@ ModelMapBlocksR9.BAND_MAX_RADIUS = 140
 ModelMapBlocksR9.MIN_BAND_TREES = 60
 ModelMapBlocksR9.BAND_TREE_TARGET = 64
 ModelMapBlocksR9.BAND_SHRUB_TARGET = 24
-ModelMapBlocksR9.BAND_RADII = { 100, 106, 112, 118, 124, 130, 136 }
+-- 94 and 88 come last: they only fill in what the 100 x 84 Pasar (2026-11-23) took out of the outer rings.
+ModelMapBlocksR9.BAND_RADII = { 100, 106, 112, 118, 124, 130, 136, 94, 88 }
 ModelMapBlocksR9.BAND_ANGLES = 160
 ModelMapBlocksR9.BAND_RADIUS_JITTER = 1.5
 ModelMapBlocksR9.BAND_LCG_SEED = 182

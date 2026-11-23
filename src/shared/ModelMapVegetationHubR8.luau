@@ -200,9 +200,18 @@ function ModelMapVegetationHubR8.slotAllowed(slot, zones)
 	return R5.slotAllowed(slot, zones) and ModelMapVegetationHubR8.clearOfLane(slot)
 end
 
-local RADII = {}
-for radius = ModelMapVegetationHubR8.RADIUS - 1, 15, -2 do
-	table.insert(RADII, radius)
+-- Scan radius per hub: the default 40-stud ring, or just outside the hub's own half-span when the hub
+-- is wider than that (the 100 x 84 Pasar). Every other hub keeps RADIUS and therefore its slots.
+function ModelMapVegetationHubR8.radiusFor(hub)
+	return math.max(ModelMapVegetationHubR8.RADIUS, math.ceil(math.max(hub.width, hub.depth) / 2 + 6))
+end
+
+local function radiiFor(hub)
+	local list = {}
+	for radius = ModelMapVegetationHubR8.radiusFor(hub) - 1, 15, -2 do
+		table.insert(list, radius)
+	end
+	return list
 end
 
 local TAU = math.pi * 2
@@ -235,7 +244,7 @@ local function buildSlots()
 	local function scan(hub, hubIndex, kind, wanted, footprint, spacing, seed)
 		local rand = lcg(seed + hubIndex * 17)
 		local found = {}
-		for _, radius in ipairs(RADII) do
+		for _, radius in ipairs(radiiFor(hub)) do
 			if #found >= wanted then
 				break
 			end
@@ -436,7 +445,7 @@ local function buildSlots()
 
 		-- Fill the rest with the original nine-species base layer.
 		local rand = lcg(8070 + hubIndex * 31)
-		for _, radius in ipairs(RADII) do
+		for _, radius in ipairs(radiiFor(hub)) do
 			if count >= ModelMapVegetationHubR8.TARGET_PER_HUB then
 				break
 			end
@@ -615,7 +624,7 @@ do
 		local seen = {}
 		for _, slot in ipairs(list) do
 			local dx, dz = slot.x - MapSpec.hub(hubKey).x, slot.z - MapSpec.hub(hubKey).z
-			if dx * dx + dz * dz > ModelMapVegetationHubR8.RADIUS ^ 2 then
+			if dx * dx + dz * dz > ModelMapVegetationHubR8.radiusFor(MapSpec.hub(hubKey)) ^ 2 then
 				error("hubveg_r8: " .. hubKey .. " slot outside radius")
 			end
 			seen[slot.species] = (seen[slot.species] or 0) + 1

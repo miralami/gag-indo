@@ -60,8 +60,8 @@ ModelMapHubPropsR8.ALLOWED_GENERATED = {
 -- Footprints copied from MapSpec.HUBS (width/depth/front edge). The applier still reads the live
 -- hub for yaw/x/z; these numbers only fix the local front row. `front` is depth / 2.
 ModelMapHubPropsR8.HUBS = {
-	pasar = { model = "Pasar", width = 64, depth = 52, front = 26 },
-	gelap = { model = "TengkulakGelap", width = 32, depth = 28, front = 14 },
+	pasar = { model = "Pasar", width = 100, depth = 84, front = 42 },
+	gelap = { model = "TengkulakGelap", width = 36, depth = 38, front = 19 },
 	warung = { model = "Warung", width = 52, depth = 44, front = 22 },
 	ronda = { model = "PosRonda", width = 44, depth = 40, front = 20 },
 	polisi = { model = "PosPolisi", width = 48, depth = 44, front = 22 },
@@ -71,8 +71,8 @@ ModelMapHubPropsR8.HUBS = {
 -- Door gauges from item 78 (facades_r8). No recipe centre sits inside one of these local
 -- footprints; the skewed apron row stays forward of the gauge planes.
 ModelMapHubPropsR8.GAUGES = {
-	pasar = { w = 6, h = 9, d = 2, lx = 0, lz = 27 },
-	gelap = { w = 6, h = 9, d = 2, lx = 0, lz = 15 },
+	pasar = { w = 6, h = 9, d = 2, lx = 0, lz = 43 },
+	gelap = { w = 6, h = 9, d = 2, lx = 0, lz = 20 },
 	warung = { w = 6, h = 9, d = 2, lx = 0, lz = 23 },
 	ronda = { w = 6, h = 9, d = 2, lx = 0, lz = 17 },
 	polisi = { w = 6, h = 9, d = 2, lx = 0, lz = 23 },

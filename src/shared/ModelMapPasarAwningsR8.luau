@@ -35,8 +35,8 @@ Data.MIN_STALLS = 10
 Data.MIN_STRIPES = 30
 
 -- Local +Z is the Pasar door side (toward the plaza). The lane is a 6-stud-wide rectangle that runs
--- along that frontage; every stall sits outside it. Local x -38..38, local z 30..36.
-Data.LANE = { lx = 0, lz = 33, width = 76, depth = 6 }
+-- along that frontage; every stall sits outside it. Local x -38..38, local z 46..52 (the 100 x 84 Pasar).
+Data.LANE = { lx = 0, lz = 49, width = 76, depth = 6 }
 
 -- Awning stripes: six alternating strips across the stall width, flat at the top of the posts.
 local AWNING = { count = 6, height = 9.2, depth = 6.4, zOffset = 1, thickness = 0.35 }
@@ -106,12 +106,12 @@ end
 -- are local to the Pasar hub; the applier adds hub.x/hub.z through MapSpec.hubPoint.
 local anchors: { { name: string, lx: number, lz: number, yaw: number } } = {}
 for index, lx in ipairs({ -35, -25, -15, -5, 5, 15, 25, 35 }) do
-	anchors[#anchors + 1] = { name = string.format("front_%02d", index), lx = lx, lz = 42, yaw = 180 }
+	anchors[#anchors + 1] = { name = string.format("front_%02d", index), lx = lx, lz = 58, yaw = 180 }
 end
-anchors[#anchors + 1] = { name = "west_01", lx = -44, lz = 12, yaw = 90 }
-anchors[#anchors + 1] = { name = "west_02", lx = -44, lz = 24, yaw = 90 }
-anchors[#anchors + 1] = { name = "east_01", lx = 44, lz = 12, yaw = -90 }
-anchors[#anchors + 1] = { name = "east_02", lx = 44, lz = 24, yaw = -90 }
+anchors[#anchors + 1] = { name = "west_01", lx = -44, lz = 28, yaw = 90 }
+anchors[#anchors + 1] = { name = "west_02", lx = -44, lz = 40, yaw = 90 }
+anchors[#anchors + 1] = { name = "east_01", lx = 44, lz = 28, yaw = -90 }
+anchors[#anchors + 1] = { name = "east_02", lx = 44, lz = 40, yaw = -90 }
 
 function Data.stalls(): { { name: string, lx: number, lz: number, yaw: number, size: { number } } }
 	local out = {} :: { { name: string, lx: number, lz: number, yaw: number, size: { number } } }

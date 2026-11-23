@@ -1,0 +1,29 @@
+CHECK 218 - lighting variants of the new shots (WORK_QUEUE SPRINT 3 item 218)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, SERVER VM.
+Place: Development-Juragan-Desa. Play only. Place NOT saved, nothing published. Rojo-synced.
+Status: SEEN-IN-STUDIO (all checks PASS).
+
+== Wiring ==
+src/shared/ReviewCameras.luau gained golden/night entries for the four item-218 cameras:
+plaza_centre_golden (284), plaza_centre_night (292), pasar_awnings_golden (256), pasar_awnings_night
+(264), path_curve_golden (574), path_curve_night (582), lamp_night_golden (684), lamp_night_night
+(692). Golden = WorldConstants.GOLDEN_HOUR midpoint clock, night = 21. Same eye/target as the
+base camera; no new look, no geometry, no asset IDs. Registry names documented once.
+
+== Evidence source ==
+The CAMERA_CLEAR_218 check ran inside tools/studio/check_q250.luau in the same fresh-Play SERVER-VM
+session that produced CHECK_250.txt (re-certified on both attempt 1 and attempt 2). Raw lines
+verbatim from CHECK_250.txt:
+
+CHECK CAMERA_CLEAR_218 PASS 0 0
+CHECK CAL_CAMERA_CLEAR_218_BLOCK PASS 1 1
+
+== Calibration / non-vacuity ==
+CAL_CAMERA_CLEAR_218_BLOCK PASS 1 1: an opaque 2-stud blocker injected 2 studs along the
+plaza_centre eye ray changed CAMERA_CLEAR_218 from 0 hits to >=1; destroyed afterwards. The check
+is non-vacuous and the blocker was cleaned up.
+
+== Local validation ==
+lune run tests/run.luau: All 3123 tests passed (exit 0).
+selene src: 0 errors / 0 warnings / 0 parse errors. No visual verdict.

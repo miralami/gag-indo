@@ -159,8 +159,8 @@ end
 -- ronda uses 1.75 because its Floor part rises 0.9 above the plinth. Pakrt's 7-stud opening sits
 -- in Block A's front-wall gap, forward of the wall plane and under the high end of its awning.
 ModelMapFacadesR8.hubs = {
-	pasar = hub("Pasar", 64, 52, 26, { w = 6, h = 9, d = 2, lx = 0, lz = 27, base = 0.85 }),
-	gelap = hub("TengkulakGelap", 32, 28, 18, { w = 6, h = 9, d = 2, lx = 0, lz = 15, base = 0.85 }),
+	pasar = hub("Pasar", 100, 84, 29, { w = 6, h = 9, d = 2, lx = 0, lz = 43, base = 0.85 }),
+	gelap = hub("TengkulakGelap", 36, 38, 18, { w = 6, h = 9, d = 2, lx = 0, lz = 20, base = 0.85 }),
 	warung = hub("Warung", 52, 44, 24, { w = 6, h = 9, d = 2, lx = 0, lz = 23, base = 0.85 }),
 	ronda = hub("PosRonda", 44, 40, 16, { w = 6, h = 9, d = 2, lx = 0, lz = 17, base = 1.75 }),
 	polisi = hub("PosPolisi", 48, 44, 24, { w = 6, h = 9, d = 2, lx = 0, lz = 23, base = 0.85 }),

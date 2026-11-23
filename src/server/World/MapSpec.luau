@@ -71,28 +71,31 @@ end
 -- end alley behind the Pasar needs axis-aligned faces, and the Pasar's south face opens on the plaza,
 -- which is the SE side its door faces. `ridge` is the height of the roof peak above the ground.
 --
--- Corner radius: five of the six hubs put their outer corner inside r <= 132, so the plot connector
--- ring (r 138..150) never clips a building. Gelap is the exception and cannot be made to fit while it
--- stays where MAP_SPEC puts it: its outer corner at (-96, -134) is r = 164.8, and shrinking the
--- footprint does not rescue it (even a 12x12 box at that centre is r = 152.6). The nearest compliant
--- 32x28 position is about (-34, -108), 48 studs east and level with the Pasar's north edge, which
--- would move the tengkulak out of its back alley entirely. Kept at the specified position so the
--- layout still matches the brief and the art reference; changing it is a one-line edit here.
+-- Corner radius: the four hubs away from the NW put their outer corner inside r <= 132, so the plot
+-- connector ring (r 138..150) never clips a building. The NW pair follows the approved models instead
+-- (assets/blender/pasar_gelap_blockout.blend, 2026-11-23): Ragun's pasar diorama is 100 x 84 and the
+-- Tengkulak Gelap yard 36 x 38 sits behind it, so the ring is broken across their whole quadrant
+-- (ROAD gapStart..gapEnd) instead of clipping them.
+--
+-- Pasar: east edge x = -21 (7 studs off the north road, clear of its keep-out margin), south edge z = -44 (2 studs off the plaza).
+-- Its back wall has a 5-stud gap at the NW corner (local x -41.5) that opens on a 16-stud alley to the
+-- Gelap yard; the yard's open south side faces that gap. Anchors are the models' own counters: the
+-- pendopo counter for the Pasar, the shed counter for the Gelap (local +Z is south, the door side).
 -- Pak RT is the scale reference and is not re-proportioned.
 MapSpec.HUBS = {
 	{
 		key = "pasar", model = "Pasar", sign = "PASAR", accent = "merah",
-		x = -64, z = -64, width = 64, depth = 52, yaw = 0, ridge = 26,
-		anchor = { name = "Counter", lx = 0, lz = 4, sx = 52, sy = 4.2, sz = 10, material = "WoodPlanks" },
+		x = -71, z = -86, width = 100, depth = 84, yaw = 0, ridge = 29,
+		anchor = { name = "Counter", lx = 2, lz = -20.2, sx = 20.6, sy = 4.2, sz = 3.8, material = "WoodPlanks" },
 		prompt = { object = "Pasar", action = "Jual hasil panen", name = "SellPrompt", tag = "Pasar", distance = 12 },
-		shelves = { lz = -23.8, width = 56, levels = { 9.0, 13.0 } },
+		shelves = { lz = -38, width = 56, levels = { 9.0, 13.0 } },
 	},
 	{
 		key = "gelap", model = "TengkulakGelap", sign = "TENGKULAK GELAP", accent = "malam",
-		x = -80, z = -120, width = 32, depth = 28, yaw = 0, ridge = 18,
-		anchor = { name = "Counter", lx = 0, lz = 2, sx = 26, sy = 3.6, sz = 8, material = "WoodPlanks" },
+		x = -103, z = -164, width = 36, depth = 38, yaw = 0, ridge = 18,
+		anchor = { name = "Counter", lx = 5.8, lz = -6.6, sx = 10.2, sy = 3.6, sz = 2.6, material = "WoodPlanks" },
 		prompt = { object = "Tengkulak Gelap", action = "Jual (harga gelap)", name = "SellPrompt", tag = "Gelap", distance = 12 },
-		lantern = { lx = -14.4, lz = 0 },
+		lantern = { lx = -6.0, lz = -2.6 },
 	},
 	{
 		key = "warung", model = "Warung", sign = "WARUNG", accent = "genteng",
@@ -186,7 +189,7 @@ end
 
 -- Measuring ("ukur") board: the tall cabai-price gag of ART.md §5. It stands beside the Pasar's east
 -- corner, off the road cross and inside the Pasar's own clearing.
-MapSpec.UKUR_BOARD = { x = -28, z = -44, yaw = 0, postHeight = 8, boardWidth = 8, boardHeight = 5, boardBottom = 8 }
+MapSpec.UKUR_BOARD = { x = -24, z = -38, yaw = 0, postHeight = 8, boardWidth = 8, boardHeight = 5, boardBottom = 8 }
 
 -- Open spaces ---------------------------------------------------------
 MapSpec.PLAZA = { x = 0, z = 0, width = 96, depth = 84 }
@@ -213,23 +216,26 @@ MapSpec.RONDA_TOWER = { x = -112, z = -34, height = 36, deck = 7.2, roofRise = 3
 -- Hub NPC spawn spots (tag NpcSpawn).
 MapSpec.NPC_SPOTS = {
 	{ npc = "pakrt", x = 68, z = 47 },
-	{ npc = "tengkulak", x = -80, z = -98 },
+	{ npc = "tengkulak", x = -99.4, z = -168.3 },
 	{ npc = "polisi", x = -68, z = 42 },
 }
 
 -- Roads ---------------------------------------------------------------
 -- X and Z arms 28 wide from the plaza out to r = 136, a 12-wide connector ring on centreline r = 144
--- broken at 222..246 degrees (the NW alley), 16-wide continuations to the Balai and to the bridge.
+-- broken at 204..252 degrees (the whole Pasar + Gelap quadrant: the 100 x 84 Pasar's west and north
+-- edges cross r 138..150 between 209 and 248 degrees, plus margin; the gap end keeps the old 6-degree
+-- chord phase so every ring piece outside the gap sits where it always did), 16-wide
+-- continuations to the Balai and to the bridge.
 local PLAZA_HALF_X = MapSpec.PLAZA.width / 2
 local PLAZA_HALF_Z = MapSpec.PLAZA.depth / 2
 local ROAD_HALF = 14
 local ROAD_RADIUS = 136
 local RING_CENTRE = 144
 local RING_WIDTH = 12
-local RING_PIECES = 56
 local RING_STEP = 6
-local RING_GAP_START = 222
-local RING_GAP_END = 246
+local RING_GAP_START = 204
+local RING_GAP_END = 252
+local RING_PIECES = (360 - (RING_GAP_END - RING_GAP_START)) // RING_STEP
 local LINK_HALF = 8
 
 MapSpec.ROAD = {
@@ -284,7 +290,7 @@ function MapSpec.roadContinuations()
 	}
 end
 
--- Ring road pieces: 6 degree chords from 246 to 582 degrees, so the 222..246 gap stays open.
+-- Ring road pieces: 6 degree chords from gapEnd round to gapStart + 360, so the gap stays open.
 function MapSpec.ringSegments(): { { x: number, z: number, yaw: number, length: number } }
 	local pieces = {}
 	for i = 0, RING_PIECES - 1 do
@@ -358,8 +364,8 @@ function MapSpec.terrainBlocks(): { { [string]: any } }
 		table.insert(blocks, block(road.x, MapSpec.TERRAIN_BASE_Y, road.z, road.sx, TERRAIN_VOXEL, road.sz, "Ground"))
 	end
 
-	-- Connector ring corridor: 30 x 30 ground blocks every 12 degrees, gap 222..246 left alone.
-	for i = 0, 28 do
+	-- Connector ring corridor: 30 x 30 ground blocks every 12 degrees, the ring gap left alone.
+	for i = 0, (360 - (RING_GAP_END - RING_GAP_START)) // 12 - 1 do
 		local deg = RING_GAP_END + 3 + i * 12
 		local rad = math.rad(deg)
 		table.insert(blocks, block(math.cos(rad) * RING_CENTRE, MapSpec.TERRAIN_BASE_Y, math.sin(rad) * RING_CENTRE, 30, TERRAIN_VOXEL, 30, "Ground"))

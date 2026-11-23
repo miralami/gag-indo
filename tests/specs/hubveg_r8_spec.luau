@@ -76,7 +76,7 @@ return function(t, Env)
 				for _, slot in ipairs(list) do
 					expect(slot.hub):toBe(key)
 					local dx, dz = slot.x - hub.x, slot.z - hub.z
-					expect(dx * dx + dz * dz <= Data.RADIUS ^ 2):toBe(true)
+					expect(dx * dx + dz * dz <= Data.radiusFor(hub) ^ 2):toBe(true)
 					expect(Data.slotAllowed(slot, zones)):toBe(true)
 					expect(Data.clearOfLane(slot)):toBe(true)
 				end

@@ -832,7 +832,7 @@ end
 -- Ronda tower. They are village-scale landmarks, not world-scale ones: the trees themselves are
 -- unchanged, so their stump spacing and canopy sizes stay readable.
 local TREE_XZ = {
-	{ -28, -24 }, { 28, -32 }, { 68, -28 }, { 48, -108 }, { -40, -104 }, { -68, -24 }, { -32, -112 },
+	{ -28, -24 }, { 28, -32 }, { 68, -28 }, { 48, -108 }, { -128, -30 }, { -68, -24 }, { 36, -118 },
 	{ 112, -48 }, { 60, 24 }, { 48, 108 }, { -48, 108 }, { 68, 104 }, { -112, 48 }, { -68, 28 },
 	{ 112, 28 }, { -100, 68 },
 }

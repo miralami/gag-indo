@@ -1,0 +1,27 @@
+CHECK 222 - strings audit for new section-P/Q text (WORK_QUEUE SPRINT 3 item 222)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2, live Play, SERVER VM.
+Place: Development-Juragan-Desa. Play only. Place NOT saved, nothing published. Rojo-synced.
+Status: SEEN-IN-STUDIO (all checks PASS).
+
+== Wiring ==
+tools/studio/check_q222.luau reads the LIVE ReplicatedStorage.Shared.Strings.raw at runtime, copies
+the table AND every entry, validates id/en (non-empty, unpadded, no TODO/TBD/placeholder/translator
+markers), checks the six section-P/Q sign keys, then injects one bad key into the COPY to prove the
+validator can FAIL. The real Strings.raw is never assigned to. Sprint 3 added no Strings keys; the
+six keys are the four item-203 junction signposts + Pasar/Market boards (item 81/209). No target
+lowered. Harness body run verbatim inline in SERVER VM (scratch module not synced mid-Play).
+
+== Raw check lines (verbatim, SERVER VM) ==
+CHECK STRINGS_BOTH_VARIANTS PASS 355/355 355
+CHECK STRINGS_NEW_KEYS PASS 6 6
+CHECK CAL_STRINGS_BOTH_VARIANTS_FAIL PASS 1 1
+
+== Calibration / non-vacuity ==
+CAL_STRINGS_BOTH_VARIANTS_FAIL: injecting {id="TODO translator note", en=""} into the copy moved the
+audit from 355/355 to 355/356 and added the injected key to the rejected list, while the live module
+stayed untouched (liveRaw[CAL_KEY]==nil). The validator detects a real bad key -> 1 1.
+
+== Local validation ==
+lune run tests/run.luau: All 3123 tests passed (exit 0).
+selene src: 0 errors / 0 warnings / 0 parse errors. No visual verdict.

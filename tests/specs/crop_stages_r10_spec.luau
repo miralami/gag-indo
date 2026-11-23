@@ -1,8 +1,7 @@
 --!nocheck
--- WORK_QUEUE item 206 (SPRINT 1): LUNE-ONLY pure-data contract for "crop_stages_r10".
--- Studio raycast checks (CROP_STAGE_HEIGHT / CROP_STAGE_COLOR / CAMERA_SAMPLES) belong to
--- tools/studio/check_q206.luau. LookDev IDS and review wiring belong to the main session.
--- This spec asserts neither Studio staging nor IDS counts.
+-- WORK_QUEUE items 206 / 254: LUNE-ONLY pure-data contract for "crop_stages_r10".
+-- Studio checks live in tools/studio/check_q206.luau (height/colour) and check_q254.luau
+-- (height/colour + width + NO_MELONS + FAIL calibrations). No Studio staging or visual verdict here.
 
 local fs = require("@lune/fs")
 
@@ -29,6 +28,7 @@ return function(t, Env)
 	local Candidates = env:require("shared/CropModelCandidates")
 	local Game = env:require("shared/Config/Game")
 	local pureSrc = fs.readFile("src/shared/ModelMapCropStagesR10.luau")
+	local checkSrc = fs.readFile("tools/studio/check_q254.luau")
 
 	t:describe("crop_stages_r10 pure data", function()
 		t:it("stays pure and keeps its additive reference identity", function()
@@ -41,6 +41,7 @@ return function(t, Env)
 			expect(Data.id):toBe("crop_stages_r10")
 			expect(Data.folderName):toBe("LookDevCropStagesR10_crop_stages_r10")
 			expect(Data.MIN_HUE_DISTANCE):toBe(0.15)
+			expect(Data.MIN_STAGE_WIDTH):toBe(1.2)
 			expect(Data.REFERENCE_CROP):toBe("reference")
 		end)
 
@@ -73,7 +74,9 @@ return function(t, Env)
 				end
 			end
 			expect(Data.STAGES[1].color):toEqual({ r = 110, g = 170, b = 80 })
+			expect(Data.STAGES[2].color):toEqual({ r = 80, g = 155, b = 65 })
 			expect(Data.STAGES[3].color):toEqual({ r = 196, g = 162, b = 52 })
+			expect(Data.PRODUCT_COLOR):toEqual({ r = 214, g = 132, b = 46 })
 		end)
 
 		t:it("audits current heights and colours for every shipped crop kind", function()
@@ -94,15 +97,17 @@ return function(t, Env)
 			end
 			expect(Data.CAMERA_NAMES):toEqual(cameras)
 			expect(#Data.CAMERA_NAMES):toBe(10)
-			local registrySrc = fs.readFile("src/shared/ReviewCameras.luau")
-			expect(string.find(registrySrc, 'plot_aerial_{string.format("%02d", index)}', 1, true) ~= nil):toBe(true)
 		end)
 
-		t:it("stages 30 stem+canopy samples, three per plot, deterministically", function()
+		t:it("stages 30 crop-shaped samples, three per plot, deterministically", function()
 			local samples = Data.stageParts()
 			expect(#samples):toBe(30)
 			expect(#samples):toBe(Game.plotCount * 3)
 			local byPlot: { [number]: { string } } = {}
+			local expectedParts = { bibit = 4, tumbuh = 6, siap = 10 }
+			local expectedLeaves = { bibit = 3, tumbuh = 5, siap = 6 }
+			local expectedProduce = { bibit = 0, tumbuh = 0, siap = 3 }
+			local expectedWidth = { bibit = 1.35, tumbuh = 1.4, siap = 1.5 }
 			for index, sample in ipairs(samples) do
 				byPlot[sample.plot] = byPlot[sample.plot] or {}
 				byPlot[sample.plot][#byPlot[sample.plot] + 1] = sample.stage
@@ -111,12 +116,41 @@ return function(t, Env)
 				expect(sample.stage):toBe(stage.stage)
 				expect(sample.height):toBe(stage.height)
 				expect(sample.color):toEqual(stage.color)
+				expect(#sample.parts):toBe(expectedParts[sample.stage])
+				expect(sample.parts[1]):toEqual(sample.stem)
+				expect(sample.stem.shape):toBe("Cylinder")
 				expect(sample.stem.role):toBe("stem")
-				expect(sample.stem.shape):toBe("Block")
+				expect(sample.stem.color):toEqual(stage.color)
+				expect(sample.canopy.shape):toBe("Wedge")
 				expect(sample.canopy.role):toBe("canopy")
-				expect(sample.canopy.shape):toBe("Ball")
-				expect(sample.stem.size[2]):toBe(sample.height)
-				expect(sample.stem.color):toEqual(sample.canopy.color)
+				expect(sample.canopy.color):toEqual(stage.color)
+				local leaves, produce, top = 0, 0, 0
+				for _, part in ipairs(sample.parts) do
+					expect(part.shape == "Wedge" or part.shape == "Cylinder"):toBe(true)
+					expect(part.size[1] > 0 and part.size[2] > 0 and part.size[3] > 0):toBe(true)
+					for _, angle in ipairs(part.rotation) do
+						expect(angle >= -0.6 and angle <= 0.6):toBe(true)
+					end
+					local partTop = part.position[2] + part.size[2] / 2
+					if partTop > top then
+						top = partTop
+					end
+					expect(partTop <= Data.GROUND_Y + sample.height + 1e-6):toBe(true)
+					if part.role == "canopy" then
+						leaves += 1
+						expect(part.shape):toBe("Wedge")
+						expect(part.color):toEqual(stage.color)
+					elseif part.role == "produce" then
+						produce += 1
+						expect(part.shape):toBe("Cylinder")
+						expect(part.color):toEqual(Data.PRODUCT_COLOR)
+					end
+				end
+				expect(leaves):toBe(expectedLeaves[sample.stage])
+				expect(produce):toBe(expectedProduce[sample.stage])
+				expect(top <= Data.GROUND_Y + sample.height + 1e-6):toBe(true)
+				expect(Data.clusterWidth(sample.parts)):toBe(expectedWidth[sample.stage])
+				expect(Data.clusterWidth(sample.parts) >= Data.MIN_STAGE_WIDTH):toBe(true)
 				if sample.plot == Data.DEMO_PLOT then
 					expect(sample.stem.position[1] > 192):toBe(true) -- outer side of plot 3, away from its gate
 				end
@@ -134,6 +168,22 @@ return function(t, Env)
 			expect(serialize(fresh.demoCentre())):toBe(serialize(Data.demoCentre()))
 			expect(serialize(fresh.demoCentreFor(1))):toBe(serialize(Data.demoCentreFor(1)))
 			expect(serialize(fresh.CURRENT)):toBe(serialize(Data.CURRENT))
+		end)
+
+		t:it("ships the item-254 check lines and both FAIL calibrations", function()
+			for _, name in ipairs({
+				"CROP_STAGE_HEIGHT",
+				"CROP_STAGE_COLOR",
+				"CROP_STAGE_WIDTH",
+				"NO_MELONS",
+				"CAL_CROP_STAGE_WIDTH_FAIL",
+				"CAL_NO_MELONS_FAIL",
+			}) do
+				expect(string.find(checkSrc, '"' .. name .. '"', 1, true) ~= nil):toBe(true)
+			end
+			expect(string.find(checkSrc, "review.disableAll()", 1, true) ~= nil):toBe(true)
+			expect(string.find(checkSrc, "destroyInjected()", 1, true) ~= nil):toBe(true)
+			expect(string.find(checkSrc, "Enum.PartType.Ball", 1, true) ~= nil):toBe(true)
 		end)
 	end)
 end

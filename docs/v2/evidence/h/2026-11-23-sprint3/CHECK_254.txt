@@ -1,0 +1,32 @@
+CHECK 254 - crop_stages_r10 reads as plants, not lollipops (WORK_QUEUE SPRINT 3 item 254)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, SERVER VM.
+Place: Development-Juragan-Desa. Play only. Place NOT saved, nothing published. Rojo-synced.
+Status: SEEN-IN-STUDIO (all checks PASS).
+
+== Wiring ==
+tools/studio/check_q254.luau staged crop_stages_r10 from SERVER via LookDevReview.enableAdditive,
+read live tagged parts, ran two runtime FAIL injections, then disabled all and destroyed the
+injections. No harness require, no place save, no visual verdict.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK CROP_STAGE_HEIGHT PASS 0 0
+CHECK CROP_STAGE_COLOR PASS 0 0
+CHECK CROP_STAGE_WIDTH PASS 1.35 1.2
+CHECK NO_MELONS PASS 0 0
+CHECK CAL_CROP_STAGE_WIDTH_FAIL PASS 1 1
+CHECK CAL_NO_MELONS_FAIL PASS 1 1
+
+== Notes / measurements ==
+Bibit = 3 Wedge leaves, tumbuh = 5-leaf Wedge fan, siap = 6-leaf Wedge fan plus 3 Cylinder produce;
+Cylinder stems, no Ball as main shape. Heights 1.2 / 2.6 / 4.2 and the distinct palette are kept.
+Minimum stage width 1.35 studs. Geometric data only; no visual verdict.
+
+== Calibration / non-vacuity ==
+CAL_CROP_STAGE_WIDTH_FAIL: a tagged narrow stage part changed the width result below 1.2 -> 1 1.
+CAL_NO_MELONS_FAIL: an injected Ball plant part changed NO_MELONS from 0 to >=1 -> 1 1.
+Both injections destroyed before return.
+
+== Local validation ==
+lune run tests/run.luau: All 3100 tests passed (exit 0).
+selene src: 0 errors / 0 warnings / 0 parse errors. Stylua clean on changed files.

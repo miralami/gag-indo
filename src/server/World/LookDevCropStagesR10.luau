@@ -1,8 +1,9 @@
 --!strict
 -- LookDevCropStagesR10: SERVER-ONLY applier for the OFF-BY-DEFAULT "crop_stages_r10" reference-stage
--- overlay (WORK_QUEUE item 206, SPRINT 1). It stages three anchored, non-collidable stage samples
--- (stem Block + canopy Ball each) in the demo plot described by Shared.ModelMapCropStagesR10. The
--- shipped crop models are never read, modified or destroyed; only Parts created here are removed.
+-- overlay (WORK_QUEUE items 206 / 254). It stages three anchored, non-collidable crop plants
+-- (Cylinder stem + Wedge leaves + Cylinder produce) per plot from Shared.ModelMapCropStagesR10.
+-- No Ball part is created: item 254 replaced the old lollipop canopy. The shipped crop models are
+-- never read, modified or destroyed; only Parts created here are removed.
 -- Every created instance is saved once in creation order and restored LIFO; apply/restore are
 -- idempotent and pcall-guarded throughout.
 -- Enable from the Server command bar:
@@ -103,10 +104,20 @@ local function stageFolder(): any?
 end
 
 local function shapeFor(shapeName: string): any
-	if shapeName == "Ball" then
-		return Enum.PartType.Ball
+	if shapeName == "Wedge" then
+		return Enum.PartType.Wedge
+	end
+	if shapeName == "Cylinder" then
+		return Enum.PartType.Cylinder
 	end
 	return Enum.PartType.Block
+end
+
+local function frameFor(descriptor: any): any
+	local position = descriptor.position
+	local rotation = descriptor.rotation or { 0, 0, 0 }
+	return CFrame.new(position[1], position[2], position[3])
+		* CFrame.Angles(rotation[1], rotation[2], rotation[3])
 end
 
 local function stagePart(descriptor: any, sample: any, parent: any)
@@ -114,7 +125,7 @@ local function stagePart(descriptor: any, sample: any, parent: any)
 		local instance = (Instance :: any).new("Part")
 		instance.Name = descriptor.name
 		instance.Size = Vector3.new(descriptor.size[1], descriptor.size[2], descriptor.size[3])
-		instance.CFrame = CFrame.new(descriptor.position[1], descriptor.position[2], descriptor.position[3])
+		instance.CFrame = frameFor(descriptor)
 		instance.Color = Color3.fromRGB(descriptor.color.r, descriptor.color.g, descriptor.color.b)
 		instance.Shape = shapeFor(descriptor.shape)
 		instance.Anchored = true
@@ -158,8 +169,9 @@ local function apply(_plan: any)
 			fail("could not read stage descriptors: " .. tostring(samples))
 		else
 			for _, sample in ipairs(samples) do
-				stagePart(sample.stem, sample, root)
-				stagePart(sample.canopy, sample, root)
+				for _, descriptor in ipairs(sample.parts) do
+					stagePart(descriptor, sample, root)
+				end
 			end
 		end
 	end

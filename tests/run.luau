@@ -259,6 +259,7 @@ local specs = {
 	require("./specs/grade_r8_spec"),
 	require("./specs/canonical_r10_spec"),
 	require("./specs/sounds_r8_spec"),
+	require("./specs/pasar_pad_spill_q208_spec"),
 }
 
 -- `--timing` prints a full per-spec table; without it only the slowest rows print. The first

@@ -59,6 +59,8 @@ Shots and verdicts belong under `docs/v2/evidence/h/<date>-round9/`.
 | `canonical_overview_right` | Server | Right flank of the canonical overview: village ring and river band east of the Pasar. |
 
 Item 242 (2026-11-23): the three canonical overview cameras now see a buried `HorizonFill` grass ring beyond the playable square and a shipped Atmosphere.Haze floor of 1.6, so the far edge fades into the sky instead of ending at a grey plane. Geometry is measured by `tools/studio/check_q242.luau`; this is not a look verdict — the designer grades the S2-STOP shots.
+
+Item 208 (2026-11-23): the DEFAULT-look Pasar now has one non-collidable packed-earth `PasarPad` under the five stall counters (local x -32..32, z -18..26; stops at the Gelap and Pasar door lanes) and 30 `PasarProp` crates/baskets/sacks at the lapak. `hub_pasar`, `pasar_awnings`, `pasar_golden`, `pasar_night`, `signpost_pasar` and `canonical_overview` therefore frame this geometry. Measured by `tools/studio/check_q208.luau`; no look verdict — the designer grades the S2-STOP shots.
 | `spawn_golden` | Client | Spawn framing under the golden-hour lighting preset. |
 | `spawn_night` | Client | Spawn framing under the night lighting preset. |
 | `pasar_golden` | Client | Pasar framing under the golden-hour lighting preset. |

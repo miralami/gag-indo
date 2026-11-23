@@ -1,0 +1,48 @@
+CHECK 208 - Pasar ground and spill (WORK_QUEUE SPRINT 2 item 208)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2
+Place: Development-Juragan-Desa. Play only (Server VM checks). Place NOT saved, nothing published.
+Rojo-synced: repo src/ changes present in the live place.
+
+== Wiring ==
+DEFAULT look (no LookDev staging; canonical_overview sees it):
+- src/server/World/Greybox.luau buildPasar(): one packed-earth Pavement pad, local x -32..32,
+  z -18..26 (64x44x0.18), tagged PasarPad=true, CanCollide=false, top at GROUND_Y. Covers all five
+  StallCounter footprints; rear edge touches the Gelap lane boundary, front edge the Pasar boundary.
+- src/server/World/Details.luau Details.PASAR_SPILL: six recipes x five booths = 30 props (10 crates,
+  10 baskets, 10 sacks), tagged PasarProp=true, Cylinders/Blocks only, no prompts, no asset IDs,
+  no Ball >= 1.5 on open lawn (item 241 NO_MELONS preserved). Called from Details.build.
+- tests/specs/pasar_pad_spill_q208_spec.luau: six data-only cases, registered in tests/run.luau.
+- tools/studio/check_q208.luau: self-contained SERVER-VM check, default look, three CHECK lines plus
+  three FAIL anchors; every temporary mutation restored in-call. docs/v2/visual/REVIEW_CAMERAS.md
+  data note added; no verdict.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+PASAR_PAD_STALLS 5/5 StallCounter[1],StallCounter[2],StallCounter[3],StallCounter[4],StallCounter[5]
+CHECK PASAR_PAD PASS 1 1
+CHECK PASAR_PROPS PASS 30 30
+CHECK LANE_CLEAR PASS 0 0
+CHECK CAL_PASAR_PAD_FAIL PASS 1 1
+CHECK CAL_PASAR_PROPS_FAIL PASS 1 1
+CHECK CAL_LANE_CLEAR_FAIL PASS 1 1
+
+== Exact measured values ==
+- PASAR_PAD: 1 tagged pad; its XZ AABB covers all 5 StallCounter AABBs (5/5) with tolerance 0.05.
+- PASAR_PROPS: 30 tagged parts (crates/baskets/sacks).
+- LANE_CLEAR: 6 hub door lanes from the check_r10_template hubLanes() rule (local x +/-3,
+  z depth/2..depth/2+24); 0 visible tagged pad/prop AABBs overlap any lane (tolerance 0.05).
+
+== Calibration / non-vacuity ==
+- CAL_PASAR_PAD_FAIL: temporarily set the pad Transparency=1 -> covered stalls 5->0 -> PASS 1 1;
+  exact Transparency restored in-call.
+- CAL_PASAR_PROPS_FAIL: anchor was initially vacuous (hardcoded excluded=0); corrected to re-count
+  visible props after hiding all 30 with Transparency=1 -> 30->0 -> PASS 1 1; all exact values
+  restored in-call, including on error paths. No target changed.
+- CAL_LANE_CLEAR_FAIL: injected a visible 2x2x2 Part tagged PasarProp in the Pasar door lane ->
+  lane hits 0->1 -> PASS 1 1; injection destroyed in-call.
+
+Local validation: lune run tests/run.luau 3067 passed (3061->3067); selene src 0 errors / 0 warnings /
+0 parse errors; stylua --check clean on tools/studio/check_q208.luau and
+tests/specs/pasar_pad_spill_q208_spec.luau. Greybox/Details whole-file stylua diffs are pre-existing
+at HEAD; added hunks introduce no new formatting defect.
+Status: SEEN-IN-STUDIO.

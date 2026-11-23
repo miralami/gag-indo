@@ -365,12 +365,31 @@ end
 -- Pasar: open-front stall with a two-storey market hall. The south face (local +Z) opens on the
 -- plaza, so the stall row, the shelves on the back wall and the spanduk all read from the spawn side.
 -- Footprint 64 x 52.
+-- Item 208: the whole stall row stands on one packed-earth pad. Its rear edge (local z = -18) stops
+-- exactly at the Tengkulak Gelap door lane's north boundary; its front edge (local z = 26) stops at
+-- the Pasar's own lane. The pad is non-collidable, so GROUND_Y stays the walkable surface.
+local PASAR_PAD = { lx = 0, lz = 4, width = 64, depth = 44, thickness = 0.18 }
+
 local function buildPasar(world: Folder)
 	local hub = MapSpec.hub("pasar")
 	local roof = HUB_ROOFS.pasar
 	local model = Instance.new("Model")
 	model.Name = hub.model
 	model:SetAttribute("HubAccent", hub.accent)
+
+	local padX, padZ = MapSpec.hubPoint(hub, PASAR_PAD.lx, PASAR_PAD.lz)
+	local pad = part({
+		Name = "PasarPad",
+		Size = Vector3.new(PASAR_PAD.width, PASAR_PAD.thickness, PASAR_PAD.depth),
+		Position = Vector3.new(padX, GROUND_Y + PASAR_PAD.thickness / 2, padZ),
+		Orientation = Vector3.new(0, hub.yaw, 0),
+		Color = Props.palette("tintaLembut"),
+		Material = Enum.Material.Pavement,
+		CanCollide = false,
+		CanQuery = false,
+	})
+	pad:SetAttribute("PasarPad", true)
+	pad.Parent = model
 
 	local halfW, halfD = hub.width / 2, hub.depth / 2
 	hubPlinth(model, hub)

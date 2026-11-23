@@ -167,6 +167,47 @@ local function at(hub, lx: number, y: number, lz: number): Vector3
 	return Vector3.new(x, y, z)
 end
 
+-- Item 208: spilled goods at each of the five lapak in Greybox's stall row (booth -2..2, 11 studs
+-- apart). Pure data so the item-208 spec can count recipes without a DataModel. Sacks and baskets are
+-- Cylinders, never Balls >=1.5, so item 241's NO_MELONS target stays intact. Six per stall = 30.
+local PASAR_SPILL_RECIPES = {}
+do
+	local function spill(
+		booth: number,
+		name: string,
+		lx: number,
+		lz: number,
+		size: { number },
+		shape: string,
+		colourName: string,
+		material: string,
+		tilt: number
+	)
+		PASAR_SPILL_RECIPES[#PASAR_SPILL_RECIPES + 1] = {
+			booth = booth,
+			name = name,
+			lx = lx,
+			lz = lz,
+			size = size,
+			shape = shape,
+			colour = colourName,
+			material = material,
+			tilt = tilt,
+			vertical = if tilt == 90 then size[1] else size[2],
+		}
+	end
+	for booth = -2, 2 do
+		local cx = booth * 11
+		spill(booth, "PasarCrate", cx - 3.4, -2.4, { 2.4, 1.2, 1.6 }, "Block", "bambu", "WoodPlanks", 0)
+		spill(booth, "PasarBasket", cx + 2.8, -2.2, { 1.4, 0.9, 1.4 }, "Cylinder", "kertas", "Fabric", 0)
+		spill(booth, "PasarSack", cx - 0.8, -0.6, { 1.6, 2.2, 1.2 }, "Cylinder", "bambu", "Fabric", 90)
+		spill(booth, "PasarCrate", cx + 4.4, 0.8, { 1.8, 1.0, 1.4 }, "Block", "bambu", "WoodPlanks", 0)
+		spill(booth, "PasarBasket", cx - 4.6, 1.0, { 1.2, 0.8, 1.2 }, "Cylinder", "padi", "Fabric", 0)
+		spill(booth, "PasarSack", cx + 1.4, 1.4, { 1.4, 1.8, 1.1 }, "Cylinder", "kertas", "Fabric", 90)
+	end
+end
+Details.PASAR_SPILL = PASAR_SPILL_RECIPES -- read-only, for the item-208 spec
+
 -- An upright cylinder (axis up, Size.X is the height), turned with its hub and tilted a few degrees.
 local function upright(folder: Instance, hub, name: string, lx: number, bottom: number, lz: number, height: number, width: number, colourName: string, material: Enum.Material)
 	local n = nextSerial()
@@ -251,6 +292,29 @@ local function pasarGoods(folder: Instance)
 	for i, lx in { -8, -4, 0, 4, 8 } do
 		local p = at(hub, lx, high + 0.6, hub.shelves.lz)
 		box(folder, "SnackPack", p, Vector3.new(0.9, 1.2, 0.35), packs[i], Enum.Material.Fabric, false, nextSerial(), hub.yaw)
+	end
+end
+
+-- Item 208: crates, baskets and sacks on the stall apron. The deck is Greybox's plinth top
+-- (GROUND_Y + PLINTH_HEIGHT); every recipe carries its own vertical extent so each piece rests on it.
+-- No prompts, no asset IDs, no Ball geometry and no collider: these are dressing, not obstacles.
+local function pasarSpill(folder: Instance)
+	local hub = MapSpec.hub("pasar")
+	local deck = GROUND_Y + 0.8
+	for _, recipe in ipairs(PASAR_SPILL_RECIPES) do
+		local centre = at(hub, recipe.lx, deck + recipe.vertical / 2, recipe.lz)
+		local prop = piece(folder, "Part", {
+			Name = recipe.name,
+			Shape = Enum.PartType[recipe.shape],
+			Size = Vector3.new(recipe.size[1], recipe.size[2], recipe.size[3]),
+			Orientation = Vector3.new(0, hub.yaw, recipe.tilt),
+			Position = centre,
+			Color = colour(recipe.colour),
+			Material = Enum.Material[recipe.material],
+		})
+		if prop.SetAttribute then
+			prop:SetAttribute("PasarProp", true)
+		end
 	end
 end
 
@@ -385,6 +449,7 @@ function Details.build(world: Instance): Instance
 	folder.Name = "Details"
 
 	pasarGoods(folder)
+	pasarSpill(folder)
 	warungGoods(folder)
 	sightlines(folder)
 	floorDetails(folder)

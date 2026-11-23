@@ -1,12 +1,12 @@
 --!strict
 -- LookDevLampsR10: SERVER-ONLY applier for the OFF-BY-DEFAULT "lamps_r10" candidate
--- (WORK_QUEUE items 202 + 246). Stages twelve anchored, non-collidable warm-wood poles with glowing
--- lanterns around the ring road, one shadowless PointLight at each pole centre. Item 246 moves the
--- light down from the lantern so its <=16 range reaches the road, with capped amber brightness.
--- Every light is enabled only at night, decided from Lighting.ClockTime at apply time via
--- setClockTime(). All geometry and colour values come from Shared.ModelMapLampsR10; no asset IDs
--- or visual verdict live here.
+-- (WORK_QUEUE items 202, 246, 270). Item 270 replaces the twelve thin street poles with warm single
+-- bulbs on the front eaves of default houses, Warung and Pos Ronda, plus up to four thick, readable
+-- junction poles carrying a real baked lamp head. Every light is enabled only at night, decided
+-- from Lighting.ClockTime at apply time via setClockTime(). Geometry and positions come from
+-- Shared.ModelMapLampsR10; no asset ID or visual verdict lives in the data module.
 -- Overwritten props are saved once and restored LIFO; only instances created here are destroyed.
+-- Baked models are script-stripped before staging, so the staging folder never holds a BaseScript.
 --
 --   require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("lamps_r10", game)
 
@@ -137,16 +137,9 @@ local function stageFolder(): any?
 	return instance
 end
 
-local function isNight(clock: any?): boolean
-	if type(clock) ~= "number" then
-		return false
-	end
-	return clock >= (Data :: any).NIGHT_ON or clock < (Data :: any).NIGHT_OFF
-end
-
 -- Public so a harness can simulate a clock without staging a second copy of the lamps.
 function LookDevLampsR10.setClockTime(t: any)
-	local enabled = isNight(t)
+	local enabled = (Data :: any).isNight(t)
 	for index = #lights, 1, -1 do
 		local light = lights[index]
 		pcall(function()
@@ -156,26 +149,40 @@ function LookDevLampsR10.setClockTime(t: any)
 	local root = folder
 	if root then
 		for _, d in ipairs(root:GetDescendants()) do
-			if d:IsA("BasePart") and string.find(d.Name, "Bulb", 1, true) then
-				pcall(function()
+			pcall(function()
+				if not d:IsA("BasePart") then
+					return
+				end
+				local role = d:GetAttribute((Data :: any).roleAttribute)
+				if role == (Data :: any).porchRole then
 					d.Material = if enabled then Enum.Material.Neon else Enum.Material.Glass
 					d.Transparency = if enabled then 0 else 0.2
-				end)
-			end
+				elseif role == (Data :: any).headRole then
+					-- The head stays a visible solid object by day; only its glow is night-gated.
+					d.Material = if enabled then Enum.Material.Neon else Enum.Material.Plastic
+					d.Transparency = 0
+				end
+			end)
 		end
 	end
 end
 
--- Item 256: model-based old-style street lamp (ASSET_MANIFEST lamps_r10_model, asset 13869743481).
--- Baked clone from ServerStorage.LookDevAssets; scripts/light cone removed at bake time.
--- Warm PointLight at pole centre, night only.
+-- Model-based lamp head for the thick junction poles (ASSET_MANIFEST lamps_r10_model, asset
+-- 13869743481). Baked clone from ServerStorage.LookDevAssets; scripts stripped at bake time and
+-- again here, with any light cone ignored. The warm PointLight is owned by this applier.
 local MODEL_ASSET_ID = 13869743481
 local TEMPLATE_HEIGHT = 25.385473251342773
 
-local function tagPart(part: any, index: number)
+local function tagPart(part: any, index: number, role: string | nil, anchor: string | nil)
 	local ok, why = pcall(function()
-		part:SetAttribute("StreetLamp", true)
-		part:SetAttribute("lamp", index)
+		part:SetAttribute((Data :: any).tagAttribute, true)
+		part:SetAttribute((Data :: any).indexAttribute, index)
+		if role then
+			part:SetAttribute((Data :: any).roleAttribute, role)
+		end
+		if anchor then
+			part:SetAttribute((Data :: any).anchorAttribute, anchor)
+		end
 		part:SetAttribute("LookDevStage", FAMILY_ID)
 	end)
 	if not ok then
@@ -220,8 +227,64 @@ local function bakedTemplate(): any?
 	return nil
 end
 
-local function stageLamp(descriptor: any, parent: any)
-	-- Invisible anchor at pole centre: keeps LAMP_POOL/LIGHT_COST checks and light positioning stable.
+local function makeLight(name: string): any?
+	local okLight, light = pcall(function()
+		local instance = (Instance :: any).new("PointLight")
+		instance.Range = (Data :: any).LIGHT_RANGE
+		instance.Brightness = (Data :: any).LIGHT_BRIGHTNESS
+		instance.Color =
+			Color3.fromRGB((Data :: any).LIGHT_COLOR.r, (Data :: any).LIGHT_COLOR.g, (Data :: any).LIGHT_COLOR.b)
+		instance.Shadows = false
+		instance.Enabled = false -- setClockTime turns it on only at night
+		instance.Name = name
+		return instance
+	end)
+	if not okLight or not light then
+		fail("could not build light " .. name .. ": " .. tostring(light))
+		return nil
+	end
+	created[#created + 1] = light
+	lights[#lights + 1] = light
+	return light
+end
+
+-- A warm single bulb hung just past the front eave of a default house, the Warung or Pos Ronda.
+local function stagePorchBulb(descriptor: any, parent: any)
+	local okBulb, bulb = pcall(function()
+		local instance = (Instance :: any).new("Part")
+		instance.Shape = Enum.PartType.Ball
+		instance.Size = Vector3.new(descriptor.size[1], descriptor.size[2], descriptor.size[3])
+		instance.CFrame = CFrame.new(descriptor.position.x, descriptor.position.y, descriptor.position.z)
+		instance.Color = Color3.fromRGB(descriptor.color.r, descriptor.color.g, descriptor.color.b)
+		instance.Material = Enum.Material.Glass
+		instance.Transparency = 0.2
+		instance.Anchored = true
+		instance.CanCollide = false
+		instance.CastShadow = false
+		instance.Name = descriptor.name
+		return instance
+	end)
+	if not okBulb or not bulb then
+		fail("could not build bulb " .. tostring(descriptor and descriptor.name) .. ": " .. tostring(bulb))
+		return
+	end
+	tagPart(bulb, descriptor.index, descriptor.role, descriptor.anchor)
+	parentPart(bulb, parent, descriptor.name)
+
+	local light = makeLight(descriptor.name .. "_Light")
+	if light then
+		local okParent, why = pcall(function()
+			light.Parent = bulb
+		end)
+		if not okParent then
+			fail("could not parent light " .. descriptor.name .. ": " .. tostring(why))
+		end
+	end
+end
+
+-- Thick junction pole: a visible >=0.6-stud block, a lamp-head part above it, a baked model for
+-- scale/readability and one warm PointLight at the head. No scripts or light cones are staged.
+local function stageJunctionPole(descriptor: any, parent: any)
 	local okPole, pole = pcall(function()
 		local instance = (Instance :: any).new("Part")
 		instance.Shape = Enum.PartType.Block
@@ -231,7 +294,8 @@ local function stageLamp(descriptor: any, parent: any)
 			descriptor.position.y + descriptor.pole.size[2] / 2,
 			descriptor.position.z
 		)
-		instance.Transparency = 1
+		instance.Color = Color3.fromRGB(descriptor.pole.color.r, descriptor.pole.color.g, descriptor.pole.color.b)
+		instance.Transparency = 0
 		instance.Anchored = true
 		instance.CanCollide = false
 		instance.CastShadow = false
@@ -242,10 +306,35 @@ local function stageLamp(descriptor: any, parent: any)
 		fail("could not build pole " .. tostring(descriptor and descriptor.name) .. ": " .. tostring(pole))
 		return
 	end
-	tagPart(pole, descriptor.index)
+	tagPart(pole, descriptor.index, descriptor.role, nil)
 	parentPart(pole, parent, descriptor.name .. "_Pole")
 
-	local targetHeight = 18
+	local okHead, head = pcall(function()
+		local instance = (Instance :: any).new("Part")
+		instance.Shape = Enum.PartType.Ball
+		instance.Size = Vector3.new(descriptor.head.size[1], descriptor.head.size[2], descriptor.head.size[3])
+		instance.CFrame = CFrame.new(
+			descriptor.position.x,
+			descriptor.position.y + descriptor.pole.size[2] + descriptor.head.size[2] / 2,
+			descriptor.position.z
+		)
+		instance.Color = Color3.fromRGB(descriptor.head.color.r, descriptor.head.color.g, descriptor.head.color.b)
+		instance.Material = Enum.Material.Plastic
+		instance.Transparency = 0
+		instance.Anchored = true
+		instance.CanCollide = false
+		instance.CastShadow = false
+		instance.Name = descriptor.name .. "_Head"
+		return instance
+	end)
+	if not okHead or not head then
+		fail("could not build lamp head " .. tostring(descriptor and descriptor.name) .. ": " .. tostring(head))
+		return
+	end
+	tagPart(head, descriptor.index, (Data :: any).headRole, nil)
+	parentPart(head, pole, descriptor.name .. "_Head")
+
+	local targetHeight = descriptor.pole.size[2] + descriptor.head.size[2]
 	local scale = targetHeight / TEMPLATE_HEIGHT
 	local model = bakedTemplate()
 	if model then
@@ -266,15 +355,17 @@ local function stageLamp(descriptor: any, parent: any)
 				local dy = descriptor.position.y - bottomY
 				local dx = descriptor.position.x - cf.Position.X
 				local dz = descriptor.position.z - cf.Position.Z
-				local target = cf + Vector3.new(dx, dy, dz)
-				model:PivotTo(target)
+				model:PivotTo(cf + Vector3.new(dx, dy, dz))
 			end
 			for _, d in ipairs(model:GetDescendants()) do
-				if d:IsA("BasePart") then
+				if d:IsA("BaseScript") then
+					d:Destroy()
+				elseif d:IsA("BasePart") then
 					d.Anchored = true
 					d.CanCollide = false
 					d.CastShadow = false
-					tagPart(d, descriptor.index)
+					tagPart(d, descriptor.index, nil, nil)
+					d:SetAttribute((Data :: any).modelAttribute, MODEL_ASSET_ID)
 				end
 			end
 			model.Parent = parent
@@ -291,30 +382,14 @@ local function stageLamp(descriptor: any, parent: any)
 		fail("missing baked lamp model " .. tostring(MODEL_ASSET_ID))
 	end
 
-	local okLight, light = pcall(function()
-		local instance = (Instance :: any).new("PointLight")
-		instance.Range = (Data :: any).LIGHT_RANGE
-		instance.Brightness = (Data :: any).LIGHT_BRIGHTNESS
-		instance.Color =
-			Color3.fromRGB((Data :: any).LIGHT_COLOR.r, (Data :: any).LIGHT_COLOR.g, (Data :: any).LIGHT_COLOR.b)
-		instance.Shadows = false
-		instance.Enabled = false
-		instance.Name = descriptor.name .. "_Light"
-		return instance
-	end)
-	if not okLight or not light then
-		fail("could not build light " .. tostring(descriptor and descriptor.name) .. ": " .. tostring(light))
-		return
-	end
-	created[#created + 1] = light
-	lights[#lights + 1] = light
-	-- Item 246: light at pole centre, not lantern centre, so the <=16 range throws a pool on
-	-- the road instead of only lighting the lantern housing.
-	local okParent, why = pcall(function()
-		light.Parent = pole
-	end)
-	if not okParent then
-		fail("could not parent light " .. tostring(descriptor.name) .. ": " .. tostring(why))
+	local light = makeLight(descriptor.name .. "_Light")
+	if light then
+		local okParent, why = pcall(function()
+			light.Parent = head
+		end)
+		if not okParent then
+			fail("could not parent light " .. descriptor.name .. ": " .. tostring(why))
+		end
 	end
 end
 
@@ -327,14 +402,24 @@ local function apply(_plan: any)
 	stageFolder()
 	local root = folder
 	if root then
-		local okLamps, lamps = pcall(function()
-			return (Data :: any).lamps()
+		local okBulbs, bulbs = pcall(function()
+			return (Data :: any).porchBulbs()
 		end)
-		if not okLamps or type(lamps) ~= "table" then
-			fail("could not read lamp descriptors: " .. tostring(lamps))
+		if not okBulbs or type(bulbs) ~= "table" then
+			fail("could not read porch bulbs: " .. tostring(bulbs))
 		else
-			for _, descriptor in ipairs(lamps) do
-				pcall(stageLamp, descriptor, root)
+			for _, descriptor in ipairs(bulbs) do
+				pcall(stagePorchBulb, descriptor, root)
+			end
+		end
+		local okPoles, poles = pcall(function()
+			return (Data :: any).junctionPoles()
+		end)
+		if not okPoles or type(poles) ~= "table" then
+			fail("could not read junction poles: " .. tostring(poles))
+		else
+			for _, descriptor in ipairs(poles) do
+				pcall(stageJunctionPole, descriptor, root)
 			end
 		end
 	end

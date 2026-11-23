@@ -1,0 +1,57 @@
+CHECK 270 - Lamps as warm porch bulbs (night mood reference) (WORK_QUEUE SPRINT 5 item 270)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP, studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, SERVER VM.
+Place: Development-Juragan-Desa. Play only for checks. Place NOT saved, nothing published.
+Status: BLOCKED — FAIL PORCH_NIGHT_MOOD: all numeric CHECKS PASS (6/6 + CAL 6/6); both night hero shots return observer VERDICT no.
+
+== Deliverable ==
+src/server/World/LookDevLampsR10.luau + src/shared/ModelMapLampsR10.luau: existing additive `lamps_r10`
+candidate reworked in place (no new candidate ID, no registry/count coupling change). 6 warm porch/eave
+bulbs (Pak RT, Polisi, Warung x2, Pos Ronda x2) + 3 thick junction poles (baked model 13869743481,
+pole Size.X/Z >= 0.6, visible lamp head). Night gate ClockTime >= 20 or <= 5 via the existing
+setClockTime/restore path; 9 staged PointLights (budget 12). tools/studio/check_q270.luau added.
+
+== CHECKS (fresh Play, SERVER VM via tools/studio/check_q270.luau) ==
+CHECK LAMP_NIGHT_ONLY PASS 9 9
+CHECK LIGHT_COST PASS 9 12
+CHECK PORCH_BULBS PASS 6 6
+CHECK THICK_POLES PASS 3 4
+CHECK MODEL_USED PASS 3 3
+CHECK NO_SCRIPTS PASS 0 0
+CHECK CAL_LAMP_NIGHT_FAIL PASS 1 1
+CHECK CAL_LIGHT_COST_FAIL PASS 1 1
+CHECK CAL_PORCH_BULBS_FAIL PASS 1 1
+CHECK CAL_THICK_POLES_FAIL PASS 1 1
+CHECK CAL_MODEL_USED_FAIL PASS 1 1
+CHECK CAL_NO_SCRIPTS_FAIL PASS 1 1
+SUMMARY_Q270 LAMP_NIGHT_ONLY 9/9 LIGHT_COST 9/9 PORCH_BULBS 6/6 THICK_POLES 3/3 MODEL_USED 3/3 NO_SCRIPTS 0/0 CAL 6/6
+Suite: All 3178 tests passed; selene src 0 errors 0 warnings 0 parse errors.
+
+== OBSERVER: S5_270_porch_night.jpg (night hero shot 1, junction pole, HUD hidden) ==
+OBSERVER: SEE Dark dirt road intersection showing a single thick brown junction pole with a small glowing
+lantern fixture on top. In the background is an empty green expanse with floating "LAHAN KOSONG" sign,
+grid of dark dots, and no buildings. BULB_VISIBLE yes. POLE_READABLE yes. PROBLEMS No houses, Warung, or
+Pos Ronda in frame to show porch/eave bulbs; barren flat terrain with repetitive block dots; floating
+in-world "LAHAN KOSONG" text; misses Indonesian village night mood. VERDICT no.
+
+== OBSERVER: S5_270_warung_porch.jpg (night hero shot 2, warung porch, HUD hidden) ==
+OBSERVER: SEE View under low red awning past wooden table toward night yard; two warm glowing spheres under
+eaves; primitive props on floor and yard. BULBS_UNDER_EAVES yes. PORCH_MOOD_READS no. PROBLEMS Greybox
+primitives (red wedge block on floor, yellow cylinder prop, bare fixtureless bulb spheres), melon balls on
+ground disc, heavy awning fills top half of frame. No HUD visible. VERDICT no.
+
+== Honest assessment ==
+The deliverable itself reads: observer confirms BULB_VISIBLE yes, POLE_READABLE yes, BULBS_UNDER_EAVES yes.
+Both VERDICT no are dominated by surrounding scene dressing (greybox props, melon balls, floating LAHAN
+KOSONG billboard, barren terrain) owned by other items — the same upstream geometry that failed 259/269.
+Per the owner rule "two observer no -> BLOCKED", item 270 is recorded BLOCKED on the night-mood look
+comparison, not on the numeric checks. Needs designer dressing decision + a clean village porch camera.
+
+== Decisions for designer ==
+- 270: warm porch bulbs and thick junction poles pass every numeric check and read in frame, but neither
+  night hero shot reaches "Indonesian village night mood": one has no buildings in frame, the other is
+  surrounded by greybox props / melon balls / floating "LAHAN KOSONG" text. Needs a dressed porch camera
+  (house facade, no billboard, no greybox) before the look can pass.
+
+== SECURITY ==
+No store model inserted raw; no HttpService; no model-sourced Command Bar code; place never saved or published.

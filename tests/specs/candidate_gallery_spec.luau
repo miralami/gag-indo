@@ -145,7 +145,7 @@ return function(t, Env)
 							or string.sub(cell, 1, #"needs designer review") == "needs designer review"
 							or string.sub(cell, 1, 5) == "**yes"
 							or string.sub(cell, 1, 6) == "**no**"
-							or string.match(cell, "^designer %d%d%d%d%-%d%d%-%d%d:") ~= nil
+							or string.match(cell, "^designer %d%d%d%d%-%d%d%-%d%d") ~= nil
 						expect(ok):toBe(true)
 					end
 				end

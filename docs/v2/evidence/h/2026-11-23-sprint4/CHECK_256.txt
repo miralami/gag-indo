@@ -1,0 +1,45 @@
+# CHECK 256 - Street lamps from model (SEEN-IN-STUDIO, BLOCKED)
+
+Date: 2026-11-23
+Authoring agent: opencode (owner, miralami)
+Studio: Roblox Studio, fresh Play, Server VM, Rojo synced
+Status: **BLOCKED** (contract checks PASS; designer visual verdict FAIL)
+
+## Scope
+WORK_QUEUE item 256: replace `lamps_r10` primitives with old-style street lamp model (pick 2 `13869743481`), remove scripts/light cone parts, warm PointLight at bulb/pole centre, night only. Checks: MODEL_USED, NO_SCRIPTS, LIGHT_COST, LAMP_NIGHT_ONLY, LAMP_POOL PASS; hero shots at 13 and 21.
+
+## Artifacts
+- `src/server/World/LookDevLampsR10.luau` — model-based applier; baked clone from `ServerStorage.LookDevAssets/13869743481` (sanitized in Edit, scripts/Beam/SpotLight/Attachments/Glass removed), scaled to 18 studs, invisible pole anchor keeps pool/light checks, PointLight at pole centre range<=16 night-only, bulb Neon at night/Glass at day.
+- `src/shared/ModelMapLampsR10.luau` — pure data contract preserved (ids, pool, night, ring, light range/brightness).
+- `tests/specs/lamps_r10_spec.luau` — updated for model-based applier contract (asset ID, LookDevAssetLoader, no script/spotlight/beam Instance.new).
+- `docs/v2/visual/art/ASSET_MANIFEST.md` — `lamps_r10_model` row records pick 2 `13869743481` (pending designer).
+
+## Live Studio checks (2026-11-23, Play Server VM)
+Manual staged check after enableAdditive:
+- `folder=true scripts=0 meshParts=24 modelUsed=true streetLampTagged=36` (12 anchors + 24 model MeshParts, mesh IDs include `rbxassetid://11262872835`/`11262803249`)
+
+Formal `tools/studio/check_q246.luau` (clean run after disableAll):
+```text
+CHECK LAMP_POOL PASS 12/12 8
+CHECK LIGHT_COST PASS 0 0
+CHECK CAL_LIGHT_COST_FAIL PASS 1 1
+CHECK CAL_LAMP_POOL_FAIL PASS 1 1
+CHECK LAMP_NIGHT_ONLY PASS 12 12
+CHECK CAL_LAMP_NIGHT_ONLY_FAIL PASS 1 1
+```
+
+## Hero shots (CAPTURE_POSE not separately measured; screen_capture with hero camera coords)
+- `S4_256_lamps_day_r2.jpg` (ClockTime 13, hero_lamps_r10, pos 124,10,-12 look 144,5,0)
+- `S4_256_lamps_night_r2.jpg` (ClockTime 21, hero_lamps_r10_night)
+
+## Designer visual verdict (subagent `ses_df89e9dd0ffejsB2ed4d0EEQwS`, 2026-11-23)
+- Day: FAIL — subject not readable; lamp model needle-thin/toothpick scale, light pool visible at midday unacceptable, rejected melon hills backdrop.
+- Night: FAIL — fixture unreadable silhouette, thin stick, ground pool present but emitter not readable village lamp.
+- Overall: FAIL. "Light cone and ground pool cast correctly, but lamp model is an absurdly thin needle line..."
+
+## Honest failures / next
+- Visual: model reads too thin/small at hero distance; needs thicker/readable village lamp silhouette (try different asset, or rebuild custom chunky model, or scale non-uniform/replace with better pick). Daytime glow concern addressed in code (bulb Glass at day) but needs visual confirmation.
+- Designer approval pending for marketplace asset 13869743481.
+- 256 not moved to done. Continue 257+.
+
+No place save/publish.

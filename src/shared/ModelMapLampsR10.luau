@@ -1,9 +1,10 @@
 --!strict
 -- ModelMapLampsR10: pure data for the OFF-BY-DEFAULT "lamps_r10" candidate (WORK_QUEUE items
--- 202 + 246). Twelve warm street lamps evenly spaced around the MapSpec ring road (radius 144).
+-- 202, 246, 256). Twelve warm street lamps evenly spaced around the MapSpec ring road (radius 144).
 -- Item 246: the PointLight sits at the pole centre so its <=16 range reaches the road, with a
--- capped brightness so the warm pool stays readable instead of blowing out. No engine calls,
--- no asset IDs: a server applier consumes the descriptors and stages the geometry.
+-- capped brightness so the warm pool stays readable instead of blowing out. Item 256: applier
+-- stages a model-based old-style lamp (see ASSET_MANIFEST lamps_r10_model) with scripts/light cone
+-- removed. Data stays pure: no engine calls, no asset IDs.
 
 local Data = {}
 

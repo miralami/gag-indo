@@ -101,6 +101,18 @@ return function(t, Env)
 			expect(applierSrc:find("LookDev.register(FAMILY_ID", 1, true) ~= nil):toBe(true)
 		end)
 
+		t:it("stages model-based lamp parts without scripts or light cones", function()
+			expect(applierSrc:find("13869743481", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("LookDevAssetLoader", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("ScaleTo", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("GetBoundingBox", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find('Instance.new("SpotLight")', 1, true) == nil):toBe(true)
+			expect(applierSrc:find('Instance.new("Beam")', 1, true) == nil):toBe(true)
+			expect(applierSrc:find('Instance.new("Script")', 1, true) == nil):toBe(true)
+			expect(applierSrc:find('Instance.new("LocalScript")', 1, true) == nil):toBe(true)
+			expect(applierSrc:find('Instance.new("ModuleScript")', 1, true) == nil):toBe(true)
+		end)
+
 		t:it("keeps bounded warm pools on the road, separated at lamp midpoints", function()
 			local lamps = Data.lamps()
 			local count = #lamps

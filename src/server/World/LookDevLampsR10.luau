@@ -153,7 +153,24 @@ function LookDevLampsR10.setClockTime(t: any)
 			light.Enabled = enabled
 		end)
 	end
+	local root = folder
+	if root then
+		for _, d in ipairs(root:GetDescendants()) do
+			if d:IsA("BasePart") and string.find(d.Name, "Bulb", 1, true) then
+				pcall(function()
+					d.Material = if enabled then Enum.Material.Neon else Enum.Material.Glass
+					d.Transparency = if enabled then 0 else 0.2
+				end)
+			end
+		end
+	end
 end
+
+-- Item 256: model-based old-style street lamp (ASSET_MANIFEST lamps_r10_model, asset 13869743481).
+-- Baked clone from ServerStorage.LookDevAssets; scripts/light cone removed at bake time.
+-- Warm PointLight at pole centre, night only.
+local MODEL_ASSET_ID = 13869743481
+local TEMPLATE_HEIGHT = 25.385473251342773
 
 local function tagPart(part: any, index: number)
 	local ok, why = pcall(function()
@@ -176,7 +193,35 @@ local function parentPart(part: any, parent: any, label: string)
 	end
 end
 
+local function bakedTemplate(): any?
+	local ok, loader = pcall(function()
+		return require(script.Parent:WaitForChild("LookDevAssetLoader"))
+	end)
+	if ok and type(loader) == "table" and type(loader.baked) == "function" then
+		local okBaked, model = pcall(loader.baked, MODEL_ASSET_ID)
+		if okBaked and model then
+			return model
+		end
+	end
+	local okSS, ss = pcall(function()
+		return game:GetService("ServerStorage")
+	end)
+	if not okSS or not ss then
+		return nil
+	end
+	local okModel, model = pcall(function()
+		local root = ss:FindFirstChild("LookDevAssets")
+		local src = root and root:FindFirstChild(tostring(MODEL_ASSET_ID))
+		return src and src:Clone()
+	end)
+	if okModel then
+		return model
+	end
+	return nil
+end
+
 local function stageLamp(descriptor: any, parent: any)
+	-- Invisible anchor at pole centre: keeps LAMP_POOL/LIGHT_COST checks and light positioning stable.
 	local okPole, pole = pcall(function()
 		local instance = (Instance :: any).new("Part")
 		instance.Shape = Enum.PartType.Block
@@ -186,7 +231,7 @@ local function stageLamp(descriptor: any, parent: any)
 			descriptor.position.y + descriptor.pole.size[2] / 2,
 			descriptor.position.z
 		)
-		instance.Color = Color3.fromRGB(descriptor.pole.color.r, descriptor.pole.color.g, descriptor.pole.color.b)
+		instance.Transparency = 1
 		instance.Anchored = true
 		instance.CanCollide = false
 		instance.CastShadow = false
@@ -200,29 +245,51 @@ local function stageLamp(descriptor: any, parent: any)
 	tagPart(pole, descriptor.index)
 	parentPart(pole, parent, descriptor.name .. "_Pole")
 
-	local okLantern, lantern = pcall(function()
-		local instance = (Instance :: any).new("Part")
-		instance.Shape = Enum.PartType.Ball
-		instance.Size = Vector3.new(descriptor.lantern.size[1], descriptor.lantern.size[2], descriptor.lantern.size[3])
-		instance.CFrame = CFrame.new(
-			descriptor.position.x,
-			descriptor.position.y + descriptor.pole.size[2] + descriptor.lantern.size[2] / 2,
-			descriptor.position.z
-		)
-		instance.Color =
-			Color3.fromRGB(descriptor.lantern.color.r, descriptor.lantern.color.g, descriptor.lantern.color.b)
-		instance.Anchored = true
-		instance.CanCollide = false
-		instance.CastShadow = false
-		instance.Name = descriptor.name .. "_Lantern"
-		return instance
-	end)
-	if not okLantern or not lantern then
-		fail("could not build lantern " .. tostring(descriptor and descriptor.name) .. ": " .. tostring(lantern))
-		return
+	local targetHeight = 18
+	local scale = targetHeight / TEMPLATE_HEIGHT
+	local model = bakedTemplate()
+	if model then
+		local okStage, why = pcall(function()
+			model.Name = descriptor.name .. "_Model"
+			if model:IsA("Model") then
+				pcall(function()
+					model:ScaleTo(scale)
+				end)
+			end
+			local bbCf, bbSize
+			local okBB = pcall(function()
+				bbCf, bbSize = model:GetBoundingBox()
+			end)
+			if okBB and bbCf and bbSize then
+				local cf = bbCf :: CFrame
+				local bottomY = cf.Position.Y - (bbSize :: Vector3).Y / 2
+				local dy = descriptor.position.y - bottomY
+				local dx = descriptor.position.x - cf.Position.X
+				local dz = descriptor.position.z - cf.Position.Z
+				local target = cf + Vector3.new(dx, dy, dz)
+				model:PivotTo(target)
+			end
+			for _, d in ipairs(model:GetDescendants()) do
+				if d:IsA("BasePart") then
+					d.Anchored = true
+					d.CanCollide = false
+					d.CastShadow = false
+					tagPart(d, descriptor.index)
+				end
+			end
+			model.Parent = parent
+		end)
+		if okStage then
+			created[#created + 1] = model
+		else
+			pcall(function()
+				model:Destroy()
+			end)
+			fail("could not stage model for " .. tostring(descriptor.name) .. ": " .. tostring(why))
+		end
+	else
+		fail("missing baked lamp model " .. tostring(MODEL_ASSET_ID))
 	end
-	tagPart(lantern, descriptor.index)
-	parentPart(lantern, parent, descriptor.name .. "_Lantern")
 
 	local okLight, light = pcall(function()
 		local instance = (Instance :: any).new("PointLight")

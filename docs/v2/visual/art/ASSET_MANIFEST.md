@@ -745,6 +745,14 @@ scripts-stripped into `LookDevAssets` (evidence `docs/v2/evidence/h/2026-11-22-r
 
 ### Unused manifest IDs
 
+## Marketplace model picks (sprint 4 rework, pending designer)
+
+Picked from Creator Store (free) per `docs/v2/visual/refs/REFERENCES.md`. Inserted in Studio for inspection; sanitize (remove Scripts/LocalScripts/ModuleScripts, drop light cones, anchor, CanCollide off where needed) before staging. No ID invented.
+
+| Slot | Asset ID | Name | Creator (as listed) | Source | Notes | Approved by |
+|---|---|---|---|---|---|---|
+| `lamps_r10_model` | 13869743481 | Realistic Streetlamp (pick 2) | Creator Store | Creator Store, free, inserted in Studio Edit 2026-11-23 | 9 descendants, MeshPart pole+bulb+glass+Beam+SpotLight; drop Beam/Glass/SpotLight attachments, replace with warm PointLight <=16 range night-only. Pick 1 (vintage mercury vapor, 132 descendants, heavier) inspected, not chosen. | designer to confirm |
+
 Convention: `unused` means the ID appears in this manifest for provenance but has no reference in
 `src/` at the time of the check. These rows are not deletions; a later code use simply removes the
 marker. All other manifest IDs are required by the coverage spec to resolve in `src/`.

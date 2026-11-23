@@ -1,0 +1,61 @@
+CHECK 272 - Warung and overview polish (WORK_QUEUE item 272)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP, studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, SERVER VM.
+Place: Development-Juragan-Desa. Play only for checks. Place NOT saved, nothing published.
+Status: BLOCKED — FAIL WARUNG_PROP_LOOK: numeric CHECKS PASS (4/4 + CAL 3/3 + LEAK 0) after removing the live GiantyFrog stray; both Warung hero shots return observer VERDICT no and the overview shot fails too.
+
+== Deliverable ==
+src/shared/ModelMapWarungPropsR10.luau (new pure data): prop descriptors (bench, kendi, lantern, sacks stand-ins), palette, warung-hub-derived positions, OVERVIEW_STRAY_NAMES = { "GiantyFrog" }.
+src/server/World/WarungDressQ210.luau: additive default-OFF `warung_props_r10` overlay (overlayApply/overlayRestore/overlayId); baked substitutes 1158365955 / 16098456067 / 13286158859; LIFO restore; scripts stripped; DEFAULT look untouched.
+tests/specs/warung_dress_q210_spec.luau: 4 new item-272 cases. tools/studio/check_q272.luau added.
+The requested House Props Kit 89268533487636 is NOT baked (live probe: LookDevAssetLoader.baked(...) = nil) — no runtime fetch, no invented IDs; ponytail: comment names the ceiling and the designer-bake upgrade path.
+
+== CHECKS (fresh Play, SERVER VM via tools/studio/check_q272.luau) ==
+First run (before live stray removal): OVERVIEW_STRAY_REMOVED FAIL 1 0 GiantyFrog @52.53,4.61,-161.68; MAIN 3/4.
+After removing the top-level Workspace GiantyFrog in the live session (archivable=false, recreated by the place each fresh Play — not produced by src/):
+CHECK MODEL_USED PASS 25 1 folder=LookDevWarungPropsR10_warung_props_r10 kitNotBaked=Indonesian House Props Kit
+CHECK NO_SCRIPTS PASS 0 0 folder=LookDevWarungPropsR10_warung_props_r10
+CHECK OVERVIEW_STRAY_REMOVED PASS 0 0
+CHECK CAL_MODEL_USED_272 PASS 1 1 cleared=25 models=0
+CHECK CAL_NO_SCRIPTS_272 PASS 1 1 injected=true
+CHECK CAL_OVERVIEW_STRAY_272 PASS 1 1 found=1
+CHECK LOOKDEV_LEAK_Q272 PASS 0 0
+SUMMARY_Q272 MODEL_USED 1/1 NO_SCRIPTS 0/0 OVERVIEW_STRAY_REMOVED 0/0 CAL 3/3 LEAK 0 MAIN 4/4
+Suite: All 3186 tests passed; selene src 0 errors 0 warnings 0 parse errors.
+
+== OBSERVER: S5_272_warung_props.jpg (Warung hero 1, HUD hidden) ==
+OBSERVER: SEE View from inside dark wooden shed looking toward village road under low red overhang. Left
+wooden box counter, center bench, primitive brown cylinder lamp, red box, glowing yellow sphere primitive,
+round pedestal table with colored balls. FEATURE_READS no. PROBLEMS Greybox primitive stand-ins. No
+recognizable kendi, lantern, or sacks. Colored spheres (melons) on outdoor table. Camera cramped under
+ceiling overhang. Zero authentic Indonesian warung dressing. HUD hidden. VERDICT no.
+
+== OBSERVER: S5_272_warung_r2.jpg (Warung hero 2, HUD hidden) ==
+OBSERVER: SEE Open wooden stall on pitch-black slab floor. Primitive wooden benches, red half-cylinder block
+on floor, neon yellow sphere lantern on pole, crate of primitive sphere fruits against back wall. No HUD visible.
+FEATURE_READS no. PROBLEMS Stacked primitive greybox props (red half-cylinder, neon sphere, cylinder stalk);
+colored sphere fruits in crate (reject list); pitch-black untextured floor slab; lacks real 3D Indonesian prop
+assets and lived-in clutter. VERDICT no.
+
+== OBSERVER: S5_272_overview.jpg (canonical overview, HUD hidden) ==
+OBSERVER: SEE High aerial shot of circular village road, four central buildings, rear terraced field, and outer
+plots against flat sky horizon. FEATURE_READS no. PROBLEMS Dense field of hundreds of stray dark brown
+blocks/debris scattered across right terrain. In-world floating LAHAN KOSONG text labels visible. Flat void
+horizon without mountain ridges. Toy-like scale. Screen HUD hidden. VERDICT no.
+
+== Honest assessment ==
+Numeric contracts all pass after removing the live GiantyFrog stray, but the Warung props read as greybox
+primitives on two cameras (two observer no -> BLOCKED on the look). The overview still shows the designer's
+"stray items on the right" (hundreds of brown blocks) plus LAHAN KOSONG billboards and the blocked flat
+horizon; GiantyFrog was only one stray and it is recreated by the place every fresh Play. Needs the real
+House Props Kit baked by the designer and a World/Greybox cleanup of the scattered debris; source repo
+cannot permanently delete a place-level object without a place save, which is forbidden.
+
+== Decisions for designer ==
+- 272: House Props Kit 89268533487636 must be baked into LookDevAssets before the Warung can pass the look;
+  current baked stand-ins read as greybox/melons. The overview stray GiantyFrog is a place-level object
+  (archivable=false) recreated every fresh Play — permanent removal needs a place edit by the designer.
+  The "stray items on the right" are hundreds of brown blocks in the terrain dressing, a separate cleanup.
+
+== SECURITY ==
+No store model inserted raw; no HttpService; no model-sourced Command Bar code; place never saved or published.

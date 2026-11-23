@@ -75,12 +75,22 @@ has an unchecked item and you are the owner's agent, you are in long-run mode:
 - **Roblox Studio MCP is main-session only.** Subagents have `blender` and `github` and no Studio
   tools (verified 2026-11-14). Anything that starts a play session, runs `execute_luau` or captures a
   screenshot stays in the main session.
-- **Visual judgment needs the vision observer.** An observer subagent running Gemini 3.8 can see
-  screenshots and make visual calls; this main session cannot. For any visual yes/no (LookDev
-  candidates, review shots, whether an asset reads well), delegate the review to that vision-capable
-  observer (or the designer) — never call a visual result good from file contents or a text summary
-  alone. Integrate assets off by default behind `LookDev`, record the review camera position, and
-  let the vision pass decide.
+- **Visual judgment needs the vision observer.** Numeric checks are not a look: in sprints 1-3 every
+  check passed while the shots showed grass, a camera inside a hill or no subject at all. For any
+  visual yes/no (LookDev candidates, review shots, whether an asset reads well), a vision model must
+  look at the actual screenshot. Never call a visual result good from file contents, check lines or
+  a text summary alone. Integrate assets off by default behind `LookDev` and record the review camera.
+  - **opencode:** the `@observer` subagent runs `9router/ag/gemini-3.8-flash`. The oh-my-opencode-slim
+    plugin disables `observer` by default; this repo's `.opencode/oh-my-opencode-slim.jsonc` enables it
+    (`"disabled_agents": []`). opencode's background service reads config only at start, so dispatch
+    with `opencode run --standalone ...` (or restart the service) after any config change. Send every
+    review shot to `@observer` and paste its answer on the card as `OBSERVER:`; an observer `no` means
+    fix and re-shoot before the sheet is built, whatever the numeric checks say.
+  - **Model choice (tested 2026-11-23 on two sprint-3 shots):** `9router/Cheap` and
+    `ag/gemini-3.8-flash` described both shots correctly. `ag/gemini-3-flash` and `gemini-2.5-flash`
+    invented a bridge that is not there; `big-pickle` cannot see images. Do not use those for visual calls.
+  - **Claude Code:** the main session can view screenshots itself (Read on the image, or a contact
+    sheet), and the designer's verdict always wins.
 - Claims are not evidence: read the diff or the file a lane produced before believing its summary.
 
 ## Rules that bite

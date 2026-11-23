@@ -1,0 +1,12 @@
+{
+  // Project config for the oh-my-opencode-slim plugin (merged over the user config).
+  // The plugin disables "observer" by default; an empty list enables it so review screenshots
+  // are judged by a vision model. See AGENTS.md "Visual judgment needs the vision observer".
+  "disabled_agents": [],
+  "agents": {
+    "observer": {
+      "model": "9router/ag/gemini-3.8-flash",
+      "variant": "medium"
+    }
+  }
+}

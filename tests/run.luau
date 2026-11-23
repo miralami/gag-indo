@@ -263,6 +263,11 @@ local specs = {
 	require("./specs/pasar_stripe_sign_q209_spec"),
 	require("./specs/warung_dress_q210_spec"),
 	require("./specs/ronda_dress_q211_spec"),
+	require("./specs/river_foam_q212_spec"),
+	require("./specs/terrace_walls_q214_spec"),
+	require("./specs/sawah_dressing_q215_spec"),
+	require("./specs/lookdev_leak_sweep_spec"),
+	require("./specs/strings_both_variants_spec"),
 }
 
 -- `--timing` prints a full per-spec table; without it only the slowest rows print. The first

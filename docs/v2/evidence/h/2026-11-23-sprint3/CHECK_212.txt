@@ -1,0 +1,27 @@
+CHECK 212 - foam line along both river banks (WORK_QUEUE SPRINT 3 item 212)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, SERVER VM.
+Place: Development-Juragan-Desa. Play only. Place NOT saved, nothing published. Rojo-synced.
+Status: SEEN-IN-STUDIO (all checks PASS).
+
+== Wiring ==
+src/shared/ModelMapRiverFoamQ212.parts() wired into the DEFAULT Greybox via buildRiverFoam(world):
+100 thin Block foam strips (50 per bank) at the MapSpec visible water edge, anchored, CanCollide=false,
+Transparency 0.45, tagged RiverFoam=true / RiverFoamKind="foam". No Ball, no new asset ID.
+tools/studio/check_q212.luau reads the LIVE tagged parts from Server VM, no harness require.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK FOAM_LINE PASS 1.0000 0.60
+CHECK PERF_BUDGET PASS 100 120
+CHECK CAL_FOAM_LINE_FAIL PASS 1 1
+CHECK CAL_PERF_BUDGET_FAIL PASS 1 1
+
+== Calibration / non-vacuity ==
+CAL_FOAM_LINE_FAIL: hiding every other tagged foam part (Transparency=1) dropped coverage below 0.60,
+then exact Transparency restored -> 1 1.
+CAL_PERF_BUDGET_FAIL: injecting tagged probes past the 120 budget tripped PERF_BUDGET, then probes
+destroyed -> 1 1.
+
+== Local validation ==
+lune run tests/run.luau: All 3123 tests passed (exit 0).
+selene src: 0 errors / 0 warnings / 0 parse errors. Stylua clean on changed files. No visual verdict.

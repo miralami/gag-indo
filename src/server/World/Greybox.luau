@@ -21,6 +21,9 @@ local Strings = require(game:GetService("ReplicatedStorage"):WaitForChild("Share
 local PasarDefault = require(script.Parent.PasarDefaultQ209)
 local WarungDress = require(script.Parent.WarungDressQ210)
 local RondaDress = require(script.Parent.RondaDressQ211)
+local RiverFoam = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").ModelMapRiverFoamQ212)
+local TerraceWalls = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").ModelMapTerraceWallsQ214)
+local SawahDressing = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").ModelMapSawahDressingQ215)
 local okLoader, Loader = pcall(function()
 	return require(script.Parent.LookDevAssetLoader)
 end)
@@ -72,6 +75,17 @@ local function part(props: { [string]: any }): Part
 		props.Material = Enum.Material.Wood
 	end
 	return Props.part(props)
+end
+
+-- Pure-data dressing recipes (items 212/214/215) name shapes as strings; Wedge is needed by the
+-- Canonical gubuk roofs in item 215. Unknown names fall back to Block, never Ball.
+local SHAPES = {
+	Block = Enum.PartType.Block,
+	Cylinder = Enum.PartType.Cylinder,
+	Wedge = Enum.PartType.Wedge,
+}
+local function shapeOf(name: string): Enum.PartType
+	return SHAPES[name] or Enum.PartType.Block
 end
 
 -- Set dressing ---------------------------------------------------------------
@@ -1198,6 +1212,78 @@ local function buildFord(world: Folder)
 	end
 end
 
+-- Pure-data dressing ---------------------------------------------------------
+-- Items 212/214/215 own the recipes; Greybox only stages their descriptors. Every staged Part is
+-- decorative: anchored from its descriptor, non-collidable, non-queryable, shadow-free and with no
+-- prompt or click detector. Tags and attribute names come from the data modules, never literals.
+
+-- Item 212: one thin foam line per 16-stud segment on each river bank, just above the water.
+local function buildRiverFoam(world: Folder)
+	for _, def in ipairs(RiverFoam.parts()) do
+		local foam = part({
+			Name = def.name,
+			Shape = shapeOf(def.shape),
+			Size = Vector3.new(def.size[1], def.size[2], def.size[3]),
+			Position = Vector3.new(def.x, def.y, def.z),
+			Color = Props.palette(def.colour),
+			Material = Enum.Material[def.material],
+			Transparency = def.transparency,
+			Anchored = if def.anchored == nil then true else def.anchored,
+			CanCollide = false,
+			CanQuery = false,
+			CastShadow = false,
+		})
+		foam:SetAttribute(RiverFoam.TAG, true)
+		foam:SetAttribute(RiverFoam.KIND_ATTR, def.kind)
+		foam.Parent = world
+	end
+end
+
+-- Item 214: one stone retaining wall per terrace, on the lower surface, north face to the riser.
+-- `assetId` is provenance only: the default look stages a plain Block, never a baked clone.
+local function buildTerraceWalls(world: Folder)
+	for _, def in ipairs(TerraceWalls.parts(MapSpec)) do
+		local wall = part({
+			Name = def.name,
+			Shape = shapeOf(def.shape),
+			Size = Vector3.new(def.sx, def.sy, def.sz),
+			Position = Vector3.new(def.x, def.y, def.z),
+			Color = Props.palette(def.colour),
+			Material = Enum.Material[def.material],
+			Anchored = def.anchored,
+			CanCollide = def.canCollide,
+			CanQuery = false,
+			CastShadow = false,
+		})
+		wall:SetAttribute(TerraceWalls.TAG, true)
+		wall.Parent = world
+	end
+end
+
+-- Item 215: gubuk, scarecrows and ribbon poles placed from the live paddyWater panes. `rz` is in
+-- degrees (Canonical gubuk roofs); material is absent from the recipe, so part()'s Wood default
+-- stands. Kind and group are carried as attributes for the Studio checks.
+local function buildSawahDressing(world: Folder)
+	for _, def in ipairs(SawahDressing.parts(MapSpec.paddyWater())) do
+		local dress = part({
+			Name = def.name,
+			Shape = shapeOf(def.shape),
+			Size = Vector3.new(def.sx, def.sy, def.sz),
+			Position = Vector3.new(def.x, def.y, def.z),
+			Orientation = Vector3.new(0, 0, def.rz or 0),
+			Color = Props.palette(def.colour),
+			Anchored = def.anchored,
+			CanCollide = def.canCollide,
+			CanQuery = false,
+			CastShadow = false,
+		})
+		dress:SetAttribute(SawahDressing.TAG, true)
+		dress:SetAttribute(SawahDressing.KIND_ATTR, def.kind)
+		dress:SetAttribute(SawahDressing.GROUP_ATTR, def.group)
+		dress.Parent = world
+	end
+end
+
 -- Roads ----------------------------------------------------------------------
 -- MAP_SPEC §4 at world scale: 28-wide X and Z arms out to r = 136 (the west arm ends at Pos Ronda),
 -- the broken 12-wide connector ring on r = 144, and 16-wide north/south continuations to the Balai
@@ -1445,8 +1531,11 @@ function Greybox.build(): Folder
 	buildPosRonda(world)
 	buildPaddy(world)
 	buildTerraces(world)
+	buildTerraceWalls(world)
+	buildSawahDressing(world)
 	buildBridge(world)
 	buildFord(world)
+	buildRiverFoam(world)
 	buildUkurBoard(world)
 	buildDressing(world)
 	scatterTrees(world)

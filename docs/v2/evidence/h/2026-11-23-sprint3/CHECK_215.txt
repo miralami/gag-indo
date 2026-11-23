@@ -1,0 +1,29 @@
+CHECK 215 - gubuk, scarecrows and bird-scare ribbons in the sawah (WORK_QUEUE SPRINT 3 item 215)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, SERVER VM.
+Place: Development-Juragan-Desa. Play only. Place NOT saved, nothing published. Rojo-synced.
+Status: SEEN-IN-STUDIO (all checks PASS).
+
+== Wiring ==
+src/shared/ModelMapSawahDressingQ215.parts(MapSpec.paddyWater()) wired into DEFAULT Greybox via
+buildSawahDressing(world): 62 descriptors — 4 gubuk (one per terrace, alternating Canonical/Sawah
+geometry), 2 scarecrows, 4 ribbon poles + strips. Anchored, CanCollide=false, no prompts, no Ball,
+tagged SawahDressing=true + SawahDressingKind + SawahDressingGroup. colours resolved from the
+existing Props.palette; no new asset IDs. tools/studio/check_q215.luau reads LIVE tagged parts.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK GUBUK PASS 4 1
+CHECK SCARECROWS PASS 2 2
+CHECK NO_FLOATERS PASS 0 0
+CHECK CAL_GUBUK_FAIL PASS 1 1
+CHECK CAL_SCARECROWS_FAIL PASS 1 1
+CHECK CAL_NO_FLOATERS_FAIL PASS 1 1
+
+== Calibration / non-vacuity ==
+CAL_GUBUK_FAIL / CAL_SCARECROWS_FAIL: hiding the relevant tagged parts dropped their counts below
+target -> 1 1. CAL_NO_FLOATERS_FAIL: lifting a ground-contact part >0.3 above terrain tripped the
+floater count -> 1 1. All Transparency/CFrame values restored exactly before return.
+
+== Local validation ==
+lune run tests/run.luau: All 3123 tests passed (exit 0).
+selene src: 0 errors / 0 warnings / 0 parse errors. Stylua clean on changed files. No visual verdict.

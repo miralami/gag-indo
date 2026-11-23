@@ -1,0 +1,36 @@
+CHECK 214 - stone retaining walls on sawah terraces (WORK_QUEUE SPRINT 3 item 214)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, SERVER VM.
+Place: Development-Juragan-Desa. Play only. Place NOT saved, nothing published. Rojo-synced.
+Status: SEEN-IN-STUDIO (all checks PASS).
+
+== Wiring ==
+src/shared/ModelMapTerraceWallsQ214.parts(MapSpec) wired into DEFAULT Greybox via
+buildTerraceWalls(world): 4 Block walls, 25 studs each, Rock material, kertas/tintaLembut palette,
+anchored, CanCollide=false, tagged TerraceWall=true. rocks_r9 assetId is provenance only; no baked
+clone, no new ID, no Ball. tools/studio/check_q214.luau reads LIVE tagged parts, no harness require.
+
+== Raw check lines (verbatim, fresh Play, Server VM) — attempt 1 ==
+CHECK TERRACE_WALLS PASS 4 4
+CHECK WALL_ON_TERRAIN FAIL 1.2500 0.3
+CHECK CAL_TERRACE_WALLS_FAIL PASS 1 1
+CHECK CAL_WALL_ON_TERRAIN_FAIL FAIL 0 1
+Attempt-1 gap metric was INVERTED: it measured terrain-above-bottom (embed depth), so a wall whose
+bottom sits 1.25 studs BELOW the voxel surface was scored as a 1.25 gap. Item 214 asks "no wall
+floats (touch or within 0.3 of terrain)" — embed/touch is contact, not a floater. Direction fixed to
+float gap max(0, bottom - terrainY); target 0.3 unchanged; calibration lifts all walls.
+
+== Raw check lines (verbatim, fresh Play, Server VM) — attempt 2 ==
+CHECK TERRACE_WALLS PASS 4 4
+CHECK WALL_ON_TERRAIN PASS 0.0000 0.3
+CHECK CAL_TERRACE_WALLS_FAIL PASS 1 1
+CHECK CAL_WALL_ON_TERRAIN_FAIL PASS 1 1
+
+== Calibration / non-vacuity ==
+CAL_TERRACE_WALLS_FAIL: hiding 3 walls dropped visible tagged count below 4, then exact Transparency
+restored -> 1 1. CAL_WALL_ON_TERRAIN_FAIL: lifting all 4 walls 2 studs raised the float gap to 2.0
+(> 0.3), then exact CFrames restored -> 1 1.
+
+== Local validation ==
+lune run tests/run.luau: All 3123 tests passed (exit 0).
+selene src: 0 errors / 0 warnings / 0 parse errors. Stylua clean on changed files. No visual verdict.

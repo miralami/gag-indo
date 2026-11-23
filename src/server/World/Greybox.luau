@@ -20,6 +20,7 @@ local Visuals = require(game:GetService("ReplicatedStorage"):WaitForChild("Share
 local Strings = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").Strings)
 local PasarDefault = require(script.Parent.PasarDefaultQ209)
 local WarungDress = require(script.Parent.WarungDressQ210)
+local RondaDress = require(script.Parent.RondaDressQ211)
 local okLoader, Loader = pcall(function()
 	return require(script.Parent.LookDevAssetLoader)
 end)
@@ -763,6 +764,33 @@ local function buildPosRonda(world: Folder)
 	for _, offset in { { -5.5, 0 }, { 5.5, 0 }, { 0, -5.5 } } do
 		local size = if offset[1] ~= 0 then Vector3.new(0.5, 5, 12) else Vector3.new(12, 5, 0.5)
 		hubBlock(model, hub, "CellWall", offset[1], PLINTH_TOP + 2.5, offset[2], size, Color3.fromRGB(90, 70, 55), Enum.Material.Wood)
+	end
+
+	-- Item 211: kentongan, bench, gardu lamp and a small rack on the Ronda floor. Pure recipe, so
+	-- every rebuild stages the same parts; all are decorative (no collision, shadow or prompts).
+	local dressMaterials = {
+		Wood = Enum.Material.Wood,
+		WoodPlanks = Enum.Material.WoodPlanks,
+		Metal = Enum.Material.Metal,
+	}
+	for _, def in ipairs(RondaDress.parts(hub)) do
+		local x, z = MapSpec.hubPoint(hub, def.lx, def.lz)
+		local dress = part({
+			Name = def.name,
+			Shape = if def.shape == "Cylinder" then Enum.PartType.Cylinder else Enum.PartType.Block,
+			Size = Vector3.new(def.sx, def.sy, def.sz),
+			Position = Vector3.new(x, GROUND_Y + def.y, z),
+			Orientation = Vector3.new(def.pitch or 0, hub.yaw, 0),
+			Color = Props.palette(def.colour),
+			Material = dressMaterials[def.material],
+			Anchored = true,
+			CanCollide = false,
+			CanQuery = false,
+			CastShadow = false,
+		})
+		dress:SetAttribute(RondaDress.TAG, true)
+		dress:SetAttribute(RondaDress.KIND_ATTR, def.kind)
+		dress.Parent = model
 	end
 
 	-- Watchtower beside the hut: four bamboo legs from the ground, a deck and a small pitched roof.

@@ -1,0 +1,41 @@
+CHECK 211 - Pos Ronda dressing (WORK_QUEUE SPRINT 2 item 211)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2
+Place: Development-Juragan-Desa. Play only (Server VM checks). Place NOT saved, nothing published.
+Rojo-synced: repo src/ changes present in the live place.
+
+== Wiring ==
+DEFAULT look (no staging for the prop check):
+- src/server/World/RondaDressQ211.luau: new pure recipe module; 15 parts across 4 kinds (kentongan
+  log drum, bench, gardu lamp, small rack); deterministic MapSpec-derived local coords inside the
+  40x36 Ronda Floor; existing palette colours; no asset IDs, prompts or Ball, no engine calls.
+- src/server/World/Greybox.luau buildPosRonda() only: stages each prop tagged RondaDress=true +
+  RondaDressKind (kentongan/bench/lamp/rack), Anchored, CanCollide/CanQuery/CastShadow=false,
+  no prompts, rebuild idempotent. Floor/walls/tower untouched; buildPasar/buildWarung untouched.
+- tests/specs/ronda_dress_q211_spec.luau: 5 data/source cases; registered in tests/run.luau.
+- tools/studio/check_q211.luau: self-contained SERVER-VM check; RONDA_PROPS on default look, then
+  stages ONLY the off-by-default ronda_tower_r9 candidate for TOWER_HEIGHT and restores via
+  disableAll() in the same call. review_check_r8.luau untouched. REVIEW_CAMERAS data note; no verdict.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK RONDA_PROPS PASS 15 4
+CHECK TOWER_HEIGHT PASS 30.00 28..32
+DETAIL RONDA_PROPS kinds=4 [kentongan,bench,lamp,rack]
+CHECK CAL_RONDA_PROPS_FAIL PASS 1 1
+CHECK CAL_TOWER_HEIGHT_FAIL PASS 1 1
+
+== Exact measured values ==
+- RONDA_PROPS: 15 visible BaseParts tagged RondaDress with RondaDressKind in
+  {kentongan,bench,lamp,rack}, target >= 4; all 4 distinct kinds present.
+- TOWER_HEIGHT: 30.00 (staged ronda_tower_r9 Model GetBoundingBox().Y), in 28..32 inclusive.
+  This is the staged candidate's world bbox, NOT the default greybox tower's nominal 36. readOk true,
+  staging enabled. Target NOT changed.
+- CAL_RONDA_PROPS_FAIL: temporarily set all 15 prop Transparency=1 -> count 15->0 -> PASS 1 1;
+  exact Transparency restored in-call.
+- CAL_TOWER_HEIGHT_FAIL: the same height pass predicate evaluated against a synthetic 36 -> rejected
+  (36 outside 28..32) while the real 30 passes -> PASS 1 1; no model mutation.
+
+Local validation: lune run tests/run.luau 3084 passed (3079->3084); selene src 0 errors / 0 warnings /
+0 parse errors; stylua --check clean on check_q211.luau, ronda_dress_q211_spec.luau and
+RondaDressQ211.luau. Geometric checks, not a visual verdict; designer grades the S2-STOP re-shoot.
+Status: SEEN-IN-STUDIO.

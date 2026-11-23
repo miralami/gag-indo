@@ -65,6 +65,8 @@ Item 208 (2026-11-23): the DEFAULT-look Pasar now has one non-collidable packed-
 Item 209 (2026-11-23): the DEFAULT-look Pasar now also has 30 `PasarStripe` awnings over the five stall counters in the item-179 red/white/blue palette, plus one Strings-backed `PasarSign` board ("PASAR" / "Market") hanging just inside the front eave clear of the six hub door lanes. The same review cameras frame them. Measured by `tools/studio/check_q209.luau`; no look verdict — the designer grades the S2-STOP shots.
 
 Item 210 (2026-11-23) data note: the DEFAULT-look Warung front now has four tagged `WarungDress` seats (the two existing benches plus two low stools), a serving table, a genteng stove and a hanging kunyit lantern, all clear of the six hub door lanes and carrying no prompts. `hub_warung` and `warung_seated` frame this geometry. Measured by `tools/studio/check_q210.luau`; no look verdict — the designer grades the S2-STOP shots.
+
+Item 211 (2026-11-23) data note: the DEFAULT-look Pos Ronda floor now carries tagged `RondaDress` props for all four kinds (kentongan, bench, gardu lamp, rack), non-collidable and non-interactive. `hub_ronda`, `ronda_tower` and `ronda_tower_wide` frame this geometry; `tools/studio/check_q211.luau` stages `ronda_tower_r9` only for the `TOWER_HEIGHT` bbox guard (28..32, not the default greybox nominal 36) and restores via `disableAll()`. No look verdict — the designer grades the S2-STOP shots.
 | `spawn_golden` | Client | Spawn framing under the golden-hour lighting preset. |
 | `spawn_night` | Client | Spawn framing under the night lighting preset. |
 | `pasar_golden` | Client | Pasar framing under the golden-hour lighting preset. |

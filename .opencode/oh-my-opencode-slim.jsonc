@@ -4,6 +4,10 @@
   // are judged by a vision model. See AGENTS.md "Visual judgment needs the vision observer".
   "disabled_agents": [],
   "agents": {
+    "designer": {
+      "model": "9router/ag/gemini-3.8-flash",
+      "variant": "medium"
+    },
     "observer": {
       "model": "9router/ag/gemini-3.8-flash",
       "variant": "medium"

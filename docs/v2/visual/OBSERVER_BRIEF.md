@@ -49,6 +49,11 @@ Earlier verdicts and the designer's comments: `docs/v2/visual/PROVISIONAL_VERDIC
 
 ## How to answer
 
+Judge from the pixels only. File names and captions say what a shot is meant to show, not what it
+shows: in a test on 2026-11-23 a vision model said a bridge was present because the file was called
+`bamboo_bridge`, and said no with a neutral file name.
+
+
 Answer in this shape, short:
 
 ```

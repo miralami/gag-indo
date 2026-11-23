@@ -89,6 +89,8 @@ has an unchecked item and you are the owner's agent, you are in long-run mode:
   - **Observer opinions:** the observer reads `docs/v2/visual/OBSERVER_BRIEF.md` (art direction, what
     the designer rejected, references, answer format) and gives its own `OPINION` and `VERDICT`, not
     only a description. The global hook is `~/.config/opencode/oh-my-opencode-slim/observer_append.md`.
+  - **Designer subagent** also runs `ag/gemini-3.8-flash` (medium) since 2026-11-23, so the builder can
+    see its own screenshots (`designer_append.md` in the same folder tells it to check every change).
   - **Model choice (tested 2026-11-23 on two sprint-3 shots):** `9router/Cheap` and
     `ag/gemini-3.8-flash` described both shots correctly. `ag/gemini-3-flash` and `gemini-2.5-flash`
     invented a bridge that is not there; `big-pickle` cannot see images. Do not use those for visual calls.

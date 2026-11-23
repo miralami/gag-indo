@@ -1,5 +1,5 @@
 --!nocheck
--- WORK_QUEUE item 255: LUNE-ONLY registry contract for the 28 `hero_*` review cameras.
+-- WORK_QUEUE item 255 + item 269: LUNE-ONLY registry contract for the 31 `hero_*` review cameras.
 -- Studio SUBJECT_COVERAGE / CAMERA_GRASS / HERO_CLEAR measurements live in tools/studio/check_q255.luau;
 -- this spec only guards the data the shooter reads. No Studio claim, no visual verdict here.
 
@@ -34,6 +34,9 @@ local HERO_NAMES = {
 	"hero_river_foam_212",
 	"hero_terrace_walls_214",
 	"hero_lamps_r10_night",
+	"hero_corridor_pasar",
+	"hero_corridor_sawah",
+	"hero_corridor_village",
 }
 
 local REUSED_GEOMETRY = {
@@ -41,6 +44,13 @@ local REUSED_GEOMETRY = {
 	hero_ditch_water_r10 = "ditch_water_close",
 	hero_crop_stages_r10 = "crop_stages_close",
 	hero_default_warung = "hub_warung",
+}
+
+-- Item 269 corridor poses are literals, not MapSpec-derived; the shoot harness uses these numbers.
+local CORRIDOR_POSES = {
+	hero_corridor_pasar = { { 0, 14, 90 }, { -64, 8, -64 } },
+	hero_corridor_sawah = { { 60, 20, -182 }, { 190, 14, -344 } },
+	hero_corridor_village = { { 0, 14, 200 }, { 0, 6, 304 } },
 }
 
 local DAY_CLOCK = 13
@@ -76,9 +86,9 @@ return function(t, Env)
 	local source = fs.readFile("src/shared/ReviewCameras.luau")
 
 	t:describe("item 255 hero review cameras", function()
-		t:it("registers all 28 hero cameras exactly once", function()
-			expect(#HERO_NAMES):toBe(28)
-			expect(#Cameras.names()):toBe(106)
+		t:it("registers all 31 hero cameras exactly once", function()
+			expect(#HERO_NAMES):toBe(31)
+			expect(#Cameras.names()):toBe(109)
 			local counts = {}
 			for _, name in ipairs(Cameras.names()) do
 				counts[name] = (counts[name] or 0) + 1
@@ -101,6 +111,13 @@ return function(t, Env)
 				expect(validVec(camera.lookAt)):toBe(true)
 				expect(sameVec(camera.position, camera.lookAt)):toBe(false)
 				expect(camera.position[2] >= MapSpec.GROUND_Y + 4):toBe(true)
+			end
+			for name, pose in pairs(CORRIDOR_POSES) do
+				local camera = Cameras.get(name)
+				expect(camera ~= nil):toBe(true)
+				expect(sameVec(camera.position, pose[1])):toBe(true)
+				expect(sameVec(camera.lookAt, pose[2])):toBe(true)
+				expect(camera.clockTime):toBe(DAY_CLOCK)
 			end
 		end)
 

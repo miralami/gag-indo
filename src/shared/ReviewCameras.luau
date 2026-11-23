@@ -3,9 +3,10 @@
 --
 -- Every world coordinate is derived from MapSpec (or the two shared data modules it delegates to:
 -- Config.Game for the plot ring and ModelMapVegetationR7 for the current saved spawn camera).
--- No literal world position is written here. The only literals are the review offsets fixed by the
--- queue item (a hub camera 28 studs out and 9 studs up), dimensionless fractions (diagonal halves,
--- lane midpoints) and sign choices that put a 3/4 view outside a neighbouring building.
+-- No literal world position is written here except the three item-269 corridor poses fixed by the
+-- queue item. The other literals are review offsets fixed by earlier queue items (a hub camera 28
+-- studs out and 9 studs up), dimensionless fractions (diagonal halves, lane midpoints) and sign
+-- choices that put a 3/4 view outside a neighbouring building.
 --
 -- PURE DATA: no Instance creation, no Enum lookups at load. MapSpec lives under
 -- ServerScriptService.Server.World, so require this registry from the Server datamodel (or the
@@ -1076,6 +1077,33 @@ do
 		DAY_CLOCK
 	)
 end
+
+-- Item 269: three literal view-corridor hero cameras. These poses are fixed by the queue item and
+-- are deliberately NOT MapSpec-derived; the main session shoots the same literals via check_q269.
+add(
+	"hero_corridor_pasar",
+	vec(0, 14, 90),
+	vec(-64, 8, -64),
+	"Server",
+	"Item 269: spawn-to-Pasar corridor, leading path lower third, Pasar landmark centred.",
+	DAY_CLOCK
+)
+add(
+	"hero_corridor_sawah",
+	vec(60, 20, -182),
+	vec(190, 14, -344),
+	"Server",
+	"Item 269: plots-to-sawah corridor, nature view, terraced sawah landmark centred.",
+	DAY_CLOCK
+)
+add(
+	"hero_corridor_village",
+	vec(0, 14, 200),
+	vec(0, 6, 304),
+	"Server",
+	"Item 269: north-to-south village corridor, river and bridge landmark centred.",
+	DAY_CLOCK
+)
 
 local byName: { [string]: ReviewCamera } = {}
 for _, camera in cameras do

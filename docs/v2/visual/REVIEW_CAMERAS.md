@@ -1,10 +1,11 @@
 # Review cameras (WORK_QUEUE section M item 69)
 
 Registry: `src/shared/ReviewCameras.luau` (`ReviewCameras.all()`, `.get(name)`, `.names()`).
-45 named cameras at item 118; 54 named cameras after item 133; 67 named cameras after item 216; 69 named cameras after item 240; 78 named cameras after items 218, 247 and 250 (eight lighting variants plus `crop_stages_golden`); 106 named cameras after item 255 (28 `hero_*` views). Coordinates are computed at load from `src/server/World/MapSpec.luau` (hub centres,
+45 named cameras at item 118; 54 named cameras after item 133; 67 named cameras after item 216; 69 named cameras after item 240; 78 named cameras after items 218, 247 and 250 (eight lighting variants plus `crop_stages_golden`); 106 named cameras after item 255 (28 `hero_*` views); 109 named cameras after item 269 (31 `hero_*` views: 28 item-255 + 3 view corridors). Coordinates are computed at load from `src/server/World/MapSpec.luau` (hub centres,
 footprints, road ring, bridge, terraces, hill edge, spawn), `src/shared/Config/Game.luau` (plot-ring
-angles/radius) and `ModelMapVegetationR7.savedCamera` (the current saved spawn camera). No hand-typed
-world coordinates. `ReviewCameras.clearDistance` is the 6-stud `CAMERA_CLEAR` ray length.
+angles/radius) and `ModelMapVegetationR7.savedCamera` (the current saved spawn camera). The only
+hand-typed world coordinates are the three item-269 corridor poses fixed by the queue item.
+`ReviewCameras.clearDistance` is the 6-stud `CAMERA_CLEAR` ray length.
 
 The **main session shoots these** in the datamodel named below; a **vision-capable designer grades**
 the resulting shots. Neither file contents nor Lune checks are a visual verdict. The `CAMERA_CLEAR`
@@ -142,6 +143,9 @@ candidate's data module and `MapSpec`. They are the cameras the item-255 `SUBJEC
 | `hero_default_warung` | Server | Item-255 hero view of the default Warung: sprint-3 hub_warung geometry, daytime. |
 | `hero_river_foam_212` | Server | Item-255 close hero view of the first river_foam_212 bank strip. |
 | `hero_terrace_walls_214` | Server | Item-255 hero view of the default terrace walls (214) from the above-hill hero eye. |
+| `hero_corridor_pasar` | Server | Item 269: spawn-to-Pasar corridor, leading path lower third, Pasar landmark centred. Eye `{0, 14, 90}`, lookAt `{-64, 8, -64}`. |
+| `hero_corridor_sawah` | Server | Item 269: plots-to-sawah corridor, nature view, terraced sawah landmark centred. Eye `{60, 20, -182}`, lookAt `{190, 14, -344}`. |
+| `hero_corridor_village` | Server | Item 269: north-to-south village corridor, river and bridge landmark centred. Eye `{0, 14, 200}`, lookAt `{0, 6, 304}`. |
 
 ## Notes
 

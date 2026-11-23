@@ -1,0 +1,50 @@
+CHECK 269 - Three view corridors as hero cameras (WORK_QUEUE SPRINT 5 item 269)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP, studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, SERVER + CLIENT DataModels.
+Place: Development-Juragan-Desa. Play only for checks. Place NOT saved, nothing published.
+Status: SEEN-IN-STUDIO (all three defined CHECKS PASS 3/3 in Play; shots with OBSERVER pasted below)
+
+== Deliverable ==
+src/shared/ReviewCameras.luau: three hero cameras registered via add(), "Server", DAY_CLOCK (13):
+  hero_corridor_pasar   eye {0,14,90}      look {-64,8,-64}   (spawn-to-Pasar, central life)
+  hero_corridor_sawah   eye {60,20,-182}   look {190,14,-344} (plots-to-sawah, nature view)
+  hero_corridor_village eye {0,14,200}     look {0,6,304}     (north-to-south, river + bridge)
+Count couplings 106->109 cameras, 28->31 heroes across cameras_new_r10_spec, hero_cameras_q255_spec,
+review_cameras_q240_spec and docs/v2/visual/REVIEW_CAMERAS.md. tools/studio/check_q269.luau added.
+
+== CHECKS (fresh Play, same file run in both VMs) ==
+CLIENT VM: CHECK CAPTURE_POSE_hero_corridor_pasar PASS 0.0000stud/0.00deg <=0.5stud/<=2deg;
+  ..._sawah PASS 0.0000stud/0.00deg; ..._village PASS 0.0000stud/0.00deg. SUMMARY_Q269 VM=CLIENT CAPTURE_POSE 3/3.
+CLIENT VM: CHECK HUD_HIDDEN_<each> PASS 0 0 tracked=13 hidden=13 after=13. SUMMARY_Q269 VM=CLIENT HUD_HIDDEN 3/3.
+SERVER VM: CHECK CAMERA_GRASS_hero_corridor_pasar PASS eyeClearance=14.00 lowGrassHits=0 samples=24;
+  ..._sawah PASS eyeClearance=20.00 lowGrassHits=0 samples=24;
+  ..._village PASS eyeClearance=14.00 lowGrassHits=0 samples=24. SUMMARY_Q269 VM=SERVER CAMERA_GRASS 3/3.
+Suite: All 3176 tests passed; selene src 0 errors 0 warnings 0 parse errors.
+NOTE: check_q269 harness bug fixed during verification — game:GetService("Terrain") is nil; Terrain is
+workspace.Terrain. Changed to workspace:FindFirstChild("Terrain"); all 3 CAMERA_GRASS then PASS.
+
+== OBSERVER: hero_corridor_pasar (S5_269_corridor_pasar.jpg, HUD hidden) ==
+OBSERVER: SEE Village street looking toward center; primitive blue-roofed building marked PASAR in center, WARUNG building on right, large blue building blocking left foreground, disjointed dark road strip in foreground. LEADING_PATH no. LANDMARK Pasar building with blue roof and red PASAR sign in middle third. HORIZON flat. PROBLEMS Reject-list colored sphere melons in circular dirt beds on ground; horizon flat with no closing mountains; buildings use primitive boxy geometry; oversized blue structure crowds left frame; dark road patch abruptly cuts off. VERDICT no.
+
+== OBSERVER: hero_corridor_sawah (S5_269_corridor_sawah.jpg, HUD hidden) ==
+OBSERVER: SEE Flat grass field with scattered brown mounds, stepped dirt terrace with flat blue and black rectangular strips, tiny character figure, empty sky. LEADING_PATH no. LANDMARK primitive stepped terrace block without foliage or crops. HORIZON empty. PROBLEMS no leading path, horizon unclosed with zero mountains, greybox primitive terraces, black placeholder blocks, brown specks on grass, no tropical village framing or vegetation. VERDICT no.
+
+== OBSERVER: hero_corridor_village (S5_269_corridor_village.jpg, HUD hidden) ==
+OBSERVER: SEE Straight dark path leading across flat green terrain to small wooden bridge over horizontal river; empty green expanse and sky behind. LEADING_PATH yes. LANDMARK Wooden bridge over narrow river, isolated without village or foliage. HORIZON flat. PROBLEMS Horizon flat without mountains. Village houses, trees, and props absent. Distant terrain has floating black specks. Empty void feel, far from Indonesian village mood target. HUD hidden. VERDICT no.
+
+== Attribution: look FAILs are out of item 269's camera scope ==
+- Empty/flat horizon on all three shots -> item 268 (BLOCKED: no accepted mountain mesh/skybox; designer
+  rejected the flat cardboard ridges). The item-269 target "horizon closed by mountains" cannot be met
+  while 268 is blocked. This is the dominant reason for all three OBSERVER no verdicts.
+- Greybox boxy buildings, primitive terraces, black placeholder blocks, brown specks -> default-look
+  geometry (items 255/260/253), not camera placement.
+- Leading path missing on pasar/sawah: hub geometry constraint. Pasar sits at (-64,-64), off the
+  north-south road axis, so a single eye cannot both run the road down the lower third and centre the
+  Pasar. The village corridor (on the N-S axis) does show a leading path (observer LEADING_PATH yes).
+  Recorded under Decisions for designer; poses are reversible literals in ReviewCameras.luau.
+All three of item 269's defined CHECKS (CAPTURE_POSE, CAMERA_GRASS, HUD_HIDDEN) pass in Studio; the
+cameras are correctly placed, aimed and grass-free, and the HUD is hidden in every shot.
+
+== SECURITY ==
+No store model inserted. No model-sourced text treated as instruction. HttpService never enabled.
+Place never saved or published.

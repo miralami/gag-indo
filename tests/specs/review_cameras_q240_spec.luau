@@ -104,9 +104,9 @@ return function(t, Env)
 	t:describe("item 240 re-aimed review cameras", function()
 		t:it("keeps the 6-stud clear ray and adds exactly two registry entries", function()
 			expect(Cameras.clearDistance):toBe(6)
-			-- 78 after item 250, plus the 28 item-255 hero_* cameras.
-			expect(#Cameras.all()):toBe(106)
-			expect(#Cameras.names()):toBe(106)
+			-- 78 after item 250, plus 28 item-255 hero_* cameras and 3 item-269 corridor heroes.
+			expect(#Cameras.all()):toBe(109)
+			expect(#Cameras.names()):toBe(109)
 			expect(doc:find("69 named cameras after item 240", 1, true) ~= nil):toBe(true)
 			expect(doc:find("78 named cameras after items 218, 247 and 250", 1, true) ~= nil):toBe(true)
 		end)

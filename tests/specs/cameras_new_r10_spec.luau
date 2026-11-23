@@ -48,8 +48,11 @@ local SPRINT1_NEW_COUNT = 10 -- 12 names minus the 2 canonical overview flanks a
 local Q240_NEW_COUNT = 2 -- crop_stages_close + ditch_water_close
 local Q250_NEW_COUNT = 9 -- eight item-218 lighting variants + crop_stages_golden (item 247)
 local Q255_NEW_COUNT = 28 -- item-255 hero_* cameras (24 r10 + Warung, foam 212, walls 214, lamp night)
+local Q269_NEW_COUNT = 3 -- item-269 hero_corridor_* view cameras
 local BASE_COUNT = PREVIOUS_COUNT + #NEW + P_ROUND_CAMERAS + SPRINT1_NEW_COUNT + Q240_NEW_COUNT + Q250_NEW_COUNT -- 78
-local TOTAL_COUNT = BASE_COUNT + Q255_NEW_COUNT -- 106
+local TOTAL_COUNT = BASE_COUNT + Q255_NEW_COUNT + Q269_NEW_COUNT -- 109
+local HERO_COUNT = Q255_NEW_COUNT + Q269_NEW_COUNT -- 31
+local Q269_NAMES = { "hero_corridor_pasar", "hero_corridor_sawah", "hero_corridor_village" }
 
 local function validVec(value)
 	if type(value) ~= "table" or #value ~= 3 then
@@ -165,8 +168,14 @@ return function(t, Env)
 			for _ in pairs(docSeen) do
 				docCount = docCount + 1
 			end
-			-- The owner adds the 28 item-255 doc rows after this code lands; count only rows present.
+			-- 28 item-255 hero rows + 3 item-269 corridor hero rows.
+			expect(documentedHeroes):toBe(HERO_COUNT)
 			expect(docCount):toBe(BASE_COUNT + documentedHeroes)
+			for _, name in ipairs(Q269_NAMES) do
+				expect(Cameras.get(name) ~= nil):toBe(true)
+				expect(cameraSrc:find('"' .. name .. '"', 1, true) ~= nil):toBe(true)
+				expect(cameraDoc:find("| `" .. name .. "` | Server |", 1, true) ~= nil):toBe(true)
+			end
 		end)
 
 		t:it("item 252 bridge_side is a downward 3/4 view of the bamboo deck", function()

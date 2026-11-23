@@ -35,6 +35,9 @@ Leaving the camera on the character produced:
 Both calibration failures prove the check is non-vacuous and accurately discriminates character-level views from review poses.
 
 == Re-take proof (shots #01 and #13) ==
+Saved re-take frames: `shots/01_road_fence_r10.jpg` and `shots/13_lamps_r10.jpg` (extracted from the
+Roblox Studio MCP `screen_capture` tool result via `data:image/jpeg;base64` URIs in the session log).
+
 Shot #01 (road_fence_r10, camera path_curve at [90, 10, -26] looking at [90, 1.1, -10], ClockTime 13):
 - Sprint 3 frame: grass blades at the lens, fence a faint line, HUD visible.
 - Re-take with fixed path: HUD hidden (LookDevReview.hideHud), camera held at review pose, daytime lighting,

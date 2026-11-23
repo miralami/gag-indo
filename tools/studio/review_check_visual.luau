@@ -294,4 +294,118 @@ if not scOk then
 	end
 end
 
+-- ------------------------------------------------------------------------------------------------
+-- WORK_QUEUE item 250: CAMERA_GRASS. Pure-data rules live in Shared.CameraGrass; this block only
+-- supplies one grid-aligned Terrain:ReadVoxels(region, 4) sample per XZ cell. No staging, no save.
+--   CAMERA_GRASS         0 of the five item-250 eyes fail the 4 / 3 / 12 rules
+--   CAL_CAMERA_GRASS_OLD >=1 sprint-2 OLD eye fails the same rules (non-vacuous calibration)
+--
+-- CALIBRATION ANCHORS: the OLD_EYES table is the before state; OLD_EYES[1].eye y is the recorded
+-- sprint-2 path_curve eye 5.25. Put a failing eye there to prove the check bites. Targets 0 / 3 /
+-- 12 are never weakened; fix a bad camera by re-aiming it in ReviewCameras.luau.
+
+local CG_CHECK_NAMES = { "CAMERA_GRASS", "CAL_CAMERA_GRASS_OLD" }
+local CG_TARGETS = { CAMERA_GRASS = 0, CAL_CAMERA_GRASS_OLD = 1 }
+local NEW_CAMERAS = {
+	"path_curve",
+	"ditch_water_close",
+	"crop_stages_close",
+	"terrace_wall",
+	"hub_warung",
+}
+-- Coordinates recorded in docs/v2/visual/REVIEW_CAMERAS.md (item 240 table and item 250 re-aim).
+local OLD_EYES = {
+	{ name = "path_curve", eye = { 90, 5.25, -26 }, look = { 90, 1.1, -10 } },
+	{ name = "ditch_water_close", eye = { 42.6443, 12, -131.2458 }, look = { 46.9706, 10, -144.5606 } },
+	{ name = "ditch_water_close_look", eye = { 46.9706, 10, -144.5606 }, look = { 65.2026, 0.58, -200.6729 } },
+	{ name = "hill_dressing_via_terrace_wall", eye = { -120, 37.5, -318 }, look = { -120, 16.5, -238 } },
+	{ name = "hub_warung", eye = { 113.799, 9.5, -26.201 }, look = { 68, 12.5, -68 } },
+}
+local cgReview, cgTerrain = nil, nil
+
+local cgOk, cgErr = pcall(function()
+	local shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+	local Grass = require(shared:WaitForChild("CameraGrass"))
+	cgReview = require(shared:WaitForChild("ReviewCameras"))
+	cgTerrain = game:GetService("Workspace"):FindFirstChildOfClass("Terrain")
+	if type(Grass) ~= "table" or type(Grass.evaluate) ~= "function" or not cgTerrain then
+		error("CameraGrass API or Workspace.Terrain missing")
+	end
+
+	local cache = {}
+	local function readColumn(x, z)
+		local x0, y0, z0, x1, y1, z1 = Grass.regionFor(x, z)
+		local key = x0 .. ":" .. z0
+		if cache[key] then
+			return cache[key]
+		end
+		local region = Region3.new(Vector3.new(x0, y0, z0), Vector3.new(x1, y1, z1))
+		local okRead, materials, occupancies = pcall(function()
+			return cgTerrain:ReadVoxels(region, Grass.VOXEL)
+		end)
+		local column
+		if okRead and type(materials) == "table" and type(occupancies) == "table" then
+			column = Grass.column(materials, occupancies, x, z)
+		else
+			column = { ok = false, reason = "ReadVoxels failed: " .. tostring(occupancies) }
+		end
+		cache[key] = column
+		return column
+	end
+
+	local failed, details = 0, {}
+	for _, name in ipairs(NEW_CAMERAS) do
+		local camera = cgReview.get(name)
+		if type(camera) ~= "table" then
+			failed += 1
+			details[#details + 1] = { name = name, reason = "camera missing" }
+		else
+			local result = Grass.evaluate(camera.position, camera.lookAt, readColumn)
+			if not result.ok then
+				failed += 1
+				details[#details + 1] = {
+					name = name,
+					eyeClearance = result.eyeClearance,
+					lowEye = result.lowEye,
+					lowGrassHits = result.lowGrassHits,
+					samples = result.samples,
+					reason = result.reason,
+				}
+			end
+		end
+	end
+	emit("CAMERA_GRASS", failed == 0, failed, 0, {
+		checked = #NEW_CAMERAS,
+		failed = details,
+		thresholds = { eye = Grass.MIN_EYE_CLEARANCE, ray = Grass.MIN_RAY_HEIGHT, distance = Grass.RAY_DISTANCE },
+	})
+
+	local oldFailed, oldDetails = 0, {}
+	for _, entry in ipairs(OLD_EYES) do
+		local result = Grass.evaluate(entry.eye, entry.look, readColumn)
+		if not result.ok then
+			oldFailed += 1
+			oldDetails[#oldDetails + 1] = {
+				name = entry.name,
+				eyeClearance = result.eyeClearance,
+				lowEye = result.lowEye,
+				lowGrassHits = result.lowGrassHits,
+			}
+		end
+	end
+	local calibrated = oldFailed >= 1
+	emit("CAL_CAMERA_GRASS_OLD", calibrated, calibrated and 1 or 0, 1, {
+		checked = #OLD_EYES,
+		failed = oldFailed,
+		entries = oldDetails,
+	})
+end)
+
+if not cgOk then
+	local reason = { reason = "camera grass error: " .. tostring(cgErr) }
+	for _, name in ipairs(CG_CHECK_NAMES) do
+		emitOnce(name, false, 0, CG_TARGETS[name], reason)
+	end
+end
+
 return results

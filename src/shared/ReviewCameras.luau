@@ -30,6 +30,8 @@ local SignpostsR10: any = require(script.Parent.ModelMapSignpostsR10)
 local LampsR10: any = require(script.Parent.ModelMapLampsR10)
 local CropStagesR10: any = require(script.Parent.ModelMapCropStagesR10)
 local DitchWaterR10: any = require(script.Parent.ModelMapDitchWaterR10)
+local HillDressing: any = require(script.Parent.ModelMapHillDressingR10)
+local WorldConstants = require(script.Parent.Config.WorldConstants)
 
 export type Vec3 = { number }
 export type ReviewCamera = {
@@ -49,6 +51,10 @@ ReviewCameras.clearDistance = MapSpec.TERRAIN_VOXEL + MapSpec.S
 local HUB_STANDOFF = 28 -- queue item 69: 3/4 view, 28 studs out
 local HUB_RISE = 9 -- queue item 69: 9 studs above the ground plane
 local DIAGONAL = 1 / math.sqrt(2)
+-- Items 218/247: golden = midpoint of the canonical 16.0..17.0 window (LookDevCorner uses the same
+-- convention); night = 21, the value lamp_night already carried from item 240.
+local GOLDEN_CLOCK = (WorldConstants.GOLDEN_HOUR.minClock + WorldConstants.GOLDEN_HOUR.maxClock) / 2
+local NIGHT_CLOCK = 21
 
 local function vec(x: number, y: number, z: number): Vec3
 	return { x, y, z }
@@ -140,6 +146,12 @@ for _, key in MapSpec.HUB_ORDER do
 	local hub = MapSpec.hub(key)
 	assert(hub, `ReviewCameras: MapSpec.HUB_ORDER names missing hub {key}`)
 	local eye, look = hubCamera(hub, hubSides[key])
+	if key == "warung" then
+		-- Item 250: keep the hub-centre bearing (the item-205 recipe cones depend on it) but aim
+		-- down at the dressed front age instead of up at the roof ridge. The 9-stud eye already
+		-- stands 5..12 studs above grade; only the target height changes.
+		look = vec(hub.x, MapSpec.GROUND_Y + MapSpec.S, hub.z)
+	end
 	add(`hub_{key}`, eye, look, "Server", `3/4 view of {hub.model} from outside its front corner.`)
 end
 
@@ -240,14 +252,49 @@ add(
 	"Server",
 	"Item-148 lapak stalls and striped awnings on the Pasar front apron, from the front-right 3/4."
 )
+add(
+	"pasar_awnings_golden",
+	pasarApronEye,
+	pasarApronLook,
+	"Server",
+	"Item-218 golden-hour Pasar awnings: same eye/target as pasar_awnings.",
+	GOLDEN_CLOCK
+)
+add(
+	"pasar_awnings_night",
+	pasarApronEye,
+	pasarApronLook,
+	"Server",
+	"Item-218 night Pasar awnings: same eye/target as pasar_awnings.",
+	NIGHT_CLOCK
+)
 
 -- Plaza centre: above the fountain, looking down across the dressed Lapangan.
+local plazaEye =
+	vec(MapSpec.PLAZA.x + MapSpec.S, MapSpec.GROUND_Y + MapSpec.HEADROOM * 2, MapSpec.PLAZA.z + MapSpec.S * 3)
+local plazaLook = vec(MapSpec.PLAZA.x, MapSpec.GROUND_Y + MapSpec.HEADROOM / 2, MapSpec.PLAZA.z)
 add(
 	"plaza_centre",
-	vec(MapSpec.PLAZA.x + MapSpec.S, MapSpec.GROUND_Y + MapSpec.HEADROOM * 2, MapSpec.PLAZA.z + MapSpec.S * 3),
-	vec(MapSpec.PLAZA.x, MapSpec.GROUND_Y + MapSpec.HEADROOM / 2, MapSpec.PLAZA.z),
+	plazaEye,
+	plazaLook,
 	"Server",
 	"Fountain, benches, umbrellas and bunting at the MapSpec plaza centre, seen from above."
+)
+add(
+	"plaza_centre_golden",
+	plazaEye,
+	plazaLook,
+	"Server",
+	"Item-218 golden-hour plaza centre: same eye/target as plaza_centre.",
+	GOLDEN_CLOCK
+)
+add(
+	"plaza_centre_night",
+	plazaEye,
+	plazaLook,
+	"Server",
+	"Item-218 night plaza centre: same eye/target as plaza_centre.",
+	NIGHT_CLOCK
 )
 
 -- Pos Ronda tower (WORK_QUEUE item 180). The old eye stood east of the tower centre, behind the
@@ -500,9 +547,6 @@ add(
 -- CAMERA_CLEAR ray starts in air. `lamp_night` now carries a real `clockTime = 21` field.
 local connectorEyeZ = MapSpec.LAPANGAN.z + MapSpec.LAPANGAN.depth / 2
 local meadowLookZ = connectorEyeZ - MapSpec.S * 2
-local terraceNearZ = (terraces[1].z0 + terraces[1].z1) / 2 + MapSpec.S
-local terraceLookZ = MapSpec.FUTURE_SLOTS[1].z + MapSpec.FUTURE_SLOTS[1].depth / 2 + MapSpec.S * 4
-local terraceEyeX = MapSpec.STAIRS[1].x + MapSpec.S * 10
 local horizonLookY = MapSpec.GROUND_Y + MapSpec.HEADROOM * 3
 local horizonFar = MapSpec.TERRAIN_HALF * 2.25
 
@@ -515,12 +559,32 @@ local fenceX = math.cos(fenceAngle) * fenceMid - math.sin(fenceAngle) * RoadFenc
 local fenceZ = math.sin(fenceAngle) * fenceMid + math.cos(fenceAngle) * RoadFenceR10.SIDE_OFFSET * fenceStretch.side
 local fenceEyeX = fenceX - math.sin(fenceAngle) * MapSpec.S * 8 * fenceStretch.side
 local fenceEyeZ = fenceZ + math.cos(fenceAngle) * MapSpec.S * 8 * fenceStretch.side
+-- Item 250: the old 5.25-stud eye grazed grass on the final approach. Raise it to a 10-stud eye
+-- (5..12 above grade) so the whole finite look ray stays over 3 studs above the surface.
+local pathEye = vec(fenceEyeX, MapSpec.GROUND_Y + MapSpec.HEADROOM, fenceEyeZ)
+local pathLook = vec(fenceX, MapSpec.GROUND_Y + RoadFenceR10.FENCE_HEIGHT / 2, fenceZ)
 add(
 	"path_curve",
-	vec(fenceEyeX, MapSpec.GROUND_Y + MapSpec.HEADROOM / 2, fenceEyeZ),
-	vec(fenceX, MapSpec.GROUND_Y + RoadFenceR10.FENCE_HEIGHT / 2, fenceZ),
+	pathEye,
+	pathLook,
 	"Server",
-	"Item-240 close 3/4 of the first road_fence_r10 bamboo stretch, from outside the road shoulder."
+	"Item-250 downward close 3/4 of the first road_fence_r10 bamboo stretch, from outside the road shoulder."
+)
+add(
+	"path_curve_golden",
+	pathEye,
+	pathLook,
+	"Server",
+	"Item-218 golden-hour path_curve: same eye/target as path_curve.",
+	GOLDEN_CLOCK
+)
+add(
+	"path_curve_night",
+	pathEye,
+	pathLook,
+	"Server",
+	"Item-218 night path_curve: same eye/target as path_curve.",
+	NIGHT_CLOCK
 )
 
 -- Item 240: aim at the first real kampung cluster (four houses at radius 165) instead of the empty
@@ -560,12 +624,25 @@ add(
 	"Server",
 	"Open lawn between the Pasar ring and the plots, looking south across the meadow."
 )
+-- Item 250: the sprint-2 `terrace_wall` shot faced the village, so the hill_dressing_r10 rocks on the
+-- north hill were behind the lens. Move to the south foot of hill 4 and aim down at the rocks/palms.
+-- The eye sits 14 studs above the hill-dressing slope proxy (the same 3..12 band slopeY uses), so it
+-- clears the grass at the eye and keeps the look ray above grade while the hill stays in frame. Same
+-- registry name keeps the shot comparable.
+local hillSubject = HillDressing.HILLS[4]
+assert(hillSubject, "ReviewCameras: hill_dressing_r10 has no fourth hill")
+local HILL_EYE_FRACTION = 0.9
+local HILL_SLOPE_BASE = 3
+local HILL_SLOPE_RISE = 9
+local HILL_EYE_LIFT = 14
+local hillSlopeY = HILL_SLOPE_BASE + (1 - HILL_EYE_FRACTION) * HILL_SLOPE_RISE
+local terraceEyeY = hillSlopeY + HILL_EYE_LIFT
 add(
 	"terrace_wall",
-	vec(terraceEyeX, highTerrace.top + MapSpec.HEADROOM * MapSpec.S + MapSpec.S, terraceNearZ),
-	vec(terraceEyeX, highTerrace.top, terraceLookZ),
+	vec(hillSubject.x, terraceEyeY, hillSubject.z + hillSubject.radius * HILL_EYE_FRACTION),
+	vec(hillSubject.x, terraceEyeY - MapSpec.HEADROOM / 2, hillSubject.z + hillSubject.radius * 0.35),
 	"Server",
-	"Sawah terrace bunds and retaining wall looking south toward the Balai gap."
+	"Item-250 downward view of hill_dressing_r10 rocks and palms on the north hill from its south foot."
 )
 -- Item 240: frame the real east-junction signpost board, 24 studs in front of it on the inward
 -- normal. The old eye aimed at the ukur board instead, so no signpost was in frame.
@@ -588,13 +665,32 @@ local lampDescriptor = LampsR10.lamps()[1]
 local lampAngle = math.atan2(lampDescriptor.position.z, lampDescriptor.position.x)
 local lampEyeX = lampDescriptor.position.x - math.cos(lampAngle) * MapSpec.S * 10 - math.sin(lampAngle) * MapSpec.S * 6
 local lampEyeZ = lampDescriptor.position.z - math.sin(lampAngle) * MapSpec.S * 10 - math.cos(lampAngle) * MapSpec.S * 6
+local lampEye = vec(lampEyeX, MapSpec.GROUND_Y + MapSpec.HEADROOM, lampEyeZ)
+local lampLook =
+	vec(lampDescriptor.position.x, lampDescriptor.position.y + LampsR10.POLE_SIZE[2] / 2, lampDescriptor.position.z)
 add(
 	"lamp_night",
-	vec(lampEyeX, MapSpec.GROUND_Y + MapSpec.HEADROOM, lampEyeZ),
-	vec(lampDescriptor.position.x, lampDescriptor.position.y + LampsR10.POLE_SIZE[2] / 2, lampDescriptor.position.z),
+	lampEye,
+	lampLook,
 	"Server",
 	"Item-240 close 3/4 of the first lamps_r10 pole and lantern; ClockTime 21 night variant.",
-	21
+	NIGHT_CLOCK
+)
+add(
+	"lamp_night_golden",
+	lampEye,
+	lampLook,
+	"Server",
+	"Item-218 golden-hour lamp_night: same eye/target as lamp_night.",
+	GOLDEN_CLOCK
+)
+add(
+	"lamp_night_night",
+	lampEye,
+	lampLook,
+	"Server",
+	"Item-218 night lamp_night: same eye/target as lamp_night.",
+	NIGHT_CLOCK
 )
 add(
 	"horizon_north",
@@ -630,16 +726,27 @@ add(
 local cropCentre = CropStagesR10.demoCentre()
 local cropPlotX, cropPlotZ = Game.plotCenter(CropStagesR10.DEMO_PLOT)
 local cropRadius = math.sqrt(cropPlotX * cropPlotX + cropPlotZ * cropPlotZ)
+-- Item 250: a closer, higher eye so all three 1.2/2.6/4.2-stud samples read from above without the
+-- sightline grazing grass within 12 studs. The target stays the demo plot centre.
+local cropEye = vec(
+	cropPlotX + cropPlotX / cropRadius * MapSpec.S * 10,
+	MapSpec.GROUND_Y + MapSpec.HEADROOM + MapSpec.S / 2,
+	cropPlotZ + cropPlotZ / cropRadius * MapSpec.S * 10
+)
 add(
 	"crop_stages_close",
-	vec(
-		cropPlotX + cropPlotX / cropRadius * MapSpec.S * 14,
-		MapSpec.GROUND_Y + MapSpec.HEADROOM,
-		cropPlotZ + cropPlotZ / cropRadius * MapSpec.S * 14
-	),
+	cropEye,
 	cropCentre,
 	"Server",
-	"Item-240 close view of one plot with all three crop_stages_r10 stages side by side."
+	"Item-250 downward close view of one plot with all three crop_stages_r10 stages side by side."
+)
+add(
+	"crop_stages_golden",
+	cropEye,
+	cropCentre,
+	"Server",
+	"Item-247 golden-hour crop stage close-up: same eye/target as crop_stages_close.",
+	GOLDEN_CLOCK
 )
 
 local ditchParts = DitchWaterR10.parts()
@@ -647,16 +754,18 @@ local ditchX = (ditchParts[1].position[1] + ditchParts[2].position[1]) / 2
 local ditchZ = (ditchParts[1].position[3] + ditchParts[2].position[3]) / 2
 local ditchPlotX, ditchPlotZ = Game.plotCenter(ditchParts[1].plot)
 local ditchRadius = math.sqrt(ditchPlotX * ditchPlotX + ditchPlotZ * ditchPlotZ)
+-- Item 250: an 11-stud eye one voxel farther out than the old 10-stud / 12-stud-standoff pair;
+-- at the 12-stud sample the old ray fell below 3 studs over grass. The water strips stay in frame.
 add(
 	"ditch_water_close",
 	vec(
-		ditchX + ditchPlotX / ditchRadius * MapSpec.S * 6,
-		MapSpec.GROUND_Y + MapSpec.HEADROOM,
-		ditchZ + ditchPlotZ / ditchRadius * MapSpec.S * 6
+		ditchX + ditchPlotX / ditchRadius * MapSpec.S * 7,
+		MapSpec.GROUND_Y + MapSpec.HEADROOM + MapSpec.S / 2,
+		ditchZ + ditchPlotZ / ditchRadius * MapSpec.S * 7
 	),
 	vec(ditchX, DitchWaterR10.WATER_Y, ditchZ),
 	"Server",
-	"Item-240 close downward view of one plot's two ditch_water_r10 glass strips."
+	"Item-250 close downward view of one plot's two ditch_water_r10 glass strips."
 )
 
 local byName: { [string]: ReviewCamera } = {}

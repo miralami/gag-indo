@@ -1,0 +1,67 @@
+CHECK 250 - CAMERA_GRASS harness and five re-aimed review cameras (WORK_QUEUE SPRINT 3 item 250)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP, studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, SERVER DataModel.
+Place: Development-Juragan-Desa. Play only for checks. Place NOT saved, nothing published.
+Rojo-synced: repo src/ changes present in the live place before each run.
+Status: BLOCKED — CHECK CG250_HILL_DRESSING_R10 FAIL 1 0 (two attempts).
+
+== Wiring ==
+tools/studio/check_q250.luau staged each paired candidate via LookDevReview.enableAdditive from the
+SERVER VM; SubjectCoverage measured the paired camera; src/shared/CameraGrass.evaluate read live
+workspace.Terrain via grid-aligned ReadVoxels(region, 4). tools/studio/review_check_visual.luau ran
+the item-217/239 audits plus the new CAMERA_GRASS block. Every run restored with disableAll() and
+destroyed its injected blocker. No place save, no visual verdict.
+
+== Raw check lines (verbatim, fresh Play, Server VM) — attempt 1 ==
+CHECK SC250_ROAD_FENCE_R10 PASS 0.7738 0.15
+CHECK CG250_ROAD_FENCE_R10 PASS 0 0
+CHECK SC250_DITCH_WATER_R10 PASS 0.9583 0.15
+CHECK CG250_DITCH_WATER_R10 PASS 0 0
+CHECK SC250_CROP_STAGES_R10 PASS 0.4706 0.15
+CHECK CG250_CROP_STAGES_R10 PASS 0 0
+CHECK SC250_HILL_DRESSING_R10 PASS 0.4260 0.15
+CHECK CG250_HILL_DRESSING_R10 FAIL 1 0
+CHECK SC250_HUBVEG_R8 FAIL 0.0000 0.15
+CHECK CG250_HUBVEG_R8 PASS 0 0
+CHECK CAL_CAMERA_GRASS_OLD_250 PASS 1 1
+CHECK CAMERA_CLEAR_218 PASS 0 0
+CHECK CAL_CAMERA_CLEAR_218_BLOCK PASS 1 1
+
+== Raw check lines (verbatim, fresh Play, Server VM) — attempt 2 ==
+CHECK SC250_ROAD_FENCE_R10 PASS 0.7738 0.15
+CHECK CG250_ROAD_FENCE_R10 PASS 0 0
+CHECK SC250_DITCH_WATER_R10 PASS 0.9583 0.15
+CHECK CG250_DITCH_WATER_R10 PASS 0 0
+CHECK SC250_CROP_STAGES_R10 PASS 0.4706 0.15
+CHECK CG250_CROP_STAGES_R10 PASS 0 0
+CHECK SC250_HILL_DRESSING_R10 PASS 0.4426 0.15
+CHECK CG250_HILL_DRESSING_R10 FAIL 1 0
+CHECK SC250_HUBVEG_R8 PASS 0.4491 0.15
+CHECK CG250_HUBVEG_R8 PASS 0 0
+CHECK CAL_CAMERA_GRASS_OLD_250 PASS 1 1
+CHECK CAMERA_CLEAR_218 PASS 0 0
+CHECK CAL_CAMERA_CLEAR_218_BLOCK PASS 1 1
+
+== review_check_visual.luau, fresh Play, Server VM ==
+CHECK CAMERA_GRASS FAIL 1 0
+CHECK CAL_CAMERA_GRASS_OLD PASS 1 1
+(thresholds eye 4 studs, ray 3 studs, distance 12 studs; 5 cameras checked; only terrace_wall failed)
+
+== Failure detail ==
+CHECK CG250_HILL_DRESSING_R10 FAIL 1 0 detail: camera=terrace_wall, lowEye=true,
+eyeClearance=-14.1, samples=24, lowGrassHits=24. Eye y=17.9; the live hill surface directly
+below it is y=32, so the camera eye is 14.1 studs UNDER the terrain surface. The attempt-2 re-aim
+raised the eye from 9.5 to 17.9 but the saved place's hill is higher than the pure Landscape proxy
+the fixer used. Target 0 and the 4/3/12 thresholds were never weakened. Two attempts spent; item is
+BLOCKED per WORK_QUEUE section K. Sprint-3 STOP must record this camera as still failing CAMERA_GRASS.
+
+== Calibration / non-vacuity ==
+- Sprint-2 old eye path_curve at (90,5.25,-26) gave lowGrassHits=7 while the new eye clears:
+  CAL_CAMERA_GRASS_OLD PASS 1 1.
+- CAL_CAMERA_CLEAR_218_BLOCK PASS 1 1: an opaque 2-stud blocker injected 2 studs along the
+  plaza_centre eye ray changed CAMERA_CLEAR_218 from 0 hits to >=1; destroyed afterwards.
+
+== Local validation ==
+lune run tests/run.luau: All 3097 tests passed (exit 0).
+selene src: 0 errors / 0 warnings / 0 parse errors.
+Stylua checked on the changed Luau files. No secrets, no .rbxl, no asset IDs invented.

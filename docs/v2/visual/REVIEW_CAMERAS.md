@@ -1,7 +1,7 @@
 # Review cameras (WORK_QUEUE section M item 69)
 
 Registry: `src/shared/ReviewCameras.luau` (`ReviewCameras.all()`, `.get(name)`, `.names()`).
-45 named cameras at item 118; 54 named cameras after item 133; 67 named cameras after item 216; 69 named cameras after item 240. Coordinates are computed at load from `src/server/World/MapSpec.luau` (hub centres,
+45 named cameras at item 118; 54 named cameras after item 133; 67 named cameras after item 216; 69 named cameras after item 240; 78 named cameras after items 218, 247 and 250 (eight lighting variants plus `crop_stages_golden`). Coordinates are computed at load from `src/server/World/MapSpec.luau` (hub centres,
 footprints, road ring, bridge, terraces, hill edge, spawn), `src/shared/Config/Game.luau` (plot-ring
 angles/radius) and `ModelMapVegetationR7.savedCamera` (the current saved spawn camera). No hand-typed
 world coordinates. `ReviewCameras.clearDistance` is the 6-stud `CAMERA_CLEAR` ray length.
@@ -49,7 +49,11 @@ Shots and verdicts belong under `docs/v2/evidence/h/<date>-round9/`.
 | `sawah_above` | Server | High view down the full sawah band. |
 | `hill_ring_in` | Server | Hill/forest backdrop looking in across the village. |
 | `pasar_awnings` | Server | Item-148 lapak stalls and striped awnings on the Pasar front apron, from the front-right 3/4. |
+| `pasar_awnings_golden` | Server | Item-218 golden-hour variant of `pasar_awnings`: same eye/target, `clockTime = 16.5`. |
+| `pasar_awnings_night` | Server | Item-218 night variant of `pasar_awnings`: same eye/target, `clockTime = 21`. |
 | `plaza_centre` | Server | Fountain, benches, umbrellas and bunting at the MapSpec plaza centre, seen from above. |
+| `plaza_centre_golden` | Server | Item-218 golden-hour variant of `plaza_centre`: same eye/target, `clockTime = 16.5`. |
+| `plaza_centre_night` | Server | Item-218 night variant of `plaza_centre`: same eye/target, `clockTime = 21`. |
 | `ronda_tower` | Server | Bamboo watchtower at MapSpec.RONDA_TOWER, framed whole from the open north-west side. |
 | `ronda_tower_wide` | Server | Wider 3/4 of the whole Pos Ronda watchtower from farther out on the same open north-west side. |
 | `river_rocks` | Server | Bank boulders and plants along MapSpec.riverCentreZ, looking downstream from the south bank. |
@@ -83,15 +87,20 @@ Item 211 (2026-11-23) data note: the DEFAULT-look Pos Ronda floor now carries ta
 | `laundry_view` | Server | Item-115 Pasar washing lines with sarung, batik and kebaya behind the back wall. |
 | `kite_sky` | Server | Item-116 kites over the Lapangan, framed on the highest sail from above. |
 | `warung_seated` | Server | Item-117 seated villagers, glasses and plates on the Warung benches from the front-left apron. |
-| `path_curve` | Server | Item-240 close 3/4 of the first `road_fence_r10` bamboo stretch, from outside the road shoulder. |
+| `path_curve` | Server | Item-250 downward close 3/4 of the first `road_fence_r10` bamboo stretch, from outside the road shoulder. |
+| `path_curve_golden` | Server | Item-218 golden-hour variant of `path_curve`: same eye/target, `clockTime = 16.5`. |
+| `path_curve_night` | Server | Item-218 night variant of `path_curve`: same eye/target, `clockTime = 21`. |
 | `kampung_view` | Server | Item-240 close view of one four-house `kampung_r10` cluster from outside the plot ring. |
 | `bridge_side` | Server | Side elevation of the river bridge deck and railing from the east bank. |
 | `meadow_view` | Server | Open lawn between the Pasar ring and the plots, looking south across the meadow. |
-| `terrace_wall` | Server | Sawah terrace bunds and retaining wall looking south toward the Balai gap. |
+| `terrace_wall` | Server | Item-250 downward view of `hill_dressing_r10` rocks and palms on the north hill from its south foot. |
 | `signpost_pasar` | Server | Item-240 close view of the east-junction `signposts_r10` board and post from the plaza side. |
 | `lamp_night` | Server | Item-240 close 3/4 of the first `lamps_r10` pole and lantern; `clockTime = 21` night variant. |
-| `crop_stages_close` | Server | Item-240 close view of one plot with all three `crop_stages_r10` stages side by side. |
-| `ditch_water_close` | Server | Item-240 close downward view of one plot's two `ditch_water_r10` glass strips. |
+| `lamp_night_golden` | Server | Item-218 golden-hour variant of `lamp_night`: same eye/target, `clockTime = 16.5`. |
+| `lamp_night_night` | Server | Item-218 night variant of `lamp_night`: same eye/target, `clockTime = 21`. |
+| `crop_stages_close` | Server | Item-250 downward close view of one plot with all three `crop_stages_r10` stages side by side. |
+| `crop_stages_golden` | Server | Item-247 golden-hour close-up: same eye/target as `crop_stages_close`, `clockTime = 16.5`. |
+| `ditch_water_close` | Server | Item-250 close downward view of one plot's two `ditch_water_r10` glass strips. |
 | `horizon_north` | Server | North horizon over the hill and forest band from outside the playable square. |
 | `horizon_south` | Server | South horizon over the bridge and river band from outside the playable square. |
 | `fountain_close` | Server | Close view of the plaza fountain and its basin from the north-east approach. |
@@ -194,3 +203,44 @@ does the same before staging. No game lighting default changes. The self-contain
 `tools/studio/check_q240.luau` stages each pair, prints `SC240_*` (target 0.15) and `CC240_*` (target
 0 opaque hits within the 6-stud `CAMERA_CLEAR` ray), and proves both checks can FAIL by injection.
 A passing fraction is a floor check, not a visual verdict: the designer still grades re-shoot shots.
+
+## Item 250 re-aim: old and new positions (2026-11-23)
+
+`CAMERA_GRASS` is measured by `tools/studio/review_check_visual.luau` from the shared pure-data rules in
+`src/shared/CameraGrass.luau`: FAIL when the eye is under **4 studs** above the terrain voxel column
+directly below it, or when the finite eye→lookAt ray crosses a Grass/LeafyGrass column within **12 studs**
+of the eye at under **3 studs** height. Voxels are read with grid-aligned `Terrain:ReadVoxels(region, 4)`.
+`tools/studio/check_q250.luau` re-checks the same five eyes while staging each paired candidate and
+prints `SC250_*` (0.15 coverage floor), `CG250_*` (0 grass failures), `CAMERA_CLEAR_218` and old-eye
+calibration. No threshold was weakened; a bad camera is re-aimed here, not measured more loosely.
+
+| Camera / sprint-2 shot | Old eye -> lookAt | New eye -> lookAt |
+|---|---|---|
+| `path_curve` (moved) | `(90, 5.25, -26)` -> `(90, 1.1, -10)` | `(90, 10, -26)` -> `(90, 1.1, -10)` |
+| `ditch_water_close` (moved; was `plot_gate_01`) | `(42.6443, 12, -131.2458)` -> `(46.9706, 10, -144.5606)` | `(69.5288, 11, -213.9877)` -> `(65.2026, 0.58, -200.6729)` |
+| `crop_stages_close` (new; was `plot_aerial_03`) | `(152, 30.5, 0)` -> `(192, 0.5, 0)` | `(212, 11, 0)` -> `(200, 3.1, 0)` |
+| `hill_dressing_r10` via `terrace_wall` (re-aimed) | `(-120, 37.5, -318)` -> `(-120, 16.5, -238)` | `(0, 17.9, -409.8)` -> `(0, 13.15, -441.7)` |
+| `hub_warung` (re-aimed target) | `(113.7990, 9.5, -26.2010)` -> `(68, 12.5, -68)` | `(113.7990, 9.5, -26.2010)` -> `(68, 2.5, -68)` |
+
+`terrace_wall` previously faced south toward the village, so the `hill_dressing_r10` rocks on hill 4 at
+`(0, -462)` were behind the lens (sprint-2 coverage 0.0000). It now stands at that hill's south foot with
+a 17.9-stud eye (14 studs above the hill-dressing slope proxy) and looks down at its rocks/palms, keeping
+the lens and the first 12 studs of the look ray above grass for `CAMERA_GRASS`.
+`hub_warung` keeps its 9.5-stud eye and hub-centre bearing but aims down at the
+dressed front at grade instead of up at the roof ridge. The `ditch_water_close` eye is one voxel farther out and one stud higher than
+the sprint-2 eye; exact coordinates stay MapSpec-derived in the registry. `CAL_CAMERA_GRASS_OLD` uses the
+old rows above plus the recorded `(46.9706, 10, -144.5606)` sprint-2 point as an eye, and must see at
+least one FAIL so the check cannot pass vacuously.
+
+## Items 218 and 247: lighting variants (2026-11-23)
+
+`plaza_centre_golden`, `plaza_centre_night`, `pasar_awnings_golden`, `pasar_awnings_night`,
+`path_curve_golden`, `path_curve_night`, `lamp_night_golden` and `lamp_night_night` reuse their base
+eye/target and datamodel exactly; only `clockTime` changes. Golden hour is **16.5**, the midpoint of
+`Config.WorldConstants.GOLDEN_HOUR` (16.0–17.0) and the same convention as `LookDevCorner.goldenHourClock`;
+night is **21**, the value `lamp_night` already carried from item 240. `crop_stages_golden` is the same
+eye/target as `crop_stages_close` at 16.5 for the item-247 golden-hour shot; the plain
+`crop_stages_close` stays at the sprint pack's ClockTime 13. `tools/studio/check_q250.luau` prints the
+`CAMERA_CLEAR_218` proof for all eight variants. `tools/studio/check_q247.luau` prints `CROP_STAGE_HEIGHT`,
+`CROP_STAGE_COLOR` and `SUBJECT_COVERAGE_CROP_GOLDEN` (>= 0.2) with FAIL calibrations. These are data and
+geometry checks, not visual verdicts.

@@ -1,0 +1,51 @@
+CHECK 210 - Warung seating dressing (WORK_QUEUE SPRINT 2 item 210)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2
+Place: Development-Juragan-Desa. Play only (Server VM checks). Place NOT saved, nothing published.
+Rojo-synced: repo src/ changes present in the live place.
+
+== Wiring ==
+DEFAULT look (no LookDev staging):
+- src/server/World/WarungDressQ210.luau: new pure recipe module, deterministic MapSpec-derived coords,
+  existing palette names, no engine calls, no asset IDs. 4 seats (2 existing benches tagged + 2 new
+  stools), serving table, stove, hanging lantern.
+- src/server/World/Greybox.luau buildWarung() only: tags the two existing benches WarungDress/seat and
+  stages new non-collidable parts tagged WarungDress + WarungDressKind (seat/table/stove/lantern), no
+  prompts, rebuild idempotent. buildPasar (208) and buildPosRonda untouched. Existing WarungPrompt on
+  the untagged table preserved.
+- tests/specs/warung_dress_q210_spec.luau: 6 data/source cases; registered in tests/run.luau.
+- tools/studio/check_q210.luau: self-contained SERVER-VM check; three CHECK lines + three FAIL anchors.
+  NOT_INTERACTIVE scoped to WarungDress parts only — the pre-existing WarungPrompt on the untagged
+  table predates this item and is intentionally excluded (documented in the check).
+- docs/v2/visual/REVIEW_CAMERAS.md data note added; no verdict.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK WARUNG_SEATS PASS 4 4
+CHECK LANE_CLEAR PASS 0 0
+CHECK NOT_INTERACTIVE PASS 0 0
+CHECK CAL_WARUNG_SEATS_FAIL PASS 1 1
+CHECK CAL_LANE_CLEAR_FAIL PASS 1 1
+CHECK CAL_NOT_INTERACTIVE_FAIL PASS 1 1
+
+== Exact measured values ==
+- WARUNG_SEATS: 4 visible tagged WarungDress parts with kind=="seat" (2 existing benches + 2 stools),
+  target >= 4. 13 total WarungDress parts staged.
+- LANE_CLEAR: 6 hub door lanes (check_r10_template rule); 0 visible tagged WarungDress parts overlap
+  any lane (tolerance 0.05).
+- NOT_INTERACTIVE: 0 tagged WarungDress parts carry a ProximityPrompt or ClickDetector (self or
+  descendant). Scope: new dressing only; pre-existing WarungPrompt on untagged table excluded.
+
+== Calibration / non-vacuity ==
+- CAL_WARUNG_SEATS_FAIL: temporarily set all seat Transparency=1 -> count 4->0 -> PASS 1 1; exact
+  Transparency restored in-call (after-seats 4).
+- CAL_LANE_CLEAR_FAIL: injected a visible 2x2x2 part tagged WarungDress/seat in the warung door lane
+  -> lane violations 0->1 -> PASS 1 1; probe destroyed in-call.
+- CAL_NOT_INTERACTIVE_FAIL: injected one ProximityPrompt into a tagged part -> interactive count 0->1
+  -> PASS 1 1; prompt added to the injected cleanup table before removal (a leak in the first check
+  file was found and fixed in tools/studio/check_q210.luau), destroyed in-call, after-count 0.
+  No target lowered.
+
+Local validation: lune run tests/run.luau 3079 passed (3073->3079); selene src 0 errors / 0 warnings /
+0 parse errors; stylua --check clean on check_q210.luau, warung_dress_q210_spec.luau and
+WarungDressQ210.luau. Geometric/source checks, not a visual verdict; designer grades the S2-STOP re-shoot.
+Status: SEEN-IN-STUDIO.

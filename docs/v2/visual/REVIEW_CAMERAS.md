@@ -63,6 +63,8 @@ Item 242 (2026-11-23): the three canonical overview cameras now see a buried `Ho
 Item 208 (2026-11-23): the DEFAULT-look Pasar now has one non-collidable packed-earth `PasarPad` under the five stall counters (local x -32..32, z -18..26; stops at the Gelap and Pasar door lanes) and 30 `PasarProp` crates/baskets/sacks at the lapak. `hub_pasar`, `pasar_awnings`, `pasar_golden`, `pasar_night`, `signpost_pasar` and `canonical_overview` therefore frame this geometry. Measured by `tools/studio/check_q208.luau`; no look verdict — the designer grades the S2-STOP shots.
 
 Item 209 (2026-11-23): the DEFAULT-look Pasar now also has 30 `PasarStripe` awnings over the five stall counters in the item-179 red/white/blue palette, plus one Strings-backed `PasarSign` board ("PASAR" / "Market") hanging just inside the front eave clear of the six hub door lanes. The same review cameras frame them. Measured by `tools/studio/check_q209.luau`; no look verdict — the designer grades the S2-STOP shots.
+
+Item 210 (2026-11-23) data note: the DEFAULT-look Warung front now has four tagged `WarungDress` seats (the two existing benches plus two low stools), a serving table, a genteng stove and a hanging kunyit lantern, all clear of the six hub door lanes and carrying no prompts. `hub_warung` and `warung_seated` frame this geometry. Measured by `tools/studio/check_q210.luau`; no look verdict — the designer grades the S2-STOP shots.
 | `spawn_golden` | Client | Spawn framing under the golden-hour lighting preset. |
 | `spawn_night` | Client | Spawn framing under the night lighting preset. |
 | `pasar_golden` | Client | Pasar framing under the golden-hour lighting preset. |

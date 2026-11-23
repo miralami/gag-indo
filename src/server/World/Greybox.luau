@@ -19,6 +19,7 @@ local ModelMapForestR9 = require(game:GetService("ReplicatedStorage"):WaitForChi
 local Visuals = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").Config.Visuals)
 local Strings = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").Strings)
 local PasarDefault = require(script.Parent.PasarDefaultQ209)
+local WarungDress = require(script.Parent.WarungDressQ210)
 local okLoader, Loader = pcall(function()
 	return require(script.Parent.LookDevAssetLoader)
 end)
@@ -564,8 +565,34 @@ local function buildWarung(world: Folder)
 		hubBlock(model, hub, "AwningPost", side * (halfW - 5), GROUND_Y + height / 2, roof.halfDepth + MapSpec.AWNING_REACH, Vector3.new(0.7, height, 0.7), C.wood, Enum.Material.Wood)
 	end
 	hubSign(model, hub, roof.halfDepth + MapSpec.AWNING_REACH - 0.6, EAVE + AWNING_THICK + SIGN_HALF_HEIGHT, hub.sign, 18)
+	-- Item 210: the existing benches count as seats; the recipe adds stools, a serving table, a
+	-- stove and a hanging lantern in front of the anchor, all non-collidable and non-interactive.
+	local dressMaterials = {
+		Wood = Enum.Material.Wood,
+		WoodPlanks = Enum.Material.WoodPlanks,
+		Metal = Enum.Material.Metal,
+	}
 	for _, x in hub.benches do
-		hubBlock(model, hub, "Bench", x, GROUND_Y + 1.2, 10, Vector3.new(4, 0.5, 1.6), C.wood, Enum.Material.Wood)
+		local bench = hubBlock(model, hub, "Bench", x, GROUND_Y + 1.2, 10, Vector3.new(4, 0.5, 1.6), C.wood, Enum.Material.Wood)
+		bench:SetAttribute(WarungDress.TAG, true)
+		bench:SetAttribute(WarungDress.KIND_ATTR, "seat")
+	end
+	for _, def in ipairs(WarungDress.parts(hub)) do
+		local x, z = MapSpec.hubPoint(hub, def.lx, def.lz)
+		local dress = part({
+			Name = def.name,
+			Shape = if def.shape == "Cylinder" then Enum.PartType.Cylinder else Enum.PartType.Block,
+			Size = Vector3.new(def.sx, def.sy, def.sz),
+			Position = Vector3.new(x, GROUND_Y + def.y, z),
+			Color = Props.palette(def.colour),
+			Material = dressMaterials[def.material],
+			CanCollide = false,
+			CanQuery = false,
+			CastShadow = false,
+		})
+		dress:SetAttribute(WarungDress.TAG, true)
+		dress:SetAttribute(WarungDress.KIND_ATTR, def.kind)
+		dress.Parent = model
 	end
 	hubPrompt(table, hub)
 

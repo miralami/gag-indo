@@ -1,10 +1,11 @@
 --!strict
 -- LookDevHillDressingR10: SERVER-ONLY applier for the OFF-BY-DEFAULT "hill_dressing_r10"
--- candidate (WORK_QUEUE item 199). Stages anchored, non-collidable rock, palm and terrace parts
--- on the four hill domes. Geometry and colour values come from Shared.ModelMapHillDressingR10;
--- no asset IDs or visual verdict live here. Palm trunks and crowns are separate parts but share
--- the hill and kind tags. Every created instance is saved once and restored in LIFO order; only
--- instances created here are destroyed. apply/restore are idempotent and pcall-guarded throughout.
+-- candidate (WORK_QUEUE item 199, rebuilt by item 244). Stages baked item-189 rock models and
+-- real R4 tropical-tree models on the four hill domes, with procedural Wedge/Cylinder fallbacks.
+-- Every staged BasePart (including model descendants) carries HillDev-free tags HillDressing /
+-- hill / kind / LookDevStage so the live per-hill counts still work. No Ball parts are staged:
+-- item 244 removed the round green/brown "melon" crowns and rocks. Every created instance is
+-- saved once and restored in LIFO order. apply/restore are idempotent and pcall-guarded.
 -- Enable from the Server command bar:
 --   require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("hill_dressing_r10", game)
 
@@ -36,19 +37,39 @@ else
 	return {}
 end
 
-local okModules, LookDev, Data, LookDevFailures = pcall(function()
+local okModules, LookDev, Data, LookDevFailures, LookDevAssetLoader = pcall(function()
 	return require((Shared :: any).LookDev),
 		require((Shared :: any).ModelMapHillDressingR10),
-		require((Shared :: any).LookDevFailures)
+		require((Shared :: any).LookDevFailures),
+		require(script.Parent.LookDevAssetLoader)
 end)
 if not okModules or not LookDev or not Data or not LookDevFailures then
 	warn("[LookDevHillDressingR10] could not require LookDev / ModelMapHillDressingR10 / LookDevFailures")
 	return {}
 end
+if not LookDevAssetLoader then
+	warn("[LookDevHillDressingR10] LookDevAssetLoader unavailable; using procedural fallbacks")
+end
 
 local LookDevHillDressingR10 = {}
 
 local FAMILY_ID = Data.id
+
+-- Real IDs live here, NOT in the pure data module (its data-only spec forbids 8-digit literals).
+-- Rocks: the three item-189 baked Creator Store IDs from ASSET_MANIFEST.md. LookDevAssets is
+-- empty in this place and LoadAsset on these IDs is unauthorised, so rocks use baked() ONLY —
+-- no LoadAsset call, no LookDevFailures increment; missing rocks take the Wedge/Cylinder path.
+-- Trees: the four verified R4 tropical IDs; get() is baked-first with a working LoadAsset
+-- fallback in this place.
+local ASSET_IDS: { [string]: number } = {
+	rock_round = 16098456067,
+	rock_flat = 5644862709,
+	rock_tall = 53370997,
+	kelapa = 95769944522207,
+	pisang = 119293239911242,
+	mangga = 103132734600778,
+	bambu = 130965811347980,
+}
 
 local failures = 0
 local active = false
@@ -101,6 +122,15 @@ local function stageFolder(): any?
 	return instance
 end
 
+local function setTags(part: any, descriptor: any)
+	pcall(function()
+		part:SetAttribute("HillDressing", true)
+		part:SetAttribute("hill", descriptor.hill)
+		part:SetAttribute("kind", descriptor.kind)
+		part:SetAttribute("LookDevStage", FAMILY_ID)
+	end)
+end
+
 local function partType(shapeName: string): any?
 	local ok, partTypeValue = pcall(function()
 		return (Enum :: any).PartType[shapeName]
@@ -119,8 +149,13 @@ local function stagePart(
 	size: { number },
 	color: any,
 	descriptor: any,
-	parent: any
+	parent: any,
+	material: any?
 )
+	if shapeName == "Ball" then
+		fail("Ball shape rejected for " .. name)
+		return
+	end
 	local shape = partType(shapeName)
 	if not shape then
 		return
@@ -131,20 +166,18 @@ local function stagePart(
 		instance.Size = Vector3.new(size[1], size[2], size[3])
 		instance.CFrame = CFrame.new(position[1], position[2], position[3])
 		instance.Color = Color3.fromRGB(color.r, color.g, color.b)
+		instance.Material = material or Enum.Material.Slate
 		instance.Anchored = true
 		instance.CanCollide = false
 		instance.CastShadow = false
 		instance.Name = name
-		instance:SetAttribute("HillDressing", true)
-		instance:SetAttribute("hill", descriptor.hill)
-		instance:SetAttribute("kind", descriptor.kind)
-		instance:SetAttribute("LookDevStage", FAMILY_ID)
 		return instance
 	end)
 	if not okPart or not part then
 		fail("could not build " .. name .. ": " .. tostring(part))
 		return
 	end
+	setTags(part, descriptor)
 	created[#created + 1] = part
 	local okParent, why = pcall(function()
 		part.Parent = parent
@@ -154,20 +187,184 @@ local function stagePart(
 	end
 end
 
+local function bounds(instance: any)
+	local ok, cframe, size = pcall(function()
+		if instance:IsA("Model") then
+			return instance:GetBoundingBox()
+		end
+		if instance:IsA("BasePart") then
+			return instance.CFrame, instance.Size
+		end
+		return nil, nil
+	end)
+	if ok then
+		return cframe, size
+	end
+	return nil, nil
+end
+
+local function scaleToHeight(instance: any, targetHeight: number): boolean
+	local _, size = bounds(instance)
+	local nativeY = if size and size.Y > 0 then size.Y else 1
+	local factor = targetHeight / nativeY
+	if factor <= 0 or factor > 10000 then
+		return false
+	end
+	local ok = pcall(function()
+		if instance:IsA("Model") then
+			instance:ScaleTo(factor)
+		elseif instance:IsA("BasePart") then
+			instance.Size = instance.Size * factor
+		end
+	end)
+	return ok
+end
+
+-- A baked model can itself contain a Ball primitive. NO_MELONS counts ALL staged descendants,
+-- so convert any >=1.5-stud Part Ball to a Cylinder while keeping its size and placement.
+local function normaliseModel(model: any, descriptor: any)
+	local okDescendants, descendants = pcall(function()
+		return model:GetDescendants()
+	end)
+	if not okDescendants or type(descendants) ~= "table" then
+		return
+	end
+	for _, child in ipairs(descendants) do
+		pcall(function()
+			if child:IsA("LuaSourceContainer") then
+				child:Destroy()
+			end
+		end)
+		local okBase, isBase = pcall(function()
+			return child:IsA("BasePart")
+		end)
+		if okBase and isBase then
+			pcall(function()
+				if child:IsA("Part") and child.Shape == Enum.PartType.Ball then
+					local size = child.Size
+					if math.max(size.X, size.Y, size.Z) >= 1.5 then
+						child.Shape = Enum.PartType.Cylinder
+					end
+				end
+				child.Anchored = true
+				child.CanCollide = false
+				child.CastShadow = false
+			end)
+			-- Every part of a multi-part tree still counts as a palm for check_q199.
+			setTags(child, descriptor)
+		end
+	end
+	pcall(function()
+		if model:IsA("BasePart") then
+			model.Anchored = true
+			model.CanCollide = false
+			model.CastShadow = false
+			setTags(model, descriptor)
+		end
+	end)
+end
+
+local function placeAt(instance: any, position: { number })
+	pcall(function()
+		local bboxCFrame, _ = bounds(instance)
+		local pivot: any = if instance:IsA("Model") then instance:GetPivot() else instance.CFrame
+		if bboxCFrame and pivot then
+			local offset = bboxCFrame.Position - pivot.Position
+			local target = CFrame.new(Vector3.new(position[1], position[2], position[3]) - offset)
+			if instance:IsA("Model") then
+				instance:PivotTo(target)
+			else
+				instance.CFrame = target
+			end
+		end
+	end)
+end
+
+local function loadModel(descriptor: any)
+	local key = descriptor.asset
+	if type(key) ~= "string" or not LookDevAssetLoader then
+		return nil
+	end
+	local assetId = ASSET_IDS[key]
+	if type(assetId) ~= "number" then
+		return nil
+	end
+	local ok, model
+	if descriptor.kind == "rock" then
+		-- Baked-only: item-189 LoadAsset is unauthorised in this place.
+		ok, model = pcall(function()
+			return (LookDevAssetLoader :: any).baked(assetId)
+		end)
+	else
+		ok, model = pcall(function()
+			return (LookDevAssetLoader :: any).get(assetId, FAMILY_ID)
+		end)
+	end
+	if not ok or not model then
+		return nil
+	end
+	return model
+end
+
+local function stageModel(descriptor: any, parent: any): boolean
+	local model = loadModel(descriptor)
+	if not model then
+		return false
+	end
+	if not scaleToHeight(model, descriptor.size[2]) then
+		pcall(function()
+			model:Destroy()
+		end)
+		return false
+	end
+	normaliseModel(model, descriptor)
+	placeAt(model, descriptor.position)
+	local okParent, why = pcall(function()
+		model.Name = descriptor.name
+		model.Parent = parent
+	end)
+	if not okParent then
+		pcall(function()
+			model:Destroy()
+		end)
+		fail("could not parent " .. tostring(descriptor.name) .. ": " .. tostring(why))
+		return false
+	end
+	created[#created + 1] = model
+	return true
+end
+
 local function stageDescriptor(descriptor: any, parent: any)
-	local position = descriptor.position
-	stagePart(descriptor.name, descriptor.shape, position, descriptor.size, descriptor.color, descriptor, parent)
-	if descriptor.kind == "palm" and descriptor.crownOffset and descriptor.crownSize and descriptor.crownColor then
-		local offset, crownSize = descriptor.crownOffset, descriptor.crownSize
-		stagePart(
-			descriptor.name .. "_Crown",
-			"Ball",
-			{ position[1] + offset[1], position[2] + offset[2], position[3] + offset[3] },
-			crownSize,
-			descriptor.crownColor,
-			descriptor,
-			parent
-		)
+	if descriptor.asset and stageModel(descriptor, parent) then
+		return
+	end
+	local material = if descriptor.kind == "rock"
+		then Enum.Material.Slate
+		elseif descriptor.kind == "palm" then Enum.Material.Wood
+		else Enum.Material.Granite
+	stagePart(
+		descriptor.name,
+		descriptor.shape,
+		descriptor.position,
+		descriptor.size,
+		descriptor.color,
+		descriptor,
+		parent,
+		material
+	)
+	if
+		descriptor.kind == "palm"
+		and descriptor.canopyOffset
+		and descriptor.canopySize
+		and descriptor.canopyColor
+		and descriptor.canopyShape
+	then
+		local offset, canopySize = descriptor.canopyOffset, descriptor.canopySize
+		stagePart(descriptor.name .. "_Canopy", descriptor.canopyShape, {
+			descriptor.position[1] + offset[1],
+			descriptor.position[2] + offset[2],
+			descriptor.position[3] + offset[3],
+		}, canopySize, descriptor.canopyColor, descriptor, parent, Enum.Material.Grass)
 	end
 end
 

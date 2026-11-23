@@ -24,3 +24,8 @@ How to override: change the "Designer" column (or tell Claude), and the next spr
 Default look notes from sprint 1 baselines (#11 spawn, #12 canonical_overview): the grey horizon void
 from above is still there, and round green/brown blobs on the lawns and hills read as melons. Both are
 queued in sprint 2.
+
+Data note (2026-11-23, WORK_QUEUE item 244): `hill_dressing_r10` no longer stages spheres. Rocks use
+the item-189 baked models when present and Wedge/Cylinder fallbacks when absent; trees are clustered
+R4 tropical models with Wedge/Cylinder canopy fallbacks. The provisional "no, redo" verdict above
+still stands until a fresh designer review; no verdict cell was changed.

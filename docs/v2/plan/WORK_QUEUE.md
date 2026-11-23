@@ -928,7 +928,8 @@ Source: `docs/v2/evidence/h/2026-11-23-sprint1/MAIN_SESSION_NOTES.md` and `docs/
   Done 2026-11-23 (SEEN-IN-STUDIO, `CHECK_242.txt`): four buried non-collidable grass HorizonFill slabs outside the 800x800 playable square + shipped `HORIZON_HAZE_FLOOR = 1.6` (client Sky clamps season haze; live Client VM reads 1.6). Fresh Play SERVER-VM: HORIZON_FILL PASS 190/192 (0.9896, >= 0.90; per camera 63/63/64), PERF_BUDGET PASS 323/500; calibration excluding the four fill slabs drops to 170/192 (0.8854 < 0.90) -> CAL PASS 1 1. Server-VM Camera has no FOV property; check derives ray fan from fixed 70deg/16:9. Suite 3051->3055, `selene src` 0/0/0. Geometric fill, not a visual verdict.
 - [x] 243. **Redo `mountains_r10`.** Mountains must read as layered blue-green silhouettes behind the hills from `horizon_north` and `canonical_overview`, not a grey ellipsoid. **CHECKS:** `SUBJECT_COVERAGE` >= 0.10 from `horizon_north`; `MOUNTAIN_FAR` and `NO_COLLISION` still PASS; no grey SmoothPlastic Ball part.
   Done 2026-11-23 (SEEN-IN-STUDIO, `CHECK_243.txt`): 10 layered blue-green Wedge/Cylinder silhouettes + translucent crest puff replace the grey Ball ellipsoid; applier honours `material`. Fresh Play SERVER-VM: SC243_MOUNTAINS PASS 0.8736/0.10 (1677 samples, 1465 hits), MF243_MOUNTAIN_FAR PASS 0 0, NC243_NO_COLLISION PASS 0 0, NB243_NO_GREY_BALL PASS 0 0; four calibration anchors PASS (away-camera, origin injection, grey-Ball injection, collide flip). NB calibration initially failed on a `tostring(Enum...)` string comparison; fixed to compare Enum items directly, no target lowered. Suite 3055->3060, `selene src` 0/0/0. Geometric coverage, not a visual verdict; designer call pending at S2-STOP.
-- [ ] 244. **Redo `hill_dressing_r10`.** Use the baked rock models (item 189) and tropical trees in clusters, not spheres. **CHECKS:** `HILL_ROCKS`, `HILL_TREES`, `WALKABLE` still PASS; `NO_MELONS` PASS on the hills.
+- [x] 244. **Redo `hill_dressing_r10`.** Use the baked rock models (item 189) and tropical trees in clusters, not spheres. **CHECKS:** `HILL_ROCKS`, `HILL_TREES`, `WALKABLE` still PASS; `NO_MELONS` PASS on the hills.
+  Done 2026-11-23 (SEEN-IN-STUDIO, `CHECK_244.txt`): Ball rocks and Ball palm crowns replaced by clustered R4 tropical tree models (52 MeshParts loaded) and Wedge/Cylinder rocks (item-189 baked rocks absent in this place + LoadAsset unauthorized; procedural fallback used, IDs in manifest unchanged). Fresh Play SERVER-VM: HILL_ROCKS PASS 5/4, HILL_TREES PASS 13/12, WALKABLE PASS 0 delta (9->9 rays), NO_MELONS PASS 0 0, FAIL calibration by injected 2-stud hill Ball PASS 1 1; zero Ball parts staged. Suite 3060, `selene src` 0/0/0. Geometric, not a visual verdict; designer call pending at S2-STOP.
 - [ ] 245. **`bamboo_bridge_r10` as real bamboo.** Deck and rails built from bamboo culms (cylinders with nodes, yellow-green to straw) instead of timber planks. **CHECKS:** `BRIDGE_WALKABLE` and `BRIDGE_RAILS` still PASS; `BRIDGE_BAMBOO`: at least 80% of deck and rail parts are Cylinder-shaped or bamboo-model parts.
 - [ ] S2-STOP. Review pack for sprint 2 (see the SPRINTS block): items 240-245 and 208-211, plus re-shoots of every sprint-1 candidate marked **tunda** in `PROVISIONAL_VERDICTS.md`. Evidence folder `h/<date>-sprint2/`.
 - [ ] 246. **Lamps at night.** Using the item 240 `lamp_night` camera at ClockTime 21, tune the 12 lamps so the warm pools show on the road without blowing out. **CHECKS:** `LIGHT_COST` and `LAMP_NIGHT_ONLY` still PASS; `LAMP_POOL`: for at least 8 of 12 lamps the road point under the lamp is inside its light range and the midpoint between lamps is not.
@@ -1464,6 +1465,16 @@ Models the ladder couldn't supply, each with a brief and a reference.
   `models_r3/MANIFEST.md`.
 
 ## Decisions for designer
+
+### Sprint 2 item 244 — baked rock fallback (2026-11-23)
+
+Item 244 asked for baked item-189 rock models on `hill_dressing_r10`. In the current place
+`ServerStorage.LookDevAssets` has no children and `LoadAsset` on the three item-189 rock IDs returns
+"User is not authorized to access Asset", so the candidate stages Wedge/Cylinder Slate-rock fallbacks.
+The four R4 tropical-tree IDs load and are used. No asset ID was invented and no manifest ID changed:
+if the baked rocks land in a future place the same descriptors load them. The designer may decide
+whether to bake the rocks into the review place or accept the procedural silhouette. This is a visual
+choice; HILL_ROCKS / HILL_TREES / NO_MELONS are geometric and do not depend on it.
 
 ### Sprint 2 item 242 — shipped haze floor (2026-11-23)
 

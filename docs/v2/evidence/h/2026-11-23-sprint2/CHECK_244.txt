@@ -1,0 +1,52 @@
+CHECK 244 - redo hill_dressing_r10 with baked rocks and tropical trees (WORK_QUEUE SPRINT 2 item 244)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2
+Place: Development-Juragan-Desa. Play only (Server VM checks). Place NOT saved, nothing published.
+Rojo-synced: repo src/ changes present in the live place.
+
+== Wiring ==
+src/shared/ModelMapHillDressingR10.luau: Ball rocks and 9-13-stud Ball palm crowns removed. Rocks are
+Wedge/Cylinder descriptors with symbolic asset keys (rock_round/flat/tall); trees are 4 deterministic
+groves per hill, 13 per hill, with symbolic keys (kelapa/pisang/mangga/bambu) and a Wedge/Cylinder
+canopy fallback. Counts unchanged: 4 hills, 5 rocks/hill, 13 trees/hill, 3 terraces. Load-time asserts
+reject any Ball, any crownSize, and missing asset keys.
+src/server/World/LookDevHillDressingR10.luau: symbolic keys map to existing ASSET_MANIFEST IDs. Rocks
+use LookDevAssetLoader.baked() ONLY (no LoadAsset, no LookDevFailures counter); trees use get()
+(baked-first, LoadAsset fallback). When a model loads, scripts are stripped, the clone is scaled via
+GetExtentsSize()/ScaleTo(), all descendant BaseParts are anchored and tagged HillDressing/hill/kind/
+LookDevStage, and any Ball primitive >= 1.5 studs is normalised to a Cylinder. Procedural Slate/Wood/
+Grass Wedge/Cylinder fallback when no model is available. Restore LIFO cleanup unchanged.
+tests/specs/hill_dressing_r10_spec.luau updated (data-only guard retained). Sprint-1 "no, redo" note
+in PROVISIONAL_VERDICTS.md stays; no designer verdict cell changed.
+
+== LIVE asset availability (main-session probe, no place change) ==
+ServerStorage.LookDevAssets exists but has 0 children in this place: item-189 baked rock models are
+absent. InsertService:LoadAsset on 16098456067 / 5644862709 / 53370997 returns "User is not
+authorized to access Asset." The four R4 tropical-tree IDs load successfully (95769944522207,
+119293239911242, 103132734600778, 130965811347980). Consequence: rocks use the Wedge/Cylinder
+fallback now; when baked rocks land in LookDevAssets the same descriptors load them without a data
+change. No asset ID invented. Designer-tunable; recorded under Decisions for designer.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK HILL_ROCKS PASS 5 4
+CHECK HILL_TREES PASS 13 12
+CHECK WALKABLE PASS 0 0
+CHECK NO_MELONS PASS 0 0
+CHECK CAL_NO_MELONS_FAIL PASS 1 1
+
+== Exact measured values ==
+- HILL_ROCKS: min 5 rocks per hill across 4 hills (target >= 4). Per-hill rock counts all 5.
+- HILL_TREES: min 13 palms per hill across 4 hills (target >= 12). Per-hill palm counts all 13.
+- WALKABLE: 10 downward village-core rays, 9 hits before staging and 9 after, delta 0 (target 0).
+- NO_MELONS: 0 staged HillDressing BaseParts with Shape == Ball and max(Size) >= 1.5 (target 0).
+  Enum items compared directly: tostring(Enum.PartType.Ball) would be "Enum.PartType.Ball", not "Ball".
+- CAL_NO_MELONS_FAIL: temporary 2-stud grey Ball tagged HillDressing=true at hill 1 -> seen 1,
+  PASS 1 1; destroyed in the same call. Targets not lowered.
+- Staged composition (fresh Play): 52 MeshParts from loaded R4 tree models (r4_kelapa x16,
+  r4_pisang x12, r4_mangga x12, r4_bambu x12), 20 Parts as Wedge/Cylinder rock fallback (8 Wedge,
+  12 Cylinder), 3 Block terraces; zero Ball parts. 20 rock parts / 5 per hill, 52 palm parts /
+  13 per hill. Geometric checks only; designer grades the S2-STOP re-shoot.
+
+Local validation: lune run tests/run.luau 3060 passed; selene src 0 errors / 0 warnings / 0 parse
+errors; stylua --check clean on all changed/new Luau files.
+Status: SEEN-IN-STUDIO.

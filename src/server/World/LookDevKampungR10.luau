@@ -1,13 +1,13 @@
 --!strict
 -- LookDevKampungR10: SERVER-ONLY applier for the OFF-BY-DEFAULT "kampung_r10" candidate
--- (WORK_QUEUE item 200; item 253 replaced the yard Ball with hedge clusters). Stages 12 primitive
--- background houses in 3 outskirt clusters. Each yard has two fence Blocks and two hedge-shrub
--- anchors: the old green Ball is gone. In this Studio place ServerStorage.LookDevAssets has no bake
--- for the item-241 shrub IDs, so the applier stages an explicit Wedge/Cylinder cluster instead —
--- no asset ID and no runtime asset loading. Every staged part is anchored, non-collidable and
--- non-interactive; all instances here are destroyed on restore. No prompts or click detectors;
--- no gameplay state. All placement comes from Shared.ModelMapKampungR10. Overwritten attributes are
--- saved once and restored LIFO; apply/restore are idempotent and pcall-guarded throughout.
+-- (WORK_QUEUE items 200 and 261). Stages 12 baked house models in three loose two-row clusters,
+-- with real baked shrub models at each yard anchor and plain fence Blocks. The house model is
+-- `18239791051` (pick 1: Rumah Kampung Simple Indonesia); shrub IDs are the verified vegetation
+-- IDs already in ASSET_MANIFEST.md. Every clone comes from LookDevAssetLoader.baked(); no runtime
+-- insertion. Scripts are stripped defensively and all parts are anchored, non-collidable and
+-- non-shadow-casting. Every staged descendant carries LookDevStage + KampungHouse attributes; the
+-- invisible shrub anchors keep q253's hedge-cluster contract. LIFO restore and pcall guards
+-- throughout. No prompts, no gameplay state. Placement comes from Shared.ModelMapKampungR10.
 -- Enable from the Server command bar:
 --   require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("kampung_r10", game)
 
@@ -41,19 +41,26 @@ else
 	return {}
 end
 
-local okModules, LookDev, Data, LookDevFailures = pcall(function()
+local okModules, LookDev, Data, LookDevFailures, LookDevAssetLoader = pcall(function()
 	return require((Shared :: any).LookDev),
 		require((Shared :: any).ModelMapKampungR10),
-		require((Shared :: any).LookDevFailures)
+		require((Shared :: any).LookDevFailures),
+		require(script.Parent.LookDevAssetLoader)
 end)
 if not okModules or not LookDev or not Data or not LookDevFailures then
 	warn("[LookDevKampungR10] could not require LookDev / ModelMapKampungR10 / LookDevFailures")
 	return {}
 end
+if not LookDevAssetLoader then
+	warn("[LookDevKampungR10] LookDevAssetLoader unavailable; no baked house or shrub can be staged")
+end
 
 local LookDevKampungR10 = {}
 
 local FAMILY_ID = Data.id
+local HOUSE_ASSET_ID = 18239791051
+local SHRUB_ASSET_IDS = { 116666781655827, 9953859659, 5661660655 }
+local SHRUB_ANCHOR_SIZE = { 0.4, 0.2, 0.4 }
 local failures = 0
 local active = false
 local created: { any } = {}
@@ -135,7 +142,166 @@ local function stageFolder(): any?
 	return instance
 end
 
+local function bounds(instance: any)
+	local ok, cframe, size = pcall(function()
+		if instance:IsA("Model") then
+			return instance:GetBoundingBox()
+		end
+		if instance:IsA("BasePart") then
+			return instance.CFrame, instance.Size
+		end
+		return nil, nil
+	end)
+	if ok then
+		return cframe, size
+	end
+	return nil, nil
+end
+
+-- Tag every descendant (and the model root) with the family identity. role="shrub" is reserved for
+-- the invisible q253 anchor; baked shrub visuals carry role="shrubVisual" so they cannot be counted
+-- as Wedge/Cylinder hedge blades by the older check.
+local function tagInstance(instance: any, houseIndex: number, role: string, descriptor: any)
+	setAttribute(instance, (Data :: any).stageAttribute, FAMILY_ID)
+	setAttribute(instance, (Data :: any).tagAttribute, true)
+	setAttribute(instance, "house", houseIndex)
+	setAttribute(instance, "role", role)
+	if descriptor.cluster then
+		setAttribute(instance, "cluster", descriptor.cluster)
+	end
+	if descriptor.shrubCluster then
+		setAttribute(instance, "shrubCluster", descriptor.shrubCluster)
+	end
+	if descriptor.hedgeAnchor then
+		setAttribute(instance, "HedgeShrub", true)
+	end
+	if descriptor.modelAsset then
+		setAttribute(instance, (Data :: any).modelAttribute, descriptor.modelAsset)
+	end
+end
+
+-- Bakes are already stripped, but strip again defensively. A Ball from a source model would trip
+-- q253 NO_MELONS, so convert any >=1.5-stud Ball to a Cylinder before staging it.
+local function sanitizeModel(model: any, descriptor: any, houseIndex: number, role: string)
+	local okDescendants, descendants = pcall(function()
+		return model:GetDescendants()
+	end)
+	if not okDescendants or type(descendants) ~= "table" then
+		fail("could not read staged model descendants")
+		return false
+	end
+	for _, child in ipairs(descendants) do
+		pcall(function()
+			if child:IsA("BaseScript") or child:IsA("LuaSourceContainer") then
+				child:Destroy()
+			end
+		end)
+		local okBase, isBase = pcall(function()
+			return child:IsA("BasePart")
+		end)
+		if okBase and isBase then
+			pcall(function()
+				if child:IsA("Part") and child.Shape == Enum.PartType.Ball then
+					local size = child.Size
+					if math.max(size.X, size.Y, size.Z) >= 1.5 then
+						child.Shape = Enum.PartType.Cylinder
+					end
+				end
+				child.Anchored = true
+				child.CanCollide = false
+				child.CastShadow = false
+			end)
+		end
+		tagInstance(child, houseIndex, role, descriptor)
+	end
+	pcall(function()
+		if model:IsA("BasePart") then
+			model.Anchored = true
+			model.CanCollide = false
+			model.CastShadow = false
+		end
+	end)
+	tagInstance(model, houseIndex, role, descriptor)
+	return true
+end
+
+local function scaleModel(model: any, targetSize: { number }, strict: boolean): boolean
+	local _, size = bounds(model)
+	if not size or size.X <= 0 or size.Y <= 0 or size.Z <= 0 then
+		fail("staged model has no usable bounding box")
+		return false
+	end
+	local tolerance = if strict then (Data :: any).scaleTolerance else 1
+	local factor = targetSize[2] / size.Y
+	if strict then
+		factor = math.min(factor, targetSize[1] * (1 + tolerance) / size.X, targetSize[3] * (1 + tolerance) / size.Z)
+		factor = math.max(factor, targetSize[2] * (1 - tolerance) / size.Y)
+	end
+	if factor <= 0 or factor > 10000 then
+		fail("staged model scale factor out of range: " .. tostring(factor))
+		return false
+	end
+	local okScale, why = pcall(function()
+		model:ScaleTo(factor)
+	end)
+	if not okScale then
+		fail("could not scale staged model: " .. tostring(why))
+		return false
+	end
+	if strict then
+		local _, after = bounds(model)
+		if
+			not after
+			or math.abs(after.X - targetSize[1]) > targetSize[1] * tolerance
+			or math.abs(after.Y - targetSize[2]) > targetSize[2] * tolerance
+			or math.abs(after.Z - targetSize[3]) > targetSize[3] * tolerance
+		then
+			fail("staged house bounding box is outside the 20% HOUSE_SCALE target")
+			return false
+		end
+	end
+	return true
+end
+
+-- Centre the bounding box on the data position and rest its bottom on GROUND_Y. No baked-model yaw:
+-- the live world bbox is the HOUSE_SCALE measurement surface, so rotating it would inflate X/Z.
+local function placeModel(model: any, position: { number })
+	pcall(function()
+		local bboxCFrame, size = bounds(model)
+		local pivot: any = if model:IsA("Model") then model:GetPivot() else model.CFrame
+		if not bboxCFrame or not size or not pivot then
+			return
+		end
+		local offset = bboxCFrame.Position - pivot.Position
+		local centre = Vector3.new(position[1], position[2] + size.Y / 2, position[3])
+		local target = CFrame.new(centre - offset)
+		if model:IsA("Model") then
+			model:PivotTo(target)
+		else
+			model.CFrame = target
+		end
+	end)
+end
+
+local function bakedModel(assetId: number): any?
+	if not LookDevAssetLoader then
+		return nil
+	end
+	local ok, model = pcall(function()
+		return (LookDevAssetLoader :: any).baked(assetId)
+	end)
+	if not ok then
+		fail("baked lookup threw for " .. tostring(assetId) .. ": " .. tostring(model))
+		return nil
+	end
+	return model
+end
+
 local function stagePart(descriptor: any, parent: any, houseIndex: number, role: string, shape: string?)
+	if shape == "Ball" then
+		fail("Ball shape rejected for " .. tostring(descriptor and descriptor.name))
+		return
+	end
 	local okPart, part = pcall(function()
 		local instance = (Instance :: any).new("Part")
 		local partType = (Enum.PartType :: any)[shape or "Block"] or (Enum.PartType :: any).Block
@@ -144,6 +310,7 @@ local function stagePart(descriptor: any, parent: any, houseIndex: number, role:
 		instance.CFrame = CFrame.new(descriptor.position.x, descriptor.position.y, descriptor.position.z)
 			* CFrame.Angles(0, math.rad(descriptor.yaw or 0), 0)
 		instance.Color = Color3.fromRGB(descriptor.color.r, descriptor.color.g, descriptor.color.b)
+		instance.Transparency = descriptor.transparent and 1 or 0
 		instance.Anchored = true
 		instance.CanCollide = false
 		instance.CastShadow = false
@@ -156,14 +323,13 @@ local function stagePart(descriptor: any, parent: any, houseIndex: number, role:
 	end
 	created[#created + 1] = part
 
-	setAttribute(part, (Data :: any).tagAttribute, true)
-	setAttribute(part, "house", houseIndex)
-	setAttribute(part, "role", role)
-	setAttribute(part, (Data :: any).stageAttribute, FAMILY_ID)
-	if role == "shrub" then
-		setAttribute(part, "cluster", descriptor.cluster)
+	local descriptorTags = {
+		cluster = descriptor.cluster,
+		hedgeAnchor = role == "shrub",
+	}
+	tagInstance(part, houseIndex, role, descriptorTags)
+	if role == "shrub" and descriptor.name then
 		setAttribute(part, "shrubCluster", descriptor.name)
-		setAttribute(part, "HedgeShrub", true)
 	end
 
 	local okParent, why = pcall(function()
@@ -171,6 +337,38 @@ local function stagePart(descriptor: any, parent: any, houseIndex: number, role:
 	end)
 	if not okParent then
 		fail("could not parent " .. tostring(descriptor.name) .. ": " .. tostring(why))
+	end
+end
+
+local function stageHouseModel(house: any, houseIndex: number, root: any)
+	local okBaked, model = pcall(function()
+		return (LookDevAssetLoader :: any).baked(HOUSE_ASSET_ID)
+	end)
+	if not okBaked then
+		fail("baked lookup threw for house model " .. tostring(HOUSE_ASSET_ID) .. ": " .. tostring(model))
+		return
+	end
+	if not model then
+		fail("no baked house model " .. tostring(HOUSE_ASSET_ID))
+		return
+	end
+	created[#created + 1] = model
+	local descriptor = { cluster = house.cluster, modelAsset = HOUSE_ASSET_ID }
+	local okSanitize, why = pcall(sanitizeModel, model, descriptor, houseIndex, "house")
+	if not okSanitize or not why then
+		fail("could not sanitize house model " .. houseIndex .. ": " .. tostring(why))
+		return
+	end
+	if not scaleModel(model, (Data :: any).BODY_SIZE, true) then
+		return
+	end
+	placeModel(model, house.position)
+	local okParent, parentWhy = pcall(function()
+		model.Name = house.name
+		model.Parent = root
+	end)
+	if not okParent then
+		fail("could not parent house model " .. houseIndex .. ": " .. tostring(parentWhy))
 	end
 end
 
@@ -183,68 +381,65 @@ local function stageHouses(root: any)
 		return
 	end
 	for index, house in ipairs(houses) do
-		local okBuild, why = pcall(function()
-			local body = {
-				name = house.name .. "_body",
-				size = house.body.size,
-				color = house.body.color,
-				yaw = house.yaw,
-				position = {
-					x = house.position.x,
-					y = house.position.y + house.body.size[2] / 2,
-					z = house.position.z,
-				},
-			}
-			local roof = {
-				name = house.name .. "_roof",
-				size = house.roof.size,
-				color = house.roof.color,
-				yaw = house.yaw,
-				position = {
-					x = house.position.x,
-					y = house.position.y + house.body.size[2] + house.roof.size[2] / 2,
-					z = house.position.z,
-				},
-			}
-			stagePart(body, root, index, "house", "Block")
-			stagePart(roof, root, index, "house", "Wedge")
-		end)
+		local okBuild, why = pcall(stageHouseModel, house, index, root)
 		if not okBuild then
 			fail("could not stage house " .. index .. ": " .. tostring(why))
 		end
 	end
 end
 
--- Item 253 hedge fallback: no bake exists in this place, so each yard anchor becomes three Wedge
--- blades and one low Cylinder base. All four stay inside the old 4-stud Ball footprint and are
--- tagged role="shrub" / HedgeShrub / shrubCluster for the SERVER-VM check.
-local HEDGE_BLADES = {
-	{ radial = -0.6, tangential = 0, yaw = 0 },
-	{ radial = 0.6, tangential = -0.5, yaw = 110 },
-	{ radial = 0.6, tangential = 0.5, yaw = 250 },
-}
-
-local function stageHedgeShrub(descriptor: any, parent: any, houseIndex: number)
-	local px, pz = descriptor.position.x, descriptor.position.z
-	local base = {
-		name = descriptor.name .. "_base",
-		size = { 0.8, 1.2, 0.8 },
-		position = { x = px, y = descriptor.position.y + 0.6, z = pz },
+-- The anchor is invisible: it exists only to keep q253's 4-stud Wedge/Cylinder hedge-cluster
+-- measurement honest. The visible plant is the baked shrub staged directly beside it.
+local function stageShrubAnchor(descriptor: any, root: any, houseIndex: number)
+	stagePart({
+		name = descriptor.name .. "_anchor",
+		size = SHRUB_ANCHOR_SIZE,
+		position = {
+			x = descriptor.position.x,
+			y = descriptor.position.y + SHRUB_ANCHOR_SIZE[2] / 2,
+			z = descriptor.position.z,
+		},
 		color = descriptor.color,
 		cluster = descriptor.cluster,
-		yaw = descriptor.yaw or 0,
-	}
-	stagePart(base, parent, houseIndex, "shrub", "Cylinder")
-	for index, blade in ipairs(HEDGE_BLADES) do
-		local bx, bz = px + blade.radial, pz + blade.tangential
-		stagePart({
-			name = descriptor.name .. "_wedge_" .. index,
-			size = { 1.6, (Data :: any).SHRUB_HEIGHT, 1.6 },
-			position = { x = bx, y = descriptor.position.y + (Data :: any).SHRUB_HEIGHT / 2, z = bz },
-			color = descriptor.color,
-			cluster = descriptor.cluster,
-			yaw = (descriptor.yaw or 0) + blade.yaw,
-		}, parent, houseIndex, "shrub", "Wedge")
+		transparent = true,
+	}, root, houseIndex, "shrub", "Cylinder")
+end
+
+local function stageShrubModel(descriptor: any, root: any, houseIndex: number)
+	local model = nil
+	for _, assetId in ipairs(SHRUB_ASSET_IDS) do
+		model = bakedModel(assetId)
+		if model then
+			break
+		end
+	end
+	if not model then
+		fail("no baked shrub model for " .. tostring(descriptor.name))
+		return
+	end
+	created[#created + 1] = model
+	local shrubTags = { cluster = descriptor.cluster, shrubCluster = descriptor.name }
+	local okSanitize, why = pcall(sanitizeModel, model, shrubTags, houseIndex, "shrubVisual")
+	if not okSanitize or not why then
+		fail("could not sanitize shrub model " .. descriptor.name .. ": " .. tostring(why))
+		return
+	end
+	if
+		not scaleModel(
+			model,
+			{ (Data :: any).SHRUB_SIZE[1], (Data :: any).SHRUB_HEIGHT, (Data :: any).SHRUB_SIZE[3] },
+			false
+		)
+	then
+		return
+	end
+	placeModel(model, descriptor.position)
+	local okParent, parentWhy = pcall(function()
+		model.Name = descriptor.name .. "_model"
+		model.Parent = root
+	end)
+	if not okParent then
+		fail("could not parent shrub model " .. descriptor.name .. ": " .. tostring(parentWhy))
 	end
 end
 
@@ -259,7 +454,8 @@ local function stageYards(root: any)
 	for _, part in ipairs(yards) do
 		local okBuild, why = pcall(function()
 			if part.kind == "shrub" then
-				stageHedgeShrub(part, root, part.house)
+				stageShrubAnchor(part, root, part.house)
+				stageShrubModel(part, root, part.house)
 			else
 				stagePart(part, root, part.house, part.kind, part.shape)
 			end

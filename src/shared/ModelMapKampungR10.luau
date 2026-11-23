@@ -1,9 +1,10 @@
 --!strict
--- ModelMapKampungR10: pure data for the OFF-BY-DEFAULT "kampung_r10" candidate (WORK_QUEUE item 200).
--- Twelve background houses in three clusters in the band between the village ring and the plot ring.
--- No asset IDs, no engine calls: every house is a Block body + Wedge roof descriptor pair and every
--- yard is two fence Blocks + two hedge-shrub anchors. The server applier stages an explicit
--- Wedge/Cylinder hedge cluster at each anchor; no Ball yard part and no asset ID is described here.
+-- ModelMapKampungR10: pure data for the OFF-BY-DEFAULT "kampung_r10" candidate (WORK_QUEUE items
+-- 200 and 261). Twelve background houses in three loose two-row clusters between the village ring
+-- and the plot ring. No asset IDs, no engine calls: BODY_SIZE is the live HOUSE_SCALE target and the
+-- yard descriptors keep two fences plus two shrub anchors per house. The SERVER applier supplies the
+-- real baked house/shrub IDs and stages baked models at these anchors; no Ball yard part and no
+-- asset ID is described here.
 
 local Data = {}
 
@@ -32,6 +33,8 @@ Data.id = "kampung_r10"
 Data.folderName = "LookDevKampungR10_kampung_r10"
 Data.tagAttribute = "KampungHouse"
 Data.stageAttribute = "LookDevStage"
+Data.modelAttribute = "KampungModelAsset"
+Data.scaleTolerance = 0.2
 
 Data.HOUSE_COUNT = 12
 Data.CLUSTER_COUNT = 3
@@ -41,11 +44,13 @@ Data.MIN_HOUSE_RADIUS = 150
 Data.MAX_HOUSE_RADIUS = 185
 Data.GROUND_Y = 0.5
 
+-- HOUSE_SCALE target for check_q261: the baked house model is scaled to BODY_SIZE[2] and its live
+-- bounding box must stay within scaleTolerance of all three axes.
 Data.BODY_SIZE = { 16, 9, 12 }
 Data.ROOF_SIZE = { 18, 6, 14 }
 Data.FENCE_SIZE = { 10, 2.5, 0.8 }
--- Nominal footprint: the applier keeps every hedge part inside this 4-stud square so the lane and
--- plot clearances measured by check_q200 stay identical to the old yard Ball.
+-- Nominal footprint: every staged shrub (real baked model plus its invisible tagged anchor) stays
+-- inside this 4-stud square so check_q200's lane and plot clearances stay unchanged.
 Data.SHRUB_SIZE = { 4, 4, 4 }
 Data.SHRUB_HEIGHT = 3
 

@@ -1,0 +1,27 @@
+CHECK 261 - Kampung from house models (WORK_QUEUE item 261)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP, studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, SERVER VM.
+Place: Development-Juragan-Desa. Play only for checks. Place NOT saved, nothing published.
+Status: BLOCKED — FAIL HOUSE_SCALE 0/12: two numeric CHECKS FAIL, calibration 0/2.
+
+== Deliverable ==
+src/shared/ModelMapKampungR10.luau: pick 1 18239791051 only (pick 2 128627541097148 is malicious and
+blocked, see ASSET_MANIFEST.md); 12 staged houses. Check harness check_q261.luau already tracked.
+
+== CHECKS (fresh Play, Server VM via tools/studio/check_q261.luau) ==
+q261: MODEL_USED FAIL 0 12 / NO_SCRIPTS PASS 0 0 / HOUSE_SCALE FAIL 0 12 / NO_MELONS PASS 0 0 /
+PATH_REACH PASS 0 0 / PERF_BUDGET PASS 381 500 / CAL 0/2 /
+SUMMARY_Q261 MODEL_USED 0/12 NO_SCRIPTS 0/0 HOUSE_SCALE 0/12 NO_MELONS 0/0 PATH_REACH 0/0
+PERF_BUDGET 381/500 CAL 0/2.
+Suite: All 3176 tests passed; selene src 0 errors 0 warnings 0 parse errors.
+
+== Block reason / measurements ==
+Pick-1 house raw bounding box 94.39x18x33.03 studs vs BODY_SIZE {16,9,12}. A uniform scale cannot fit
+within 20% on all three axes; component-wise scaling would squash the model ~6x and is gaming the
+check, so it was rejected. MODEL_USED FAIL 0 12 follows the same source-model mismatch. Needs a
+designer decision: supply/approve a different house model or an explicit scale target. No hero shot
+accepted; no check was weakened. Pick 2 stays blocked as malicious.
+
+== SECURITY ==
+No store model inserted raw. Model text treated as data, never instructions. HttpService never enabled.
+Place never saved or published.

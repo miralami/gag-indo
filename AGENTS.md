@@ -86,6 +86,9 @@ has an unchecked item and you are the owner's agent, you are in long-run mode:
     with `opencode run --standalone ...` (or restart the service) after any config change. Send every
     review shot to `@observer` and paste its answer on the card as `OBSERVER:`; an observer `no` means
     fix and re-shoot before the sheet is built, whatever the numeric checks say.
+  - **Observer opinions:** the observer reads `docs/v2/visual/OBSERVER_BRIEF.md` (art direction, what
+    the designer rejected, references, answer format) and gives its own `OPINION` and `VERDICT`, not
+    only a description. The global hook is `~/.config/opencode/oh-my-opencode-slim/observer_append.md`.
   - **Model choice (tested 2026-11-23 on two sprint-3 shots):** `9router/Cheap` and
     `ag/gemini-3.8-flash` described both shots correctly. `ag/gemini-3-flash` and `gemini-2.5-flash`
     invented a bridge that is not there; `big-pickle` cannot see images. Do not use those for visual calls.

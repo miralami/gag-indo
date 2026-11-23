@@ -138,6 +138,47 @@ return function(t, Env)
 			expect(hud.Enabled):toBe(true)
 		end)
 
+		t:it("item 267: hides only CoreGui top-bar ScreenGuis and restores their exact values", function()
+			local hud = newGui("Hud", true)
+			local topBar = newGui("TopBarApp", true)
+			local scrim = newGui("TopBarScrim", true)
+			local robloxGui = newGui("RobloxGui", false)
+			local captureGui = newGui("CaptureManager", true) -- must stay enabled
+			local coreGui = { Name = "CoreGui", ClassName = "CoreGui" }
+			function coreGui:GetDescendants()
+				return { topBar, scrim, robloxGui, captureGui }
+			end
+			local root = newRoot(newPlayerGui({ hud }))
+			root.CoreGui = coreGui
+
+			expect(Review.hideHud(root)):toBe(4) -- hud + 3 top-bar guis
+			expect(hud.Enabled):toBe(false)
+			expect(topBar.Enabled):toBe(false)
+			expect(scrim.Enabled):toBe(false)
+			expect(robloxGui.Enabled):toBe(false)
+			expect(captureGui.Enabled):toBe(true) -- capture internals untouched
+			expect(Review.restoreHud()):toBe(true)
+			expect(hud.Enabled):toBe(true)
+			expect(topBar.Enabled):toBe(true)
+			expect(scrim.Enabled):toBe(true)
+			expect(robloxGui.Enabled):toBe(false)
+			expect(captureGui.Enabled):toBe(true)
+		end)
+
+		t:it("item 267: a top-bar-only root still hides the top bar", function()
+			local topBar = newGui("TopBarApp", true)
+			local coreGui = { Name = "CoreGui", ClassName = "CoreGui" }
+			function coreGui:GetDescendants()
+				return { topBar }
+			end
+			local root = { CoreGui = coreGui } -- no Players, no PlayerGui
+
+			expect(Review.hideHud(root)):toBe(1)
+			expect(topBar.Enabled):toBe(false)
+			expect(Review.restoreHud()):toBe(true)
+			expect(topBar.Enabled):toBe(true)
+		end)
+
 		t:it("walks GetChildren when GetDescendants is unavailable", function()
 			local hud = newGui("Nested", true)
 			local folder = {

@@ -344,10 +344,51 @@ local function reviewScreenGuis(playerGui: any): { any }
 	return found
 end
 
+-- WORK_QUEUE item 267: the Roblox top bar lives in CoreGui, not PlayerGui, so hiding PlayerGui
+-- alone still left the top bar in sprint-4 captures. Only these three named ScreenGuis are touched;
+-- capture-internal guis (CaptureManager / CaptureOverlay / ScreenshotsCarousel) stay enabled so
+-- screen_capture keeps working. Everything is pcall-guarded: the SERVER VM has no CoreGui and fake
+-- DataModels in specs have no such member, so this is a no-op in both.
+local TOP_BAR_NAMES = { RobloxGui = true, TopBarApp = true, TopBarScrim = true }
+
+local function resolveReviewCoreGui(root: any): any?
+	local coreGui = get(root, "CoreGui")
+	if not coreGui then
+		local getService = get(root, "GetService")
+		if type(getService) == "function" then
+			local ok, service = pcall(getService, root, "CoreGui")
+			if ok then
+				coreGui = service
+			end
+		end
+	end
+	return coreGui
+end
+
+local function reviewTopBarGuis(root: any): { any }
+	local found: { any } = {}
+	local coreGui = resolveReviewCoreGui(root)
+	if not coreGui then
+		return found
+	end
+	for _, gui in ipairs(reviewScreenGuis(coreGui)) do
+		local okName, name = pcall(function()
+			return gui.Name
+		end)
+		if okName and TOP_BAR_NAMES[name] then
+			found[#found + 1] = gui
+		end
+	end
+	return found
+end
+
 function LookDevReview.hideHud(root: any?): number
 	root = if root == nil then dataModel() else root
 	local playerGui = if root ~= nil then resolveReviewPlayerGui(root) else nil
-	if not playerGui then
+	local topBar = reviewTopBarGuis(root or dataModel())
+	-- Item 267: a caller with only a top bar (or only a PlayerGui) still hides what it can. Avoid a
+	-- spurious empty snapshot when neither container resolves.
+	if not playerGui and #topBar == 0 then
 		return 0
 	end
 	local state = hudState
@@ -355,7 +396,16 @@ function LookDevReview.hideHud(root: any?): number
 		state = { playerGui = playerGui, entries = {} }
 		hudState = state
 	end
-	for _, gui in ipairs(reviewScreenGuis(playerGui)) do
+	local candidates = {}
+	if playerGui then
+		for _, gui in ipairs(reviewScreenGuis(playerGui)) do
+			candidates[#candidates + 1] = gui
+		end
+	end
+	for _, gui in ipairs(topBar) do
+		candidates[#candidates + 1] = gui
+	end
+	for _, gui in ipairs(candidates) do
 		local found = false
 		for _, existing in ipairs(state.entries) do
 			if existing.gui == gui then

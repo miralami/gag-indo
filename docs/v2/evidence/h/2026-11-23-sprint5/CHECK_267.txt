@@ -1,0 +1,36 @@
+CHECK 267 - HUD hidden in every capture (WORK_QUEUE SPRINT 5 item 267)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP, studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, CLIENT DataModel.
+Place: Development-Juragan-Desa. Play only for checks. Place NOT saved, nothing published.
+Status: SEEN-IN-STUDIO
+
+== Root cause ==
+Item 238's hideHud disabled only PlayerGui ScreenGuis. The Roblox top bar lives in CoreGui
+(RobloxGui, TopBarApp/TopBarApp, TopBarApp/TopBarScrim) and stayed enabled, so sprint-4 captures
+still showed currency, NEXT GOAL, Phone and the bottom seed hotbar.
+
+== Fix ==
+src/shared/LookDevReview.luau: hideHud/restoreHud now also save + disable only the three named
+CoreGui top-bar ScreenGuis, pcall-guarded (SERVER VM and spec fake roots have no CoreGui, so no-op).
+Capture-internal guis (CaptureManager / CaptureOverlay / ScreenshotsCarousel) are NOT touched so
+screen_capture keeps working. tests/specs/lookdev_hud_spec.luau gains 2 cases (top-bar hide/restore,
+top-bar-only root); 9/9 HUD cases pass. tools/studio/check_q267.luau is the self-contained check.
+
+== CHECKS ==
+HUD_HIDDEN: PASS 0 0. CLIENT VM: 13 enabled ScreenGuis before (10 PlayerGui + 3 CoreGui top bar),
+  0 while hidden. CHECK HUD_HIDDEN PASS 0 0; CHECK HUD_RESTORE PASS 0 0;
+  SUMMARY_Q267 HUD_HIDDEN true HUD_RESTORE true.
+CALIBRATION (HUD left on shows FAIL): S5_267_hud_on_cal.jpg taken with HUD deliberately on, same
+  camera as the hidden companion. Hidden companion S5_267_hud_off_cal.jpg taken after hideHud.
+  OBSERVER lines below prove the detector is non-vacuous.
+
+== OBSERVER: hud_on_cal (S5_267_hud_on_cal.jpg) ==
+OBSERVER: SEE Ground plot view with Pak RT house and bamboo fences, fully overlaid with active UI elements across top and bottom screen edges. HUD_VISIBLE yes. HUD_ELEMENTS Top-left currency bar (RP 35,857, 0/40, counters, EN toggle); top-center banner (NEXT GOAL, Own 6 / 12 plots to reach Juragan); top-right Phone button; bottom hotbar (Rice x4, Shallot x1, Chili x2, Coffee x1, Locked: Sugarcane); in-world overhead tag PAK RT KETUA RT 01. VERDICT HUD_ON_CONFIRMED.
+
+== OBSERVER: hud_off_cal (S5_267_hud_off_cal.jpg) ==
+OBSERVER: SEE Village scene with soil plot, bamboo fences, house, character with in-world overhead tag PAK RT KETUA RT 01. Top bar, bottom hotbar, and screen overlay GUIs are absent. HUD_VISIBLE no. HUD_ELEMENTS none. VERDICT HUD_HIDDEN_CONFIRMED.
+
+NOTE: in-world overhead name tags on 3D characters are BillboardGui, not PlayerGui/CoreGui ScreenGuis;
+they are not part of item 267's HUD definition and are expected to remain.
+
+Suite: lune run tests/run.luau (full, green); selene src 0 errors 0 warnings 0 parse errors.

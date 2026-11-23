@@ -539,6 +539,8 @@ local S: { [string]: { id: string, en: string } } = {
 	signpost_sungai = { id = "Sungai", en = "River" },
 	signpost_plot = { id = "Plot", en = "Plots" },
 	signpost_sawah = { id = "Sawah", en = "Rice fields" },
+	signpost_balai_desa = { id = "Balai Desa", en = "Village Hall" },
+	signpost_kampung = { id = "Kampung", en = "Village" },
 
 	-- spanduk / signage (item 81: banners, warung/pasar signs and bunting). Generic invented names
 	-- only; no real brand or trademark. Text rendered from these keys via Strings.get on the sign.

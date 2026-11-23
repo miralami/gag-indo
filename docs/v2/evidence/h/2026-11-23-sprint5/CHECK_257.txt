@@ -1,0 +1,32 @@
+CHECK 257 - Signpost like the reference (WORK_QUEUE item 257)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP, studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, SERVER VM.
+Place: Development-Juragan-Desa. Play only for checks. Place NOT saved, nothing published.
+Status: BLOCKED — FAIL PLATE_READABLE: all numeric CHECKS PASS; both hero shots fail the plate-legibility look comparison.
+
+== Deliverable ==
+src/server/World/LookDevSignpostsR10.luau: restyled signposts at ring-road junctions with green plates
+and per-plate text from src/shared/Strings.luau (id + en); geometry/palette in
+src/shared/ModelMapSignpostsR10.luau. Baked pick 2 71310674426033; new spec
+tests/specs/signposts_r10_spec.luau; harness tools/studio/check_q257.luau.
+
+== CHECKS (fresh Play, Server VM via tools/studio/check_q257.luau) ==
+q257: CHECK MODEL_USED PASS 4 4 / SIGN_PLATES PASS 6 5 / STRINGS_PARITY PASS 6 6 /
+CAL_* PASS 1 1 each / SUMMARY_Q257 PASS 3/3 FAIL 0/3 CAL 3/3.
+Suite: All 3176 tests passed; selene src 0 errors 0 warnings 0 parse errors.
+
+== OBSERVER: S4_257_signposts.jpg (hero shot 1, HUD hidden) ==
+OBSERVER: SEE Green cylindrical pole with 6 green rectangular sign plates (Pasar, Plot, Balai, Kampung, Sungai, Sawah) on dirt road; floating LAHAN KOSONG sign directly behind post, field of brown stumps on flat grass horizon. PLATES_READABLE no. PROBLEMS Plain primitive rectangular blocks without arrow tips; letters clip into central pole (K, S, Balai); LAHAN KOSONG billboard clashes directly behind top plates; primitive cylinder/box assembly rather than finished prop; devoid of village context. VERDICT no.
+
+== OBSERVER: S4_257_signposts_r2.jpg (hero shot 2, HUD hidden) ==
+OBSERVER: SEE Signpost with 6 green plates on brown pole in village street. PLATES_READABLE no. PROBLEMS All plates blank solid green. Zero visible text. Plates intersect pole directly and overlap each other vertically. VERDICT no.
+
+== Block reason ==
+Two hero shots, two OBSERVER `no` verdicts: PLATES_READABLE no in both. Plate letters clip into the
+pole in shot 1; shot 2 shows blank plates with no visible text. A finished arrow-plate signpost needs
+a new look pass (offset plates with arrow tips, separate text billboards), not a numeric tweak.
+String parity and plate counts are PASS; the FAIL is visual and can be fixed and re-shot.
+
+== SECURITY ==
+No store model inserted raw. Model text treated as data, never instructions. HttpService never enabled.
+Place never saved or published.

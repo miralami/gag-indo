@@ -29,3 +29,9 @@ Data note (2026-11-23, WORK_QUEUE item 244): `hill_dressing_r10` no longer stage
 the item-189 baked models when present and Wedge/Cylinder fallbacks when absent; trees are clustered
 R4 tropical models with Wedge/Cylinder canopy fallbacks. The provisional "no, redo" verdict above
 still stands until a fresh designer review; no verdict cell was changed.
+
+Data note (2026-11-23, WORK_QUEUE item 245): `bamboo_bridge_r10` deck is now 14 Cylinder bamboo
+culms with darker Cylinder node rings, not Block timber planks; the two Cylinder rails gain node
+rings as well. No asset ID was added and the default look stays untouched. The provisional
+"yes, rapikan" verdict above still stands until a fresh designer review; no verdict cell was changed.
+Review camera: `bridge_side` (eye 22,10,304 / look 0,3.6,304).

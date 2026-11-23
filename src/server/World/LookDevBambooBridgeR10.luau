@@ -1,8 +1,9 @@
 --!strict
 -- LookDevBambooBridgeR10: SERVER-ONLY applier for the OFF-BY-DEFAULT "bamboo_bridge_r10"
--- candidate (WORK_QUEUE item 204, SPRINT 1). Stages bamboo-coloured planks, two round rails, rope
--- ties and four end posts in their own Workspace folder. Every staged Part is Anchored and
--- non-collidable: the underlying river bridge stays untouched and walkable.
+-- candidate (WORK_QUEUE item 204, SPRINT 1; item 245, SPRINT 2 made the deck real bamboo culms).
+-- Stages 14 Cylinder culms with node rings, two round rails with node rings, rope ties and four
+-- end posts in their own Workspace folder. Every staged Part is Anchored and non-collidable:
+-- the underlying river bridge stays untouched and walkable.
 -- Geometry and colours come only from Shared.ModelMapBambooBridgeR10; no asset IDs or visual verdict.
 -- apply/restore are idempotent; restore is LIFO over everything created or saved here, destroys only
 -- created instances, and is pcall-guarded throughout.
@@ -134,6 +135,18 @@ local function stageFolder(): any?
 	return instance
 end
 
+-- A Cylinder's height is local Y: rails and rail nodes run along the bridge's Z axis,
+-- deck culms and their nodes lie across the 6-stud lane on X.
+local function culmRotation(kind: string)
+	if kind == "rail_left" or kind == "rail_right" or kind == "node_rail" then
+		return CFrame.Angles(math.pi / 2, 0, 0)
+	end
+	if kind == "deck" or kind == "node_deck" then
+		return CFrame.Angles(0, 0, math.pi / 2)
+	end
+	return CFrame.new()
+end
+
 local function stagePart(descriptor: any, parent: any)
 	local okPart, part = pcall(function()
 		local instance = (Instance :: any).new("Part")
@@ -147,10 +160,7 @@ local function stagePart(descriptor: any, parent: any)
 		instance.Shape = shape
 		instance.Size = Vector3.new(descriptor.size[1], descriptor.size[2], descriptor.size[3])
 		local position = CFrame.new(descriptor.position[1], descriptor.position[2], descriptor.position[3])
-		-- A Cylinder's height is local Y; lay the two rails along the bridge's Z axis.
-		if descriptor.kind == "rail_left" or descriptor.kind == "rail_right" then
-			position *= CFrame.Angles(math.pi / 2, 0, 0)
-		end
+		position *= culmRotation(descriptor.kind)
 		instance.CFrame = position
 		instance.Color = Color3.fromRGB(descriptor.color.r, descriptor.color.g, descriptor.color.b)
 		instance.Anchored = true

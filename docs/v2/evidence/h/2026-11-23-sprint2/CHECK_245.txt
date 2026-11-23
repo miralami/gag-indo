@@ -1,0 +1,56 @@
+CHECK 245 - bamboo_bridge_r10 as real bamboo (WORK_QUEUE SPRINT 2 item 245)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2
+Place: Development-Juragan-Desa. Play only (Server VM checks). Place NOT saved, nothing published.
+Rojo-synced: repo src/ changes present in the live place.
+
+== Wiring ==
+src/shared/ModelMapBambooBridgeR10.luau: 14 deck planks changed from Block to Cylinder bamboo culms
+(size 0.5x6x0.5, straw BAMBOO_COLOR {186,168,96}) at the same z positions; 28 node rings on the deck
+and 14 on the two rails (darker straw {160,144,82}) with roles node_deck / node_rail, so the item-204
+`rail_` prefix rule still sees exactly rail_left and rail_right. Load-time asserts cover deck/rail/node
+shapes, counts (14/2/28/14), round cross-section, palette and pure data. Total 69 staged parts.
+src/server/World/LookDevBambooBridgeR10.luau: culmRotation lays deck nodes across X and rail nodes
+along Z; generic shape resolution, BambooBridge/role/LookDevStage attributes, CanCollide=false,
+CastShadow=false and LIFO restore unchanged. No new asset ID; no place save.
+tests/specs/bamboo_bridge_r10_spec.luau updated (deck Cylinder, node + palette + determinism).
+tools/studio/check_q245.luau: new self-contained SERVER-VM check; BRIDGE_WALKABLE and BRIDGE_RAILS
+keep check_q204's live logic and targets; BRIDGE_BAMBOO measured on staged role
+deck/rail_left/rail_right parts only. check_q204.luau byte-identical.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK BRIDGE_WALKABLE PASS 0 0
+CHECK BRIDGE_RAILS PASS 2 2
+CHECK BRIDGE_BAMBOO PASS 1.0000 0.80
+CHECK CAL_BRIDGE_BAMBOO_FAIL PASS 1 1
+CHECK CAL_BRIDGE_WALKABLE_FAIL PASS 1 1
+CHECK Q204_BRIDGE_RAILS_REGRESSION PASS 2 2
+CHECK Q204_BRIDGE_MATERIAL_REGRESSION PASS 0 0
+
+== Exact measured values ==
+- BRIDGE_WALKABLE: 15 downward rays (5 x-offsets {-2.5,-1.25,0,1.25,2.5} x 3 z-samples over the
+  6-stud lane); 0 blocked before, 0 after staging; delta 0 (target 0), 0 read errors, 69 staged.
+- BRIDGE_RAILS: rail_left + rail_right present, distinct `rail_*` roles = 2 (target 2).
+- BRIDGE_BAMBOO: 16/16 deck+rail parts are Cylinder, fraction 1.0000 (target >= 0.80). Node rings
+  excluded from the denominator (they are Cylinder too).
+- Q204 regressions: BRIDGE_RAILS 2/2 and BRIDGE_MATERIAL 0 violations across 14 deck parts (colour
+  matches the shipped BAMBOO/WOOD palette within tolerance 12). Both PASS; item 204 not weakened.
+
+== Calibration / non-vacuity ==
+- BRIDGE_BAMBOO FAIL: eight 2-stud Block parts tagged BambooBridge role=deck injected alongside the
+  staged candidate -> fraction 16/24 = 0.6667 < 0.80 -> CAL PASS 1 1; destroyed in-call.
+- BRIDGE_WALKABLE FAIL: `measure(true)` drops all collidable walkables from the Include ray filter
+  -> blocked rises from 0 to 15/15 -> delta 15 > 0 -> CAL PASS 1 1. No world instance mutated.
+- Two verification defects were found and fixed before ship: (1) the first node role `rail_node`
+  made check_q204 count 3 rails; renamed to `node_rail`/`node_deck`, re-verified both q204 checks;
+  (2) the first walkable calibration injected a collidable Part, which adds hits not misses, so it
+  could not fail; replaced with the metric-level filter anchor above. No target lowered.
+
+== Note ==
+Palette is the shipped straw BAMBOO_COLOR {186,168,96} (r>g>b); item wording "yellow-green to straw"
+is satisfied by the straw end. A green-dominant variant is a reversible designer choice. These are
+geometric checks; the designer grades shot #07 at S2-STOP.
+
+Local validation: lune run tests/run.luau 3061 passed (3060->3061); selene src 0 errors / 0 warnings /
+0 parse errors; stylua --check clean on all changed/new Luau files.
+Status: SEEN-IN-STUDIO.

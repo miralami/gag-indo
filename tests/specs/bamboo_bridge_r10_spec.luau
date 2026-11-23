@@ -1,7 +1,7 @@
 --!nocheck
--- WORK_QUEUE item 204 (SPRINT 1): LUNE-ONLY pure-data contract for "bamboo_bridge_r10".
--- Studio staging and the BRIDGE_* checks live in tools/studio/check_q204.luau; LookDev IDS and
--- review wiring belong to the main session. This spec asserts neither.
+-- WORK_QUEUE item 204 (SPRINT 1), item 245 (SPRINT 2): LUNE-ONLY pure-data contract for
+-- "bamboo_bridge_r10". Studio staging and the BRIDGE_* checks live in check_q204/check_q245;
+-- LookDev IDS and review wiring belong to the main session. This spec asserts neither.
 
 local fs = require("@lune/fs")
 
@@ -47,6 +47,7 @@ return function(t, Env)
 			for _, token in ipairs({ "rbxassetid://", "game.", "Instance.new", "Enum." }) do
 				expect(string.find(pureSrc, token, 1, true) == nil):toBe(true)
 			end
+			expect(string.find(pureSrc, "%d%d%d%d%d%d%d%d") == nil):toBe(true) -- no asset IDs
 			expect(Data.id):toBe("bamboo_bridge_r10")
 			expect(Data.folderName):toBe("LookDevBambooBridgeR10_bamboo_bridge_r10")
 			expect(Data.BRIDGE_WIDTH):toBe(6)
@@ -55,18 +56,20 @@ return function(t, Env)
 			expect(Data.BRIDGE_END.z - Data.BRIDGE_START.z):toBe(56)
 		end)
 
-		t:it("builds at least ten bamboo planks spanning the 6-stud lane", function()
+		t:it("builds fourteen Cylinder bamboo culms spanning the 6-stud lane", function()
 			local deck = byKind("deck")
 			expect(#deck >= 10):toBe(true)
 			expect(#deck):toBe(Data.PLANK_COUNT)
-			for _, plank in ipairs(deck) do
-				expect(plank.shape):toBe("Block")
-				expect(plank.size[1]):toBe(6)
-				expect(near(plank.size[2], 0.5, 1e-6)):toBe(true)
-				expect(plank.position[1]):toBe(0)
-				expect(plank.position[2] < Data.BRIDGE_START.y):toBe(true)
-				expect(plank.position[3] > Data.BRIDGE_START.z):toBe(true)
-				expect(plank.position[3] < Data.BRIDGE_END.z):toBe(true)
+			expect(Data.PLANK_COUNT):toBe(14)
+			for _, culm in ipairs(deck) do
+				expect(culm.shape):toBe("Cylinder")
+				expect(culm.size[2]):toBe(6)
+				expect(near(culm.size[1], Data.PLANK_THICKNESS, 1e-6)):toBe(true)
+				expect(near(culm.size[3], culm.size[1], 1e-6)):toBe(true) -- round, not an ellipse
+				expect(culm.position[1]):toBe(0)
+				expect(culm.position[2] < Data.BRIDGE_START.y):toBe(true)
+				expect(culm.position[3] > Data.BRIDGE_START.z):toBe(true)
+				expect(culm.position[3] < Data.BRIDGE_END.z):toBe(true)
 			end
 		end)
 
@@ -85,6 +88,35 @@ return function(t, Env)
 			expect(near(right[1].position[2], 2.0, 1e-6)):toBe(true)
 			expect(near(left[1].size[2], 56, 1e-6)):toBe(true)
 			expect(near(right[1].size[2], 56, 1e-6)):toBe(true)
+		end)
+
+		t:it("rings every culm and rail with thin deterministic Cylinder nodes", function()
+			local deckNodes, railNodes = byKind("node_deck"), byKind("node_rail")
+			local span = Data.BRIDGE_END.z - Data.BRIDGE_START.z
+			expect(#deckNodes):toBe(Data.PLANK_COUNT * Data.DECK_NODES_PER_CULM)
+			expect(#railNodes):toBe(2 * math.floor(span / Data.RAIL_NODE_STEP))
+			expect(#deckNodes):toBe(28)
+			expect(#railNodes):toBe(14)
+			local deckZ = {}
+			for _, culm in ipairs(byKind("deck")) do
+				deckZ[culm.position[3]] = true
+			end
+			for _, node in ipairs(deckNodes) do
+				expect(node.shape):toBe("Cylinder")
+				expect(node.size[2] <= 0.25):toBe(true)
+				expect(node.size[1] > Data.PLANK_THICKNESS):toBe(true)
+				expect(deckZ[node.position[3]]):toBe(true)
+				expect(math.abs(node.position[1]) <= Data.BRIDGE_WIDTH / 2):toBe(true)
+			end
+			for _, node in ipairs(railNodes) do
+				expect(node.shape):toBe("Cylinder")
+				expect(node.size[2] <= 0.25):toBe(true)
+				expect(node.size[1] > Data.RAIL_DIAMETER):toBe(true)
+				expect(near(math.abs(node.position[1]), Data.RAIL_X, 1e-6)):toBe(true)
+				expect(near(node.position[2], Data.RAIL_Y, 1e-6)):toBe(true)
+				expect(node.position[3] > Data.BRIDGE_START.z):toBe(true)
+				expect(node.position[3] < Data.BRIDGE_END.z):toBe(true)
+			end
 		end)
 
 		t:it("crosses the rails with rope and sets two posts at each end", function()
@@ -112,10 +144,17 @@ return function(t, Env)
 			end
 		end)
 
-		t:it("uses only the bamboo and wood palette in every descriptor", function()
-			local palettes = { Data.BAMBOO_COLOR, Data.WOOD_COLOR }
+		t:it("uses only the bamboo, node and wood palette in every descriptor", function()
+			local palettes = { Data.BAMBOO_COLOR, Data.BAMBOO_NODE_COLOR, Data.WOOD_COLOR }
 			expect(Data.BAMBOO_COLOR):toEqual({ r = 186, g = 168, b = 96 })
+			expect(Data.BAMBOO_NODE_COLOR):toEqual({ r = 160, g = 144, b = 82 })
 			expect(Data.WOOD_COLOR):toEqual({ r = 150, g = 112, b = 64 })
+			-- Straw spread: red > green > blue; nodes are a darker straw, not wood.
+			expect(Data.BAMBOO_COLOR.r > Data.BAMBOO_COLOR.g):toBe(true)
+			expect(Data.BAMBOO_COLOR.g > Data.BAMBOO_COLOR.b):toBe(true)
+			expect(Data.BAMBOO_NODE_COLOR.r < Data.BAMBOO_COLOR.r):toBe(true)
+			expect(Data.BAMBOO_NODE_COLOR.g < Data.BAMBOO_COLOR.g):toBe(true)
+			expect(Data.BAMBOO_NODE_COLOR.b < Data.BAMBOO_COLOR.b):toBe(true)
 			for _, part in ipairs(parts) do
 				local match = false
 				for _, palette in ipairs(palettes) do
@@ -136,6 +175,7 @@ return function(t, Env)
 
 		t:it("returns the same descriptors from fresh requires", function()
 			local fresh = Env.new():require("shared/ModelMapBambooBridgeR10")
+			expect(#Data.parts()):toBe(69)
 			expect(serialize(fresh.parts())):toBe(serialize(Data.parts()))
 			expect(serialize(fresh.BRIDGE_START)):toBe(serialize(Data.BRIDGE_START))
 			expect(serialize(fresh.BRIDGE_END)):toBe(serialize(Data.BRIDGE_END))

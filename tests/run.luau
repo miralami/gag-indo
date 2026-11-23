@@ -235,6 +235,7 @@ local specs = {
 	require("./specs/kampung_r10_spec"),
 	require("./specs/road_fence_r10_spec"),
 	require("./specs/lamps_r10_spec"),
+	require("./specs/asset_blocklist_spec"),
 	require("./specs/signposts_r10_spec"),
 	require("./specs/bamboo_bridge_r10_spec"),
 	require("./specs/furrows_r10_spec"),

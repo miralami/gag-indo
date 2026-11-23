@@ -783,3 +783,12 @@ marker. All other manifest IDs are required by the coverage spec to resolve in `
 | 122341055760449 | search-only Gamelan Without Pulse, never wired | unused |
 | 129607759321192 | Poly Pizza pasar stall upload, superseded by the lapak asset | unused |
 | 133136389632701 | Poly Pizza karung upload, superseded by the real CC0 karung ID | unused |
+
+## Blocked assets (never load, bake or insert)
+
+Enforced by `src/shared/AssetBlocklist.luau` and `LookDevAssetLoader` (both paths refuse these IDs).
+
+| ID | What | Found |
+|---|---|---|
+| 128627541097148 | "Rumah Warga Indonesia 2" (was kampung pick 2). A Script at `Bagian Utama.Part.Runner` clones a fake "Roblox Studio / Disconnected / Error 0x89AF2 / Optimize" dialog into every PlayerGui, blurs the screen and anchors the player. "Optimize" opens a fake panel asking the developer to paste a Command Bar snippet that enables HttpService and inserts the `Connector` of 78922956693900 into ServerScriptService. | 2026-11-23, sprint 4. Removed from the open Studio session (not saved); HttpService was still off and no `Connector` existed. |
+| 78922956693900 | The backdoor payload that snippet fetches. Never fetch. | 2026-11-23 |

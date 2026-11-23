@@ -118,16 +118,16 @@ on any drift between this table and those sources; it never edits CANDIDATES.md.
 | `ground_variation_r10` | ground_variation | server | — | pending — review in Studio | `src/server/World/LookDevGroundVariationR10.luau` |
 | `paths_curved_r10` | paths_curved | server | — | pending — review in Studio | `src/server/World/LookDevPathsCurvedR10.luau` |
 | `horizon_fill_r10` | horizon_fill | server | — | pending — review in Studio | `src/server/World/LookDevHorizonFillR10.luau` |
-| `mountains_r10` | mountains | server | — | designer 2026-11-23: no, redo: only blue visible; layered-scenery idea is good but not there yet | `src/server/World/LookDevMountainsR10.luau` |
-| `hill_dressing_r10` | hill_dressing | server | — | designer 2026-11-23: yes: rocks a bit bigger; small rocks through terrain texture | `src/server/World/LookDevHillDressingR10.luau` |
-| `kampung_r10` | kampung | server | — | designer 2026-11-23: no: looks strange; redo with real house models | `src/server/World/LookDevKampungR10.luau` |
-| `road_fence_r10` | road_fence | server | — | designer 2026-11-23: no: cannot see it | `src/server/World/LookDevRoadFenceR10.luau` |
+| `mountains_r10` | mountains | server | — | designer 2026-11-23 (sprint 3): tidak: use real mountain images or store assets, search before building from scratch | `src/server/World/LookDevMountainsR10.luau` |
+| `hill_dressing_r10` | hill_dressing | server | — | designer 2026-11-23 (sprint 3): tidak: broken frame, recheck everything | `src/server/World/LookDevHillDressingR10.luau` |
+| `kampung_r10` | kampung | server | — | designer 2026-11-23 (sprint 3): tidak | `src/server/World/LookDevKampungR10.luau` |
+| `road_fence_r10` | road_fence | server | — | designer 2026-11-23 (sprint 3): tidak: still not visible, covered by grass | `src/server/World/LookDevRoadFenceR10.luau` |
 | `lamps_r10` | lamps | server | — | designer 2026-11-23: no: use a 3D street-lamp model, old style with a bulb | `src/server/World/LookDevLampsR10.luau` |
 | `signposts_r10` | signposts | server | — | designer 2026-11-23: no: match `refs/signpost_ref.jpg` (store model or Blender) | `src/server/World/LookDevSignpostsR10.luau` |
-| `bamboo_bridge_r10` | bamboo_bridge | server | — | designer 2026-11-23: no: match `refs/bridge_ref.jpg` style | `src/server/World/LookDevBambooBridgeR10.luau` |
+| `bamboo_bridge_r10` | bamboo_bridge | server | — | designer 2026-11-23 (sprint 3): tidak | `src/server/World/LookDevBambooBridgeR10.luau` |
 | `furrows_r10` | furrows | server | — | designer 2026-11-23: no: cannot see it | `src/server/World/LookDevFurrowsR10.luau` |
-| `crop_stages_r10` | crop_stages | server | — | designer 2026-11-23: no: cannot see it, looks strange | `src/server/World/LookDevCropStagesR10.luau` |
-| `ditch_water_r10` | ditch_water | server | — | designer 2026-11-23: no: cannot see it | `src/server/World/LookDevDitchWaterR10.luau` |
+| `crop_stages_r10` | crop_stages | server | — | designer 2026-11-23 (sprint 3): tidak: not visible | `src/server/World/LookDevCropStagesR10.luau` |
+| `ditch_water_r10` | ditch_water | server | — | designer 2026-11-23 (sprint 3): tidak: covered, not visible | `src/server/World/LookDevDitchWaterR10.luau` |
 
 Rows: 119. Missing from CANDIDATES.md: none. Missing from LookDevReview.paths: none.
 Item 223 (2026-11-23): the sprint 2/3 ids, including `paths_curved_r10` and `kampung_r10`, are all

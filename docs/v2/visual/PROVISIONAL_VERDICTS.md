@@ -31,20 +31,20 @@ How to override: change the "Designer" column (or tell Claude), and the next spr
 | 2026-11-23 | 2 | `furrows_r10` | **yes** | Unchanged from sprint 1; furrow rows visible on the plot | `h/2026-11-23-sprint2/REVIEW_SPRINT2.html` #08 | **no: cannot see it** (2026-11-23) |
 | 2026-11-23 | 2 | `crop_stages_r10` | **no, rapikan** | Three stages visible but read as thin lollipops half hidden in grass (items 250, 254) | `h/2026-11-23-sprint2/REVIEW_SPRINT2.html` #09 | **no: cannot see it, looks strange** (2026-11-23) |
 | 2026-11-23 | 2 | `ditch_water_r10` | **tunda** (re-shoot) | Grass only; no water visible despite coverage 0.9464 (item 250) | `h/2026-11-23-sprint2/REVIEW_SPRINT2.html` #10 | **no: cannot see it** (2026-11-23) |
-| 2026-11-23 | 3 | `road_fence_r10` | **no, not visible** | Grass at the lens again; fence a faint line | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #01 | |
-| 2026-11-23 | 3 | `ditch_water_r10` | **no, not visible** | Grass only | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #02 | |
-| 2026-11-23 | 3 | `crop_stages_r10` | **no, not visible** | Three tiny stems in tall grass; same frame as sprint 2 | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #03 | |
-| 2026-11-23 | 3 | `hill_dressing_r10` | **no, camera inside hill** | Black hill interior and grass from below; trees as dark silhouettes | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #04 | |
-| 2026-11-23 | 3 | `mountains_r10` | **no, redo** | Flat blue boxes on the horizon, a grass dome at the lens | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #05 | |
-| 2026-11-23 | 3 | `bamboo_bridge_r10` | **no, not visible** | River and banks; no bridge in frame | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #06 | |
-| 2026-11-23 | 3 | `kampung_r10` | **no** | Same small box houses as sprint 2 (designer: looks strange) | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #07 | |
-| 2026-11-23 | 3 | `default Warung (210)` | **no, not visible** | Roof at the lens | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #08 | |
-| 2026-11-23 | 3 | `river foam (212)` | **no, rapikan** | Foam reads as white road-marking dashes on the water | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #09 | |
-| 2026-11-23 | 3 | `ducks (213)` | **yes, rapikan** | Ducks visible on the river; blocky shapes | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #10 | |
-| 2026-11-23 | 3 | `terrace walls (214)` | **no, not visible** | Grass blades at the lens | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #11 | |
-| 2026-11-23 | 3 | `sawah dressing (215)` | **yes, rapikan** | Paddy grid with bunds reads; water is flat saturated blue | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #12 | |
-| 2026-11-23 | 3 | `lamps_r10 (246)` | **no, not visible** | Same frame as sprint 2: one pole, no light pool | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #13 | |
-| 2026-11-23 | 3 | `crop_stages golden (247)` | **no, not visible** | Same tiny stems in grass | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #14 | |
+| 2026-11-23 | 3 | `road_fence_r10` | **no, not visible** | Grass at the lens again; fence a faint line | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #01 || **tidak: still not visible, covered by grass** (2026-11-23) |
+| 2026-11-23 | 3 | `ditch_water_r10` | **no, not visible** | Grass only | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #02 || **tidak: covered, not visible** (2026-11-23) |
+| 2026-11-23 | 3 | `crop_stages_r10` | **no, not visible** | Three tiny stems in tall grass; same frame as sprint 2 | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #03 || **tidak: not visible** (2026-11-23) |
+| 2026-11-23 | 3 | `hill_dressing_r10` | **no, camera inside hill** | Black hill interior and grass from below; trees as dark silhouettes | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #04 || **tidak: broken frame, recheck everything** (2026-11-23) |
+| 2026-11-23 | 3 | `mountains_r10` | **no, redo** | Flat blue boxes on the horizon, a grass dome at the lens | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #05 || **tidak: use real mountain images or store assets, search before building from scratch** (2026-11-23) |
+| 2026-11-23 | 3 | `bamboo_bridge_r10` | **no, not visible** | River and banks; no bridge in frame | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #06 || **tidak** (2026-11-23) |
+| 2026-11-23 | 3 | `kampung_r10` | **no** | Same small box houses as sprint 2 (designer: looks strange) | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #07 || **tidak** (2026-11-23) |
+| 2026-11-23 | 3 | `default Warung (210)` | **no, not visible** | Roof at the lens | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #08 || **ya: keep as is, but not satisfied with the Warung yet** (2026-11-23) |
+| 2026-11-23 | 3 | `river foam (212)` | **no, rapikan** | Foam reads as white road-marking dashes on the water | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #09 || **tunda: reads as floating things** (2026-11-23) |
+| 2026-11-23 | 3 | `ducks (213)` | **yes, rapikan** | Ducks visible on the river; blocky shapes | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #10 || **ya: ok; a low-poly duck model would be better if one exists** (2026-11-23) |
+| 2026-11-23 | 3 | `terrace walls (214)` | **no, not visible** | Grass blades at the lens | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #11 || **tidak: not visible** (2026-11-23) |
+| 2026-11-23 | 3 | `sawah dressing (215)` | **yes, rapikan** | Paddy grid with bunds reads; water is flat saturated blue | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #12 || **tidak** (2026-11-23) |
+| 2026-11-23 | 3 | `lamps_r10 (246)` | **no, not visible** | Same frame as sprint 2: one pole, no light pool | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #13 || **tunda: keep the plan, use a model** (2026-11-23) |
+| 2026-11-23 | 3 | `crop_stages golden (247)` | **no, not visible** | Same tiny stems in grass | `h/2026-11-23-sprint3/REVIEW_SPRINT3.html` #14 || **tunda: not visible** (2026-11-23) |
 Default look notes from sprint 1 baselines (#11 spawn, #12 canonical_overview): the grey horizon void
 from above is still there, and round green/brown blobs on the lawns and hills read as melons. Both are
 queued in sprint 2.
@@ -77,3 +77,8 @@ Sprint 3 (main session, following the designer rule "not visible means no, never
 #15 spawn and #16 canonical_overview unchanged from sprint 2. Main finding: several sprint-3 frames
 are identical to sprint 2 although the cameras and lamps changed, so the screenshot is not taken from
 the measured review camera; sprint 4 starts with item 264 (`CAPTURE_POSE`).
+
+Designer re-review of sprint 3 (2026-11-23): Designer cells above. Baselines: spawn **tunda** ("can
+still be better"); canonical_overview **tunda** (stray items on the right side; the map should
+probably be about twice as large, later). Designer notes: almost everything added ends up hidden by
+grass; search for existing assets (store, online) before building anything from scratch.

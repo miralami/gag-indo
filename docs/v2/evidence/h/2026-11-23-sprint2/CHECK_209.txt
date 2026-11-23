@@ -1,0 +1,50 @@
+CHECK 209 - Pasar stripe fix and signage (WORK_QUEUE SPRINT 2 item 209)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2
+Place: Development-Juragan-Desa. Play only (Server VM checks). Place NOT saved, nothing published.
+Rojo-synced: repo src/ changes present in the live place.
+
+== Wiring ==
+DEFAULT look (no LookDev staging; canonical_overview sees it):
+- src/server/World/PasarDefaultQ209.luau: pure data. Byte-exact item-179 palette red {248,76,64},
+  white {255,252,244}, blue {72,148,236}; 5 booths x 6 stripes = 30; board key sign_pasar_board at
+  local z=24 (clear of all six 6-stud hub door lanes). No engine calls, no asset IDs.
+- src/server/World/Greybox.luau buildPasar(): 30 non-collidable PasarStripe Parts from the palette at
+  awning rise 7.2; one hanging PasarSign board with two hangers; pasarBoardText() renders Front+Back
+  SurfaceGui TextLabel via Strings.get for the StringsKey. No interactivity.
+- src/shared/Strings.luau: sign_pasar_board = { id = "Pasar", en = "Market" }; both variants.
+- tests/specs/pasar_stripe_sign_q209_spec.luau: 5 data-only cases; registered in tests/run.luau.
+- tools/studio/check_q209.luau: self-contained SERVER-VM check, default look, three CHECK lines plus
+  three FAIL anchors; every temporary mutation restored in-call. REVIEW_CAMERAS data note added;
+  no verdict.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK STRIPE_VALUE PASS 0.9255 0.6
+CHECK PASAR_SIGN PASS 1 1
+PASAR_SIGN_STRINGS key=sign_pasar_board id=Pasar en=Market
+CHECK LANE_CLEAR PASS 0 0
+CHECK CAL_STRIPE_VALUE_FAIL PASS 1 1
+CHECK CAL_PASAR_SIGN_FAIL PASS 1 1
+CHECK CAL_LANE_CLEAR_FAIL PASS 1 1
+
+== Exact measured values ==
+- STRIPE_VALUE: 30 tagged PasarStripe Parts; min per-stripe max(R,G,B) = 0.9255 (blue stripe, 236/255)
+  >= 0.6 target; red, white and blue all classified within tolerance 12/255 (0 misclassifications).
+  Same definition as check_p179's stripeValue; target NOT lowered.
+- PASAR_SIGN: exactly 1 tagged PasarSign board, StringsKey=sign_pasar_board, id="Pasar", en="Market"
+  (both non-empty via Strings.raw).
+- LANE_CLEAR: 6 hub door lanes (check_r10_template rule); 0 visible tagged PasarPad/Prop/Stripe/Sign
+  parts overlap any lane (tolerance 0.05). Marked parts counted across all four tags.
+
+== Calibration / non-vacuity ==
+- CAL_STRIPE_VALUE_FAIL: temporarily set all 30 stripe Color3 to near-grey (0.25,0.25,0.25) -> value
+  0.9255 -> 0.2471 < 0.6 -> PASS 1 1; exact Color3 restored in-call, re-measured 0.9255.
+- CAL_PASAR_SIGN_FAIL: temporarily point the board StringsKey at a nonexistent key -> both-strings
+  check fails -> PASS 1 1; exact key restored in-call, after-check PASS.
+- CAL_LANE_CLEAR_FAIL: injected a visible 2x2x2 Part tagged PasarProp in the Pasar door lane -> lane
+  hits 0 -> 1 -> PASS 1 1; probe destroyed in-call.
+
+Local validation: lune run tests/run.luau 3073 passed (3067->3073); selene src 0 errors / 0 warnings /
+0 parse errors; stylua --check clean on check_q209.luau, pasar_stripe_sign_q209_spec.luau and
+PasarDefaultQ209.luau. Geometric/text checks, not a visual verdict; designer grades the S2-STOP re-shoot.
+Status: SEEN-IN-STUDIO.

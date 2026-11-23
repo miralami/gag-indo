@@ -17,6 +17,8 @@ local Landscape = require(script.Parent.Landscape)
 local MapSpec = require(script.Parent.MapSpec)
 local ModelMapForestR9 = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").ModelMapForestR9)
 local Visuals = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").Config.Visuals)
+local Strings = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").Strings)
+local PasarDefault = require(script.Parent.PasarDefaultQ209)
 local okLoader, Loader = pcall(function()
 	return require(script.Parent.LookDevAssetLoader)
 end)
@@ -147,6 +149,34 @@ local function signFace(board: Part, name: string, face: Enum.NormalId, text: st
 	local limit = Instance.new("UITextSizeConstraint")
 	limit.MaxTextSize = 60
 	limit.Parent = label
+end
+
+-- Item 209: the hanging Pasar board carries a Strings KEY, not baked player text. Both faces are
+-- written so the board reads from the plaza side and from inside the hall (the spanduk pattern).
+local SIGN_LANG = "id" -- server has no client locale; Indonesian is the canonical sign text
+
+local function pasarBoardText(board: Part, key: string)
+	board:SetAttribute(PasarDefault.stringsKeyAttribute, key)
+	local fonts = (Enum :: any).Font
+	local font = fonts[Visuals.fonts.display] or fonts[Visuals.fonts.body]
+	for _, face in ipairs({ Enum.NormalId.Front, Enum.NormalId.Back }) do
+		local gui = Instance.new("SurfaceGui")
+		gui.Name = "PasarSignFace"
+		gui.Face = face
+		gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+		gui.PixelsPerStud = PasarDefault.BOARD.facePixelsPerStud
+		gui.LightInfluence = 0
+		local label = Instance.new("TextLabel")
+		label.Size = UDim2.fromScale(1, 1)
+		label.BackgroundTransparency = 1
+		label.TextScaled = true
+		label.TextWrapped = true
+		label.Font = font
+		label.TextColor3 = C.paper
+		label.Text = Strings.get(SIGN_LANG, key)
+		label.Parent = gui
+		gui.Parent = board
+	end
 end
 
 -- Hub kit -------------------------------------------------------------------
@@ -415,6 +445,56 @@ local function buildPasar(world: Folder)
 		hubTrim(model, hub, "Spanduk", 0, EAVE + SPANDUK_HEIGHT / 2, side * roof.halfDepth, Vector3.new(hub.width + 2.4, SPANDUK_HEIGHT, 0.3), C.red, Enum.Material.Fabric)
 	end
 	hubSign(model, hub, roof.halfDepth + 0.1, EAVE + SPANDUK_HEIGHT + SIGN_HALF_HEIGHT, hub.sign, 22)
+
+	-- Item 209: 30 item-179-palette awning stripes over the five stall counters, non-collidable and
+	-- outside every hub door lane (they sit at local z -6, well behind the Pasar's lane at z 26).
+	for _, stripe in ipairs(PasarDefault.STRIPES) do
+		local rgb = PasarDefault.COLOURS[stripe.colour]
+		local partStripe = hubTrim(
+			model,
+			hub,
+			stripe.name,
+			stripe.lx,
+			GROUND_Y + PasarDefault.AWNING_RISE,
+			stripe.lz,
+			Vector3.new(stripe.width, PasarDefault.STRIPE_THICKNESS, stripe.depth),
+			Color3.fromRGB(rgb[1], rgb[2], rgb[3]),
+			Enum.Material.Fabric
+		)
+		partStripe:SetAttribute(PasarDefault.stripeAttribute, true)
+		partStripe:SetAttribute(PasarDefault.stripeColourAttribute, stripe.colour)
+	end
+
+	-- One hanging Strings-backed board inside the front eave, clear of the 6-stud Pasar door lane.
+	local boardDef = PasarDefault.BOARD
+	local boardY = EAVE - boardDef.drop
+	local board = hubTrim(
+		model,
+		hub,
+		"PasarSignBoard",
+		boardDef.lx,
+		boardY,
+		boardDef.lz,
+		Vector3.new(boardDef.width, boardDef.height, boardDef.thickness),
+		C.red,
+		Enum.Material.WoodPlanks
+	)
+	board:SetAttribute(PasarDefault.signAttribute, true)
+	pasarBoardText(board, PasarDefault.boardKey)
+	for _, side in { -1, 1 } do
+		hubTrim(
+			model,
+			hub,
+			"PasarSignHanger",
+			boardDef.lx + side * (boardDef.width / 2 - 0.8),
+			boardY + boardDef.height / 2 + 0.2,
+			boardDef.lz,
+			Vector3.new(0.16, 0.4, 0.16),
+			C.wood,
+			Enum.Material.Wood
+		)
+	end
+
 	hubPrompt(counter, hub)
 
 	model.PrimaryPart = counter

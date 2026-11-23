@@ -534,6 +534,8 @@ local S: { [string]: { id: string, en: string } } = {
 
 	-- signposts_r10 (item 203: four junction boards; id text is drawn on a SurfaceGui)
 	signpost_pasar = { id = "Pasar", en = "Market" },
+	-- item 209: hanging board over the DEFAULT-look Pasar entry, rendered from this key.
+	sign_pasar_board = { id = "Pasar", en = "Market" },
 	signpost_sungai = { id = "Sungai", en = "River" },
 	signpost_plot = { id = "Plot", en = "Plots" },
 	signpost_sawah = { id = "Sawah", en = "Rice fields" },

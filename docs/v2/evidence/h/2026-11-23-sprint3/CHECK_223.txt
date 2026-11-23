@@ -1,0 +1,18 @@
+CHECK 223 - candidate docs parity (WORK_QUEUE SPRINT 3 item 223)
+Datetime: 2026-11-23
+Status: LUNE-ONLY (spec-verified doc parity; no visual verdict, no Studio shot claim).
+
+== Scope ==
+docs/v2/visual/CANDIDATES.md and docs/v2/visual/CANDIDATE_INDEX.md rows for every new sprint-2/3
+candidate id. All 24 r10 ids (balai_r10 .. ditch_water_r10), including paths_curved_r10 and
+kampung_r10, are present in BOTH docs with verdict cells `pending — review in Studio`. No verdict
+cell was promoted to yes/no. `full_r10` is the item-220 perf-census staging label, not a LookDev.IDS
+id, so no row was invented for it (noted in CANDIDATE_INDEX.md line 131).
+
+== Spec evidence (lune run tests/run.luau) ==
+candidate_index_spec: ids=119 rows=119 gallery=119 cameras_documented=78
+  missing_gallery=0 missing_paths=0 missing_rows=0 extras=0 — 3 PASS
+  (row parity, cell parity verbatim from CANDIDATES.md col 6, camera names documented).
+All 3123 tests passed (exit 0). selene src: 0 errors / 0 warnings / 0 parse errors.
+
+No visual judgment. Verdict cells stay pending for the designer.

@@ -1,0 +1,19 @@
+CHECK 225 - shot list for section Q (WORK_QUEUE SPRINT 3 item 225)
+Datetime: 2026-11-23
+Status: LUNE-ONLY (doc-format verification; no visual verdict, no Studio shot claim).
+
+== Scope ==
+docs/v2/visual/SHOT_LIST.md gained a Section Q table (19 rows) in the existing table format:
+Shot | Candidate/state | Datamodel | Camera | CHECK evidence path. Covers every sprint-3 item with a
+candidate/camera/datamodel/CHECK path: 212,213,214,215,218,219,222,223,246,247,250 (x5
+candidates),251,252,253,254. All rows Server datamodel. Every camera name is an exact registry name
+in REVIEW_CAMERAS.md (golden/night variants, crop_stages_golden, lamp_night, terrace_wall,
+path_curve, kampung_view, bridge_side, ditch_water_close, etc.). CHECK paths point to the 15
+mandated docs/v2/evidence/h/2026-11-23-sprint3/CHECK_<item>.txt files; presence/count, not a verdict.
+
+== Verification ==
+candidate_index_spec PASS (all 3123 tests passed, exit 0): 119 LookDev.IDS rows, all cameras
+documented. selene src: 0/0/0. The 16 section-O/P r10 ids are not section-Q shots (owner scope call);
+full_r10 is the item-220 census label, not a LookDev id — neither gets a fabricated row.
+
+No visual judgment. Whether any shot ships is the designer's call.

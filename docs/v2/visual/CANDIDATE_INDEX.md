@@ -1,6 +1,6 @@
 # Candidate index (WORK_QUEUE item 128)
 
-Generated from `src/shared/LookDev.luau` (`LookDev.IDS`, 106 ids), `docs/v2/visual/CANDIDATES.md`
+Generated from `src/shared/LookDev.luau` (`LookDev.IDS`, 119 ids), `docs/v2/visual/CANDIDATES.md`
 (verdict, verbatim Designer yes/no cell), `src/shared/LookDevReview.luau` (datamodel + module path),
 `docs/v2/visual/SHOT_LIST.md` and explicit gallery camera text. Every camera name is checked against
 `docs/v2/visual/REVIEW_CAMERAS.md`; `—` means no documented camera mapping. Family is the id prefix
@@ -130,3 +130,6 @@ on any drift between this table and those sources; it never edits CANDIDATES.md.
 | `ditch_water_r10` | ditch_water | server | — | pending — review in Studio | `src/server/World/LookDevDitchWaterR10.luau` |
 
 Rows: 119. Missing from CANDIDATES.md: none. Missing from LookDevReview.paths: none.
+Item 223 (2026-11-23): the sprint 2/3 ids, including `paths_curved_r10` and `kampung_r10`, are all
+present with `pending` verdict cells. `full_r10` is the item-220 perf-census staging label, not a
+`LookDev.IDS` id, so no row is invented for it. No visual verdict is recorded here.

@@ -1,18 +1,20 @@
 --!nocheck
--- WORK_QUEUE item 243 data-only guard. Mountains must be layered blue-green silhouettes, not a
--- grey Ball; the applier must honour descriptor material and the SERVER-VM check must keep the exact
--- SC243 / MF243 / NC243 / NB243 targets. Studio measurement stays in tools/studio/check_q243.luau.
+-- WORK_QUEUE items 243 + 251 data-only guard. Mountains must be far, layered blue-green rock shapes,
+-- never a grey Ball, a Block or SmoothPlastic; the applier and SERVER-VM checks must keep their exact
+-- targets. Studio measurement stays in tools/studio/check_q243.luau and check_q251.luau.
 
 local fs = require("@lune/fs")
 
 local APPLIER = "src/server/World/LookDevMountainsR10.luau"
 local CHECK = "tools/studio/check_q243.luau"
+local CHECK_251 = "tools/studio/check_q251.luau"
 
 return function(t, Env)
 	local expect = t.expect
 	local Data = Env.new():require("shared/ModelMapMountainsR10")
 	local applierSrc = fs.readFile(APPLIER)
 	local checkSrc = fs.readFile(CHECK)
+	local check251Src = fs.readFile(CHECK_251)
 
 	t:describe("item 243 blue-green mountain silhouettes", function()
 		t:it("exposes at least eight non-Ball silhouettes beyond the 450-stud far ring", function()
@@ -22,7 +24,8 @@ return function(t, Env)
 			for _, descriptor in ipairs(Data.MOUNTAINS) do
 				expect(descriptor.shape == "Wedge" or descriptor.shape == "Cylinder"):toBe(true)
 				expect(descriptor.shape ~= "Ball"):toBe(true)
-				expect(type(descriptor.material) == "string" and #descriptor.material > 0):toBe(true)
+				expect(descriptor.shape ~= "Block"):toBe(true)
+				expect(descriptor.material == "Rock" or descriptor.material == "Slate"):toBe(true)
 				local radius = math.sqrt(descriptor.position[1] ^ 2 + descriptor.position[3] ^ 2)
 				expect(radius >= 450):toBe(true)
 			end
@@ -68,6 +71,49 @@ return function(t, Env)
 			expect(checkSrc:find("Enum.PartType.Ball", 1, true) ~= nil):toBe(true)
 			expect(checkSrc:find("Color3.fromRGB(128, 128, 128)", 1, true) ~= nil):toBe(true)
 			expect(checkSrc:find("review.disableAll()", 1, true) ~= nil):toBe(true)
+		end)
+
+		t:it("keeps the exact item-251 SERVER-VM targets and non-vacuous FAIL anchors", function()
+			for _, name in ipairs({
+				"MOUNTAIN_DIST",
+				"NO_BOX_MOUNTAIN",
+				"SUBJECT_COVERAGE_251",
+				"SC251_MAX",
+				"MOUNTAIN_FAR",
+				"NO_COLLISION",
+				"CAL_MOUNTAIN_DIST_FAIL",
+				"CAL_NO_BOX_MOUNTAIN_FAIL",
+				"CAL_SUBJECT_COVERAGE_251_FAIL",
+				"CAL_SC251_MAX_FAIL",
+				"CAL_MOUNTAIN_FAR_FAIL",
+				"CAL_NO_COLLISION_FAIL",
+			}) do
+				expect(check251Src:find('"' .. name .. '"', 1, true) ~= nil):toBe(true)
+			end
+			expect(check251Src:find("MIN_DISTANCE = 250", 1, true) ~= nil):toBe(true)
+			expect(check251Src:find("MIN_COVERAGE = 0.10", 1, true) ~= nil):toBe(true)
+			expect(check251Src:find("MAX_COVERAGE = 0.6", 1, true) ~= nil):toBe(true)
+			expect(check251Src:find("FAR_LIMIT = 450", 1, true) ~= nil):toBe(true)
+			expect(check251Src:find('COVERAGE_CAMERA = "horizon_north"', 1, true) ~= nil):toBe(true)
+			expect(check251Src:find('COVERAGE_AWAY_CAMERA = "horizon_south"', 1, true) ~= nil):toBe(true)
+			expect(check251Src:find("part.Shape == Enum.PartType.Block", 1, true) ~= nil):toBe(true)
+			expect(check251Src:find("aabbDistance(reference, part)", 1, true) ~= nil):toBe(true)
+			-- horizon_south has no projected rects, so the FAIL anchor is the negation of PASS,
+			-- matching item 240: away.ok == false is a valid FAIL demonstration.
+			expect(check251Src:find("not (away.ok == true and awayFraction >= MIN_COVERAGE)", 1, true) ~= nil):toBe(
+				true
+			)
+			expect(check251Src:find("coverage.measure(CANDIDATE_ID, COVERAGE_CAMERA)", 1, true) ~= nil):toBe(true)
+			expect(check251Src:find("coverage.measure(CANDIDATE_ID, COVERAGE_CAMERA, nil, deps)", 1, true) ~= nil):toBe(
+				true
+			)
+			expect(check251Src:find('SetAttribute("Mountain", true)', 1, true) ~= nil):toBe(true)
+			expect(check251Src:find("CFrame.new(cameraPoint.x, cameraPoint.y, cameraPoint.z - 12)", 1, true) ~= nil):toBe(
+				true
+			)
+			expect(check251Src:find("target.CanCollide = true", 1, true) ~= nil):toBe(true)
+			expect(check251Src:find("review.disableAll()", 1, true) ~= nil):toBe(true)
+			expect(check251Src:find("destroyInjected()", 1, true) ~= nil):toBe(true)
 		end)
 	end)
 end

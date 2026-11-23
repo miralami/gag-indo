@@ -1,0 +1,50 @@
+CHECK 251 - mountains_r10 moved far, Wedge/Cylinder Rock/Slate, no Block faces (WORK_QUEUE SPRINT 3 item 251)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, SERVER VM.
+Place: Development-Juragan-Desa. Play only. Place NOT saved, nothing published. Rojo-synced.
+Status: BLOCKED — CHECK SC251_MAX FAIL 0.8157 0.6 (two attempts).
+
+== Wiring ==
+tools/studio/check_q251.luau staged mountains_r10 from SERVER with LookDevReview.enableAdditive;
+SubjectCoverage measured from `horizon_north`; distance and shape read from live staged parts.
+Injections destroyed and disableAll() on every path.
+
+== Raw check lines (verbatim) — attempt 1 ==
+CHECK SUBJECT_COVERAGE_251 PASS 0.7805 0.10
+CHECK SC251_MAX FAIL 0.7805 0.6
+CHECK CAL_SUBJECT_COVERAGE_251_FAIL FAIL 0 1
+CHECK CAL_SC251_MAX_FAIL PASS 1 1
+CHECK MOUNTAIN_DIST PASS 270.4 250
+CHECK NO_BOX_MOUNTAIN PASS 0 0
+CHECK MOUNTAIN_FAR PASS 0 0
+CHECK NO_COLLISION PASS 0 0
+CHECK CAL_MOUNTAIN_DIST_FAIL PASS 1 1
+CHECK CAL_NO_BOX_MOUNTAIN_FAIL PASS 1 1
+CHECK CAL_MOUNTAIN_FAR_FAIL PASS 1 1
+CHECK CAL_NO_COLLISION_FAIL PASS 1 1
+Attempt 1 also needed a syntax fix: `instance:GetModelCFrame and ...` is invalid Luau.
+
+== Raw check lines (verbatim) — attempt 2 ==
+CHECK SUBJECT_COVERAGE_251 PASS 0.8157 0.10
+CHECK SC251_MAX FAIL 0.8157 0.6
+CHECK CAL_SUBJECT_COVERAGE_251_FAIL PASS 1 1
+CHECK CAL_SC251_MAX_FAIL PASS 1 1
+CHECK MOUNTAIN_DIST PASS 309.3 250
+CHECK NO_BOX_MOUNTAIN PASS 0 0
+CHECK MOUNTAIN_FAR PASS 0 0
+CHECK NO_COLLISION PASS 0 0
+CHECK CAL_MOUNTAIN_DIST_FAIL PASS 1 1
+CHECK CAL_NO_BOX_MOUNTAIN_FAIL PASS 1 1
+CHECK CAL_MOUNTAIN_FAR_FAIL PASS 1 1
+CHECK CAL_NO_COLLISION_FAIL PASS 1 1
+
+== Notes ==
+Distance, shape, material, collision and all four calibrations PASS. The only failing gate is the
+0.6 coverage ceiling from `horizon_north`: the staged silhouette still projects 0.8157 of the
+64x36 sampling grid even after the range was pushed from 270.4 to 309.3 studs and the crests
+resized. Target 0.6 was not changed and no calibration was weakened. Two attempts spent; item
+BLOCKED per WORK_QUEUE section K. No visual verdict; designer decides the look.
+
+== Local validation ==
+lune run tests/run.luau: All 3098 tests passed (exit 0).
+selene src: 0 errors / 0 warnings / 0 parse errors. Stylua clean on changed files.

@@ -1,9 +1,10 @@
 --!strict
 -- LookDevMountainsR10: SERVER-ONLY applier for the OFF-BY-DEFAULT "mountains_r10" candidate
--- (WORK_QUEUE item 243 redo). Stages ten far-field blue-green Wedge/Cylinder silhouettes plus one
--- faint smoke Cylinder in an anchored, non-collidable Folder. All geometry, colour and material
--- values come from Shared.ModelMapMountainsR10; no asset IDs or visual verdict live here. No existing
--- property is overwritten, so restore is LIFO destruction of only the instances created here.
+-- (WORK_QUEUE items 243 + 251). Stages twelve far-field blue-green stacked Wedge/Cylinder rock
+-- silhouettes plus one faint smoke Cylinder in an anchored, non-collidable Folder. Rock/Slate only:
+-- no Block shape and no SmoothPlastic fallback. All geometry, colour and material values come from
+-- Shared.ModelMapMountainsR10; no asset IDs or visual verdict live here. No existing property is
+-- overwritten, so restore is LIFO destruction of only the instances created here.
 -- apply/restore are idempotent and pcall-guarded throughout.
 -- Enable from the Server command bar:
 --   require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("mountains_r10", game)
@@ -120,18 +121,15 @@ local function partShape(name: any): any?
 end
 
 local function partMaterial(name: any): any?
+	if name ~= "Rock" and name ~= "Slate" then
+		fail("mountain material must be Rock or Slate, got " .. tostring(name))
+		return nil
+	end
 	local okMaterial, material = pcall(function()
 		return (Enum :: any).Material[name]
 	end)
 	if okMaterial and material then
 		return material
-	end
-	local okFallback, fallback = pcall(function()
-		return (Enum :: any).Material.SmoothPlastic
-	end)
-	if okFallback and fallback then
-		fail("could not resolve material " .. tostring(name) .. "; using SmoothPlastic")
-		return fallback
 	end
 	fail("could not resolve material " .. tostring(name))
 	return nil

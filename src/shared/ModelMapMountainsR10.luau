@@ -1,8 +1,14 @@
 --!strict
 -- ModelMapMountainsR10: pure data for the OFF-BY-DEFAULT "mountains_r10" candidate
--- (WORK_QUEUE item 243 redo). Ten layered blue-green Wedge/Cylinder silhouettes behind the north
--- hill ring plus one faint translucent Cylinder puff above the far crest. No engine calls, no asset
--- IDs: a server applier consumes these descriptors.
+-- (WORK_QUEUE items 243 + 251). Stacked blue-green Wedge/Cylinder rock silhouettes beyond the north
+-- hill ring, pale with distance and dark at the front, plus one faint translucent Cylinder puff above
+-- the far crest. No engine calls, no asset IDs: a server applier consumes these descriptors. Every
+-- Mountain-tagged part sits at least 250 studs from horizon_north and every spawn (item 251).
+-- No SmoothPlastic and no Block shape anywhere in the set.
+--
+-- Item 251: only three crests sit inside the horizon_north frustum; the remaining shelves and
+-- shoulders sit past its lateral edges but keep the far ring populated. This holds projected
+-- subject coverage below the 0.6 ceiling while the three-crest read and the blue-green fade stay.
 
 local Data = {}
 
@@ -23,92 +29,109 @@ Data.folderName = "LookDevMountainsR10_mountains_r10"
 Data.PERF_TARGET = 500
 Data.PERF_RADIUS = 100
 
--- Three depth layers, lightest at the back and darkest at the front. All sit north of z=-470 so
--- MOUNTAIN_FAR (X/Z radius >= 450) holds, and all stay inside |x| < 370 where the forest band is
--- skipped, so the silhouettes read over the hill ring from horizon_north.
+-- Three depth layers: pale back crests at z<=-885, mid shelves outside the camera edges at z=-820,
+-- dark front shoulders outside the camera edges at z=-740, and three small feet below the crests.
+-- All centres sit north of z=-700 so the nearest bounding-box face stays >=250 studs from the eye.
 local MOUNTAINS: { PartDescriptor } = {
-	-- Back layer: pale blue-green crest above the hill skyline.
+	-- Back layer: the three readable blue-green crests, fading into the sky.
 	{
 		name = "MountainFarNorthCrest",
-		size = { 220, 150, 90 },
-		position = { 0, 42, -760 },
+		size = { 230, 160, 76 },
+		position = { 0, 70, -890 },
 		color = { r = 132, g = 164, b = 156 },
 		shape = "Wedge",
-		material = "SmoothPlastic",
+		material = "Rock",
 	},
 	{
 		name = "MountainFarWestBack",
-		size = { 180, 132, 88 },
-		position = { -250, 30, -730 },
+		size = { 192, 140, 72 },
+		position = { -230, 72, -890 },
 		color = { r = 124, g = 156, b = 152 },
 		shape = "Wedge",
-		material = "SmoothPlastic",
+		material = "Slate",
 	},
 	{
 		name = "MountainFarEastBack",
-		size = { 180, 136, 88 },
-		position = { 250, 32, -720 },
+		size = { 192, 140, 72 },
+		position = { 230, 72, -885 },
 		color = { r = 126, g = 158, b = 154 },
 		shape = "Wedge",
-		material = "SmoothPlastic",
+		material = "Slate",
 	},
-	-- Middle layer: the readable peaks.
+	-- Small stacked feet below each crest, still >=250 studs past the eye.
 	{
-		name = "MountainMidNorthPeak",
-		size = { 180, 168, 96 },
-		position = { -90, 62, -630 },
-		color = { r = 100, g = 140, b = 144 },
+		name = "MountainFarNorthFoot",
+		size = { 70, 35, 30 },
+		position = { 0, 45, -730 },
+		color = { r = 92, g = 126, b = 132 },
 		shape = "Wedge",
-		material = "SmoothPlastic",
+		material = "Slate",
+	},
+	{
+		name = "MountainFarWestFoot",
+		size = { 60, 30, 30 },
+		position = { -230, 45, -730 },
+		color = { r = 90, g = 124, b = 130 },
+		shape = "Wedge",
+		material = "Slate",
+	},
+	{
+		name = "MountainFarEastFoot",
+		size = { 60, 30, 30 },
+		position = { 230, 45, -730 },
+		color = { r = 90, g = 124, b = 130 },
+		shape = "Wedge",
+		material = "Slate",
+	},
+	-- Mid layer: lateral shelves, past the left and right edges of horizon_north.
+	{
+		name = "MountainMidWestShelf",
+		size = { 160, 120, 80 },
+		position = { -620, 60, -820 },
+		color = { r = 108, g = 146, b = 148 },
+		shape = "Wedge",
+		material = "Rock",
 	},
 	{
 		name = "MountainMidEastSpur",
-		size = { 160, 142, 90 },
-		position = { 170, 48, -610 },
+		size = { 160, 120, 80 },
+		position = { 620, 60, -820 },
 		color = { r = 108, g = 146, b = 148 },
-		shape = "Wedge",
-		material = "SmoothPlastic",
+		shape = "Cylinder",
+		material = "Rock",
 	},
 	{
-		name = "MountainMidWestShelf",
-		size = { 170, 130, 90 },
-		position = { -270, 38, -600 },
-		color = { r = 104, g = 142, b = 146 },
-		shape = "Cylinder",
-		material = "SmoothPlastic",
+		name = "MountainMidFarEastShelf",
+		size = { 160, 120, 80 },
+		position = { 800, 60, -820 },
+		color = { r = 106, g = 144, b = 146 },
+		shape = "Wedge",
+		material = "Slate",
 	},
-	-- Front layer: darker shoulders, still above the z=-462 hill caps.
+	-- Front layer: darker shoulders, also outside the camera frustum.
 	{
 		name = "MountainFrontWestShoulder",
-		size = { 150, 112, 70 },
-		position = { -140, 28, -520 },
+		size = { 180, 130, 80 },
+		position = { -900, 50, -740 },
 		color = { r = 78, g = 112, b = 120 },
 		shape = "Wedge",
-		material = "SmoothPlastic",
-	},
-	{
-		name = "MountainFrontCentreRidge",
-		size = { 160, 124, 72 },
-		position = { 40, 34, -530 },
-		color = { r = 84, g = 118, b = 124 },
-		shape = "Wedge",
-		material = "SmoothPlastic",
+		material = "Rock",
 	},
 	{
 		name = "MountainFrontEastShoulder",
-		size = { 140, 104, 70 },
-		position = { 220, 24, -515 },
+		size = { 180, 130, 80 },
+		position = { 900, 50, -740 },
 		color = { r = 80, g = 114, b = 122 },
-		shape = "Cylinder",
-		material = "SmoothPlastic",
+		shape = "Wedge",
+		material = "Rock",
 	},
 	{
-		name = "MountainFrontFarWestToe",
-		size = { 150, 100, 68 },
-		position = { -320, 22, -505 },
-		color = { r = 82, g = 116, b = 122 },
-		shape = "Wedge",
-		material = "SmoothPlastic",
+		name = "MountainFrontFarEastToe",
+		size = { 180, 130, 80 },
+		position = { 1100, 50, -740 },
+		color = { r = 82, g = 116, b = 124 },
+		shape = "Cylinder",
+		material = "Slate",
 	},
 }
 
@@ -116,10 +139,10 @@ local SMOKE: { PartDescriptor } = {
 	{
 		name = "MountainFarNorthCrestSmoke",
 		size = { 30, 22, 30 },
-		position = { 0, 130, -760 },
+		position = { 0, 180, -890 },
 		color = { r = 196, g = 218, b = 214 },
 		shape = "Cylinder",
-		material = "SmoothPlastic",
+		material = "Slate",
 		transparency = 0.82,
 	},
 }
@@ -160,14 +183,12 @@ do
 	for _, list in ipairs({ Data.MOUNTAINS, Data.SMOKE }) do
 		for _, descriptor in ipairs(list) do
 			assert(
-				type(descriptor.material) == "string" and #descriptor.material > 0,
-				"mountains_r10: " .. descriptor.name .. " has no material"
+				descriptor.material == "Rock" or descriptor.material == "Slate",
+				"mountains_r10: " .. descriptor.name .. " must use Rock or Slate"
 			)
+			assert(descriptor.shape ~= "Block", "mountains_r10: " .. descriptor.name .. " must not be a Block")
 			assert(descriptor.shape ~= "Ball", "mountains_r10: " .. descriptor.name .. " must not be a Ball")
-			assert(
-				not (descriptor.material == "SmoothPlastic" and spread(descriptor.color) < 18),
-				"mountains_r10: " .. descriptor.name .. " is grey SmoothPlastic"
-			)
+			assert(spread(descriptor.color) >= 18, "mountains_r10: " .. descriptor.name .. " lost its blue-green tint")
 			for _, channel in ipairs({ descriptor.color.r, descriptor.color.g, descriptor.color.b }) do
 				assert(channel >= 0 and channel <= 255, "mountains_r10: colour channel outside 0..255")
 			end

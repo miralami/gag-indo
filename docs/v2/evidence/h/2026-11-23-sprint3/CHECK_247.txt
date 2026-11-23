@@ -1,0 +1,38 @@
+CHECK 247 - crop stage close-up at golden hour (WORK_QUEUE SPRINT 3 item 247)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, SERVER VM.
+Place: Development-Juragan-Desa. Play only. Place NOT saved, nothing published. Rojo-synced.
+Status: SEEN-IN-STUDIO (all checks PASS).
+
+== Wiring ==
+src/shared/ReviewCameras.luau crop_stages_golden variant (ClockTime 16.5 from WorldConstants.GOLDEN_HOUR
+midpoint) of crop_stages_close, same eye/look. tools/studio/check_q247.luau stages crop_stages_r10
+from SERVER, sets ClockTime from the camera, measures the three stage checks plus SubjectCoverage,
+runs three runtime FAIL calibrations, then restores clock and disableAll() on every path.
+
+== Raw check lines (verbatim, fresh Play, Server VM) — final run ==
+CHECK CROP_STAGE_HEIGHT PASS 0 0
+CHECK CROP_STAGE_COLOR PASS 0 0
+CHECK SUBJECT_COVERAGE_CROP_GOLDEN PASS 0.4706 0.2
+CHECK CAL_CROP_STAGE_HEIGHT_FAIL PASS 1 1
+CHECK CAL_CROP_STAGE_COLOR_FAIL PASS 1 1
+CHECK CAL_SUBJECT_COVERAGE_CROP_GOLDEN_FAIL PASS 1 1
+
+== Harness defects fixed before the final run (no target weakened) ==
+1. pcall return bindings were swapped (`local all, ok = pcall(...)`), so measure() always read staged=0
+   with readErrors=1 despite 200 live CropStage parts. Corrected to `local ok, all = pcall(...)`.
+2. Three CAL emit() calls passed undefined global identifiers as `name` (nil -> concat error that
+   aborted the outer pcall). Quoted as string literals.
+3. Height/colour calibration mutated only ONE part, but measure() groups all plots under crop=
+   "reference" so the last sibling masked the mutation. Now every siap part / siap canopy is
+   mutated and restored LIFO.
+
+== Calibration / non-vacuity ==
+CAL_CROP_STAGE_HEIGHT_FAIL: all siap heights lowered below tumbuh -> violations>0, restored.
+CAL_CROP_STAGE_COLOR_FAIL: all siap canopies retinted to bibit colour -> violations>0, restored.
+CAL_SUBJECT_COVERAGE_CROP_GOLDEN_FAIL: coverage aimed at horizon_north dropped below 0.2 -> 1 1.
+
+== Local validation ==
+lune run tests/run.luau: All 3123 tests passed (exit 0).
+selene src: 0 errors / 0 warnings / 0 parse errors (scratch _S3Check.luau removed before commit).
+No visual verdict.

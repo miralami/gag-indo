@@ -1,9 +1,11 @@
 --!strict
 -- LookDevLampsR10: SERVER-ONLY applier for the OFF-BY-DEFAULT "lamps_r10" candidate
--- (WORK_QUEUE item 202). Stages twelve anchored, non-collidable warm-wood poles with glowing
--- lanterns around the ring road, one shadowless PointLight per lantern. Every light is enabled
--- only at night, decided from Lighting.ClockTime at apply time via setClockTime(). All geometry
--- and colour values come from Shared.ModelMapLampsR10; no asset IDs or visual verdict live here.
+-- (WORK_QUEUE items 202 + 246). Stages twelve anchored, non-collidable warm-wood poles with glowing
+-- lanterns around the ring road, one shadowless PointLight at each pole centre. Item 246 moves the
+-- light down from the lantern so its <=16 range reaches the road, with capped amber brightness.
+-- Every light is enabled only at night, decided from Lighting.ClockTime at apply time via
+-- setClockTime(). All geometry and colour values come from Shared.ModelMapLampsR10; no asset IDs
+-- or visual verdict live here.
 -- Overwritten props are saved once and restored LIFO; only instances created here are destroyed.
 --
 --   require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("lamps_r10", game)
@@ -225,6 +227,7 @@ local function stageLamp(descriptor: any, parent: any)
 	local okLight, light = pcall(function()
 		local instance = (Instance :: any).new("PointLight")
 		instance.Range = (Data :: any).LIGHT_RANGE
+		instance.Brightness = (Data :: any).LIGHT_BRIGHTNESS
 		instance.Color =
 			Color3.fromRGB((Data :: any).LIGHT_COLOR.r, (Data :: any).LIGHT_COLOR.g, (Data :: any).LIGHT_COLOR.b)
 		instance.Shadows = false
@@ -238,8 +241,10 @@ local function stageLamp(descriptor: any, parent: any)
 	end
 	created[#created + 1] = light
 	lights[#lights + 1] = light
+	-- Item 246: light at pole centre, not lantern centre, so the <=16 range throws a pool on
+	-- the road instead of only lighting the lantern housing.
 	local okParent, why = pcall(function()
-		light.Parent = lantern
+		light.Parent = pole
 	end)
 	if not okParent then
 		fail("could not parent light " .. tostring(descriptor.name) .. ": " .. tostring(why))

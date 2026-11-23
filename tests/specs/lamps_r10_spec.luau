@@ -1,7 +1,8 @@
 --!nocheck
--- WORK_QUEUE item 202: LUNE-ONLY contract for "lamps_r10". Studio staging (LAMPS,
--- LAMP_NIGHT_ONLY, LIGHT_COST) belongs to check_q202.luau; LookDev IDS and review wiring are
--- owned by the main session. This spec asserts neither an IDS count nor a visual verdict.
+-- WORK_QUEUE items 202 + 246: LUNE-ONLY contract for "lamps_r10". Studio staging (LAMPS,
+-- LAMP_NIGHT_ONLY, LIGHT_COST) belongs to check_q202.luau; item 246 adds LAMP_POOL plus its FAIL
+-- calibrations in check_q246.luau. LookDev IDS and review wiring are owned by the main session.
+-- This spec asserts neither an IDS count nor a visual verdict.
 
 local fs = require("@lune/fs")
 
@@ -41,6 +42,7 @@ return function(t, Env)
 			expect(Data.LAMP_COUNT):toBe(12)
 			expect(Data.LIGHT_RANGE):toBe(16)
 			expect(Data.LIGHT_RANGE <= 16):toBe(true)
+			expect(Data.LIGHT_BRIGHTNESS > 0 and Data.LIGHT_BRIGHTNESS <= 3):toBe(true)
 			expect(Data.RING_RADIUS):toBe(144)
 			expect(Data.NIGHT_ON):toBe(18)
 			expect(Data.NIGHT_OFF):toBe(6)
@@ -91,10 +93,53 @@ return function(t, Env)
 			expect(applierSrc:find("light.Enabled = enabled", 1, true) ~= nil):toBe(true)
 			expect(applierSrc:find("instance.Enabled = false", 1, true) ~= nil):toBe(true)
 			expect(applierSrc:find("instance.Range = (Data :: any).LIGHT_RANGE", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("instance.Brightness = (Data :: any).LIGHT_BRIGHTNESS", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("light.Parent = pole", 1, true) ~= nil):toBe(true)
 			expect(applierSrc:find("instance.Shadows = false", 1, true) ~= nil):toBe(true)
 			expect(applierSrc:find('SetAttribute("StreetLamp", true)', 1, true) ~= nil):toBe(true)
 			expect(applierSrc:find('SetAttribute("lamp", index)', 1, true) ~= nil):toBe(true)
 			expect(applierSrc:find("LookDev.register(FAMILY_ID", 1, true) ~= nil):toBe(true)
+		end)
+
+		t:it("keeps bounded warm pools on the road, separated at lamp midpoints", function()
+			local lamps = Data.lamps()
+			local count = #lamps
+			expect(count):toBe(12)
+			expect(Data.LIGHT_COLOR.r > Data.LIGHT_COLOR.g and Data.LIGHT_COLOR.g > Data.LIGHT_COLOR.b):toBe(true)
+
+			-- Item 246 mounts each PointLight at the pole centre (same x/z as the lamp).
+			local drop = lamps[1].position.y + Data.POLE_SIZE[2] / 2 - Data.GROUND_Y
+			local poolRadius = math.sqrt(Data.LIGHT_RANGE ^ 2 - drop ^ 2)
+			expect(drop > 0 and drop < Data.LIGHT_RANGE):toBe(true)
+			expect(poolRadius > 14):toBe(true) -- road pool, not just the lantern housing
+
+			local good = 0
+			for index, lamp in ipairs(lamps) do
+				local nextLamp = lamps[index % count + 1]
+				local prevLamp = lamps[(index - 2) % count + 1]
+				local underInside = drop < Data.LIGHT_RANGE
+				local midNext = {
+					x = (lamp.position.x + nextLamp.position.x) / 2,
+					z = (lamp.position.z + nextLamp.position.z) / 2,
+				}
+				local midPrev = {
+					x = (lamp.position.x + prevLamp.position.x) / 2,
+					z = (lamp.position.z + prevLamp.position.z) / 2,
+				}
+				local function midpointDistance(mid)
+					local dx = lamp.position.x - mid.x
+					local dz = lamp.position.z - mid.z
+					return math.sqrt(dx * dx + dz * dz + drop * drop)
+				end
+				local nextOutside = midpointDistance(midNext) > Data.LIGHT_RANGE
+				local prevOutside = midpointDistance(midPrev) > Data.LIGHT_RANGE
+				expect(underInside and nextOutside and prevOutside):toBe(true)
+				if underInside and nextOutside and prevOutside then
+					good += 1
+				end
+			end
+			expect(good >= 8):toBe(true)
+			expect(good):toBe(12)
 		end)
 
 		t:it("returns fresh, identical descriptors across requires", function()

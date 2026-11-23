@@ -1,7 +1,9 @@
 --!strict
--- ModelMapLampsR10: pure data for the OFF-BY-DEFAULT "lamps_r10" candidate (WORK_QUEUE item 202).
--- Twelve warm street lamps evenly spaced around the MapSpec ring road (radius 144). No engine
--- calls, no asset IDs: a server applier consumes the descriptors and stages the geometry.
+-- ModelMapLampsR10: pure data for the OFF-BY-DEFAULT "lamps_r10" candidate (WORK_QUEUE items
+-- 202 + 246). Twelve warm street lamps evenly spaced around the MapSpec ring road (radius 144).
+-- Item 246: the PointLight sits at the pole centre so its <=16 range reaches the road, with a
+-- capped brightness so the warm pool stays readable instead of blowing out. No engine calls,
+-- no asset IDs: a server applier consumes the descriptors and stages the geometry.
 
 local Data = {}
 
@@ -31,7 +33,8 @@ Data.POLE_SIZE = { 0.7, 9, 0.7 }
 Data.POLE_COLOR = { r = 118, g = 84, b = 52 } -- warm wood
 Data.LANTERN_SIZE = { 1.6, 1.6, 1.6 }
 Data.LANTERN_COLOR = { r = 255, g = 204, b = 126 } -- warm glow
-Data.LIGHT_COLOR = { r = 255, g = 168, b = 72 } -- warm orange PointLight
+Data.LIGHT_COLOR = { r = 255, g = 190, b = 120 } -- warm amber PointLight
+Data.LIGHT_BRIGHTNESS = 2.5 -- item 246: visible road pool, capped <= 3 to avoid blowout
 
 local LAMPS: { Lamp } = {}
 for index = 1, Data.LAMP_COUNT do
@@ -84,6 +87,7 @@ do
 	assert(#lamps >= 12, "lamps_r10: fewer than 12 lamps")
 	assert(#lamps == Data.LAMP_COUNT, "lamps_r10: lamp count does not match LAMP_COUNT")
 	assert(Data.LIGHT_RANGE <= 16, "lamps_r10: LIGHT_RANGE exceeds 16")
+	assert(Data.LIGHT_BRIGHTNESS > 0 and Data.LIGHT_BRIGHTNESS <= 3, "lamps_r10: LIGHT_BRIGHTNESS outside 0..3")
 	for _, lamp in ipairs(lamps) do
 		local distance = math.sqrt(lamp.position.x * lamp.position.x + lamp.position.z * lamp.position.z)
 		assert(math.abs(distance - Data.RING_RADIUS) < 1e-6, "lamps_r10: lamp is off the ring road")

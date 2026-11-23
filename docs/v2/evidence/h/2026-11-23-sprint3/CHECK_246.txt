@@ -1,0 +1,41 @@
+CHECK 246 - night lamp pools on the road (WORK_QUEUE SPRINT 3 item 246)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, SERVER VM.
+Place: Development-Juragan-Desa. Play only. Place NOT saved, nothing published. Rojo-synced.
+Status: SEEN-IN-STUDIO (all checks PASS).
+
+== Wiring ==
+12 existing PointLights kept; light origin moved to pole centre, brightness 2.5 (bounded <=3), warm
+colour 255/190/120, Range 16, shadowless, night gate unchanged. Candidate id/folder/registry intact.
+tools/studio/check_q246.luau reads ReviewCameras.get("lamp_night").clockTime=21, stages lamps_r10
+from SERVER, measures live lights, restores clock + injected props + disableAll() on every path.
+
+== Raw check lines (verbatim, fresh Play, Server VM) — attempt 1 ==
+CHECK LAMP_POOL FAIL 12/12 8
+CHECK LIGHT_COST PASS 0 0
+CHECK CAL_LIGHT_COST_FAIL PASS 1 1
+CHECK CAL_LAMP_POOL_FAIL FAIL 0 1
+CHECK LAMP_NIGHT_ONLY FAIL 12 12
+CHECK CAL_LAMP_NIGHT_ONLY_FAIL PASS 1 1
+Attempt-1 harness bug: measure().lightCount counted ALL 15 live PointLights (3 default-scene + 12
+staged) in the poolValid/dayStaged/calPool guards that compare with LAMP_COUNT=12. Geometry was
+already correct (12/12 pooled, under 4.50<16, midpoints 37.54>16, nightOn 12, dayOn 0). Added a
+separate stagedCount (tagged lamp lights only) for those three guards; LIGHT_COST still uses the
+total live count. Targets and calibration logic unchanged.
+
+== Raw check lines (verbatim, fresh Play, Server VM) — attempt 2 ==
+CHECK LAMP_POOL PASS 12/12 8
+CHECK LIGHT_COST PASS 0 0
+CHECK CAL_LIGHT_COST_FAIL PASS 1 1
+CHECK CAL_LAMP_POOL_FAIL PASS 1 1
+CHECK LAMP_NIGHT_ONLY PASS 12 12
+CHECK CAL_LAMP_NIGHT_ONLY_FAIL PASS 1 1
+
+== Calibration / non-vacuity ==
+CAL_LIGHT_COST_FAIL: one live Range set to 17 tripped violations>0, restored. CAL_LAMP_POOL_FAIL:
+all 12 ranges widened to 39 (>max midpoint 37.54) dropped good to 0, restored. CAL_LAMP_NIGHT_ONLY
+_FAIL: at ClockTime 13 a forced-on light raised dayOn>0, restored. Clock returned to original.
+
+== Local validation ==
+lune run tests/run.luau: All 3123 tests passed (exit 0).
+selene src: 0 errors / 0 warnings / 0 parse errors. Stylua clean on changed files. No visual verdict.

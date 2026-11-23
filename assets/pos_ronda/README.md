@@ -12,14 +12,16 @@ slit drum) hangs on the right inner post; it is not in the photo, but every pos 
 
 Lived-in clutter added on Willy's request: a CRT TV with rabbit-ear antenna on a low cabinet, a
 water dispenser with an upside-down galon, gaple (domino) cards scattered over the table with a
-squared-up pile, a Hijri wall calendar, the night-watch roster (jadwal piket ronda) on a
+squared-up pile, a glass of black coffee on a saucer with the spoon left in, a clay ashtray with
+stubbed-out butts and one cigarette still burning on the rim (both placed by the script on the
+clearest part of the table), a Hijri wall calendar, the night-watch roster (jadwal piket ronda) on a
 whiteboard, and a four-blade ceiling fan.
 
 | Front | Three-quarter | Inside | Back |
 |---|---|---|---|
 | ![front](preview/pos_ronda_front.jpg) | ![34](preview/pos_ronda_34.jpg) | ![inside](preview/pos_ronda_inside.jpg) | ![back](preview/pos_ronda_back.jpg) |
 
-| TV, calendar, whiteboard, fan | Gaple on the table | Dispenser and notice board |
+| TV, calendar, whiteboard, fan | Gaple, coffee and ashtray on the table | Dispenser and notice board |
 |---|---|---|
 | ![props](preview/pos_ronda_props.jpg) | ![meja](preview/pos_ronda_meja.jpg) | ![dinding](preview/pos_ronda_dinding.jpg) |
 
@@ -66,7 +68,7 @@ values from `src/shared/Config/Visuals.luau`.
   8.9 above the floor, sign top 15.7.
 - Units: 1 Blender unit = 1 stud. Ground at z = 0, footprint centred on the origin. The open front
   faces Blender +Y, which the exporter maps to Roblox **-Z** (identity CFrame LookVector).
-- 2,408 triangles in 14 meshes (14 MeshParts), 13 textures: `KipasBaling` shares the `Warna`
+- 2,676 triangles in 14 meshes (14 MeshParts), 13 textures: `KipasBaling` shares the `Warna`
   atlas. All UVs inside 0..1, no n-gons, every piece closed.
 - Export: FBX, Path Mode Copy, Embed Textures, FBX Unit Scale, no leaf bones, no baked animation
   (`docs/v2/plan/TOOLS.md` §2).

@@ -798,8 +798,8 @@ slot,class,source,source_ref,licence,attribution,id,approved_by,status
 model.kit.pos_ronda,model,own-blender,assets/pos_ronda/build_pos_ronda.py,own work,,0,,UNVERIFIED
 ```
 
-`pos_ronda`: night-watch post, 2,408 tris in 14 meshes (13 textures), 29.9 x 15.7 x 19.6 studs, with
-CRT TV, dispenser, gaple cards, Hijri calendar, roster whiteboard and ceiling fan. No baked words;
+`pos_ronda`: night-watch post, 2,676 tris in 14 meshes (13 textures), 29.9 x 15.7 x 19.6 studs, with
+CRT TV, dispenser, gaple cards, coffee glass, ashtray, Hijri calendar, roster whiteboard and ceiling fan. No baked words;
 blank sign panel for a `Strings.jail_title` SurfaceGui. Details and renders in `assets/pos_ronda/README.md`.
 
 ## Blocked assets (never load, bake or insert)

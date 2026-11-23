@@ -271,6 +271,46 @@ def build_props(table_top, table):
     pile = obox("Cetak", (x1 - 0.7, y1 - 0.8, cz + 0.13), (0.45, 0.9, 0.26), 0.15)
     rot = Matrix.Rotation(0.15, 3, "Z")
     decal(pile, R_BACK, (0, 0, 1), rot @ Vector((1, 0, 0)), rot @ Vector((0, 1, 0)))
+    placed.append((x1 - 0.7, y1 - 0.8, 0))
+
+    def free_spot(radius):
+        """The point on the table top farthest from every card and earlier prop."""
+        best, best_d = None, -1.0
+        for sx in np.linspace(x0 + radius + 0.05, x1 - radius - 0.05, 24):
+            for sy in np.linspace(y0 + radius + 0.05, y1 - radius - 0.05, 14):
+                d = min(math.hypot(px - sx, py - sy) for (px, py, _) in placed)
+                if d > best_d:
+                    best, best_d = (float(sx), float(sy)), d
+        placed.append((*best, 0))
+        return best
+
+    # --- glass of black coffee (kopi hitam) on a saucer, spoon left in
+    gx, gy = free_spot(0.4)
+    paint("kertas", cylinder("Warna", (gx, gy, cz + 0.025), 0.38, 0.05, segments=14, r_top=0.4))  # lepek
+    glass = cylinder("Warna", (gx, gy, cz + 0.05 + 0.26), 0.17, 0.52, segments=12, r_top=0.21)
+    for f in glass:
+        f.normal_update()
+    paint("tinta", [f for f in glass if f.normal.z < 0.9])  # coffee seen through the glass
+    paint("tinta_lembut", [f for f in glass if f.normal.z >= 0.9])  # coffee surface
+    paint("perak", beam("Warna", (gx + 0.05, gy, cz + 0.4), (gx + 0.3, gy + 0.08, cz + 0.85), 0.06, 0.03))
+
+    # --- clay ashtray (asbak) with ash, butts and one cigarette still burning on the rim
+    ax, ay = free_spot(0.45)
+    tray = cylinder("Warna", (ax, ay, cz + 0.08), 0.36, 0.16, segments=14, r_top=0.42)
+    for f in tray:
+        f.normal_update()
+    paint("genteng", [f for f in tray if f.normal.z < 0.9])
+    paint("tinta_lembut", [f for f in tray if f.normal.z >= 0.9])  # ash bed
+    for k, (ang, ln) in enumerate(((0.4, 0.22), (2.1, 0.18), (3.9, 0.2))):
+        d = Vector((math.cos(ang), math.sin(ang), 0))
+        p0 = Vector((ax, ay, cz + 0.19)) + d * 0.05
+        paint("kertas", beam("Warna", p0, p0 + d * ln * 0.6, 0.06, 0.06))  # stubbed-out butt
+        paint("bambu", beam("Warna", p0 + d * ln * 0.6, p0 + d * ln, 0.065, 0.065))  # filter
+    d = Vector((math.cos(5.2), math.sin(5.2), 0))
+    rim = Vector((ax, ay, cz + 0.2)) + d * 0.4
+    paint("bambu", beam("Warna", rim + d * 0.05, rim - d * 0.08, 0.07, 0.07))  # filter on the rim
+    paint("kertas", beam("Warna", rim - d * 0.08, rim - d * 0.42 + Vector((0, 0, -0.02)), 0.065, 0.065))
+    paint("merah", beam("Warna", rim - d * 0.42 + Vector((0, 0, -0.02)), rim - d * 0.47 + Vector((0, 0, -0.025)), 0.066, 0.066))
 
     # --- Hijri wall calendar on the right side wall (faces -X)
     decal(box("Cetak", side_in - 0.05, side_in, -3.6, -2.1, 4.5, 6.5), R_CAL, (-1, 0, 0), (0, -1, 0), (0, 0, 1))

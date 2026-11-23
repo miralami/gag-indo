@@ -15,6 +15,27 @@ hanging porch bulb.
 
 The blue figure in the renders is 5.5 studs tall (avatar scale). It is not part of the asset.
 
+## Palette
+
+Every texture is painted from the project palette (`ART.md` §3). The build script reads the hex
+values from `src/shared/Config/Visuals.luau` at build time, so a palette change only needs a rebuild.
+Each texture's average colour equals its swatch (measured on the PNGs).
+
+| Material | Token | Hex |
+|---|---|---|
+| `Genteng` roof, `Wuwung` ridge (darker) | `genteng` | `#a8452f` |
+| `Plester` lower walls | `kertas` | `#f3e9d2` |
+| `Papan` upper wall planks | `bambu` | `#b98a5a` |
+| `Kayu` posts, door, beams, bench | `tinta-lembut` | `#5b4a38` |
+| `Hijau` shutters, frames, fascia (worn to `bambu`) | `daun` | `#6f8a3f` |
+| `Batu` plinth stones | `tinta-lembut` to `kertas` blend | |
+| `Tegel` porch floor | `merah` + `genteng` checker | `#a83226` |
+| `Kaca` glass | `indigo` | `#3b4f6b` |
+| `Lampu` porch bulb | `senja` | `#f6c97a` |
+
+Dirt, moss and grout use `tinta-lembut`. Dominant hues: `genteng`, `bambu`/`kertas`, `daun`.
+The previews render with the Standard view transform so the swatches are not tone-mapped.
+
 ## Files
 
 | File | What it is |

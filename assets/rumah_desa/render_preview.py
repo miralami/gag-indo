@@ -16,6 +16,15 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "preview")
 
 
+def srgb(hexv):
+    """Palette hex (ART.md §3) to the linear colour a Base Color socket expects."""
+    out = []
+    for i in (0, 2, 4):
+        c = int(hexv[i : i + 2], 16) / 255.0
+        out.append(c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4)
+    return tuple(out)
+
+
 def flat_material(name, rgb, rough=0.9):
     mat = bpy.data.materials.new(name)
     bsdf = next(n for n in mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
@@ -36,15 +45,16 @@ def setup():
     scene.render.resolution_y = 800
     scene.render.image_settings.file_format = "JPEG"
     scene.render.image_settings.quality = 88
-    scene.view_settings.view_transform = "AgX" if "AgX" in [i.identifier for i in scene.view_settings.bl_rna.properties["view_transform"].enum_items] else "Filmic"
+    # Standard view transform so the palette hex values read as they are, not tone-mapped
+    scene.view_settings.view_transform = "Standard"
 
     bpy.ops.mesh.primitive_plane_add(size=200, location=(0, 0, 0))
     ground = bpy.context.active_object
-    ground.data.materials.append(flat_material("ground", (0.32, 0.4, 0.18)))
+    ground.data.materials.append(flat_material("ground", srgb("6f8a3f")))
     bpy.ops.mesh.primitive_plane_add(size=1, location=(0, 22, 0.02))
     path = bpy.context.active_object
     path.scale = (6, 30, 1)
-    path.data.materials.append(flat_material("path", (0.55, 0.42, 0.28)))
+    path.data.materials.append(flat_material("path", srgb("b98a5a")))
 
     # avatar-sized figure (5.5 studs) beside the steps
     fig = flat_material("figure", (0.15, 0.35, 0.8), 0.6)
@@ -54,7 +64,7 @@ def setup():
     bpy.context.active_object.data.materials.append(fig)
 
     sun = bpy.data.lights.new("sun", "SUN")
-    sun.energy = 4.0
+    sun.energy = 2.2
     sun.angle = math.radians(3)
     sun_obj = bpy.data.objects.new("sun", sun)
     sun_obj.rotation_euler = (math.radians(50), 0, math.radians(-35))
@@ -64,7 +74,7 @@ def setup():
     scene.world = world
     bg = next(n for n in world.node_tree.nodes if n.type == "BACKGROUND")
     bg.inputs["Color"].default_value = (0.55, 0.72, 0.92, 1.0)
-    bg.inputs["Strength"].default_value = 1.0
+    bg.inputs["Strength"].default_value = 0.6
     return scene
 
 

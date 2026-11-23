@@ -17,6 +17,7 @@ one texture.
 
 import math
 import os
+import re
 
 import bmesh
 import bpy
@@ -26,6 +27,27 @@ from mathutils import Matrix, Vector
 HERE = os.path.dirname(os.path.abspath(__file__))
 TEX_DIR = os.path.join(HERE, "textures")
 NAME = "RumahDesa"
+VISUALS = os.path.join(HERE, "..", "..", "src", "shared", "Config", "Visuals.luau")
+
+
+def load_palette():
+    """Read the project palette (ART.md §3) from Visuals.luau so the house never drifts from it."""
+    with open(VISUALS, encoding="utf-8") as fh:
+        text = fh.read()
+    block = text[text.index("Visuals.palette = {") : text.index("}", text.index("Visuals.palette = {"))]
+    pal = {}
+    for key, hexv in re.findall(r"(\w+)\s*=\s*\"([0-9a-fA-F]{6})\"", block):
+        pal[key] = np.array([int(hexv[i : i + 2], 16) / 255.0 for i in (0, 2, 4)])
+    return pal
+
+
+P = load_palette()
+
+# Material -> palette token (ART.md §3). Three dominant hues: genteng, bambu/kertas, daun.
+#   Genteng  genteng        Wuwung   genteng (darker)   Plester  kertas
+#   Papan    bambu          Kayu     tinta_lembut       Hijau    daun (worn to bambu)
+#   Batu     tinta_lembut..kertas   Tegel  merah + genteng   Kaca  indigo   Lampu  senja
+# Dirt, moss and grout use tinta_lembut; nothing uses a colour outside the palette.
 
 # ---------------------------------------------------------------------------------------------
 # Dimensions (studs). Avatar is about 5.5 studs tall.
@@ -400,7 +422,14 @@ def hash2(a, b, seed):
 
 
 def colour(rgb, shade):
+    """Paint rgb modulated by shade; shade is normalised so the average pixel is the swatch."""
+    shade = shade / max(1e-6, float(np.mean(shade)))
     return np.stack([shade * rgb[0], shade * rgb[1], shade * rgb[2]], axis=-1)
+
+
+def mix(a, b, t):
+    t = np.asarray(t)[..., None] if np.ndim(t) else t
+    return a * (1 - t) + b * t
 
 
 def tex_genteng(res, size):
@@ -417,11 +446,10 @@ def tex_genteng(res, size):
     shade *= 0.86 + 0.22 * var
     grime = fbm(res, res, 6, 6, 4, 21)
     shade *= 0.82 + 0.25 * grime
-    base = colour((0.74, 0.35, 0.19), shade)
-    moss = smoothstep(0.62, 0.8, fbm(res, res, 10, 10, 3, 31)) * 0.35
-    base = base * (1 - moss[..., None]) + np.array([0.28, 0.24, 0.16]) * moss[..., None]
-    hue = (hash2(col, row, 12) - 0.5) * 0.08
-    base[..., 1] += hue
+    base = colour(P["genteng"], shade)
+    moss = smoothstep(0.62, 0.8, fbm(res, res, 10, 10, 3, 31)) * 0.3
+    base = mix(base, P["tinta_lembut"], moss)
+    base[..., 1] += (hash2(col, row, 12) - 0.5) * 0.05
     return base
 
 
@@ -429,7 +457,7 @@ def tex_wuwung(res, size):
     u, v = grid(res, size)
     seg = (u / 1.3) % 1
     shade = np.where((seg < 0.05), 0.65, 1.0) * (0.85 + 0.25 * fbm(res, res, 8, 8, 4, 41))
-    return colour((0.6, 0.27, 0.15), shade)
+    return colour(P["genteng"] * 0.82, shade)
 
 
 def tex_plester(res, size):
@@ -437,10 +465,9 @@ def tex_plester(res, size):
     n = fbm(res, res, 24, 24, 4, 51)
     blot = fbm(res, res, 5, 5, 3, 52)
     shade = (0.9 + 0.12 * n) * (0.92 + 0.1 * blot)
-    base = colour((0.95, 0.91, 0.8), shade)
+    base = colour(P["kertas"], shade)
     dirt = (1 - smoothstep(0.0, 1.4, v)) * (0.55 + 0.45 * fbm(res, res, 30, 8, 3, 53))
-    base = base * (1 - 0.45 * dirt[..., None]) + np.array([0.45, 0.36, 0.26]) * 0.45 * dirt[..., None]
-    return base
+    return mix(base, P["tinta_lembut"], 0.45 * dirt)
 
 
 def tex_papan(res, size):
@@ -453,7 +480,7 @@ def tex_papan(res, size):
     shade *= 0.8 + 0.3 * hash2(plank, plank * 3, 62)
     shade *= np.where((fu < 0.06) | (fu > 0.97), 0.45, 1.0)
     shade *= 0.88 + 0.16 * fbm(res, res, 6, 6, 3, 63)
-    return colour((0.6, 0.39, 0.22), shade)
+    return colour(P["bambu"], shade)
 
 
 def tex_kayu(res, size):
@@ -461,17 +488,16 @@ def tex_kayu(res, size):
     grain = vnoise(res, res, int(size * 8), 3, 71)
     shade = 0.86 + 0.14 * (0.5 + 0.5 * np.sin(u * 30 + grain * 8))
     shade *= 0.85 + 0.2 * fbm(res, res, 8, 8, 4, 72)
-    return colour((0.42, 0.26, 0.14), shade)
+    return colour(P["tinta_lembut"], shade)
 
 
 def tex_hijau(res, size):
     u, v = grid(res, size)
     brush = vnoise(res, res, 4, int(size * 5), 81)
     shade = (0.92 + 0.08 * brush) * (0.9 + 0.14 * fbm(res, res, 10, 10, 4, 82))
-    paint = colour((0.15, 0.47, 0.4), shade)
-    wear = smoothstep(0.8, 0.86, fbm(res, res, 14, 14, 4, 83))[..., None]
-    wood = colour((0.38, 0.3, 0.22), shade)
-    return paint * (1 - wear) + wood * wear
+    paint = colour(P["daun"], shade)
+    wear = smoothstep(0.8, 0.86, fbm(res, res, 14, 14, 4, 83))
+    return mix(paint, colour(P["bambu"], shade), wear)
 
 
 def tex_batu(res, size):
@@ -499,10 +525,12 @@ def tex_batu(res, size):
             d1 = np.where(closer, d, d1)
     edge = smoothstep(0.0, g * 0.12, d2 - d1)
     speck = fbm(res, res, int(size * 4), int(size * 4), 2, 92)
-    stone_shade = (0.62 + 0.3 * t1) * (0.85 + 0.2 * speck) * (0.85 + 0.15 * smoothstep(0, g * 0.5, d2 - d1))
-    stone = np.stack([stone_shade * 0.62, stone_shade * 0.6, stone_shade * 0.56], -1)
-    mortar = np.array([0.7, 0.68, 0.62]) * (0.9 + 0.1 * speck[..., None])
-    return stone * edge[..., None] + mortar * (1 - edge[..., None])
+    stone_shade = (0.85 + 0.2 * speck) * (0.85 + 0.15 * smoothstep(0, g * 0.5, d2 - d1))
+    stone_shade = stone_shade / float(np.mean(stone_shade))
+    # river stones: each one a different blend of tinta_lembut and kertas
+    stone = mix(P["tinta_lembut"], P["kertas"], 0.15 + 0.45 * t1) * stone_shade[..., None]
+    mortar = mix(P["kertas"], P["tinta_lembut"], 0.25) * (0.9 + 0.1 * speck[..., None])
+    return mix(mortar, stone, edge)
 
 
 def tex_tegel(res, size):
@@ -511,24 +539,22 @@ def tex_tegel(res, size):
     tu, tv = np.floor(u / t), np.floor(v / t)
     fu, fv = (u / t) % 1, (v / t) % 1
     checker = ((tu + tv) % 2)[..., None]
-    a = np.array([0.6, 0.22, 0.17])
-    b = np.array([0.52, 0.19, 0.15])
-    base = a * checker + b * (1 - checker)
+    base = P["merah"] * checker + (P["genteng"] * 0.85) * (1 - checker)
     shade = (0.9 + 0.15 * hash2(tu, tv, 101)) * (0.88 + 0.16 * fbm(res, res, 12, 12, 3, 102))
-    base = base * shade[..., None]
+    base = base * (shade / float(np.mean(shade)))[..., None]
     grout = ((fu < 0.02) | (fu > 0.98) | (fv < 0.02) | (fv > 0.98))[..., None]
-    return np.where(grout, np.array([0.36, 0.31, 0.28]), base)
+    return np.where(grout, P["tinta_lembut"], base)
 
 
 def tex_kaca(res, size):
     u, v = grid(res, size)
     streak = smoothstep(0.55, 0.6, (0.5 + 0.5 * np.sin((u + v) * 2.2)))
     shade = 0.75 + 0.35 * (v / size) + 0.5 * streak
-    return colour((0.13, 0.17, 0.21), shade)
+    return colour(P["indigo"], shade)
 
 
 def tex_lampu(res, size):
-    return np.ones((res, res, 3)) * np.array([1.0, 0.92, 0.72])
+    return np.ones((res, res, 3)) * P["senja"]
 
 
 MATERIALS = {

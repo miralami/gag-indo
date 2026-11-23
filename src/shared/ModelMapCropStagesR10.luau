@@ -1,13 +1,16 @@
 --!strict
 -- ModelMapCropStagesR10: pure data for the OFF-BY-DEFAULT "crop_stages_r10" reference-stage overlay
--- (WORK_QUEUE items 206 / 254). The default crop models are never touched: a SERVER applier stages
--- anchored, non-collidable crop-shaped Parts (Cylinder stem + Wedge leaves + Cylinder produce) in
--- each plot's outer area away from its gate, so every plot_aerial_NN camera can raycast its OWN
--- plot's bibit/tumbuh/siap. No Ball part: item 254 replaced the old lollipop canopy.
--- Heights stay 1.2 / 2.6 / 4.2 and the stage colours stay distinct. Item 263 widens every stage
--- to >= 1.5 studs: ponytail: there is no dedicated sprout/young Blender model in ASSET_MANIFEST,
--- so bibit/tumbuh stay primitives-only; siap additionally gets the baked padi model recorded in
--- ASSET_MANIFEST (id kept in the SERVER applier so this data module stays engine-free).
+-- (WORK_QUEUE items 206 / 254 / 263, rebuilt after the sprint-5 hero shots showed thin slivers).
+-- The default crop models are never touched: a SERVER applier stages anchored, non-collidable
+-- crop-shaped Parts in each plot's outer area away from its gate, so every plot_aerial_NN camera
+-- can raycast its OWN plot's bibit/tumbuh/siap. Each stage is now a ROW of three plants, one per
+-- tile pitch, and the three rows sit side by side (sprout row, young row, ready row). A plant is an
+-- upright Cylinder stem plus a fan of Wedge leaves (and, when ready, a cluster of Cylinder produce
+-- in the crop colour). No Ball part, no SmoothPlastic: materials are names the applier maps to
+-- textured Grass / LeafyGrass / Fabric.
+-- Plant sizes (a leaf fan is twice its leaf length wide): sprout 1.2 tall x 1.6 wide, young
+-- 2.2 x 2.0, ready 3.0 x 2.0. There is no dedicated Blender model for these stages, so every
+-- stage stays primitives-only.
 
 local Candidates: any = require(script.Parent.CropModelCandidates)
 local Game: any = require(script.Parent.Config.Game)
@@ -17,18 +20,22 @@ type PartSpec = {
 	name: string,
 	role: string,
 	shape: string,
+	material: string,
+	plant: number,
 	size: { number },
 	position: { number },
 	rotation: { number },
 	color: RGB,
 }
 type Stage = { stage: string, height: number, color: RGB }
+type Produce = { crop: string, color: RGB, length: number, width: number, count: number, radius: number, y: number }
 type StageSample = {
 	plot: number,
 	stage: string,
 	height: number,
 	color: RGB,
 	parts: { PartSpec },
+	plants: { { PartSpec } },
 	stem: PartSpec,
 	canopy: PartSpec,
 }
@@ -42,21 +49,70 @@ Data.folderName = "LookDevCropStagesR10_crop_stages_r10"
 Data.GROUND_Y = 0.5
 Data.DEMO_PLOT = 3 -- plot 3 is due east at (192, 0); its gate faces inward (-X).
 Data.DEMO_OFFSET = { x = 8, z = 0 } -- radial OUTWARD 8 studs (clear of the gate), z is tangential.
-Data.STAGE_SPACING = 4 -- stages sit side by side tangentially inside each 34x34 plot.
-Data.STEM_WIDTH = 0.24
-Data.MIN_STAGE_WIDTH = 1.5 -- item 263: every stage >= 1.5 studs wide
-Data.PRODUCT_COLOR = { r = 214, g = 132, b = 46 }
+Data.TILE_PITCH = 7.5 -- 6-stud tile + 1.5 gap: one plant per tile centre, rows one pitch apart
+Data.STAGE_SPACING = Data.TILE_PITCH -- row-to-row distance, tangential
+Data.PLANTS_PER_ROW = 3 -- plants per row, radial
+Data.STEM_WIDTH = 0.25
+Data.MIN_STAGE_WIDTH = 1.5 -- item 263: every plant >= 1.5 studs wide
 Data.REFERENCE_CROP = "reference"
 Data.MIN_HUE_DISTANCE = 0.15
-Data.READY_MODEL_STAGE = "siap" -- stage that receives the baked padi model in the applier
-Data.READY_MODEL_WIDTH = 1.8 -- target bounding-box width of that baked model (>= 1.5)
+Data.PLANT_ROTATION_Z = math.pi / 2 -- turns a Cylinder's X axis upright
+Data.MATERIAL_STEM = "Grass"
+Data.MATERIAL_LEAF = "LeafyGrass"
+Data.MATERIAL_PRODUCE = "Fabric"
 
 local STAGES: { Stage } = {
 	{ stage = "bibit", height = 1.2, color = { r = 110, g = 170, b = 80 } },
-	{ stage = "tumbuh", height = 2.6, color = { r = 80, g = 155, b = 65 } },
-	{ stage = "siap", height = 4.2, color = { r = 196, g = 162, b = 52 } },
+	{ stage = "tumbuh", height = 2.2, color = { r = 80, g = 155, b = 65 } },
+	{ stage = "siap", height = 3.0, color = { r = 64, g = 120, b = 52 } },
 }
 Data.STAGES = STAGES
+
+-- Leaf fan per stage: count, leaf length (fan width = 2 x length), leaf width and the two heights
+-- the leaves alternate between. Stem length and diameter come with it.
+local FANS: { [string]: any } = {
+	bibit = { count = 4, length = 0.8, width = 0.45, heights = { 1.2, 1.0 }, stem = 0.5 },
+	tumbuh = { count = 6, length = 1.0, width = 0.55, heights = { 2.2, 1.7 }, stem = 1.4 },
+	siap = { count = 6, length = 1.0, width = 0.55, heights = { 2.4, 1.9 }, stem = 2.6 },
+}
+Data.FANS = FANS
+
+-- Ready-stage produce per plot, cycling red chili / white shallot / golden rice panicle. Lengths
+-- run along the vertical; tops stay <= the 3.0 ready height.
+local PRODUCES: { Produce } = {
+	{
+		crop = "cabai",
+		color = { r = 200, g = 40, b = 35 },
+		length = 1.0,
+		width = 0.22,
+		count = 6,
+		radius = 0.5,
+		y = 2.5,
+	},
+	{
+		crop = "bawang",
+		color = { r = 240, g = 232, b = 215 },
+		length = 0.55,
+		width = 0.7,
+		count = 5,
+		radius = 0.5,
+		y = 2.7,
+	},
+	{
+		crop = "padi",
+		color = { r = 232, g = 190, b = 62 },
+		length = 0.9,
+		width = 0.22,
+		count = 6,
+		radius = 0.45,
+		y = 2.55,
+	},
+}
+Data.PRODUCES = PRODUCES
+
+function Data.produceFor(plot: number): Produce
+	return PRODUCES[((plot - 1) % #PRODUCES) + 1]
+end
 
 -- One plot_aerial_NN camera per configured plot (ReviewCameras builds the same names from Game.plotCount).
 local cameraNames: { string } = {}
@@ -112,123 +168,126 @@ local function makePart(
 	suffix: string,
 	role: string,
 	shape: string,
+	material: string,
+	plant: number,
 	size: { number },
 	position: { number },
 	color: RGB,
-	rotation: { number }?
+	rotation: { number }
 ): PartSpec
 	return {
 		name = prefix .. "_" .. suffix,
 		role = role,
 		shape = shape,
+		material = material,
+		plant = plant,
 		size = size,
 		position = position,
-		rotation = rotation or { 0, 0, 0 },
+		rotation = rotation,
 		color = copyColor(color),
 	}
 end
 
--- Leaf layout per stage. bibit = two side wedges plus a short top wedge (sprout);
--- tumbuh = five wedges in a rising fan; siap = six larger wedges plus three Cylinder produce.
-local function leavesFor(stageName: string, prefix: string, x: number, z: number, groundY: number, color: RGB)
+-- One plant: upright stem, a fan of leaf wedges (each runs from the stem outward along its yaw,
+-- so opposite leaves give a fan twice the leaf length wide) and, when ready, produce around the top.
+local function plantParts(
+	stageName: string,
+	prefix: string,
+	plant: number,
+	x: number,
+	z: number,
+	color: RGB,
+	produce: Produce
+): { PartSpec }
+	local fan = FANS[stageName]
+	local groundY = Data.GROUND_Y
 	local parts: { PartSpec } = {}
-	if stageName == "bibit" then
-		local y = groundY + 0.82
-		parts[1] = makePart(
-			prefix,
-			"LeafL",
-			"canopy",
-			"Wedge",
-			{ 1.6, 0.45, 0.32 },
-			{ x - 0.36, y, z },
-			color,
-			{ 0, 0, -0.28 }
-		)
-		parts[2] = makePart(
-			prefix,
-			"LeafR",
-			"canopy",
-			"Wedge",
-			{ 1.6, 0.45, 0.32 },
-			{ x + 0.36, y, z },
-			color,
-			{ 0, 0, 0.28 }
-		)
-		parts[3] = makePart(prefix, "LeafTop", "canopy", "Wedge", { 1.6, 0.4, 0.3 }, { x, groundY + 1.0, z }, color)
-		return parts
-	end
-
-	if stageName == "tumbuh" then
-		local fan = {
-			{ -1.0, 1.75, -0.45 },
-			{ -0.5, 2.05, -0.22 },
-			{ 0, 2.2, 0 },
-			{ 0.5, 2.05, 0.22 },
-			{ 1.0, 1.75, 0.45 },
-		}
-		for index, blade in ipairs(fan) do
-			parts[index] = makePart(
-				prefix,
-				"Leaf" .. index,
-				"canopy",
-				"Wedge",
-				{ 1.6, 0.8, 0.32 },
-				{ x + blade[1], groundY + blade[2], z },
-				color,
-				{ 0, 0, blade[3] }
-			)
-		end
-		return parts
-	end
-
-	local fan = {
-		{ -1.2, 2.6, -0.5 },
-		{ -0.7, 3.0, -0.3 },
-		{ -0.2, 3.2, -0.12 },
-		{ 0.2, 3.2, 0.12 },
-		{ 0.7, 3.0, 0.3 },
-		{ 1.2, 2.6, 0.5 },
-	}
-	for index, blade in ipairs(fan) do
-		parts[index] = makePart(
+	parts[1] = makePart(
+		prefix,
+		"Stem",
+		"stem",
+		"Cylinder",
+		Data.MATERIAL_STEM,
+		plant,
+		{ fan.stem, Data.STEM_WIDTH, Data.STEM_WIDTH },
+		{ x, groundY + fan.stem / 2, z },
+		color,
+		{ 0, 0, Data.PLANT_ROTATION_Z }
+	)
+	local step = 2 * math.pi / fan.count
+	for index = 1, fan.count do
+		local yaw = (index - 1) * step + 0.35
+		local height = fan.heights[((index - 1) % #fan.heights) + 1]
+		local reach = fan.length / 2
+		parts[#parts + 1] = makePart(
 			prefix,
 			"Leaf" .. index,
 			"canopy",
 			"Wedge",
-			{ 1.7, 1.0, 0.36 },
-			{ x + blade[1], groundY + blade[2], z },
+			Data.MATERIAL_LEAF,
+			plant,
+			{ fan.width, height, fan.length },
+			{ x + math.sin(yaw) * reach, groundY + height / 2, z + math.cos(yaw) * reach },
 			color,
-			{ 0, 0, blade[3] }
+			{ 0, yaw, 0 }
 		)
 	end
-	for index, dx in ipairs({ -0.5, 0, 0.5 }) do
-		parts[#parts + 1] = makePart(
-			prefix,
-			"Produce" .. index,
-			"produce",
-			"Cylinder",
-			{ 0.55, 0.65, 0.55 },
-			{ x + dx, groundY + 3.75, z + 0.1 },
-			Data.PRODUCT_COLOR
-		)
+	if stageName == "siap" then
+		local step2 = 2 * math.pi / produce.count
+		for index = 1, produce.count do
+			local angle = (index - 1) * step2
+			parts[#parts + 1] = makePart(
+				prefix,
+				"Produce" .. index,
+				"produce",
+				"Cylinder",
+				Data.MATERIAL_PRODUCE,
+				plant,
+				{ produce.length, produce.width, produce.width },
+				{ x + math.sin(angle) * produce.radius, groundY + produce.y, z + math.cos(angle) * produce.radius },
+				produce.color,
+				{ 0, 0, Data.PLANT_ROTATION_Z }
+			)
+		end
 	end
 	return parts
 end
 
-local function clusterWidth(parts: { PartSpec }): number
-	local widest = 0
+-- Horizontal extent of ONE plant: the larger of its X and Z spans, from each part's rotated
+-- footprint (yaw-rotated Wedge boxes; upright Cylinders are round). Pass a single plant's parts.
+local function plantWidth(parts: { PartSpec }): number
+	local minX, maxX, minZ, maxZ = math.huge, -math.huge, math.huge, -math.huge
 	for _, part in ipairs(parts) do
-		local width = math.max(part.size[1], part.size[3])
-		if width > widest then
-			widest = width
+		local hx, hz = part.size[1] / 2, part.size[3] / 2
+		local yaw = part.rotation[2]
+		if part.shape == "Cylinder" then
+			hx, hz, yaw = part.size[2] / 2, part.size[3] / 2, 0
+		end
+		local cosY, sinY = math.cos(yaw), math.sin(yaw)
+		for _, sx in ipairs({ -1, 1 }) do
+			for _, sz in ipairs({ -1, 1 }) do
+				local lx, lz = sx * hx, sz * hz
+				local wx = part.position[1] + lx * cosY + lz * sinY
+				local wz = part.position[3] - lx * sinY + lz * cosY
+				minX, maxX = math.min(minX, wx), math.max(maxX, wx)
+				minZ, maxZ = math.min(minZ, wz), math.max(maxZ, wz)
+			end
 		end
 	end
-	return widest
+	return math.max(maxX - minX, maxZ - minZ)
 end
-Data.clusterWidth = clusterWidth
+Data.plantWidth = plantWidth
+Data.clusterWidth = plantWidth
+
+-- Highest point of a part, honouring the upright Cylinder rotation.
+local function partTop(part: PartSpec): number
+	local half = if part.shape == "Cylinder" then part.size[1] / 2 else part.size[2] / 2
+	return part.position[2] + half
+end
+Data.partTop = partTop
 
 -- Plot cluster centre = plot centre + a small outward offset. `ux/uz` is the outward radial and
--- `(-uz, ux)` the tangential direction used to line the three stages up inside the plot.
+-- `(-uz, ux)` the tangential direction used to line the stage rows up inside the plot.
 local function plotBasis(plot: number): (number, number, number, number)
 	local px, pz = Game.plotCenter(plot)
 	local radius = math.sqrt(px * px + pz * pz)
@@ -250,42 +309,39 @@ function Data.demoCentre(): { number }
 	return Data.demoCentreFor(Data.DEMO_PLOT)
 end
 
--- Three stage samples PER PLOT (plot count x 3). Each carries a distinct `plot`, the stage name,
--- height/colour, and a parts array: Cylinder stem, Wedge leaves, plus Cylinder produce when ready.
--- `stem` and `canopy` stay as aliases for the primary stem / first leaf.
+-- Three stage samples PER PLOT (plot count x 3), each one a ROW of PLANTS_PER_ROW plants. `plants`
+-- keeps each plant's parts apart; `parts` is the flat row; `stem` and `canopy` alias the first
+-- plant's stem / first leaf.
 function Data.stageParts(): { StageSample }
 	local samples: { StageSample } = {}
 	for plot = 1, Game.plotCount do
 		local baseX, baseZ, ux, uz = plotBasis(plot)
+		local produce = Data.produceFor(plot)
 		for index, stage in ipairs(Data.STAGES) do
 			local along = (index - 2) * Data.STAGE_SPACING
-			local x = baseX - uz * along
-			local z = baseZ + ux * along
-			local groundY = Data.GROUND_Y
 			local color = copyColor(stage.color)
-			local prefix = "CropStage_P" .. plot .. "_" .. stage.stage
-			local stem = makePart(
-				prefix,
-				"Stem",
-				"stem",
-				"Cylinder",
-				{ Data.STEM_WIDTH, stage.height, Data.STEM_WIDTH },
-				{ x, groundY + stage.height / 2, z },
-				color
-			)
-			local leaves = leavesFor(stage.stage, prefix, x, z, groundY, color)
-			local parts = { stem }
-			for _, leaf in ipairs(leaves) do
-				parts[#parts + 1] = leaf
+			local plants: { { PartSpec } } = {}
+			local flat: { PartSpec } = {}
+			for plant = 1, Data.PLANTS_PER_ROW do
+				local radial = (plant - (Data.PLANTS_PER_ROW + 1) / 2) * Data.TILE_PITCH
+				local x = baseX + ux * radial - uz * along
+				local z = baseZ + uz * radial + ux * along
+				local prefix = "CropStage_P" .. plot .. "_" .. stage.stage .. "_" .. plant
+				local parts = plantParts(stage.stage, prefix, plant, x, z, color, produce)
+				plants[plant] = parts
+				for _, part in ipairs(parts) do
+					flat[#flat + 1] = part
+				end
 			end
 			samples[#samples + 1] = {
 				plot = plot,
 				stage = stage.stage,
 				height = stage.height,
-				color = copyColor(color),
-				parts = parts,
-				stem = stem,
-				canopy = leaves[1],
+				color = color,
+				parts = flat,
+				plants = plants,
+				stem = plants[1][1],
+				canopy = plants[1][2],
 			}
 		end
 	end
@@ -296,8 +352,7 @@ end
 do
 	assert(#Data.STAGES == 3, "crop_stages_r10: stage count is not 3")
 	assert(Data.MIN_STAGE_WIDTH >= 1.5, "crop_stages_r10: stage width contract below 1.5")
-	assert(Data.READY_MODEL_WIDTH >= Data.MIN_STAGE_WIDTH, "crop_stages_r10: baked model is too narrow")
-	assert(Data.READY_MODEL_STAGE == Data.STAGES[#Data.STAGES].stage, "crop_stages_r10: wrong model stage")
+	assert(Data.PLANTS_PER_ROW >= 3, "crop_stages_r10: fewer than three plants per row")
 	assert(#Data.CROPS == #Candidates.cropIds, "crop_stages_r10: crop coverage is incomplete")
 	for index = 2, #Data.STAGES do
 		assert(
@@ -322,7 +377,12 @@ do
 			assert(channel >= 0 and channel <= 255, "crop_stages_r10: colour channel outside 0..255")
 		end
 	end
-	local leafCounts: { [string]: number } = { bibit = 3, tumbuh = 5, siap = 6 }
+	for _, produce in ipairs(Data.PRODUCES) do
+		assert(
+			produce.y + produce.length / 2 <= Data.STAGES[3].height + 1e-6,
+			"crop_stages_r10: produce above ready height"
+		)
+	end
 	local samples = Data.stageParts()
 	assert(#samples == Game.plotCount * #Data.STAGES, "crop_stages_r10: stage sample count is not 30")
 	local perPlot: { [number]: { [string]: boolean } } = {}
@@ -330,28 +390,41 @@ do
 		perPlot[sample.plot] = perPlot[sample.plot] or {}
 		assert(perPlot[sample.plot][sample.stage] == nil, "crop_stages_r10: duplicate stage in plot " .. sample.plot)
 		perPlot[sample.plot][sample.stage] = true
-		local leaves, produce = 0, 0
-		for _, part in ipairs(sample.parts) do
-			assert(part.shape == "Wedge" or part.shape == "Cylinder", "crop_stages_r10: illegal shape " .. part.shape)
-			assert(
-				part.size[1] > 0 and part.size[2] > 0 and part.size[3] > 0,
-				"crop_stages_r10: non-positive part size"
-			)
-			assert(
-				part.position[2] + part.size[2] / 2 <= Data.GROUND_Y + sample.height + 1e-6,
-				"crop_stages_r10: part exceeds stage height"
-			)
-			if part.role == "canopy" then
-				leaves += 1
-				assert(part.shape == "Wedge", "crop_stages_r10: leaf is not a Wedge")
-			elseif part.role == "produce" then
-				produce += 1
-				assert(part.shape == "Cylinder", "crop_stages_r10: produce is not a Cylinder")
+		assert(#sample.plants == Data.PLANTS_PER_ROW, "crop_stages_r10: wrong plant count in a row")
+		for _, plant in ipairs(sample.plants) do
+			local leaves, produce = 0, 0
+			for _, part in ipairs(plant) do
+				assert(
+					part.shape == "Wedge" or part.shape == "Cylinder",
+					"crop_stages_r10: illegal shape " .. part.shape
+				)
+				assert(
+					part.material ~= "SmoothPlastic" and part.material ~= "Plastic",
+					"crop_stages_r10: untextured material"
+				)
+				assert(
+					part.size[1] > 0 and part.size[2] > 0 and part.size[3] > 0,
+					"crop_stages_r10: non-positive part size"
+				)
+				assert(
+					partTop(part) <= Data.GROUND_Y + sample.height + 1e-6,
+					"crop_stages_r10: part exceeds stage height"
+				)
+				if part.role == "canopy" then
+					leaves += 1
+					assert(part.shape == "Wedge", "crop_stages_r10: leaf is not a Wedge")
+				elseif part.role == "produce" then
+					produce += 1
+					assert(part.shape == "Cylinder", "crop_stages_r10: produce is not a Cylinder")
+				end
 			end
+			assert(leaves == FANS[sample.stage].count, "crop_stages_r10: wrong leaf count for " .. sample.stage)
+			assert(
+				produce == (if sample.stage == "siap" then Data.produceFor(sample.plot).count else 0),
+				"crop_stages_r10: wrong produce count"
+			)
+			assert(plantWidth(plant) >= Data.MIN_STAGE_WIDTH, "crop_stages_r10: plant narrower than 1.5")
 		end
-		assert(leaves == leafCounts[sample.stage], "crop_stages_r10: wrong leaf count for " .. sample.stage)
-		assert(produce == (if sample.stage == "siap" then 3 else 0), "crop_stages_r10: wrong produce count")
-		assert(clusterWidth(sample.parts) >= Data.MIN_STAGE_WIDTH, "crop_stages_r10: stage narrower than 1.5")
 	end
 	for plot = 1, Game.plotCount do
 		local seen = perPlot[plot]

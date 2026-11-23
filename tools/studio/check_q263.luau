@@ -5,16 +5,20 @@
 -- CHECK lines plus SUMMARY_Q263, then restores with disableAll() on every path. No harness require,
 -- no place save, no visual verdict. Every reading comes from the SERVER DataModel only.
 --
---   CROP_STAGE_HEIGHT  staged CropStage parts exist; each plot's bibit/tumbuh/siap heights are
---                      exactly 1.2 / 2.6 / 4.2 and strictly increasing
+--   CROP_STAGE_HEIGHT  staged CropStage parts exist; each plot's LIVE bibit/tumbuh/siap tops are
+--                      within 0.15 of 1.2 / 2.2 / 3.0 above the soil and strictly increasing
 --   CROP_STAGE_COLOR   every plot's bibit/siap canopy colours are >= 0.15 apart in Data.hueDistance
---   CROP_STAGE_WIDTH   every (plot, stage) cluster's widest live part >= 1.5 studs (30 clusters)
+--   CROP_STAGE_WIDTH   every live PLANT (plot, stage, plant) spans >= 1.5 studs, measured from the
+--                      world-space corners of its parts (90 plants: 3 per row)
 --   FURROW_RELIEF      every live Furrow row's top is >= 0.3 studs above the soil AND CastShadow
---   DITCH_VISIBLE      every live DitchWater strip is >= 2 studs wide and above the soil line
+--   DITCH_VISIBLE      every live DitchWater strip is >= 2 studs wide, above the soil line and its
+--                      top sits 0.2-0.4 below the plot's live DitchBank tops
 --
 -- CALIBRATION ANCHORS (each must FAIL its condition, then restore):
 --   CAL_FURROW_RELIEF_FAIL  inject one flat Furrow-tagged row -> min relief drops below 0.3
 --   CAL_DITCH_VISIBLE_FAIL  inject one 1-stud DitchWater-tagged strip -> min width drops below 2
+--   CAL_CROP_STAGE_WIDTH_FAIL   inject one 0.3-stud plant -> min plant width drops below 1.5
+--   CAL_CROP_STAGE_HEIGHT_FAIL  inject a 10-stud-high bibit part -> bibit top passes tumbuh
 -- Injections are destroyed immediately after their anchor line; the measure() calls are separate
 -- single lines so a mismatch can be injected between them.
 
@@ -28,15 +32,19 @@ local CHECK_NAMES = {
 	"DITCH_VISIBLE",
 	"CAL_FURROW_RELIEF_FAIL",
 	"CAL_DITCH_VISIBLE_FAIL",
+	"CAL_CROP_STAGE_WIDTH_FAIL",
+	"CAL_CROP_STAGE_HEIGHT_FAIL",
 }
 local CHECK_TARGETS = {
 	CROP_STAGE_HEIGHT = 0,
 	CROP_STAGE_COLOR = 0,
 	CROP_STAGE_WIDTH = "1.5",
 	FURROW_RELIEF = "0.3",
-	DITCH_VISIBLE = "2/0.5",
+	DITCH_VISIBLE = "2/0.2-0.4",
 	CAL_FURROW_RELIEF_FAIL = 1,
 	CAL_DITCH_VISIBLE_FAIL = 1,
+	CAL_CROP_STAGE_WIDTH_FAIL = 1,
+	CAL_CROP_STAGE_HEIGHT_FAIL = 1,
 }
 
 local results = { checks = {}, byName = {} }
@@ -73,6 +81,20 @@ local function colourDistance(first, second)
 	})
 end
 
+-- World-space extent of a part: its eight corners through its CFrame.
+local function corners(instance)
+	local half = instance.Size / 2
+	local out = {}
+	for _, sx in ipairs({ -1, 1 }) do
+		for _, sy in ipairs({ -1, 1 }) do
+			for _, sz in ipairs({ -1, 1 }) do
+				out[#out + 1] = instance.CFrame:PointToWorldSpace(Vector3.new(sx * half.X, sy * half.Y, sz * half.Z))
+			end
+		end
+	end
+	return out
+end
+
 -- Every reading comes from live workspace descendants carrying the candidate's own tag attribute.
 local function measure()
 	local stages = {}
@@ -84,7 +106,8 @@ local function measure()
 		expectedHeights[stage.stage] = stage.height
 	end
 
-	local heights, canopies, widths, furrowPlots, ditchPlots = {}, {}, {}, {}, {}
+	local heights, canopies, plants, tops, bankTops, furrowPlots, ditchPlots = {}, {}, {}, {}, {}, {}, {}
+	local waterGaps = {}
 	local cropParts, modelParts, furrowParts, ditchParts = 0, 0, 0, 0
 	local shadowViolations, belowSoil = 0, 0
 	local minWidth, minRelief, minDitchWidth, minDitchY = math.huge, math.huge, math.huge, math.huge
@@ -102,7 +125,8 @@ local function measure()
 			local isCrop = instance:GetAttribute("CropStage") == true
 			local isFurrow = instance:GetAttribute("Furrow") == true
 			local isDitch = instance:GetAttribute("DitchWater") == true
-			if not (isCrop or isFurrow or isDitch) or not instance:IsA("BasePart") then
+			local isBank = instance:GetAttribute("DitchBank") == true
+			if not (isCrop or isFurrow or isDitch or isBank) or not instance:IsA("BasePart") then
 				return
 			end
 			local position, size = instance.Position, instance.Size
@@ -136,12 +160,30 @@ local function measure()
 					if role == "model" and instance:GetAttribute("ModelAssetId") == 13286158859 then
 						modelParts += 1
 					end
-					local key = tostring(plot) .. ":" .. tostring(stage)
-					local width = math.max(size.X, size.Z)
-					if width > (widths[key] or 0) then
-						widths[key] = width
+					local key = tostring(plot)
+						.. ":"
+						.. tostring(stage)
+						.. ":"
+						.. tostring(instance:GetAttribute("plant"))
+					local box = plants[key]
+					if not box then
+						box = { minX = math.huge, maxX = -math.huge, minZ = math.huge, maxZ = -math.huge }
+						plants[key] = box
 					end
+					local topY = -math.huge
+					for _, corner in ipairs(corners(instance)) do
+						box.minX, box.maxX = math.min(box.minX, corner.X), math.max(box.maxX, corner.X)
+						box.minZ, box.maxZ = math.min(box.minZ, corner.Z), math.max(box.maxZ, corner.Z)
+						topY = math.max(topY, corner.Y)
+					end
+					tops[plot] = tops[plot] or {}
+					tops[plot][stage] = math.max(tops[plot][stage] or -math.huge, topY - CropData.GROUND_Y)
 				end
+			end
+
+			if isBank and type(instance:GetAttribute("plot")) == "number" then
+				local plot = instance:GetAttribute("plot")
+				bankTops[plot] = math.max(bankTops[plot] or -math.huge, position.Y + size.Y / 2)
 			end
 
 			if isFurrow then
@@ -174,22 +216,24 @@ local function measure()
 				if position.Y <= DitchData.SOIL_Y then
 					belowSoil += 1
 				end
+				waterGaps[#waterGaps + 1] = { plot = plot, top = position.Y + size.Y / 2 }
 			end
 		end)
 	end
 
 	local heightViolations, plotCount = 0, 0
-	for _, byStage in pairs(heights) do
+	for plot in pairs(heights) do
 		plotCount += 1
+		local byStage = tops[plot] or {}
 		local first, second, third = byStage[stages[1]], byStage[stages[2]], byStage[stages[3]]
 		local correct = type(first) == "number"
 			and type(second) == "number"
 			and type(third) == "number"
 			and first < second
 			and second < third
-			and math.abs(first - expectedHeights[stages[1]]) < 1e-6
-			and math.abs(second - expectedHeights[stages[2]]) < 1e-6
-			and math.abs(third - expectedHeights[stages[3]]) < 1e-6
+			and math.abs(first - expectedHeights[stages[1]]) < 0.15
+			and math.abs(second - expectedHeights[stages[2]]) < 0.15
+			and math.abs(third - expectedHeights[stages[3]]) < 0.15
 		if not correct then
 			heightViolations += 1
 		end
@@ -206,8 +250,9 @@ local function measure()
 	end
 
 	local clusterCount = 0
-	for _, width in pairs(widths) do
+	for _, box in pairs(plants) do
 		clusterCount += 1
+		local width = math.max(box.maxX - box.minX, box.maxZ - box.minZ)
 		if width < minWidth then
 			minWidth = width
 		end
@@ -230,6 +275,18 @@ local function measure()
 	if ditchParts == 0 then
 		minDitchWidth, minDitchY = 0, 0
 	end
+	local minGap, maxGap, noBank = math.huge, -math.huge, 0
+	for _, water in ipairs(waterGaps) do
+		local bankTop = bankTops[water.plot]
+		if not bankTop then
+			noBank += 1
+		else
+			minGap, maxGap = math.min(minGap, bankTop - water.top), math.max(maxGap, bankTop - water.top)
+		end
+	end
+	if minGap == math.huge then
+		minGap, maxGap = 0, 0
+	end
 
 	return {
 		cropParts = cropParts,
@@ -248,6 +305,9 @@ local function measure()
 		ditchPlotCount = ditchPlotCount,
 		minDitchWidth = minDitchWidth,
 		minDitchY = minDitchY,
+		minGap = minGap,
+		maxGap = maxGap,
+		noBank = noBank,
 		belowSoil = belowSoil,
 		errors = errors,
 	}
@@ -262,11 +322,11 @@ local function destroyInjected()
 	end
 end
 
-local function injectPart(name, size, y, attrs)
+local function injectPart(name, size, y, attrs, x)
 	local part = Instance.new("Part")
 	part.Name = name
 	part.Size = Vector3.new(size[1], size[2], size[3])
-	part.CFrame = CFrame.new(0, y, 0)
+	part.CFrame = CFrame.new(x or 0, y, 0)
 	part.Anchored = true
 	part.CanCollide = false
 	part.CastShadow = true
@@ -322,13 +382,14 @@ local ok, err = pcall(function()
 		and after.colorViolations == 0
 	emit("CROP_STAGE_COLOR", colorPass, after.colorViolations, 0, details)
 
-	local expectedClusters = FurrowData.PLOT_COUNT * #CropData.STAGES
+	local expectedClusters = FurrowData.PLOT_COUNT * #CropData.STAGES * CropData.PLANTS_PER_ROW
 	local widthPass = reason == nil
 		and after.errors == 0
 		and after.cropParts > 0
 		and after.clusterCount == expectedClusters
 		and after.minWidth >= CropData.MIN_STAGE_WIDTH
 	emit("CROP_STAGE_WIDTH", widthPass, string.format("%.2f", after.minWidth), "1.5", {
+		plants = after.clusterCount,
 		after = after,
 		expectedClusters = expectedClusters,
 		modelParts = after.modelParts, -- logged, not gated: no MODEL_USED name in item 263
@@ -354,11 +415,14 @@ local ok, err = pcall(function()
 		and after.ditchPlotCount == DitchData.PLOT_COUNT
 		and after.minDitchWidth >= DitchData.MIN_WATER_WIDTH
 		and after.belowSoil == 0
+		and after.noBank == 0
+		and after.minGap >= DitchData.BAND_MIN - 1e-6
+		and after.maxGap <= DitchData.BAND_MAX + 1e-6
 	emit(
 		"DITCH_VISIBLE",
 		ditchPass,
-		string.format("%.2f/%.2f", after.minDitchWidth, after.minDitchY),
-		"2/0.5",
+		string.format("%.2f/%.2f-%.2f", after.minDitchWidth, after.minGap, after.maxGap),
+		"2/0.2-0.4",
 		{ after = after, minWidth = DitchData.MIN_WATER_WIDTH, soilY = DitchData.SOIL_Y, reason = reason }
 	)
 
@@ -390,6 +454,45 @@ local ok, err = pcall(function()
 	emit("CAL_DITCH_VISIBLE_FAIL", ditchFailed, ditchFailed and 1 or 0, 1, {
 		minDitchWidth = string.format("%.2f", calDitch.minDitchWidth),
 		ditchParts = calDitch.ditchParts,
+		injectedParts = #injected,
+	})
+	destroyInjected()
+
+	-- CALIBRATION ANCHOR (CROP_STAGE_WIDTH FAIL): one 0.3-stud plant drops the minimum width.
+	injectPart("Q263_CROP_WIDTH_CALIBRATION", { 0.3, 0.3, 0.3 }, CropData.GROUND_Y + 0.15, {
+		CropStage = true,
+		stage = CropData.STAGES[1].stage,
+		height = CropData.STAGES[1].height,
+		plot = 9996,
+		plant = 1,
+		CropStageRole = "canopy",
+		LookDevStage = "crop_stages_r10",
+	}, 500)
+	local calWidth = measure()
+	local widthFailed = calWidth.minWidth < CropData.MIN_STAGE_WIDTH
+	emit("CAL_CROP_STAGE_WIDTH_FAIL", widthFailed, widthFailed and 1 or 0, 1, {
+		minWidth = string.format("%.2f", calWidth.minWidth),
+		clusterCount = calWidth.clusterCount,
+		injectedParts = #injected,
+	})
+	destroyInjected()
+
+	-- CALIBRATION ANCHOR (CROP_STAGE_HEIGHT FAIL): a 10-stud bibit part makes bibit taller than
+	-- tumbuh in the plot it is tagged with, so the live ordering is violated.
+	local calPlot = 1
+	injectPart("Q263_CROP_HEIGHT_CALIBRATION", { 0.5, 10, 0.5 }, CropData.GROUND_Y + 5, {
+		CropStage = true,
+		stage = CropData.STAGES[1].stage,
+		height = CropData.STAGES[1].height,
+		plot = calPlot,
+		plant = 1,
+		CropStageRole = "canopy",
+		LookDevStage = "crop_stages_r10",
+	}, 501)
+	local calHeight = measure()
+	local heightFailed = calHeight.heightViolations > 0
+	emit("CAL_CROP_STAGE_HEIGHT_FAIL", heightFailed, heightFailed and 1 or 0, 1, {
+		heightViolations = calHeight.heightViolations,
 		injectedParts = #injected,
 	})
 end)

@@ -13,6 +13,9 @@
 -- CALIBRATION ANCHORS (each forces a FAIL the same measure must catch, then restores LIFO):
 --   CAL_MODEL_USED_FAIL   strip RoadFenceAssetId from every live fence part -> 0 model groups
 --   CAL_LANE_CLEAR_FAIL   inject one tagged fence block across the first hub-door ray -> 1 blocked
+--   FENCE_CONTINUOUS   0 gaps over 0.3 studs between consecutive modules inside a run (gate gaps of
+--                      8+ studs and junction keep-outs are not counted)
+--   CAL_FENCE_CONTINUOUS_FAIL  slide one live module a full length along its run -> a gap appears
 --   CAL_FENCE_ON_SHOULDER_FAIL  move one live fence model onto the road centreline -> 1 off shoulder
 
 local CANDIDATE_ID = "road_fence_r10"
@@ -36,8 +39,11 @@ local CHECK_NAMES = {
 	"CAL_LANE_CLEAR_FAIL",
 	"FENCE_ON_SHOULDER",
 	"CAL_FENCE_ON_SHOULDER_FAIL",
+	"FENCE_CONTINUOUS",
+	"CAL_FENCE_CONTINUOUS_FAIL",
 }
-local MAIN_CHECKS = { MODEL_USED = true, LANE_CLEAR = true, GATE_CLEAR = true, FENCE_ON_SHOULDER = true }
+local MAIN_CHECKS =
+	{ MODEL_USED = true, LANE_CLEAR = true, GATE_CLEAR = true, FENCE_ON_SHOULDER = true, FENCE_CONTINUOUS = true }
 local targets = {
 	MODEL_USED = GROUP_TARGET,
 	LANE_CLEAR = 0,
@@ -46,6 +52,8 @@ local targets = {
 	CAL_LANE_CLEAR_FAIL = 1,
 	FENCE_ON_SHOULDER = 0,
 	CAL_FENCE_ON_SHOULDER_FAIL = 1,
+	FENCE_CONTINUOUS = 0,
+	CAL_FENCE_CONTINUOUS_FAIL = 1,
 }
 
 local results = { checks = {}, byName = {} }
@@ -84,12 +92,13 @@ local function printSummary()
 	end
 	print(
 		string.format(
-			"SUMMARY_Q262 MODEL_USED %d/%d LANE_CLEAR %d/0 GATE_CLEAR %d/0 FENCE_ON_SHOULDER %d/0 CAL %d/3",
+			"SUMMARY_Q262 MODEL_USED %d/%d LANE_CLEAR %d/0 GATE_CLEAR %d/0 FENCE_ON_SHOULDER %d/0 FENCE_CONTINUOUS %d/0 CAL %d/4",
 			results.byName.MODEL_USED and results.byName.MODEL_USED.measured or 0,
 			GROUP_TARGET,
 			results.byName.LANE_CLEAR and results.byName.LANE_CLEAR.measured or 0,
 			results.byName.GATE_CLEAR and results.byName.GATE_CLEAR.measured or 0,
 			results.byName.FENCE_ON_SHOULDER and results.byName.FENCE_ON_SHOULDER.measured or 0,
+			results.byName.FENCE_CONTINUOUS and results.byName.FENCE_CONTINUOUS.measured or 0,
 			calPass
 		)
 	)
@@ -242,6 +251,48 @@ local function offShoulderCount()
 	return off
 end
 
+-- Join gaps inside runs. Units are grouped by RoadFenceGroup, sorted along the arm, and the gap is the
+-- distance between one unit's far edge and the next unit's near edge (negative = overlap). Gaps of
+-- GAP_MIN studs or more are gates or junction keep-outs and are not counted; 0.3 up to that is a defect.
+local JOIN_TOLERANCE = 0.3
+local function joinGapCount()
+	local byGroup = {}
+	for _, unit in ipairs(fenceUnits()) do
+		local centre = unitCentre(unit)
+		local okSize, size = pcall(function()
+			if unit:IsA("Model") then
+				return select(2, unit:GetBoundingBox())
+			end
+			return unit.Size
+		end)
+		if centre and okSize and size then
+			local alongX = math.abs(centre.Z) < math.abs(centre.X)
+			local along = if alongX then centre.X else centre.Z
+			local extent = (if alongX then size.X else size.Z) / 2
+			local group = unit:GetAttribute(GROUP_ATTR)
+			byGroup[group] = byGroup[group] or {}
+			table.insert(byGroup[group], { lo = along - extent, hi = along + extent })
+		end
+	end
+	local bad = 0
+	for _, list in pairs(byGroup) do
+		table.sort(list, function(a, b)
+			return a.lo < b.lo
+		end)
+		local reach = nil
+		for _, item in ipairs(list) do
+			if reach ~= nil then
+				local gap = item.lo - reach
+				if gap > JOIN_TOLERANCE and gap < GAP_MIN then
+					bad += 1
+				end
+			end
+			reach = if reach == nil then item.hi else math.max(reach, item.hi)
+		end
+	end
+	return bad
+end
+
 -- Every reading comes from the live DataModel, never from the pure data alone.
 local function measure()
 	local groups, partCount, gateHits, rayErrors, blocked = {}, 0, 0, 0, 0
@@ -353,6 +404,7 @@ local ok, err = pcall(function()
 	local live = measure()
 	local shoulderUnits = #fenceUnits()
 	local shoulderOff = offShoulderCount()
+	local joinGaps = joinGapCount()
 	local loadFailures = 0
 	pcall(function()
 		local count = failures.get(CANDIDATE_ID)
@@ -456,6 +508,39 @@ local ok, err = pcall(function()
 	local shoulderFailed = moved ~= nil and calShoulder > 0
 	emit("CAL_FENCE_ON_SHOULDER_FAIL", shoulderFailed, shoulderFailed and 1 or 0, 1, {
 		offShoulder = calShoulder,
+	})
+
+	emit("FENCE_CONTINUOUS", reason == nil and joinGaps == 0 and shoulderUnits > 0, joinGaps, 0, {
+		units = shoulderUnits,
+		tolerance = JOIN_TOLERANCE,
+	})
+
+	-- CALIBRATION ANCHOR (FENCE_CONTINUOUS FAIL): slide one live module a full 5 studs along its run.
+	local slid = nil
+	local units = fenceUnits()
+	local pick = units[math.max(1, math.floor(#units / 2))]
+	if pick then
+		local centre = unitCentre(pick)
+		local okPivot, pivot = pcall(function()
+			return pick:GetPivot()
+		end)
+		if centre and okPivot and pivot then
+			slid = { unit = pick, pivot = pivot }
+			local shift = if math.abs(centre.Z) < math.abs(centre.X) then Vector3.new(5, 0, 0) else Vector3.new(0, 0, 5)
+			pcall(function()
+				pick:PivotTo(pivot + shift)
+			end)
+		end
+	end
+	local calJoin = joinGapCount()
+	if slid then
+		pcall(function()
+			slid.unit:PivotTo(slid.pivot)
+		end)
+	end
+	local joinFailed = slid ~= nil and calJoin > 0
+	emit("CAL_FENCE_CONTINUOUS_FAIL", joinFailed, joinFailed and 1 or 0, 1, {
+		joinGaps = calJoin,
 	})
 end)
 

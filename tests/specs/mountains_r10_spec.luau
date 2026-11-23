@@ -92,9 +92,11 @@ return function(t, Env)
 				expect(radial - peak.radius * 1.25 >= 480):toBe(true)
 			end
 			for _, shape in ipairs(Data.shapes()) do
-				local radial = math.sqrt(shape.x ^ 2 + shape.z ^ 2)
-				local reach = shape.radius or math.max(shape.sx or 0, shape.sz or 0)
-				expect(radial - reach >= 480):toBe(true)
+				if shape.band ~= "foot" then
+					local radial = math.sqrt(shape.x ^ 2 + shape.z ^ 2)
+					local reach = shape.radius or math.max(shape.sx or 0, shape.sz or 0)
+					expect(radial - reach >= 480):toBe(true)
+				end
 			end
 		end)
 
@@ -128,6 +130,88 @@ return function(t, Env)
 					expect(hi <= Data.SUNSET_GAP[1] or lo >= Data.SUNSET_GAP[2]):toBe(true)
 					expect(hi <= spec.valley[1] or lo >= spec.valley[2]):toBe(true)
 				end
+			end
+		end)
+
+		t:it("joins neighbouring peaks with lower saddle balls so the skyline is one ridgeline", function()
+			for _, spec in ipairs(Data.BANDS) do
+				local peaks = bandPeaks(spec.id)
+				local joined, saddles = 0, 0
+				for index = 1, #peaks - 1 do
+					local a, b = peaks[index], peaks[index + 1]
+					local dx, dz = b.x - a.x, b.z - a.z
+					local span = math.sqrt(dx * dx + dz * dz)
+					if span <= (a.radius + b.radius) * 1.15 then
+						joined += 1
+						local low = math.min(a.height, b.height)
+						local found = false
+						for _, shape in ipairs(Data.BAND_SHAPES[spec.id]) do
+							if shape.kind == "Ball" then
+								local mx, mz = a.x + dx * 0.5, a.z + dz * 0.5
+								local near = math.sqrt((shape.x - mx) ^ 2 + (shape.z - mz) ^ 2) <= span * 0.25
+								if
+									near
+									and shape.y + shape.radius < low * 0.8
+									and shape.radius < math.min(a.radius, b.radius)
+								then
+									found = true
+									break
+								end
+							end
+						end
+						if found then
+							saddles += 1
+						end
+					end
+				end
+				expect(joined >= 20):toBe(true)
+				expect(saddles):toBe(joined)
+			end
+		end)
+
+		t:it("varies peak shape: sharp, broad and twin crowns all occur", function()
+			local sharp, broad, twin = 0, 0, 0
+			for _, peak in ipairs(Data.PEAKS) do
+				if peak.style < 0.4 then
+					sharp += 1
+				elseif peak.style < 0.75 then
+					broad += 1
+				else
+					twin += 1
+				end
+			end
+			expect(sharp >= 10 and broad >= 10 and twin >= 5):toBe(true)
+		end)
+
+		t:it("rolls low foothills between the plateau and the first band without a gap", function()
+			expect(#Data.FOOTHILLS >= 60):toBe(true)
+			expect(Data.BAND_SHAPES.foot ~= nil):toBe(true)
+			local covered = {}
+			for _, shape in ipairs(Data.FOOTHILLS) do
+				expect(shape.kind):toBe("Ball")
+				expect(shape.material == "Grass" or shape.material == "LeafyGrass"):toBe(true)
+				local radial = math.sqrt(shape.x ^ 2 + shape.z ^ 2)
+				local top = shape.y + shape.radius
+				expect(top >= 12 and top <= 45):toBe(true)
+				-- Ground-level footprint starts outside radius 410.
+				local cut = math.sqrt(math.max(0, shape.radius ^ 2 - shape.y ^ 2))
+				expect(radial - cut >= 410):toBe(true)
+				-- Nothing taller than 25 inside radius 470.
+				local s = math.max(0, radial - 470)
+				if s < shape.radius then
+					expect(shape.y + math.sqrt(shape.radius ^ 2 - s ^ 2) <= 25.001):toBe(true)
+				end
+				local bearing = math.deg(math.atan2(shape.z, shape.x)) % 360
+				local half = math.deg(math.asin(math.min(1, cut / radial)))
+				for sector = 0, 71 do
+					local delta = math.abs((sector * 5 + 2.5 - bearing + 180) % 360 - 180)
+					if delta <= half then
+						covered[sector] = true
+					end
+				end
+			end
+			for sector = 0, 71 do
+				expect(covered[sector] == true):toBe(true)
 			end
 		end)
 

@@ -152,6 +152,41 @@ return function(t, Env)
 			expect(Data.SIDE_OFFSET >= 14 + Data.SHOULDER_MIN and Data.SIDE_OFFSET <= 14 + Data.SHOULDER_MAX):toBe(true)
 		end)
 
+		t:it("tiles every run end to end: no gap over 0.3 studs between consecutive modules", function()
+			for _, length in ipairs({ Data.MODEL_FOOTPRINT[1], 4.1, 5, 7.3, 9 }) do
+				local alongByGroup = {}
+				for _, part in ipairs(Data.parts(length)) do
+					local x, z = part.position[1], part.position[3]
+					local along = if part.angle == 0 or part.angle == 180 then math.abs(x) else math.abs(z)
+					alongByGroup[part.group] = alongByGroup[part.group] or {}
+					table.insert(alongByGroup[part.group], along)
+					expect(part.footprint[1]):toBe(length)
+				end
+				for _, list in pairs(alongByGroup) do
+					table.sort(list)
+					for i = 2, #list do
+						local gap = list[i] - list[i - 1] - length
+						-- Gaps of Data.GAP_MIN or more are the gate gap or a keep-out, never a join.
+						expect(gap <= Data.MAX_JOIN_GAP or gap >= Data.GAP_MIN):toBe(true)
+					end
+				end
+			end
+		end)
+
+		t:it("fences both sides of every arm and keeps run ends flush", function()
+			local sides = {}
+			for _, stretch in ipairs(Data.stretches()) do
+				sides[stretch.angle] = (sides[stretch.angle] or 0) + 1
+			end
+			for _, angle in ipairs({ 0, 90, 180, 270 }) do
+				expect((sides[angle] or 0) >= 1):toBe(true)
+			end
+			expect(#Data.stretches() >= 8):toBe(true)
+			for _, run in ipairs(Data.runs()) do
+				expect(run.to > run.from):toBe(true)
+			end
+		end)
+
 		t:it("covers every stretch with a shoulder patch for the Grass -> Ground repaint", function()
 			local patches = Data.shoulderPatches()
 			expect(#patches >= 6):toBe(true)
@@ -204,6 +239,11 @@ return function(t, Env)
 			expect(check201Src:find("Data.parts", 1, true) ~= nil):toBe(true)
 			expect(check201Src:find('GetAttribute("RoadFence") == true', 1, true) ~= nil):toBe(true)
 			expect(check201Src:find("disableAll()", 1, true) ~= nil):toBe(true)
+		end)
+
+		t:it("check_q262 measures FENCE_CONTINUOUS with a FAIL calibration", function()
+			expect(check262Src:find('"FENCE_CONTINUOUS"', 1, true) ~= nil):toBe(true)
+			expect(check262Src:find('"CAL_FENCE_CONTINUOUS_FAIL"', 1, true) ~= nil):toBe(true)
 		end)
 
 		t:it("check_q262 also measures FENCE_ON_SHOULDER with a FAIL calibration", function()

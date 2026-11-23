@@ -8,8 +8,11 @@
 --
 --   RIDGE_LAYERS     3 distinct ridge bands: along 72 bearings, terrain height is sampled every 10
 --                    studs from radius 410 to 1200. A band counts when its crest window
---                    (640 / 820 / 1020 +-90) rises above 20 studs on at least half the bearings.
---   MOUNTAIN_DIST    >= 480: the smallest radius at which terrain rises above 8 studs on any bearing.
+--                    (640 / 820 / 1020 +-90) rises above 50 studs on at least half the bearings.
+--   MOUNTAIN_DIST    >= 480: the smallest radius at which terrain rises above 50 studs (ridge height) on any bearing.
+--   FOOTHILLS        low ground rising between the plateau and the first band, reported separately (not a 4th layer):
+--                    >= 90% of bearings rise above 10 studs somewhere in radius 430..560, and nothing inside
+--                    radius 470 is taller than 27 studs (25 plus raycast slack).
 --   NO_BOX_MOUNTAIN  0 tagged Mountain parts (the candidate stages none) and 0 Block-shaped ones.
 --
 -- CALIBRATION ANCHORS (each must FAIL its own condition, then restore):
@@ -23,9 +26,14 @@ local CANDIDATE_ID = "mountains_r10"
 local MIN_DISTANCE = 480
 local BAND_CENTRES = { 640, 820, 1020 }
 local BAND_WINDOW = 90
-local BAND_MIN_HEIGHT = 20
+local BAND_MIN_HEIGHT = 50
 local BAND_MIN_FRACTION = 0.5
-local DIST_MIN_HEIGHT = 8
+local DIST_MIN_HEIGHT = 50
+local FOOT_FROM, FOOT_TO = 430, 560
+local FOOT_MIN_HEIGHT = 10
+local FOOT_MIN_FRACTION = 0.9
+local INNER_LIMIT = 470
+local INNER_MAX_HEIGHT = 27
 
 local BEARINGS = 72
 local RADIUS_FROM = 410
@@ -37,15 +45,17 @@ local CAST_LENGTH = 700
 local CHECK_NAMES = {
 	"RIDGE_LAYERS",
 	"MOUNTAIN_DIST",
+	"FOOTHILLS",
 	"NO_BOX_MOUNTAIN",
 	"CAL_RIDGE_LAYERS_FAIL",
 	"CAL_NO_BOX_MOUNTAIN_FAIL",
 }
-local MAIN_NAMES = { "RIDGE_LAYERS", "MOUNTAIN_DIST", "NO_BOX_MOUNTAIN" }
+local MAIN_NAMES = { "RIDGE_LAYERS", "MOUNTAIN_DIST", "FOOTHILLS", "NO_BOX_MOUNTAIN" }
 local CAL_NAMES = { "CAL_RIDGE_LAYERS_FAIL", "CAL_NO_BOX_MOUNTAIN_FAIL" }
 local CHECK_TARGETS = {
 	RIDGE_LAYERS = 3,
 	MOUNTAIN_DIST = tostring(MIN_DISTANCE),
+	FOOTHILLS = "0.90",
 	NO_BOX_MOUNTAIN = 0,
 	CAL_RIDGE_LAYERS_FAIL = 1,
 	CAL_NO_BOX_MOUNTAIN_FAIL = 1,
@@ -148,20 +158,31 @@ local function measureTerrain()
 	local bandBearings = { 0, 0, 0 }
 	local minRadius = math.huge
 	local tallest = { 0, 0, 0 }
+	local footBearings, innerMax = 0, 0
 	for bearing = 0, BEARINGS - 1 do
 		local rad = math.rad(bearing * 360 / BEARINGS)
 		local cosA, sinA = math.cos(rad), math.sin(rad)
 		local crest = { 0, 0, 0 }
+		local footCrest = 0
 		for _, radius in ipairs(radii) do
 			local height = terrainHeight(params, cosA * radius, sinA * radius)
 			if height > DIST_MIN_HEIGHT and radius < minRadius then
 				minRadius = radius
+			end
+			if radius >= FOOT_FROM and radius <= FOOT_TO and height > footCrest then
+				footCrest = height
+			end
+			if radius <= INNER_LIMIT and height > innerMax then
+				innerMax = height
 			end
 			for index, centre in ipairs(BAND_CENTRES) do
 				if math.abs(radius - centre) <= BAND_WINDOW and height > crest[index] then
 					crest[index] = height
 				end
 			end
+		end
+		if footCrest > FOOT_MIN_HEIGHT then
+			footBearings += 1
 		end
 		for index = 1, #BAND_CENTRES do
 			if crest[index] > BAND_MIN_HEIGHT then
@@ -181,7 +202,14 @@ local function measureTerrain()
 	if minRadius == math.huge then
 		minRadius = 0
 	end
-	return { bands = bands, bandBearings = bandBearings, minRadius = minRadius, tallest = tallest }
+	return {
+		bands = bands,
+		bandBearings = bandBearings,
+		minRadius = minRadius,
+		tallest = tallest,
+		footFraction = footBearings / BEARINGS,
+		innerMax = innerMax,
+	}
 end
 
 local function destroyInjected()
@@ -247,12 +275,19 @@ local ok, err = pcall(function()
 		tostring(MIN_DISTANCE),
 		detail
 	)
+	emit(
+		"FOOTHILLS",
+		terrain.footFraction >= FOOT_MIN_FRACTION and terrain.innerMax <= INNER_MAX_HEIGHT,
+		string.format("%.2f", terrain.footFraction),
+		CHECK_TARGETS.FOOTHILLS,
+		{ innerMax = terrain.innerMax, innerLimit = INNER_LIMIT }
+	)
 	emit("NO_BOX_MOUNTAIN", parts == 0 and boxes == 0 and terrain.bands > 0, boxes, 0, detail)
 
 	-- CALIBRATION ANCHOR (RIDGE_LAYERS FAIL): restoring the candidate must remove every ridge.
 	review.disableAll()
 	local after = measureTerrain()
-	local layersFailed = after.bands == 0 and after.minRadius == 0
+	local layersFailed = after.bands == 0 and after.minRadius == 0 and after.footFraction == 0
 	emit("CAL_RIDGE_LAYERS_FAIL", layersFailed, layersFailed and 1 or 0, 1, {
 		beforeBands = terrain.bands,
 		afterBands = after.bands,

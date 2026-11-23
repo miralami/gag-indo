@@ -104,7 +104,7 @@ return function(t, Env)
 			end
 		end)
 
-		t:it("places two black Cylinder pipe rails per side at 1.2 and 2.6 studs above the deck", function()
+		t:it("places two black Cylinder pipe rails per side at 0.85 and 1.7 studs above the deck", function()
 			local left, right = byKind("rail_left"), byKind("rail_right")
 			expect(#left):toBe(2)
 			expect(#right):toBe(2)
@@ -120,8 +120,8 @@ return function(t, Env)
 					heights[#heights + 1] = rail.position[2] - Data.BRIDGE_START.y
 				end
 				table.sort(heights)
-				expect(near(heights[1], 1.2, 1e-6)):toBe(true)
-				expect(near(heights[2], 2.6, 1e-6)):toBe(true)
+				expect(near(heights[1], 0.85, 1e-6)):toBe(true)
+				expect(near(heights[2], 1.7, 1e-6)):toBe(true)
 			end
 			expect(left[1].position[1] < 0):toBe(true)
 			expect(right[1].position[1] > 0):toBe(true)
@@ -136,8 +136,8 @@ return function(t, Env)
 				expect(post.shape):toBe("Block")
 				expect(post.material):toBe("Metal")
 				expect(post.size[1]):toBe(post.size[3])
-				expect(near(post.size[1], 0.5, 1e-6)):toBe(true)
-				expect(near(post.size[2], 3, 1e-6)):toBe(true)
+				expect(near(post.size[1], 0.45, 1e-6)):toBe(true)
+				expect(near(post.size[2], 1.9, 1e-6)):toBe(true)
 				expect(post.color.r > post.color.g and post.color.g > post.color.b):toBe(true)
 				expect(near(post.color.r, 230, 12) and near(post.color.g, 190, 12) and near(post.color.b, 30, 12)):toBe(
 					true
@@ -370,8 +370,8 @@ return function(t, Env)
 		t:it("check_q258 measures two rails per side, their heights and a clear lane", function()
 			for _, token in ipairs({
 				"#walkAfter.roles[role] == 2",
-				"deckTop + 1.2",
-				"deckTop + 2.6",
+				"deckTop + 0.85",
+				"deckTop + 1.7",
 				"laneIntrusions",
 				"walkAfter.intrusions == 0",
 			}) do

@@ -45,8 +45,9 @@ return function(t, Env)
 			expect(Data.MIN_HUE_DISTANCE):toBe(0.15)
 			expect(Data.MIN_STAGE_WIDTH):toBe(1.5)
 			expect(Data.REFERENCE_CROP):toBe("reference")
-			expect(Data.READY_MODEL_STAGE):toBe("siap")
-			expect(Data.READY_MODEL_WIDTH >= Data.MIN_STAGE_WIDTH):toBe(true)
+			expect(Data.PLANTS_PER_ROW >= 3):toBe(true)
+			expect(Data.TILE_PITCH):toBe(7.5)
+			expect(Data.MATERIAL_LEAF):toBe("LeafyGrass")
 		end)
 
 		t:it("defines exactly three stages with strictly increasing heights", function()
@@ -57,8 +58,8 @@ return function(t, Env)
 				"siap",
 			})
 			expect(Data.STAGES[1].height):toBe(1.2)
-			expect(Data.STAGES[2].height):toBe(2.6)
-			expect(Data.STAGES[3].height):toBe(4.2)
+			expect(Data.STAGES[2].height):toBe(2.2)
+			expect(Data.STAGES[3].height):toBe(3.0)
 			for index = 2, #Data.STAGES do
 				expect(Data.STAGES[index].height > Data.STAGES[index - 1].height):toBe(true)
 			end
@@ -79,8 +80,8 @@ return function(t, Env)
 			end
 			expect(Data.STAGES[1].color):toEqual({ r = 110, g = 170, b = 80 })
 			expect(Data.STAGES[2].color):toEqual({ r = 80, g = 155, b = 65 })
-			expect(Data.STAGES[3].color):toEqual({ r = 196, g = 162, b = 52 })
-			expect(Data.PRODUCT_COLOR):toEqual({ r = 214, g = 132, b = 46 })
+			expect(Data.STAGES[3].color):toEqual({ r = 64, g = 120, b = 52 })
+			expect(Data.PRODUCES[1].color):toEqual({ r = 200, g = 40, b = 35 })
 		end)
 
 		t:it("audits current heights and colours for every shipped crop kind", function()
@@ -103,15 +104,13 @@ return function(t, Env)
 			expect(#Data.CAMERA_NAMES):toBe(10)
 		end)
 
-		t:it("stages 30 crop-shaped samples, three per plot, deterministically", function()
+		t:it("stages 30 rows of plants, one plant per tile pitch, three rows per plot", function()
 			local samples = Data.stageParts()
 			expect(#samples):toBe(30)
 			expect(#samples):toBe(Game.plotCount * 3)
 			local byPlot: { [number]: { string } } = {}
-			local expectedParts = { bibit = 4, tumbuh = 6, siap = 10 }
-			local expectedLeaves = { bibit = 3, tumbuh = 5, siap = 6 }
-			local expectedProduce = { bibit = 0, tumbuh = 0, siap = 3 }
-			local expectedWidth = { bibit = 1.6, tumbuh = 1.6, siap = 1.7 }
+			local expectedLeaves = { bibit = 4, tumbuh = 6, siap = 6 }
+			local minWidth = { bibit = 1.6, tumbuh = 2.0, siap = 2.0 }
 			for index, sample in ipairs(samples) do
 				byPlot[sample.plot] = byPlot[sample.plot] or {}
 				byPlot[sample.plot][#byPlot[sample.plot] + 1] = sample.stage
@@ -120,41 +119,45 @@ return function(t, Env)
 				expect(sample.stage):toBe(stage.stage)
 				expect(sample.height):toBe(stage.height)
 				expect(sample.color):toEqual(stage.color)
-				expect(#sample.parts):toBe(expectedParts[sample.stage])
+				expect(#sample.plants):toBe(Data.PLANTS_PER_ROW)
 				expect(sample.parts[1]):toEqual(sample.stem)
 				expect(sample.stem.shape):toBe("Cylinder")
 				expect(sample.stem.role):toBe("stem")
-				expect(sample.stem.color):toEqual(stage.color)
+				expect(sample.stem.rotation[3]):toBe(Data.PLANT_ROTATION_Z) -- upright, not a flat sliver
 				expect(sample.canopy.shape):toBe("Wedge")
 				expect(sample.canopy.role):toBe("canopy")
-				expect(sample.canopy.color):toEqual(stage.color)
-				local leaves, produce, top = 0, 0, 0
-				for _, part in ipairs(sample.parts) do
-					expect(part.shape == "Wedge" or part.shape == "Cylinder"):toBe(true)
-					expect(part.size[1] > 0 and part.size[2] > 0 and part.size[3] > 0):toBe(true)
-					for _, angle in ipairs(part.rotation) do
-						expect(angle >= -0.6 and angle <= 0.6):toBe(true)
+				local produce = Data.produceFor(sample.plot)
+				local flatCount, top = 0, 0
+				for plantIndex, plant in ipairs(sample.plants) do
+					local leaves, pods = 0, 0
+					for _, part in ipairs(plant) do
+						flatCount += 1
+						expect(part.shape == "Wedge" or part.shape == "Cylinder"):toBe(true)
+						expect(part.plant):toBe(plantIndex)
+						expect(part.material ~= "SmoothPlastic"):toBe(true)
+						expect(part.size[1] > 0 and part.size[2] > 0 and part.size[3] > 0):toBe(true)
+						local partTop = Data.partTop(part)
+						top = math.max(top, partTop)
+						expect(partTop <= Data.GROUND_Y + sample.height + 1e-6):toBe(true)
+						if part.role == "canopy" then
+							leaves += 1
+							expect(part.shape):toBe("Wedge")
+							expect(part.material):toBe("LeafyGrass")
+							expect(part.color):toEqual(stage.color)
+						elseif part.role == "produce" then
+							pods += 1
+							expect(part.shape):toBe("Cylinder")
+							expect(part.color):toEqual(produce.color)
+						end
 					end
-					local partTop = part.position[2] + part.size[2] / 2
-					if partTop > top then
-						top = partTop
-					end
-					expect(partTop <= Data.GROUND_Y + sample.height + 1e-6):toBe(true)
-					if part.role == "canopy" then
-						leaves += 1
-						expect(part.shape):toBe("Wedge")
-						expect(part.color):toEqual(stage.color)
-					elseif part.role == "produce" then
-						produce += 1
-						expect(part.shape):toBe("Cylinder")
-						expect(part.color):toEqual(Data.PRODUCT_COLOR)
-					end
+					expect(leaves):toBe(expectedLeaves[sample.stage])
+					expect(pods):toBe(if sample.stage == "siap" then produce.count else 0)
+					expect(Data.plantWidth(plant) >= Data.MIN_STAGE_WIDTH):toBe(true)
+					expect(Data.plantWidth(plant) >= minWidth[sample.stage] - 1e-6):toBe(true)
 				end
-				expect(leaves):toBe(expectedLeaves[sample.stage])
-				expect(produce):toBe(expectedProduce[sample.stage])
-				expect(top <= Data.GROUND_Y + sample.height + 1e-6):toBe(true)
-				expect(Data.clusterWidth(sample.parts)):toBe(expectedWidth[sample.stage])
-				expect(Data.clusterWidth(sample.parts) >= Data.MIN_STAGE_WIDTH):toBe(true)
+				expect(#sample.parts):toBe(flatCount)
+				-- The tallest part reaches the stage height (1.2 / 2.2 / 3.0 studs).
+				expect(math.abs(top - (Data.GROUND_Y + sample.height)) < 0.15):toBe(true)
 				if sample.plot == Data.DEMO_PLOT then
 					expect(sample.stem.position[1] > 192):toBe(true) -- outer side of plot 3, away from its gate
 				end
@@ -174,6 +177,43 @@ return function(t, Env)
 			expect(serialize(fresh.CURRENT)):toBe(serialize(Data.CURRENT))
 		end)
 
+		t:it("rows step one tile pitch apart and plants sit on tile centres", function()
+			local samples = Data.stageParts()
+			local row = {}
+			for _, sample in ipairs(samples) do
+				if sample.plot == Data.DEMO_PLOT then
+					row[#row + 1] = sample
+				end
+			end
+			expect(#row):toBe(3)
+			-- plot 3 is due east: radial = +X, tangential = +Z.
+			for index, sample in ipairs(row) do
+				local stems = {}
+				for _, plant in ipairs(sample.plants) do
+					stems[#stems + 1] = plant[1].position
+				end
+				for plantIndex = 2, #stems do
+					expect(math.abs(stems[plantIndex][1] - stems[plantIndex - 1][1] - Data.TILE_PITCH) < 1e-6):toBe(
+						true
+					)
+					expect(math.abs(stems[plantIndex][3] - stems[1][3]) < 1e-6):toBe(true)
+				end
+				if index > 1 then
+					local previous = row[index - 1].plants[1][1].position
+					expect(math.abs(stems[1][3] - previous[3] - Data.STAGE_SPACING) < 1e-6):toBe(true)
+				end
+			end
+		end)
+
+		t:it("cycles chili / shallot / rice produce by plot with distinct crop colours", function()
+			local seen = {}
+			for plot = 1, 3 do
+				seen[Data.produceFor(plot).crop] = true
+			end
+			expect(seen.cabai and seen.bawang and seen.padi):toBe(true)
+			expect(Data.produceFor(4).crop):toBe(Data.produceFor(1).crop)
+		end)
+
 		t:it("ships the item-254 check lines and both FAIL calibrations", function()
 			for _, name in ipairs({
 				"CROP_STAGE_HEIGHT",
@@ -190,15 +230,12 @@ return function(t, Env)
 			expect(string.find(checkSrc, "Enum.PartType.Ball", 1, true) ~= nil):toBe(true)
 		end)
 
-		t:it("uses the real baked padi model for the ready stage and ships item-263 checks", function()
-			for _, token in ipairs({
-				"13286158859",
-				"LookDevAssetLoader",
-				".baked(",
-				"READY_MODEL_WIDTH",
-				"ModelAssetId",
-			}) do
+		t:it("builds from textured primitives only and ships item-263 checks", function()
+			for _, token in ipairs({ "materialFor", 'SetAttribute("plant"', "CanCollide = false" }) do
 				expect(string.find(applierSrc, token, 1, true) ~= nil):toBe(true)
+			end
+			for _, banned in ipairs({ "LookDevAssetLoader", ".baked(", "SmoothPlastic", "PartType.Ball" }) do
+				expect(string.find(applierSrc, banned, 1, true) == nil):toBe(true)
 			end
 			expect(string.find(pureSrc, "primitives-only", 1, true) ~= nil):toBe(true)
 			for _, name in ipairs({
@@ -209,6 +246,8 @@ return function(t, Env)
 				"DITCH_VISIBLE",
 				"CAL_FURROW_RELIEF_FAIL",
 				"CAL_DITCH_VISIBLE_FAIL",
+				"CAL_CROP_STAGE_WIDTH_FAIL",
+				"CAL_CROP_STAGE_HEIGHT_FAIL",
 			}) do
 				expect(string.find(q263Src, '"' .. name .. '"', 1, true) ~= nil):toBe(true)
 			end

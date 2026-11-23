@@ -49,23 +49,49 @@ return function(t, Env)
 			expect(Data.SOIL_Y):toBe(0.5)
 			expect(Data.WATER_Y > Data.SOIL_Y):toBe(true)
 			expect(Data.STRIPS_PER_PLOT >= 1):toBe(true)
-			expect(Data.STRIP_THICKNESS):toBe(0.12)
-			expect(Data.TRANSPARENCY):toBeGreaterThan(0)
-			expect(Data.TRANSPARENCY):toBeLessThan(1)
+			expect(Data.WATER_WIDTH >= 2):toBe(true)
+			expect(Data.STRIP_THICKNESS):toBe(0.14)
+			expect(Data.TRANSPARENCY >= 0.2 and Data.TRANSPARENCY <= 0.3):toBe(true)
 			expect(Data.COLOR_TOLERANCE):toBe(12)
 		end)
 
-		t:it("uses the exact variant-A teal from ModelMapWaterR8, not an invented colour", function()
-			expect(variantA):toEqual({ r = 48, g = 124, b = 104 })
-			expect(Water.variants.a.id):toBe("water_r8_a")
-			expect(Data.WATER_COLOR):toEqual(variantA)
+		t:it("uses the item-263 blue-teal water on dark Mud earthworks", function()
+			expect(Data.WATER_COLOR):toEqual({ r = 60, g = 130, b = 140 })
+			for _, part in ipairs(parts) do
+				expect(part.color):toEqual(Data.WATER_COLOR)
+				expect(part.material):toBe("Glass")
+			end
 			for _, channel in ipairs({ Data.WATER_COLOR.r, Data.WATER_COLOR.g, Data.WATER_COLOR.b }) do
 				expect(channel >= 0 and channel <= 255):toBe(true)
 			end
-			for _, part in ipairs(parts) do
-				expect(part.color):toEqual(variantA)
+			expect(Water.variants.a.id):toBe("water_r8_a")
+			for _, bank in ipairs(Data.banks()) do
+				expect(bank.material):toBe("Mud")
+				expect(bank.color.r < 100 and bank.color.g < 80 and bank.color.b < 60):toBe(true)
 			end
-			expect(string.find(pureSrc, "ModelMapWaterR8", 1, true) ~= nil):toBe(true)
+		end)
+
+		t:it("sinks the water 0.2-0.4 below the Mud bank tops, banks on both sides", function()
+			local banks = Data.banks()
+			expect(#banks):toBe(Data.PLOT_COUNT * 3)
+			local gap = Data.BANK_TOP - Data.WATER_TOP
+			expect(gap >= Data.BAND_MIN and gap <= Data.BAND_MAX):toBe(true)
+			expect(Data.WATER_TOP > Data.SOIL_Y):toBe(true)
+			local perPlot = {}
+			for _, bank in ipairs(banks) do
+				perPlot[bank.plot] = perPlot[bank.plot] or { ditch_bed = 0, ditch_bank = 0 }
+				perPlot[bank.plot][bank.kind] += 1
+				if bank.kind == "ditch_bank" then
+					expect(math.abs(bank.position[2] + bank.size[2] / 2 - Data.BANK_TOP) < 1e-6):toBe(true)
+					expect(bank.size[3]):toBe(Data.BANK_WIDTH)
+				else
+					expect(bank.position[2] + bank.size[2] / 2 <= Data.WATER_Y):toBe(true)
+				end
+			end
+			for index = 1, Data.PLOT_COUNT do
+				expect(perPlot[index].ditch_bed):toBe(1)
+				expect(perPlot[index].ditch_bank):toBe(2)
+			end
 		end)
 
 		t:it("places at least one thin glassy strip per plot over the 2-stud ditch", function()
@@ -79,8 +105,8 @@ return function(t, Env)
 				perPlot[part.plot] = (perPlot[part.plot] or 0) + 1
 				expect(#part.position):toBe(3)
 				expect(#part.size):toBe(3)
-				expect(part.size[2]):toBe(0.12)
-				expect(part.size[3]):toBe(Data.DITCH_WIDTH)
+				expect(part.size[2]):toBe(Data.STRIP_THICKNESS)
+				expect(part.size[3]):toBe(Data.WATER_WIDTH)
 				expect(part.size[1] > 0):toBe(true)
 				expect(part.transparency):toBe(Data.TRANSPARENCY)
 			end
@@ -132,6 +158,8 @@ return function(t, Env)
 				"DITCH_VISIBLE",
 				"CAL_FURROW_RELIEF_FAIL",
 				"CAL_DITCH_VISIBLE_FAIL",
+				"CAL_CROP_STAGE_WIDTH_FAIL",
+				"CAL_CROP_STAGE_HEIGHT_FAIL",
 			}) do
 				expect(string.find(checkSrc, '"' .. name .. '"', 1, true) ~= nil):toBe(true)
 			end

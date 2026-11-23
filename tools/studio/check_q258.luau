@@ -461,12 +461,12 @@ local ok, err = pcall(function()
 	local deckTop = Data.BRIDGE_START.y
 	local heightsOk = true
 	for _, role in ipairs({ "rail_left", "rail_right" }) do
-		-- Two pipes per side, both Cylinders, at 1.2 and 2.6 studs above the deck.
+		-- Two pipes per side, both Cylinders, at 0.85 and 1.7 studs above the deck.
 		local ys = walkAfter.railHeights[role]
 		table.sort(ys)
 		local sideHeights = #ys == 2
-			and math.abs(ys[1] - (deckTop + 1.2)) < 0.3
-			and math.abs(ys[2] - (deckTop + 2.6)) < 0.3
+			and math.abs(ys[1] - (deckTop + 0.85)) < 0.3
+			and math.abs(ys[2] - (deckTop + 1.7)) < 0.3
 		if not sideHeights then
 			heightsOk = false
 		end

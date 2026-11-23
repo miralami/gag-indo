@@ -35,10 +35,10 @@ Data.PLANK_THICKNESS = 0.6
 Data.PLANK_GAP = 0.12
 Data.RAIL_X = 3.2
 Data.LANE_HALF = 2.0 -- only the deck may sit inside |x| < LANE_HALF
-Data.RAIL_HEIGHTS = { 1.2, 2.6 } -- studs above the deck top
-Data.RAIL_Y = BRIDGE_START.y + 2.6 -- upper rail, kept for older checks
-Data.RAIL_DIAMETER = 0.36
-Data.POST_SIZE = { 0.5, 3, 0.5 }
+Data.RAIL_HEIGHTS = { 0.85, 1.7 } -- studs above the deck top
+Data.RAIL_Y = BRIDGE_START.y + 1.7 -- upper rail, kept for older checks
+Data.RAIL_DIAMETER = 0.5
+Data.POST_SIZE = { 0.45, 1.9, 0.45 }
 Data.POST_SPACING = 4
 Data.POST_INSET = 4
 Data.CURB_SEGMENTS = 56 -- one stripe per stud along each edge
@@ -127,7 +127,7 @@ function Data.parts(): { PartDescriptor }
 		{ role = "right", sign = 1, label = "Right" },
 	}
 
-	-- Two black pipe rails per side, post to post, 1.2 and 2.6 studs above the deck. The applier
+	-- Two black pipe rails per side, post to post, 0.85 and 1.7 studs above the deck. The applier
 	-- rotates local Y onto world Z for the rail_* roles.
 	for _, side in ipairs(sides) do
 		for level, height in ipairs(Data.RAIL_HEIGHTS) do

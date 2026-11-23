@@ -107,6 +107,7 @@ return function(t, Env)
 
 		t:it("keeps the exact item-260 SERVER-VM targets and non-vacuous FAIL anchors", function()
 			for _, name in ipairs({
+				"FOOTHILLS",
 				"RIDGE_LAYERS",
 				"MOUNTAIN_DIST",
 				"NO_BOX_MOUNTAIN",

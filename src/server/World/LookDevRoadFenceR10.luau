@@ -356,6 +356,38 @@ local function restoreShoulder()
 	end
 end
 
+-- Real module length along the road, measured on one scaled baked model, so parts() can tile every run
+-- end to end with no gaps. Falls back to the data estimate when the probe fails.
+local function measureModuleLength(): number?
+	if not LookDevAssetLoader then
+		return nil
+	end
+	local assetId = ASSET_IDS[(Data :: any).MODEL_ASSET_KEY]
+	if type(assetId) ~= "number" then
+		return nil
+	end
+	local okLoad, model = pcall(function()
+		return (LookDevAssetLoader :: any).baked(assetId)
+	end)
+	if not okLoad or not model then
+		return nil
+	end
+	local length: number? = nil
+	if scaleToHeight(model, (Data :: any).FENCE_HEIGHT) then
+		pcall(function()
+			model:PivotTo(CFrame.new(0, 0, 0))
+			local _, size = model:GetBoundingBox()
+			if size.X > 0.5 then
+				length = size.X
+			end
+		end)
+	end
+	pcall(function()
+		model:Destroy()
+	end)
+	return length
+end
+
 local function apply(_plan: any)
 	if active then
 		publishFailures()
@@ -370,7 +402,7 @@ local function apply(_plan: any)
 	local root = folder
 	if root then
 		local okParts, parts = pcall(function()
-			return (Data :: any).parts()
+			return (Data :: any).parts(measureModuleLength())
 		end)
 		if not okParts or type(parts) ~= "table" then
 			fail("could not read fence descriptors: " .. tostring(parts))

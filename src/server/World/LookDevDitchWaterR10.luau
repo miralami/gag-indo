@@ -1,7 +1,8 @@
 --!strict
 -- LookDevDitchWaterR10: SERVER-ONLY applier for the OFF-BY-DEFAULT "ditch_water_r10" candidate
--- (WORK_QUEUE item 207). Stages thin, anchored, non-collidable glassy Parts over the 2-stud
--- plots_r8 ditch. Geometry, teal and tolerance all come from Shared.ModelMapDitchWaterR10; no
+-- (WORK_QUEUE items 207 / 263). Stages an anchored, non-collidable irrigation channel per plot: a
+-- dark Mud bed, two Mud banks and a teal Glass water sheet. Geometry, teal and tolerance all come
+-- from Shared.ModelMapDitchWaterR10; no
 -- asset IDs or visual verdict live here. Every created instance is tracked once and destroyed in
 -- LIFO order; apply/restore are idempotent and pcall-guarded throughout.
 -- Enable from the Server command bar:
@@ -96,6 +97,16 @@ local function stageFolder(): any?
 	return instance
 end
 
+local function materialFor(name: any): any
+	local ok, material = pcall(function()
+		return (Enum.Material :: any)[name]
+	end)
+	if ok and material then
+		return material
+	end
+	return Enum.Material.Mud
+end
+
 local function stagePart(descriptor: any, parent: any)
 	local okPart, part = pcall(function()
 		local instance = (Instance :: any).new("Part")
@@ -105,13 +116,19 @@ local function stagePart(descriptor: any, parent: any)
 			* CFrame.Angles(0, descriptor.yaw, 0)
 		instance.Color = Color3.fromRGB(descriptor.color.r, descriptor.color.g, descriptor.color.b)
 		instance.Transparency = descriptor.transparency
-		instance.Material = Enum.Material.Glass
+		instance.Material = materialFor(descriptor.material)
 		instance.Anchored = true
 		instance.CanCollide = false
 		instance.CastShadow = false
-		instance:SetAttribute("DitchWater", true)
+		if descriptor.kind == "ditch_water" then
+			instance:SetAttribute("DitchWater", true)
+			instance:SetAttribute("colorTolerance", (Data :: any).COLOR_TOLERANCE)
+		elseif descriptor.kind == "ditch_bank" then
+			instance:SetAttribute("DitchBank", true)
+		else
+			instance:SetAttribute("DitchBed", true)
+		end
 		instance:SetAttribute("plot", descriptor.plot)
-		instance:SetAttribute("colorTolerance", (Data :: any).COLOR_TOLERANCE)
 		instance:SetAttribute("LookDevStage", FAMILY_ID)
 		return instance
 	end)
@@ -136,14 +153,17 @@ local function apply(_plan: any)
 
 	local root = stageFolder()
 	if root then
-		local okParts, parts = pcall(function()
-			return (Data :: any).parts()
-		end)
-		if not okParts or type(parts) ~= "table" then
-			fail("could not read ditch descriptors: " .. tostring(parts))
-		else
-			for _, descriptor in ipairs(parts) do
-				stagePart(descriptor, root)
+		-- Earthworks first so the water sheet is created (and destroyed) after them.
+		for _, builder in ipairs({ "banks", "parts" }) do
+			local okParts, parts = pcall(function()
+				return (Data :: any)[builder]()
+			end)
+			if not okParts or type(parts) ~= "table" then
+				fail("could not read ditch descriptors: " .. tostring(parts))
+			else
+				for _, descriptor in ipairs(parts) do
+					stagePart(descriptor, root)
+				end
 			end
 		end
 	end

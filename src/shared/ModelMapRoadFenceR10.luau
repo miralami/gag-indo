@@ -43,7 +43,7 @@ Data.folderName = "LookDevRoadFenceR10_road_fence_r10"
 Data.FENCE_HEIGHT = 2.5 -- item 262: baked model scaled to ~2.5 studs tall
 Data.MODEL_ASSET_KEY = "fence_bamboo" -- applier maps this to pick 1's real asset ID
 Data.MODEL_FOOTPRINT = { 6.4, 2.5, 0.5 } -- scaled bbox estimate: long, tall, thin
-Data.MODEL_STEP = 6 -- slight overlap so one stretch reads as a continuous fence
+Data.MODEL_STEP = 6 -- legacy estimate; parts() now tiles each run end to end from the real length
 Data.BAMBOO_COLOR = { r = 180, g = 165, b = 90 }
 Data.GROUND_Y = 0.5
 
@@ -79,6 +79,8 @@ local STRETCHES: { Stretch } = {
 	{ name = "FenceWestSouth", angle = 180, radiusFrom = 60, radiusTo = 84, side = -1, gaps = ringKeepOut() },
 	{ name = "FenceNorthEast", angle = 270, radiusFrom = 64, radiusTo = 116, side = -1, gaps = ringKeepOut() },
 	{ name = "FenceSouthWest", angle = 90, radiusFrom = 68, radiusTo = 116, side = 1, gaps = ringKeepOut() },
+	{ name = "FenceNorthWest", angle = 270, radiusFrom = 64, radiusTo = 116, side = 1, gaps = ringKeepOut() },
+	{ name = "FenceSouthEast", angle = 90, radiusFrom = 68, radiusTo = 116, side = -1, gaps = ringKeepOut() },
 }
 
 function Data.stretches(): { Stretch }
@@ -91,32 +93,63 @@ local function pointOnStretch(angle: number, radius: number, side: number): (num
 	return dx * radius - dz * Data.SIDE_OFFSET * side, dz * radius + dx * Data.SIDE_OFFSET * side
 end
 
-local function inGap(stretch: Stretch, radius: number): boolean
-	if
-		stretch.radiusTo >= Data.GATE_GAP_MIN_RADIUS_TO
-		and radius >= Data.GATE_GAP.from
-		and radius <= Data.GATE_GAP.to
-	then
-		return true
-	end
+Data.MAX_JOIN_GAP = 0.3 -- largest gap allowed between two consecutive modules inside a run
+
+-- Continuous intervals along the arm (radius from, radius to) of one stretch: the stretch span minus
+-- the ring keep-out and, on the long arms, the mid-run gate gap.
+local function runIntervals(stretch: Stretch): { Gap }
+	local cuts: { Gap } = {}
 	for _, gap in ipairs(stretch.gaps) do
-		if radius >= gap.from and radius <= gap.to then
-			return true
-		end
+		cuts[#cuts + 1] = gap
 	end
-	return false
+	if stretch.radiusTo >= Data.GATE_GAP_MIN_RADIUS_TO then
+		cuts[#cuts + 1] = Data.GATE_GAP
+	end
+	table.sort(cuts, function(a, b)
+		return a.from < b.from
+	end)
+	local runs: { Gap } = {}
+	local cursor = stretch.radiusFrom
+	for _, cut in ipairs(cuts) do
+		if cut.from > cursor then
+			runs[#runs + 1] = { from = cursor, to = math.min(cut.from, stretch.radiusTo) }
+		end
+		cursor = math.max(cursor, cut.to)
+	end
+	if cursor < stretch.radiusTo then
+		runs[#runs + 1] = { from = cursor, to = stretch.radiusTo }
+	end
+	return runs
 end
 
--- One descriptor per baked-model instance. Grouping is by stretch, so the live check sees six fence
--- groups even though a long arm carries several overlapped model stretches.
-function Data.parts(): { PartDescriptor }
+function Data.runs(): { { group: string, stretch: number, from: number, to: number } }
+	local out = {}
+	for index, stretch in ipairs(STRETCHES) do
+		for _, run in ipairs(runIntervals(stretch)) do
+			out[#out + 1] = { group = stretch.name, stretch = index, from = run.from, to = run.to }
+		end
+	end
+	return out
+end
+
+-- One descriptor per baked-model instance. Every run is tiled end to end: the module count is the
+-- smallest that keeps each join gap at or under MAX_JOIN_GAP, and the modules are spread evenly so
+-- the first and last ones sit flush with the run ends (overlap, never a gap). `length` is the real
+-- module length along the road; the applier measures it, the default is the footprint estimate.
+function Data.parts(length: number?): { PartDescriptor }
 	local parts: { PartDescriptor } = {}
-	local half = Data.MODEL_FOOTPRINT[1] / 2
+	local moduleLength = length or Data.MODEL_FOOTPRINT[1]
 	for index, stretch in ipairs(STRETCHES) do
 		local segment = 0
-		local radius = stretch.radiusFrom + half
-		while radius + half <= stretch.radiusTo do
-			if not inGap(stretch, radius) then
+		for _, run in ipairs(runIntervals(stretch)) do
+			local span = run.to - run.from
+			if span < moduleLength then
+				continue
+			end
+			local count = math.ceil((span - moduleLength) / (moduleLength + Data.MAX_JOIN_GAP)) + 1
+			local step = if count > 1 then (span - moduleLength) / (count - 1) else 0
+			for k = 0, count - 1 do
+				local radius = run.from + moduleLength / 2 + k * step
 				local x, z = pointOnStretch(stretch.angle, radius, stretch.side)
 				parts[#parts + 1] = {
 					name = stretch.name .. "_Model_" .. segment,
@@ -126,11 +159,10 @@ function Data.parts(): { PartDescriptor }
 					position = { x, Data.GROUND_Y + Data.FENCE_HEIGHT / 2, z },
 					angle = stretch.angle,
 					height = Data.FENCE_HEIGHT,
-					footprint = { Data.MODEL_FOOTPRINT[1], Data.FENCE_HEIGHT, Data.MODEL_FOOTPRINT[3] },
+					footprint = { moduleLength, Data.FENCE_HEIGHT, Data.MODEL_FOOTPRINT[3] },
 				}
+				segment += 1
 			end
-			segment += 1
-			radius += Data.MODEL_STEP
 		end
 	end
 	return parts

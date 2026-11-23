@@ -25,12 +25,14 @@ Data.folderName = "LookDevDitchWaterR10_ditch_water_r10"
 
 Data.PLOT_COUNT = 10
 Data.DITCH_WIDTH = 2
+Data.MIN_WATER_WIDTH = 2 -- item 263: water sheet >= 2 studs across
+Data.SOIL_Y = 0.5 -- World.Ground.Y: the plot soil line
 Data.STRIPS_PER_PLOT = 2
 Data.PLOT_WIDTH = 34
 Data.PLOT_DEPTH = 34
 Data.STRIP_THICKNESS = 0.12
 Data.TRANSPARENCY = 0.35
-Data.WATER_Y = 0.58
+Data.WATER_Y = 0.58 -- item 263: above the soil line
 Data.COLOR_TOLERANCE = 12
 
 -- Exact variant-A teal from src/shared/ModelMapWaterR8.luau:
@@ -89,11 +91,15 @@ do
 	local parts = Data.parts()
 	assert(Data.PLOT_COUNT == 10, "ditch_water_r10: plot count is not 10")
 	assert(Data.STRIPS_PER_PLOT >= 1, "ditch_water_r10: fewer than one strip per plot")
+	assert(Data.DITCH_WIDTH >= Data.MIN_WATER_WIDTH, "ditch_water_r10: water narrower than 2 studs")
+	assert(Data.WATER_Y > Data.SOIL_Y, "ditch_water_r10: water is not above the soil line")
 	assert(#parts == Data.PLOT_COUNT * Data.STRIPS_PER_PLOT, "ditch_water_r10: part count does not match plot count")
 	local perPlot = {}
 	for _, part in ipairs(parts) do
 		perPlot[part.plot] = (perPlot[part.plot] or 0) + 1
 		assert(part.size[3] == Data.DITCH_WIDTH, "ditch_water_r10: strip width does not match the 2-stud ditch width")
+		assert(part.size[3] >= Data.MIN_WATER_WIDTH, "ditch_water_r10: strip narrower than 2 studs")
+		assert(part.position[2] > Data.SOIL_Y, "ditch_water_r10: strip is not above the soil line")
 		assert(part.size[2] == 0.12, "ditch_water_r10: strip is not thin glass")
 		assert(part.kind == "ditch_water", "ditch_water_r10: unexpected part kind")
 	end

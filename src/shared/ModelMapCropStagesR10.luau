@@ -4,7 +4,10 @@
 -- anchored, non-collidable crop-shaped Parts (Cylinder stem + Wedge leaves + Cylinder produce) in
 -- each plot's outer area away from its gate, so every plot_aerial_NN camera can raycast its OWN
 -- plot's bibit/tumbuh/siap. No Ball part: item 254 replaced the old lollipop canopy.
--- Heights stay 1.2 / 2.6 / 4.2 and the stage colours stay distinct. No engine calls, no asset IDs.
+-- Heights stay 1.2 / 2.6 / 4.2 and the stage colours stay distinct. Item 263 widens every stage
+-- to >= 1.5 studs: ponytail: there is no dedicated sprout/young Blender model in ASSET_MANIFEST,
+-- so bibit/tumbuh stay primitives-only; siap additionally gets the baked padi model recorded in
+-- ASSET_MANIFEST (id kept in the SERVER applier so this data module stays engine-free).
 
 local Candidates: any = require(script.Parent.CropModelCandidates)
 local Game: any = require(script.Parent.Config.Game)
@@ -41,10 +44,12 @@ Data.DEMO_PLOT = 3 -- plot 3 is due east at (192, 0); its gate faces inward (-X)
 Data.DEMO_OFFSET = { x = 8, z = 0 } -- radial OUTWARD 8 studs (clear of the gate), z is tangential.
 Data.STAGE_SPACING = 4 -- stages sit side by side tangentially inside each 34x34 plot.
 Data.STEM_WIDTH = 0.24
-Data.MIN_STAGE_WIDTH = 1.2
+Data.MIN_STAGE_WIDTH = 1.5 -- item 263: every stage >= 1.5 studs wide
 Data.PRODUCT_COLOR = { r = 214, g = 132, b = 46 }
 Data.REFERENCE_CROP = "reference"
 Data.MIN_HUE_DISTANCE = 0.15
+Data.READY_MODEL_STAGE = "siap" -- stage that receives the baked padi model in the applier
+Data.READY_MODEL_WIDTH = 1.8 -- target bounding-box width of that baked model (>= 1.5)
 
 local STAGES: { Stage } = {
 	{ stage = "bibit", height = 1.2, color = { r = 110, g = 170, b = 80 } },
@@ -129,9 +134,27 @@ local function leavesFor(stageName: string, prefix: string, x: number, z: number
 	local parts: { PartSpec } = {}
 	if stageName == "bibit" then
 		local y = groundY + 0.82
-		parts[1] = makePart(prefix, "LeafL", "canopy", "Wedge", { 1.35, 0.45, 0.32 }, { x - 0.36, y, z }, color, { 0, 0, -0.28 })
-		parts[2] = makePart(prefix, "LeafR", "canopy", "Wedge", { 1.35, 0.45, 0.32 }, { x + 0.36, y, z }, color, { 0, 0, 0.28 })
-		parts[3] = makePart(prefix, "LeafTop", "canopy", "Wedge", { 1.35, 0.4, 0.3 }, { x, groundY + 1.0, z }, color)
+		parts[1] = makePart(
+			prefix,
+			"LeafL",
+			"canopy",
+			"Wedge",
+			{ 1.6, 0.45, 0.32 },
+			{ x - 0.36, y, z },
+			color,
+			{ 0, 0, -0.28 }
+		)
+		parts[2] = makePart(
+			prefix,
+			"LeafR",
+			"canopy",
+			"Wedge",
+			{ 1.6, 0.45, 0.32 },
+			{ x + 0.36, y, z },
+			color,
+			{ 0, 0, 0.28 }
+		)
+		parts[3] = makePart(prefix, "LeafTop", "canopy", "Wedge", { 1.6, 0.4, 0.3 }, { x, groundY + 1.0, z }, color)
 		return parts
 	end
 
@@ -149,7 +172,7 @@ local function leavesFor(stageName: string, prefix: string, x: number, z: number
 				"Leaf" .. index,
 				"canopy",
 				"Wedge",
-				{ 1.4, 0.8, 0.32 },
+				{ 1.6, 0.8, 0.32 },
 				{ x + blade[1], groundY + blade[2], z },
 				color,
 				{ 0, 0, blade[3] }
@@ -172,7 +195,7 @@ local function leavesFor(stageName: string, prefix: string, x: number, z: number
 			"Leaf" .. index,
 			"canopy",
 			"Wedge",
-			{ 1.5, 1.0, 0.36 },
+			{ 1.7, 1.0, 0.36 },
 			{ x + blade[1], groundY + blade[2], z },
 			color,
 			{ 0, 0, blade[3] }
@@ -272,6 +295,9 @@ end
 -- Load-time contract check: keeps the correction honest before any applier or harness reads it.
 do
 	assert(#Data.STAGES == 3, "crop_stages_r10: stage count is not 3")
+	assert(Data.MIN_STAGE_WIDTH >= 1.5, "crop_stages_r10: stage width contract below 1.5")
+	assert(Data.READY_MODEL_WIDTH >= Data.MIN_STAGE_WIDTH, "crop_stages_r10: baked model is too narrow")
+	assert(Data.READY_MODEL_STAGE == Data.STAGES[#Data.STAGES].stage, "crop_stages_r10: wrong model stage")
 	assert(#Data.CROPS == #Candidates.cropIds, "crop_stages_r10: crop coverage is incomplete")
 	for index = 2, #Data.STAGES do
 		assert(
@@ -307,7 +333,10 @@ do
 		local leaves, produce = 0, 0
 		for _, part in ipairs(sample.parts) do
 			assert(part.shape == "Wedge" or part.shape == "Cylinder", "crop_stages_r10: illegal shape " .. part.shape)
-			assert(part.size[1] > 0 and part.size[2] > 0 and part.size[3] > 0, "crop_stages_r10: non-positive part size")
+			assert(
+				part.size[1] > 0 and part.size[2] > 0 and part.size[3] > 0,
+				"crop_stages_r10: non-positive part size"
+			)
 			assert(
 				part.position[2] + part.size[2] / 2 <= Data.GROUND_Y + sample.height + 1e-6,
 				"crop_stages_r10: part exceeds stage height"
@@ -322,7 +351,7 @@ do
 		end
 		assert(leaves == leafCounts[sample.stage], "crop_stages_r10: wrong leaf count for " .. sample.stage)
 		assert(produce == (if sample.stage == "siap" then 3 else 0), "crop_stages_r10: wrong produce count")
-		assert(clusterWidth(sample.parts) >= Data.MIN_STAGE_WIDTH, "crop_stages_r10: stage narrower than 1.2")
+		assert(clusterWidth(sample.parts) >= Data.MIN_STAGE_WIDTH, "crop_stages_r10: stage narrower than 1.5")
 	end
 	for plot = 1, Game.plotCount do
 		local seen = perPlot[plot]

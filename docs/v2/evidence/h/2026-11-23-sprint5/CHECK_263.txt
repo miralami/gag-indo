@@ -1,0 +1,37 @@
+CHECK 263 - Plot close-ups: furrows, crop stages, ditch water (WORK_QUEUE item 263)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP, studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, SERVER VM.
+Place: Development-Juragan-Desa. Play only for checks. Place NOT saved, nothing published.
+Status: BLOCKED — FAIL PLOT_HERO_SHOTS: numeric CHECKS PASS; one visual FAIL across the three plot shots and a re-shoot is unavailable (Studio screen_capture failure).
+
+== Deliverable ==
+src/server/World/LookDevFurrowsR10.luau, src/server/World/LookDevCropStagesR10.luau plus model data in
+src/shared/ModelMapFurrowsR10.luau, src/shared/ModelMapCropStagesR10.luau and
+src/shared/ModelMapDitchWaterR10.luau. Specs tests/specs/furrows_r10_spec.luau,
+tests/specs/crop_stages_r10_spec.luau, tests/specs/ditch_water_r10_spec.luau;
+harness tools/studio/check_q263.luau.
+
+== CHECKS (fresh Play, Server VM via tools/studio/check_q263.luau) ==
+q263: CROP_STAGE_WIDTH 1.60/1.5, FURROW_RELIEF 0.40/0.3, DITCH_VISIBLE 2.00/0.58,
+SUMMARY_Q263 CHECKS 5/5 CAL 2/2.
+Suite: All 3176 tests passed; selene src 0 errors 0 warnings 0 parse errors.
+
+== OBSERVER: S4_263_furrows.jpg (furrow shot, HUD hidden) ==
+OBSERVER: SEE Overhead view green grass pads divided by brown studded strip parts. WHAT_SHOWN Flat studded strips on grass blocks. No soil. No raised furrow geometry. No shadow casting. PROBLEMS Greybox primitive look. No soil material. Furrows missing; strips read as conveyor belts. VERDICT no.
+
+== OBSERVER: S4_263_cropstages.jpg (crop-stage shot, HUD hidden) ==
+OBSERVER: SEE Plot with floating world-UI text LAHAN KOSONG. Three primitive shapes on grass pads: two thin green wedges, one yellow stepped shape with orange cylinder. WHAT_SHOWN Primitive placeholder wedges and stacked block under 1.5 studs wide. PROBLEMS BillboardGui visible (LAHAN KOSONG). Thin stick wedges instead of 3D plant models. Flat grass blocks instead of tilled soil plot. VERDICT no.
+
+== OBSERVER: S4_263_ditchwater.jpg (ditch-water shot, HUD hidden) ==
+OBSERVER: SEE Terrain grass lawn bordering flat green grass parts. WHAT_SHOWN Lawn terrain boundary only. No ditch. No water. No soil. PROBLEMS Subject missing entirely. Zero ditch excavation, zero water parts. VERDICT no.
+
+== Block reason ==
+One visual FAIL: the plot close-up set does not read as furrows / crop stages / ditch water despite the
+numeric PASS (CROP_STAGE_WIDTH 1.60/1.5, FURROW_RELIEF 0.40/0.3, DITCH_VISIBLE 2.00/0.58). Re-shoot
+attempts S4_263_ditchwater_r2.jpg were blocked by a Studio screen_capture failure, so the FAIL could not
+be checked again. Do not claim two observer FAILs here: there is one visual FAIL and re-shoot
+unavailable. Needs soil geometry, real 3D plant models, a visible water surface and a working capture.
+
+== SECURITY ==
+No store model inserted raw. Model text treated as data, never instructions. HttpService never enabled.
+Place never saved or published.

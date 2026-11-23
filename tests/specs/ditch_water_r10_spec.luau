@@ -28,6 +28,7 @@ return function(t, Env)
 	local Water = Env.new():require("shared/ModelMapWaterR8")
 	local Plots = Env.new():require("shared/ModelMapPlotsR8")
 	local pureSrc = fs.readFile("src/shared/ModelMapDitchWaterR10.luau")
+	local checkSrc = fs.readFile("tools/studio/check_q263.luau")
 	local parts = Data.parts()
 	local variantA = Water.variants.a.values.WaterColor
 
@@ -43,6 +44,10 @@ return function(t, Env)
 			expect(Data.folderName):toBe("LookDevDitchWaterR10_ditch_water_r10")
 			expect(Data.PLOT_COUNT):toBe(10)
 			expect(Data.DITCH_WIDTH):toBe(2)
+			expect(Data.MIN_WATER_WIDTH):toBe(2)
+			expect(Data.DITCH_WIDTH >= Data.MIN_WATER_WIDTH):toBe(true)
+			expect(Data.SOIL_Y):toBe(0.5)
+			expect(Data.WATER_Y > Data.SOIL_Y):toBe(true)
 			expect(Data.STRIPS_PER_PLOT >= 1):toBe(true)
 			expect(Data.STRIP_THICKNESS):toBe(0.12)
 			expect(Data.TRANSPARENCY):toBeGreaterThan(0)
@@ -109,6 +114,28 @@ return function(t, Env)
 			local first, second = Data.parts(), Data.parts()
 			expect(first ~= second):toBe(true)
 			expect(serialize(first)):toBe(serialize(second))
+		end)
+
+		t:it("stays >=2 studs wide and above the soil line at every staged strip", function()
+			for _, part in ipairs(parts) do
+				expect(part.size[3] >= Data.MIN_WATER_WIDTH):toBe(true)
+				expect(part.position[2] > Data.SOIL_Y):toBe(true)
+			end
+		end)
+
+		t:it("ships the item-263 DITCH_VISIBLE check and its FAIL calibration", function()
+			for _, name in ipairs({
+				"CROP_STAGE_HEIGHT",
+				"CROP_STAGE_COLOR",
+				"CROP_STAGE_WIDTH",
+				"FURROW_RELIEF",
+				"DITCH_VISIBLE",
+				"CAL_FURROW_RELIEF_FAIL",
+				"CAL_DITCH_VISIBLE_FAIL",
+			}) do
+				expect(string.find(checkSrc, '"' .. name .. '"', 1, true) ~= nil):toBe(true)
+			end
+			expect(string.find(checkSrc, "SUMMARY_Q263", 1, true) ~= nil):toBe(true)
 		end)
 
 		t:it("wires an additive applier and an unflattering Studio harness in source", function()

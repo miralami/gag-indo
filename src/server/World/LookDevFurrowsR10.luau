@@ -1,13 +1,17 @@
 --!strict
 -- LookDevFurrowsR10: SERVER-ONLY applier for the OFF-BY-DEFAULT "furrows_r10" candidate
--- (WORK_QUEUE item 205). Stages five thin anchored, non-collidable Ground-coloured furrow strips
--- per plot, from Shared.ModelMapFurrowsR10. Nothing is repainted and no crop is touched: the only
--- overwritten property is a pre-existing staging folder's LookDevStage attribute, saved once and
--- restored LIFO; only instances created here are destroyed. pcall-guarded and idempotent.
+-- (WORK_QUEUE items 205 / 263). Stages raised, shadow-casting soil rows per plot (five per plot)
+-- from Shared.ModelMapFurrowsR10, and repaints the ONE showcase plot's terrain Grass -> Ground.
+-- The repaint reads and writes BOTH materials and occupancies, preserving occupancy byte-for-byte,
+-- then restores the exact snapshot LIFO. No crop is touched: the only overwritten instance property
+-- is a pre-existing staging folder's LookDevStage attribute, saved once and restored LIFO; only
+-- instances created here are destroyed. pcall-guarded and idempotent.
 -- Enable from the Server command bar:
 --   require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("furrows_r10", game)
 
 type SavedProp = { target: any, prop: string, key: string, value: any }
+type VoxelGrid = { { { any } } }
+type SavedTerrain = { terrain: any, region: any, materials: VoxelGrid, occupancies: VoxelGrid }
 
 local function service(name: string): any?
 	local ok, value = pcall(function()
@@ -55,6 +59,7 @@ local failures = 0
 local active = false
 local created: { any } = {}
 local savedOrder: { SavedProp } = {}
+local savedTerrain: SavedTerrain? = nil
 local folder: any? = nil
 
 local function fail(message: string)
@@ -140,7 +145,7 @@ local function stageStrip(descriptor: any, parent: any)
 		instance.Color = Color3.fromRGB(descriptor.color.r, descriptor.color.g, descriptor.color.b)
 		instance.Anchored = true
 		instance.CanCollide = false
-		instance.CastShadow = false
+		instance.CastShadow = true -- item 263: relief reads through its shadow, not flat paint
 		instance:SetAttribute("Furrow", true)
 		instance:SetAttribute("plot", descriptor.plot)
 		instance:SetAttribute("LookDevStage", FAMILY_ID)
@@ -156,6 +161,92 @@ local function stageStrip(descriptor: any, parent: any)
 	end)
 	if not okParent then
 		fail("could not parent " .. tostring(descriptor.name) .. ": " .. tostring(why))
+	end
+end
+
+-- Deep snapshot: WriteVoxels may reuse the passed tables, so keep a private copy for LIFO restore.
+local function copyVoxels(grid: VoxelGrid): VoxelGrid
+	local copy: VoxelGrid = {}
+	for ix, slab in ipairs(grid) do
+		copy[ix] = {}
+		for iy, row in ipairs(slab) do
+			copy[ix][iy] = {}
+			for iz, value in ipairs(row) do
+				copy[ix][iy][iz] = value
+			end
+		end
+	end
+	return copy
+end
+
+-- Item 263: grass -> Ground on the ONE showcase plot. Only occupied, non-Air voxels change
+-- material; occupancy is written back untouched. Mirrors ShippingLookR7's repaint pattern.
+local function clearShowcaseGrass()
+	if savedTerrain then
+		return
+	end
+	local okTerrain, terrain = pcall(function()
+		return (Workspace :: any):FindFirstChildOfClass("Terrain")
+	end)
+	if not okTerrain or not terrain then
+		fail("no Terrain in Workspace; showcase plot grass was not cleared")
+		return
+	end
+	local bounds = (Data :: any).repaintBounds()
+	local okRegion, region = pcall(function()
+		return Region3.new(
+			Vector3.new(bounds[1][1], bounds[1][2], bounds[1][3]),
+			Vector3.new(bounds[2][1], bounds[2][2], bounds[2][3])
+		)
+	end)
+	if not okRegion or not region then
+		fail("could not build showcase repaint region: " .. tostring(region))
+		return
+	end
+	local okPaint, why = pcall(function()
+		local materials, occupancies = terrain:ReadVoxels(region, (Data :: any).REPAINT_VOXEL)
+		savedTerrain = {
+			terrain = terrain,
+			region = region,
+			materials = copyVoxels(materials),
+			occupancies = copyVoxels(occupancies),
+		}
+		for ix, slab in ipairs(materials) do
+			local occSlab = occupancies[ix]
+			for iy, row in ipairs(slab) do
+				local occRow = occSlab and occSlab[iy]
+				for iz, material in ipairs(row) do
+					local occupancy = occRow and occRow[iz]
+					if occupancy and occupancy > 0 and material ~= Enum.Material.Air then
+						row[iz] = Enum.Material.Ground
+					end
+				end
+			end
+		end
+		terrain:WriteVoxels(region, (Data :: any).REPAINT_VOXEL, materials, occupancies)
+	end)
+	if not okPaint then
+		savedTerrain = nil
+		fail("showcase grass repaint failed: " .. tostring(why))
+	end
+end
+
+local function restoreTerrain()
+	local snapshot = savedTerrain
+	if not snapshot then
+		return
+	end
+	savedTerrain = nil
+	local ok, why = pcall(function()
+		snapshot.terrain:WriteVoxels(
+			snapshot.region,
+			(Data :: any).REPAINT_VOXEL,
+			snapshot.materials,
+			snapshot.occupancies
+		)
+	end)
+	if not ok then
+		fail("could not restore showcase terrain voxels: " .. tostring(why))
 	end
 end
 
@@ -179,15 +270,17 @@ local function apply(_plan: any)
 			end
 		end
 	end
+	clearShowcaseGrass()
 
 	active = true
 	publishFailures()
 end
 
 local function restore()
-	if not active and #savedOrder == 0 and #created == 0 then
+	if not active and #savedOrder == 0 and #created == 0 and savedTerrain == nil then
 		return
 	end
+	restoreTerrain() -- applied last, undone first (LIFO)
 	for index = #savedOrder, 1, -1 do
 		local entry = savedOrder[index]
 		local ok, why = pcall(function()

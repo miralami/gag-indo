@@ -1,7 +1,8 @@
 --!nocheck
--- WORK_QUEUE item 205: LUNE-ONLY pure-data contract for "furrows_r10". Studio staging and the
--- FURROWS / FURROW_VISIBLE / CROP_PLACEMENT_UNCHANGED checks belong to check_q205.luau; LookDev IDS
--- and review wiring belong to the main session. This spec asserts neither.
+-- WORK_QUEUE items 205 / 263: LUNE-ONLY pure-data contract for "furrows_r10". Studio staging and
+-- the FURROWS / FURROW_VISIBLE / CROP_PLACEMENT_UNCHANGED checks belong to check_q205.luau;
+-- item 263's FURROW_RELIEF and the shared check_q263.luau are calibrated in the live Play VM.
+-- LookDev IDS and review wiring belong to the main session. This spec asserts neither.
 
 local fs = require("@lune/fs")
 
@@ -27,6 +28,8 @@ return function(t, Env)
 	local Data = env:require("shared/ModelMapFurrowsR10")
 	local Game = env:require("shared/Config/Game")
 	local pureSrc = fs.readFile("src/shared/ModelMapFurrowsR10.luau")
+	local applierSrc = fs.readFile("src/server/World/LookDevFurrowsR10.luau")
+	local checkSrc = fs.readFile("tools/studio/check_q263.luau")
 	local cameraSrc = fs.readFile("src/shared/ReviewCameras.luau")
 
 	t:describe("furrows_r10 pure data", function()
@@ -64,7 +67,7 @@ return function(t, Env)
 			expect(#Data.CAMERA_NAMES):toBe(Game.plotCount)
 		end)
 
-		t:it("builds at least four thin alternating strips in each of ten plots", function()
+		t:it("builds at least four raised alternating rows in each of ten plots", function()
 			local parts = Data.parts()
 			expect(#parts):toBe(10 * Data.STRIPS_PER_PLOT)
 			local perPlot, names = {}, {}
@@ -73,7 +76,9 @@ return function(t, Env)
 				expect(names[part.name] == nil):toBe(true)
 				names[part.name] = true
 				expect(part.kind):toBe("furrow")
-				expect(part.size):toEqual({ 1.2, 0.08, 32 })
+				expect(part.size):toEqual({ 1.2, Data.STRIP_HEIGHT, 32 })
+				expect(Data.STRIP_HEIGHT >= 0.3):toBe(true)
+				expect(part.size[2] >= Data.MIN_RELIEF):toBe(true)
 				expect(part.size[2] < part.size[1]):toBe(true)
 				expect(part.size[1] < part.size[3]):toBe(true)
 				expect(part.color):toEqual(
@@ -86,7 +91,7 @@ return function(t, Env)
 			end
 		end)
 
-		t:it("keeps every strip inside its own plot soil, clear of the ditch", function()
+		t:it("keeps every raised row inside its own plot soil, clear of the ditch", function()
 			for _, part in ipairs(Data.parts()) do
 				local cx, cz = Game.plotCenter(part.plot)
 				local x, y, z = part.position[1], part.position[2], part.position[3]
@@ -94,8 +99,8 @@ return function(t, Env)
 				expect(math.abs(z - cz) + part.size[3] / 2 <= Data.PLOT_DEPTH / 2):toBe(true)
 				expect(math.abs(z - cz) + part.size[3] / 2 <= Data.PLOT_DEPTH / 2 - Data.DITCH_WIDTH / 2):toBe(true)
 				expect(y):toBe(Data.FURROW_Y)
-				expect(y - part.size[2] / 2 > Data.GROUND_Y):toBe(true)
-				expect(y < Data.GROUND_Y + 0.3):toBe(true)
+				expect(math.abs(y - part.size[2] / 2 - Data.GROUND_Y) < 1e-6):toBe(true)
+				expect(y + part.size[2] / 2 - Data.GROUND_Y >= Data.MIN_RELIEF):toBe(true)
 				expect(math.abs(math.sqrt(x * x + z * z) - Game.plotRadius) < 20):toBe(true)
 			end
 		end)
@@ -110,10 +115,48 @@ return function(t, Env)
 			end
 		end)
 
+		t:it("declares a grid-aligned grass-clearing region for one showcase plot", function()
+			expect(Data.DEMO_PLOT):toBe(3)
+			expect(Data.REPAINT_VOXEL):toBe(4)
+			local bounds = Data.repaintBounds()
+			expect(#bounds):toBe(2)
+			for axis = 1, 3 do
+				expect(bounds[1][axis] % Data.REPAINT_VOXEL):toBe(0)
+				expect(bounds[2][axis] % Data.REPAINT_VOXEL):toBe(0)
+			end
+			local cx, cz = Game.plotCenter(Data.DEMO_PLOT)
+			expect(bounds[1][1]):toBeLessThan(cx)
+			expect(bounds[2][1]):toBeGreaterThan(cx)
+			expect(bounds[1][3]):toBeLessThan(cz)
+			expect(bounds[2][3]):toBeGreaterThan(cz)
+			expect(string.find(pureSrc, "ReadVoxels", 1, true) == nil):toBe(true)
+			expect(string.find(applierSrc, "ReadVoxels", 1, true) ~= nil):toBe(true)
+			expect(string.find(applierSrc, "WriteVoxels", 1, true) ~= nil):toBe(true)
+			expect(string.find(applierSrc, "CastShadow = true", 1, true) ~= nil):toBe(true)
+		end)
+
+		t:it("ships the item-263 check names and both FAIL calibrations", function()
+			for _, name in ipairs({
+				"CROP_STAGE_HEIGHT",
+				"CROP_STAGE_COLOR",
+				"CROP_STAGE_WIDTH",
+				"FURROW_RELIEF",
+				"DITCH_VISIBLE",
+				"CAL_FURROW_RELIEF_FAIL",
+				"CAL_DITCH_VISIBLE_FAIL",
+			}) do
+				expect(string.find(checkSrc, '"' .. name .. '"', 1, true) ~= nil):toBe(true)
+			end
+			expect(string.find(checkSrc, "enableAdditive", 1, true) ~= nil):toBe(true)
+			expect(string.find(checkSrc, "disableAll()", 1, true) ~= nil):toBe(true)
+			expect(string.find(checkSrc, "SUMMARY_Q263", 1, true) ~= nil):toBe(true)
+		end)
+
 		t:it("stays identical across fresh requires", function()
 			local fresh = Env.new():require("shared/ModelMapFurrowsR10")
 			expect(serialize(fresh.parts())):toBe(serialize(Data.parts()))
 			expect(serialize(fresh.CAMERA_NAMES)):toBe(serialize(Data.CAMERA_NAMES))
+			expect(serialize(fresh.repaintBounds())):toBe(serialize(Data.repaintBounds()))
 		end)
 	end)
 end

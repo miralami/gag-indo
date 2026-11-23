@@ -28,7 +28,9 @@ return function(t, Env)
 	local Candidates = env:require("shared/CropModelCandidates")
 	local Game = env:require("shared/Config/Game")
 	local pureSrc = fs.readFile("src/shared/ModelMapCropStagesR10.luau")
+	local applierSrc = fs.readFile("src/server/World/LookDevCropStagesR10.luau")
 	local checkSrc = fs.readFile("tools/studio/check_q254.luau")
+	local q263Src = fs.readFile("tools/studio/check_q263.luau")
 
 	t:describe("crop_stages_r10 pure data", function()
 		t:it("stays pure and keeps its additive reference identity", function()
@@ -41,8 +43,10 @@ return function(t, Env)
 			expect(Data.id):toBe("crop_stages_r10")
 			expect(Data.folderName):toBe("LookDevCropStagesR10_crop_stages_r10")
 			expect(Data.MIN_HUE_DISTANCE):toBe(0.15)
-			expect(Data.MIN_STAGE_WIDTH):toBe(1.2)
+			expect(Data.MIN_STAGE_WIDTH):toBe(1.5)
 			expect(Data.REFERENCE_CROP):toBe("reference")
+			expect(Data.READY_MODEL_STAGE):toBe("siap")
+			expect(Data.READY_MODEL_WIDTH >= Data.MIN_STAGE_WIDTH):toBe(true)
 		end)
 
 		t:it("defines exactly three stages with strictly increasing heights", function()
@@ -107,7 +111,7 @@ return function(t, Env)
 			local expectedParts = { bibit = 4, tumbuh = 6, siap = 10 }
 			local expectedLeaves = { bibit = 3, tumbuh = 5, siap = 6 }
 			local expectedProduce = { bibit = 0, tumbuh = 0, siap = 3 }
-			local expectedWidth = { bibit = 1.35, tumbuh = 1.4, siap = 1.5 }
+			local expectedWidth = { bibit = 1.6, tumbuh = 1.6, siap = 1.7 }
 			for index, sample in ipairs(samples) do
 				byPlot[sample.plot] = byPlot[sample.plot] or {}
 				byPlot[sample.plot][#byPlot[sample.plot] + 1] = sample.stage
@@ -184,6 +188,31 @@ return function(t, Env)
 			expect(string.find(checkSrc, "review.disableAll()", 1, true) ~= nil):toBe(true)
 			expect(string.find(checkSrc, "destroyInjected()", 1, true) ~= nil):toBe(true)
 			expect(string.find(checkSrc, "Enum.PartType.Ball", 1, true) ~= nil):toBe(true)
+		end)
+
+		t:it("uses the real baked padi model for the ready stage and ships item-263 checks", function()
+			for _, token in ipairs({
+				"13286158859",
+				"LookDevAssetLoader",
+				".baked(",
+				"READY_MODEL_WIDTH",
+				"ModelAssetId",
+			}) do
+				expect(string.find(applierSrc, token, 1, true) ~= nil):toBe(true)
+			end
+			expect(string.find(pureSrc, "primitives-only", 1, true) ~= nil):toBe(true)
+			for _, name in ipairs({
+				"CROP_STAGE_HEIGHT",
+				"CROP_STAGE_COLOR",
+				"CROP_STAGE_WIDTH",
+				"FURROW_RELIEF",
+				"DITCH_VISIBLE",
+				"CAL_FURROW_RELIEF_FAIL",
+				"CAL_DITCH_VISIBLE_FAIL",
+			}) do
+				expect(string.find(q263Src, '"' .. name .. '"', 1, true) ~= nil):toBe(true)
+			end
+			expect(string.find(q263Src, "SUMMARY_Q263", 1, true) ~= nil):toBe(true)
 		end)
 	end)
 end

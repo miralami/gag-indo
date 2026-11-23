@@ -252,6 +252,7 @@ local specs = {
 	require("./specs/wind_r8_spec"),
 	require("./specs/review_cameras_o_spec"),
 	require("./specs/review_cameras_q240_spec"),
+	require("./specs/capture_pose_spec"),
 	require("./specs/npcs_idle_r8_spec"),
 	require("./specs/ambient_walkers_r8_spec"),
 	require("./specs/day_cycle_r8_spec"),

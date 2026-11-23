@@ -1,0 +1,51 @@
+CHECK 264 - Screenshots must come from the review camera (WORK_QUEUE SPRINT 4 item 264)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP, studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, CLIENT DataModel.
+Place: Development-Juragan-Desa. Play only for checks. Place NOT saved, nothing published.
+Rojo-synced: src/shared/CapturePose.luau present in live place before run.
+Status: SEEN-IN-STUDIO
+
+== Root Cause & Fix ==
+In sprint 3, shots #01, #02, #03, #13 and #14 retained character-level framing with grass filling the
+lens, despite CAMERA_GRASS and SubjectCoverage reporting passes. Cause: during a Play session, the
+client PlayerScripts camera controller resets workspace.CurrentCamera to Custom (character-follow)
+between execution calls. Setting CurrentCamera to Scriptable once at check time reverted immediately
+when the command yielded, so subsequent screen_capture calls snapped from character eye height.
+
+Fix:
+1. `src/shared/CapturePose.luau` (pure math, POSITION_TOL=0.5 stud, ANGLE_TOL_DEG=2 deg).
+2. Pure Lune spec `tests/specs/capture_pose_spec.luau` (14 unit test cases, all pass).
+3. Client-DM capture protocol: connect a RunService.RenderStepped hold enforcing CameraType=Scriptable
+   and CFrame=CFrame.lookAt(eye, lookAt), wait two frames, measure pose via CapturePose.measure(),
+   perform screen_capture, then disconnect the hold and restore prior CameraType and CFrame.
+4. `tools/studio/check_q264.luau` validates applied review-camera pose (PASS) and validates non-vacuity
+   by measuring character-level camera against the review camera (FAIL calibration).
+
+== Raw check lines (verbatim, fresh Play, Client VM) ==
+CHECK CAPTURE_POSE_ROAD_FENCE_01_CAL_CHARACTER FAIL 129.1609stud/135.92deg <=0.5stud/<=2deg
+CHECK CAPTURE_POSE_ROAD_FENCE_01 PASS 0.0000stud/0.00deg <=0.5stud/<=2deg
+CHECK CAPTURE_POSE_LAMPS_13_CAL_CHARACTER FAIL 155.0589stud/115.57deg <=0.5stud/<=2deg
+CHECK CAPTURE_POSE_LAMPS_13 PASS 0.0000stud/0.00deg <=0.5stud/<=2deg
+CHECK CAPTURE_POSE_SUMMARY PASS applied_pass=2/2 calibration_fail=2/2
+
+== Calibration / non-vacuity ==
+Leaving the camera on the character produced:
+- ROAD_FENCE_01_CAL_CHARACTER: 129.1609 studs position error, 135.92 deg angle error (target <=0.5stud, <=2deg) -> FAIL.
+- LAMPS_13_CAL_CHARACTER: 155.0589 studs position error, 115.57 deg angle error (target <=0.5stud, <=2deg) -> FAIL.
+Both calibration failures prove the check is non-vacuous and accurately discriminates character-level views from review poses.
+
+== Re-take proof (shots #01 and #13) ==
+Shot #01 (road_fence_r10, camera path_curve at [90, 10, -26] looking at [90, 1.1, -10], ClockTime 13):
+- Sprint 3 frame: grass blades at the lens, fence a faint line, HUD visible.
+- Re-take with fixed path: HUD hidden (LookDevReview.hideHud), camera held at review pose, daytime lighting,
+  Pak RT house visible behind the fence, bamboo fence posts and two rails clearly readable across the frame.
+
+Shot #13 (lamps_r10, camera lamp_night at [124, 10, -12] looking at [144, 5, 0], ClockTime 21):
+- Sprint 3 frame: identical to sprint 2 daytime view, no light pool, character-level framing.
+- Re-take with fixed path: night sky with stars, ClockTime 21, HUD hidden, curved road edge,
+  wooden street lamp pole in center with glowing bulb, hill silhouette behind, LAHAN KOSONG sign visible.
+
+== Local validation ==
+lune run tests/run.luau: All 3137 tests passed (exit 0; 14 new CapturePose tests).
+selene src: 0 errors / 0 warnings / 0 parse errors.
+stylua clean on all touched files. No secrets, no .rbxl.

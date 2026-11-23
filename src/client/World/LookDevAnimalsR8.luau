@@ -1,7 +1,10 @@
 -- LookDevAnimalsR8: client applier for the OFF-BY-DEFAULT "animals_r8" candidate (WORK_QUEUE
--- section M item 82). Eleven simple-Part animals (4 ayam, 4 bebek, 2 kambing, 1 kucing) wander on
--- MapSpec-derived home bands. ONE Heartbeat connection drives the pure shared step function; no
--- asset IDs, no physics and no game-state mutation. Everything is destroyed on restore.
+-- section M item 82, ducks/fish extended in Q item 213). Thirteen simple-Part animals (4 ayam,
+-- 6 water-borne bebek, 2 kambing, 1 kucing) wander on MapSpec-derived home bands, plus four flat
+-- translucent fish-ripple discs near the bridge. ONE client Heartbeat connection drives both the
+-- pure shared step function and the ripple pulse; no asset IDs, no physics and no game-state
+-- mutation. Everything is destroyed on restore. No server script connects a Heartbeat for this
+-- candidate (tools/studio/check_q213.luau audits both script trees).
 --
 -- The pure step/sim lives in Shared.ModelMapAnimalsR8; the harness calls it directly in the Server
 -- VM for ANIMAL_COUNT / ANIMAL_BOUNDS / ANIMAL_COST, so Studio needs no 60-second real-time wait.
@@ -22,6 +25,11 @@ local mapSpec: any = nil
 local bounds: any = nil
 local states: { any } = {}
 local models: { any } = {}
+local ripples: { any } = {}
+local animTime = 0
+
+local RIPPLE_X = { -20, -8, 10, 22 }
+local RIPPLE_SIZE = { 2.4, 0.06, 2.4 }
 
 local function loadMapSpec(plan: any?): any?
 	if type(plan) == "table" and type(plan.mapSpec) == "table" then
@@ -103,6 +111,40 @@ local function buildAnimal(state: any, parent: Instance): any?
 	return model
 end
 
+-- Fish ripples: four flat translucent Cylinder discs on the water near the bridge. Anchored and
+-- non-collidable, so they cost no physics; Shape is deliberately never "Ball". Tagged so the
+-- Studio harness can count them without guessing by name.
+local function buildRipples(parent: Instance, spec: any): { any }
+	local out = {}
+	if type(spec.riverCentreZ) ~= "function" then
+		return out
+	end
+	for index, x in ipairs(RIPPLE_X) do
+		local ok, disc = pcall(function()
+			local part = Instance.new("Part")
+			part.Name = "FishRipple_" .. index
+			part.Shape = "Cylinder"
+			part.Size = Vector3.new(RIPPLE_SIZE[1], RIPPLE_SIZE[2], RIPPLE_SIZE[3])
+			part.CFrame =
+				CFrame.new(x, Animals.WATER_SURFACE_Y + 0.03, spec.riverCentreZ(x) + ((index % 2 == 0) and 6 or -6))
+			part.Color = Color3.fromRGB(120, 190, 190)
+			part.Transparency = 0.78
+			part.Anchored = true
+			part.CanCollide = false
+			part.CastShadow = false
+			part:SetAttribute("FishRipple", true)
+			part.Parent = parent
+			return part
+		end)
+		if ok and disc then
+			out[#out + 1] = disc
+		else
+			warn("animals_r8: could not build FishRipple_" .. index .. ": " .. tostring(disc))
+		end
+	end
+	return out
+end
+
 local function tick(dt: number)
 	if not applied then
 		return
@@ -118,6 +160,15 @@ local function tick(dt: number)
 		if not ok then
 			warn("animals_r8: could not place " .. state.id .. ": " .. tostring(err))
 		end
+	end
+	-- Same client Heartbeat: a gentle ripple pulse. Size is the only property touched; no Server
+	-- VM code receives this callback. A destroyed disc is simply skipped on the next tick.
+	animTime += dt
+	for index, disc in ipairs(ripples) do
+		local scale = 1 + 0.12 * math.sin(animTime * 2 + index * 0.7)
+		pcall(function()
+			disc.Size = Vector3.new(RIPPLE_SIZE[1] * scale, RIPPLE_SIZE[2], RIPPLE_SIZE[3] * scale)
+		end)
 	end
 end
 
@@ -157,13 +208,14 @@ local function apply(plan: any?)
 
 	folder = created
 	bounds = builtBounds
-	states, models = spawned, {}
+	states, models, animTime = spawned, {}, 0
 	for _, state in ipairs(states) do
 		local model = buildAnimal(state, folder)
 		if model then
 			models[#models + 1] = model
 		end
 	end
+	ripples = buildRipples(folder, mapSpec)
 
 	local heartbeat = nil
 	if type(plan) == "table" then
@@ -209,7 +261,7 @@ local function restore()
 		end)
 	end
 	folder = nil
-	states, models = {}, {}
+	states, models, ripples, animTime = {}, {}, {}, 0
 	bounds, mapSpec = nil, nil
 end
 

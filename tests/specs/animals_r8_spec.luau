@@ -11,6 +11,7 @@ return function(t, Env)
 
 	local env = Env.new()
 	local Data = env:require("shared/ModelMapAnimalsR8")
+	local River = env:require("shared/ModelMapRiverR8")
 	local MapSpec = env:require("server/World/MapSpec")
 	local LookDev = env:require("shared/LookDev")
 	local Review = env:require("shared/LookDevReview")
@@ -19,6 +20,7 @@ return function(t, Env)
 	local dataSrc = fs.readFile("src/shared/ModelMapAnimalsR8.luau")
 	local applierSrc = fs.readFile("src/client/World/LookDevAnimalsR8.luau")
 	local harnessSrc = fs.readFile("tools/studio/review_check_r8.luau")
+	local q213Src = fs.readFile("tools/studio/check_q213.luau")
 	local gallerySrc = fs.readFile("docs/v2/visual/CANDIDATES.md")
 
 	local bounds = Data.bounds(MapSpec)
@@ -41,7 +43,8 @@ return function(t, Env)
 			for _, kind in ipairs(Data.KINDS) do
 				expect(counts[kind]):toBe(Data.COUNT[kind])
 			end
-			expect(counts.ayam + counts.bebek + counts.kambing + counts.kucing):toBe(11)
+			expect(counts.bebek):toBe(6)
+			expect(counts.ayam + counts.bebek + counts.kambing + counts.kucing):toBe(13)
 			local seen = {}
 			for _, state in ipairs(states) do
 				expect(seen[state.id] == nil):toBe(true)
@@ -72,11 +75,31 @@ return function(t, Env)
 			expect(math.abs(ayam.home.x - warung.x) <= ayam.home.radius + warung.width / 2):toBe(true)
 			expect(math.abs(ayam.home.z - warung.z) <= ayam.home.radius + warung.depth / 2 + 12):toBe(true)
 			expect(math.abs(bebek.home.z - MapSpec.riverCentreZ(bebek.home.x))):toBeLessThan(bridge.width / 2 + 6)
+			expect(bebek.home.y):toBe(River.WATER_SURFACE_Y)
 			expect(kambing.home.z > terrace.z1):toBe(true)
 			expect(kambing.home.z < terrace.z1 + 24):toBe(true)
 			expect(kambing.home.x < 0):toBe(true)
 			expect(kucing.home.y > MapSpec.GROUND_Y + 10):toBe(true)
 			expect(kucing.home.y <= bounds.maxY):toBe(true)
+		end)
+
+		t:it("keeps all six ducks at the river water surface inside the shallows", function()
+			expect(Data.WATER_SURFACE_Y):toBe(River.WATER_SURFACE_Y)
+			expect(River.WATER_SURFACE_Y):toBe(-0.5)
+			local ducks, boundsData = 0, Data.bounds(MapSpec)
+			for _, state in ipairs(fresh()) do
+				if state.kind == "bebek" then
+					ducks += 1
+					expect(state.home.y):toBe(River.WATER_SURFACE_Y)
+					expect(state.position.y):toBe(River.WATER_SURFACE_Y)
+					expect(math.abs(state.home.z - MapSpec.riverCentreZ(state.home.x))):toBeLessThan(River.WATER_HALF)
+					for _ = 1, 600 do
+						Data.step(state, Data.DT, boundsData)
+						expect(math.abs(state.position.y - River.WATER_SURFACE_Y)):toBeLessThan(0.5)
+					end
+				end
+			end
+			expect(ducks):toBe(6)
 		end)
 
 		t:it("carries no engine API or asset ID in the pure module", function()
@@ -102,10 +125,11 @@ return function(t, Env)
 					minX, maxX = math.min(minX, p.x), math.max(maxX, p.x)
 					minZ, maxZ = math.min(minZ, p.z), math.max(maxZ, p.z)
 					minY = math.min(minY, p.y)
+					local floor = state.kind == "bebek" and River.WATER_SURFACE_Y or ground
 					if
 						math.abs(p.x) > half + Data.BOUND_TOLERANCE
 						or math.abs(p.z) > half + Data.BOUND_TOLERANCE
-						or p.y < ground - Data.BOUND_TOLERANCE
+						or p.y < floor - Data.BOUND_TOLERANCE
 					then
 						offenders[#offenders + 1] = state.id
 					end
@@ -114,7 +138,7 @@ return function(t, Env)
 			expect(#offenders):toBe(0)
 			expect(minX >= -half and maxX <= half):toBe(true)
 			expect(minZ >= -half and maxZ <= half):toBe(true)
-			expect(minY >= ground - Data.BOUND_TOLERANCE):toBe(true)
+			expect(minY >= River.WATER_SURFACE_Y - Data.BOUND_TOLERANCE):toBe(true)
 		end)
 
 		t:it("is reproducible without global random state", function()
@@ -129,7 +153,7 @@ return function(t, Env)
 			end
 		end)
 
-		t:it("costs under 0.3 ms per 11-animal step (measured with os.clock)", function()
+		t:it("costs under 0.3 ms per 13-animal step (measured with os.clock)", function()
 			local states = fresh()
 			local steps = math.ceil(Data.SIM_SECONDS / Data.DT)
 			local started = os.clock()
@@ -191,6 +215,34 @@ return function(t, Env)
 			expect(#finalStates):toBe(#states)
 			expect(steps):toBe(60)
 			expect(type(elapsed)):toBe("number")
+		end)
+
+		t:it("keeps ripple geometry cheap, tagged and client-only for item 213", function()
+			expect(applierSrc:find("FishRipple", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find('part.Shape = "Cylinder"', 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find('Shape = "Ball"', 1, true) == nil):toBe(true)
+			expect(applierSrc:find("CanCollide = false", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("Animals.WATER_SURFACE_Y + 0.03", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("heartbeat:Connect(tick)", 1, true) ~= nil):toBe(true)
+			expect(Data.COUNT.bebek):toBe(6)
+		end)
+
+		t:it("emits the item 213 CHECK lines with real FAIL calibrations", function()
+			for _, name in ipairs({
+				"DUCKS",
+				"DUCKS_ON_WATER",
+				"FISH_RIPPLES",
+				"CLIENT_ONLY_ANIM",
+				"CAL_DUCKS_FAIL",
+				"CAL_DUCKS_ON_WATER_FAIL",
+				"CAL_FISH_RIPPLES_FAIL",
+			}) do
+				local _, emitted = string.gsub(q213Src, 'emit%(.-"' .. name .. '"', "")
+				expect(emitted):toBe(1)
+			end
+			expect(q213Src:find('enableAdditive, CANDIDATE_ID, game, { studio = true }', 1, true) ~= nil):toBe(true)
+			expect(q213Src:find("source=client%-staged", 1) ~= nil):toBe(true)
+			expect(q213Src:find("River.WATER_SURFACE_Y", 1, true) ~= nil):toBe(true)
 		end)
 
 		t:it("names a pending gallery row with an existing render path and fps note", function()

@@ -1,0 +1,31 @@
+CHECK 213 - six ducks on the water plus fish ripples (WORK_QUEUE SPRINT 3 item 213)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, SERVER VM.
+Place: Development-Juragan-Desa. Play only. Place NOT saved, nothing published. Rojo-synced.
+Status: SEEN-IN-STUDIO (all checks PASS).
+
+== Wiring ==
+ModelMapAnimalsR8 COUNT.bebek 4->6; duck home band and part Y offsets at WATER_SURFACE_Y=-0.5;
+LookDevAnimalsR8 adds 4 flat Cylinder FishRipple discs pulsed on the single client Heartbeat.
+Candidate id/folder/registry unchanged; no new asset IDs. tools/studio/check_q213.luau staged
+animals_r8 via LookDevReview.enableAdditive and measured the live DataModel (source=server-staged),
+restoring with disableAll() and exact Transparency/CFrame on every path.
+
+== Raw check lines (verbatim, fresh Play, Server VM) ==
+CHECK DUCKS PASS 6 6
+CHECK DUCKS_ON_WATER PASS 0.5 0.5
+CHECK FISH_RIPPLES PASS 4 1
+CHECK CLIENT_ONLY_ANIM PASS 0 0
+CHECK CAL_DUCKS_FAIL PASS 1 1
+CHECK CAL_DUCKS_ON_WATER_FAIL PASS 1 1
+CHECK CAL_FISH_RIPPLES_FAIL PASS 1 1
+
+== Calibration / non-vacuity ==
+Hiding duck visible parts dropped DUCKS 6->0; lifting one duck 2 studs raised water delta 0.5->2.5
+(>0.5); Destroy() of all 4 ripples dropped FISH_RIPPLES 4->0. All restored/exact. CLIENT_ONLY_ANIM
+read-only scan of 146 server scripts found no server Heartbeat for this candidate; the client Source
+does contain Heartbeat+FishRipple, and a synthetic animal+Heartbeat source trips the predicate.
+
+== Local validation ==
+lune run tests/run.luau: All 3123 tests passed (exit 0).
+selene src: 0 errors / 0 warnings / 0 parse errors. Stylua clean on changed files. No visual verdict.

@@ -19,8 +19,11 @@ Animals.EDGE_MARGIN = 4
 Animals.BOUND_TOLERANCE = 0.05
 Animals.ROOF_CLEARANCE = 4
 Animals.KINDS = { "ayam", "bebek", "kambing", "kucing" }
-Animals.COUNT = { ayam = 4, bebek = 4, kambing = 2, kucing = 1 }
+Animals.COUNT = { ayam = 4, bebek = 6, kambing = 2, kucing = 1 }
 Animals.SPEED = { ayam = 1.6, bebek = 1.1, kambing = 0.8, kucing = 0.25 }
+-- Mirrors ModelMapRiverR8.WATER_SURFACE_Y (MapSpec visible water top). Kept as a number so this
+-- module stays pure; animals_r8_spec asserts the two agree. Ducks sit here, not on GROUND_Y.
+Animals.WATER_SURFACE_Y = -0.5
 
 -- Simple original parts: { name, size {x,y,z}, offset {x,y,z}, {r,g,b} }. Y offsets are measured up
 -- from the animal's ground-relative position. No asset IDs, no mesh, no material names.
@@ -34,12 +37,13 @@ Animals.PARTS = {
 		{ "LegR", { 0.16, 0.9, 0.16 }, { 0.5, 0.45, 0 }, { 224, 146, 58 } },
 	},
 	bebek = {
-		{ "Body", { 1.8, 1.2, 2.8 }, { 0, 1.1, 0 }, { 246, 226, 130 } },
-		{ "Head", { 0.9, 0.9, 0.9 }, { 0, 2.0, -1.3 }, { 248, 232, 158 } },
-		{ "Beak", { 0.5, 0.22, 0.7 }, { 0, 1.9, -1.9 }, { 228, 150, 48 } },
-		{ "Tail", { 0.4, 0.6, 0.8 }, { 0, 1.6, 1.6 }, { 232, 208, 120 } },
-		{ "LegL", { 0.16, 0.8, 0.16 }, { -0.5, 0.4, 0.3 }, { 230, 144, 46 } },
-		{ "LegR", { 0.16, 0.8, 0.16 }, { 0.5, 0.4, 0.3 }, { 230, 144, 46 } },
+		-- Water-line offsets: the Anchor sits at WATER_SURFACE_Y, so the hull is half submerged.
+		{ "Body", { 1.8, 1.2, 2.8 }, { 0, 0.1, 0 }, { 246, 226, 130 } },
+		{ "Head", { 0.9, 0.9, 0.9 }, { 0, 1.0, -1.3 }, { 248, 232, 158 } },
+		{ "Beak", { 0.5, 0.22, 0.7 }, { 0, 0.9, -1.9 }, { 228, 150, 48 } },
+		{ "Tail", { 0.4, 0.6, 0.8 }, { 0, 0.6, 1.6 }, { 232, 208, 120 } },
+		{ "LegL", { 0.16, 0.8, 0.16 }, { -0.5, -0.1, 0.3 }, { 230, 144, 46 } },
+		{ "LegR", { 0.16, 0.8, 0.16 }, { 0.5, -0.1, 0.3 }, { 230, 144, 46 } },
 	},
 	kambing = {
 		{ "Body", { 2.4, 1.6, 3.2 }, { 0, 1.7, 0 }, { 176, 142, 104 } },
@@ -119,9 +123,9 @@ local function homeFor(kind: string, index: number, mapSpec)
 			return nil
 		end
 		local x = bridge.x + (index - (Animals.COUNT.bebek + 1) / 2) * bridge.width
-		local bank = bridge.width / 2 + 5
+		local bank = bridge.width / 2 + 5 -- 10 studs: inside the 14-stud channel, in the shallows
 		local z = mapSpec.riverCentreZ(x) + ((index % 2 == 0) and bank or -bank)
-		return { x = x, y = ground, z = z, radius = bridge.width / 2 }
+		return { x = x, y = Animals.WATER_SURFACE_Y, z = z, radius = bridge.width / 2 }
 	end
 	if kind == "kambing" then
 		local terrace = mapSpec.TERRACES and mapSpec.TERRACES[1]
@@ -224,7 +228,10 @@ function Animals.step(state, dt, bounds)
 		state.yaw = math.atan2(-dx, -dz)
 	end
 	state.bob = bob
-	state.position.y = clamp(state.home.y + bob, bounds.minY, bounds.maxY)
+	-- Ducks are water-borne: their home y is below GROUND_Y, so the floor follows the home band
+	-- instead of the shared terrain minimum. Land animals keep the old bounds.minY clamp.
+	local floor = math.min(bounds.minY, state.home.y)
+	state.position.y = clamp(state.home.y + bob, floor, bounds.maxY)
 	return state
 end
 

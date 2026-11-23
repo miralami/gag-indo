@@ -202,6 +202,7 @@ local function tag(instance: any, item: any, assetId: number)
 		instance:SetAttribute("Species", item.species)
 		instance:SetAttribute("Kind", "meadow_plant")
 		instance:SetAttribute("LookDevMeadowR10", FAMILY_ID)
+		instance:SetAttribute("LookDevStage", FAMILY_ID)
 		if instance:IsA("BasePart") then
 			instance.CanCollide = false
 			instance.Anchored = true

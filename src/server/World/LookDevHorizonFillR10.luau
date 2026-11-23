@@ -192,6 +192,7 @@ local function stagePart(descriptor: any, parent: any)
 		instance.CastShadow = false
 		instance.Name = descriptor.name
 		instance:SetAttribute("HorizonSkirt", true)
+		instance:SetAttribute("LookDevStage", FAMILY_ID)
 		return instance
 	end)
 	if not okPart or not part then

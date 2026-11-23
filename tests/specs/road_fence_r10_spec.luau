@@ -1,10 +1,16 @@
 --!nocheck
 -- selene: allow(incorrect_standard_library_use) -- Lune's @lune/fs uses a string require key.
--- WORK_QUEUE item 201: LUNE-ONLY pure-data contract for "road_fence_r10".
--- Studio staging (ROAD_FENCE / JUNCTION_GAPS / PATH_REACH) belongs to check_q201.luau; LookDev IDS
--- and review wiring belong to the wiring lane. This spec asserts neither.
+-- WORK_QUEUE item 201, rebuilt by item 262: LUNE-ONLY data + source contract for "road_fence_r10".
+-- Studio staging (ROAD_FENCE / JUNCTION_GAPS / PATH_REACH) stays in check_q201.luau; the item-262
+-- model/lane/gate measurement and FAIL calibrations stay in check_q262.luau. LookDev IDS and review
+-- wiring belong to the wiring lane. This spec asserts neither Studio state nor a visual verdict.
 
 local fs = require("@lune/fs")
+
+local DATA_SRC = "src/shared/ModelMapRoadFenceR10.luau"
+local APPLIER_SRC = "src/server/World/LookDevRoadFenceR10.luau"
+local CHECK_201_SRC = "tools/studio/check_q201.luau"
+local CHECK_262_SRC = "tools/studio/check_q262.luau"
 
 local function serialize(value)
 	if type(value) ~= "table" then
@@ -26,7 +32,10 @@ return function(t, Env)
 	local expect = t.expect
 	local env = Env.new()
 	local Data = env:require("shared/ModelMapRoadFenceR10")
-	local pureSrc = fs.readFile("src/shared/ModelMapRoadFenceR10.luau")
+	local pureSrc = fs.readFile(DATA_SRC)
+	local applierSrc = fs.readFile(APPLIER_SRC)
+	local check201Src = fs.readFile(CHECK_201_SRC)
+	local check262Src = fs.readFile(CHECK_262_SRC)
 
 	t:describe("road_fence_r10 pure data", function()
 		t:it("stays pure: no engine calls, no asset IDs, exact id and folder", function()
@@ -38,7 +47,8 @@ return function(t, Env)
 			end
 			expect(Data.id):toBe("road_fence_r10")
 			expect(Data.folderName):toBe("LookDevRoadFenceR10_road_fence_r10")
-			expect(Data.FENCE_HEIGHT):toBe(1.2)
+			expect(Data.FENCE_HEIGHT):toBe(2.5)
+			expect(Data.MODEL_ASSET_KEY):toBe("fence_bamboo")
 			expect(Data.BAMBOO_COLOR):toEqual({ r = 180, g = 165, b = 90 })
 			expect(Data.RING_CENTRE):toBe(144)
 			expect(Data.GATE_RADIUS):toBe(152)
@@ -64,33 +74,34 @@ return function(t, Env)
 			end
 		end)
 
-		t:it("emits post/rail descriptors 1.2 studs tall in the bamboo colour", function()
+		t:it("emits baked-model descriptors 2.5 studs tall on six grouped stretches", function()
 			local parts = Data.parts()
-			expect(#parts > 0):toBe(true)
-			local posts, rails, stretchesSeen = 0, 0, {}
+			expect(#parts > 6):toBe(true)
+			local stretchesSeen, groupsSeen = {}, {}
 			for _, part in ipairs(parts) do
-				expect(part.kind == "post" or part.kind == "rail"):toBe(true)
-				expect(part.size[2] <= Data.FENCE_HEIGHT):toBe(true)
-				expect(part.color):toEqual({ r = 180, g = 165, b = 90 })
-				expect(part.position[2] >= Data.GROUND_Y):toBe(true)
+				expect(part.asset):toBe(Data.MODEL_ASSET_KEY)
+				expect(part.height):toBe(2.5)
+				expect(part.footprint[2]):toBe(2.5)
+				expect(part.footprint[1] > part.footprint[3]):toBe(true)
+				expect(part.angle % 90):toBe(0)
+				expect(part.position[2]):toBe(Data.GROUND_Y + Data.FENCE_HEIGHT / 2)
+				expect(type(part.group)):toBe("string")
+				expect(#part.group > 0):toBe(true)
+				groupsSeen[part.group] = true
 				stretchesSeen[part.stretch] = true
-				if part.kind == "post" then
-					posts += 1
-					expect(part.size[2]):toBe(1.2)
-				else
-					rails += 1
-				end
 			end
-			expect(posts > 0):toBe(true)
-			expect(rails > 0):toBe(true)
-			local count = 0
+			local stretchCount, groupCount = 0, 0
 			for _ in pairs(stretchesSeen) do
-				count += 1
+				stretchCount += 1
 			end
-			expect(count >= 6):toBe(true)
+			for _ in pairs(groupsSeen) do
+				groupCount += 1
+			end
+			expect(stretchCount >= 6):toBe(true)
+			expect(groupCount >= 6):toBe(true)
 		end)
 
-		t:it("keeps all parts at least 8 studs from every junction and plot gate", function()
+		t:it("keeps every model at least 8 studs from every junction and plot gate", function()
 			local violations = 0
 			for _, part in ipairs(Data.parts()) do
 				local x, z = part.position[1], part.position[3]
@@ -103,8 +114,25 @@ return function(t, Env)
 				end
 				local radius = math.sqrt(x * x + z * z)
 				expect(radius <= 121):toBe(true)
+				expect(radius >= 60):toBe(true)
 			end
 			expect(violations):toBe(0)
+		end)
+
+		t:it("covers every stretch with a shoulder patch for the Grass -> Ground repaint", function()
+			local patches = Data.shoulderPatches()
+			expect(#patches >= 6):toBe(true)
+			local seen = {}
+			for _, patch in ipairs(patches) do
+				expect(type(patch.name)):toBe("string")
+				expect(seen[patch.stretch] == nil):toBe(true)
+				seen[patch.stretch] = true
+				expect(patch.minX < patch.maxX):toBe(true)
+				expect(patch.minZ < patch.maxZ):toBe(true)
+				expect(patch.maxX - patch.minX >= 2 * Data.SHOULDER_HALF_WIDTH):toBe(true)
+				expect(patch.maxZ - patch.minZ >= 2 * Data.SHOULDER_HALF_WIDTH):toBe(true)
+			end
+			expect(#seen >= 6):toBe(true)
 		end)
 
 		t:it("stays identical across fresh requires", function()
@@ -112,6 +140,63 @@ return function(t, Env)
 			expect(fresh.id):toBe(Data.id)
 			expect(serialize(fresh.stretches())):toBe(serialize(Data.stretches()))
 			expect(serialize(fresh.parts())):toBe(serialize(Data.parts()))
+			expect(serialize(fresh.shoulderPatches())):toBe(serialize(Data.shoulderPatches()))
+		end)
+	end)
+
+	t:describe("road_fence_r10 applier and check sources", function()
+		t:it("uses baked pick 1, strips scripts, tags descendants and restores terrain LIFO", function()
+			expect(applierSrc:find("1158365955", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("baked(assetId)", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find(".LoadAsset(", 1, true) == nil):toBe(true)
+			expect(applierSrc:find("LuaSourceContainer", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("ScaleTo", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("CanCollide = false", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("CastShadow = false", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find('SetAttribute("LookDevStage", FAMILY_ID)', 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find('SetAttribute("RoadFenceAssetId", assetId)', 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("ReadVoxels", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("WriteVoxels", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("Enum.Material.Grass", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("Enum.Material.Ground", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("restoreShoulder()", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("instance:Destroy()", 1, true) ~= nil):toBe(true)
+			expect(applierSrc:find("pcall", 1, true) ~= nil):toBe(true)
+		end)
+
+		t:it("check_q201 source assertions still match the model-backed set", function()
+			expect(check201Src:find("ROAD_FENCE", 1, true) ~= nil):toBe(true)
+			expect(check201Src:find("JUNCTION_GAPS", 1, true) ~= nil):toBe(true)
+			expect(check201Src:find("PATH_REACH", 1, true) ~= nil):toBe(true)
+			expect(check201Src:find("Data.parts", 1, true) ~= nil):toBe(true)
+			expect(check201Src:find('GetAttribute("RoadFence") == true', 1, true) ~= nil):toBe(true)
+			expect(check201Src:find("disableAll()", 1, true) ~= nil):toBe(true)
+		end)
+
+		t:it("check_q262 declares the exact five checks and emits SUMMARY_Q262", function()
+			local order = {
+				"MODEL_USED",
+				"LANE_CLEAR",
+				"GATE_CLEAR",
+				"CAL_MODEL_USED_FAIL",
+				"CAL_LANE_CLEAR_FAIL",
+			}
+			local previous = 0
+			for _, name in ipairs(order) do
+				local at = string.find(check262Src, '"' .. name .. '"', 1, true)
+				expect(at ~= nil):toBe(true)
+				if at then
+					expect(at > previous):toBe(true)
+					previous = at
+				end
+			end
+			expect(check262Src:find("SUMMARY_Q262", 1, true) ~= nil):toBe(true)
+			expect(check262Src:find("1158365955", 1, true) ~= nil):toBe(true)
+			expect(check262Src:find("RoadFenceAssetId", 1, true) ~= nil):toBe(true)
+			expect(check262Src:find("workspace:Raycast", 1, true) ~= nil):toBe(true)
+			expect(check262Src:find('game:GetService("Players")', 1, true) ~= nil):toBe(true)
+			expect(check262Src:find("review.disableAll()", 1, true) ~= nil):toBe(true)
+			expect(check262Src:find("Client", 1, true) == nil):toBe(true)
 		end)
 	end)
 end

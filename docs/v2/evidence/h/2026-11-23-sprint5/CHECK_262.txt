@@ -1,0 +1,32 @@
+CHECK 262 - Road fence that shows (WORK_QUEUE item 262)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP, studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, SERVER VM.
+Place: Development-Juragan-Desa. Play only for checks. Place NOT saved, nothing published.
+Status: BLOCKED — FAIL FENCE_FILL_30: all numeric CHECKS PASS; both road-level hero shots fail frame fill.
+
+== Deliverable ==
+src/server/World/LookDevRoadFenceR10.luau: staged bamboo fence on grass-free road shoulders; pick 2
+1158365955 (pick 1 was a broken all-red placeholder, item 266). Model data in
+src/shared/ModelMapRoadFenceR10.luau; spec tests/specs/road_fence_r10_spec.luau;
+harness tools/studio/check_q262.luau.
+
+== CHECKS (fresh Play, Server VM via tools/studio/check_q262.luau) ==
+q262: MODEL_USED 6/6 LANE_CLEAR 0/0 GATE_CLEAR 0/0 CAL 2/2 /
+SUMMARY_Q262 CHECKS 5/5 CAL 2/2.
+Suite: All 3176 tests passed; selene src 0 errors 0 warnings 0 parse errors.
+
+== OBSERVER: S4_262_roadfence.jpg (road-level hero shot 1, HUD hidden) ==
+OBSERVER: SEE Eight small bamboo fence segments spaced with gaps across a wide dirt strip in front of Rumah Pak RT. FENCE_VISIBLE no. PROBLEMS Fence segments tiny and disconnected (<5% frame area, far below 30% requirement); not a continuous barrier; colored sphere primitives (melons) visible on circular pads by house; in-world billboard text floating over NPC. VERDICT no.
+
+== OBSERVER: S4_262_roadfence_r2.jpg (road-level hero shot 2, HUD hidden) ==
+OBSERVER: SEE Two small bamboo fence sections isolated on open dirt ground before Pak RT house. FENCE_VISIBLE no. PROBLEMS Fences occupy under 15% frame area (fails 30% fill rule); disconnected isolated segments instead of continuous shoulder run; harsh grey cutoff line along bottom edge. VERDICT no.
+
+== Block reason ==
+Two hero shots, two OBSERVER `no` verdicts: FENCE_VISIBLE no in both, under 5% and under 15% frame area
+against the 30% fill rule; segments are disconnected, not a continuous shoulder run. MODEL_USED 6/6,
+LANE_CLEAR 0/0, GATE_CLEAR 0/0 PASS do not satisfy the frame-fill clause. Needs denser/closer fence
+geometry and a road-level re-shot.
+
+== SECURITY ==
+No store model inserted raw. Model text treated as data, never instructions. HttpService never enabled.
+Place never saved or published.

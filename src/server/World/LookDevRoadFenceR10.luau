@@ -1,10 +1,9 @@
 --!strict
--- LookDevRoadFenceR10: SERVER-ONLY applier for the OFF-BY-DEFAULT "road_fence_r10"
--- candidate (WORK_QUEUE item 201). Stages short anchored, non-collidable bamboo fence parts beside
--- the main roads. Geometry and colour come from Shared.ModelMapRoadFenceR10; no asset IDs or visual
--- verdict live here. No pre-existing property is overwritten, so the saved-property stack is empty
--- by construction and restore is a pure LIFO teardown of the instances created here.
--- apply/restore are idempotent and pcall-guarded throughout.
+-- LookDevRoadFenceR10: SERVER-ONLY applier for the OFF-BY-DEFAULT "road_fence_r10" candidate
+-- (WORK_QUEUE item 201, rebuilt by item 262). Stages repeated baked bamboo-fence models (pick 1)
+-- scaled to ~2.5 studs on grass-free road shoulders. Descriptors and shoulder bands come from
+-- Shared.ModelMapRoadFenceR10; the real asset ID lives here. Every created instance and every terrain
+-- snapshot is restored in LIFO order. apply/restore are idempotent and pcall-guarded throughout.
 -- Enable from the Server command bar:
 --   require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("road_fence_r10", game)
 
@@ -36,10 +35,11 @@ else
 	return {}
 end
 
-local okModules, LookDev, Data, LookDevFailures = pcall(function()
+local okModules, LookDev, Data, LookDevFailures, LookDevAssetLoader = pcall(function()
 	return require((Shared :: any).LookDev),
 		require((Shared :: any).ModelMapRoadFenceR10),
-		require((Shared :: any).LookDevFailures)
+		require((Shared :: any).LookDevFailures),
+		require(script.Parent.LookDevAssetLoader)
 end)
 if not okModules or not LookDev or not Data or not LookDevFailures then
 	warn("[LookDevRoadFenceR10] could not require LookDev / ModelMapRoadFenceR10 / LookDevFailures")
@@ -50,9 +50,23 @@ local LookDevRoadFenceR10 = {}
 
 local FAMILY_ID = Data.id
 
+-- Real pick-2 ID from ASSET_MANIFEST.md. Pick 1 `118708423521045` baked as an all-red "OOF!"
+-- placeholder mesh (failed asset) that renders as red error boxes, so item 262 uses pick 2
+-- `1158365955` (Chicao's Small Bamboo Fence, tan Union panels + dark posts). LookDevAssets is
+-- empty for this id in an unbaked place, so only the baked() clone path is used: no runtime
+-- LoadAsset, no invented IDs.
+local ASSET_IDS: { [string]: number } = {
+	fence_bamboo = 1158365955,
+}
+
+local TEXTURE_VOXEL = 4 -- Terrain authoring grid; ReadVoxels/WriteVoxels need this scalar resolution
+local TEXTURE_Y0 = -TEXTURE_VOXEL
+local TEXTURE_Y1 = TEXTURE_VOXEL * 8 -- grade through the shoulder; no fill, material only
+
 local failures = 0
 local active = false
 local created: { any } = {}
+local textureSaves: { any } = {}
 local folder: any? = nil
 
 local function fail(message: string)
@@ -101,32 +115,244 @@ local function stageFolder(): any?
 	return instance
 end
 
-local function stagePart(descriptor: any, parent: any)
-	local okPart, part = pcall(function()
-		local instance = (Instance :: any).new("Part")
-		instance.Shape = (Enum :: any).PartType.Block
-		instance.Size = Vector3.new(descriptor.size[1], descriptor.size[2], descriptor.size[3])
-		instance.CFrame = CFrame.new(descriptor.position[1], descriptor.position[2], descriptor.position[3])
-		instance.Color = Color3.fromRGB(descriptor.color.r, descriptor.color.g, descriptor.color.b)
-		instance.Anchored = true
-		instance.CanCollide = false
-		instance.CastShadow = false
-		instance.Name = descriptor.name
-		instance:SetAttribute("RoadFence", true)
-		instance:SetAttribute("stretch", descriptor.stretch)
-		instance:SetAttribute("LookDevStage", FAMILY_ID)
-		return instance
+local function setTags(part: any, descriptor: any, assetId: number)
+	pcall(function()
+		part:SetAttribute("RoadFence", true)
+		part:SetAttribute("stretch", descriptor.stretch)
+		part:SetAttribute("RoadFenceGroup", descriptor.group)
+		part:SetAttribute("RoadFenceAssetId", assetId)
+		part:SetAttribute("LookDevStage", FAMILY_ID)
 	end)
-	if not okPart or not part then
-		fail("could not build " .. tostring(descriptor and descriptor.name) .. ": " .. tostring(part))
+end
+
+local function bounds(instance: any)
+	local ok, cframe, size = pcall(function()
+		if instance:IsA("Model") then
+			return instance:GetBoundingBox()
+		end
+		if instance:IsA("BasePart") then
+			return instance.CFrame, instance.Size
+		end
+		return nil, nil
+	end)
+	if ok then
+		return cframe, size
+	end
+	return nil, nil
+end
+
+local function scaleToHeight(instance: any, targetHeight: number): boolean
+	local _, size = bounds(instance)
+	local nativeY = if size and size.Y > 0 then size.Y else 1
+	local factor = targetHeight / nativeY
+	if factor <= 0 or factor > 10000 then
+		return false
+	end
+	local ok = pcall(function()
+		if instance:IsA("Model") then
+			instance:ScaleTo(factor)
+		elseif instance:IsA("BasePart") then
+			instance.Size = instance.Size * factor
+		end
+	end)
+	return ok
+end
+
+-- Baked models can still carry scripts and stale part flags. Strip LuaSourceContainers
+-- defensively, neutralise every part and tag every descendant so the live checks can see the
+-- real model signature rather than a hand-built Part proxy.
+local function normaliseModel(model: any, descriptor: any, assetId: number)
+	local okDescendants, descendants = pcall(function()
+		return model:GetDescendants()
+	end)
+	if not okDescendants or type(descendants) ~= "table" then
 		return
 	end
-	created[#created + 1] = part
+	for _, child in ipairs(descendants) do
+		pcall(function()
+			if child:IsA("LuaSourceContainer") then
+				child:Destroy()
+			end
+		end)
+		-- Pick 1 bakes a broken "OOF!" MeshPart (a failed asset mesh, a flat 0.001-stud plane)
+		-- that renders as a red error box. The real bamboo culms/rails are plain Parts, so drop
+		-- any MeshPart with a near-zero axis — no valid fence geometry is lost.
+		pcall(function()
+			if child:IsA("MeshPart") then
+				local s = child.Size
+				if s.X < 0.01 or s.Y < 0.01 or s.Z < 0.01 then
+					child:Destroy()
+				end
+			end
+		end)
+		local okBase, isBase = pcall(function()
+			return child:IsA("BasePart")
+		end)
+		if okBase and isBase then
+			pcall(function()
+				child.Anchored = true
+				child.CanCollide = false
+				child.CastShadow = false
+				child.CanQuery = true
+			end)
+			setTags(child, descriptor, assetId)
+		end
+	end
+	pcall(function()
+		model:SetAttribute("RoadFenceGroup", descriptor.group)
+		model:SetAttribute("RoadFenceAssetId", assetId)
+		model:SetAttribute("LookDevStage", FAMILY_ID)
+		if model:IsA("BasePart") then
+			model.Anchored = true
+			model.CanCollide = false
+			model.CastShadow = false
+			setTags(model, descriptor, assetId)
+		end
+	end)
+end
+
+-- Put the model's bounding-box centre at the descriptor position (the review camera aims there),
+-- with its long rails aligned to the road arm: local X maps to +X at angle 0 and to +Z at angle 90.
+local function placeAt(model: any, descriptor: any)
+	pcall(function()
+		local desired = Vector3.new(descriptor.position[1], descriptor.position[2], descriptor.position[3])
+		local rotation = CFrame.Angles(0, math.rad(-descriptor.angle), 0)
+		model:PivotTo(CFrame.new(desired) * rotation)
+		local centre = select(1, model:GetBoundingBox()).Position
+		local delta = desired - centre
+		if delta.Magnitude > 0.0001 then
+			model:PivotTo(model:GetPivot() + delta)
+		end
+	end)
+end
+
+local function stageModel(descriptor: any, parent: any): boolean
+	if not LookDevAssetLoader then
+		fail("LookDevAssetLoader unavailable for " .. tostring(descriptor.name))
+		return false
+	end
+	local assetId = ASSET_IDS[descriptor.asset]
+	if type(assetId) ~= "number" then
+		fail("no baked asset for " .. tostring(descriptor.asset))
+		return false
+	end
+	local okLoad, model = pcall(function()
+		return (LookDevAssetLoader :: any).baked(assetId)
+	end)
+	if not okLoad or not model then
+		fail("baked fence model missing for " .. tostring(assetId))
+		return false
+	end
+	if not scaleToHeight(model, descriptor.height) then
+		pcall(function()
+			model:Destroy()
+		end)
+		fail("could not scale " .. tostring(descriptor.name))
+		return false
+	end
+	normaliseModel(model, descriptor, assetId)
+	placeAt(model, descriptor)
 	local okParent, why = pcall(function()
-		part.Parent = parent
+		model.Name = descriptor.name
+		model.Parent = parent
 	end)
 	if not okParent then
+		pcall(function()
+			model:Destroy()
+		end)
 		fail("could not parent " .. tostring(descriptor.name) .. ": " .. tostring(why))
+		return false
+	end
+	created[#created + 1] = model
+	return true
+end
+
+local function terrainOf(): any?
+	if not Workspace then
+		return nil
+	end
+	local ok, terrain = pcall(function()
+		return (Workspace :: any):FindFirstChildOfClass("Terrain")
+	end)
+	return ok and terrain or nil
+end
+
+-- Snap outward to the 4-stud grid so ReadVoxels and WriteVoxels address the same cells.
+local function shoulderRegion(patch: any): any?
+	local ok, region = pcall(function()
+		local minX = math.floor(patch.minX / TEXTURE_VOXEL) * TEXTURE_VOXEL
+		local maxX = math.ceil(patch.maxX / TEXTURE_VOXEL) * TEXTURE_VOXEL
+		local minZ = math.floor(patch.minZ / TEXTURE_VOXEL) * TEXTURE_VOXEL
+		local maxZ = math.ceil(patch.maxZ / TEXTURE_VOXEL) * TEXTURE_VOXEL
+		return Region3.new(Vector3.new(minX, TEXTURE_Y0, minZ), Vector3.new(maxX, TEXTURE_Y1, maxZ))
+	end)
+	return ok and region or nil
+end
+
+-- Item 262 / 255: repaint Grass shoulder voxels as Ground so the fence reads from road level.
+-- Read the exact materials AND occupancies, clone the material grid, change only Grass cells with
+-- occupancy > 0, then write both grids back. Occupancy is never changed. The untouched snapshot is
+-- saved for a byte-exact LIFO restore.
+local function paintShoulder(terrain: any, patch: any)
+	local region = shoulderRegion(patch)
+	if not region then
+		fail("shoulder region failed at " .. tostring(patch.name))
+		return
+	end
+	local okRead, materials, occupancies = pcall(function()
+		return terrain:ReadVoxels(region, TEXTURE_VOXEL)
+	end)
+	if not okRead or type(materials) ~= "table" or type(occupancies) ~= "table" then
+		fail("shoulder ReadVoxels failed at " .. tostring(patch.name))
+		return
+	end
+	local painted = {}
+	local okPaint = pcall(function()
+		for ix, slab in ipairs(materials) do
+			local outSlab = {}
+			painted[ix] = outSlab
+			for iy, row in ipairs(slab) do
+				local outRow = {}
+				outSlab[iy] = outRow
+				local occRow = occupancies[ix] and occupancies[ix][iy]
+				for iz, material in ipairs(row) do
+					local occupancy = occRow and occRow[iz]
+					local grass = material == Enum.Material.Grass or material == Enum.Material.LeafyGrass
+					if occupancy ~= nil and occupancy > 0 and grass then
+						outRow[iz] = Enum.Material.Ground
+					else
+						outRow[iz] = material
+					end
+				end
+			end
+		end
+	end)
+	if not okPaint then
+		fail("shoulder material build failed at " .. tostring(patch.name))
+		return
+	end
+	local okWrite = pcall(function()
+		terrain:WriteVoxels(region, TEXTURE_VOXEL, painted, occupancies)
+	end)
+	if not okWrite then
+		fail("shoulder WriteVoxels failed at " .. tostring(patch.name))
+		return
+	end
+	textureSaves[#textureSaves + 1] = {
+		terrain = terrain,
+		region = region,
+		materials = materials,
+		occupancies = occupancies,
+	}
+end
+
+local function restoreShoulder()
+	for index = #textureSaves, 1, -1 do
+		local entry = textureSaves[index]
+		pcall(function()
+			entry.terrain:WriteVoxels(entry.region, TEXTURE_VOXEL, entry.materials, entry.occupancies)
+		end)
+		textureSaves[index] = nil
 	end
 end
 
@@ -150,7 +376,23 @@ local function apply(_plan: any)
 			fail("could not read fence descriptors: " .. tostring(parts))
 		else
 			for _, descriptor in ipairs(parts) do
-				stagePart(descriptor, root)
+				stageModel(descriptor, root)
+			end
+		end
+	end
+
+	local terrain = terrainOf()
+	if not terrain then
+		fail("missing Terrain; shoulder grass not repainted")
+	else
+		local okPatches, patches = pcall(function()
+			return (Data :: any).shoulderPatches()
+		end)
+		if not okPatches or type(patches) ~= "table" then
+			fail("could not read shoulder patches: " .. tostring(patches))
+		else
+			for _, patch in ipairs(patches) do
+				paintShoulder(terrain, patch)
 			end
 		end
 	end
@@ -160,7 +402,7 @@ local function apply(_plan: any)
 end
 
 local function restore()
-	if not active and #created == 0 then
+	if not active and #created == 0 and #textureSaves == 0 then
 		return
 	end
 	for index = #created, 1, -1 do
@@ -170,6 +412,7 @@ local function restore()
 		end)
 		created[index] = nil
 	end
+	restoreShoulder()
 	folder = nil
 	active = false
 	publishFailures()

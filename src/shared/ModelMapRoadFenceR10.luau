@@ -1,13 +1,14 @@
 --!strict
 -- ModelMapRoadFenceR10: pure data for the OFF-BY-DEFAULT "road_fence_r10" candidate
--- (WORK_QUEUE item 201). Six short bamboo fence stretches beside the main roads, one to two per
--- arm, all kept at radius 60..120 so the r=144 junction ring and the r=152 plot gates are never
--- crossed. No engine calls, no asset IDs: a server applier consumes these descriptors.
+-- (WORK_QUEUE item 201, rebuilt by item 262). Six road-shoulder stretches, each filled with repeated
+-- 2.5-stud baked bamboo-fence models; the real creator-store id lives in the server applier, never
+-- here. One shoulder patch per stretch drives the Grass -> Ground voxel repaint that keeps the fence
+-- readable from road level. All stretches stay inside radius 60..120, clear of the r=144 junction
+-- ring and the r=152 plot gates. No engine calls, no asset IDs: a server applier consumes this data.
 
 local Data = {}
 
 type Vec3 = { number }
-type RGB = { r: number, g: number, b: number }
 type Gap = { from: number, to: number }
 type Stretch = {
 	name: string,
@@ -19,17 +20,30 @@ type Stretch = {
 }
 type PartDescriptor = {
 	name: string,
-	kind: string,
+	group: string,
+	asset: string,
 	stretch: number,
 	position: Vec3,
-	size: Vec3,
-	color: RGB,
+	angle: number,
+	height: number,
+	footprint: Vec3,
+}
+type ShoulderPatch = {
+	name: string,
+	stretch: number,
+	minX: number,
+	maxX: number,
+	minZ: number,
+	maxZ: number,
 }
 
 Data.id = "road_fence_r10"
 Data.folderName = "LookDevRoadFenceR10_road_fence_r10"
 
-Data.FENCE_HEIGHT = 1.2
+Data.FENCE_HEIGHT = 2.5 -- item 262: baked model scaled to ~2.5 studs tall
+Data.MODEL_ASSET_KEY = "fence_bamboo" -- applier maps this to pick 1's real asset ID
+Data.MODEL_FOOTPRINT = { 6.4, 2.5, 0.5 } -- scaled bbox estimate: long, tall, thin
+Data.MODEL_STEP = 6 -- slight overlap so one stretch reads as a continuous fence
 Data.BAMBOO_COLOR = { r = 180, g = 165, b = 90 }
 Data.GROUND_Y = 0.5
 
@@ -40,19 +54,17 @@ Data.GATE_RADIUS = 152
 Data.GAP_MIN = 8
 Data.SIDE_OFFSET = 10 -- inside the 14-stud road half-width
 
-Data.POST_SPACING = 4
-Data.POST_THICKNESS = 0.4
-Data.RAIL_THICKNESS = 0.25
-Data.RAIL_HEIGHT_OFFSET = 0.85
+Data.SHOULDER_HALF_WIDTH = 4 -- repaint band centred on the fence line
+Data.PATCH_PADDING = 2 -- snap margin at either end of a stretch
 
 -- A stretch ends 36 studs before the ring centreline: the reserved band covers the r=136..150
--- ring, every junction on it, and the r=152 plot gates. No post or rail is emitted inside it.
+-- ring, every junction on it, and the r=152 plot gates. No model is placed inside it.
 local function ringKeepOut(): { Gap }
 	return { { from = Data.RADIUS_MAX, to = Data.GATE_RADIUS + Data.GAP_MIN } }
 end
 
 -- angle 0 = east, 90 = south, 180 = west, 270 = north. The west arm stops at r=84, short of the
--- Pos Ronda footprint at x=-86; the other arms stop at r<=116, still 28 studs inside the ring.
+-- Pos Ronda footprint at x=-86; the other arms stop at r<=116, still inside the ring keep-out.
 local STRETCHES: { Stretch } = {
 	{ name = "FenceEastNorth", angle = 0, radiusFrom = 64, radiusTo = 116, side = -1, gaps = ringKeepOut() },
 	{ name = "FenceEastSouth", angle = 0, radiusFrom = 68, radiusTo = 116, side = 1, gaps = ringKeepOut() },
@@ -72,10 +84,6 @@ local function pointOnStretch(angle: number, radius: number, side: number): (num
 	return dx * radius - dz * Data.SIDE_OFFSET * side, dz * radius + dx * Data.SIDE_OFFSET * side
 end
 
-local function bamboo(): RGB
-	return { r = Data.BAMBOO_COLOR.r, g = Data.BAMBOO_COLOR.g, b = Data.BAMBOO_COLOR.b }
-end
-
 local function inGap(stretch: Stretch, radius: number): boolean
 	for _, gap in ipairs(stretch.gaps) do
 		if radius >= gap.from and radius <= gap.to then
@@ -85,42 +93,53 @@ local function inGap(stretch: Stretch, radius: number): boolean
 	return false
 end
 
+-- One descriptor per baked-model instance. Grouping is by stretch, so the live check sees six fence
+-- groups even though a long arm carries several overlapped model stretches.
 function Data.parts(): { PartDescriptor }
 	local parts: { PartDescriptor } = {}
+	local half = Data.MODEL_FOOTPRINT[1] / 2
 	for index, stretch in ipairs(STRETCHES) do
-		local previous: { x: number, z: number }? = nil
-		for radius = stretch.radiusFrom, stretch.radiusTo, Data.POST_SPACING do
+		local segment = 0
+		local radius = stretch.radiusFrom + half
+		while radius + half <= stretch.radiusTo do
 			if not inGap(stretch, radius) then
 				local x, z = pointOnStretch(stretch.angle, radius, stretch.side)
 				parts[#parts + 1] = {
-					name = stretch.name .. "_Post_" .. radius,
-					kind = "post",
+					name = stretch.name .. "_Model_" .. segment,
+					group = stretch.name,
+					asset = Data.MODEL_ASSET_KEY,
 					stretch = index,
 					position = { x, Data.GROUND_Y + Data.FENCE_HEIGHT / 2, z },
-					size = { Data.POST_THICKNESS, Data.FENCE_HEIGHT, Data.POST_THICKNESS },
-					color = bamboo(),
+					angle = stretch.angle,
+					height = Data.FENCE_HEIGHT,
+					footprint = { Data.MODEL_FOOTPRINT[1], Data.FENCE_HEIGHT, Data.MODEL_FOOTPRINT[3] },
 				}
-				if previous then
-					parts[#parts + 1] = {
-						name = stretch.name .. "_Rail_" .. radius,
-						kind = "rail",
-						stretch = index,
-						position = {
-							(previous.x + x) / 2,
-							Data.GROUND_Y + Data.RAIL_HEIGHT_OFFSET,
-							(previous.z + z) / 2,
-						},
-						size = if stretch.angle % 180 == 0
-							then { Data.POST_SPACING, Data.RAIL_THICKNESS, Data.RAIL_THICKNESS }
-							else { Data.RAIL_THICKNESS, Data.RAIL_THICKNESS, Data.POST_SPACING },
-						color = bamboo(),
-					}
-				end
-				previous = { x = x, z = z }
 			end
+			segment += 1
+			radius += Data.MODEL_STEP
 		end
 	end
 	return parts
+end
+
+-- Axis-aligned shoulder bands (every stretch runs along an X or Z road arm). The applier snaps each
+-- band outward to the 4-stud terrain voxel grid before it repaints Grass cells as Ground.
+function Data.shoulderPatches(): { ShoulderPatch }
+	local patches: { ShoulderPatch } = {}
+	local band = Data.SHOULDER_HALF_WIDTH + Data.PATCH_PADDING
+	for index, stretch in ipairs(STRETCHES) do
+		local x1, z1 = pointOnStretch(stretch.angle, stretch.radiusFrom, stretch.side)
+		local x2, z2 = pointOnStretch(stretch.angle, stretch.radiusTo, stretch.side)
+		patches[#patches + 1] = {
+			name = stretch.name .. "_Shoulder",
+			stretch = index,
+			minX = math.min(x1, x2) - band,
+			maxX = math.max(x1, x2) + band,
+			minZ = math.min(z1, z2) - band,
+			maxZ = math.max(z1, z2) + band,
+		}
+	end
+	return patches
 end
 
 -- Load-time contract check, before any applier or harness reads the data.
@@ -132,10 +151,24 @@ do
 		assert(stretch.radiusTo <= 120, "road_fence_r10: radiusTo exceeds 120")
 		assert(stretch.radiusTo > stretch.radiusFrom, "road_fence_r10: empty stretch")
 	end
+	assert(Data.FENCE_HEIGHT >= 2.4 and Data.FENCE_HEIGHT <= 2.8, "road_fence_r10: bad model height")
 	for _, channel in ipairs({ Data.BAMBOO_COLOR.r, Data.BAMBOO_COLOR.g, Data.BAMBOO_COLOR.b }) do
 		assert(channel >= 0 and channel <= 255, "road_fence_r10: colour channel outside 0..255")
 	end
-	assert(#Data.parts() > 0, "road_fence_r10: no fence parts")
+	local parts = Data.parts()
+	assert(#parts > 0, "road_fence_r10: no fence models")
+	local groups = {}
+	for _, part in ipairs(parts) do
+		assert(part.asset == Data.MODEL_ASSET_KEY, "road_fence_r10: missing asset key")
+		assert(part.height == Data.FENCE_HEIGHT, "road_fence_r10: mixed model heights")
+		groups[part.group] = true
+	end
+	local groupCount = 0
+	for _ in pairs(groups) do
+		groupCount += 1
+	end
+	assert(groupCount >= 6, "road_fence_r10: fewer than 6 model groups")
+	assert(#Data.shoulderPatches() >= 6, "road_fence_r10: missing shoulder patches")
 end
 
 return Data

@@ -1,7 +1,8 @@
 --!strict
 -- ModelMapRiverFoamQ212: pure data for WORK_QUEUE item 212, a thin foam line along BOTH river banks.
--- No Roblox APIs, no Instances, no Enums, no asset IDs and no new colours: every descriptor is a
--- cheap Block Part at the MapSpec visible water edge. The server wires these descriptors into the
+-- No Roblox APIs, no Instances, no Enums and no new colours: every descriptor is a cheap Block Part
+-- at the MapSpec visible water edge. Item 271 adds MODEL_ID, provenance for an already-baked mesh.
+-- The server wires these descriptors into the
 -- default Greybox (anchored, CanCollide=false, no prompts, tagged RiverFoam=true, clearly named).
 --
 -- Geometry mirrors src/server/World/MapSpec.luau MapSpec.river(): TERRAIN_HALF=400,
@@ -13,9 +14,16 @@ local RiverR8 = require(script.Parent.ModelMapRiverR8)
 
 local Data = {}
 
+Data.id = "river_foam_212"
+Data.folderName = "LookDevRiverFoamQ212_river_foam_212"
+
 Data.TAG = "RiverFoam"
 Data.KIND_ATTR = "RiverFoamKind"
 Data.KIND = "foam"
+
+-- Item 271 baked foam stand-in. ponytail: the real lily pad 5044238410 is not baked; the designer
+-- must bake it into ServerStorage.LookDevAssets, then this ID can be swapped without touching code.
+Data.MODEL_ID = 13286158859
 
 Data.MIN_COVERAGE = 0.60
 Data.PERF_BUDGET = 120
@@ -35,7 +43,10 @@ Data.FOAM_LENGTH = Data.RIVER_SEGMENT
 Data.FOAM_WIDTH = 0.8
 Data.FOAM_THICKNESS = 0.08
 Data.FOAM_INSET = 0.4 -- keep the 0.8-wide strip just inside the visible water edge
-Data.FOAM_Y = RiverR8.WATER_SURFACE_Y + 0.06
+-- Item 271: the sprint-3 line read as floating. Centre it ON the visible water surface; half the
+-- thin strip sinks into the water, so its top is surface + FOAM_THICKNESS / 2, never a hovering line.
+Data.FOAM_Y = RiverR8.WATER_SURFACE_Y
+Data.FOAM_SURFACE_EPSILON = 0.05 -- harness ceiling for the staged strip centre above water
 
 -- Existing Props.palette name ("kertas", #f3e9d2), never a new colour or asset ID.
 Data.COLOUR = "kertas"
@@ -122,6 +133,7 @@ end
 do
 	assert(Data.TAG == "RiverFoam", "river_foam_q212: tag changed")
 	assert(Data.KIND_ATTR == "RiverFoamKind", "river_foam_q212: kind attribute changed")
+	assert(type(Data.MODEL_ID) == "number" and Data.MODEL_ID > 0, "river_foam_q212: baked foam ID missing")
 	assert(Data.WATER_HALF == RiverR8.WATER_HALF, "river_foam_q212: channel width drifted from MapSpec")
 	assert(Data.MIN_COVERAGE == 0.60, "river_foam_q212: coverage target changed")
 	assert(Data.PERF_BUDGET >= 100, "river_foam_q212: perf budget is below the default line")
@@ -134,8 +146,11 @@ do
 		assert(part.kind == Data.KIND, "river_foam_q212: unexpected part kind")
 		assert(part.size[1] == Data.RIVER_SEGMENT, "river_foam_q212: strip does not span one segment")
 		assert(part.size[2] <= 0.1 and part.size[3] <= 1, "river_foam_q212: foam is not a thin line")
-		assert(part.y > RiverR8.WATER_SURFACE_Y, "river_foam_q212: foam is below the water surface")
-		assert(part.y < RiverR8.WATER_SURFACE_Y + 0.2, "river_foam_q212: foam floats too high")
+		assert(part.y >= RiverR8.WATER_SURFACE_Y, "river_foam_q212: foam is below the water surface")
+		assert(
+			part.y <= RiverR8.WATER_SURFACE_Y + Data.FOAM_SURFACE_EPSILON,
+			"river_foam_q212: foam floats above the water surface"
+		)
 		assert(part.transparency > 0 and part.transparency < 1, "river_foam_q212: foam must be see-through")
 		assert(string.find(part.name, "RiverFoam", 1, true) == 1, "river_foam_q212: unclear part name")
 	end

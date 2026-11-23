@@ -121,5 +121,39 @@ return function(t, Env)
 			expect(checkSrc:find("LookDevReview", 1, true) == nil):toBe(true)
 			expect(checkSrc:find("enableAdditive", 1, true) == nil):toBe(true)
 		end)
+
+		t:it("item 271 publishes three descending stone tiers per wall and a reversible harness", function()
+			local q271 = fs.readFile("tools/studio/check_q271.luau")
+			local steps = Data.stepParts(MapSpec)
+			expect(Data.STEP_COUNT):toBe(3)
+			expect(Data.STEP_DROP > 0):toBe(true)
+			expect(#steps):toBe(#MapSpec.TERRACES * Data.STEP_COUNT)
+			local allowed = {}
+			for _, id in ipairs(Rocks.ROCK_ASSET_IDS) do
+				allowed[id] = true
+			end
+			for wall = 1, #MapSpec.TERRACES do
+				local previous = math.huge
+				for tier = 1, Data.STEP_COUNT do
+					local step = steps[(wall - 1) * Data.STEP_COUNT + tier]
+					expect(step.terrace):toBe(wall)
+					expect(step.tier):toBe(tier)
+					expect(step.topY):toBeLessThan(previous)
+					expect(allowed[step.assetId]):toBe(true)
+					expect(step.canCollide):toBe(false)
+					previous = step.topY
+				end
+			end
+			for _, token in ipairs({
+				'"TERRACE_STEPS_"',
+				'"CAL_TERRACE_FLAT_271"',
+				'"SUMMARY_Q271"',
+				"terraceState",
+				"restoreAll()",
+				'"LOOKDEV_LEAK_Q271"',
+			}) do
+				expect(q271:find(token, 1, true) ~= nil):toBe(true)
+			end
+		end)
 	end)
 end

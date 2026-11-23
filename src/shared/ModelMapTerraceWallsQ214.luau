@@ -12,6 +12,9 @@ local Rocks = require(script.Parent.ModelMapRocksR9)
 
 local Data = {}
 
+Data.id = "terrace_walls_214"
+Data.folderName = "LookDevTerraceWallsQ214_terrace_walls_214"
+
 Data.TAG = "TerraceWall"
 Data.MIN_WALLS = 4
 Data.WALL_LENGTH = 25
@@ -24,6 +27,14 @@ Data.ANCHORED = true
 Data.CAN_COLLIDE = false
 Data.INTERACTIVE = false
 Data.ALLOWED_MATERIALS = { "Rock", "Slate", "Granite" }
+
+-- Item 271: each wall gets three low stone courses stepping down along its length, like the
+-- terraces mood photo. The DEFAULT single retaining Block from parts() is untouched; stepParts()
+-- is the additive, baked-model overlay staged by the q271 applier.
+Data.STEP_COUNT = 3
+Data.STEP_RUN = 5
+Data.STEP_DROP = 0.45
+Data.STEP_THICKNESS = 1.8
 
 -- Alternating lanes: terrace 1 west, 2 east, 3 west, 4 east. Midpoints come from the live
 -- MapSpec.TERRACE_SIDES, so no wall lands in the 84-stud Balai gap or on the central ramps.
@@ -74,6 +85,43 @@ function Data.parts(mapSpec: any): { { [string]: any } }
 	return out
 end
 
+-- Additive baked-stone overlay (item 271): three low courses on the south face of each wall, each
+-- a step lower than the one before. `topY` is published so a harness can measure the descending
+-- tiers without guessing from baked mesh pivots. No literal asset IDs: provenance stays rocks_r9.
+function Data.stepParts(mapSpec: any): { { [string]: any } }
+	local walls = Data.parts(mapSpec)
+	local out = {}
+	for wallIndex, wall in ipairs(walls) do
+		local base = wall.y - wall.sy / 2
+		for tier = 1, Data.STEP_COUNT do
+			local top = wall.y + wall.sy / 2 - (tier - 1) * Data.STEP_DROP
+			assert(top > base, "terrace_walls_q214: step course sinks below the lower surface")
+			out[#out + 1] = {
+				name = string.format("TerraceWallStep_%02d_%02d", wallIndex, tier),
+				kind = "stone_step",
+				wallIndex = wallIndex,
+				terrace = wall.terrace,
+				tier = tier,
+				x = wall.x + (tier - 2) * Data.STEP_RUN,
+				y = top - Data.STEP_THICKNESS / 2,
+				z = wall.z - Data.WALL_DEPTH / 2,
+				sx = Data.STEP_RUN,
+				sy = Data.STEP_THICKNESS,
+				sz = Data.STEP_THICKNESS,
+				topY = top,
+				assetId = Rocks.assetIdFor(wallIndex + tier),
+				shape = Data.SHAPE,
+				material = Data.MATERIAL,
+				colour = Data.COLOUR,
+				anchored = Data.ANCHORED,
+				canCollide = Data.CAN_COLLIDE,
+				interactive = Data.INTERACTIVE,
+			}
+		end
+	end
+	return out
+end
+
 -- Load-time contract: constants and the reused ID source must stay honest before any caller
 -- builds Parts from this module.
 do
@@ -82,6 +130,8 @@ do
 	assert(Data.WALL_LENGTH == 25, "terrace_walls_q214: wall length is not 25 studs")
 	assert(Data.WALL_TOL == 0.3, "terrace_walls_q214: terrain tolerance changed")
 	assert(Data.SHAPE ~= "Ball", "terrace_walls_q214: Ball is not a retaining wall")
+	assert(Data.STEP_COUNT >= 3, "terrace_walls_q214: fewer than three step courses")
+	assert(Data.STEP_DROP > 0, "terrace_walls_q214: step courses do not descend")
 	assert(#Rocks.ROCK_ASSET_IDS > 0, "terrace_walls_q214: rocks_r9 asset IDs missing")
 end
 

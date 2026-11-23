@@ -214,5 +214,42 @@ return function(t, Env)
 			end
 			expect(string.find(q263Src, "SUMMARY_Q263", 1, true) ~= nil):toBe(true)
 		end)
+
+		t:it("item 271 golden overlay reuses the stage recipe and the baked padi model", function()
+			local q271Src = fs.readFile("tools/studio/check_q271.luau")
+			local goldenSrc = fs.readFile("src/shared/ModelMapCropStagesGoldenQ247.luau")
+			local goldenApplierSrc = fs.readFile("src/server/World/LookDevCropStagesGoldenQ247.luau")
+			local Golden = env:require("shared/ModelMapCropStagesGoldenQ247")
+			local samples = Golden.samples()
+			expect(Golden.id):toBe("crop_stages_golden_247")
+			expect(Golden.DEMO_PLOT):toBe(Data.DEMO_PLOT)
+			expect(#samples):toBe(#Golden.STAGE_NAMES)
+			expect(samples[#samples].modelSource):toBe("padi_model")
+			for index, sample in ipairs(samples) do
+				expect(sample.stage):toBe(Golden.STAGE_NAMES[index])
+				expect(#sample.parts):toBeGreaterThan(0)
+				if index > 1 then
+					expect(sample.height):toBeGreaterThan(samples[index - 1].height)
+				end
+			end
+			expect(samples[3].color.r):toBeGreaterThan(samples[1].color.r)
+			for _, banned in ipairs({ "game.", "Instance.new", "Enum.", "rbxassetid://" }) do
+				expect(string.find(goldenSrc, banned, 1, true) == nil):toBe(true)
+			end
+			for run in string.gmatch(goldenSrc, "%d%d%d%d%d%d%d+") do
+				expect(#run <= 7):toBe(true)
+			end
+			for _, token in ipairs({ ".baked(", "ModelAssetId", "GoldenStage", "LookDev.register" }) do
+				expect(string.find(goldenApplierSrc, token, 1, true) ~= nil):toBe(true)
+			end
+			for _, token in ipairs({
+				'"CROP_GOLDEN_"',
+				'"SUMMARY_Q271"',
+				"restoreAll()",
+				'"LOOKDEV_LEAK_Q271"',
+			}) do
+				expect(string.find(q271Src, token, 1, true) ~= nil):toBe(true)
+			end
+		end)
 	end)
 end

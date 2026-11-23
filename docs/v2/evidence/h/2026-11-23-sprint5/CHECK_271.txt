@@ -1,0 +1,57 @@
+CHECK 271 - Rework the sprint-3 "tidak" set (WORK_QUEUE item 271)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP, studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, SERVER VM.
+Place: Development-Juragan-Desa. Play only for checks. Place NOT saved, nothing published.
+Status: BLOCKED — FAIL TIDAK_HERO_LOOK: all numeric CHECKS PASS (13/13 + CAL 3/3 + LEAK 0); 3 of 4 candidates return observer VERDICT no on both hero-shot rounds.
+
+== Deliverable ==
+Four additive SERVER appliers, default OFF, baked models only (no scripts, no HttpService):
+- src/server/World/LookDevRiverFoamQ212.luau + ModelMapRiverFoamQ212.luau: foam strips centred on live river water surface (FOAM_Y = water -0.50, epsilon 0.05); MODEL_ID 13286158859 (baked padi substituted for unbaked lily 5044238410).
+- src/server/World/LookDevTerraceWallsQ214.luau + ModelMapTerraceWallsQ214.luau: 3 descending baked-rock step courses per terrace wall.
+- src/server/World/LookDevSawahDressingQ215.luau + ModelMapSawahDressingQ215.luau: nipa-hut stand-in (18239791051) + padi accents (13286158859).
+- src/server/World/LookDevCropStagesGoldenQ247.luau (new) + ModelMapCropStagesGoldenQ247.luau: 3 crop stages, golden ripe uses baked padi 13286158859.
+- tests/specs/{river_foam_q212,terrace_walls_q214,sawah_dressing_q215,crop_stages_r10}_spec.luau extended in place.
+- tools/studio/check_q271.luau added (SERVER VM; LIFO restore; CAL anchors).
+
+== Studio verification notes ==
+First harness run failed (MAIN 6/14): GetBoundingBox() returns a CFrame centre, not Vector3 — all four appliers subtracted a CFrame from a Vector3 and staged nothing; two chosen asset IDs (5044238410 lily, 167594119 nipa hut) were not baked. Fixed in place: centre.Position before offset math, baked substitutes from the verified baked set, CAL_NO_SCRIPTS injection leak fixed. Second fresh-Play run all green.
+
+== CHECKS (fresh Play, SERVER VM via tools/studio/check_q271.luau) ==
+CHECK NO_SCRIPTS_RIVER_FOAM_212 PASS 0 0
+CHECK MODEL_USED_RIVER_FOAM_212 PASS 100 1
+CHECK FOAM_ON_WATER_RIVER_FOAM_212 PASS -0.460 -0.450 water=-0.500 pieces=100
+CHECK CAL_FOAM_FLOAT_271 PASS 1 1 foamTop=0.540 ceiling=-0.450 pieces=1
+CHECK NO_SCRIPTS_TERRACE_WALLS_214 PASS 0 0
+CHECK MODEL_USED_TERRACE_WALLS_214 PASS 16 1
+CHECK TERRACE_STEPS_TERRACE_WALLS_214 PASS 3 3 terraces=4 descending=true
+CHECK CAL_TERRACE_FLAT_271 PASS 1 1 minTiers=2 descending=true
+CHECK NO_SCRIPTS_SAWAH_DRESSING_215 PASS 0 0
+CHECK MODEL_USED_SAWAH_DRESSING_215 PASS 1012 1
+CHECK SAWAH_DRESSING_SAWAH_DRESSING_215 PASS 1012 1 groups=8
+CHECK CAL_NO_SCRIPTS_271 PASS 1 1 injected-one-module-script
+CHECK NO_SCRIPTS_CROP_STAGES_GOLDEN_247 PASS 0 0
+CHECK MODEL_USED_CROP_STAGES_GOLDEN_247 PASS 1 1
+CHECK CROP_GOLDEN_CROP_STAGES_GOLDEN_247 PASS 21 1
+CHECK LOOKDEV_LEAK_Q271 PASS 0 0
+SUMMARY_Q271 MAIN 13/13 CAL 3/3 LEAK 0
+Suite: All 3182 tests passed; selene src 0 errors 0 warnings 0 parse errors.
+
+== OBSERVER: round 1 (HUD hidden) ==
+FILE S5_271_foam.jpg: SEE Top-down view of turquoise water between dirt banks with white surface foam pattern. FEATURE_READS yes. PROBLEMS Yellow editor/selection wireframe streaks clipping bottom-left and top-right corners. Top-down camera lacks village context. No HUD. VERDICT yes.
+FILE S5_271_terrace.jpg: SEE Terraced dirt steps and water strips fronted by disconnected dark rectangular beams with embedded rock meshes; floating colored marker bricks and red roof wedges. FEATURE_READS no. PROBLEMS Greybox; isolated dark cuboids not continuous stacked stone walls. VERDICT no.
+FILE S5_271_sawah.jpg: SEE Terraced hillside with rectangular water basins; floating red/white blocks, floating tilted yellow slab, isolated brown stone slabs. FEATURE_READS no. PROBLEMS Disconnected floating blocks instead of cohesive nipa hut; no padi accents visible. VERDICT no.
+FILE S5_271_golden.jpg: SEE Single isolated yellow stylized plant on dark green plot grid. FEATURE_READS no. PROBLEMS Only one plant stage visible instead of three; flat card/plastic cutouts. VERDICT no.
+
+== OBSERVER: round 2 re-shoot (HUD hidden) ==
+FILE S5_271_terrace_r2.jpg: SEE Stepped earthen terraces with blue water strips; isolated dark rectangular box slabs with pebble spots pasted onto terrace risers; floating red/white block primitives and crude yellow/red box huts. FEATURE_READS no. PROBLEMS Greybox box slabs, not continuous low stone retaining walls; floating geometry. VERDICT no.
+FILE S5_271_sawah_r2.jpg: SEE Stepped terraces with flat blue water sheets; crude colored blocks, disassembled yellow/salmon roof wedges, stacked red/white boxes. FEATURE_READS no. PROBLEMS Broken greybox primitives; dressing reads as bare plastic channels. VERDICT no.
+FILE S5_271_golden_r2.jpg: SEE 3x3 farming plot with a single yellow fan-shaped crop model in the centre tile; LAHAN KOSONG floating text sign; brown cylinder stumps. FEATURE_READS no. PROBLEMS Only one crop stage instead of three; flat paper-like yellow primitive. VERDICT no.
+
+== Honest assessment ==
+river_foam_212 passes both numeric checks and the observer look (VERDICT yes). terrace_walls_214, sawah_dressing_215 and crop_stages_golden_247 pass every numeric check but return observer no on two full rounds with different cameras; the fixtures read as greybox slabs / floating blocks / single crop stage, matching the sprint-3 rejections. Per the owner rule "a no is fixed and re-shot; two failures -> BLOCKED", item 271 is BLOCKED on the look for those three candidates. Numeric contracts and the foam rework are green.
+
+== Decisions for designer ==
+- 271: foam rework is good (sits on water, observer yes). Terrace walls and sawah dressing still read as greybox slabs / floating blocks from both camera angles; golden crop stages show only one stage in frame. Needs real stone/nipa/padi assets baked into LookDevAssets and a staged look pass. Baked substitutes were used because the original lily 5044238410 and nipa 167594119 are not baked; upgrade path is to bake the real assets, then replace Data.MODEL_ID / Data.BAKED_IDS.
+
+== SECURITY ==
+No store model inserted raw; no HttpService; no model-sourced Command Bar code; place never saved or published.

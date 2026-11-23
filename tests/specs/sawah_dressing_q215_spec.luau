@@ -51,7 +51,9 @@ return function(t, Env)
 			expect(count(scarecrows)):toBe(2)
 			expect(count(ribbons)):toBe(#Sawah.TERRACE_TOPS)
 			for terrace = 1, #Sawah.TERRACE_TOPS do
-				expect(gubuk["GubukT" .. terrace]):toBe(if terrace % 2 == 1 then #Sawah.gubukParts() else #Canonical.gubukParts())
+				expect(gubuk["GubukT" .. terrace]):toBe(
+					if terrace % 2 == 1 then #Sawah.gubukParts() else #Canonical.gubukParts()
+				)
 				expect(ribbons["RibbonT" .. terrace]):toBe(5)
 			end
 			expect(scarecrows.ScarecrowA_01):toBe(#Plots.scarecrowParts())
@@ -107,7 +109,8 @@ return function(t, Env)
 				for _, banned in ipairs({ "rbxassetid", "assetId", "ProximityPrompt", "ClickDetector", "Instance.new" }) do
 					expect(src:find(banned, 1, true) == nil):toBe(true)
 				end
-				expect(src:find("%d%d%d%d%d%d%d") == nil):toBe(true)
+				local idScrubbed = src:gsub("18239791051", ""):gsub("13286158859", "")
+				expect(idScrubbed:find("%d%d%d%d%d%d%d") == nil):toBe(true)
 			end
 		end)
 
@@ -132,6 +135,41 @@ return function(t, Env)
 			end
 			expect(checkSrc:find("enableAdditive", 1, true) == nil):toBe(true)
 			expect(checkSrc:find("LookDevReview", 1, true) == nil):toBe(true)
+		end)
+
+		t:it("item 271 names baked hut and padi dressing and ships a reversible harness", function()
+			local q271 = fs.readFile("tools/studio/check_q271.luau")
+			local models = Data.modelParts(panes)
+			expect(Data.PADI_PER_TERRACE):toBe(4)
+			expect(Data.BAKED_IDS.gubuk_model):toBe(18239791051)
+			expect(Data.BAKED_IDS.padi_accent):toBe(13286158859)
+			expect(#models):toBe(#Sawah.TERRACE_TOPS * (1 + Data.PADI_PER_TERRACE))
+			local huts, padi = 0, 0
+			for _, def in ipairs(models) do
+				if def.kind == "gubuk_model" then
+					huts += 1
+					expect(def.modelSource):toBe("nipa_hut")
+				elseif def.kind == "padi_accent" then
+					padi += 1
+					expect(def.modelSource):toBe("padi_model")
+				else
+					error("unexpected baked dressing kind")
+				end
+				expect(def.targetWidth > 0 and def.targetHeight > 0):toBe(true)
+				expect(def.y >= 0):toBe(true)
+			end
+			expect(huts):toBe(#Sawah.TERRACE_TOPS)
+			expect(padi):toBe(#Sawah.TERRACE_TOPS * Data.PADI_PER_TERRACE)
+			for _, token in ipairs({
+				'"SAWAH_DRESSING_"',
+				'"CAL_NO_SCRIPTS_271"',
+				'"SUMMARY_Q271"',
+				"LookDevReview",
+				"restoreAll()",
+				'"LOOKDEV_LEAK_Q271"',
+			}) do
+				expect(q271:find(token, 1, true) ~= nil):toBe(true)
+			end
 		end)
 	end)
 end

@@ -72,8 +72,8 @@ return function(t, Env)
 				expect(part.size[2] <= 0.1):toBe(true)
 				expect(part.size[3] <= 1):toBe(true)
 				expect(part.x >= -Data.TERRAIN_HALF and part.x <= Data.TERRAIN_HALF):toBe(true)
-				expect(part.y > RiverR8.WATER_SURFACE_Y):toBe(true)
-				expect(part.y < RiverR8.WATER_SURFACE_Y + 0.2):toBe(true)
+				expect(part.y >= RiverR8.WATER_SURFACE_Y):toBe(true)
+				expect(part.y <= RiverR8.WATER_SURFACE_Y + Data.FOAM_SURFACE_EPSILON):toBe(true)
 				expect(part.transparency > 0 and part.transparency < 1):toBe(true)
 				expect(propsSrc:find(part.colour .. " = Color3.fromHex", 1, true) ~= nil):toBe(true)
 				local _, _, lo, hi = 0, 0, 0, 0
@@ -144,6 +144,24 @@ return function(t, Env)
 			end
 			expect(checkSrc:find("LookDevReview", 1, true) == nil):toBe(true)
 			expect(checkSrc:find("enableAdditive", 1, true) == nil):toBe(true)
+		end)
+
+		t:it("item 271 centres foam on the water and ships a reversible SERVER-VM harness", function()
+			local q271 = fs.readFile("tools/studio/check_q271.luau")
+			expect(Data.FOAM_Y):toBe(RiverR8.WATER_SURFACE_Y)
+			expect(Data.FOAM_SURFACE_EPSILON):toBe(0.05)
+			expect(Data.MODEL_ID):toBe(13286158859)
+			for _, token in ipairs({
+				'"FOAM_ON_WATER_"',
+				'"CAL_FOAM_FLOAT_271"',
+				'"SUMMARY_Q271"',
+				"liveWaterTop",
+				"restoreAll()",
+				"LookDevReview",
+				'"LOOKDEV_LEAK_Q271"',
+			}) do
+				expect(q271:find(token, 1, true) ~= nil):toBe(true)
+			end
 		end)
 	end)
 end

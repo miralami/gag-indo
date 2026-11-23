@@ -1,0 +1,96 @@
+# CHECK 255 - Hero review cameras (SEEN-IN-STUDIO, BLOCKED)
+
+Date: 2026-11-23
+Authoring agent: opencode (owner, miralami)
+Studio: Roblox Studio, fresh Play, Server VM, Rojo synced
+Status: **BLOCKED** (CG 28/28, CAL 2/2, SC 15/28, HERO_CLEAR 10/28)
+
+## Scope
+WORK_QUEUE item 255: add `hero_<id>` review camera for every r10 candidate plus default Warung, river_foam_212, terrace_walls_214. ClockTime 13; lamps also 21. SUBJECT_COVERAGE >= 0.30, CAMERA_GRASS PASS, HERO_CLEAR 0 for every hero camera. Clear terrain grass decoration under plots/ditches/fences.
+
+## Artifacts
+- `src/shared/ReviewCameras.luau` — 28 hero cameras, DAY_CLOCK=13, data-derived eyes (no literal world coords), registry 78->106.
+- `tests/specs/hero_cameras_q255_spec.luau` — hero camera contract spec.
+- `tools/studio/check_q255.luau` — Server-VM Studio check (SC255/CG255/HC255 + 2 calibration anchors).
+- `tests/specs/cameras_new_r10_spec.luau`, `tests/specs/review_cameras_q240_spec.luau`, `tests/run.luau` — count coupling updated.
+- `docs/v2/visual/REVIEW_CAMERAS.md` — 28 hero rows + 106 prose count.
+
+## Harness fixes applied during attempts
+1. Rendered subject-surface sampling for HERO_CLEAR (replaced interior-AABB samples). Excluded Terrain/ClassName Terrain from blockers.
+2. `lamps_r10_night` stages/measures `lamps_r10` (not a real review candidate).
+3. `tagSpecial` set `LookDevStage` to `measureId` (fixed undefined `id` bug causing "no staged candidate parts" for tagged/staged specials).
+4. Hill hero eye raised above saved hill grass; lookAt uses HILLS[4] rock/palm descriptor mean.
+5. Hub roof / bridge / furrow / foam / palm hero eyes re-framed closer (data-derived).
+
+## Live Studio result (attempt 4, 2026-11-23, fresh Play, Server VM)
+```text
+CHECK SC255_MEADOW_R10 FAIL 0.0000 0.30
+CHECK CG255_MEADOW_R10 PASS 0 0
+CHECK HC255_MEADOW_R10 FAIL 1 0
+CHECK SC255_GROUND_VARIATION_R10 FAIL 0.0000 0.30
+CHECK CG255_GROUND_VARIATION_R10 PASS 0 0
+CHECK HC255_GROUND_VARIATION_R10 FAIL 1 0
+CHECK SC255_PATHS_CURVED_R10 FAIL 0.0000 0.30
+CHECK CG255_PATHS_CURVED_R10 PASS 0 0
+CHECK HC255_PATHS_CURVED_R10 FAIL 1 0
+CHECK SC255_HORIZON_FILL_R10 FAIL 0.0000 0.30
+CHECK CG255_HORIZON_FILL_R10 PASS 0 0
+CHECK HC255_HORIZON_FILL_R10 FAIL 1 0
+CHECK SC255_MOUNTAINS_R10 PASS 0.8157 0.30
+CHECK CG255_MOUNTAINS_R10 PASS 0 0
+CHECK HC255_MOUNTAINS_R10 PASS 0 0
+CHECK SC255_HILL_DRESSING_R10 FAIL 0.0000 0.30
+CHECK CG255_HILL_DRESSING_R10 PASS 0 0
+CHECK HC255_HILL_DRESSING_R10 FAIL 7 0
+CHECK SC255_KAMPUNG_R10 PASS 0.6703 0.30
+CHECK CG255_KAMPUNG_R10 PASS 0 0
+CHECK HC255_KAMPUNG_R10 FAIL 9 0
+CHECK SC255_ROAD_FENCE_R10 PASS 0.7738 0.30
+CHECK CG255_ROAD_FENCE_R10 PASS 0 0
+CHECK HC255_ROAD_FENCE_R10 PASS 0 0
+CHECK SC255_LAMPS_R10 PASS 0.6667 0.30
+CHECK CG255_LAMPS_R10 PASS 0 0
+CHECK HC255_LAMPS_R10 FAIL 11 0
+CHECK SC255_SIGNPOSTS_R10 PASS 1.0000 0.30
+CHECK CG255_SIGNPOSTS_R10 PASS 0 0
+CHECK HC255_SIGNPOSTS_R10 FAIL 16 0
+CHECK SC255_BAMBOO_BRIDGE_R10 FAIL 0.1021 0.30
+CHECK CG255_BAMBOO_BRIDGE_R10 PASS 0 0
+CHECK HC255_BAMBOO_BRIDGE_R10 PASS 0 0
+CHECK SC255_FURROWS_R10 FAIL 0.0000 0.30
+CHECK CG255_FURROWS_R10 PASS 0 0
+CHECK HC255_FURROWS_R10 FAIL 12 0
+CHECK SC255_CROP_STAGES_R10 PASS 0.4706 0.30
+CHECK CG255_CROP_STAGES_R10 PASS 0 0
+CHECK HC255_CROP_STAGES_R10 PASS 0 0
+CHECK SC255_DITCH_WATER_R10 PASS 0.9583 0.30
+CHECK CG255_DITCH_WATER_R10 PASS 0 0
+CHECK HC255_DITCH_WATER_R10 FAIL 11 0
+CHECK SC255_DEFAULT_WARUNG PASS 0.3846 0.30
+CHECK CG255_DEFAULT_WARUNG PASS 0 0
+CHECK HC255_DEFAULT_WARUNG PASS 0 0
+CHECK SC255_RIVER_FOAM_212 FAIL 0.0000 0.30
+CHECK CG255_RIVER_FOAM_212 PASS 0 0
+CHECK HC255_RIVER_FOAM_212 FAIL 25 0
+CHECK SC255_TERRACE_WALLS_214 FAIL 0.0000 0.30
+CHECK CG255_TERRACE_WALLS_214 PASS 0 0
+CHECK HC255_TERRACE_WALLS_214 FAIL 25 0
+CHECK SC255_LAMPS_R10_NIGHT PASS 0.6667 0.30
+CHECK CG255_LAMPS_R10_NIGHT PASS 0 0
+CHECK HC255_LAMPS_R10_NIGHT FAIL 11 0
+CHECK CAL_CAMERA_GRASS_OLD_255 PASS 1 1
+SUMMARY_Q255 SC 15/28 CG 28/28 HERO_CLEAR 10/28 CAL 2/2
+```
+
+## Calibration
+- `CAL_CAMERA_GRASS_OLD_255` PASS (old low eye fails grass check).
+- `CAL_HERO_CLEAR_BLOCK_255` PASS (summary reports CAL 2/2).
+
+## Honest failures / next
+- Terrain-only/baked candidates (meadow, ground_variation, paths_curved, horizon_fill) have no staged `LookDevStage` parts: SC/HC honest FAIL by design. Needs part-tagging or terrain-aware coverage strategy decided by designer/owner.
+- hill_dressing_r10, terrace_walls_214, river_foam_212, furrows_r10: parts staged but hero framing misses or is blocked (SC 0.0000 / HC high). Needs closer/re-aimed hero eyes.
+- bamboo_bridge_r10: SC 0.1021, near miss.
+- HC failures on kampung/lamps/signposts/ditch_water/lamps_night: non-subject blockers between eye and subject surface samples; needs camera path clearance or subject isolation.
+- Terrain grass clearing under plots/ditches/fences (item text) not fully implemented as a repaint pass; only camera CG is green.
+
+No visual verdict. Do not save/publish place.

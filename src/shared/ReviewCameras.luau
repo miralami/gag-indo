@@ -31,6 +31,10 @@ local LampsR10: any = require(script.Parent.ModelMapLampsR10)
 local CropStagesR10: any = require(script.Parent.ModelMapCropStagesR10)
 local DitchWaterR10: any = require(script.Parent.ModelMapDitchWaterR10)
 local HillDressing: any = require(script.Parent.ModelMapHillDressingR10)
+local CanonicalR10: any = require(script.Parent.ModelMapCanonicalR10)
+local GroundVariationR10: any = require(script.Parent.ModelMapGroundVariationR10)
+local PathsCurvedR10: any = require(script.Parent.ModelMapPathsCurvedR10)
+local RiverFoam212: any = require(script.Parent.ModelMapRiverFoamQ212)
 local WorldConstants = require(script.Parent.Config.WorldConstants)
 
 export type Vec3 = { number }
@@ -55,6 +59,8 @@ local DIAGONAL = 1 / math.sqrt(2)
 -- convention); night = 21, the value lamp_night already carried from item 240.
 local GOLDEN_CLOCK = (WorldConstants.GOLDEN_HOUR.minClock + WorldConstants.GOLDEN_HOUR.maxClock) / 2
 local NIGHT_CLOCK = 21
+-- Item 255: the hero review set is shot at the fixed 13:00 review clock (not the golden window).
+local DAY_CLOCK = 13
 
 local function vec(x: number, y: number, z: number): Vec3
 	return { x, y, z }
@@ -771,6 +777,305 @@ add(
 	"Server",
 	"Item-250 close downward view of one plot's two ditch_water_r10 glass strips."
 )
+
+-- WORK_QUEUE item 255: one `hero_<id>` review camera per r10 candidate, plus the default Warung,
+-- river foam (212) and terrace walls (214). Where sprint 3 already proved coverage, hero views reuse
+-- the exact eye/target through reusedGeometry. The remaining eyes come from each candidate's data
+-- module subject centre plus MapSpec; the only literals here are dimensionless stand-off multiples,
+-- fractions and sign choices, never world coordinates.
+local function reusedGeometry(name: string): (Vec3, Vec3)
+	for _, camera in cameras do
+		if camera.name == name then
+			local position, lookAt = camera.position, camera.lookAt
+			return vec(position[1], position[2], position[3]), vec(lookAt[1], lookAt[2], lookAt[3])
+		end
+	end
+	error(`ReviewCameras: item-255 hero view is missing base camera {name}`)
+end
+
+local function heroReuse(name: string, base: string, purpose: string, clockTime: number?): ()
+	local position, lookAt = reusedGeometry(base)
+	add(name, position, lookAt, "Server", purpose, clockTime or DAY_CLOCK)
+end
+
+local HERO_STANDOFF = 6 -- 6 * MapSpec.S = 12 studs back along the subject radial
+local HERO_RISE = 5 -- eye 10 studs above grade, inside the item-255 6..10-stud band
+-- Item 255: hill hero eye must clear saved hill grass (CAMERA_GRASS) while framing the hill subject.
+local HERO_HILL_EYE_LIFT = 14
+local HERO_HILL_RADIUS_FRACTION = 0.2
+local HERO_HILL_STANDOFF = 1.5
+local HERO_HILL_LOOK_RISE = 4
+
+local function heroHillSubjectCentre(hillIndex: number): (number, number, number)
+	local sx, sy, sz, count = 0, 0, 0, 0
+	for _, part in ipairs(HillDressing.parts()) do
+		if part.hill == hillIndex and (part.kind == "rock" or part.kind == "palm") then
+			sx += part.position[1]
+			sy += part.position[2]
+			sz += part.position[3]
+			count += 1
+		end
+	end
+	if count == 0 then
+		local hill = HillDressing.HILLS[hillIndex]
+		return hill.x, MapSpec.GROUND_Y + HERO_HILL_LOOK_RISE, hill.z
+	end
+	return sx / count, sy / count, sz / count
+end
+
+local function outwardFrom(cx: number, cz: number, x: number, z: number): (number, number)
+	local dx, dz = x - cx, z - cz
+	local length = math.sqrt(dx * dx + dz * dz)
+	if length <= 0 then
+		return 1, 0
+	end
+	return dx / length, dz / length
+end
+
+local function heroCloseAt(x: number, y: number, z: number, cx: number, cz: number, standoff: number?): (Vec3, Vec3)
+	local ux, uz = outwardFrom(cx, cz, x, z)
+	local distance = MapSpec.S * (standoff or HERO_STANDOFF)
+	local subject = vec(x, y, z)
+	return vec(subject[1] + ux * distance, MapSpec.GROUND_Y + MapSpec.S * HERO_RISE, subject[3] + uz * distance),
+		subject
+end
+
+-- Sprint-3-proven geometry: exact reuse keeps the measured subject fraction of the base shot.
+heroReuse(
+	"hero_road_fence_r10",
+	"path_curve",
+	"Item-255 hero view of road_fence_r10: sprint-3 path_curve geometry, daytime."
+)
+heroReuse(
+	"hero_ditch_water_r10",
+	"ditch_water_close",
+	"Item-255 hero view of ditch_water_r10: sprint-3 ditch_water_close geometry, daytime."
+)
+heroReuse(
+	"hero_crop_stages_r10",
+	"crop_stages_close",
+	"Item-255 hero view of crop_stages_r10: sprint-3 crop_stages_close geometry, daytime."
+)
+local hillCentreX, hillCentreY, hillCentreZ = heroHillSubjectCentre(4)
+local heroHillEye = vec(
+	hillSubject.x,
+	MapSpec.GROUND_Y + HERO_HILL_EYE_LIFT + hillSubject.radius * HERO_HILL_RADIUS_FRACTION,
+	hillSubject.z + hillSubject.radius * HERO_HILL_STANDOFF
+)
+local heroHillLook = vec(hillCentreX, hillCentreY, hillCentreZ)
+add(
+	"hero_hill_dressing_r10",
+	heroHillEye,
+	heroHillLook,
+	"Server",
+	"Item-255 hero view of hill_dressing_r10 from a data-derived eye above the saved hill surface.",
+	DAY_CLOCK
+)
+heroReuse(
+	"hero_default_warung",
+	"hub_warung",
+	"Item-255 hero view of the default Warung: sprint-3 hub_warung geometry, daytime."
+)
+heroReuse(
+	"hero_kampung_r10",
+	"kampung_view",
+	"Item-255 hero view of kampung_r10: sprint-3 kampung_view geometry, daytime."
+)
+do
+	local bridgeZMid = (bridge.z0 + bridge.z1) / 2
+	add(
+		"hero_bamboo_bridge_r10",
+		vec(bridge.x + MapSpec.S * 2, deckY + MapSpec.S * 2, bridgeZMid - MapSpec.S),
+		vec(bridge.x, deckY, bridgeZMid),
+		"Server",
+		"Item-255 close side hero view of bamboo_bridge_r10 from the north-east bank, above deck.",
+		DAY_CLOCK
+	)
+end
+heroReuse(
+	"hero_signposts_r10",
+	"signpost_pasar",
+	"Item-255 hero view of signposts_r10: sprint-3 signpost_pasar geometry, daytime."
+)
+heroReuse(
+	"hero_lamps_r10",
+	"lamp_night",
+	"Item-255 hero view of lamps_r10 at ClockTime 13: sprint-3 lamp_night geometry.",
+	DAY_CLOCK
+)
+heroReuse(
+	"hero_lamps_r10_night",
+	"lamp_night",
+	"Item-255 hero view of lamps_r10 at ClockTime 21: same geometry as hero_lamps_r10.",
+	NIGHT_CLOCK
+)
+add(
+	"hero_terrace_walls_214",
+	heroHillEye,
+	heroHillLook,
+	"Server",
+	"Item-255 hero view of the default terrace walls (214) from the same above-hill hero eye.",
+	DAY_CLOCK
+)
+
+-- Hub and plot subjects already have framed cameras; reuse those instead of inventing new eyes.
+do
+	local function heroHubRoof(name: string, hubKey: string, purpose: string)
+		local hub = MapSpec.hub(hubKey)
+		assert(hub, `ReviewCameras: no hub {hubKey}`)
+		local side = hubSides[hubKey]
+		local standoff = HUB_STANDOFF / 3
+		local outX = (hub.width / 2 + standoff * DIAGONAL) * side
+		local outZ = hub.depth / 2 + standoff * DIAGONAL
+		local x, z = MapSpec.hubPoint(hub, outX, outZ)
+		add(
+			name,
+			vec(x, MapSpec.GROUND_Y + HUB_RISE * 0.8, z),
+			vec(hub.x, MapSpec.GROUND_Y + hub.ridge * 0.6, hub.z),
+			"Server",
+			purpose,
+			DAY_CLOCK
+		)
+	end
+	heroHubRoof(
+		"hero_hub_canopy_r10",
+		"pasar",
+		"Item-255 close hero view of hub_canopy_r10 from a half-standoff Pasar 3/4."
+	)
+	heroHubRoof(
+		"hero_pasar_roof_r10",
+		"pasar",
+		"Item-255 close hero view of pasar_roof_r10 from a half-standoff Pasar 3/4."
+	)
+	heroHubRoof(
+		"hero_polisi_roof_r10",
+		"polisi",
+		"Item-255 close hero view of polisi_roof_r10 from a half-standoff Polisi 3/4."
+	)
+end
+heroReuse("hero_pakrt_roof_r10", "hub_pakrt", "Item-255 hero view of pakrt_roof_r10 from the framed Pak RT hub 3/4.")
+heroReuse(
+	"hero_warung_cluster_r10",
+	"hub_warung",
+	"Item-255 hero view of warung_cluster_r10 from the framed Warung hub 3/4."
+)
+heroReuse(
+	"hero_blocks_shrubs_r10",
+	"plot_aerial_04",
+	"Item-255 hero view of blocks_shrubs_r10 from a framed plot aerial."
+)
+heroReuse("hero_sawah_gubuk_r10", "plot_aerial_02", "Item-255 hero view of sawah_gubuk_r10 from a framed plot aerial.")
+heroReuse(
+	"hero_plots_mailbox_r10",
+	"plot_aerial_01",
+	"Item-255 hero view of plots_mailbox_r10 from a framed plot aerial."
+)
+do
+	local Furrows = require(script.Parent.ModelMapFurrowsR10)
+	local firstFurrow = Furrows.parts()[1]
+	assert(firstFurrow, "ReviewCameras: furrows_r10 has no first strip")
+	local fp = firstFurrow.position
+	local furrowPlotX, furrowPlotZ = Game.plotCenter(firstFurrow.plot)
+	local fr = math.sqrt(furrowPlotX * furrowPlotX + furrowPlotZ * furrowPlotZ)
+	local ux, uz = furrowPlotX / fr, furrowPlotZ / fr
+	add(
+		"hero_furrows_r10",
+		vec(fp[1] + ux * MapSpec.S * 6, MapSpec.GROUND_Y + MapSpec.S * 6, fp[3] + uz * MapSpec.S * 6),
+		vec(fp[1], MapSpec.GROUND_Y + 2, fp[3]),
+		"Server",
+		"Item-255 close downward hero view of the first furrows_r10 strip on the demo plot.",
+		DAY_CLOCK
+	)
+end
+heroReuse("hero_meadow_r10", "meadow_view", "Item-255 hero view of meadow_r10 from the framed meadow camera.")
+heroReuse(
+	"hero_horizon_fill_r10",
+	"horizon_north",
+	"Item-255 hero view of horizon_fill_r10 from the framed north-horizon camera."
+)
+heroReuse(
+	"hero_mountains_r10",
+	"horizon_north",
+	"Item-255 hero view of mountains_r10 from the framed north-horizon camera."
+)
+
+-- Subjects with no framed base: derive a close eye from the authored data centre and MapSpec.
+local balaiSlot = MapSpec.FUTURE_SLOTS[1]
+assert(balaiSlot, "ReviewCameras: item-255 has no balai future slot")
+local balaiEye, balaiLook = heroCloseAt(
+	balaiSlot.x,
+	MapSpec.GROUND_Y + MapSpec.S * (HERO_RISE - 1),
+	balaiSlot.z,
+	MapSpec.PLAZA.x,
+	MapSpec.PLAZA.z
+)
+add(
+	"hero_balai_r10",
+	balaiEye,
+	balaiLook,
+	"Server",
+	"Item-255 close hero view of the balai_r10 pavilion at MapSpec.FUTURE_SLOTS[1].",
+	DAY_CLOCK
+)
+
+local palmAnchor = CanonicalR10.anchorsFor("river_palms_r10", { MapSpec = MapSpec })[1]
+assert(palmAnchor, "ReviewCameras: river_palms_r10 has no first anchor")
+do
+	local riverZ = MapSpec.riverCentreZ(palmAnchor.x)
+	local side = if palmAnchor.z < riverZ then 1 else -1
+	local standoff = MapSpec.S * 3
+	add(
+		"hero_river_palms_r10",
+		vec(palmAnchor.x, MapSpec.GROUND_Y + MapSpec.S * HERO_RISE, palmAnchor.z + side * standoff),
+		vec(palmAnchor.x, MapSpec.GROUND_Y + palmAnchor.height / 2, palmAnchor.z),
+		"Server",
+		"Item-255 close hero view of the first river_palms_r10 palm pair from the river side, looking at anchor.",
+		DAY_CLOCK
+	)
+end
+
+local groundBlob = GroundVariationR10.blobs()[1]
+assert(groundBlob, "ReviewCameras: ground_variation_r10 has no first blob")
+local groundEye, groundLook =
+	heroCloseAt(groundBlob.x, MapSpec.GROUND_Y + MapSpec.S, groundBlob.z, MapSpec.PLAZA.x, MapSpec.PLAZA.z)
+add(
+	"hero_ground_variation_r10",
+	groundEye,
+	groundLook,
+	"Server",
+	"Item-255 close hero view of the first ground_variation_r10 painted blob.",
+	DAY_CLOCK
+)
+
+local curvedPath = PathsCurvedR10.paths()[1]
+local curvedPoint = curvedPath.points[math.ceil(#curvedPath.points / 2)]
+assert(curvedPoint, "ReviewCameras: paths_curved_r10 has no mid control point")
+local curvedPlotX, curvedPlotZ = Game.plotCenter(curvedPath.plotIndex)
+local curvedEye, curvedLook =
+	heroCloseAt(curvedPoint.x, MapSpec.GROUND_Y + MapSpec.S / 2, curvedPoint.z, curvedPlotX, curvedPlotZ)
+add(
+	"hero_paths_curved_r10",
+	curvedEye,
+	curvedLook,
+	"Server",
+	"Item-255 close hero view of the first paths_curved_r10 serpentine spoke at its mid control point.",
+	DAY_CLOCK
+)
+
+local foamPart = RiverFoam212.parts()[1]
+assert(foamPart, "ReviewCameras: river_foam_q212 has no first foam strip")
+do
+	local foamSide = if foamPart.Side == "south" then -1 else 1
+	local standoff = MapSpec.S * 2
+	add(
+		"hero_river_foam_212",
+		vec(foamPart.x, MapSpec.GROUND_Y + 8, foamPart.z + foamSide * standoff),
+		vec(foamPart.x, foamPart.y, foamPart.z),
+		"Server",
+		"Item-255 close hero view of the first river_foam_212 bank strip from directly above its authored side.",
+		DAY_CLOCK
+	)
+end
 
 local byName: { [string]: ReviewCamera } = {}
 for _, camera in cameras do

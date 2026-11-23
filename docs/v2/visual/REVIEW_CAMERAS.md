@@ -1,7 +1,7 @@
 # Review cameras (WORK_QUEUE section M item 69)
 
 Registry: `src/shared/ReviewCameras.luau` (`ReviewCameras.all()`, `.get(name)`, `.names()`).
-45 named cameras at item 118; 54 named cameras after item 133; 67 named cameras after item 216; 69 named cameras after item 240; 78 named cameras after items 218, 247 and 250 (eight lighting variants plus `crop_stages_golden`). Coordinates are computed at load from `src/server/World/MapSpec.luau` (hub centres,
+45 named cameras at item 118; 54 named cameras after item 133; 67 named cameras after item 216; 69 named cameras after item 240; 78 named cameras after items 218, 247 and 250 (eight lighting variants plus `crop_stages_golden`); 106 named cameras after item 255 (28 `hero_*` views). Coordinates are computed at load from `src/server/World/MapSpec.luau` (hub centres,
 footprints, road ring, bridge, terraces, hill edge, spawn), `src/shared/Config/Game.luau` (plot-ring
 angles/radius) and `ModelMapVegetationR7.savedCamera` (the current saved spawn camera). No hand-typed
 world coordinates. `ReviewCameras.clearDistance` is the 6-stud `CAMERA_CLEAR` ray length.
@@ -104,6 +104,44 @@ Item 211 (2026-11-23) data note: the DEFAULT-look Pos Ronda floor now carries ta
 | `horizon_north` | Server | North horizon over the hill and forest band from outside the playable square. |
 | `horizon_south` | Server | South horizon over the bridge and river band from outside the playable square. |
 | `fountain_close` | Server | Close view of the plaza fountain and its basin from the north-east approach. |
+
+## Item 255 hero cameras
+
+All `hero_*` cameras are ClockTime 13 except `hero_lamps_r10_night` (21). Where sprint 3 already
+proved coverage the hero view reuses the exact base eye/target; the rest derive a close eye from the
+candidate's data module and `MapSpec`. They are the cameras the item-255 `SUBJECT_COVERAGE >= 0.30`,
+`CAMERA_GRASS` and `HERO_CLEAR` Studio check measures; verdicts stay pending the designer.
+
+| Name | Datamodel | Purpose |
+|---|---|---|
+| `hero_balai_r10` | Server | Item-255 close hero view of the balai_r10 pavilion at FUTURE_SLOTS[1]. |
+| `hero_hub_canopy_r10` | Server | Item-255 hero view of hub_canopy_r10 over the plaza. |
+| `hero_blocks_shrubs_r10` | Server | Item-255 hero view of blocks_shrubs_r10 in the plots. |
+| `hero_pasar_roof_r10` | Server | Item-255 hero view of the pasar_roof_r10 roof. |
+| `hero_warung_cluster_r10` | Server | Item-255 hero view of warung_cluster_r10 from the framed Warung eye. |
+| `hero_polisi_roof_r10` | Server | Item-255 hero view of the polisi_roof_r10 roof. |
+| `hero_pakrt_roof_r10` | Server | Item-255 hero view of the pakrt_roof_r10 roof. |
+| `hero_sawah_gubuk_r10` | Server | Item-255 hero view of the sawah_gubuk_r10 hut. |
+| `hero_plots_mailbox_r10` | Server | Item-255 hero view of plots_mailbox_r10. |
+| `hero_river_palms_r10` | Server | Item-255 close hero view of the first river_palms_r10 bank anchor. |
+| `hero_meadow_r10` | Server | Item-255 hero view of meadow_r10 from the framed meadow camera. |
+| `hero_ground_variation_r10` | Server | Item-255 close hero view of the first ground_variation_r10 tone blob. |
+| `hero_paths_curved_r10` | Server | Item-255 close hero view of the first paths_curved_r10 serpentine spoke. |
+| `hero_horizon_fill_r10` | Server | Item-255 hero view of horizon_fill_r10 from the north-horizon camera. |
+| `hero_mountains_r10` | Server | Item-255 hero view of mountains_r10 from the north-horizon camera. |
+| `hero_hill_dressing_r10` | Server | Item-255 hero view of hill_dressing_r10 from a data-derived eye above the saved hill surface. |
+| `hero_kampung_r10` | Server | Item-255 hero view of kampung_r10 from the framed kampung camera. |
+| `hero_road_fence_r10` | Server | Item-255 hero view of road_fence_r10: sprint-3 path_curve geometry, daytime. |
+| `hero_lamps_r10` | Server | Item-255 hero view of lamps_r10 at ClockTime 13: sprint-3 lamp_night geometry. |
+| `hero_lamps_r10_night` | Server | Item-255 hero view of lamps_r10 at ClockTime 21: same geometry as hero_lamps_r10. |
+| `hero_signposts_r10` | Server | Item-255 hero view of signposts_r10 from the framed signpost camera. |
+| `hero_bamboo_bridge_r10` | Server | Item-255 hero view of bamboo_bridge_r10 from the framed bridge camera. |
+| `hero_furrows_r10` | Server | Item-255 hero view of furrows_r10 in the plots. |
+| `hero_crop_stages_r10` | Server | Item-255 hero view of crop_stages_r10: sprint-3 crop_stages_close geometry, daytime. |
+| `hero_ditch_water_r10` | Server | Item-255 hero view of ditch_water_r10: sprint-3 ditch_water_close geometry, daytime. |
+| `hero_default_warung` | Server | Item-255 hero view of the default Warung: sprint-3 hub_warung geometry, daytime. |
+| `hero_river_foam_212` | Server | Item-255 close hero view of the first river_foam_212 bank strip. |
+| `hero_terrace_walls_214` | Server | Item-255 hero view of the default terrace walls (214) from the above-hill hero eye. |
 
 ## Notes
 

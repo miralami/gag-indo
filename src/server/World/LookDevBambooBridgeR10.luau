@@ -1,13 +1,13 @@
 --!strict
 -- LookDevBambooBridgeR10: SERVER-ONLY applier for the OFF-BY-DEFAULT "bamboo_bridge_r10"
--- candidate (WORK_QUEUE item 204, SPRINT 1; item 245, SPRINT 2 made the deck real bamboo culms;
--- item 252, SPRINT 3 hides the default timber bridge while staged).
--- Stages 14 Cylinder culms with node rings, two round rails with node rings, rope ties and four
--- end posts in their own Workspace folder. Every staged Part is Anchored and non-collidable.
+-- candidate (WORK_QUEUE items 204/245/252; item 258 restages it as the concrete village bridge).
+-- Stages a baked Indonesia Concrete Bridge slab, 14 dark concrete deck slabs, four yellow square
+-- posts, two black pipe rails, four white river-stone pillars and a striped curb in their own
+-- Workspace folder. Every staged Part is Anchored and non-collidable.
 -- While staged, the default Greybox bridge (BridgeDeck/BridgePost/BridgeRail/BridgeRamp, found by
 -- name, never by candidate tag) is hidden with Transparency=1 / CanCollide=false; restore writes the
 -- exact saved values back. No geometry is duplicated: the hidden parts keep the walk lane shape.
--- Geometry and colours come only from Shared.ModelMapBambooBridgeR10; no asset IDs or visual verdict.
+-- Geometry and colours come from Shared.ModelMapBambooBridgeR10; the baked asset id lives here.
 -- apply/restore are idempotent; restore is LIFO over everything created or saved here, destroys only
 -- created instances, and is pcall-guarded throughout.
 --   require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("bamboo_bridge_r10", game)
@@ -42,10 +42,11 @@ else
 	return {}
 end
 
-local okModules, LookDev, Data, LookDevFailures = pcall(function()
+local okModules, LookDev, Data, LookDevFailures, LookDevAssetLoader = pcall(function()
 	return require((Shared :: any).LookDev),
 		require((Shared :: any).ModelMapBambooBridgeR10),
-		require((Shared :: any).LookDevFailures)
+		require((Shared :: any).LookDevFailures),
+		require(script.Parent.LookDevAssetLoader)
 end)
 if not okModules or not LookDev or not Data or not LookDevFailures then
 	warn("[LookDevBambooBridgeR10] could not require LookDev / ModelMapBambooBridgeR10 / LookDevFailures")
@@ -54,6 +55,8 @@ end
 
 local LookDevBambooBridgeR10 = {}
 
+-- Verified pick 1 for item 258 ("Indonesia Concrete Bridge"). Kept out of the pure data module.
+local ASSET_ID = 8029943234
 local FAMILY_ID = Data.id
 local STAGE_ATTR = "LookDevStage"
 local DEFAULT_BRIDGE_NAMES = {
@@ -202,14 +205,18 @@ local function stageFolder(): any?
 	return instance
 end
 
--- A Cylinder's height is local Y: rails and rail nodes run along the bridge's Z axis,
--- deck culms and their nodes lie across the 6-stud lane on X.
-local function culmRotation(kind: string)
-	if kind == "rail_left" or kind == "rail_right" or kind == "node_rail" then
+local function tagInstance(instance: any, role: string)
+	pcall(function()
+		instance:SetAttribute("BambooBridge", true)
+		instance:SetAttribute("role", role)
+		instance:SetAttribute(STAGE_ATTR, FAMILY_ID)
+	end)
+end
+
+-- A Cylinder's height is local Y: the pipe rails run along the bridge's Z axis.
+local function roleRotation(role: string)
+	if role == "rail_left" or role == "rail_right" then
 		return CFrame.Angles(math.pi / 2, 0, 0)
-	end
-	if kind == "deck" or kind == "node_deck" then
-		return CFrame.Angles(0, 0, math.pi / 2)
 	end
 	return CFrame.new()
 end
@@ -227,22 +234,28 @@ local function stagePart(descriptor: any, parent: any)
 		instance.Shape = shape
 		instance.Size = Vector3.new(descriptor.size[1], descriptor.size[2], descriptor.size[3])
 		local position = CFrame.new(descriptor.position[1], descriptor.position[2], descriptor.position[3])
-		position *= culmRotation(descriptor.kind)
+		position *= roleRotation(descriptor.kind)
 		instance.CFrame = position
 		instance.Color = Color3.fromRGB(descriptor.color.r, descriptor.color.g, descriptor.color.b)
+		if descriptor.material then
+			local okMaterial, material = pcall(function()
+				return (Enum :: any).Material[descriptor.material]
+			end)
+			if okMaterial and material then
+				instance.Material = material
+			end
+		end
 		instance.Anchored = true
 		instance.CanCollide = false
 		instance.CastShadow = false
 		instance.Name = descriptor.name
-		instance:SetAttribute("BambooBridge", true)
-		instance:SetAttribute("role", descriptor.kind)
-		instance:SetAttribute(STAGE_ATTR, FAMILY_ID)
 		return instance
 	end)
 	if not okPart or not part then
 		fail("could not build " .. tostring(descriptor and descriptor.name) .. ": " .. tostring(part))
 		return
 	end
+	tagInstance(part, descriptor.kind)
 	created[#created + 1] = part
 	local okParent, why = pcall(function()
 		part.Parent = parent
@@ -250,6 +263,113 @@ local function stagePart(descriptor: any, parent: any)
 	if not okParent then
 		fail("could not parent " .. tostring(descriptor.name) .. ": " .. tostring(why))
 	end
+end
+
+local function modelBounds(model: any)
+	local ok, cframe, size = pcall(function()
+		if model:IsA("Model") then
+			return model:GetBoundingBox()
+		end
+		if model:IsA("BasePart") then
+			return model.CFrame, model.Size
+		end
+		return nil, nil
+	end)
+	if ok and cframe and size then
+		return cframe, size
+	end
+	return nil, nil
+end
+
+-- Clone-first baked model. Strip scripts defensively, neutralise physics, darken the deck Unions
+-- and tag every descendant so no baked part escapes the LIFO restore.
+local function stageBakedBridge(parent: any)
+	if not LookDevAssetLoader then
+		fail("LookDevAssetLoader unavailable; baked concrete bridge not staged")
+		return
+	end
+	local okLoad, model = pcall(function()
+		return (LookDevAssetLoader :: any).baked(ASSET_ID)
+	end)
+	if not okLoad or not model then
+		fail("could not load baked concrete bridge " .. tostring(ASSET_ID) .. ": " .. tostring(model))
+		return
+	end
+
+	local okClean, why = pcall(function()
+		for _, child in ipairs(model:GetDescendants()) do
+			if child:IsA("LuaSourceContainer") then
+				child:Destroy()
+			end
+		end
+	end)
+	if not okClean then
+		fail("could not strip baked scripts: " .. tostring(why))
+	end
+
+	local _, size = modelBounds(model)
+	if size and size.X > 0 then
+		local factor = (Data :: any).model.targetWidth / size.X
+		if factor > 0 and factor <= 10000 then
+			pcall(function()
+				if model:IsA("Model") then
+					model:ScaleTo(factor)
+				elseif model:IsA("BasePart") then
+					model.Size = model.Size * factor
+				end
+			end)
+		end
+	end
+
+	local okParts, parts = pcall(function()
+		return model:GetDescendants()
+	end)
+	if okParts and type(parts) == "table" then
+		for _, child in ipairs(parts) do
+			pcall(function()
+				if child:IsA("BasePart") then
+					child.Anchored = true
+					child.CanCollide = false
+					child.CastShadow = false
+				end
+				if child:IsA("UnionOperation") then
+					child.Color = Color3.fromRGB(
+						(Data :: any).model.color.r,
+						(Data :: any).model.color.g,
+						(Data :: any).model.color.b
+					)
+					child.Material = Enum.Material.Concrete
+				end
+				tagInstance(child, (Data :: any).model.role)
+			end)
+		end
+	end
+	tagInstance(model, (Data :: any).model.role)
+
+	local okPlace, placeWhy = pcall(function()
+		local bboxCFrame, _ = modelBounds(model)
+		local pivot: any = if model:IsA("Model") then model:GetPivot() else model.CFrame
+		if bboxCFrame and pivot then
+			local offset = bboxCFrame.Position - pivot.Position
+			local position = (Data :: any).model.position
+			local target = CFrame.new(Vector3.new(position[1], position[2], position[3]) - offset)
+			if model:IsA("Model") then
+				model:PivotTo(target)
+			else
+				model.CFrame = target
+			end
+		end
+		model.Name = (Data :: any).model.name
+		model.Parent = parent
+	end)
+	if not okPlace then
+		pcall(function()
+			model:Destroy()
+		end)
+		fail("could not place baked concrete bridge: " .. tostring(placeWhy))
+		return
+	end
+	created[#created + 1] = model
 end
 
 local function apply(_plan: any)
@@ -262,6 +382,7 @@ local function apply(_plan: any)
 	stageFolder()
 	local root = folder
 	if root then
+		stageBakedBridge(root)
 		local okParts, parts = pcall(function()
 			return (Data :: any).parts()
 		end)

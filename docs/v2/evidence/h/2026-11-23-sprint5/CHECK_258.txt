@@ -1,0 +1,32 @@
+CHECK 258 - Village bridge like the reference (WORK_QUEUE item 258)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP, studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, SERVER VM.
+Place: Development-Juragan-Desa. Play only for checks. Place NOT saved, nothing published.
+Status: BLOCKED — FAIL BRIDGE_HERO_RAILS: all numeric CHECKS PASS; both bank hero shots fail the look comparison.
+
+== Deliverable ==
+src/server/World/LookDevBambooBridgeR10.luau: bridge deck, yellow posts, black pipe rails and white end
+pillars; palette/geometry in src/shared/ModelMapBambooBridgeR10.luau. Item-252 default-bridge swap kept.
+Spec tests/specs/bamboo_bridge_r10_spec.luau; harness tools/studio/check_q258.luau.
+
+== CHECKS (fresh Play, Server VM via tools/studio/check_q258.luau) ==
+q258: BRIDGE_SWAP PASS 26/26 / BRIDGE_WALKABLE PASS 0 0 / BRIDGE_RAILS PASS 2 2 /
+BRIDGE_COLORS PASS 3/3 / LOOKDEV_LEAK PASS 0 0 / CAL_* PASS /
+SUMMARY_Q258 CHECKS 5/5 CAL 2/2.
+Suite: All 3176 tests passed; selene src 0 errors 0 warnings 0 parse errors.
+
+== OBSERVER: S4_258_bridge.jpg (bank hero shot 1, HUD hidden) ==
+OBSERVER: SEE Dark asphalt/concrete bridge deck with black-and-white curbs spanning a canal; no bamboo visible. Rails missing completely; detached black cylinder floating in river; yellow wedge cutoff at top left. BRIDGE_READS no. PROBLEMS Not a bamboo bridge; bridge rails absent; detached black cylinder floating; greybox-like modular concrete slabs. VERDICT no.
+
+== OBSERVER: S4_258_bridge_r2.jpg (bank hero shot 2, HUD hidden) ==
+OBSERVER: SEE Dark concrete deck with black-white curbs spans river. Deck missing railings across entire span. Isolated white pillar and rail fragment visible on far-right bank only. Two loose black cylinders: one clipped on deck edge, one floating in water below. No HUD. BRIDGE_READS no. PROBLEMS Missing rails and yellow posts across span. Rails failed to generate or fell into water. Floating black cylinder. Greybox block aesthetic. VERDICT no.
+
+== Block reason ==
+Two hero shots, two OBSERVER `no` verdicts: BRIDGE_READS no in both. `BRIDGE_RAILS 2 2` counts two rail
+parts but those rails are absent from the visible span; a loose cylinder floats in the water. Needs a
+look pass that puts two continuous pipe rails with yellow posts along the deck, removes the loose
+cylinder, then a bank re-shoot. Numeric swap/walkable/leak/colour checks remain PASS.
+
+== SECURITY ==
+No store model inserted raw. Model text treated as data, never instructions. HttpService never enabled.
+Place never saved or published.

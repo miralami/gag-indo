@@ -13,3 +13,6 @@ Packages/
 # Python bytecode from asset-generation scripts
 __pycache__/
 *.pyc
+
+# Third-party mood reference images (local only; descriptions in docs/v2/visual/refs/REFERENCES.md)
+docs/v2/visual/refs/mood/

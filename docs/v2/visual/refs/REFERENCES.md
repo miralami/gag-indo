@@ -23,3 +23,20 @@ Designer notes to keep (2026-11-23):
 - Mountains: the layered-scenery idea is right; it has to be visible as distant layered ridges.
 - Hill dressing: accepted; make the rocks bigger, and do small rocks with terrain texture, not parts.
 - Default look (spawn, overview): better; improve later following the map plan.
+
+## Mood references (designer, 2026-11-23)
+
+The image files live in `docs/v2/visual/refs/mood/` **on the designer's machine only** (git-ignored:
+they are third-party images and the repo is public). Agents on this machine can open them; anyone
+else works from the descriptions below.
+
+| File | What it is | What to take from it |
+|---|---|---|
+| `view_corridors_concept.jpg` | Stylized concept art, three "Key View Corridors": (1) spawn to Pasar, central life; (2) plots to sawah, nature view; (3) south to village, river and bridge | **The target look overall.** Warm packed-dirt paths, chunky trees with big round leafy canopies, houses with terracotta roofs and wooden porches, flowers and crates along every path, and blue-green layered mountains closing each view. Each corridor is a framed view with a path leading the eye to a landmark. Use these three as hero camera framings. |
+| `village_road_photo.jpg` | Real Indonesian village road | Narrow road with houses and verandas on one side and rice paddies on the other, a water ditch between road and paddies, short grass on the bunds, banana and coconut palms, misty hills behind. The ditch and paddy edge are what `ditch_water` and the sawah should look like. |
+| `village_night_photo.jpg` | Village lane at night | Warm single bulbs on porches and under eaves, not tall street lights; stony dirt lane; palm silhouettes; starry sky. Reference for `lamps` and the night look. |
+| `terraces_mountains_photo.jpg` | Terraced rice fields in a mountain valley | Background: layered ridges fading bluer with distance, a valley gap in the middle, forest on the slopes, terraces with low stone walls stepping down, small houses on the slopes. Reference for `mountains`, `hill_dressing` and `terrace_walls`. |
+
+Main lessons: grass is short (paths, bunds and yards are bare earth or short turf), every view has a
+leading path and a landmark, and the horizon is always closed by layered mountains, never an open
+flat plane.

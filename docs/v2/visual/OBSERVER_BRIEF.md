@@ -43,6 +43,10 @@ compare:
 - `bridge_ref.jpg`: the bridge style (dark concrete deck, yellow posts, black pipe rails, white
   stone-pattern pillars, black-white striped curb).
 - `store_picks_*.jpg` and `REFERENCES.md`: the chosen store models.
+- `mood/view_corridors_concept.jpg` (the target look), `mood/village_road_photo.jpg`,
+  `mood/village_night_photo.jpg`, `mood/terraces_mountains_photo.jpg`: overall mood and background.
+  Their descriptions are in `REFERENCES.md` under "Mood references". When a mood image is present,
+  compare the shot to it and say in `OPINION` how far it is from that look.
 
 Earlier verdicts and the designer's comments: `docs/v2/visual/PROVISIONAL_VERDICTS.md` (the
 "Designer" column is the designer's own call).

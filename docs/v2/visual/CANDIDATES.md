@@ -128,7 +128,7 @@ filled by an agent. Asset IDs come from real Open Cloud operations and are recor
 | `horizon_fill_r10` | Distant ground skirt / sea plane + matching Atmosphere haze, no grey horizon void (round 10, gap row 4) | `LookDev.enable("horizon_fill_r10")` | `docs/v2/visual/CANONICAL_GAP.md` | One anchored non-collidable plane beyond the map edge + Atmosphere.Haze 2.0 / pale sky-horizon colour; byte-exact restore; no asset IDs, no measured fps cost | pending — review in Studio |
 | `mountains_r10` | Distant low-poly mountain silhouettes and one faint-smoke volcano beyond the map edge (sprint 1 item 198, shape/distance rework item 251) | `LookDev.enable("mountains_r10")` | `docs/v2/visual/CANONICAL_GAP.md` | Anchored non-collidable stacked Wedge/Cylinder Rock/Slate Parts beyond radius 450 and >=250 studs from horizon_north and every spawn, one translucent smoke Cylinder; no Block or SmoothPlastic; destroy-only restore; no asset IDs, no measured fps cost | pending — review in Studio |
 | `hill_dressing_r10` | Rock outcrops, terrace steps and palms on the four hills (sprint 1 item 199) | `LookDev.enable("hill_dressing_r10")` | `docs/v2/visual/CANONICAL_GAP.md` | Anchored non-collidable tagged Parts on hill slopes, destroy-only restore; no asset IDs, no measured fps cost | pending — review in Studio |
-| `kampung_r10` | Twelve non-interactive kampung houses with small yards in three outskirt clusters (sprint 1 item 200) | `LookDev.enable("kampung_r10")` | `docs/v2/visual/CANONICAL_GAP.md` | Anchored non-collidable tagged Parts, no ProximityPrompt/ClickDetector, destroy-only restore; no asset IDs, no measured fps cost | pending — review in Studio |
+| `kampung_r10` | Twelve non-interactive kampung houses with small yards in three outskirt clusters (sprint 1 item 200) | `LookDev.enable("kampung_r10")` | `docs/v2/visual/CANONICAL_GAP.md` | Anchored non-collidable tagged Parts, Wedge/Cylinder hedge-shrub clusters within the old 4-stud yard footprint (item 253), no ProximityPrompt/ClickDetector, destroy-only restore; no asset IDs, no measured fps cost | pending — review in Studio |
 | `road_fence_r10` | Low bamboo fences on six hub road approaches with 8-stud junction gaps (sprint 1 item 201) | `LookDev.enable("road_fence_r10")` | `docs/v2/visual/CANONICAL_GAP.md` | Anchored non-collidable 1.2-stud posts/rails within radius 120, destroy-only restore; no asset IDs, no measured fps cost | pending — review in Studio |
 | `lamps_r10` | Twelve warm obor/lentera lamps on the ring road, lit only at night (sprint 1 item 202) | `LookDev.enable("lamps_r10")` | `docs/v2/visual/CANONICAL_GAP.md` | Anchored non-collidable poles + lanterns, one shadowless PointLight per lamp (range <=16), night-only toggle, destroy-only restore; no asset IDs, no measured fps cost | pending — review in Studio |
 | `signposts_r10` | Wooden papan petunjuk at the 4 junctions, bilingual Pasar/Plot/Sungai/Sawah text (sprint 1 item 203) | `LookDev.enable("signposts_r10")` | `docs/v2/visual/CANONICAL_GAP.md` | 4 staged post+board groups with SurfaceGui TextLabel at TextSize 18, text keys in Strings.luau with id/en, destroy-only restore; no asset IDs, no measured fps cost | pending — review in Studio |
@@ -141,6 +141,14 @@ Item 223 (2026-11-23) documentation pass: every sprint 2/3 `LookDev.IDS` id has 
 `pending` designer cell, including `paths_curved_r10` and `kampung_r10`. `full_r10` is not registered
 in `LookDev.IDS` (it names the item-220 perf census), so no candidate row is invented for it. These
 rows are documentation only; no visual yes/no is recorded by an agent.
+
+Item 253 (2026-11-23) factual note: in the reviewed Studio place `ServerStorage.LookDevAssets` has
+zero children, so `LookDevAssetLoader.baked` cannot supply the item-241 shrub bakes. `kampung_r10`
+yard shrubs are therefore anchored, non-collidable Wedge/Cylinder hedge clusters inside the old
+4-stud Ball footprint; no asset ID is declared and no `LoadAsset` fallback is used. This is a
+reversible substitution for the designer's "Decisions for designer" list: if bakes are added later,
+the hedge cluster can be swapped back to baked Models without changing houses, paths or plots. No
+visual verdict is implied.
 
 Default look (2026-11-21, item 138): `BackgroundForest` is now a tropical wall of `Tropical_<species>_<angle>_<layer>` Models — four species, >= 250 instances — from `ModelMapForestR9`; no pine remains in the default. `forest_pines_legacy` is comparison-only.
 

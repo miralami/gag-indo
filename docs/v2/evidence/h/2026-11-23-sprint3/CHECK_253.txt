@@ -1,0 +1,41 @@
+CHECK 253 - kampung_r10 shrubs no longer green balls (WORK_QUEUE SPRINT 3 item 253)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, SERVER VM.
+Place: Development-Juragan-Desa. Play only. Place NOT saved, nothing published. Rojo-synced.
+Status: SEEN-IN-STUDIO (all checks PASS).
+
+== Wiring ==
+tools/studio/check_q253.luau staged kampung_r10 from SERVER via LookDevReview.enableAdditive, read
+live tagged instances, ran two runtime FAIL injections, then restored with disableAll() and destroyed
+the injections. No harness require, no visual verdict.
+
+== Raw check lines (verbatim, fresh Play, Server VM) — attempt 1 (baked path) ==
+CHECK NO_MELONS PASS 0 0
+CHECK SHRUB_MODELS FAIL 0 3
+CHECK CAL_NO_MELONS_FAIL PASS 1 1
+CHECK CAL_LOOKDEV_LEAK_FAIL PASS 1 1
+CHECK LOOKDEV_LEAK PASS 0 0
+Diagnosis: ServerStorage.LookDevAssets has 0 children; 0 BakedShrub instances after staging;
+0 HedgeShrubBaked / FloraShrubBaked in workspace. Baked assets unavailable in this place.
+
+== Raw check lines (verbatim, fresh Play, Server VM) — attempt 2 (hedge fallback) ==
+CHECK NO_MELONS PASS 0 0
+CHECK SHRUB_MODELS PASS 3 3
+CHECK CAL_NO_MELONS_FAIL PASS 1 1
+CHECK CAL_LOOKDEV_LEAK_FAIL PASS 1 1
+CHECK LOOKDEV_LEAK PASS 0 0
+
+== Notes / measurements ==
+24 hedge anchors across 3 house clusters; each cluster has tagged Wedge/Cylinder hedge parts inside
+the former 4-stud Ball footprint. No Ball part, no new asset ID, no LoadAsset. Reversible design
+substitution recorded under WORK_QUEUE "Decisions for designer" (sprint 3 item 253). Geometric data
+only; no visual verdict.
+
+== Calibration / non-vacuity ==
+CAL_NO_MELONS_FAIL: an injected 2-stud Ball shrub tagged kampung_r10 changed NO_MELONS from 0 to
+>=1, then was destroyed. CAL_LOOKDEV_LEAK_FAIL: an injected tagged leftover survived unstage and
+changed the leak count from 0 to 1; destroyed before return. Both emitted PASS 1 1.
+
+== Local validation ==
+lune run tests/run.luau: All 3100 tests passed (exit 0).
+selene src: 0 errors / 0 warnings / 0 parse errors. Stylua clean on changed files.

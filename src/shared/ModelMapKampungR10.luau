@@ -2,7 +2,8 @@
 -- ModelMapKampungR10: pure data for the OFF-BY-DEFAULT "kampung_r10" candidate (WORK_QUEUE item 200).
 -- Twelve background houses in three clusters in the band between the village ring and the plot ring.
 -- No asset IDs, no engine calls: every house is a Block body + Wedge roof descriptor pair and every
--- yard is two fence Blocks + two plant Balls. A server applier consumes these descriptors.
+-- yard is two fence Blocks + two hedge-shrub anchors. The server applier stages an explicit
+-- Wedge/Cylinder hedge cluster at each anchor; no Ball yard part and no asset ID is described here.
 
 local Data = {}
 
@@ -19,8 +20,8 @@ type YardPart = {
 	name: string,
 	house: number,
 	cluster: number,
-	kind: "fence" | "plant",
-	shape: "Block" | "Ball",
+	kind: "fence" | "shrub",
+	shape: "Block" | "Hedge",
 	size: { number },
 	position: { x: number, y: number, z: number },
 	color: RGB,
@@ -43,7 +44,10 @@ Data.GROUND_Y = 0.5
 Data.BODY_SIZE = { 16, 9, 12 }
 Data.ROOF_SIZE = { 18, 6, 14 }
 Data.FENCE_SIZE = { 10, 2.5, 0.8 }
-Data.PLANT_SIZE = { 4, 4, 4 }
+-- Nominal footprint: the applier keeps every hedge part inside this 4-stud square so the lane and
+-- plot clearances measured by check_q200 stay identical to the old yard Ball.
+Data.SHRUB_SIZE = { 4, 4, 4 }
+Data.SHRUB_HEIGHT = 3
 
 -- Warm kampung plaster and clay tile colours, one palette per cluster. Never asset IDs.
 local CLUSTERS = {
@@ -58,7 +62,7 @@ local OFFSETS = {
 	{ 10, 8 },
 }
 local FENCE_COLOR = { r = 150, g = 108, b = 72 }
-local PLANT_COLORS = {
+local SHRUB_COLORS = {
 	{ r = 86, g = 142, b = 78 },
 	{ r = 112, g = 158, b = 86 },
 }
@@ -116,14 +120,14 @@ function Data.yardParts(): { YardPart }
 			}
 			local gx, gz = offsetPoint(px, pz, house.yaw, 6, sign * 4)
 			parts[#parts + 1] = {
-				name = "KampungYard_h" .. index .. "_plant_" .. side,
+				name = "KampungYard_h" .. index .. "_shrub_" .. side,
 				house = index,
 				cluster = house.cluster,
-				kind = "plant",
-				shape = "Ball",
-				size = { Data.PLANT_SIZE[1], Data.PLANT_SIZE[2], Data.PLANT_SIZE[3] },
-				position = { x = gx, y = Data.GROUND_Y + Data.PLANT_SIZE[2] / 2, z = gz },
-				color = rgb(PLANT_COLORS[side]),
+				kind = "shrub",
+				shape = "Hedge",
+				size = { Data.SHRUB_SIZE[1], Data.SHRUB_SIZE[2], Data.SHRUB_SIZE[3] },
+				position = { x = gx, y = Data.GROUND_Y, z = gz },
+				color = rgb(SHRUB_COLORS[side]),
 				yaw = 0,
 			}
 		end
@@ -160,12 +164,19 @@ do
 
 	local yards = Data.yardParts()
 	assert(#yards == Data.HOUSE_COUNT * 4, "kampung_r10: yard part count is not 4 per house")
+	local shrubs = 0
 	for _, part in ipairs(yards) do
-		assert(part.kind == "fence" or part.kind == "plant", "kampung_r10: bad yard kind")
+		assert(part.kind == "fence" or part.kind == "shrub", "kampung_r10: bad yard kind")
+		assert(part.shape ~= "Ball", "kampung_r10: Ball yard part is not allowed")
+		if part.kind == "shrub" then
+			assert(part.shape == "Hedge", "kampung_r10: shrub is not a hedge-cluster anchor")
+			shrubs += 1
+		end
 		for _, channel in ipairs({ part.color.r, part.color.g, part.color.b }) do
 			assert(channel >= 0 and channel <= 255, "kampung_r10: yard colour channel outside 0..255")
 		end
 	end
+	assert(shrubs == Data.HOUSE_COUNT * 2, "kampung_r10: shrub count is not 2 per house")
 end
 
 return Data

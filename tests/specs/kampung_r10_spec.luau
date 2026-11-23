@@ -1,7 +1,10 @@
 --!nocheck
--- WORK_QUEUE item 200: LUNE-ONLY pure-data contract for "kampung_r10". Studio staging and the
--- KAMPUNG_HOUSES / LANE_CLEAR / PATH_REACH / PLOT_CLEAR / NOT_INTERACTIVE checks belong to
--- check_q200.luau; LookDev IDS and review wiring belong to the wiring lane. This spec asserts neither.
+-- WORK_QUEUE item 200; item 253 replaced the yard Ball plants with Wedge/Cylinder hedge clusters
+-- because this Studio place has no baked shrub assets.
+-- LUNE-ONLY pure-data contract for "kampung_r10". Studio staging and the KAMPUNG_HOUSES /
+-- LANE_CLEAR / PATH_REACH / PLOT_CLEAR / NOT_INTERACTIVE checks belong to check_q200.luau; item 253's
+-- NO_MELONS / SHRUB_MODELS / LOOKDEV_LEAK checks belong to check_q253.luau. LookDev IDS and review
+-- wiring belong to the wiring lane. This spec asserts neither.
 
 local fs = require("@lune/fs")
 
@@ -27,6 +30,7 @@ return function(t, Env)
 	local Data = env:require("shared/ModelMapKampungR10")
 	local pureSrc = fs.readFile("src/shared/ModelMapKampungR10.luau")
 	local applierSrc = fs.readFile("src/server/World/LookDevKampungR10.luau")
+	local checkSrc = fs.readFile("tools/studio/check_q253.luau")
 
 	t:describe("kampung_r10 pure data", function()
 		t:it("stays pure: no engine calls, no asset IDs, exact identity", function()
@@ -85,28 +89,34 @@ return function(t, Env)
 			end
 		end)
 
-		t:it("returns two fences and two Ball plants per house", function()
+		t:it("returns two fences and two hedge-shrub anchors per house, never a Ball", function()
 			local yards = Data.yardParts()
 			expect(#yards):toBe(48)
-			local perHouse, plants = {}, 0
+			local perHouse, shrubs, clusters = {}, 0, {}
 			for _, part in ipairs(yards) do
 				perHouse[part.house] = (perHouse[part.house] or 0) + 1
-				if part.kind == "plant" then
-					expect(part.shape):toBe("Ball")
-					plants += 1
+				expect(part.shape == "Ball"):toBe(false)
+				expect(#part.size):toBe(3)
+				expect(part.color ~= nil):toBe(true)
+				if part.kind == "shrub" then
+					expect(part.shape):toBe("Hedge")
+					expect(part.position.y):toBe(Data.GROUND_Y)
+					clusters[part.cluster] = true
+					shrubs += 1
 				else
 					expect(part.kind):toBe("fence")
 					expect(part.shape):toBe("Block")
 				end
-				expect(#part.size):toBe(3)
 				for _, channel in ipairs({ part.color.r, part.color.g, part.color.b }) do
 					expect(channel >= 0 and channel <= 255):toBe(true)
 				end
 			end
-			expect(plants):toBe(24)
+			expect(shrubs):toBe(24)
+			expect(#clusters):toBe(Data.CLUSTER_COUNT)
 			for index = 1, 12 do
 				expect(perHouse[index]):toBe(4)
 			end
+			expect(string.find(pureSrc, "PartType.Ball", 1, true) == nil):toBe(true)
 		end)
 
 		t:it("stages non-interactive attributed parts only", function()
@@ -124,6 +134,35 @@ return function(t, Env)
 			end
 			expect(string.find(applierSrc, "LookDev.register", 1, true) ~= nil):toBe(true)
 			expect(string.find(applierSrc, "ModelMapKampungR10", 1, true) ~= nil):toBe(true)
+		end)
+
+		t:it("stages Wedge/Cylinder hedge clusters with no asset ID and no LoadAsset", function()
+			expect(string.find(applierSrc, "stageHedgeShrub", 1, true) ~= nil):toBe(true)
+			expect(string.find(applierSrc, '"Cylinder"', 1, true) ~= nil):toBe(true)
+			expect(string.find(applierSrc, '"Wedge"', 1, true) ~= nil):toBe(true)
+			expect(string.find(applierSrc, "HedgeShrub", 1, true) ~= nil):toBe(true)
+			expect(string.find(applierSrc, "shrubCluster", 1, true) ~= nil):toBe(true)
+			expect(string.find(applierSrc, "LoadAsset", 1, true) == nil):toBe(true)
+			expect(string.find(applierSrc, "PartType.Ball", 1, true) == nil):toBe(true)
+			expect(string.find(applierSrc, "LookDevAssetLoader", 1, true) == nil):toBe(true)
+			expect(string.find(applierSrc, "SHRUB_ASSET_IDS", 1, true) == nil):toBe(true)
+			for run in string.gmatch(applierSrc, "%d%d%d%d%d%d%d+") do
+				expect(#run <= 7):toBe(true)
+			end
+		end)
+
+		t:it("check_q253 counts hedge clusters with unweakened targets and both FAIL anchors", function()
+			expect(string.find(checkSrc, '"NO_MELONS"', 1, true) ~= nil):toBe(true)
+			expect(string.find(checkSrc, '"SHRUB_MODELS"', 1, true) ~= nil):toBe(true)
+			expect(string.find(checkSrc, "SHRUB_MODELS = 3", 1, true) ~= nil):toBe(true)
+			expect(string.find(checkSrc, "Enum.PartType.Wedge", 1, true) ~= nil):toBe(true)
+			expect(string.find(checkSrc, "Enum.PartType.Cylinder", 1, true) ~= nil):toBe(true)
+			expect(string.find(checkSrc, "HedgeShrub", 1, true) ~= nil):toBe(true)
+			expect(string.find(checkSrc, "shrubCluster", 1, true) ~= nil):toBe(true)
+			expect(string.find(checkSrc, "<= 4", 1, true) ~= nil):toBe(true)
+			expect(string.find(checkSrc, "CAL_NO_MELONS_FAIL", 1, true) ~= nil):toBe(true)
+			expect(string.find(checkSrc, "CAL_LOOKDEV_LEAK_FAIL", 1, true) ~= nil):toBe(true)
+			expect(string.find(checkSrc, 'emit("LOOKDEV_LEAK", #after == 0, #after, 0', 1, true) ~= nil):toBe(true)
 		end)
 
 		t:it("is deterministic across fresh requires with fresh tables", function()

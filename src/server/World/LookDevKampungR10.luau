@@ -1,9 +1,13 @@
 --!strict
 -- LookDevKampungR10: SERVER-ONLY applier for the OFF-BY-DEFAULT "kampung_r10" candidate
--- (WORK_QUEUE item 200). Stages 12 primitive background houses in 3 outskirt clusters, each with a
--- small yard. No asset IDs, prompts or click detectors; no gameplay state is touched. All values come
--- from Shared.ModelMapKampungR10. Overwritten attributes are saved once and restored LIFO; only
--- instances created here are destroyed. apply/restore are idempotent and pcall-guarded throughout.
+-- (WORK_QUEUE item 200; item 253 replaced the yard Ball with hedge clusters). Stages 12 primitive
+-- background houses in 3 outskirt clusters. Each yard has two fence Blocks and two hedge-shrub
+-- anchors: the old green Ball is gone. In this Studio place ServerStorage.LookDevAssets has no bake
+-- for the item-241 shrub IDs, so the applier stages an explicit Wedge/Cylinder cluster instead —
+-- no asset ID and no runtime asset loading. Every staged part is anchored, non-collidable and
+-- non-interactive; all instances here are destroyed on restore. No prompts or click detectors;
+-- no gameplay state. All placement comes from Shared.ModelMapKampungR10. Overwritten attributes are
+-- saved once and restored LIFO; apply/restore are idempotent and pcall-guarded throughout.
 -- Enable from the Server command bar:
 --   require(game.ReplicatedStorage.Shared.LookDevReview).enableAdditive("kampung_r10", game)
 
@@ -156,6 +160,11 @@ local function stagePart(descriptor: any, parent: any, houseIndex: number, role:
 	setAttribute(part, "house", houseIndex)
 	setAttribute(part, "role", role)
 	setAttribute(part, (Data :: any).stageAttribute, FAMILY_ID)
+	if role == "shrub" then
+		setAttribute(part, "cluster", descriptor.cluster)
+		setAttribute(part, "shrubCluster", descriptor.name)
+		setAttribute(part, "HedgeShrub", true)
+	end
 
 	local okParent, why = pcall(function()
 		part.Parent = parent
@@ -206,6 +215,39 @@ local function stageHouses(root: any)
 	end
 end
 
+-- Item 253 hedge fallback: no bake exists in this place, so each yard anchor becomes three Wedge
+-- blades and one low Cylinder base. All four stay inside the old 4-stud Ball footprint and are
+-- tagged role="shrub" / HedgeShrub / shrubCluster for the SERVER-VM check.
+local HEDGE_BLADES = {
+	{ radial = -0.6, tangential = 0, yaw = 0 },
+	{ radial = 0.6, tangential = -0.5, yaw = 110 },
+	{ radial = 0.6, tangential = 0.5, yaw = 250 },
+}
+
+local function stageHedgeShrub(descriptor: any, parent: any, houseIndex: number)
+	local px, pz = descriptor.position.x, descriptor.position.z
+	local base = {
+		name = descriptor.name .. "_base",
+		size = { 0.8, 1.2, 0.8 },
+		position = { x = px, y = descriptor.position.y + 0.6, z = pz },
+		color = descriptor.color,
+		cluster = descriptor.cluster,
+		yaw = descriptor.yaw or 0,
+	}
+	stagePart(base, parent, houseIndex, "shrub", "Cylinder")
+	for index, blade in ipairs(HEDGE_BLADES) do
+		local bx, bz = px + blade.radial, pz + blade.tangential
+		stagePart({
+			name = descriptor.name .. "_wedge_" .. index,
+			size = { 1.6, (Data :: any).SHRUB_HEIGHT, 1.6 },
+			position = { x = bx, y = descriptor.position.y + (Data :: any).SHRUB_HEIGHT / 2, z = bz },
+			color = descriptor.color,
+			cluster = descriptor.cluster,
+			yaw = (descriptor.yaw or 0) + blade.yaw,
+		}, parent, houseIndex, "shrub", "Wedge")
+	end
+end
+
 local function stageYards(root: any)
 	local okYards, yards = pcall(function()
 		return (Data :: any).yardParts()
@@ -216,7 +258,11 @@ local function stageYards(root: any)
 	end
 	for _, part in ipairs(yards) do
 		local okBuild, why = pcall(function()
-			stagePart(part, root, part.house, part.kind, part.shape)
+			if part.kind == "shrub" then
+				stageHedgeShrub(part, root, part.house)
+			else
+				stagePart(part, root, part.house, part.kind, part.shape)
+			end
 		end)
 		if not okBuild then
 			fail("could not stage yard part " .. tostring(part.name) .. ": " .. tostring(why))

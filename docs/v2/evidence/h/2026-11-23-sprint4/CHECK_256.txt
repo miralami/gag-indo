@@ -42,4 +42,5 @@ CHECK CAL_LAMP_NIGHT_ONLY_FAIL PASS 1 1
 - Designer approval pending for marketplace asset 13869743481.
 - 256 not moved to done. Continue 257+.
 
-No place save/publish.
+## Retry 2026-11-23 (fresh Play, SERVER VM, after sprint-5 items 265-272)
+Legacy `tools/studio/check_q246.luau` retry in a fresh Play session (before item 270): `LAMP_POOL PASS 12/12 8`, `LIGHT_COST PASS 0 0`, `LAMP_NIGHT_ONLY PASS 12 12`, all CAL PASS. Contract still green. Designer visual FAIL from sprint 4 stands (needle-thin unreadable lamp). After item 270 reworked `lamps_r10` in place into 6 warm porch bulbs + 3 thick junction poles (9 PointLights, night-only), the old 12-ring-lamp harnesses `check_q246` / `check_q202` are STALE and FAIL (LAMP_POOL 3/12, LAMPS 9 12); the authoritative harness is now `check_q270` (`SUMMARY_Q270 ... CAL 6/6`, all PASS). Item 256 remains BLOCKED on the original visual verdict; the lamp design was superseded by item 270. No place save/publish.

@@ -93,4 +93,5 @@ SUMMARY_Q255 SC 15/28 CG 28/28 HERO_CLEAR 10/28 CAL 2/2
 - HC failures on kampung/lamps/signposts/ditch_water/lamps_night: non-subject blockers between eye and subject surface samples; needs camera path clearance or subject isolation.
 - Terrain grass clearing under plots/ditches/fences (item text) not fully implemented as a repaint pass; only camera CG is green.
 
-No visual verdict. Do not save/publish place.
+## Retry 2026-11-23 (fresh Play, SERVER VM, after sprint-5 items 265-272)
+Re-ran `tools/studio/check_q255.luau` in a new Play session: `SUMMARY_Q255 SC 15/28 CG 26/28 HERO_CLEAR 8/28 CAL 2/2` — a regression from attempt 4 (CG 28/28, HC 10/28). Same structural causes: terrain-only/baked candidates have no staged parts, framing/clearance on staged candidates. Still BLOCKED — no change to status. `check_q246` legacy retry (same session, before item 270) `LAMP_POOL 12/12 LIGHT_COST 0 LAMP_NIGHT_ONLY 12 CAL all PASS`; note after item 270 reworked `lamps_r10` in place (6 porch bulbs + 3 poles, 9 lights), the legacy `check_q246` / `check_q202` 12-ring-lamp harnesses are STALE and now FAIL (LAMP_POOL 3/12, LAMPS 9) — superseded by `check_q270` (all PASS). Do not save/publish place.

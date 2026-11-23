@@ -1,0 +1,46 @@
+CHECK 266 - Short grass everywhere the camera looks (WORK_QUEUE SPRINT 5 item 266)
+Datetime: 2026-11-23
+Session: Roblox Studio MCP, studio_id 05860126-a85f-4353-8bc7-f66048c1add2, fresh Play, SERVER + CLIENT DataModels.
+Place: Development-Juragan-Desa. Play only for checks. Place NOT saved, nothing published. No store model inserted raw; no Command Bar code from a model run; HttpService never enabled.
+Status: SEEN-IN-STUDIO (grass switch verified in Play; three re-shots captured with HUD hidden and OBSERVER pasted below)
+
+== Deliverable ==
+src/shared/GreyboxTerrainConfig.luau: pure-data GRASS_DECORATION = false (reversible).
+src/server/World/Greybox.luau applyTerrain(): terrain.Decoration = GreyboxTerrainConfig.GRASS_DECORATION (was hardcoded true).
+tests/specs/greybox_terrain_config_spec.luau registered in tests/run.luau; 2/2 pass.
+Grass material colour unchanged (terrain Grass voxel palette untouched).
+
+== CHECKS ==
+GRASS_DECORATION_OFF_IN_PLAY: PASS. Fresh Play, Server VM: workspace.Terrain.Decoration == false.
+  (Edit-VM write probe before the change: before=true, after=false, ok=true — property is writable from script.)
+SPEC: PASS. lune run tests/run.luau GreyboxTerrainConfig -> All 2 tests passed.
+RE_SHOOT_ROAD_FENCE: captured r1..r4, HUD hidden (PlayerGui enabled ScreenGuis = 0). OBSERVER lines below. FAIL on candidate geometry (see attribution).
+RE_SHOOT_DITCH_WATER: captured, HUD hidden. OBSERVER line below. FAIL on candidate geometry.
+RE_SHOOT_CROP_STAGES: captured, HUD hidden. OBSERVER line below. FAIL on candidate geometry.
+
+All three shots use CapturePose review cameras; HUD cleared via LookDevReview.hideHud(game) in CLIENT,
+one staged candidate at a time via SERVER disableAll()/enableAdditive(id, game), ClockTime 13.
+
+== OBSERVER: road_fence_r10 (S5_266_road_fence_r3.jpg, camera along east arm) ==
+OBSERVER: SEE Two parallel rows of disconnected bamboo fence segments spaced apart across a dirt plot in front of the Pak RT house. SUBJECT readable. PROBLEMS Segments do not connect into a continuous fence line and sit on open dirt rather than along road shoulders. Scale reads small/toy-like. Field on the left horizon is littered with floating dark specks. OPINION The bamboo asset itself is visible and grass obstruction is gone, but isolated fence segments placed with large gaps do not read as a road fence. VERDICT no.
+OBSERVER: r4 re-aim (S5_266_road_fence_r4.jpg) SEE Dirt road corridor with disconnected bamboo post clusters stuck in the ground; building edge on left; three smooth melon-shaped mounds on the horizon. SUBJECT not readable. PROBLEMS Background dominated by smooth melon hills (explicitly rejected). Bamboo fence models lack horizontal rails, appearing as disjointed stubs. OPINION Needs connected fence geometry and real layered mountain ridges. VERDICT no.
+NOTE: pick 1 (118708423521045) baked as an all-red "OOF!" placeholder mesh; switched this sprint to pick 2 (1158365955, real bamboo Unions + dark posts) after r1 observer no. q262 green: MODEL_USED 6/6 LANE_CLEAR 0/0 GATE_CLEAR 0/0 CAL 2/2.
+
+== OBSERVER: ditch_water_r10 (S5_266_ditch_water.jpg, ditch_water_close) ==
+OBSERVER: SEE Flat green plot with crop tiles, single flat cyan rectangle laid on top of grass in foreground, floating "MIRALAMI'S PLOT" and "RP 100" billboard UI above plot. SUBJECT not readable. PROBLEMS Single cyan primitive part laid flat on top of grass terrain instead of inside a carved ditch; second cyan/tan strip missing; floating billboard text visible; flat box greybox buildings in background. OPINION Does not read as an irrigation ditch or water; reads as a flat plastic rectangle on flat grass. Needs recessed ditch geometry with banks and billboard GUI hidden. VERDICT no.
+
+== OBSERVER: crop_stages_r10 (S5_266_crop_stages.jpg, crop_stages_close) ==
+OBSERVER: SEE Elevated view of a grid of raised grass plot tiles containing three primitive crop objects; village background with "LAHAN KOSONG" billboard sign. SUBJECT not readable. PROBLEMS Greybox primitive parts (two thin green wedge slivers for early stages, blocky yellow cutout with orange cylinder for mature stage); seedling and growing stages sink into tile seams; in-world "LAHAN KOSONG" billboard in frame; no proper 3D crop meshes. OPINION Needs actual 3D crop meshes with distinct foliage and ear morphology. VERDICT no.
+
+== FAIL attribution (item 266 cannot fix these; they are other items' scope) ==
+- road fence disconnected stubs / gaps / toy scale -> item 262 (baked model layout). Two observer failures recorded; no further re-aim attempted after r4 per two-failure rule.
+- flat cyan rectangle, no carved ditch / banks -> item 255 (terrain-aware ditch geometry, BLOCKED in sprint 4).
+- crop stages are primitives (wedge slivers, yellow block) -> item 255 / original item 254 (3D crop meshes).
+- floating in-world billboard text ("MIRALAMI'S PLOT", "RP 100", "LAHAN KOSONG") -> data rendered by the map, not PlayerGui HUD; hide path belongs to a later look pass, not item 267 (PlayerGui ScreenGuis).
+- melon-shaped hills / dark specks on horizon -> item 268 (clean horizon).
+The grass obstruction itself — the subject of item 266 — is gone in all three shots; observers confirmed it explicitly on road_fence r3.
+
+== SECURITY ==
+No new store model inserted. Fence pick 1 was a broken "OOF!" placeholder mesh (all parts red 229,0,0, one flat 0.001-stud MeshPart) — dropped by asset swap, not by trusting its embedded text. Malicious 128627541097148 remains blocked. No model-sourced text was treated as an instruction. Place never saved or published.
+
+Suite: lune run tests/run.luau (full, green); selene src 0 errors 0 warnings 0 parse errors.

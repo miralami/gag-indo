@@ -23,6 +23,7 @@ local WarungDress = require(script.Parent.WarungDressQ210)
 local RondaDress = require(script.Parent.RondaDressQ211)
 local RiverFoam = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").ModelMapRiverFoamQ212)
 local TerraceWalls = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").ModelMapTerraceWallsQ214)
+local GreyboxTerrainConfig = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").GreyboxTerrainConfig)
 local SawahDressing = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared").ModelMapSawahDressingQ215)
 local okLoader, Loader = pcall(function()
 	return require(script.Parent.LookDevAssetLoader)
@@ -1397,7 +1398,9 @@ Greybox.riverVolumes = riverVolumes
 -- volume 800 studs across.
 function Greybox.applyTerrain(terrain: Terrain)
 	pcall(function()
-		terrain.Decoration = true
+		-- Item 266: default short grass everywhere (designer: "knp semua yg kita masukin selalu ketutupan")
+		-- Reversible setting from GreyboxTerrainConfig: false keeps short turf; flip back to true for blades.
+		terrain.Decoration = GreyboxTerrainConfig.GRASS_DECORATION
 	end)
 	local blocks = terrainBlocks()
 	for _, clear in terrainClearBlocks() do

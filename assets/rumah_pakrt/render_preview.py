@@ -93,10 +93,10 @@ def shoot(scene, name, loc, target, lens=35):
 
 
 scene = setup()
-shoot(scene, "rumah_pakrt_front", (-6, 78, 8), (0, -4, 12), lens=30)
-shoot(scene, "rumah_pakrt_34", (58, 66, 36), (0, -2, 6))
-shoot(scene, "rumah_pakrt_teras", (-3, 16, 9), (-5, -4, 3.5), lens=26)
-shoot(scene, "rumah_pakrt_lesehan", (6, 22, 11), (19, 1, 1.5), lens=26)
-shoot(scene, "rumah_pakrt_carport", (-8, 30, 9), (-19, -4, 4), lens=26)
-shoot(scene, "rumah_pakrt_back", (-55, -60, 32), (0, 0, 8))
+shoot(scene, "rumah_pakrt_front", (-6, 88, 9), (0, -4, 12), lens=30)
+shoot(scene, "rumah_pakrt_34", (66, 74, 40), (0, -2, 6))
+shoot(scene, "rumah_pakrt_teras", (-4, 16, 9), (-7, -4, 3.5), lens=26)
+shoot(scene, "rumah_pakrt_lesehan", (8, 22, 11), (23, 1, 1.5), lens=26)
+shoot(scene, "rumah_pakrt_carport", (-10, 32, 9), (-23, -4, 4), lens=26)
+shoot(scene, "rumah_pakrt_back", (-62, -66, 34), (0, 0, 8))
 print("RENDER_ENGINE", scene.render.engine)

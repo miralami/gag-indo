@@ -689,8 +689,8 @@ slot,class,source,source_ref,licence,attribution,id,approved_by,status
 model.kit.rumah_pakrt,model,own-blender,assets/rumah_pakrt/build_rumah_pakrt.py,own work,,0,,UNVERIFIED
 ```
 
-`rumah_pakrt`: 9,302 tris in 19 meshes (17 textures), house at the `MapSpec.luau` scale (ridge 32.6,
-door 7 x 10.5, 7.25-stud avatar) on a widened 56 x 50 lot (hub footprint change proposed in the README). `RumahPakRT_Meja` is the 5 x 2.4 x 3 BribePrompt table.
+`rumah_pakrt`: 10,304 tris in 19 meshes (17 textures), house at the `MapSpec.luau` scale (ridge 32.6,
+door 7 x 10.5, 7.25-stud avatar), 30 wide, on a widened 64 x 50 lot (hub footprint change proposed in the README). `RumahPakRT_Meja` is the 5 x 2.4 x 3 BribePrompt table.
 No baked words. Details and renders in `assets/rumah_pakrt/README.md`.
 
 ## Manifest coverage (WORK_QUEUE item 127, 2026-11-22)

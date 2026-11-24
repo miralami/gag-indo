@@ -54,7 +54,10 @@ P = load_palette()
 # ---------------------------------------------------------------------------------------------
 # Dimensions (studs). Avatar 7.25, door 7 x 10.5 (MapSpec).
 # ---------------------------------------------------------------------------------------------
-LOT_X, LOT_Y = 23.1, 17.0  # lot half width / half depth: 48 x 34 including the pillar caps
+# Lot 56 x 50 (Willy, 2026-11-24: "halaman rumahnya diperluas" to match the concept's deep front
+# yard). The house keeps its MapSpec size; only the yard grows, mostly toward the street.
+LOT_X = 27.1  # half width; pillar caps reach 28
+LOT_Y0, LOT_Y1 = -18.0, 32.0  # back and street edges before the lot is centred on the origin
 T = 0.8  # wall thickness (Greybox WALL)
 FLOOR = 1.5  # house floor and terrace top
 HX, HY0, HY1 = 11.0, -15.0, 1.0  # ground floor: x half width, back and front wall faces
@@ -65,7 +68,7 @@ UX, UY0, UY1 = 8.0, -11.0, -1.0  # upper storey: x half width, back and front wa
 UP_TOP = 27.4
 EAVE_HI, RIDGE = 26.5, 32.6
 DOOR_X, DOOR_W, DOOR_H = -1.5, 7.0, 10.5
-FENCE_Y = 16.6
+FENCE_Y = LOT_Y1 - 0.4
 
 BMS = {}
 
@@ -308,7 +311,7 @@ def build_house():
     box("Keramik", -HX - 0.4, HX + 0.4, HY1, TERRACE_Y, 0.0, FLOOR)
     box("Keramik", -4.5, 4.5, TERRACE_Y, TERRACE_Y + 1.0, 0.0, FLOOR * 2 / 3)
     box("Keramik", -4.5, 4.5, TERRACE_Y + 1.0, TERRACE_Y + 2.0, 0.0, FLOOR / 3)
-    box("Keramik", -4.0, 4.0, TERRACE_Y + 2.0, FENCE_Y, 0.0, 0.25)  # path to the gate
+    box("Keramik", -4.0, 4.0, TERRACE_Y + 9.0, FENCE_Y, 0.0, 0.25)  # path from the forecourt to the gate
 
     # ground floor walls; each wall stops just under the skirt roof above it
     def under(axis, plane):
@@ -426,8 +429,9 @@ def build_terrace_furniture():
 
 def build_fence():
     """Waist-high dark iron fence on plaster pillars with gold tips; main gate wide open."""
-    gaps = [(-5.5, 5.5), (12.5, 22.0)]  # main gate, carport entrance
-    pillars = [-LOT_X, -17.0, -11.0, -5.5, 5.5, 12.5, 22.0, LOT_X]
+    gaps = [(-5.5, 5.5), (12.5, 24.5)]  # main gate, carport entrance
+    left = list(np.linspace(-LOT_X, -5.5, 4))
+    pillars = [*left, 5.5, 12.5, 24.5, LOT_X]
 
     def bars(x0, x1, y):
         box("Plester", x0, x1, y - 0.5, y + 0.5, 0.0, 1.4)  # low plaster base
@@ -449,14 +453,23 @@ def build_fence():
     # side returns
     for sx in (-1, 1):
         x = sx * LOT_X
-        box("Plester", x - 0.5, x + 0.5, -2.0, FENCE_Y - 0.75, 0.0, 1.4)
-        box("Besi", x - 0.15, x + 0.15, -2.0, FENCE_Y - 0.75, 4.4, 4.7)
-        y = -1.6
-        while y < FENCE_Y - 1.2:
-            box("Besi", x - 0.14, x + 0.14, y - 0.14, y + 0.14, 1.4, 4.9)
-            y += 0.9
-        box("Plester", x - 0.75, x + 0.75, -2.75, -1.25, 0.0, 5.6)
-        box("Emas", x - 0.9, x + 0.9, -2.9, -1.1, 5.6, 6.0)
+        ys = list(np.linspace(-2.0, FENCE_Y, 4))
+        for a, b in zip(ys[:-1], ys[1:]):
+            box("Plester", x - 0.5, x + 0.5, a + 0.75, b - 0.75, 0.0, 1.4)
+            box("Besi", x - 0.15, x + 0.15, a + 0.75, b - 0.75, 4.4, 4.7)
+            n = max(1, int((b - a - 1.5) / 0.9))
+            for k in range(n):
+                y = a + 0.75 + (k + 0.5) * (b - a - 1.5) / n
+                box("Besi", x - 0.14, x + 0.14, y - 0.14, y + 0.14, 1.4, 4.9)
+        for y in ys[:-1]:
+            box("Plester", x - 0.75, x + 0.75, y - 0.75, y + 0.75, 0.0, 5.6)
+            box("Emas", x - 0.9, x + 0.9, y - 0.9, y + 0.9, 5.6, 6.0)
+
+    # clipped hedges just inside the front fence, seen through the bars as in the concept
+    for a, b in zip(pillars[:-1], pillars[1:]):
+        if any(g0 <= (a + b) / 2 <= g1 for g0, g1 in gaps):
+            continue
+        box("Daun", a + 0.9, b - 0.9, FENCE_Y - 2.4, FENCE_Y - 0.9, 0.1, 2.0)
 
     # gate leaves swung open into the yard
     for hinge, sgn in ((-4.8, 1), (4.8, -1)):
@@ -529,7 +542,7 @@ def build_carport():
 
 def build_lesehan():
     """Villagers' hangout in the left side yard: a tikar on a low platform under a tarp."""
-    x0, x1, y0, y1 = -LOT_X + 1.2, -HX - 2.2, 1.0, 11.0
+    x0, x1, y0, y1 = -LOT_X + 1.4, -HX - 2.4, 2.0, 14.0
     z = 1.1
     box("Kayu", x0, x1, y0, y1, 0.0, z)
     box("Tikar", x0 + 0.4, x1 - 0.4, y0 + 0.4, y1 - 0.4, z, z + 0.06)
@@ -561,11 +574,26 @@ def build_lesehan():
     # sandals left at the edge of the mat
     for k, tok in enumerate(("tinta", "tinta", "malam", "malam")):
         sx = cx - 2.0 + k * 1.1 + (0.2 if k % 2 else 0)
-        paint(tok, obox("Warna", (sx, y1 + 1.0, 0.1), (0.8, 2.0, 0.2), rng.uniform(-0.3, 0.3)))
+        paint(tok, obox("Warna", (sx, y1 + 1.7, 0.2), (0.8, 2.0, 0.2), rng.uniform(-0.3, 0.3)))
+
+
+def build_yard():
+    """Lawn over the whole lot, a wide glossy forecourt from the terrace to the carport, potted
+    plants by the steps. The deep front yard is what the approved concept shows."""
+    box("Rumput", -LOT_X, LOT_X, LOT_Y0, FENCE_Y, 0.0, 0.1)
+    box("Keramik", -HX - 0.4, HX + 1.0, TERRACE_Y + 2.0, TERRACE_Y + 9.0, 0.0, 0.25)  # forecourt
+    for px in (-6.2, 6.2):
+        cylinder("Genteng", (px, TERRACE_Y + 3.4, 0.85), 1.0, 1.5, segments=10, r_top=1.25)
+        rng = np.random.default_rng(int(px * 10) + 100)
+        base = Vector((px, TERRACE_Y + 3.4, 1.5))
+        for k in range(9):  # leaf blades fanning out of the pot, not a ball
+            a = k * 2 * math.pi / 9 + rng.uniform(-0.2, 0.2)
+            tip = base + Vector((math.cos(a) * 1.9, math.sin(a) * 1.9, rng.uniform(2.2, 3.6)))
+            beam("Daun", base, tip, 0.7, 0.12)
 
 
 def build_flag():
-    x, y = -10.5, 13.6
+    x, y = -9.5, TERRACE_Y + 12.5
     paint("kertas", box("Warna", x - 0.7, x + 0.7, y - 0.7, y + 0.7, 0.0, 0.6))
     paint("perak", cylinder("Warna", (x, y, 11.6), 0.16, 22.0, segments=8))
     paint("kunyit", sphere("Warna", (x, y, 22.75), 0.35))
@@ -575,7 +603,7 @@ def build_flag():
 
 def build_aspal():
     """The gag: smooth asphalt only in front of this lot, ending at its edges (optional piece)."""
-    box("Aspal", -LOT_X, LOT_X, LOT_Y, LOT_Y + 12.0, 0.0, 0.15)
+    box("Aspal", -LOT_X - 0.9, LOT_X + 0.9, LOT_Y1, LOT_Y1 + 12.0, 0.0, 0.15)
 
 
 # ---------------------------------------------------------------------------------------------
@@ -790,6 +818,24 @@ def tex_aspal(res, size):
     return np.where(dash[..., None], P["kertas"], base)
 
 
+def tex_rumput(res, size):
+    """Short mown lawn: green blades as fine streaks, a few darker clumps, palette greens only."""
+    u, v = grid(res, size)
+    blades = vnoise(res, res, int(size * 10), int(size * 3), 171)
+    clumps = fbm(res, res, 12, 12, 4, 172)
+    shade = (0.85 + 0.2 * blades) * (0.85 + 0.25 * clumps)
+    return colour(mix(P["daun"], P["padi"], 0.35), shade)
+
+
+def tex_daun(res, size):
+    """Leafy foliage for hedges and potted plants: overlapping leaf blobs, daun with padi tips."""
+    u, v = grid(res, size)
+    leaves = fbm(res, res, int(size * 3), int(size * 3), 4, 181)
+    tips = smoothstep(0.6, 0.75, fbm(res, res, int(size * 5), int(size * 5), 3, 182))
+    shade = 0.7 + 0.5 * leaves
+    return mix(colour(P["daun"], shade), P["padi"], tips * 0.5)
+
+
 def tex_warna(res, size):
     canvas = np.zeros((res, res, 3))
     cell = res // 4
@@ -816,6 +862,8 @@ MATERIALS = {
     "Sofa": (tex_sofa, 256, 0.95),
     "Catur": (tex_catur, 128, 0.6),
     "Aspal": (tex_aspal, 1024, 0.9),
+    "Rumput": (tex_rumput, 1024, 0.95),
+    "Daun": (tex_daun, 512, 0.8),
     "Warna": (tex_warna, 256, 0.6),
 }
 # objects that reuse another object's texture (one image, one upload in Roblox)
@@ -861,15 +909,18 @@ def main():
     build_fence()
     build_carport()
     build_lesehan()
+    build_yard()
     build_flag()
     build_aspal()
 
     # The layout above is authored with the carport at +X. Seen from the street (looking -Y) +X
     # is on the viewer's left, but the approved concept has the lesehan on the left and the
-    # carport on the right, so mirror X once here.
+    # carport on the right, so mirror X once here, then centre the lot on the origin.
+    shift = Vector((0.0, -(LOT_Y0 + LOT_Y1) / 2, 0.0))
     for bm in BMS.values():
         bmesh.ops.scale(bm, vec=(-1.0, 1.0, 1.0), verts=bm.verts)
         bmesh.ops.reverse_faces(bm, faces=bm.faces[:])
+        bmesh.ops.translate(bm, vec=shift, verts=bm.verts)
 
     report, mats = {}, {}
     coll = bpy.data.collections.new(NAME)

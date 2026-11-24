@@ -28,23 +28,29 @@ with a big genteng roof, upgraded with money that doesn't add up:
 
 The blue figure is **7.25 studs**, the avatar height `MapSpec.luau` uses. It is not part of the asset.
 
-## Proportions (MapSpec is the authority)
+## Proportions (MapSpec is the authority for the house)
 
-This house is the village scale reference in `src/server/World/MapSpec.luau`:
+The house is the village scale reference in `src/server/World/MapSpec.luau` and keeps its size.
+The **yard is bigger than MapSpec's hub footprint**: Willy asked on 2026-11-24 to widen it to
+match the concept's deep front yard (lawn, wide tiled forecourt, potted plants, hedges inside
+the fence, a roomier lesehan).
 
 | Spec | Model |
 |---|---|
-| Lot 48 x 34 | **48.0 x 34.3** (fence pillar caps to back eave); 46.0 deep with the optional asphalt piece |
+| Hub footprint 48 x 34 | **lot 56 x 50** (pillar caps to back fence line); front yard ~22 deep; 62 deep with the optional asphalt piece |
 | Ridge 32.6 | **32.6** (ridge cap top 33.1) |
 | Door 7 x 10.5 | **7 x 10.5**, double timber leaves |
 | Avatar 7.25 | floor-to-floor 13.5, terrace columns 13 tall, sofa seat 2, table 2.4, fence 4.9 (chest high), carport clearance 11.6, MPV 18.5 x 7.2 x 8.5 |
 | Anchor `Table` 5 x 2.4 x 3 | `RumahPakRT_Meja`, exactly **5 x 2.4 x 3**, its own MeshPart for the `BribePrompt` |
 
-**Table position differs from the old greybox.** `MapSpec` puts the anchor at `lz = 13.5`, near
-the front lot edge, because the greybox had no front yard or fence. In the approved concept the
-table sits on the terrace: its centre is **5.65 studs in front of the lot centre and 5 studs
-toward the lesehan side**. When this model replaces the greybox, the pakrt anchor in
-`MapSpec.luau` should move there (code lane; not changed in this branch).
+**MapSpec changes this model needs (code lane, not made in this branch; proposal for @miralami):**
+
+- The hub at (68, 68) faces north toward RoadEast, so the extra depth goes toward the road. Keeping
+  the back edge where it is (world z 85): `width = 56`, `depth = 50`, centre `z = 60`. The new
+  north edge is at z 35, still 21 studs from the road edge (z 14); the west edge at x 40 stays 4
+  studs from Lapangan (x 36). The NPC spot (68, 47) falls in the front yard.
+- The table anchor moves from `lz = 13.5` (front edge of the old greybox) to the terrace: its
+  centre is **1.35 studs behind the lot centre and 5 studs toward the lesehan side**.
 
 ## No baked words
 
@@ -72,11 +78,13 @@ Every texture comes from the palette in `src/shared/Config/Visuals.luau` (read a
 | `Sofa` | `merah`, faded toward `kertas` |
 | `Catur` board | `tinta-lembut` / `kertas` |
 | `Aspal` | `tinta` / `indigo`, `kertas` centre dashes |
+| `Rumput` lawn | `daun` / `padi` |
+| `Daun` hedges and potted plants | `daun`, `padi` tips (leaf blades, never balls) |
 | `Warna` small props; `Mobil` (shares the atlas) | 4 x 4 swatch atlas: palette colours plus three blends (car glass, chrome, car paint) |
 
 ## Numbers
 
-- 8,402 triangles in 17 meshes (17 MeshParts), 15 textures (`Meja` shares `Kayu`, `Mobil`
+- 9,302 triangles in 19 meshes (19 MeshParts), 17 textures (`Meja` shares `Kayu`, `Mobil`
   shares `Warna`). All UVs inside 0..1, no n-gons, every piece closed.
 - 1 Blender unit = 1 stud, ground z = 0, lot centred on the origin. The street side faces Blender
   +Y, which the exporter maps to Roblox **-Z**. The layout is authored with the carport at +X and
@@ -93,8 +101,9 @@ blender --background assets/rumah_pakrt/rumah_pakrt.blend --python assets/rumah_
 
 ## Importing into Studio (personal copy of the place)
 
-1. 3D Importer → `rumah_pakrt.fbx`, scale unit **Stud**; the preview should read about 48 x 33 x 46
-   (34 deep without `RumahPakRT_Aspal`; delete that part if the map road should stay as it is).
+1. 3D Importer → `rumah_pakrt.fbx`, scale unit **Stud**; the preview should read about 56 x 33 x 62
+   (50.5 deep without `RumahPakRT_Aspal`; delete that part if the map road should stay as it is).
+   `RumahPakRT_Rumput` is a thin lawn over the lot; drop it if the terrain grass is enough.
 2. Anchor all parts. Keep collisions on `Plester`, `Keramik`, `Besi`, `Kayu`, `Meja`, `Mobil`,
    `Sofa`; `Genteng`, `Seng`, `Terpal`, `Emas`, `Warna` can be `CanCollide = false`.
 3. Put the `BribePrompt` on `RumahPakRT_Meja` and the hub sign `SurfaceGui` where the designer wants it.

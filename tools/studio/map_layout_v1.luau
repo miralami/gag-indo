@@ -1549,6 +1549,28 @@ function steps.tidy()
 	nudge(V.LookDevBlocksR9_blocks_r9.R9_shrub_shrubs_121, Vector3.new(0, 0, 8))
 	nudge(V.LookDevModelsVegetationR7_vegetation_r7.R7_vegetation_r7_near_bed_mangga_31, Vector3.new(-8, 0, 0))
 	nudge(root.Nature.VillageTrees.R7_vegetation_r7_camera_band_mangga_54, Vector3.new(19, 0, 19))
+	-- The Gelap's people and stock follow it into the compound, set on its floor.
+	local rp = RaycastParams.new()
+	rp.FilterType = Enum.RaycastFilterType.Include
+	rp.FilterDescendantsInstances = { gelap }
+	local function setOnFloor(m, x, z, faceNorth)
+		local hit = workspace:Raycast(Vector3.new(x, 40, z), Vector3.new(0, -60, 0), rp)
+		local floorY = if hit then hit.Position.Y else 0.5
+		local bcf, bsz = m:GetBoundingBox()
+		local piv = m:GetPivot()
+		local rot = if faceNorth then CFrame.identity else piv - piv.Position
+		local delta = Vector3.new(x - bcf.X, floorY - (bcf.Y - bsz.Y / 2), z - bcf.Z)
+		m:PivotTo(CFrame.new(piv.Position + delta) * rot)
+	end
+	local npcs = V.LookDevModelsNpcsR8_npcs_r8
+	setOnFloor(npcs.R8_tengkulak, -60, 150, true)
+	setOnFloor(npcs.R8_debt_collector, -53, 145, true)
+	local stock = HP.gelap
+	setOnFloor(stock.gelap_karung, -70, 146)
+	setOnFloor(stock.gelap_kardus, -51, 150)
+	setOnFloor(stock.gelap_tong, -51, 147)
+	setOnFloor(stock.gelap_lampu, -64, 152)
+	stash(stock.gelap_pagar_bambu)
 	print("[MapLayoutV1] tidy done")
 end
 

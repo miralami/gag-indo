@@ -89,9 +89,16 @@ These are reversible defaults. Each one is one line in the script.
   scaled up. A new model only needs `MapHub` and its row in `L.HUBS`.
 - **Play shows only part of this layout.** Since v1.1, `World/MapHubGate.luau` hides the Roblox-built
   hubs, the Greybox road strips and the `Decor`/`Details` dressing whenever `JuraganMap.Hubs` holds
-  the matching 3D model (evidence `09`). It hides them in place and destroys nothing. The ten Greybox
-  plots, the hub prompts and the NPC spots still sit at the old MapSpec positions. The ProximityPrompts
-  for the hidden hubs are therefore invisible and in the old spots. The logic transfer, planned as the
+  the matching 3D model (evidence `09`). It hides them in place and destroys nothing. Rojo was not
+  running, so the repo text of `Village` and `MapHubGate` was also written into the place's scripts.
+  A real Play then showed all six old hubs hidden and the five shop prompts still bound and enabled.
+  Several things still sit at the old MapSpec positions:
+  - the ten Greybox plots;
+  - the greybox NPCs (Pak RT, Polisi Desa, Bang Jago);
+  - the hub prompts.
+
+  So the Pasar prompt, for example, triggers on empty ground at (−69, −106). Greybox `Flora`, trees,
+  bridge and paddy also still double up with the JuraganMap content. The logic transfer, planned as the
   next sprint, has to move prompts, tags, plots and NPC spots onto the models in `JuraganMap.Hubs`, and
   update MapSpec to these coordinates.
 - Dressing built against the old Roblox walls (night windows, porch bulb, hub spanduk) is parked in
@@ -115,7 +122,10 @@ Edit changes are the following.
 - **Gelap.** It was moved behind the Pasar at the Pasar's scale, in the exact relative placement of
   `assets/blender/pasar_gelap_blockout.blend`. Its walls and `Alley_Floor` land within 0.1 stud of their
   mapped Blender points. Studio maps Blender (x, y, z) to (−x, z, y) about the Pasar's `Ground_Dirt`.
-  The Gelap is reached only through the alley from the Pasar. The lumbung barn now stands on its old spot.
+  The Gelap is reached only through the alley from the Pasar. The tengkulak and debt collector NPCs and
+  the Gelap's stock (karung, kardus, tong, lampu) moved into the compound, onto its floor (evidence `15`).
+  The lumbung barn now stands on the Gelap's old spot, next to the Gelap drying yard and washing lines,
+  which stayed.
 - **Parked** to `ServerStorage.ParkedLayout`:
   - the old Pasar awning stall ring and its paving;
   - `LookDevPlazaR9`, which doubled the `alun_alun_area` fountain and benches;

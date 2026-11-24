@@ -41,6 +41,7 @@ when the task needs it.
 | [ART.md](v2/visual/ART.md) | Palette, UI kit, NPC caricature rules | LIVE |
 | [art/ASSET_MANIFEST.md](v2/visual/art/ASSET_MANIFEST.md) | Every asset: slot, source, licence, ID | LIVE |
 | [art/MAP_SPEC.md](v2/visual/art/MAP_SPEC.md) | Map coordinates and layout (mirrored in `MapSpec.luau`) | LIVE |
+| [art/MAP_LAYOUT_V1.md](v2/visual/art/MAP_LAYOUT_V1.md) | Edit-time layout matched to the illustrated brief `art/map/map_design_brief.webp`: hub models, ring, plots, coordinates, open assumptions | LIVE |
 | [art/map/RECONCILIATION.md](v2/visual/art/map/RECONCILIATION.md) | Where MAP_SPEC and the outside map brief differ, and who wins | LIVE |
 | [art/ICONS.md](v2/visual/art/ICONS.md), [art/TEXTURES.md](v2/visual/art/TEXTURES.md), [art/npcs.md](v2/visual/art/npcs.md) | Production briefs | LIVE |
 | [art/RESEARCH_VISUAL_TIPS.md](v2/visual/art/RESEARCH_VISUAL_TIPS.md) | Visual tips applied and the optimise-later backlog | LIVE |

@@ -11,7 +11,10 @@ Drawn positions were read with one scale, about 0.9 stud per pixel in X and 0.8 
 pinned to what the terrain already fixed: the river at z ≈ 304 and the sawah terraces at
 z −312..−376. The world keeps the MapSpec 800 × 800 scale, which is the "wider world" the owner likes.
 
-The script that produced the layout is `tools/studio/map_layout_v1.luau`. Load it as a ModuleScript in
+The script that produced the layout is `tools/studio/map_layout_v1.luau`. It is a reconstruction of
+the Studio run and has not been replayed on a fresh place. The run applied the steps in a slightly
+different order, then made fixes by hand that the script now includes: `fixups`, the hub rescale to
+human scale, and the nearest-centre match in `dressing`. Load it as a ModuleScript in
 Edit and run `steps.<name>()` in the order given by `.order`. Nothing is destroyed. Old road strips,
 the Jalan tile kit, and the trees that had no free spot were moved to `ServerStorage.ParkedLayout`.
 
@@ -25,7 +28,8 @@ The following list describes the world tree after the pass.
 - `Nature` has two parts. `ForestBelt` holds 300 trees plus 60 more at the edges. `VillageTrees` holds 170 trees.
 - `Props` holds the `kit_*` and `prop_*_v2` meshes, used as hub dressing.
 - `Village` holds every earlier LookDev folder, NPCs included. They were kept as the owner asked, moved with their hub, and gathered here.
-- All 14,139 parts are anchored, the display NPC rigs included.
+- All 14,139 parts are anchored, the display NPC rigs included. `TengkulakGelap_v1` and `Lahan_v3`
+  are packages that were rescaled. If a package auto-update arrives, it may undo the scale.
 
 ## Coordinates
 
@@ -34,13 +38,13 @@ Units are studs. X points east and −Z points north. Ground is at Y 0.5.
 | Item | Model | Centre (x, z) | Facing | Scale | Size (x × h × z) |
 |---|---|---|---|---|---|
 | Lapang Warga (plaza) | `alun_alun_area` | 0, 0 | – | 1.2 | 120 × 36 × 120 |
-| Rumah Pak RT | `rumah_pakrt` | 80, −112 | south | 2.2 | 53 × 30 × 53 |
-| Pos Polisi | `R5_gudang` (stand-in) | −80, −112 | south | 3.2 | 30 × 32 × 31 |
-| Pos Ronda (+ tower) | `pos_ronda` | −165, −45 | east | 1.7 | 51 × 27 × 33 |
-| Pasar | `pasar_diorama` | −82, 102 | north (open side is local −Z) | 2.8 | 95 × 36 × 83 |
-| Tengkulak Gelap | `TengkulakGelap_v1` | −178, 62 | east, towards the Pasar | 1.8 | 37 × 24 × 50 |
-| Warung | `R5_warung` (stand-in) | 104, 84 | north | 3.4 | 42 × 31 × 31 |
-| Balai Desa | `rumah_desa` (stand-in) | 0, −246 | south | 2.0 | 52 × 43 × 53 |
+| Rumah Pak RT | `rumah_pakrt` | 80, −112 | south | 2.0 | 48 × 27 × 48 |
+| Pos Polisi | `R5_gudang` (stand-in) | −80, −112 | south | 2.6 | 24 × 26 × 25 |
+| Pos Ronda (+ tower) | `pos_ronda` | −165, −45 | east | 1.4 | 42 × 22 × 27 |
+| Pasar | `pasar_diorama` | −82, 102 | north (open side is local −Z) | 2.0 | 68 × 26 × 59 |
+| Tengkulak Gelap | `TengkulakGelap_v1` | −178, 62 | east, towards the Pasar | 1.5 | 31 × 20 × 42 |
+| Warung | `R5_warung` (stand-in) | 104, 84 | north | 2.8 | 35 × 25 × 25 |
+| Balai Desa | `rumah_desa` (stand-in) | 0, −246 | south | 1.8 | 46 × 39 × 47 |
 | Kebun (Kebun Sawit corner) | `Lahan_v3` | 345, −250 | – | 1.0 | 90 × 18 × 91 |
 | Lapangan (goals, kites) | LookDev | 160, −48 | – | – | 72 × 56 |
 | Musala | LookDev | 46, 140 | – | – | – |
@@ -73,8 +77,11 @@ These are reversible defaults. Each one is one line in the script.
 3. **`Lahan_v3`** is used as the Kebun in the north-east corner, because the drawing shows a farm hut there.
 4. **`rumah_desa`** stands in for the Balai Desa. Its red tile roof matches the drawing.
 5. **Gelap faces east** into the alley beside the Pasar, so the black market stays tucked away.
-6. **Hub sizes** were scaled up uniformly against the 5-stud avatar until they read about as large
-   relative to the plots as they do in the drawing. The Pasar now matches the approved 100 × 84 diorama footprint.
+6. **Hub sizes** are set to human scale against the 5-stud NPCs. A first pass scaled them to the
+   drawing and put the Pasar stall counters at head height (5.0). They now top out at 3.6, and the
+   Pak RT table at 2.6. As a result, the Pasar is 68 × 59, smaller than the 100 × 84 MapSpec
+   footprint. The old Pasar awning stalls still ring that larger footprint, so the market square keeps
+   its size.
 
 ## Gaps
 

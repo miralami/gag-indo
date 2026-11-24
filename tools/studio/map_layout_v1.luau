@@ -20,14 +20,15 @@ local L = {}
 L.RING = { A = 228, B = 172, c = 80, width = 14 }
 L.PLAZA = { x = 0, z = 0, half = 60 }
 
--- Hub 3D models. `scale` is uniform against the avatar (5 studs), `yaw` turns the model (0 = as
+-- Hub 3D models. `scale` is uniform and was checked against the 5-stud avatar: Pasar stall counters
+-- top out at 3.6 and the Pak RT table at 2.6 (waist height). `yaw` turns the model (0 = as
 -- imported). A model whose door is not on local +Z says so with `front` (degrees added to yaw to get
--- the door direction: 0 = south, 90 = east, 180 = north). The pasar diorama's open side is local -Z. `surface` names a
--- part whose top must land on the ground (the model's own base slab); else the bounding box
--- bottom lands on it.
+-- the door direction: 0 = south, 90 = east, 180 = north); the pasar diorama's open side is local -Z.
+-- `surface` names a part whose top must land on the ground (the model's own base slab); else the
+-- bounding box bottom lands on it.
 L.HUBS = {
 	{ key = "plaza", model = "alun_alun_area", x = 0, z = 0, yaw = 0, scale = 1.2, surface = "AA_Cobble" },
-	{ key = "pakrt", model = "rumah_pakrt", x = 80, z = -112, yaw = 0, scale = 2.2 },
+	{ key = "pakrt", model = "rumah_pakrt", x = 80, z = -112, yaw = 0, scale = 2.0 },
 	{
 		key = "polisi",
 		model = "R5_gudang",
@@ -35,10 +36,10 @@ L.HUBS = {
 		x = -80,
 		z = -112,
 		yaw = 0,
-		scale = 3.2,
+		scale = 2.6,
 		standIn = true,
 	},
-	{ key = "ronda", model = "pos_ronda", x = -165, z = -45, yaw = 90, scale = 1.7 },
+	{ key = "ronda", model = "pos_ronda", x = -165, z = -45, yaw = 90, scale = 1.4 },
 	{
 		key = "pasar",
 		model = "pasar_diorama",
@@ -46,10 +47,10 @@ L.HUBS = {
 		z = 102,
 		yaw = 0,
 		front = 180,
-		scale = 2.8,
+		scale = 2.0,
 		surface = "Ground_Soil",
 	},
-	{ key = "gelap", model = "TengkulakGelap_v1", x = -178, z = 62, yaw = 90, scale = 1.8, surface = "G_Slab" },
+	{ key = "gelap", model = "TengkulakGelap_v1", x = -178, z = 62, yaw = 90, scale = 1.5, surface = "G_Slab" },
 	{
 		key = "warung",
 		model = "R5_warung",
@@ -57,10 +58,10 @@ L.HUBS = {
 		x = 104,
 		z = 84,
 		yaw = 180,
-		scale = 3.4,
+		scale = 2.8,
 		standIn = true,
 	},
-	{ key = "balai", model = "rumah_desa", x = 0, z = -246, yaw = 0, scale = 2.0, standIn = true },
+	{ key = "balai", model = "rumah_desa", x = 0, z = -246, yaw = 0, scale = 1.8, standIn = true },
 	{ key = "kebun", model = "Lahan_v3", x = 345, z = -250, yaw = 0, scale = 1.0 },
 }
 
@@ -290,10 +291,12 @@ local function roadSegments()
 		local tr = ringT(dx, dz)
 		local stop = len - t.half
 		if stop > tr + 2 then
-			table.insert(
-				segs,
-				{ a = Vector3.new(dx * tr, 0, dz * tr), b = Vector3.new(dx * stop, 0, dz * stop), w = 10, name = t.name }
-			)
+			table.insert(segs, {
+				a = Vector3.new(dx * tr, 0, dz * tr),
+				b = Vector3.new(dx * stop, 0, dz * stop),
+				w = 10,
+				name = t.name,
+			})
 		end
 	end
 	return segs
@@ -538,18 +541,28 @@ function steps.dressing()
 			if not p then
 				continue
 			end
-			for key, o in L.OLD_HUBS do
+			-- Zones overlap (the old Pasar zone reaches the Ronda and Gelap ones), so of every zone that holds
+			-- the item, the nearest old hub centre wins. A first-match over pairs() sent the ronda tower and
+			-- the gelap lumbung dressing to the Pasar in the first Studio run.
+			local key, best = nil, math.huge
+			for k, o in L.OLD_HUBS do
 				if inRect(p, o, L.GROW) then
-					local h
-					for _, hh in L.HUBS do
-						if hh.key == key then
-							h = hh
-						end
+					local d = (Vector3.new(p.X, 0, p.Z) - Vector3.new(o.x, 0, o.z)).Magnitude
+					if d < best then
+						key, best = k, d
 					end
-					transform(item, hubTransform(o.x, o.z, o.yaw, h.x, h.z, L.NEW_HUB_YAW[key]))
-					counts[key] = (counts[key] or 0) + 1
-					break
 				end
+			end
+			if key then
+				local o = L.OLD_HUBS[key]
+				local h
+				for _, hh in L.HUBS do
+					if hh.key == key then
+						h = hh
+					end
+				end
+				transform(item, hubTransform(o.x, o.z, o.yaw, h.x, h.z, L.NEW_HUB_YAW[key]))
+				counts[key] = (counts[key] or 0) + 1
 			end
 		end
 		task.wait()

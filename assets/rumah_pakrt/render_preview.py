@@ -2,7 +2,7 @@
 
     blender --background assets/rumah_pakrt/rumah_pakrt.blend --python assets/rumah_pakrt/render_preview.py
 
-Adds a ground plane, sun, sky and a 7.25-stud avatar-sized figure (MapSpec scale) for scale, then writes
+Adds a ground plane, sun, sky and a 5.3-stud figure (default Roblox R15 avatar) for scale, then writes
 preview/*.jpg next to this script.
 """
 
@@ -56,11 +56,12 @@ def setup():
     path.scale = (200, 12, 1)  # dirt village road; the asphalt piece sits on it
     path.data.materials.append(flat_material("path", srgb("b98a5a")))
 
-    # avatar-sized figure (7.25 studs, MapSpec) in front of the gate
+    # avatar-sized figure: 5.3 studs, a default Roblox R15 character (the game does not rescale
+    # characters; MapSpec's 7.25 is an old assumption)
     fig = flat_material("figure", (0.15, 0.35, 0.8), 0.6)
-    bpy.ops.mesh.primitive_cylinder_add(radius=1.2, depth=5.3, location=(3.0, 27.0, 2.65))
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.9, depth=3.9, location=(3.0, 27.0, 1.95))
     bpy.context.active_object.data.materials.append(fig)
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=1.0, location=(3.0, 27.0, 6.25))
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.7, location=(3.0, 27.0, 4.6))
     bpy.context.active_object.data.materials.append(fig)
 
     sun = bpy.data.lights.new("sun", "SUN")

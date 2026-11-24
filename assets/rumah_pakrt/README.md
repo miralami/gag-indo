@@ -26,7 +26,10 @@ with a big genteng roof, upgraded with money that doesn't add up:
 |---|---|---|
 | ![teras](preview/rumah_pakrt_teras.jpg) | ![lesehan](preview/rumah_pakrt_lesehan.jpg) | ![carport](preview/rumah_pakrt_carport.jpg) |
 
-The blue figure is **7.25 studs**, the avatar height `MapSpec.luau` uses. It is not part of the asset.
+The blue figure is **5.3 studs**, a default Roblox R15 avatar: nothing in `src/` rescales
+characters, so this is what players are. `MapSpec.luau` assumes 7.25; the house was sized
+against that number, so in game it reads about 1.37 times bigger relative to the player than a
+7.25 figure suggests. The figure is not part of the asset.
 
 ## Proportions (MapSpec is the authority for the house)
 

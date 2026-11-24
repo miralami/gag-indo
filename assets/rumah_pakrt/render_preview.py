@@ -51,7 +51,7 @@ def setup():
     bpy.ops.mesh.primitive_plane_add(size=400, location=(0, 0, 0))
     ground = bpy.context.active_object
     ground.data.materials.append(flat_material("ground", srgb("6f8a3f")))
-    bpy.ops.mesh.primitive_plane_add(size=1, location=(0, 31, 0.02))
+    bpy.ops.mesh.primitive_plane_add(size=1, location=(0, 36, 0.02))
     path = bpy.context.active_object
     path.scale = (200, 12, 1)  # dirt village road; the asphalt piece sits on it
     path.data.materials.append(flat_material("path", srgb("b98a5a")))
@@ -59,9 +59,9 @@ def setup():
     # avatar-sized figure: 5.3 studs, a default Roblox R15 character (the game does not rescale
     # characters; MapSpec's 7.25 is an old assumption)
     fig = flat_material("figure", (0.15, 0.35, 0.8), 0.6)
-    bpy.ops.mesh.primitive_cylinder_add(radius=0.9, depth=3.9, location=(3.0, 27.0, 1.95))
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.9, depth=3.9, location=(3.0, 32.0, 1.95))
     bpy.context.active_object.data.materials.append(fig)
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.7, location=(3.0, 27.0, 4.6))
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.7, location=(3.0, 32.0, 4.6))
     bpy.context.active_object.data.materials.append(fig)
 
     sun = bpy.data.lights.new("sun", "SUN")
@@ -94,10 +94,10 @@ def shoot(scene, name, loc, target, lens=35):
 
 
 scene = setup()
-shoot(scene, "rumah_pakrt_front", (-6, 88, 9), (0, -4, 12), lens=30)
-shoot(scene, "rumah_pakrt_34", (66, 74, 40), (0, -2, 6))
-shoot(scene, "rumah_pakrt_teras", (-4, 16, 9), (-7, -4, 3.5), lens=26)
-shoot(scene, "rumah_pakrt_lesehan", (8, 22, 11), (23, 1, 1.5), lens=26)
-shoot(scene, "rumah_pakrt_carport", (-10, 32, 9), (-23, -4, 4), lens=26)
-shoot(scene, "rumah_pakrt_back", (-62, -66, 34), (0, 0, 8))
+shoot(scene, "rumah_pakrt_front", (-8, 104, 10), (0, -4, 15), lens=30)
+shoot(scene, "rumah_pakrt_34", (82, 90, 48), (0, -2, 8))
+shoot(scene, "rumah_pakrt_teras", (-4, 20, 8), (-9, -3, 5), lens=24)
+shoot(scene, "rumah_pakrt_lesehan", (10, 22, 12), (27, 0, 1.5), lens=26)
+shoot(scene, "rumah_pakrt_carport", (-12, 36, 10), (-27, -4, 4), lens=26)
+shoot(scene, "rumah_pakrt_back", (-76, -82, 42), (0, 0, 10))
 print("RENDER_ENGINE", scene.render.engine)

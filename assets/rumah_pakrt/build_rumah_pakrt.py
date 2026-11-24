@@ -14,9 +14,10 @@ house that a slightly corrupt Pak RT has upgraded: gold-capped columns, glossy t
 sofa, envelope on the table, gold-tipped fence with the gate open, red-plate government MPV with
 aid-project cement sacks, satellite dish, CCTV, flag, and a humble lesehan hangout for villagers.
 
-Scale (src/server/World/MapSpec.luau): this house is the village scale reference. Lot 48 x 34,
-ridge 32.6, door 7 x 10.5, avatar 7.25 studs. 1 Blender unit = 1 stud, ground z = 0, lot centred
-on the origin, front (street) facing Blender +Y = Roblox -Z after export.
+Scale: the house shell is about 1.25x the MapSpec greybox (lot 72 x 60, ridge 40, door 8 x 12.5,
+10-deep terrace) after Willy's review against a true-size 5.3-stud R15 avatar; player-scale
+things (steps, sofa, table, fence, car) stay at avatar size. 1 Blender unit = 1 stud, ground z = 0,
+lot centred on the origin, front (street) facing Blender +Y = Roblox -Z after export.
 
 Gameplay: `RumahPakRT_Meja` is the terrace table at the size of MapSpec's pakrt anchor (5 x 2.4 x
 3) for the BribePrompt. Player text is never baked into textures (Strings.luau rule).
@@ -54,20 +55,23 @@ P = load_palette()
 # ---------------------------------------------------------------------------------------------
 # Dimensions (studs). Avatar 7.25, door 7 x 10.5 (MapSpec).
 # ---------------------------------------------------------------------------------------------
-# Lot 56 x 50 (Willy, 2026-11-24: "halaman rumahnya diperluas" to match the concept's deep front
-# yard). The house keeps its MapSpec size; only the yard grows, mostly toward the street.
-LOT_X = 31.1  # half width; pillar caps reach 32 (lot widened with the house, 2026-11-24)
-LOT_Y0, LOT_Y1 = -18.0, 32.0  # back and street edges before the lot is centred on the origin
+# Willy, 2026-11-24, in steps: deeper front yard ("halaman diperluas"), wider house ("kurang
+# lebar"), then a bigger house next to a real avatar and a roomier terrace ("rumahnya kurang besar,
+# teras kurang luas"). The house shell is now about 1.25x the MapSpec greybox; things a player
+# uses (steps, sofa, table, fence, car, lesehan) stay at avatar scale. A default R15 avatar is
+# about 5.3 studs; MapSpec's 7.25 is an old assumption.
+LOT_X = 35.1  # half width; pillar caps reach 36 (lot 72 wide)
+LOT_Y0, LOT_Y1 = -22.0, 38.0  # back and street edges before the lot is centred on the origin
 T = 0.8  # wall thickness (Greybox WALL)
 FLOOR = 1.5  # house floor and terrace top
-HX, HY0, HY1 = 15.0, -15.0, 1.0  # ground floor (30 wide; Willy: "kurang lebar"): x half width, back and front wall faces
-TERRACE_Y = 7.5  # terrace front edge
-EAVE_LO = 14.5  # lower (skirt) roof eave
-INNER_Z = 18.0  # where the skirt roof meets the upper storey
-UX, UY0, UY1 = 11.0, -11.0, -1.0  # upper storey (22 wide): x half width, back and front wall faces
-UP_TOP = 27.4
-EAVE_HI, RIDGE = 26.5, 32.6
-DOOR_X, DOOR_W, DOOR_H = -1.5, 7.0, 10.5
+HX, HY0, HY1 = 18.5, -19.0, 1.0  # ground floor 37 wide x 20 deep: x half width, back and front wall faces
+TERRACE_Y = 11.0  # terrace front edge: 10 deep from the front wall
+EAVE_LO = 17.5  # lower (skirt) roof eave
+INNER_Z = 22.0  # where the skirt roof meets the upper storey
+UX, UY0, UY1 = 13.5, -14.0, -1.0  # upper storey 27 wide x 13 deep
+UP_TOP = 33.4
+EAVE_HI, RIDGE = 32.5, 40.0
+DOOR_X, DOOR_W, DOOR_H = -2.0, 8.0, 12.5
 FENCE_Y = LOT_Y1 - 0.4
 
 BMS = {}
@@ -317,38 +321,38 @@ def build_house():
     def under(axis, plane):
         return lambda u: (roof_lo(u, plane) if axis == "x" else roof_lo(plane, u)) - 0.42
 
-    win_g = (FLOOR + 3.2, FLOOR + 9.2)
+    win_g = (FLOOR + 3.6, FLOOR + 11.0)
     front_open = [
         (DOOR_X - DOOR_W / 2, DOOR_X + DOOR_W / 2, FLOOR, FLOOR + DOOR_H),
-        (-12.0, -7.4, *win_g),
-        (4.5, 11.5, *win_g),
+        (-14.5, -9.0, *win_g),
+        (5.0, 13.5, *win_g),
     ]
-    wall("x", HY1, 1, -HX, HX, FLOOR, 18.0, front_open, under("x", HY1 - 0.4))
-    wall("x", HY0, -1, -HX, HX, FLOOR, 18.0, [(-11.0, -7.0, *win_g), (-2.0, 2.0, *win_g), (7.0, 11.0, *win_g)], under("x", HY0 + 0.4))
+    wall("x", HY1, 1, -HX, HX, FLOOR, 24.0, front_open, under("x", HY1 - 0.4))
+    wall("x", HY0, -1, -HX, HX, FLOOR, 24.0, [(-14.0, -9.0, *win_g), (-2.5, 2.5, *win_g), (9.0, 14.0, *win_g)], under("x", HY0 + 0.4))
     for sx in (-1, 1):
-        opens = [(-9.0, -5.0, *win_g)] if sx < 0 else []
-        wall("y", sx * HX, sx, HY0 + T, HY1 - T, FLOOR, 18.0, opens, under("y", sx * (HX - 0.4)))
+        opens = [(-12.0, -6.0, *win_g)] if sx < 0 else []
+        wall("y", sx * HX, sx, HY0 + T, HY1 - T, FLOOR, 24.0, opens, under("y", sx * (HX - 0.4)))
     door("x", HY1, 1, DOOR_X, DOOR_W, FLOOR, DOOR_H)
-    window("x", HY1, 1, -9.7, 4.6, *win_g, bars=2)
-    window("x", HY1, 1, 8.0, 7.0, *win_g, bars=3)
-    window("x", HY0, -1, -9.0, 4.0, *win_g)
-    window("x", HY0, -1, 0.0, 4.0, *win_g)
-    window("x", HY0, -1, 9.0, 4.0, *win_g)
-    window("y", -HX, -1, -7.0, 4.0, *win_g)
+    window("x", HY1, 1, -11.75, 5.5, *win_g, bars=2)
+    window("x", HY1, 1, 9.25, 8.5, *win_g, bars=3)
+    window("x", HY0, -1, -11.5, 5.0, *win_g)
+    window("x", HY0, -1, 0.0, 5.0, *win_g)
+    window("x", HY0, -1, 11.5, 5.0, *win_g)
+    window("y", -HX, -1, -9.0, 6.0, *win_g)
 
     # upper storey
-    win_u = (19.0, 23.6)
-    wall("x", UY1, 1, -UX, UX, 15.0, UP_TOP, [(-8.5, -4.5, *win_u), (-2.0, 2.0, *win_u), (4.5, 8.5, *win_u)])
-    wall("x", UY0, -1, -UX, UX, 15.0, UP_TOP, [(-6.0, -2.0, *win_u), (2.0, 6.0, *win_u)])
+    win_u = (24.5, 30.0)
+    wall("x", UY1, 1, -UX, UX, 18.0, UP_TOP, [(-10.5, -5.5, *win_u), (-2.5, 2.5, *win_u), (5.5, 10.5, *win_u)])
+    wall("x", UY0, -1, -UX, UX, 18.0, UP_TOP, [(-7.0, -2.0, *win_u), (2.0, 7.0, *win_u)])
     for sx in (-1, 1):
-        wall("y", sx * UX, sx, UY0 + T, UY1 - T, 15.0, UP_TOP, [(-8.0, -4.0, *win_u)])
-    window("x", UY1, 1, -6.5, 4.0, *win_u)
-    window("x", UY1, 1, 0.0, 4.0, *win_u)
-    window("x", UY1, 1, 6.5, 4.0, *win_u)
-    window("x", UY0, -1, -4.0, 4.0, *win_u)
-    window("x", UY0, -1, 4.0, 4.0, *win_u)
+        wall("y", sx * UX, sx, UY0 + T, UY1 - T, 18.0, UP_TOP, [(-10.0, -5.0, *win_u)])
+    window("x", UY1, 1, -8.0, 5.0, *win_u)
+    window("x", UY1, 1, 0.0, 5.0, *win_u)
+    window("x", UY1, 1, 8.0, 5.0, *win_u)
+    window("x", UY0, -1, -4.5, 5.0, *win_u)
+    window("x", UY0, -1, 4.5, 5.0, *win_u)
     for sx in (-1, 1):
-        window("y", sx * UX, sx, -6.0, 4.0, *win_u)
+        window("y", sx * UX, sx, -7.5, 5.0, *win_u)
 
     # roofs: skirt roof over the ground floor and terrace, hip roof on the upper storey
     outer = (-HX - 1.5, HX + 1.5, HY0 - 1.5, TERRACE_Y)
@@ -370,37 +374,39 @@ def build_house():
             beam("Kayu", (xx, y0 - 0.1, zc), (xx, y1 + 0.1, zc), 0.15, 0.6)
 
     # terrace columns: plain plaster with gold caps and bases (the only gold on the house)
-    col_y = TERRACE_Y - 1.2
+    col_y = TERRACE_Y - 1.4
     col_top = roof_lo(0, col_y) - 0.45
-    for cx in (-9.0, 13.0):
-        box("Plester", cx - 1.2, cx + 1.2, col_y - 1.2, col_y + 1.2, FLOOR, FLOOR + 1.6)
-        cylinder("Emas", (cx, col_y, FLOOR + 1.85), 1.15, 0.5, segments=16)
-        cylinder("Plester", (cx, col_y, (FLOOR + 2.1 + col_top - 0.9) / 2), 0.85, col_top - 0.9 - (FLOOR + 2.1), segments=16)
-        cylinder("Emas", (cx, col_y, col_top - 0.65), 1.0, 0.5, segments=16)
-        box("Emas", cx - 1.25, cx + 1.25, col_y - 1.25, col_y + 1.25, col_top - 0.4, col_top)
+    for cx in (-11.5, 16.0):
+        box("Plester", cx - 1.4, cx + 1.4, col_y - 1.4, col_y + 1.4, FLOOR, FLOOR + 1.9)
+        cylinder("Emas", (cx, col_y, FLOOR + 2.2), 1.35, 0.6, segments=16)
+        cylinder("Plester", (cx, col_y, (FLOOR + 2.5 + col_top - 1.1) / 2), 1.0, col_top - 1.1 - (FLOOR + 2.5), segments=16)
+        cylinder("Emas", (cx, col_y, col_top - 0.8), 1.2, 0.6, segments=16)
+        box("Emas", cx - 1.45, cx + 1.45, col_y - 1.45, col_y + 1.45, col_top - 0.5, col_top)
 
     # wall lamps beside the door and the left window
-    for lx in (3.2, -13.2):
-        sbox("tinta", lx - 0.35, lx + 0.35, HY1, HY1 + 0.5, 9.0, 10.4)
-        sbox("senja", lx - 0.25, lx + 0.25, HY1 + 0.2, HY1 + 0.55, 9.2, 10.0)
+    lz = FLOOR + DOOR_H - 3.0
+    for lx in (3.5, -16.2):
+        sbox("tinta", lx - 0.4, lx + 0.4, HY1, HY1 + 0.55, lz, lz + 1.6)
+        sbox("senja", lx - 0.3, lx + 0.3, HY1 + 0.2, HY1 + 0.6, lz + 0.2, lz + 1.1)
 
     # satellite dish on the skirt roof, CCTV under the upper eave
-    dx, dy = 14.0, -7.0
+    dx, dy = 16.2, -9.0
     base = roof_lo(dx, dy)
-    paint("perak", cylinder("Warna", (dx, dy, (base + 29.0) / 2), 0.15, 29.0 - base + 0.2, segments=8))
+    top = EAVE_HI + 3.0
+    paint("perak", cylinder("Warna", (dx, dy, (base + top) / 2), 0.18, top - base + 0.2, segments=8))
     tilt = Matrix.Rotation(math.radians(-40), 4, "X")
-    paint("perak", cylinder("Warna", (dx, dy + 0.6, 29.6), 0.3, 0.9, segments=16, r_top=2.4, rot=tilt))
-    paint("tinta", beam("Warna", (dx, dy + 0.9, 29.7), (dx, dy + 2.4, 30.9), 0.12, 0.12))
-    paint("tinta", box("Warna", dx - 0.25, dx + 0.25, dy + 2.3, dy + 2.8, 30.7, 31.2))
-    cx_, cy_ = UX - 0.7, UY1 + 0.2
-    paint("kertas", beam("Warna", (cx_, cy_ - 0.2, 25.6), (cx_, cy_ + 1.3, 25.1), 0.6, 0.6))
-    paint("tinta", box("Warna", cx_ - 0.22, cx_ + 0.22, cy_ + 1.3, cy_ + 1.42, 24.9, 25.3))
-    paint("tinta", box("Warna", cx_ - 0.1, cx_ + 0.1, cy_ - 0.2, cy_, 25.6, 26.0))
+    paint("perak", cylinder("Warna", (dx, dy + 0.6, top + 0.6), 0.3, 0.9, segments=16, r_top=2.6, rot=tilt))
+    paint("tinta", beam("Warna", (dx, dy + 0.9, top + 0.7), (dx, dy + 2.5, top + 2.0), 0.12, 0.12))
+    paint("tinta", box("Warna", dx - 0.25, dx + 0.25, dy + 2.4, dy + 2.9, top + 1.8, top + 2.3))
+    cx_, cy_, cz_ = UX - 0.8, UY1 + 0.2, EAVE_HI - 0.9
+    paint("kertas", beam("Warna", (cx_, cy_ - 0.2, cz_), (cx_, cy_ + 1.4, cz_ - 0.5), 0.7, 0.7))
+    paint("tinta", box("Warna", cx_ - 0.25, cx_ + 0.25, cy_ + 1.4, cy_ + 1.52, cz_ - 0.75, cz_ - 0.3))
+    paint("tinta", box("Warna", cx_ - 0.1, cx_ + 0.1, cy_ - 0.2, cy_, cz_, cz_ + 0.4))
 
 
 def build_terrace_furniture():
     sy0, sy1 = HY1 + 0.3, HY1 + 2.9
-    sx0, sx1 = 3.4, 10.4
+    sx0, sx1 = 6.0, 12.5
     seat = FLOOR + 2.0
     # an ordinary fabric sofa, a little worn: base, seat cushions, back, arms, short legs
     box("Sofa", sx0, sx1, sy0, sy1, FLOOR + 0.5, seat - 0.6)
@@ -416,7 +422,7 @@ def build_terrace_furniture():
             sbox("tinta_lembut", lx - 0.18, lx + 0.18, ly - 0.18, ly + 0.18, FLOOR, FLOOR + 0.5)
 
     # the terrace table: MapSpec pakrt anchor size, 5 wide x 2.4 tall x 3 deep
-    tx, ty = 6.9, sy1 + 1.75
+    tx, ty = 9.25, sy1 + 1.75
     top = FLOOR + 2.4
     box("Meja", tx - 2.5, tx + 2.5, ty - 1.5, ty + 1.5, top - 0.3, top)
     for lx in (tx - 2.2, tx + 2.2):
@@ -432,9 +438,9 @@ def build_terrace_furniture():
 
 def build_fence():
     """Waist-high dark iron fence on plaster pillars with gold tips; main gate wide open."""
-    gaps = [(-5.5, 5.5), (16.5, 28.5)]  # main gate, carport entrance
+    gaps = [(-5.5, 5.5), (HX + 1.5, HX + 13.5)]  # main gate, carport entrance
     left = list(np.linspace(-LOT_X, -5.5, 4))
-    pillars = [*left, 5.5, 16.5, 28.5, LOT_X]
+    pillars = [*left, 5.5, HX + 1.5, HX + 13.5, LOT_X]
 
     def bars(x0, x1, y):
         box("Plester", x0, x1, y - 0.5, y + 0.5, 0.0, 1.4)  # low plaster base
@@ -596,7 +602,7 @@ def build_yard():
 
 
 def build_flag():
-    x, y = -13.5, TERRACE_Y + 12.5
+    x, y = -17.5, TERRACE_Y + 12.5
     paint("kertas", box("Warna", x - 0.7, x + 0.7, y - 0.7, y + 0.7, 0.0, 0.6))
     paint("perak", cylinder("Warna", (x, y, 11.6), 0.16, 22.0, segments=8))
     paint("kunyit", sphere("Warna", (x, y, 22.75), 0.35))

@@ -1340,6 +1340,218 @@ function steps.unify()
 	return string.format("unified %d folders, anchored %d parts", n, anchored)
 end
 
+-- 17. Tidy pass (v1.1, 2026-11-25): the designer's second round.
+-- The Gelap joins the Pasar through the back alley exactly as in pasar_gelap_blockout.blend; the
+-- Roblox-built dressing made for the old hub walls is parked; roads and props make room for the
+-- 3D models. Studio maps Blender (bx, by, bz) to (-bx, bz, by) about the Pasar's Ground_Dirt
+-- (Blender -71, 86, -1), scaled by the Pasar's model scale. Run after unify().
+local function findPart(model, name)
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") and (d.Name == name or d.Name == name .. ".001") then
+			return d
+		end
+	end
+	return nil
+end
+
+local function nudge(inst, delta)
+	if inst:IsA("BasePart") then
+		inst.Position += delta
+	else
+		inst:PivotTo(inst:GetPivot() + delta)
+	end
+end
+
+local function where(inst)
+	return if inst:IsA("BasePart") then inst.Position else inst:GetPivot().Position
+end
+
+-- Fit a road strip and its shoulder between two XZ points; with newName, a copy is made instead.
+local function fitRoad(roads, name, a, b, newName)
+	local road, sh = roads:FindFirstChild(name), roads:FindFirstChild(name .. "_Shoulder")
+	if not road then
+		return
+	end
+	local extra = if sh then sh.Size.Z - road.Size.Z else 0
+	local r, s = road, sh
+	if newName then
+		r = road:Clone()
+		r.Name = newName
+		r.Parent = roads
+		if sh then
+			s = sh:Clone()
+			s.Name = newName .. "_Shoulder"
+			s.Parent = roads
+		end
+	end
+	for _, pair in { { r, 0 }, { s, extra } } do
+		local p = pair[1]
+		if p then
+			local y = p.Position.Y
+			local A, B = Vector3.new(a.X, y, a.Z), Vector3.new(b.X, y, b.Z)
+			p.Size = Vector3.new(p.Size.X, p.Size.Y, (B - A).Magnitude + pair[2])
+			p.CFrame = CFrame.lookAt((A + B) / 2, B)
+		end
+	end
+end
+
+function steps.tidy()
+	local root = workspace.JuraganMap
+	local V = root.Village
+	local parkRoot = ServerStorage:FindFirstChild("ParkedLayout")
+	local park = parkRoot:FindFirstChild("HubClearV1") or Instance.new("Folder")
+	park.Name = "HubClearV1"
+	park.Parent = parkRoot
+	local function stash(inst)
+		inst:SetAttribute("ParkedFrom", inst.Parent.Name)
+		inst.Parent = park
+	end
+
+	-- Gelap behind the Pasar, joined by the alley: same scale as the Pasar, solved on G_WallNorth.
+	-- Residuals in the Studio run: G_WallEast/West 0.06, Alley_Floor 0.03 studs.
+	local pasar, gelap = root.Hubs.pasar_diorama, root.Hubs.TengkulakGelap_v1
+	local s = pasar:GetScale()
+	local p0 = findPart(pasar, "Ground_Dirt").Position
+	local function fromBlender(bx, by, bz)
+		return p0 + Vector3.new(-(bx + 71), bz + 1, by - 86) * s
+	end
+	gelap:ScaleTo(s)
+	gelap:PivotTo(CFrame.new(gelap:GetPivot().Position))
+	local wall = findPart(gelap, "G_WallNorth")
+	gelap:PivotTo(gelap:GetPivot() + (fromBlender(-103, 183.2, 9.0) - wall.Position))
+
+	-- Roblox-built pieces the 3D models replace: the old stall ring, its paving and the R9 plaza.
+	for _, n in
+		{
+			"LookDevPasarAwningsR8_pasar_awnings_r8",
+			"LookDevPasarGroundR8_pasar_ground_r8",
+			"LookDevPlazaR9_plaza_r9",
+		}
+	do
+		local f = V:FindFirstChild(n)
+		if f then
+			f.Parent = parkRoot
+		end
+	end
+	-- Old wall glows (every night window), and the hub signs and bunting hung on the old walls.
+	for _, c in V.LookDevNightR8_night_r8:GetChildren() do
+		if c.Name:find("Window") or c.Name == "LookDevNightR8_Torch_2" or c.Name == "LookDevNightR8_Torch_6" then
+			stash(c)
+		end
+	end
+	for _, n in { "Spanduk_sign_01", "Spanduk_sign_02", "Spanduk_bunting_01", "Spanduk_bunting_02" } do
+		local c = V.LookDevSpandukR8_spanduk_r8:FindFirstChild(n)
+		if c then
+			stash(c)
+		end
+	end
+	local bulb = V.LookDevLampsR10_lamps_r10:FindFirstChild("PorchBulb_01")
+	if bulb then
+		stash(bulb)
+	end
+	-- Trees that the Gelap now stands on.
+	local cf, size = gelap:GetBoundingBox()
+	local params = OverlapParams.new()
+	params.FilterType = Enum.RaycastFilterType.Include
+	params.FilterDescendantsInstances = { V.LookDevBlocksR9_blocks_r9, V.LookDevModelsVegetationHubR8_hubveg_r8 }
+	for _, p in workspace:GetPartBoundsInBox(cf, size - Vector3.new(2, 0, 2), params) do
+		local m = p:FindFirstAncestorWhichIsA("Model")
+		while m and m.Parent and m.Parent:IsA("Model") do
+			m = m.Parent
+		end
+		if m and m.Parent ~= park then
+			stash(m)
+		end
+	end
+
+	-- Dressing moved out of the footprints.
+	local laundry = {
+		pasar_line = Vector3.new(-35, 0, 8),
+		pasar_hammock = Vector3.new(32, 0, 5),
+		pasar_tikar = Vector3.new(50, 0, 20),
+	}
+	for _, c in V.LookDevLaundryR8_laundry_r8:GetChildren() do
+		local g = c.Name:match("^Laundry_(%a+_%a+)")
+		if g and laundry[g] then
+			nudge(c, laundry[g])
+		end
+	end
+	for _, c in V.LookDevLumbungR8_lumbung_r8:GetChildren() do
+		if c.Name:find("^Lumbung_barn_") or c.Name == "Lumbung_LumbungDoorGauge" then
+			nudge(c, Vector3.new(-120, 0, -10)) -- the barn takes the Gelap's old spot
+		elseif c.Name:find("^Lumbung_pasar_") then
+			nudge(c, Vector3.new(20, 0, -4))
+		elseif c.Name:find("^Lumbung_pakrt_") then
+			nudge(c, Vector3.new(-16, 0, 12))
+		end
+	end
+	for _, c in V.LookDevSeatedR8_seated_r8:GetChildren() do
+		local p = where(c)
+		if p.X > 95 and p.Z > 65 then
+			nudge(c, Vector3.new(22, 0, -9)) -- warung table out of the counter, beside the lane
+		end
+	end
+	-- Hub prop rows split around each lane so the lane reaches the door ({ lane x, left, right, z }).
+	local HP = V.LookDevHubPropsR8_hubprops_r8
+	local rows = {
+		pasar = { -81, -10, 8, 0 },
+		polisi = { -80, -8, 6, 0 },
+		warung = { 104, -6, 6, 0 },
+		pakrt = { 80, -7, 7, 13 },
+	}
+	for key, rule in rows do
+		for _, c in HP[key]:GetChildren() do
+			nudge(c, Vector3.new(if where(c).X < rule[1] then rule[2] else rule[3], 0, rule[4]))
+		end
+	end
+	local SD = V.LookDevSpawnDressingR5_spawn_r5
+	nudge(SD.R5_pedagang, Vector3.new(-6, 0, 0))
+	nudge(SD.R5_tukang_peci, Vector3.new(6, 0, 0))
+	nudge(SD.R5_polisi, Vector3.new(-7, 0, -1))
+
+	-- Roads make room for the models: the ring jogs south round the Gelap's back wall, the Ronda
+	-- lane stops at its front, the Pasar lane runs to the market aisle, the Kebun spoke stops at the
+	-- Lahan's edge, and every spoke opens a gate in its yard fence.
+	local R = root.Roads
+	fitRoad(R, "Ring4", Vector3.new(-30, 0, 178), Vector3.new(-90, 0, 178), "Ring4_Jog")
+	fitRoad(R, "Ring4", Vector3.new(-90, 0, 178), Vector3.new(-148, 0, 172), "Ring4_West")
+	fitRoad(R, "Ring4", Vector3.new(148, 0, 172), Vector3.new(-30, 0, 178))
+	fitRoad(R, "LaneRonda", Vector3.new(-143, 0, -45), Vector3.new(-110, 0, -45))
+	fitRoad(R, "LanePasar", Vector3.new(-82, 0, 9), Vector3.new(-82, 0, 72))
+	fitRoad(R, "SpokeKebun", Vector3.new(185.5, 0, -134.5), Vector3.new(298.8, 0, -216.6))
+	local yards = OverlapParams.new()
+	yards.FilterType = Enum.RaycastFilterType.Include
+	yards.FilterDescendantsInstances = { root.PlotYards }
+	for _, r in R:GetChildren() do
+		if r:IsA("BasePart") and r.Name:find("^Spoke") and not r.Name:find("Shoulder") then
+			for _, p in
+				workspace:GetPartBoundsInBox(
+					r.CFrame + Vector3.new(0, 3, 0),
+					Vector3.new(r.Size.X - 2, 4, r.Size.Z - 2),
+					yards
+				)
+			do
+				local m = p:FindFirstAncestorWhichIsA("Model")
+				if m and m.Name == "kit_fence_v2" and m.Parent ~= park then
+					stash(m)
+				end
+			end
+		end
+	end
+	-- Street furniture and trees off the moved roads.
+	local SF = V.LookDevStreetFurnR8_streetfurn_r8
+	nudge(SF.StreetFurn_obor_12, Vector3.new(-9, 0, 7))
+	nudge(SF.StreetFurn_lampu_13, Vector3.new(0, 0, 7))
+	nudge(SF.StreetFurn_obor_14, Vector3.new(0, 0, 7))
+	local bale = SF.StreetFurn_bale_02
+	local bp = bale:GetPivot().Position
+	bale:PivotTo(bale:GetPivot() + Vector3.new(150 - bp.X, 0, -187 - bp.Z))
+	nudge(V.LookDevBlocksR9_blocks_r9.R9_shrub_shrubs_121, Vector3.new(0, 0, 8))
+	nudge(V.LookDevModelsVegetationR7_vegetation_r7.R7_vegetation_r7_near_bed_mangga_31, Vector3.new(-8, 0, 0))
+	nudge(root.Nature.VillageTrees.R7_vegetation_r7_camera_band_mangga_54, Vector3.new(19, 0, 19))
+	print("[MapLayoutV1] tidy done")
+end
+
 local order = {
 	"terrain",
 	"park",
@@ -1356,6 +1568,7 @@ local order = {
 	"clear",
 	"fixups",
 	"unify",
+	"tidy",
 }
 
 return { steps = steps, order = order, L = L }

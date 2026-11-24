@@ -42,7 +42,7 @@ Units are studs. X points east and −Z points north. Ground is at Y 0.5.
 | Pos Polisi | `R5_gudang` (stand-in) | −80, −112 | south | 2.6 | 24 × 26 × 25 |
 | Pos Ronda (+ tower) | `pos_ronda` | −165, −45 | east | 1.4 | 42 × 22 × 27 |
 | Pasar | `pasar_diorama` | −82, 102 | north (open side is local −Z) | 2.0 | 68 × 26 × 59 |
-| Tengkulak Gelap | `TengkulakGelap_v1` | −178, 62 | east, towards the Pasar | 1.5 | 31 × 20 × 42 |
+| Tengkulak Gelap | `TengkulakGelap_v1` | −61, 148 | joined to the Pasar's back by the alley | Pasar's (0.68 of the .blend) | 28 × 18 × 39 |
 | Warung | `R5_warung` (stand-in) | 104, 84 | north | 2.8 | 35 × 25 × 25 |
 | Balai Desa | `rumah_desa` (stand-in) | 0, −246 | south | 1.8 | 46 × 39 × 47 |
 | Kebun (Kebun Sawit corner) | `Lahan_v3` | 345, −250 | – | 1.0 | 90 × 18 × 91 |
@@ -76,24 +76,68 @@ These are reversible defaults. Each one is one line in the script.
    The football field was moved east of the plaza, next to Pak RT.
 3. **`Lahan_v3`** is used as the Kebun in the north-east corner, because the drawing shows a farm hut there.
 4. **`rumah_desa`** stands in for the Balai Desa. Its red tile roof matches the drawing.
-5. **Gelap faces east** into the alley beside the Pasar, so the black market stays tucked away.
+5. *(Replaced in v1.1.)* The Gelap now sits behind the Pasar and joins it through the back alley.
 6. **Hub sizes** are set to human scale against the 5-stud NPCs. A first pass scaled them to the
    drawing and put the Pasar stall counters at head height (5.0). They now top out at 3.6, and the
    Pak RT table at 2.6. As a result, the Pasar is 68 × 59, smaller than the 100 × 84 MapSpec
-   footprint. The old Pasar awning stalls still ring that larger footprint, so the market square keeps
-   its size.
+   footprint. *(v1.1: the old awning stall ring and its paving were parked, because the 3D model
+   replaces them.)*
 
 ## Gaps
 
 - There are no 3D models yet for **Pos Polisi** or **Warung**. They use the R4 gudang and warung meshes,
   scaled up. A new model only needs `MapHub` and its row in `L.HUBS`.
-- **Play does not show this layout yet.** The LookDev builders and `Village` still build the old
-  MapSpec layout at runtime, which means hubs in the old spots and duplicates of the Edit content. The
-  logic transfer, planned as the next sprint, has to move prompts, tags and NPC spots onto the models in
-  `JuraganMap.Hubs`. It must also stop the runtime builders from rebuilding what now lives in the place,
-  and update MapSpec to these coordinates.
-- Old dressing that was built against Roblox-built walls moved with its hub, but it may not line up
-  with the new meshes. This covers night windows, porch bulbs and spanduk. It needs a close review pass
-  per hub.
+- **Play shows only part of this layout.** Since v1.1, `World/MapHubGate.luau` hides the Roblox-built
+  hubs, the Greybox road strips and the `Decor`/`Details` dressing whenever `JuraganMap.Hubs` holds
+  the matching 3D model (evidence `09`). It hides them in place and destroys nothing. The ten Greybox
+  plots, the hub prompts and the NPC spots still sit at the old MapSpec positions. The ProximityPrompts
+  for the hidden hubs are therefore invisible and in the old spots. The logic transfer, planned as the
+  next sprint, has to move prompts, tags, plots and NPC spots onto the models in `JuraganMap.Hubs`, and
+  update MapSpec to these coordinates.
+- Dressing built against the old Roblox walls (night windows, porch bulb, hub spanduk) is parked in
+  v1.1. The 3D models have no night glow yet.
 - `Jalan_v3` (the road tile kit) was not used. The roads are plain Parts, so their look can be swapped
   for the kit later.
+
+## v1.1 tidy pass (2026-11-25)
+
+The designer gave four instructions:
+
+- park the old Roblox-built hubs, because the 3D models replace them;
+- make room for the models so nothing overlaps;
+- let the roads bend where they need to;
+- join the Tengkulak Gelap to the Pasar through a back alley.
+
+The step is `steps.tidy()` in the layout script. It runs after `unify`.
+
+Edit changes are the following.
+
+- **Gelap.** It was moved behind the Pasar at the Pasar's scale, in the exact relative placement of
+  `assets/blender/pasar_gelap_blockout.blend`. Its walls and `Alley_Floor` land within 0.1 stud of their
+  mapped Blender points. Studio maps Blender (x, y, z) to (−x, z, y) about the Pasar's `Ground_Dirt`.
+  The Gelap is reached only through the alley from the Pasar. The lumbung barn now stands on its old spot.
+- **Parked** to `ServerStorage.ParkedLayout`:
+  - the old Pasar awning stall ring and its paving;
+  - `LookDevPlazaR9`, which doubled the `alun_alun_area` fountain and benches;
+  - every night window;
+  - two torches, the Pak RT porch bulb, and the hub spanduk signs and bunting;
+  - six trees inside the Gelap footprint;
+  - the ten yard fence pieces each spoke crossed, which leaves an open gate.
+
+  Each parked item carries the attribute `ParkedFrom`.
+- **Moved out of footprints and lanes:**
+  - the Pasar laundry, hammock and tikar;
+  - the lumbung drying yards for the Pasar and Pak RT;
+  - the warung eat-in table;
+  - the vendor and police NPCs;
+  - the hub prop rows for the Pasar, Polisi, Warung and Pak RT, split around each lane;
+  - street furniture and three trees that sat on the moved roads.
+- **Roads:**
+  - The ring's south straight jogs to z 178 behind the Gelap.
+  - The Ronda lane stops at its front.
+  - The Pasar lane runs into the market aisle.
+  - The Kebun spoke stops at the Lahan edge.
+
+An audit checked every hub footprint against `GetPartBoundsInBox`, and every road against what stands
+on it. It leaves only the intended contacts: the Pasar and Gelap touching at the alley, and walkers on
+roads. The evidence shots are `08` (before) through `14` (top after). The look is the owner's call.

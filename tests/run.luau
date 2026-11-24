@@ -121,6 +121,7 @@ local specs = {
 	require("./specs/state_request_failure_spec"),
 	require("./specs/data_pass_failure_spec"),
 	require("./specs/greybox_retirement_spec"),
+	require("./specs/map_hub_gate_spec"),
 	require("./specs/perf_hotpath_spec"),
 	require("./specs/code_health_spec"),
 	require("./specs/dead_code_spec"),

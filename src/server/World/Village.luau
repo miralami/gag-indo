@@ -12,6 +12,7 @@ local Map = require(script.Parent.Map)
 local Greybox = require(script.Parent.Greybox)
 local MapSpec = require(script.Parent.MapSpec)
 local NpcFactory = require(script.Parent.NpcFactory)
+local MapHubGate = require(script.Parent.MapHubGate)
 
 local Village = {}
 
@@ -146,7 +147,9 @@ end
 
 function Village.build()
 	if not Map.isDesignerWorld() then
-		Greybox.build()
+		local world = Greybox.build()
+		-- Map layout v1: hide the Roblox-built hubs that JuraganMap.Hubs replaces with 3D models.
+		MapHubGate.apply(world)
 	end
 	Village.bind()
 	return Village

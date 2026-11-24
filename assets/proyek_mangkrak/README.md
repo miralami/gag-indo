@@ -11,8 +11,9 @@ somewhere else; the cement went to Pak RT's carport (`assets/rumah_pakrt`).
   poured, upper columns stopped at different heights with **rusty rebar** sticking out
 - a **faded yellow tower crane** (missing from the illustration, added here because it is the
   landmark players see from far away), hook hanging low over the slab
-- **nature taking over**: a banana tree growing through the slab, vines on columns and hanging from
-  the slab edge, weeds across the site and on the slab, muddy puddles
+- **nature taking over**: vines on columns and hanging from the slab edge, weeds across the site and
+  on the slab, muddy puddles (the illustration's banana tree on the slab was left out at Willy's
+  request, 2026-11-25)
 - a rusty **zinc fence** on timber rails, panels leaning and fallen into the site, a gap at the road
 - a **blank project board** with a corner peeling (`ProyekMangkrak_PapanProyek`, SurfaceGui target)
 - the **opening-ceremony stage** left behind: red cloth, sagging red-and-white bunting, a torn
@@ -37,7 +38,7 @@ characters). It is not part of the asset.
 - **68 x 60 x 45.6 studs**: exactly the `MapSpec.luau` "proyek" footprint (x 280, z 130), so no
   map change is needed. Ground storey 12 (2.3 avatars), column tops up to about 25 plus rebar,
   crane jib at 38, apex 45.6. Fence 5.2 tall so players see into the site from the road.
-- 11,072 triangles in 9 meshes (9 MeshParts), one texture each.
+- 10,856 triangles in 9 meshes (9 MeshParts), one texture each.
 - 1 Blender unit = 1 stud, ground z = 0, site centred on the origin. The road side faces Blender
   +Y = Roblox **-Z**. Authored with the stage at -X and mirrored once in `main()` so that, seen
   from the road, the stage is on the left and the watchman hut on the right, as in the concept.
@@ -65,8 +66,8 @@ All textures come from `src/shared/Config/Visuals.luau` (read at build time).
 | `Kayu` posts, rails, stage, pallet, hut, board frame | `bambu` weathered toward `tinta-lembut` |
 | `PapanProyek` | `kertas`, water stains `tinta-lembut` |
 | `Tanah` ground | `bambu` / `tinta-lembut` earth under `daun` / `padi` weeds |
-| `Daun` banana, vines, weeds | `daun`, `padi` tips (blades, never balls) |
-| `Warna` small props | swatch atlas: palette colours plus rust orange, muddy water, chrome, banana trunk blends |
+| `Daun` vines and weeds | `daun`, `padi` tips (blades, never balls) |
+| `Warna` small props | swatch atlas: palette colours plus rust orange, muddy water and chrome blends |
 
 ## Rebuild
 

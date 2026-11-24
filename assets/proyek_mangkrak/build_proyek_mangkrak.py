@@ -236,17 +236,7 @@ def build_skeleton():
         drop = RNG.uniform(1.5, 5.0)
         box("Daun", x - 0.35, x + 0.35, GRID_Y[2] + 0.75, GRID_Y[2] + 0.95, SLAB_Z0 - drop, SLAB_Z1)
 
-    # a banana tree has grown up through the slab
-    bx, by = -1.0, -6.0
-    paint("batang", cylinder("Warna", (bx, by, SLAB_Z1 + 3.5), 0.65, 7.0, segments=10, r_top=0.45))
-    top = Vector((bx, by, SLAB_Z1 + 7.0))
-    for k in range(7):
-        a = k * 2 * math.pi / 7 + RNG.uniform(-0.15, 0.15)
-        d = Vector((math.cos(a), math.sin(a), 0))
-        mid = top + d * 2.6 + Vector((0, 0, 1.6))
-        tip = mid + d * 3.0 + Vector((0, 0, -1.4))
-        beam("Daun", top, mid, 1.9, 0.14)
-        beam("Daun", mid, tip, 1.7, 0.14)
+    # (no tree on the slab: removed at Willy's request, 2026-11-25)
 
 
 def build_crane():

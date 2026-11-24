@@ -83,7 +83,7 @@ slot,class,source,source_ref,licence,attribution,id,approved_by,status
 model.kit.proyek_mangkrak,model,own-blender,assets/proyek_mangkrak/build_proyek_mangkrak.py,own work,,0,,UNVERIFIED
 ```
 
-`proyek_mangkrak`: 11,072 tris in 9 meshes, 68 x 60 x 45.6 studs (the MapSpec "proyek" footprint):
+`proyek_mangkrak`: 10,856 tris in 9 meshes, 68 x 60 x 45.6 studs (the MapSpec "proyek" footprint):
 concrete skeleton with rebar, faded tower crane, rusty zinc fence, blank project board, abandoned
 ceremony stage. No baked words. Details and renders in `assets/proyek_mangkrak/README.md`.
 

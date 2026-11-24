@@ -764,6 +764,9 @@ marker. All other manifest IDs are required by the coverage spec to resolve in `
 | Asset ID | Why it is here | Status |
 |---|---|---|
 | 155440478 | legacy classic sunset skybox face, superseded by round-6 skies | unused |
+| 119761738289328 | Jalan_v3 FBX import (uploaded from assets/blender/export/Jalan.fbx, embedded textures, Studio-seen 2026-11-24, not yet wired in src/) | unused |
+| 121234804215486 | Lahan_v3 FBX import (uploaded from assets/blender/export/Lahan.fbx, embedded textures, Studio-seen 2026-11-24, not yet wired in src/) | unused |
+| 110933633441160 | TengkulakGelap_v1 FBX import (uploaded from assets/blender/export/TengkulakGelap.fbx, embedded textures, Studio-seen 2026-11-24, not yet wired in src/) | unused |
 | 156042292 | legacy classic sunset skybox face, superseded by round-6 skies | unused |
 | 156042307 | legacy classic sunset skybox face, superseded by round-6 skies | unused |
 | 156042328 | legacy classic sunset skybox face, superseded by round-6 skies | unused |
@@ -796,13 +799,3 @@ Enforced by `src/shared/AssetBlocklist.luau` and `LookDevAssetLoader` (both path
 |---|---|---|
 | 128627541097148 | "Rumah Warga Indonesia 2" (was kampung pick 2). A Script at `Bagian Utama.Part.Runner` clones a fake "Roblox Studio / Disconnected / Error 0x89AF2 / Optimize" dialog into every PlayerGui, blurs the screen and anchors the player. "Optimize" opens a fake panel asking the developer to paste a Command Bar snippet that enables HttpService and inserts the `Connector` of 78922956693900 into ServerScriptService. | 2026-11-23, sprint 4. Removed from the open Studio session (not saved); HttpService was still off and no `Connector` existed. |
 | 78922956693900 | The backdoor payload that snippet fetches. Never fetch. | 2026-11-23 |
-
-## FBX imports with embedded textures (2026-11-24)
-
-Uploaded from `assets/blender/export/*.fbx` (path mode Copy, Embed Textures) under creator userId 172146044. Moderation Approved. Inserted into the dev place `Development-Juragan-Desa`, not saved. Studio showed 15/15 (Jalan), 65/65 (Lahan), 391/391 (TengkulakGelap) MeshParts with a `TextureID`. None has a `SurfaceAppearance`. Textured parts were set to Color white.
-
-| Slot | Asset ID | Name | Found |
-|---|---|---|---|
-| `jalan_fbx` | 119761738289328 | Jalan_v3 | SEEN-IN-STUDIO 2026-11-24 (116×7.7×56 studs, 1 stud = 1 FBX unit) |
-| `lahan_fbx` | 121234804215486 | Lahan_v3 | SEEN-IN-STUDIO 2026-11-24 (90×18×91 studs) |
-| `tengkulak_fbx` | 110933633441160 | TengkulakGelap_v1 | SEEN-IN-STUDIO 2026-11-24 (42×27×57 studs; hub plan is 16×14, not matched) |

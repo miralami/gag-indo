@@ -16,3 +16,6 @@ __pycache__/
 
 # Third-party mood reference images (local only; descriptions in docs/v2/visual/refs/REFERENCES.md)
 docs/v2/visual/refs/mood/
+
+# Blender backup saves
+*.blend1

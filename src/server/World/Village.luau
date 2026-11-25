@@ -17,10 +17,11 @@ local MapHubGate = require(script.Parent.MapHubGate)
 local Village = {}
 
 -- Fallback hub positions, used only when a prompt/anchor is missing from the world (bindPrompts
--- replaces each one with the real part's position). They come from the hub table, so a rescaled map
--- never leaves a stale half-scale coordinate behind.
+-- replaces each one with the real part's position). They come from the map v1 hub table, the layout
+-- the designer world (JuraganMap) uses, so a missing anchor falls back to the 3D model's spot, not to
+-- the old greybox spot. The greybox always supplies every prompt, so it never reaches these.
 local function hubPosition(key: string, y: number): Vector3
-	local hub = MapSpec.hub(key)
+	local hub = MapSpec.v1Hub(key)
 	return Vector3.new(hub.x, y, hub.z)
 end
 

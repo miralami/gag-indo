@@ -424,29 +424,36 @@ return function(t, Env)
 					expect(type(a[focus].y)):toBe("number")
 					expect(type(a[focus].z)):toBe("number")
 				end
-				-- The anchors sit on the NPC front spots (MapSpec.NPC_SPOTS), NOT the building
-				-- centres: the reviewer found the old hub-centre anchors filmed the back of the
-				-- buildings. Pak RT NPC (68,47), Polisi NPC (-68,42), at head height (~5.7).
-				expect(a.kades.x):toBe(68)
-				expect(a.kades.z):toBe(47)
-				expect(a.police_chief.x):toBe(-68)
-				expect(a.police_chief.z):toBe(42)
+				-- The anchors sit on the NPC front spots (MapSpec.V1_NPC_SPOTS, map layout v1.1), NOT
+				-- the building centres: the reviewer found the old hub-centre anchors filmed the back
+				-- of the buildings. Pak RT NPC (84.5,-83), Polisi NPC (-75.5,-94.5), at head height (~5.7).
+				expect(a.kades.x):toBe(84.5)
+				expect(a.kades.z):toBe(-83)
+				expect(a.police_chief.x):toBe(-75.5)
+				expect(a.police_chief.z):toBe(-94.5)
 				expect(a.kades.y):toBeAtLeast(5)
 				expect(a.police_chief.y):toBeAtLeast(5)
 			end)
 
-			t:it("anchors match the MapSpec NPC front spots the buildings are fronted by", function()
+			t:it("anchors match the MapSpec v1 NPC front spots the buildings are fronted by", function()
 				local spots = {}
-				for _, spot in MapSpec.NPC_SPOTS do
+				for _, spot in MapSpec.V1_NPC_SPOTS do
 					spots[spot.npc] = spot
 				end
 				expect(RaidCutscene.focusAnchors.kades.x):toBe(spots.pakrt.x)
 				expect(RaidCutscene.focusAnchors.kades.z):toBe(spots.pakrt.z)
 				expect(RaidCutscene.focusAnchors.police_chief.x):toBe(spots.polisi.x)
 				expect(RaidCutscene.focusAnchors.police_chief.z):toBe(spots.polisi.z)
-				-- The NPC spots must actually be on the -z side of their hub centres.
-				expect(spots.pakrt.z):toBeLessThan(MapSpec.hub("pakrt").z)
-				expect(spots.polisi.z):toBeLessThan(MapSpec.hub("polisi").z)
+				-- The v1 NPC spots stand on the door side of their hubs, which is south (+z) of the
+				-- hub centres, and the anchors face the same way so the eye never sits behind the building.
+				expect(spots.pakrt.z):toBeGreaterThan(MapSpec.v1Hub("pakrt").z)
+				expect(spots.polisi.z):toBeGreaterThan(MapSpec.v1Hub("polisi").z)
+				local fx, fz = MapSpec.v1Facing("pakrt")
+				expect(RaidCutscene.focusAnchors.kades.facing.x):toBe(fx)
+				expect(RaidCutscene.focusAnchors.kades.facing.z):toBe(fz)
+				fx, fz = MapSpec.v1Facing("polisi")
+				expect(RaidCutscene.focusAnchors.police_chief.facing.x):toBe(fx)
+				expect(RaidCutscene.focusAnchors.police_chief.facing.z):toBe(fz)
 			end)
 
 			t:it("anchorFor resolves known focuses and returns nil otherwise", function()
@@ -462,7 +469,7 @@ return function(t, Env)
 			-- buildings). Every anchored eye must sit on the -z front where the NPC stands and
 			-- outside all six hub footprints, so no building blocks the shot.
 			t:describe("cameraFor (front-side framing)", function()
-				-- Axis-aligned footprint of a hub; yaw 90/270 swaps width and depth.
+				-- Axis-aligned footprint of a map v1 hub; yaw 90/270 swaps width and depth.
 				local function insideHub(hub, p)
 					local halfX, halfZ = hub.width / 2, hub.depth / 2
 					if hub.yaw == 90 or hub.yaw == 270 then
@@ -482,21 +489,21 @@ return function(t, Env)
 					expect(RaidCutscene.cameraFor(nil, 0, 0)):toBeNil()
 				end)
 
-				t:it("frames kades and police from the -z front, targeting the NPC head", function()
+				t:it("frames kades and police from the door-side front, targeting the NPC head", function()
 					local zoom2 = shots()[3] -- kades, yaw -18
 					local k = RaidCutscene.cameraFor(zoom2, 0, State.focusOffset("kades"))
 					expect(k):toBeTruthy()
-					expect(k.target.x):toBe(68)
-					expect(k.target.z):toBe(47)
+					expect(k.target.x):toBe(84.5)
+					expect(k.target.z):toBe(-83)
 					expect(k.target.y):toBeNear(RaidCutscene.focusAnchors.kades.y, 1e-9)
-					expect(k.eye.z):toBeLessThan(k.target.z) -- front side
+					expect(k.eye.z):toBeGreaterThan(k.target.z) -- front side: south of Pak RT's door
 					expect(k.eye.y):toBeGreaterThan(k.target.y)
 					local zoom3 = shots()[4] -- police_chief, yaw 18
 					local p = RaidCutscene.cameraFor(zoom3, 0, State.focusOffset("police_chief"))
 					expect(p):toBeTruthy()
-					expect(p.target.x):toBe(-68)
-					expect(p.target.z):toBe(42)
-					expect(p.eye.z):toBeLessThan(p.target.z)
+					expect(p.target.x):toBe(-75.5)
+					expect(p.target.z):toBe(-94.5)
+					expect(p.eye.z):toBeGreaterThan(p.target.z)
 				end)
 
 				t:it("uses a zoom stand-off <= 14 so the police shot clears Tree_12.Canopy_2", function()
@@ -542,7 +549,7 @@ return function(t, Env)
 							local f = RaidCutscene.cameraFor(shot, progress, State.focusOffset(shot.focus))
 							if f then
 								anchored += 1
-								for _, hub in MapSpec.HUBS do
+								for _, hub in MapSpec.V1_HUBS do
 									expect(insideHub(hub, f.eye)):toBe(false)
 								end
 							end

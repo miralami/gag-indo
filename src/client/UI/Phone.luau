@@ -561,7 +561,7 @@ local function buildDevice(ctx: any)
 		if mine == 0 then
 			return result
 		end
-		local world = workspace:FindFirstChild("World")
+		local world = CollectionService:GetTagged("VillageWorld")[1] or workspace:FindFirstChild("World") -- same world PlotService uses
 		if not world then
 			return result
 		end

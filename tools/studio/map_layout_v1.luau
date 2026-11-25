@@ -1574,6 +1574,330 @@ function steps.tidy()
 	print("[MapLayoutV1] tidy done")
 end
 
+-- 18. Logic anchors (map logic transfer T1, 2026-11-25). Run after tidy(). Creates
+-- JuraganMap.LogicAnchors (replaced whole on every run, so it is safe to rerun): the five shop
+-- prompts, the Ronda anchor, the player spawn, the three NpcSpawn models and the ten PlotAnchors, all
+-- tagged with Map.TAGS so Village/PlotService bind to the 3D models. It tags JuraganMap "VillageWorld"
+-- last, which makes Village.build() skip Greybox in Play. Edit-only; reads the Rojo-synced modules
+-- (MapSpec, Map, Props, NpcFactory, Config.Game) so prompt text, distances and NPC rigs match Greybox.
+--
+-- Placement rules (printed per item):
+--  * Shop prompt: the part or model whose name contains counter / meja / table / desk / kasir
+--    (case-insensitive) nearest the hub's door side; its top plus 1.5 studs. Fallback: the model's
+--    front edge (door side, 1 stud inside) at 3 studs above the ground. The Gelap fallback is the
+--    centre of the compound on its floor (raycast), never the outer wall.
+--  * RondaAnchor: 4 studs past the Ronda's door-side edge, on the ground (Village teleports a jailed
+--    player to anchor + 2 up).
+--  * PlayerSpawn: an existing SpawnLocation of the map if there is one (tagged where it stands),
+--    else a new one at MapSpec.SPAWN (plaza, facing north) built like Greybox's.
+--  * NpcSpawn: NpcFactory.build rigs. Pak RT and the police stand MapSpec.V1_NPC_SPOTS beside their
+--    lane facing the road (south); the tengkulak stands in the Gelap at (-60, floor, 150) facing north.
+--  * PlotAnchor: centre of each PlotYards yard on the ground plane, sized like the plot base
+--    (GameConfig tile grid), -Z towards the yard's gate (same side rule as steps.yards).
+local ANCHOR_COUNTER_WORDS = { "counter", "meja", "table", "desk", "kasir" }
+L.ANCHOR_PROMPT_LIFT = 1.5 -- above a matched counter's top
+L.ANCHOR_FALLBACK_HEIGHT = 3 -- above the ground for a fallback prompt
+L.ANCHOR_RONDA_GAP = 4
+
+local function worldBox(inst)
+	local min, max
+	local function take(p)
+		min = min and Vector3.new(math.min(min.X, p.X), math.min(min.Y, p.Y), math.min(min.Z, p.Z)) or p
+		max = max and Vector3.new(math.max(max.X, p.X), math.max(max.Y, p.Y), math.max(max.Z, p.Z)) or p
+	end
+	local list = inst:GetDescendants()
+	table.insert(list, inst)
+	for _, d in list do
+		if d:IsA("BasePart") then
+			local h = d.Size / 2
+			for _, sx in { -1, 1 } do
+				for _, sy in { -1, 1 } do
+					for _, sz in { -1, 1 } do
+						take(d.CFrame:PointToWorldSpace(Vector3.new(sx * h.X, sy * h.Y, sz * h.Z)))
+					end
+				end
+			end
+		end
+	end
+	return min, max
+end
+
+local function hubModelFor(key)
+	for _, c in sub("Hubs"):GetChildren() do
+		if c:GetAttribute("MapHub") == key then
+			return c
+		end
+	end
+	return nil
+end
+
+local function counterName(name)
+	local lower = name:lower()
+	for _, w in ANCHOR_COUNTER_WORDS do
+		if lower:find(w, 1, true) then
+			return true
+		end
+	end
+	return false
+end
+
+-- Floor height inside a model: ray down from y 40 (same probe as tidy's setOnFloor).
+local function floorWithin(model, x, z)
+	local rp = RaycastParams.new()
+	rp.FilterType = Enum.RaycastFilterType.Include
+	rp.FilterDescendantsInstances = { model }
+	local hit = workspace:Raycast(Vector3.new(x, 40, z), Vector3.new(0, -60, 0), rp)
+	return if hit then hit.Position.Y else GROUND
+end
+
+local function facingVector(MapSpec, key)
+	local fx, fz = MapSpec.v1Facing(key)
+	return Vector3.new(fx, 0, fz)
+end
+
+-- Returns the prompt position and a note saying how it was found.
+local function promptSpot(MapSpec, key, model)
+	local facing = facingVector(MapSpec, key)
+	local bmin, bmax = worldBox(model)
+	local centre = (bmin + bmax) / 2
+	local half = (bmax - bmin) / 2
+	local reach = math.abs(facing.X) * half.X + math.abs(facing.Z) * half.Z
+	local xz = Vector3.new(centre.X, 0, centre.Z)
+	local door = xz + facing * reach
+	local best, bestDist, bestPos
+	for _, d in model:GetDescendants() do
+		if (d:IsA("BasePart") or d:IsA("Model")) and counterName(d.Name) then
+			local cf, size
+			if d:IsA("Model") then
+				local ok, c, sz = pcall(function()
+					return d:GetBoundingBox()
+				end)
+				if ok then
+					cf, size = c, sz
+				end
+			else
+				cf, size = d.CFrame, d.Size
+			end
+			if cf then
+				local dist = (Vector3.new(cf.X, 0, cf.Z) - door).Magnitude
+				if not bestDist or dist < bestDist then
+					best, bestDist = d, dist
+					bestPos = Vector3.new(cf.X, cf.Y + size.Y / 2 + L.ANCHOR_PROMPT_LIFT, cf.Z)
+				end
+			end
+		end
+	end
+	if best then
+		return bestPos, "name match " .. best:GetFullName()
+	end
+	if key == "gelap" then
+		-- Inside the compound: its centre, on the floor. Never the outer wall.
+		return Vector3.new(xz.X, floorWithin(model, xz.X, xz.Z) + L.ANCHOR_FALLBACK_HEIGHT, xz.Z),
+			"fallback compound centre"
+	end
+	local p = xz + facing * (reach - 1)
+	return Vector3.new(p.X, GROUND + L.ANCHOR_FALLBACK_HEIGHT, p.Z), "fallback front edge"
+end
+
+local function invisibleAnchor(name, size, cf, parent)
+	local p = Instance.new("Part")
+	p.Name = name
+	p.Size = size
+	p.CFrame = cf
+	p.Anchored = true
+	p.CanCollide = false
+	p.CanQuery = false
+	p.CanTouch = false
+	p.CastShadow = false
+	p.Transparency = 1
+	p.Parent = parent
+	return p
+end
+
+-- Plot yard gate side, the same rule steps.yards uses: the axis the village lies along.
+local function gateDirection(cx, cz)
+	local inward = -Vector3.new(cx, 0, cz).Unit
+	if math.abs(inward.X) > math.abs(inward.Z) then
+		return Vector3.new(inward.X > 0 and 1 or -1, 0, 0)
+	end
+	return Vector3.new(0, 0, inward.Z > 0 and 1 or -1)
+end
+
+function steps.anchors()
+	local CollectionService = game:GetService("CollectionService")
+	local World = game:GetService("ServerScriptService").Server.World
+	local Map = require(World.Map)
+	local MapSpec = require(World.MapSpec)
+	local Props = require(World.Props)
+	local NpcFactory = require(World.NpcFactory)
+	local GameConfig = require(game:GetService("ReplicatedStorage").Shared.Config.Game)
+	local root = mapRoot()
+	local out = {}
+	local function say(text)
+		table.insert(out, text)
+		print("[MapLayoutV1.anchors] " .. text)
+	end
+
+	-- An existing spawn of the map is reused; look before the old anchors folder goes away.
+	local old = root:FindFirstChild("LogicAnchors")
+	local reuseSpawn
+	for _, d in workspace:GetDescendants() do
+		if d:IsA("SpawnLocation") and not (old and d:IsDescendantOf(old)) and not d:FindFirstAncestor("World") then
+			reuseSpawn = d
+		end
+	end
+	if old then
+		old:Destroy()
+	end
+	local folder = Instance.new("Folder")
+	folder.Name = "LogicAnchors"
+	folder.Parent = root
+
+	-- 1. Shop prompts.
+	for _, key in { "pasar", "gelap", "pakrt", "polisi", "warung" } do
+		local model = hubModelFor(key)
+		local spec = MapSpec.hub(key).prompt
+		if not model then
+			say(key .. ": MISSING hub model, no prompt made")
+		else
+			local pos, how = promptSpot(MapSpec, key, model)
+			local part = invisibleAnchor("Prompt_" .. key, Vector3.new(2, 1, 2), CFrame.new(pos), folder)
+			local prompt = Props.prompt(part, spec.object, spec.action)
+			prompt.Name = spec.name
+			prompt.MaxActivationDistance = spec.distance
+			CollectionService:AddTag(prompt, Map.TAGS[spec.tag])
+			say(string.format("%s prompt at (%.1f, %.1f, %.1f), %s", key, pos.X, pos.Y, pos.Z, how))
+		end
+	end
+
+	-- 2. Ronda anchor and player spawn.
+	local ronda = hubModelFor("ronda")
+	if ronda then
+		local facing = facingVector(MapSpec, "ronda")
+		local bmin, bmax = worldBox(ronda)
+		local centre, half = (bmin + bmax) / 2, (bmax - bmin) / 2
+		local reach = math.abs(facing.X) * half.X + math.abs(facing.Z) * half.Z
+		local p = Vector3.new(centre.X, 0, centre.Z) + facing * (reach + L.ANCHOR_RONDA_GAP)
+		local anchor = invisibleAnchor("RondaAnchor", Vector3.new(6, 1, 6), CFrame.new(p.X, GROUND + 0.5, p.Z), folder)
+		CollectionService:AddTag(anchor, Map.TAGS.Ronda)
+		say(
+			string.format(
+				"ronda anchor at (%.1f, %.1f, %.1f), door-side edge + %d",
+				p.X,
+				GROUND + 0.5,
+				p.Z,
+				L.ANCHOR_RONDA_GAP
+			)
+		)
+	else
+		say("ronda: MISSING hub model, no anchor made")
+	end
+	if reuseSpawn then
+		CollectionService:AddTag(reuseSpawn, Map.TAGS.PlayerSpawn)
+		say("spawn reused: " .. reuseSpawn:GetFullName())
+	else
+		local sp = MapSpec.SPAWN
+		local pos = Vector3.new(sp.x, sp.y, sp.z)
+		local spawn = Instance.new("SpawnLocation")
+		spawn.Name = "Spawn"
+		spawn.Anchored = true
+		spawn.Size = Vector3.new(sp.size, 1, sp.size)
+		spawn.CFrame = CFrame.lookAt(pos, pos + Vector3.new(0, 0, sp.lookZ))
+		spawn.Position = pos
+		spawn.Transparency = 1
+		spawn.CanCollide = false
+		spawn.Neutral = true
+		spawn.Duration = 0
+		CollectionService:AddTag(spawn, Map.TAGS.PlayerSpawn)
+		spawn.Parent = folder
+		say(string.format("spawn created at (%.1f, %.1f, %.1f) facing north", pos.X, pos.Y, pos.Z))
+	end
+
+	-- 3. NPCs (same rig and tags as Greybox's buildNpcs).
+	local NPC = {
+		pakrt = {
+			name = "Pak RT",
+			subtitle = "Ketua RT 01",
+			shirt = Props.palette("kunyit"),
+			skin = Color3.fromRGB(200, 155, 110),
+			mustache = true,
+			peci = true,
+		},
+		tengkulak = {
+			name = "Bang Jago",
+			subtitle = "Tengkulak",
+			shirt = Props.palette("indigo"),
+			skin = Color3.fromRGB(170, 125, 90),
+		},
+		polisi = {
+			name = "Polisi Desa",
+			shirt = Props.palette("malam"),
+			skin = Color3.fromRGB(185, 140, 100),
+			cap = Props.palette("indigo"),
+		},
+	}
+	for _, spot in MapSpec.V1_NPC_SPOTS do
+		local cfg = NPC[spot.npc]
+		local y, dir = GROUND, Vector3.new(0, 0, -1)
+		if spot.npc == "tengkulak" then
+			local gelap = hubModelFor("gelap")
+			y = if gelap then floorWithin(gelap, spot.x, spot.z) else GROUND
+		else
+			dir = facingVector(MapSpec, spot.npc)
+		end
+		local feet = Vector3.new(spot.x, y, spot.z)
+		local npc = NpcFactory.build({
+			name = cfg.name,
+			subtitle = cfg.subtitle,
+			npc = spot.npc,
+			position = feet,
+			shirt = cfg.shirt,
+			skin = cfg.skin,
+			mustache = cfg.mustache,
+			peci = cfg.peci,
+			cap = cfg.cap,
+			parent = folder,
+		})
+		local model = npc.model
+		-- NpcFactory faces -Z; turn the rig about its feet so it looks along `dir`.
+		local turn = CFrame.lookAt(Vector3.zero, dir)
+		local rel = CFrame.new(feet):Inverse() * model:GetPivot()
+		model:PivotTo(CFrame.new(feet) * turn * rel)
+		model.Name = "NpcSpawn_" .. spot.npc
+		say(
+			string.format(
+				"npc %s at (%.1f, %.1f, %.1f) facing (%d, %d)",
+				spot.npc,
+				feet.X,
+				feet.Y,
+				feet.Z,
+				dir.X,
+				dir.Z
+			)
+		)
+	end
+
+	-- 4. Plot anchors at the yard centres.
+	local STEP = 6 + 1.5 -- PlotService TILE_SIZE + TILE_GAP
+	local cols = GameConfig.tileColumns
+	local rows = math.ceil(GameConfig.tilesBuilt / cols)
+	local plotSize = Vector3.new(cols * STEP + 4, 0.4, rows * STEP + 4)
+	for i = 1, GameConfig.plotCount do
+		local p = L.PLOTS[i]
+		local centre = Vector3.new(p[1], 0, p[2])
+		local dir = gateDirection(p[1], p[2])
+		local anchor = invisibleAnchor("PlotAnchor_" .. i, plotSize, CFrame.lookAt(centre, centre + dir), folder)
+		anchor:SetAttribute("PlotIndex", i)
+		CollectionService:AddTag(anchor, Map.TAGS.PlotAnchor)
+		say(string.format("plot %d at (%d, %d), -Z towards (%d, %d)", i, p[1], p[2], dir.X, dir.Z))
+	end
+
+	-- 5. Last: the world tag, so Village.build() skips Greybox.
+	CollectionService:AddTag(root, Map.TAGS.World)
+	say("JuraganMap tagged " .. Map.TAGS.World)
+	return table.concat(out, "\n")
+end
+
 local order = {
 	"terrain",
 	"park",
@@ -1591,6 +1915,7 @@ local order = {
 	"fixups",
 	"unify",
 	"tidy",
+	"anchors",
 }
 
 return { steps = steps, order = order, L = L }

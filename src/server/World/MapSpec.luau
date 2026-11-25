@@ -220,6 +220,75 @@ MapSpec.NPC_SPOTS = {
 	{ npc = "polisi", x = -68, z = 42 },
 }
 
+-- Map layout v1.1 (docs/v2/visual/art/MAP_LAYOUT_V1.md, tools/studio/map_layout_v1.luau) ---------------
+-- The designer's JuraganMap places the six hub 3D models somewhere else than the greybox. HUBS and
+-- NPC_SPOTS above still drive Greybox, Decor, Details, Flora and the LookDev overlays (the fresh-place
+-- fallback), so they stay as they are. This table is the layout the designer world uses: the footprint
+-- centre, the footprint in the hub's local frame (width = local X, depth = local Z, so a yaw 90 hub swaps
+-- them in world), and the door yaw (same convention as HUBS: 0 = door south, 90 = east, 180 = north).
+-- Sizes are the doc's measured footprints after the v1.1 human-scale rescale.
+MapSpec.V1_HUBS = {
+	{ key = "pasar", model = "pasar_diorama", x = -82, z = 102, width = 68, depth = 59, yaw = 180 },
+	{ key = "gelap", model = "TengkulakGelap_v1", x = -61, z = 148, width = 28, depth = 39, yaw = 180 },
+	{ key = "warung", model = "R5_warung", x = 104, z = 84, width = 35, depth = 25, yaw = 180 },
+	{ key = "ronda", model = "pos_ronda", x = -165, z = -45, width = 27, depth = 42, yaw = 90 },
+	{ key = "polisi", model = "R5_gudang", x = -80, z = -112, width = 24, depth = 25, yaw = 0 },
+	{ key = "pakrt", model = "rumah_pakrt", x = 80, z = -112, width = 48, depth = 48, yaw = 0 },
+}
+
+function MapSpec.v1Hub(key: string)
+	for _, hub in MapSpec.V1_HUBS do
+		if hub.key == key then
+			return hub
+		end
+	end
+	return nil
+end
+
+-- Distance from a hub's door edge to where an NPC or the Ronda anchor stands (same rule as
+-- steps.npcs / steps.anchors in the layout script: half the door-side depth plus this gap).
+MapSpec.V1_FRONT_GAP = 5
+-- Sideways offset (hub-local X) of the NPC spawns, so they stand beside the hub's lane, not on it.
+MapSpec.V1_NPC_ALONG = 4.5
+
+-- Point in front of a v1 hub: `along` studs sideways (local X) and `gap` past the door-side face.
+function MapSpec.v1Front(key: string, along: number?, gap: number?): (number, number)
+	local hub = MapSpec.v1Hub(key)
+	assert(hub, "unknown v1 hub " .. tostring(key))
+	return MapSpec.hubPoint(hub, along or 0, hub.depth / 2 + (gap or MapSpec.V1_FRONT_GAP))
+end
+
+-- The door direction of a v1 hub as a unit (x, z): local +Z, i.e. (sin yaw, cos yaw).
+function MapSpec.v1Facing(key: string): (number, number)
+	local hub = MapSpec.v1Hub(key)
+	assert(hub, "unknown v1 hub " .. tostring(key))
+	local a = math.rad(hub.yaw)
+	return math.floor(math.sin(a) * 1e6 + 0.5) / 1e6, math.floor(math.cos(a) * 1e6 + 0.5) / 1e6
+end
+
+local function v1Spot(npc: string, key: string)
+	local x, z = MapSpec.v1Front(key, MapSpec.V1_NPC_ALONG)
+	return { npc = npc, x = x, z = z }
+end
+
+-- NPC spawns for the designer world. Pak RT and the police stand on their hub's door side, facing the
+-- road (south). The tengkulak keeps the spot where the v1.1 tidy step put the dressing tengkulak
+-- inside the Gelap compound, facing north up the alley.
+MapSpec.V1_NPC_SPOTS = {
+	v1Spot("pakrt", "pakrt"),
+	{ npc = "tengkulak", x = -60, z = 150 },
+	v1Spot("polisi", "polisi"),
+}
+
+function MapSpec.v1NpcSpot(npc: string)
+	for _, spot in MapSpec.V1_NPC_SPOTS do
+		if spot.npc == npc then
+			return spot
+		end
+	end
+	return nil
+end
+
 -- Roads ---------------------------------------------------------------
 -- X and Z arms 28 wide from the plaza out to r = 136, a 12-wide connector ring on centreline r = 144
 -- broken at 204..252 degrees (the whole Pasar + Gelap quadrant: the 100 x 84 Pasar's west and north

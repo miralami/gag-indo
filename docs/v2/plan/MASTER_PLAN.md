@@ -966,7 +966,7 @@ sit at the old coordinates (Pasar prompt (-69, -106), Gelap (-97, -171), Pak RT 
 on). The gameplay code already reads tags (`Map.TAGS`, `PlotService` PlotAnchor path,
 `Village.bindPrompts`), so this is mostly placement and re-proof, not new code. Estimate: about one
 working day for an agent with Studio open (two or three sessions).
-- [~] T1 (`steps.anchors()` written 2026-11-25, not yet run in Studio: `UNVERIFIED`) Anchors in `JuraganMap` via `tools/studio/map_layout_v1.luau`: 5 shop prompts on the 3D
+- [x] T1 (`SEEN-IN-STUDIO` 2026-11-25, `docs/v2/evidence/map_layout_v1/T3_logic_transfer_play.txt`: Greybox no longer builds in Play, all 5 prompts bound, 10 plots / 160 tiles in JuraganMap, spawn on plot 1) Anchors in `JuraganMap` via `tools/studio/map_layout_v1.luau`: 5 shop prompts on the 3D
   counters, `RondaAnchor`, `PlayerSpawn`, 3 `NpcSpawn` (pakrt, tengkulak, polisi), 10 `PlotAnchor`
   (`PlotIndex` 1..10) on the `PlotYards` centres; then tag the map `VillageWorld` so Greybox stops
   building and the gate becomes a no-op. (~2-3 h)
@@ -974,7 +974,7 @@ working day for an agent with Studio open (two or three sessions).
   (hardcoded 68/47, -68/42), `Village` fallbacks; about 70 specs read `MapSpec`, so fix the ones
   that hardcode old values. Default-off LookDev overlays that place by `MapSpec` stay as they are
   and are listed, not moved. (~2-3 h)
-- [ ] T3 Re-prove in Play: every prompt and distance check (sell, bribe, report, warung), plot
+- [~] T3 (partial `SEEN-IN-STUDIO` 2026-11-25: plant/harvest/sell pasar via harness, goto every hub, forced raid eyes outside the buildings; still open: real prompt presses for bribe/report/warung/gelap, G3 and G5 re-run, NPC box rigs doubling the dressing rigs) Re-prove in Play: every prompt and distance check (sell, bribe, report, warung), plot
   claim/plant/harvest, raid cutscene line of sight, then the G3 beat sheet and G5 timings again,
   since walking distances changed. Gate 1 rows G3/G5 were proven on the Greybox map and count as
   stale until this passes. (~2-4 h)

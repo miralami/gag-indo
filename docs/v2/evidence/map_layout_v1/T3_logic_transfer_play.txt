@@ -1,0 +1,26 @@
+Map logic transfer, Studio run 2026-11-25 (place 132087524375529, Rojo synced to 1656c26).
+
+steps.anchors() in Edit:
+  pasar prompt (-87.6, 5.6, 81.8) name match pasar_diorama.PasarDiorama.Stall_R1_Counter_Wood_light
+  gelap prompt (-64.1, 5.7, 158.3) name match TengkulakGelap_v1.G_Counter.001
+  pakrt prompt (86.2, 4.6, -117.6) name match rumah_pakrt.RumahPakRT_Meja
+  polisi prompt (-80.0, 3.5, -100.6) fallback front edge
+  warung prompt (104.0, 3.5, 72.4) fallback front edge
+  ronda anchor (-147.3, 1.0, -45.0); spawn created (0, 0.5, 28)
+  npc pakrt (84.5, 0.5, -83) / tengkulak (-60, 1.8, 150) / polisi (-75.5, 0.5, -94.5)
+  10 PlotAnchors at L.PLOTS; JuraganMap tagged VillageWorld
+
+Play (Server/Client):
+  workspace.World absent (Greybox not built); MapHubGate unused
+  5 prompts tagged, Bound=true, Enabled=true, parents in JuraganMap.LogicAnchors
+  NpcSpawn 3, PlotAnchor 10, PlayerSpawn 1, RondaAnchor 1, VillageWorld 1
+  10 plot models in JuraganMap, 160 tiles; player spawned at plot 1 (150, 4.6, -213), floor Ground
+  harness: buy padi -> plant -> ready -> harvest (sack 1) -> sell pasar (cash +17, sack 0): all ok
+  harness goto gelap/pakrt/polisi/warung/ronda/pasar: player lands within 1-8 studs of each anchor
+  forced raid: kades eye (80, 11, -70) and police eye (-71, 11, -81), both outside the buildings on the door side
+  console: only the known external BUG-003 line (rbxassetid 203785492), no game-code errors
+
+Not driven: real ProximityPrompt triggers for bribe, report, warung, gelap sale (MCP cannot press E);
+G3 beat sheet and G5 timings re-run.
+Seen: the NpcFactory box rigs double the R5/R8 dressing rigs (Pak RT, police, Bang Jago on the same spot,
+shots 16-18); the Pak RT bribe prompt sits on the terrace Meja while the Pak RT NPC stands across the road.
